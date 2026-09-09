@@ -401,3 +401,7 @@ Plugin based on the [IntelliJ Platform Plugin Template][template].
 ### Converter recipes
 
 Generic converters offer persistent recipe selection, downstream type suggestions, and reusable content extraction and payload construction for FTP/SFTP, email and JMS. See [Converter recipes](docs/ConversionRecipes.md) for supported inputs, configuration, code ownership and verification.
+
+## Testing strategy
+
+See [Engine and meta-pack testing](docs/TestingEngineAndMetaPacks.md) for test ownership, engine and pack suite commands, focused tests, reports, and broader verification.

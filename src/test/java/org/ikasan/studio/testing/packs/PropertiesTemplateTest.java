@@ -1,0 +1,397 @@
+package org.ikasan.studio.testing.packs;
+
+import org.ikasan.studio.core.generator.*;
+import static org.ikasan.studio.testing.packs.PackExpectations.assertDependencies;
+
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@org.junit.jupiter.api.Tag("packs")
+public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
+
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void flowRecordingConfigurationUsesEscapedPerFlowProperties(String metaPackVersion)
+            throws StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion).metapackVersion(metaPackVersion).build();
+        flow.setName("Recorded Orders Flow");
+        flow.setPropertyValue("isRecording", true);
+        flow.setPropertyValue("recordedEventTimeToLive", 45);
+        flow.setPropertyValue("invokeContextListeners", true);
+
+        String generated = generatePropertiesTemplateString(metaPackVersion, module, List.of(flow));
+
+        assertTrue(generated.contains("ikasan.flow.configuration[Recorded\\ Orders\\ Flow].isRecording=true"));
+        assertTrue(generated.contains("ikasan.flow.configuration[Recorded\\ Orders\\ Flow].recordedEventTimeToLive=45"));
+        assertTrue(generated.contains("ikasan.flow.configuration[Recorded\\ Orders\\ Flow].invokeContextListeners=true"));
+    }
+
+    /**
+     * See also application_emptyFlow.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateProperties_emptyFlow_with_non_default_port(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        String templateString = PropertiesTemplate.create(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
+    }
+
+    /**
+     * See also application_emptyFlow.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateProperties_emptyFlow_with_use_embeddedH2(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        module.setPropertyValue("useEmbeddedH2", true);
+        String templateString = PropertiesTemplate.create(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow_useEmbeddedH2.properties"), templateString);
+    }
+
+    /**
+     * See also application_emptyFlow.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateProperties_emptyFlow_with_use_embeddedH2_null(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        module.setPropertyValue("useEmbeddedH2", null);
+        String templateString = PropertiesTemplate.create(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
+    }
+
+    /**
+     * See also application_emptyFlow.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateProperties_emptyFlow_with_use_AllflowStartupType(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        module.setPropertyValue("flowStartupType", "AUTOMATIC");
+        String templateString = PropertiesTemplate.create(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow_flowStartupType.properties"), templateString);
+    }
+
+    /**
+     * See also application_emptyFlow.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateProperties_flowsAutoStartup_for_scpecific_flows(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+
+        Flow flow1 = TestFixtures.getUnbuiltFlow(metaPackVersion)
+                .metapackVersion(metaPackVersion)
+                .build();
+        flow1.setName("flow1");
+        flow1.setPropertyValue("flowStartupType", "AUTOMATIC");
+        Flow flow2 = TestFixtures.getUnbuiltFlow(metaPackVersion)
+                .metapackVersion(metaPackVersion)
+                .build();
+        flow2.setName("flow2");
+        Flow flow3 = TestFixtures.getUnbuiltFlow(metaPackVersion)
+                .metapackVersion(metaPackVersion)
+                .build();
+        flow3.setName("flow3");
+        flow3.setPropertyValue("flowStartupType", "MANUAL");
+
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, Arrays.asList(flow1, flow2, flow3));
+
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_multipleFlows_flowStartupType.properties"), templateString);
+    }
+
+
+    /**
+     * See also application_emptyFlow.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateProperties_emptyFlow_with_use_flowStartupType_null(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        String templateString = PropertiesTemplate.create(module);
+        assertNotNull(templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, module, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_emptyFlow.properties"), templateString);
+    }
+
+    //  ------------------------------- CONSUMERS ----------------------------------
+    /**
+     * See also application_fullyPopulatedEventGeneratingConsumerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_eventGeneratingConsumer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getEventGeneratingConsumer(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedEventGeneratingConsumerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedFtpConsumerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_ftpConsumer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getFtpConsumer(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpConsumerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedLocalFileConsumerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_localFileConsumer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getLocalFileConsumer(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLocalFileConsumerComponent.properties"), templateString);
+    }
+    /**
+     * See also application_fullyPopulatedLocalFileConsumerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_localFileConsumerMandatoryOnly(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getLocalFileConsumerMandatoryOnly(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLocalFileConsumerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedScheduledConsumerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_scheduledConsumer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getScheduledConsumer(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedScheduledConsumerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedSftpConsumerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_sftpConsumer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getSftpConsumer(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpConsumerComponent.properties"), templateString);
+    }
+
+
+    /**
+     * See also application_fullyPopulatedSpringJmsConsumerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_springJmsConsumer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getSpringJmsConsumer(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSpringJmsConsumerComponent.properties"), templateString);
+    }
+
+
+    // ------------------------------------- FILTER -------------------------------------
+    /**
+     * See also application_fullyPopulatedMessageFilterComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_messageFilter(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getMessageFilter(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedMessageFilterComponent.properties"), templateString);
+    }
+
+    // ------------------------------------- CONVERTERS -------------------------------------
+    /**
+     * See also application_fullyPopulatedCustomConverterComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_customConverter(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
+        assertDependencies(module, metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedCustomConverterComponent.properties"), templateString);
+        // The Converter type contributes 1 new jar dependency (ikasan-component-converter) in both metapacks.
+        assertDependencies(module, metaPackVersion, "org.ikasan:ikasan-component-converter:compile");
+    }
+
+    /**
+     * See also application_fullyPopulatedObjectMessageToObjectConverterComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_objectMessageToObjectConverter(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getObjectMessageToObjectConverter(metaPackVersion);
+        assertDependencies(module, metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedObjectMessageToObjectConverterComponent.properties"), templateString);
+        // The Converter requires a new jar dependency
+        assertDependencies(module, metaPackVersion, "org.ikasan:ikasan-component-converter:compile");
+    }
+
+    /**
+     * See also application_fullyPopulatedObjectMessageToXmlStringConverterComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_objectMessageToXmlStringConverter(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getObjectMessageToXmlStringtConverter(metaPackVersion);
+
+        assertDependencies(module, metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedObjectMessageToXmlStringConverterComponent.properties"), templateString);
+        PackExpectations.assertXmlConverterDependencies(module, metaPackVersion);
+    }
+
+    // ------------------------------------- TRANSLATORS -------------------------------------
+    /**
+     * See also application_fullyPopulatedCustomConverterComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_customTranslator(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getCustomTranslator(metaPackVersion);
+
+        assertDependencies(module, metaPackVersion);
+
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedCustomTranslatorComponent.properties"), templateString);
+        // Unlike Converter, the Translator component type declares no jarDependencies of its own in either
+        // metapack, so the count is unchanged after generation.
+        assertDependencies(module, metaPackVersion);
+    }
+
+    // ------------------------------------- PRODUCERS -------------------------------------
+    /**
+     * See also application_fullyPopulatedDevNullProducerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_devNullProducer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getDevNullProducer(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedDevNullProducerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedEmailProducerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_emailProducer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getEmailProducer(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedEmailProducerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedFtpProducerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_ftpProducer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getFtpProducer(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedFtpProducerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedJmsProducerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_jmsProducer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getJmsProducer(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedJmsProducerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedSftpProducerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_SftpProducer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getSftpProducer(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedSftpProducerComponent.properties"), templateString);
+    }
+
+    /**
+     * See also application_fullyPopulatedLoggingProducerComponent.properties
+     * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void testCreateFlowWith_loggingProducer(String metaPackVersion) throws IOException, StudioGeneratorException, StudioBuildException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getLoggingProducer(metaPackVersion);
+        String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLoggingProducerComponent.properties"), templateString);
+    }
+}

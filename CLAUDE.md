@@ -19,10 +19,10 @@ IkasanStudio is an **IntelliJ IDEA plugin** (built with the IntelliJ Platform Gr
 ./gradlew test
 
 # Run a single test class
-./gradlew test --tests "org.ikasan.studio.core.generator.FlowTemplateTest"
+./gradlew test --tests "org.ikasan.studio.testing.packs.FlowTemplateTest"
 
 # Run a single test method
-./gradlew test --tests "org.ikasan.studio.core.generator.FlowTemplateTest.testCreateFlowWith_brokerComponent"
+./gradlew test --tests "org.ikasan.studio.testing.packs.FlowTemplateTest.testCreateFlowWith_brokerComponent"
 
 # Run tests excluding UI harness tests (used in CI)
 ./gradlew test -PexcludeHarness
@@ -68,6 +68,7 @@ The plugin is split into two top-level packages under `org.ikasan.studio`:
 ### Metapacks — Version-specific templates (`src/main/resources/studio/metapack/`)
 
 One directory per supported Ikasan version: `V3.3.8`, `V4.0.x`, `VHS3.3.x`. Each contains:
+
 - `library/` — JSON component descriptors (`component-type-meta.json`, `component-meta.json`) deserialized into `ComponentTypeMeta` / `ComponentMeta`.
 - `templates/` — FreeMarker `.ftl` files in a path mirroring the target Java package. Adding a new Ikasan version means adding a new metapack directory — no Java changes required.
 
@@ -83,15 +84,18 @@ User interaction on Canvas
 ## Key Conventions
 
 ### Naming patterns
-| Concept | Pattern | Example |
-|---|---|---|
-| View handlers | `Ikasan{Entity}ViewHandler` | `IkasanFlowViewHandler` |
-| Code generators | `{Entity}Template` | `FlowTemplate`, `ApplicationTemplate` |
-| UI panels | `{Entity}Panel` or `{Entity}Dialogue` | `ComponentPropertiesPanel` |
-| Utilities | `{Scope}Utils` | `StudioPsiUtils`, `StudioBuildUtils` |
-| Test classes | `{ClassName}Test` | `FlowTemplateTest` |
+
+
+| Concept         | Pattern                               | Example                               |
+| --------------- | ------------------------------------- | ------------------------------------- |
+| View handlers   | `Ikasan{Entity}ViewHandler`           | `IkasanFlowViewHandler`               |
+| Code generators | `{Entity}Template`                    | `FlowTemplate`, `ApplicationTemplate` |
+| UI panels       | `{Entity}Panel` or `{Entity}Dialogue` | `ComponentPropertiesPanel`            |
+| Utilities       | `{Scope}Utils`                        | `StudioPsiUtils`, `StudioBuildUtils`  |
+| Test classes    | `{ClassName}Test`                     | `FlowTemplateTest`                    |
 
 ### IntelliJ-specific rules (critical for plugin stability)
+
 - **Never let exceptions bubble up to IntelliJ** — catch, log with stack trace, and recover or abort. Uncaught exceptions cause IntelliJ to recommend disabling the plugin.
 - **Never use `@NotNull`** — these surface to users as plugin errors.
 - **Never log above `warn`** with IntelliJ's logger — `error`-level logs show stack traces directly to users.
@@ -99,12 +103,14 @@ User interaction on Canvas
 - **Logger**: Use `com.intellij.openapi.diagnostic.Logger` (not SLF4J/Log4j) for IntelliJ-facing code.
 
 ### General conventions
+
 - **Lombok** is used project-wide: `@Getter`, `@Setter`, `@Builder`, `@ToString` over hand-written boilerplate.
 - Test classes in `src/test/java` mirror `src/main/java` exactly (same package as class under test).
 - Parameterized tests use `@ParameterizedTest` + `@MethodSource` to cover multiple Ikasan versions.
 - Shared test fixtures: `TestFixtures` and `AbstractGeneratorTestFixtures`.
 
 ### UI visual testing (testHarness)
+
 - UI visual tests live in `src/testHarness/java/` and are tagged `@Tag("harness")`.
 - `PanelTestHarness` (in `org.ikasan.studio.ui.test`) provides a mock IntelliJ `Project` for testing panels without launching the full IDE.
 - Call `PanelTestHarness.cleanup()` in `@AfterAll` to dispose resources.
@@ -113,3 +119,36 @@ User interaction on Canvas
 ## CI
 
 GitHub Actions on every push/PR: compile → `test -PexcludeHarness` → Qodana scan → `verifyPlugin` → draft release artifact. See `.github/workflows/build.yml`.
+
+
+## Autonomy policy
+
+Work autonomously and carry tasks through to completion.
+
+Do not stop merely to:
+
+- report progress
+- ask whether to continue
+- ask permission for routine implementation choices
+- ask permission to run builds or tests
+- ask permission to fix compilation/test failures caused by your changes
+- ask permission to make small refactorings necessary to complete the task
+
+Continue investigating, implementing, compiling, testing and correcting
+until the requested task is complete.
+
+Ask me only when:
+
+1. A significant architectural/design decision has multiple reasonable
+   alternatives with materially different consequences.
+2. The requirement is genuinely ambiguous and choosing incorrectly could
+   result in substantial wasted work.
+3. An action would be destructive or difficult to reverse.
+4. Continuing would begin consuming paid credits/tokens after my included
+   Codex allowance has been exhausted.
+
+When a design decision is required, give me the alternatives, trade-offs
+and your recommendation in one concise question.
+
+Otherwise make the most reasonable engineering decision yourself and
+continue.

@@ -16,10 +16,10 @@ IkasanStudio is an IntelliJ IDEA plugin (target: IU 2025.3, Java 17) that provid
 ./gradlew test
 
 # Run a single test class
-./gradlew test --tests "org.ikasan.studio.core.generator.FlowTemplateTest"
+./gradlew test --tests "org.ikasan.studio.testing.packs.FlowTemplateTest"
 
 # Run a single test method
-./gradlew test --tests "org.ikasan.studio.core.generator.FlowTemplateTest.testCreateFlowWith_brokerComponent"
+./gradlew test --tests "org.ikasan.studio.testing.packs.FlowTemplateTest.testCreateFlowWith_brokerComponent"
 
 # Run tests excluding UI harness tests (used in CI)
 ./gradlew test -PexcludeHarness

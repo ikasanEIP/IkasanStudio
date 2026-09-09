@@ -9,7 +9,6 @@ import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
 import org.ikasan.studio.core.metapack.model.*;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
 /**
@@ -19,25 +18,12 @@ import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
  */
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
-    public static final String META_IKASAN_PACK_3_3_9 = "V3.3.9";
-    public static final String META_IKASAN_PACK_4_1_6 = "V4.1.6";
+    public static final String META_IKASAN_PACK_3_3_9 = org.ikasan.studio.testing.packs.PackExpectations.META_IKASAN_PACK_3_3_9;
+    public static final String META_IKASAN_PACK_4_1_6 = org.ikasan.studio.testing.packs.PackExpectations.META_IKASAN_PACK_4_1_6;
 
     // For many tests, the actual meta pack to use is less critical, this is where we are testing functionality
     // that is not specific to a particular meta pack version. By default, the oldest supported meta pack is used.
     public static final String BASE_META_PACK = META_IKASAN_PACK_3_3_9;
-    public static Stream<String> metaPacksToTest() {
-        return Stream.of(META_IKASAN_PACK_3_3_9, META_IKASAN_PACK_4_1_6);
-    }
-
-    /** Explicit expectations: a new pack needs a reviewed namespace rather than inheriting V4 assumptions. */
-    public static String enterpriseNamespace(String metaPackVersion) {
-        return switch (metaPackVersion) {
-            case META_IKASAN_PACK_3_3_9 -> "javax";
-            case META_IKASAN_PACK_4_1_6 -> "jakarta";
-            default -> throw new IllegalArgumentException("No test namespace defined for " + metaPackVersion);
-        };
-    }
-
     public static final String TEST_FLOW_NAME = "MyFlow1";
     public static final String TEST_FLOW_DESCRIPTION = "MyFlowDescription";
     public static final String TEST_CRON_EXPRESSION = "0 0/1 * * * ?";
@@ -425,7 +411,7 @@ public class TestFixtures {
 
     // ------------------------- ExceptionResolver -------------------------
     public static ExceptionResolution getTestJMSExceptionResolution(String metaPackVersion) throws StudioBuildException {
-        String jmsExceptionClass = enterpriseNamespace(metaPackVersion) + ".jms.JMSException.class";
+        String jmsExceptionClass = org.ikasan.studio.testing.packs.PackExpectations.enterpriseNamespace(metaPackVersion) + ".jms.JMSException.class";
         return ExceptionResolution.exceptionResolutionBuilder()
                 .metapackVersion(metaPackVersion)
                 .exceptionsCaught(jmsExceptionClass)
@@ -435,7 +421,7 @@ public class TestFixtures {
     }
 
     public static ExceptionResolution getTestResourceExceptionResolution(String metaPackVersion) throws StudioBuildException {
-        String resourceExceptionClass = enterpriseNamespace(metaPackVersion) + ".resource.ResourceException.class";
+        String resourceExceptionClass = org.ikasan.studio.testing.packs.PackExpectations.enterpriseNamespace(metaPackVersion) + ".resource.ResourceException.class";
         return ExceptionResolution.exceptionResolutionBuilder()
                 .metapackVersion(metaPackVersion)
                 .exceptionsCaught(resourceExceptionClass)

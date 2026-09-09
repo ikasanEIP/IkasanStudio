@@ -1,0 +1,1 @@
+${statics["java.lang.Integer"].parseInt(value)?c}

@@ -256,7 +256,13 @@ tasks {
     // Standard test task — only scans src/test/java output. PanelHarnessTest is in
     // src/testHarness/java so it is never on this task's classpath and never runs here.
     test {
-        useJUnitPlatform()
+        val suite = providers.gradleProperty("studioTestSuite").orElse("all").get()
+        require(suite in setOf("all", "engine", "packs")) {
+            "studioTestSuite must be all, engine, or packs"
+        }
+        useJUnitPlatform {
+            if (suite != "all") includeTags(suite)
+        }
     }
 
     compileJava {
