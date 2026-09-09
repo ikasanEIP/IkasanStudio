@@ -119,6 +119,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6.3.0
 
+      # Explicitly prove the engine/test kit builds without configuring the IntelliJ plugin.
+      - name: Run Headless Tests
+        run: ./gradlew -p headless test
+
       # Run tests
       - name: Run Tests
         run: ./gradlew check
@@ -129,7 +133,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: tests-result
-          path: ${{ github.workspace }}/build/reports/tests
+          path: |
+            ${{ github.workspace }}/build/reports/tests
+            ${{ github.workspace }}/headless/*/build/reports/tests
 
 #      # Upload the Kover report to CodeCov
 #      - name: Upload Code Coverage Report

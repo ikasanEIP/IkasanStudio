@@ -32,7 +32,7 @@ class ArchitectureBoundaryTest {
     @SuppressWarnings("UseOptimizedEelFunctions")
     @Test
     void coreMetapackLoadingDoesNotDependOnIntellijOrSwing() throws Exception {
-        Path root = Path.of("src/main/java/org/ikasan/studio/core/metapack/loading");
+        Path root = Path.of("headless/studio-generator/src/main/java/org/ikasan/studio/core/metapack/loading");
         try (var files = Files.walk(root)) {
             for (Path source : files.filter(path -> path.toString().endsWith(".java")).toList()) {
                 String text = Files.readString(source);

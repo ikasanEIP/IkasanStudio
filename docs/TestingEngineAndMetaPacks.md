@@ -4,7 +4,7 @@
 
 Meta-packs should eventually support independent releases, custom components and different Ikasan implementations. Shared testing code is expected: the intended boundary is a versioned, reusable engine/test kit, rather than a dependency on an IntelliJ plugin source checkout.
 
-The current separation makes that boundary explicit without changing production packaging. Engine tests establish reusable behaviour; pack tests establish the contracts of particular releases. Keeping those responsibilities separate prevents a passing V3 test from being treated as evidence of V4 compatibility.
+The current separation makes that boundary explicit. The [headless build](../headless/README.md) now compiles the shared core and exposes a reusable test kit independently of IntelliJ. Engine tests establish reusable behaviour; pack tests establish the contracts of particular releases. Keeping those responsibilities separate prevents a passing V3 test from being treated as evidence of V4 compatibility.
 
 The generator and metadata tests have two owners under `src/test/java/org/ikasan/studio/testing/`.
 
@@ -25,7 +25,7 @@ Run the suites with the standard IntelliJ-configured Gradle test task:
 ./gradlew test
 ```
 
-The default remains the complete suite, including model, persistence, UI and integration tests elsewhere in `src/test/java`. The selectors run only the tagged suite, not every test under `core`. They do not imply that the build has become independent of the IntelliJ SDK; publishing a headless engine/test kit is a separate extraction step.
+The default remains the complete suite, including model, persistence, UI and integration tests elsewhere in `src/test/java`. The selectors run only the tagged suite, not every test under `core`. These root commands retain the IntelliJ test setup. To run without configuring IntelliJ, use the standalone headless commands below.
 
 ## Where a new test belongs
 
@@ -91,6 +91,18 @@ For complete validation, omit `studioTestSuite` and `--tests` filters: `validate
 4. When adding a pack, review its entry in `PackExpectations`, provide versioned expected files, and add assertions for meaningful differences such as Java namespaces, dependency coordinates and scopes. Counts alone cannot establish dependency correctness.
 5. When adding tests, apply `@Tag("engine")` or `@Tag("packs")` to the appropriate class. A new untagged test will run in the full suite but will be absent from both selected suites.
 
-## Future extraction
+## Headless generator and reusable test kit
 
-The next architectural step is to publish the headless generator and shared pack contract tests as versioned artifacts. A separately released pack could then run those tests from its own Maven or Gradle build. Certification should additionally compile generated projects against the exact target BOM and run representative startup/integration checks. Those capabilities are not implemented by the suite split described here.
+The [headless build guide](../headless/README.md) documents module ownership, artifacts, consumer dependencies, publication options and examples of extending the shared contract.
+
+```sh
+./gradlew -p headless test
+./gradlew -p headless :studio-generator:test
+./gradlew -p headless :studio-bundled-packs:test
+./gradlew -p headless :studio-test-kit:test
+./gradlew -p headless build
+```
+
+The three test tasks cover the engine, official packs, and consumption of packaged JARs respectively. They run on plain Java 17, without IntelliJ. Reports are separate under `headless/<module>/build/reports/tests/test/`. Root `check` also includes the headless checks.
+
+Independent binary/source JARs and Maven publication metadata are now available within this repository. Remote publication is not configured or automatic. Certification by compiling and starting generated applications remains subsequent work; a passing rendering contract is not a substitute for it.

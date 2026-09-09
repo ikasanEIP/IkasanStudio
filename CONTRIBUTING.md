@@ -42,7 +42,7 @@ The first Gradle run downloads IntelliJ Platform and project dependencies and ca
 
 ## Project structure
 
-- `src/main/java/org/ikasan/studio/core/` contains framework-independent model, JSON, metadata, and generation logic.
+- `headless/studio-generator/src/main/java/org/ikasan/studio/core/` contains framework-independent model, JSON, metadata, and generation logic.
 - `src/main/java/org/ikasan/studio/ui/` contains IntelliJ integration and Swing UI code.
 - `src/main/resources/studio/metapack/` contains version-specific component metadata, icons, and FreeMarker templates.
 - `ikasan-studio-ancillary/` contains the Maven archetype and IDE mediator projects.

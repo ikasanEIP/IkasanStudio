@@ -3,3 +3,5 @@ plugins {
 }
 
 rootProject.name = "ikasanstudio"
+
+includeBuild("headless") { name = "studio-headless" }

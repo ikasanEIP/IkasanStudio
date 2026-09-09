@@ -119,3 +119,6 @@ settings.gradle.kts
 
 # Dependency caches
 .m2/
+
+# The standalone headless build settings are shared build configuration.
+!headless/settings.gradle.kts

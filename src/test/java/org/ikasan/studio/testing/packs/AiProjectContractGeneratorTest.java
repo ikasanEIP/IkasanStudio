@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AiProjectContractGeneratorTest {
     @Test
     void catalogueIsDerivedFromEveryShippedMetapack() throws Exception {
-        for (String version : ComponentLibrary.getMetapackList()) {
+        for (String version : PackExpectations.metaPacksToTest().toList()) {
             JsonNode catalogue = StudioJson.newObjectMapper()
                     .readTree(AiProjectContractGenerator.componentCatalogue(version));
 

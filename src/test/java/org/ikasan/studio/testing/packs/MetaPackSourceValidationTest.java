@@ -11,14 +11,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class MetaPackSourceValidationTest {
     @Test
     void everyShippedPackPassesStructuralAndReferentialValidation() {
-        for (String pack : ComponentLibrary.getMetapackList()) {
+        for (String pack : PackExpectations.metaPacksToTest().toList()) {
             assertDoesNotThrow(() -> ComponentLibrary.refreshComponentLibrary(pack), pack);
         }
     }
 
     @Test
     void fileTransferConsumersDeclareTheirSyntheticPayloadAdapter() throws StudioBuildException {
-        for (String pack : ComponentLibrary.getMetapackList()) {
+        for (String pack : PackExpectations.metaPacksToTest().toList()) {
             assertEquals("ikasan-file-transfer-payload",
                     ComponentLibrary.getIkasanComponentByKey(pack, "FTP Consumer").getTestPayloadAdapter(), pack);
             assertEquals("ikasan-file-transfer-payload",

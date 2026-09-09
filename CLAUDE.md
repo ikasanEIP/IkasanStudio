@@ -47,7 +47,7 @@ IkasanStudio is an **IntelliJ IDEA plugin** (built with the IntelliJ Platform Gr
 
 The plugin is split into two top-level packages under `org.ikasan.studio`:
 
-### `core` — Framework-independent business logic (`src/main/java/org/ikasan/studio/core/`)
+### `core` — Framework-independent business logic (`headless/studio-generator/src/main/java/org/ikasan/studio/core/`)
 
 - **`core.model.ikasan.instance`** — Runtime domain objects: `Module`, `Flow`, `FlowElement`, `FlowRoute`, `ExceptionResolver`, `ComponentProperty`. These are what get persisted to `model.json` and shown on the canvas.
 - **`core.model.ikasan.meta`** — Metadata/schema for each component type. `IkasanComponentLibrary` is the singleton registry. `ComponentMeta` → `ComponentTypeMeta` → `ComponentPropertyMeta` form the hierarchy.
@@ -129,6 +129,7 @@ Do not stop merely to:
 
 - report progress
 - ask whether to continue
+- ask whether to run a python or python3 command or gradle or gradlew task
 - ask permission for routine implementation choices
 - ask permission to run builds or tests
 - ask permission to fix compilation/test failures caused by your changes
@@ -139,13 +140,11 @@ until the requested task is complete.
 
 Ask me only when:
 
-1. A significant architectural/design decision has multiple reasonable
-   alternatives with materially different consequences.
-2. The requirement is genuinely ambiguous and choosing incorrectly could
-   result in substantial wasted work.
+1. A significant architectural/design decision has multiple reasonable alternatives with materially different consequences.
+2. The requirement is genuinely ambiguous and choosing incorrectly could result in substantial wasted work.
 3. An action would be destructive or difficult to reverse.
-4. Continuing would begin consuming paid credits/tokens after my included
-   Codex allowance has been exhausted.
+4. Continuing would begin consuming paid credits/tokens after my included Codex allowance has been exhausted.
+5. You need access outside the existing directory hierarchy you have already been given.
 
 When a design decision is required, give me the alternatives, trade-offs
 and your recommendation in one concise question.

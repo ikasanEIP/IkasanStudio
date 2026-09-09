@@ -13,7 +13,7 @@ class LayerBoundaryTest {
     @Test
     void coreAndIntegrationDoNotDependOnPlatformOrUiLayers() throws Exception {
         assertSourcesDoNotContain(
-                List.of(Path.of("src/main/java/org/ikasan/studio/core"),
+                List.of(Path.of("headless/studio-generator/src/main/java/org/ikasan/studio/core"),
                         Path.of("src/main/java/org/ikasan/studio/integration")),
                 "import com.intellij", "import org.ikasan.studio.ui",
                 "import org.ikasan.studio.intellij");
@@ -22,15 +22,15 @@ class LayerBoundaryTest {
     @Test
     void domainModelDoesNotDependOnPersistenceAdapters() throws Exception {
         assertSourcesDoNotContain(
-                List.of(Path.of("src/main/java/org/ikasan/studio/core/model")),
+                List.of(Path.of("headless/studio-generator/src/main/java/org/ikasan/studio/core/model")),
                 "import org.ikasan.studio.core.persistence");
     }
 
     @Test
     void removedLegacyPackagesStayRemoved() {
         assertThat(Path.of("src/main/java/org/ikasan/studio/ui/intellij")).doesNotExist();
-        assertThat(Path.of("src/main/java/org/ikasan/studio/core/model/ikasan/meta")).doesNotExist();
-        assertThat(Path.of("src/main/java/org/ikasan/studio/core/model/ikasan/instance/serialization"))
+        assertThat(Path.of("headless/studio-generator/src/main/java/org/ikasan/studio/core/model/ikasan/meta")).doesNotExist();
+        assertThat(Path.of("headless/studio-generator/src/main/java/org/ikasan/studio/core/model/ikasan/instance/serialization"))
                 .doesNotExist();
     }
 

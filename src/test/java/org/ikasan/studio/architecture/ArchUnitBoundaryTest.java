@@ -24,7 +24,8 @@ class ArchUnitBoundaryTest {
     @BeforeAll
     static void importProductionClasses() {
         productionClasses = new ClassFileImporter()
-                .importPath(Path.of("build/classes/java/main"));
+                .importPaths(Path.of("build/classes/java/main"),
+                        Path.of("headless/studio-generator/build/classes/java/main"));
     }
 
     @Test

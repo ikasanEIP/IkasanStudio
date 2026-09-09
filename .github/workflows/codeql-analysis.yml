@@ -103,7 +103,7 @@ jobs:
     - name: Compile Java for CodeQL
       if: matrix.build-mode == 'manual'
       shell: bash
-      run: ./gradlew clean compileJava --no-daemon
+      run: ./gradlew clean compileJava --rerun-tasks --no-daemon
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4

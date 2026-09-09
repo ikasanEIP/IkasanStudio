@@ -56,6 +56,9 @@ repositories {
 
 // Dependencies are managed with Gradle version catalog - read more: https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog
 dependencies {
+    implementation("org.ikasan.studio:studio-generator:0.1.0-SNAPSHOT")
+    implementation("org.ikasan.studio:studio-bundled-packs:0.1.0-SNAPSHOT")
+    testImplementation("org.ikasan.studio:studio-test-kit:0.1.0-SNAPSHOT")
     testImplementation(libs.junit)
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -109,6 +112,9 @@ dependencies {
 // IntelliJ IDEA associates right-click → Run with :runHarness because that task
 // declares testClassesDirs pointing at this source set's output directories.
 sourceSets {
+    main {
+        resources.exclude("studio/metapack/**")
+    }
     create("testHarness") {
         java.srcDir("src/testHarness/java")
         // Needs main output (production UI/core classes), test output (TestFixtures, etc.),
@@ -121,6 +127,9 @@ sourceSets {
 
 // Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
+    providers.gradleProperty("studioSandboxDirectory").orNull?.let {
+        sandboxContainer.set(layout.projectDirectory.dir(it))
+    }
     pluginConfiguration {
         name = providers.gradleProperty("pluginName")
         version = providers.gradleProperty("pluginVersion")
@@ -190,6 +199,7 @@ changelog {
 
 tasks {
     val verifyMetaPackBoms = register("verifyMetaPackBoms") {
+        notCompatibleWithConfigurationCache("Resolves detached configurations through Project at execution time")
         group = "verification"
         description = "Verifies that every BOM declared by a packaged meta-pack resolves independently."
         inputs.property("coordinates", metaPackBomCoordinates)
@@ -206,6 +216,7 @@ tasks {
     }
 
     val verifyMetaPackHelpUrls = register("verifyMetaPackHelpUrls") {
+        notCompatibleWithConfigurationCache("HTTP verification action captures build-script resource inputs")
         group = "verification"
         description = "Verifies that HTTPS help URLs declared by packaged meta-packs are reachable."
         inputs.property("urls", metaPackHelpUrls)
@@ -243,6 +254,9 @@ tasks {
     }
 
     check {
+        dependsOn(gradle.includedBuild("studio-headless").task(":studio-generator:check"),
+            gradle.includedBuild("studio-headless").task(":studio-test-kit:check"),
+            gradle.includedBuild("studio-headless").task(":studio-bundled-packs:check"))
         dependsOn(validateMetaPacks)
     }
     wrapper {
