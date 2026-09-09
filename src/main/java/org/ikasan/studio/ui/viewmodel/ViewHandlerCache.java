@@ -105,7 +105,7 @@ public final class ViewHandlerCache {
         AbstractViewHandlerIntellij handler = cache.getOrCreate(component);
         if (!expectedType.isInstance(handler)) {
             if (handler != null) {
-                LOG.error("STUDIO: Unexpected view handler type " + handler.getClass().getName()
+                LOG.warn("STUDIO: Unexpected view handler type " + handler.getClass().getName()
                         + " for component type " + component.getClass().getName());
             }
             return null;

@@ -35,7 +35,7 @@ public class Flow extends BasicElement {
      */
     public Flow() throws StudioBuildException {
         super (ComponentLibrary.getFLowComponentMeta(ComponentLibrary.DEFAULT_IKASAN_PACK), null);
-        LOG.error("STUDIO: Parameterless version of flow called");
+        LOG.warn("STUDIO: Parameterless version of flow called");
     }
 
     public Flow(String metapackVersion) throws StudioBuildException {

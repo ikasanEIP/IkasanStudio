@@ -96,14 +96,16 @@ public abstract class AbstractViewHandlerIntellij {
 
     public void setLeftX(int leftX) {
         if (leftX < -10) {
-            LOG.error("STUDIO: Left X being set to a -ve of " + leftX);
+            // warn (not error): IntelliJ renders error-level logs directly to the user with a "disable the
+            // plugin" suggestion - a transient negative layout coordinate during regeneration is recoverable.
+            LOG.warn("STUDIO: Left X being set to a -ve of " + leftX);
         }
         this.leftX = leftX;
     }
 
     public void setWidth(int width) {
         if (width < -10) {
-            LOG.error("STUDIO: width being set to a -ve of " + width);
+            LOG.warn("STUDIO: width being set to a -ve of " + width);
         }
 
         this.width = width;
@@ -111,7 +113,7 @@ public abstract class AbstractViewHandlerIntellij {
 
     public void setHeight(int height) {
         if (height < 0) {
-            LOG.error("STUDIO: Height less than 0") ;
+            LOG.warn("STUDIO: Height less than 0") ;
         }
         this.height = height;
     }

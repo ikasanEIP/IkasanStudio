@@ -24,6 +24,17 @@ class ComponentIOFailureTest {
     }
 
     @Test
+    void importAcceptsLeadingBomWithoutChangingModelContent() throws Exception {
+        Module original = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK,
+                Collections.singletonList(TestFixtures.getExceptionResolverFlow(BASE_META_PACK)));
+        String json = ComponentIO.toValidatedModuleJson(original);
+        Module imported = ComponentIO.validatePersistedModuleJson("\uFEFF" + json, "BOM model.json", false);
+        Module withoutBom = ComponentIO.validatePersistedModuleJson(json, "plain model.json", false);
+        org.junit.jupiter.api.Assertions.assertEquals(ComponentIO.toValidatedModuleJson(withoutBom),
+                ComponentIO.toValidatedModuleJson(imported));
+    }
+
+    @Test
     void serializationFailureThrowsInsteadOfReturningWritableSentinelText() throws Exception {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK,
                 Collections.singletonList(TestFixtures.getExceptionResolverFlow(BASE_META_PACK)));

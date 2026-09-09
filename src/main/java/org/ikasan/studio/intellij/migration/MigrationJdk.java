@@ -13,11 +13,11 @@ import org.jetbrains.idea.maven.execution.MavenRunner;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.project.MavenWorkspaceSettingsComponent;
 
-/** IDE settings change only after the reviewed migration files have been committed. */
-final class MigrationJdk {
+/** IDE settings change only after the reviewed migration files have been committed. Also reused by model.json import. */
+public final class MigrationJdk {
     private MigrationJdk() { }
 
-    static boolean matches(Sdk sdk, int required) {
+    public static boolean matches(Sdk sdk, int required) {
         if (sdk == null || !(sdk.getSdkType() instanceof JavaSdk)) return false;
         String versionString = sdk.getVersionString();
         var version = versionString == null ? null : com.intellij.util.lang.JavaVersion.tryParse(versionString);
@@ -28,7 +28,7 @@ final class MigrationJdk {
         return "org.ikasan.studio.boot.Application".equals(mainClass);
     }
 
-    static void apply(Project project, Sdk sdk, int required) {
+    public static void apply(Project project, Sdk sdk, int required) {
         if (!matches(sdk, required)) throw new IllegalStateException(StudioBundle.message("message.SelectAnInstalledJdk", required));
         WriteAction.run(() -> {
             ProjectRootManager.getInstance(project).setProjectSdk(sdk);

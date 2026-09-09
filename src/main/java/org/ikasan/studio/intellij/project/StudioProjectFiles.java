@@ -1,35 +1,22 @@
 package org.ikasan.studio.intellij.project;
 
-import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
-
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.UndoUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileSaverDescriptor;
-import com.intellij.openapi.fileChooser.FileSaverDialog;
+import com.intellij.openapi.fileChooser.*;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.openapi.vfs.*;
+import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
@@ -41,42 +28,40 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
-import org.ikasan.studio.core.persistence.json.ProtectedModelFileWriter;
-import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.ikasan.studio.core.model.command.UserClassReference;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.ProtectedModelFileWriter;
+import org.ikasan.studio.intellij.navigation.NavigationTarget;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.intellij.navigation.NavigationTarget;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
+import java.awt.*;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 
 import static org.ikasan.studio.core.maven.IkasanPomModel.MAVEN_COMPILER_SOURCE;
 import static org.ikasan.studio.core.maven.IkasanPomModel.MAVEN_COMPILER_TARGET;
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.APPLICATION_PACKAGE_NAME;
 import static org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
 
-
 public class StudioProjectFiles {
     private static final Logger LOG = Logger.getInstance("#StudioProjectFiles");
-//    public static final String TEMP_CONTENT_ROOT = "temp://";
     public static final String GENERATED_CONTENT_ROOT = "/generated";
     public static final String USER_CONTENT_ROOT = "/user";
     public static final String MAIN_JAVA = "main/java";
@@ -582,15 +567,9 @@ public class StudioProjectFiles {
     }
 
     /**
-     * Reads a VirtualFile's raw bytes via its input stream rather than {@link VirtualFile#contentsToByteArray()},
-     * which - for XML-like file types such as pom.xml - can trigger charset/BOM detection
-     * (LoadTextUtil.detectCharsetAndSetBOM) that needs a project lookup through the workspace file index. That
-     * lookup is disallowed synchronously on the EDT (see SlowOperations.assertSlowOperationsAreAllowed), and
-     * writeContentAndFormat() runs inside a CommandProcessor.executeCommand block on the EDT - these callers
-     * only ever need raw bytes for hashing/diffing, never decoded text, so getInputStream() avoids that
-     * machinery while still going through the VirtualFile API (unlike java.nio.file, this keeps working under
-     * IntelliJ's Eel abstraction for a remote/WSL/Docker project - see chooseFileAndReadText's own comment on
-     * the same tradeoff).
+     * Reads raw bytes without IntelliJ charset/BOM detection. Hashing and Base64 callers preserve the bytes;
+     * text callers explicitly decode UTF-8. Model validation handles a leading BOM in decoded or pasted JSON.
+     * File chooser reads run off the EDT and retain VirtualFile support for remote environments.
      */
     private static byte[] readBytes(VirtualFile file) throws IOException {
         try (InputStream in = file.getInputStream()) {
@@ -629,7 +608,7 @@ public class StudioProjectFiles {
                     if (componentViewHandler != null) {
                         PsiFile existingPsiFile = PsiManager.getInstance(project).findFile(file);
                         if (existingPsiFile != null) {
-                            componentViewHandler.setCodeNavigationTarget(NavigationTarget.forFile(existingPsiFile));
+                            setCodeNavigationTargetAsync(componentViewHandler, existingPsiFile);
                         }
                     }
                     return;
@@ -647,9 +626,20 @@ public class StudioProjectFiles {
                     // Save the document to persist changes to the VirtualFile
                     documentManager.saveDocument(document);
                 } else {
-                    // File is not open in the editor; update the VirtualFile directly
+                    // File is not open in the editor; update the VirtualFile directly. Java sources are
+                    // formatted first via an in-memory PSI file - formatting the real file here would require
+                    // creating its document/PSI through the workspace file index, which is a prohibited slow
+                    // operation on the EDT (SlowOperations).
+                    String vfsContent = fileContent;
+                    if (file.getName().endsWith(".java")) {
+                        String formatted = formatGeneratedJavaText(project, file.getName(), documentContent);
+                        vfsContent = fileContent.contains("\r\n")
+                                ? com.intellij.openapi.util.text.StringUtil.convertLineSeparators(formatted, "\r\n")
+                                : formatted;
+                    }
+                    String contentToWrite = vfsContent;
                     WriteAction.run(() -> {
-                        file.setBinaryContent(fileContent.getBytes(StandardCharsets.UTF_8));
+                        file.setBinaryContent(contentToWrite.getBytes(StandardCharsets.UTF_8));
                         file.refresh(false, false); // Refresh the file after modification
                     });
                 }
@@ -657,50 +647,109 @@ public class StudioProjectFiles {
                 GeneratedContentFingerprint fingerprint = new GeneratedContentFingerprint(
                         contentHash(fileContent.getBytes(StandardCharsets.UTF_8)), contentHash(readBytes(file)));
                 file.putUserData(GENERATED_CONTENT, fingerprint);
-                PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-
-                DumbService.getInstance(project).runWhenSmart(() -> {
-                    if (!project.isDisposed() && file.isValid() && psiFile != null && psiFile.isValid() && psiFile.isWritable()) {
-                        // Only Java sources get shortenClassReferences/reformat - other generated file types
-                        // (model.json, pom.xml, application.properties) are emitted by their own templates
-                        // already in their final desired form (e.g. model.json's compact single-line JSON) and
-                        // must not be silently reformatted.
-                        if (file.getName().endsWith(".java")) {
-                            Document psiDocument = PsiDocumentManager.getInstance(project).getDocument(psiFile);
-                            runGeneratedDocumentWriteCommand(project, psiDocument, () -> {
-                                JavaCodeStyleManager.getInstance(project).shortenClassReferences(psiFile);
-                                CodeStyleManager.getInstance(project).reformat(psiFile);
-                            });
-                            // shortenClassReferences()/reformat() above mutate the in-memory Document (e.g.
-                            // rewriting fully-qualified names to short names + import statements), but that
-                            // mutation was never itself persisted - only the earlier raw setText()/saveDocument()
-                            // was. Without this, the VirtualFile on disk permanently disagrees with what IntelliJ
-                            // holds in memory, surfacing later (whenever anything else next touches the file) as
-                            // a "File Cache Conflict" popup asking the user to reconcile changes Studio itself
-                            // made to both sides.
-                            if (psiDocument != null) {
-                                PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(psiDocument);
-                                documentManager.saveDocument(psiDocument);
-                            }
-                        }
-                        if (file.getUserData(GENERATED_CONTENT) == fingerprint) {
+                // Resolve current PSI in the background, rather than retaining a file across indexing.
+                // finishOnUiThread delivers the result without an intervening write action; expire obsolete
+                // generations as well so a queued format never modifies a newer generated document.
+                ReadAction.nonBlocking(() -> {
+                    if (!file.isValid()) return (PsiFile) null;
+                    PsiFile current = PsiManager.getInstance(project).findFile(file);
+                    return current != null && current.isValid() && current.isWritable() ? current : null;
+                }).inSmartMode(project)
+                        .expireWith(project.getService(StudioProjectInitialisationService.class))
+                        .expireWhen(() -> file.getUserData(GENERATED_CONTENT) != fingerprint)
+                        .finishOnUiThread(ModalityState.nonModal(), psiFile -> {
+                            if (project.isDisposed() || !file.isValid() || psiFile == null
+                                    || file.getUserData(GENERATED_CONTENT) != fingerprint) return;
                             try {
-                                file.putUserData(GENERATED_CONTENT, new GeneratedContentFingerprint(
-                                        fingerprint.rendered(), contentHash(readBytes(file))));
-                            } catch (IOException failure) {
+                                if (file.getName().endsWith(".java") && document != null) {
+                                    formatGeneratedJavaFile(project, psiFile, document, documentManager);
+                                }
+                                updateGeneratedContentFingerprint(file, fingerprint);
+                                if (componentViewHandler != null) {
+                                    setCodeNavigationTargetAsync(componentViewHandler, psiFile);
+                                }
+                            } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+                                throw cancelled;
+                            } catch (RuntimeException failure) {
                                 file.putUserData(GENERATED_CONTENT, null);
-                                throw new StudioRuntimeException("Could not verify generated file " + file.getPath(), failure);
+                                LOG.warn("STUDIO: Could not format generated file " + file.getPath(), failure);
+                                org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage(project,
+                                        "Could not finish formatting generated file " + file.getName() + ". " + failure.getMessage());
                             }
-                        }
-                        if (componentViewHandler != null) {
-                            componentViewHandler.setCodeNavigationTarget(NavigationTarget.forFile(psiFile));
-                        }
-                    }
-                });
+                        }).submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
+
             }
         } catch (IOException e) {
             LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.FILE_WRITE_FAILED, e, null, null, null));
             throw new StudioRuntimeException("Failed to write or format the file", e);
+        }
+    }
+
+    /**
+     * Formats generated Java in-place using a document that is already cached (the file is open in an editor), so
+     * no PSI/document creation through the workspace file index is needed and this is safe on the EDT.
+     */
+    private static void formatGeneratedJavaFile(Project project, PsiFile psiFile, Document document,
+                                                FileDocumentManager documentManager) {
+        runGeneratedDocumentWriteCommand(project, document, () -> {
+            JavaCodeStyleManager.getInstance(project).shortenClassReferences(psiFile);
+            CodeStyleManager.getInstance(project).reformat(psiFile);
+        });
+        // shortenClassReferences()/reformat() above mutate the in-memory Document (e.g. rewriting
+        // fully-qualified names to short names + import statements), but that mutation was never itself
+        // persisted - only the earlier raw setText()/saveDocument() was. Without this, the VirtualFile on disk
+        // permanently disagrees with what IntelliJ holds in memory, surfacing later (whenever anything else next
+        // touches the file) as a "File Cache Conflict" popup asking the user to reconcile changes Studio itself
+        // made to both sides.
+        ApplicationManager.getApplication().runWriteAction(() -> {
+            PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(document);
+            documentManager.saveDocument(document);
+        });
+    }
+
+    /**
+     * Formats generated Java source without touching the workspace file index. The formatted text is produced
+     * from an in-memory PSI file (PsiFileFactory), so a closed file's real document/PSI never has to be created
+     * on the EDT - obtaining those goes through WorkspaceFileIndexDataImpl, which is a prohibited slow operation
+     * there (SlowOperations). Non-Java content is returned unchanged.
+     */
+    private static String formatGeneratedJavaText(Project project, String fileName, String content) {
+        if (!fileName.endsWith(".java")) {
+            return content;
+        }
+        PsiFile inMemoryFile = PsiFileFactory.getInstance(project)
+                .createFileFromText(fileName, JavaFileType.INSTANCE, content);
+        return WriteAction.compute(() -> {
+            JavaCodeStyleManager.getInstance(project).shortenClassReferences(inMemoryFile);
+            CodeStyleManager.getInstance(project).reformat(inMemoryFile);
+            return inMemoryFile.getText();
+        });
+    }
+
+    /**
+     * Resolves a generated file's code-navigation target on a background read action. NavigationTarget.forFile
+     * calls PsiJavaFile.getClasses(), which for a freshly written Java file loads stub/index data through the
+     * workspace file index. Publish the target on the EDT, where the view handler is used, and expire pending
+     * work with the project's initialization service.
+     */
+    private static void setCodeNavigationTargetAsync(AbstractViewHandlerIntellij componentViewHandler, PsiFile psiFile) {
+        Project project = psiFile.getProject();
+        ReadAction.nonBlocking(() -> psiFile.isValid() ? NavigationTarget.forFile(psiFile) : NavigationTarget.none())
+                .inSmartMode(project)
+                .expireWith(project.getService(StudioProjectInitialisationService.class))
+                .finishOnUiThread(ModalityState.nonModal(), componentViewHandler::setCodeNavigationTarget)
+                .submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
+    }
+
+    private static void updateGeneratedContentFingerprint(VirtualFile file, GeneratedContentFingerprint fingerprint) {
+        if (file.getUserData(GENERATED_CONTENT) == fingerprint) {
+            try {
+                file.putUserData(GENERATED_CONTENT, new GeneratedContentFingerprint(
+                        fingerprint.rendered(), contentHash(readBytes(file))));
+            } catch (IOException failure) {
+                file.putUserData(GENERATED_CONTENT, null);
+                throw new StudioRuntimeException("Could not verify generated file " + file.getPath(), failure);
+            }
         }
     }
 
@@ -980,35 +1029,52 @@ public class StudioProjectFiles {
      * @param callback receives the chosen file's name/content, never called on cancel
      */
     public static void chooseFileAndEncodeBase64(Project project, FileChooserDescriptor descriptor, Consumer<ChosenFileContent> callback) {
-        FileChooser.chooseFile(descriptor, project, null, virtualFile -> {
-            try {
-                String base64Content = Base64.getEncoder().encodeToString(virtualFile.contentsToByteArray());
-                callback.consume(new ChosenFileContent(virtualFile.getName(), base64Content));
-            } catch (IOException ee) {
-                LOG.warn("STUDIO: WARN: Unable to read chosen file " + virtualFile.getPath() + " exception was " + ee.getMessage());
-            }
-        });
+        openChooserWarmed(project, activeWindowOrNull(), (parent, toSelect) ->
+                FileChooser.chooseFile(descriptor, project, parent, toSelect, virtualFile -> {
+                    ModalityState modality = ModalityState.current();
+                    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+                        try {
+                            ChosenFileContent result = new ChosenFileContent(virtualFile.getName(),
+                                    Base64.getEncoder().encodeToString(readBytes(virtualFile)));
+                            ApplicationManager.getApplication().invokeLater(() -> {
+                                if (!project.isDisposed()) callback.consume(result);
+                            }, modality);
+                        } catch (IOException failure) {
+                            LOG.warn("STUDIO: Unable to read chosen file " + virtualFile.getPath(), failure);
+                        }
+                    });
+                }));
     }
 
-    /** Result of {@link #chooseFileAndReadText} - exactly one of the two fields is non-null. */
-    public record TextFileReadResult(String content, String errorMessage) {}
+    /** Result of {@link #chooseFileAndReadText} - on success path+content are set, on failure only errorMessage. */
+    public record TextFileReadResult(String path, String content, String errorMessage) {}
 
     /**
      * Shows an async file-choose dialog and hands back the chosen file's text content (decoded as UTF-8 via
      * the VirtualFile's own API rather than java.nio.file, so this also works when the file lives on a
      * remote/WSL/Docker dev environment - IntelliJ's Eel abstraction), without exposing {@code VirtualFile} to
-     * the caller.
+     * the caller. Reads run on a pooled thread; callbacks return to the EDT in the chooser's modality state.
      * @param descriptor configuring the dialog (title, description, filters)
-     * @param callback receives the file's content, or a read-failure detail message; never called on cancel
+     * @param callback receives the file's path+content, or a read-failure detail message; never called on cancel
      */
     public static void chooseFileAndReadText(Project project, FileChooserDescriptor descriptor, Consumer<TextFileReadResult> callback) {
-        FileChooser.chooseFile(descriptor, project, null, virtualFile -> {
-            try {
-                callback.consume(new TextFileReadResult(new String(virtualFile.contentsToByteArray(), StandardCharsets.UTF_8), null));
-            } catch (IOException ee) {
-                callback.consume(new TextFileReadResult(null, ee.getMessage()));
-            }
-        });
+        openChooserWarmed(project, activeWindowOrNull(), (parent, toSelect) ->
+                FileChooser.chooseFile(descriptor, project, parent, toSelect, virtualFile -> {
+                    ModalityState modality = ModalityState.current();
+                    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+                        TextFileReadResult result;
+                        try {
+                            result = new TextFileReadResult(virtualFile.getPath(),
+                                    new String(readBytes(virtualFile), StandardCharsets.UTF_8), null);
+                        } catch (IOException failure) {
+                            result = new TextFileReadResult(null, null, failure.getMessage());
+                        }
+                        TextFileReadResult completed = result;
+                        ApplicationManager.getApplication().invokeLater(() -> {
+                            if (!project.isDisposed()) callback.consume(completed);
+                        }, modality);
+                    });
+                }));
     }
 
     /**
@@ -1018,17 +1084,57 @@ public class StudioProjectFiles {
      * @param callback receives the chosen paths, or null if nothing was chosen; never called on cancel
      */
     public static void chooseFilePaths(Project project, FileChooserDescriptor descriptor, Consumer<List<String>> callback) {
-        FileChooser.chooseFiles(descriptor, project, null, files -> {
-            if (files.isEmpty()) {
-                callback.consume(null);
-                return;
+        openChooserWarmed(project, activeWindowOrNull(), (parent, toSelect) ->
+                FileChooser.chooseFiles(descriptor, project, parent, toSelect, files -> {
+                    if (files.isEmpty()) {
+                        callback.consume(null);
+                        return;
+                    }
+                    List<String> paths = new ArrayList<>();
+                    for (VirtualFile file : files) {
+                        paths.add(VfsUtilCore.virtualToIoFile(file).getAbsolutePath());
+                    }
+                    callback.consume(paths);
+                }));
+    }
+
+    /**
+     * Opens the platform file chooser on the EDT, pre-resolving its initial directory on a background thread.
+     * FileChooserDialogImpl.restoreSelection resolves the selection via LocalFileSystem.findFileByPath on the EDT;
+     * IntelliJ 2024.3+ flags the persistent-VFS update that lookup can trigger (FSRecordsImpl.update) as a
+     * prohibited slow operation. Resolving the project directory off the EDT warms the VFS records for that path,
+     * so the chooser's EDT-time lookup stays in memory and never reaches the persistent store.
+     * @param parent captured synchronously from the caller's EDT context (usually the currently active dialog
+     *              window) so the chooser still displays correctly when opened from inside a modal dialog
+     * @param openChooser receives the parent and the warmed directory (or null when the project has no base path)
+     *                    and must open the chooser on the EDT with them as the explicit initial selection
+     */
+    private static void openChooserWarmed(Project project, Component parent, BiConsumer<Component, VirtualFile> openChooser) {
+        // Post the chooser-opening runnable in the parent's own modality state. A plain invokeLater uses the
+        // non-modal default, which stays queued while a modal dialog (e.g. the Import model.json dialog) is open -
+        // that is what made the chooser appear only after the dialog was cancelled. stateForComponent(parent)
+        // lets the runnable execute inside the parent dialog's modal event pump.
+        ModalityState modality = parent != null
+                ? ModalityState.stateForComponent(parent)
+                : ModalityState.any();
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            VirtualFile warmed = null;
+            String basePath = project.getBasePath();
+            if (basePath != null) {
+                warmed = LocalFileSystem.getInstance().refreshAndFindFileByPath(basePath);
             }
-            List<String> paths = new ArrayList<>();
-            for (VirtualFile file : files) {
-                paths.add(VfsUtilCore.virtualToIoFile(file).getAbsolutePath());
-            }
-            callback.consume(paths);
+            VirtualFile toSelect = warmed;
+            ApplicationManager.getApplication().invokeLater(() -> {
+                if (!project.isDisposed() && (parent == null || parent.isShowing())) {
+                    openChooser.accept(parent, toSelect);
+                }
+            }, modality);
         });
+    }
+
+    /** Captured at call time (on the EDT) so a chooser opened from a modal dialog keeps that dialog as its parent. */
+    private static Component activeWindowOrNull() {
+        return KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
     }
 
     /**

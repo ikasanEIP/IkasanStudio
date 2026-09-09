@@ -294,7 +294,24 @@ public class DesignerCanvas extends JPanel {
         chooserRow.add(startButton);
         chooserRow.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(chooserRow);
+
+        panel.add(Box.createVerticalStrut(JBUI.scale(16)));
+        JButton importModelJsonButton = new JButton(StudioBundle.message("button.ImportModelJson"));
+        importModelJsonButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        importModelJsonButton.addActionListener(event ->
+                org.ikasan.studio.intellij.project.ModelImporter.openImportDialog(this.project));
+        panel.add(importModelJsonButton);
         return panel;
+    }
+
+    /**
+     * Selects the given meta-pack in the module-creation chooser - used by model.json import so the combo visibly
+     * agrees with the imported model's recorded version.
+     */
+    public void setSelectedMetapackVersion(String version) {
+        if (version != null && metaDataVersionComboBox != null) {
+            metaDataVersionComboBox.setSelectedItem(version);
+        }
     }
 
     public void enableModuleInitialiseProcess() {
@@ -1040,7 +1057,7 @@ public class DesignerCanvas extends JPanel {
                     } else {
                         ((FlowElement) newComponent).defaultUnsetMandatoryProperties();
                         insertNewComponentBetweenSurroundingPair(containingFlow, containingFlowRoute, (FlowElement) newComponent, x, y);
-                        if (((FlowElement) newComponent).getComponentMeta().isDebug()) {
+                        if (newComponent.getComponentMeta().isDebug()) {
                             markRestartPendingIfModuleRunning((FlowElement) newComponent);
                         }
                         if (newComponent.getComponentMeta().isRouter()) {

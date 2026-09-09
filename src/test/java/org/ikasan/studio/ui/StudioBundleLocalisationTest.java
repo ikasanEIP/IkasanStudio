@@ -71,6 +71,36 @@ class StudioBundleLocalisationTest {
         }
     }
 
+    @Test
+    void modelJsonImportTextIsLocalised() throws Exception {
+        Properties english = load(ENGLISH);
+        Properties japanese = load(JAPANESE);
+
+        assertEquals("Import model.json...", english.getProperty("button.ImportModelJson"));
+        assertEquals("Choose file...", english.getProperty("button.ChooseModelJsonFile"));
+        assertTrue(english.getProperty("message.ImportModelJsonExplanation").contains("Paste a model.json"));
+        assertTrue(english.getProperty("message.ImportModelSuccess").contains("{0}"));
+        assertTrue(english.getProperty("message.ImportModelJdkNotConfigured").contains("Project Structure"));
+        assertTrue(english.getProperty("message.LoadJsonModelFromFile").contains("model.json"));
+
+        for (String key : List.of(
+                "button.ImportModelJson",
+                "button.ChooseModelJsonFile",
+                "dialog.ImportModelJson",
+                "dialog.ChooseModelJsonFile",
+                "message.ImportModelJsonExplanation",
+                "message.ChooseModelJsonFileDescription",
+                "message.ImportModelNoContent",
+                "message.ImportModelFileReadFailed",
+                "message.ImportModelFailed",
+                "message.ImportModelMetapackUnavailable",
+                "message.ImportModelSuccess",
+                "message.ImportModelJdkNotConfigured",
+                "message.LoadJsonModelFromFile")) {
+            assertLocalised(japanese, key);
+        }
+    }
+
     private static void assertLocalised(Properties japanese, String key) {
         assertTrue(japanese.containsKey(key), "Japanese bundle must define " + key);
         assertFalse(japanese.getProperty(key).isBlank(), "Japanese translation must not be blank for " + key);

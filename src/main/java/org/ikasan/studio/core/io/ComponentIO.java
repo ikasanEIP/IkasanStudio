@@ -139,6 +139,9 @@ public class ComponentIO {
     /** Validates JSON shape and the minimum identity required for a configured Studio module. */
     public static Module validatePersistedModuleJson(String json, String source, boolean allowEmptyBootstrap)
             throws StudioBuildException {
+        // UTF-8 files decoded to String (and pasted text) can retain a leading byte-order mark.
+        // Strip only that prefix; U+FEFF inside a JSON string is legitimate model content.
+        if (json != null && json.startsWith("\uFEFF")) json = json.substring(1);
         final JsonNode root;
         try {
             root = MAPPER.readTree(json);
