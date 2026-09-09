@@ -344,6 +344,17 @@ public class StudioUIUtils {
                 }
             }
         }
+        if (returnList.isEmpty() && text != null && !text.isEmpty() && numberOfRows > 0) {
+            // numberOfRows wasn't meaningfully smaller than the text length, so the block above never ran -
+            // there's no point splitting, but the text still needs to appear as a single row rather than
+            // silently vanishing. Without this, a caller that (perhaps only transiently, before its real
+            // width is known - see IkasanFlowViewHandler#initialiseDimensions) computes a very small or zero
+            // maxWidth ends up asking for an enormous numberOfRows here, gets an empty list back, and - per
+            // drawCenteredStringFromTopCentre's own "numberOfLines > 0 ? ... : topY" fallback - measures the
+            // title as having zero height even though it still gets drawn, letting whatever is laid out
+            // below (e.g. the flow's component row) overlap it.
+            returnList.add(text);
+        }
         return returnList;
     }
 

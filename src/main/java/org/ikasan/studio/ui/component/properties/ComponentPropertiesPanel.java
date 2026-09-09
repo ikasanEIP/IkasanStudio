@@ -19,6 +19,7 @@ import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.command.UserClassReference;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.editor.IkasanStudioEditorService;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.intellij.psi.StudioPsiUtils;
 import org.ikasan.studio.ui.StudioBundle;
@@ -44,10 +45,18 @@ import static org.ikasan.studio.ui.UiContext.PALETTE_TAB_INDEX;
 public class ComponentPropertiesPanel extends PropertiesPanel {
     enum PendingEditChoice { APPLY, DISCARD, CANCEL }
 
-    static PendingEditChoice pendingEditChoice(int dialogChoice) {
-        if (dialogChoice == 0) return PendingEditChoice.APPLY;
-        if (dialogChoice == 1) return PendingEditChoice.DISCARD;
-        return PendingEditChoice.CANCEL;
+    /**
+     * Shared by both {@link #confirmSelectionChangeWithPendingEdits()} and
+     * {@link #preparePendingChangesForLaunch()} so they agree on what each of UnsavedPropertyChangesDialog's
+     * three buttons means - JUMP_TO_PROPERTIES declines to apply or discard anything, exactly like the plain
+     * Cancel button it replaced, just with the added navigation side effect handled by the caller.
+     */
+    static PendingEditChoice pendingEditChoice(UnsavedPropertyChangesDialog.Choice dialogChoice) {
+        return switch (dialogChoice) {
+            case APPLY -> PendingEditChoice.APPLY;
+            case DISCARD -> PendingEditChoice.DISCARD;
+            case JUMP_TO_PROPERTIES -> PendingEditChoice.CANCEL;
+        };
     }
     public static final Logger LOG = Logger.getInstance("ComponentPropertiesPanel");
     private transient List<ComponentPropertyEditRow> componentPropertyEditRowList;
@@ -242,17 +251,15 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         if (!dataHasChangedAndOKToProcess()) {
             return true;
         }
-        int choice = Messages.showDialog(project,
-                StudioBundle.message("message.UnsavedPropertyChangesBeforeSelectionChange"),
-                StudioBundle.message("dialog.UnsavedPropertyChanges"),
-                new String[]{
-                        StudioBundle.message("button.ApplyChanges"),
-                        StudioBundle.message("button.DiscardChanges"),
-                        Messages.getCancelButton()
-                },
-                0,
-                Messages.getWarningIcon());
-        return resolveSelectionChange(pendingEditChoice(choice));
+        String[] componentAndProperties = describePendingEditsForDialog();
+        UnsavedPropertyChangesDialog.Choice choice = showUnsavedPropertyChangesDialog(
+                StudioBundle.message("message.UnsavedPropertyChangesBeforeSelectionChange", componentAndProperties[0], componentAndProperties[1]),
+                componentAndProperties[0]);
+        boolean mayChangeSelection = resolveSelectionChange(pendingEditChoice(choice));
+        if (choice == UnsavedPropertyChangesDialog.Choice.JUMP_TO_PROPERTIES) {
+            jumpToPropertiesForCurrentSelection();
+        }
+        return mayChangeSelection;
     }
 
     boolean resolveSelectionChange(PendingEditChoice choice) {
@@ -281,13 +288,30 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         if (!dataHasChangedAndOKToProcess()) {
             return latestGeneration;
         }
-        int choice = Messages.showDialog(project,
-                StudioBundle.message("message.UnsavedPropertyChangesBeforeLaunch"),
-                StudioBundle.message("dialog.UnsavedPropertyChanges"),
-                new String[]{StudioBundle.message("button.ApplyChanges"),
-                        StudioBundle.message("button.DiscardChanges"), Messages.getCancelButton()},
-                0, Messages.getWarningIcon());
-        return resolveLaunch(pendingEditChoice(choice));
+        String[] componentAndProperties = describePendingEditsForDialog();
+        UnsavedPropertyChangesDialog.Choice choice = showUnsavedPropertyChangesDialog(
+                StudioBundle.message("message.UnsavedPropertyChangesBeforeLaunch", componentAndProperties[0], componentAndProperties[1]),
+                componentAndProperties[0]);
+        CompletableFuture<Void> result = resolveLaunch(pendingEditChoice(choice));
+        if (choice == UnsavedPropertyChangesDialog.Choice.JUMP_TO_PROPERTIES) {
+            jumpToPropertiesForCurrentSelection();
+        }
+        return result;
+    }
+
+    private UnsavedPropertyChangesDialog.Choice showUnsavedPropertyChangesDialog(String message, String componentName) {
+        UnsavedPropertyChangesDialog dialog = new UnsavedPropertyChangesDialog(project,
+                StudioBundle.message("dialog.UnsavedPropertyChanges"), message, componentName, getChangedPropertyDetails());
+        dialog.show();
+        return dialog.getChoice();
+    }
+
+    /** Opens/focuses the Studio editor and switches to the Properties tab - see UnsavedPropertyChangesDialog. */
+    private void jumpToPropertiesForCurrentSelection() {
+        // Tab focus first: it's synchronous and always correct, so it must land even if opening/focusing the
+        // editor itself (heavier platform machinery, e.g. when the tab was already closed) ever fails.
+        project.getService(UiContext.class).setRightTabbedPaneFocus(UiContext.PROPERTIES_TAB_INDEX);
+        project.getService(IkasanStudioEditorService.class).open();
     }
 
     CompletableFuture<Void> resolveLaunch(PendingEditChoice choice) {
@@ -328,16 +352,78 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @return the display labels of changed properties that affect a user implemented class, in row order.
      */
     private List<String> getChangedAffectsUserImplementedClassPropertyLabels() {
+        return getChangedPropertyLabels(ComponentPropertyMeta::isAffectsUserImplementedClass);
+    }
+
+    /**
+     * @return the display labels of every changed property on the currently selected component, in row order -
+     * used to tell the developer exactly what they are about to apply or discard (see
+     * {@link #describePendingEditsForDialog()}).
+     */
+    private List<String> getChangedPropertyLabels() {
+        return getChangedPropertyLabels(meta -> true);
+    }
+
+    private List<String> getChangedPropertyLabels(java.util.function.Predicate<ComponentPropertyMeta> includeIf) {
         List<String> changedPropertyLabels = new ArrayList<>();
         if (componentPropertyEditRowList != null) {
             for (ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
                 ComponentPropertyMeta meta = componentPropertyEditRow.getMeta();
-                if (meta.isAffectsUserImplementedClass() && componentPropertyEditRow.propertyValueHasChanged()) {
+                if (includeIf.test(meta) && componentPropertyEditRow.propertyValueHasChanged()) {
                     changedPropertyLabels.add(meta.getDisplayLabel() != null ? meta.getDisplayLabel() : meta.getPropertyName());
                 }
             }
         }
         return changedPropertyLabels;
+    }
+
+    /**
+     * The old-&gt;new value of every changed property on the currently selected component, for
+     * UnsavedPropertyChangesDialog's expandable "Show Details" section - so a developer who doesn't recognise
+     * having made a change can see exactly what it was, rather than only that something on this component
+     * changed. {@code getComponentProperty().getValue()} is safe to read as "the old value" here: nothing
+     * writes into it until doOKAction() actually applies the row, which by definition hasn't happened yet
+     * while this dialog is being shown.
+     */
+    private List<UnsavedPropertyChangesDialog.PropertyChangeDetail> getChangedPropertyDetails() {
+        List<UnsavedPropertyChangesDialog.PropertyChangeDetail> details = new ArrayList<>();
+        if (componentPropertyEditRowList != null) {
+            for (ComponentPropertyEditRow row : componentPropertyEditRowList) {
+                if (row.propertyValueHasChanged()) {
+                    ComponentPropertyMeta meta = row.getMeta();
+                    String label = meta.getDisplayLabel() != null ? meta.getDisplayLabel() : meta.getPropertyName();
+                    details.add(new UnsavedPropertyChangesDialog.PropertyChangeDetail(label,
+                            formatPropertyValueForDisplay(row.getComponentProperty().getValue()),
+                            formatPropertyValueForDisplay(row.getValue())));
+                }
+            }
+        }
+        return details;
+    }
+
+    private static String formatPropertyValueForDisplay(Object value) {
+        return value == null ? StudioBundle.message("label.EmptyValue") : value.toString();
+    }
+
+    /**
+     * Names the currently selected component and its changed properties, for the unsaved-changes dialogs shown
+     * before a selection change ({@link #confirmSelectionChangeWithPendingEdits()}) or a launch
+     * ({@link #preparePendingChangesForLaunch()}) - so the developer isn't left guessing which of possibly
+     * several components on the canvas, and which of its properties, the dialog is actually about.
+     * @return a two-element array: [0] the selected component's display name, [1] its changed property labels
+     * joined for display. Falls back to generic wording if the component has no identity yet.
+     */
+    private String[] describePendingEditsForDialog() {
+        IkasanObject selected = getSelectedComponent();
+        String componentName = selected instanceof BasicElement basicElement && basicElement.getIdentity() != null
+                && !basicElement.getIdentity().isBlank()
+                ? basicElement.getIdentity()
+                : StudioBundle.message("label.UnnamedComponent");
+        List<String> changedPropertyLabels = getChangedPropertyLabels();
+        String propertyList = changedPropertyLabels.isEmpty()
+                ? StudioBundle.message("label.UnknownProperties")
+                : String.join(", ", changedPropertyLabels);
+        return new String[]{componentName, propertyList};
     }
 
     /**

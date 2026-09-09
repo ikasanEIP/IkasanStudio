@@ -805,8 +805,10 @@ public class ComponentPropertyEditRow {
             result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set, because "
                     + meta.getMandatoryIfTrue() + " is enabled", getOverridingInputField()));
         }
-        // 2. Apply a regex validation pattern as defined in the component's meta pack definition
-        if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null && propertyValueHasChanged()) {
+        // 2. Validate populated values. Required empty fields are handled above;
+        // optional fields must remain clearable even when their pattern requires a value.
+        if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null
+                && propertyValueHasChanged() && !inputfieldIsUnset()) {
             String valueToBeChecked;
             // Currently, lists are being entered as comma separated values.
             if (meta.getUsageDataType() != null && STRING_LIST.equals(meta.getUsageDataType())) {

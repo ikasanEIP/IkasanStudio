@@ -490,10 +490,11 @@ public class StudioProjectFiles {
      * @param suggestedFileName pre-filled into the dialog
      * @return the chosen file, or null if the user cancelled
      */
-    public static File chooseSaveFile(String title, String description, String[] extensions, String suggestedFileName) {
+    public static File chooseSaveFile(Project project, String title, String description, String[] extensions, String suggestedFileName) {
         FileSaverDescriptor fileSaverDescriptor = new FileSaverDescriptor(title, description, extensions);
-        FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project) null);
-        VirtualFileWrapper virtualFileWrapper = dialog.save(suggestedFileName);
+        FileSaverDialog dialog = FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, project);
+        String basePath = project.getBasePath();
+        VirtualFileWrapper virtualFileWrapper = dialog.save(basePath != null ? Path.of(basePath) : null, suggestedFileName);
         return virtualFileWrapper != null ? virtualFileWrapper.getFile() : null;
     }
 
@@ -651,7 +652,7 @@ public class StudioProjectFiles {
                 // finishOnUiThread delivers the result without an intervening write action; expire obsolete
                 // generations as well so a queued format never modifies a newer generated document.
                 ReadAction.nonBlocking(() -> {
-                    if (!file.isValid()) return (PsiFile) null;
+                    if (!file.isValid()) return null;
                     PsiFile current = PsiManager.getInstance(project).findFile(file);
                     return current != null && current.isValid() && current.isWritable() ? current : null;
                 }).inSmartMode(project)

@@ -363,6 +363,16 @@
       "helpText": "Not currently applied by this producer implementation - stored on the configuration bean but never read by ArjunaJmsTemplateProducer. Left available for forward compatibility/custom configuration beans; setting it has no observable effect on send behaviour today.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Long"
+    },
+    "trustedObjectPackages": {
+      "propertyName": "trustedObjectPackages",
+      "displayLabel": "Trusted object packages (ActiveMQ)",
+      "propertyGroup": "Popular",
+      "propertyDisplayOrder": -45,
+      "helpText": "<p><b>Receiving a Java object such as Order?</b> ActiveMQ must be told which Java packages it may read from JMS ObjectMessage bodies. Enter the package, for example <code>org.example.cat.domain</code> (not the Order class name). Separate additional packages with commas.</p><p>Leave empty for text, JSON, XML or byte messages. This adds to the default trusted packages; it does not allow all packages. It does not change the message type or create an Order object.</p><p>For an ObjectMessage-to-Object converter, keep auto content conversion off on the consumer. Regenerate and restart the module after changing this setting. Uses standard ActiveMQ Classic JNDI, or a directly supplied ActiveMQ connection factory. For a custom JNDI properties map/provider or a wrapped factory, configure trust in that custom factory instead.</p>",
+      "usageDataType": "java.lang.String",
+      "validation": "[A-Za-z_$][\\w$]*(\\.[A-Za-z_$][\\w$]*)*(\\s*,\\s*[A-Za-z_$][\\w$]*(\\.[A-Za-z_$][\\w$]*)*)*",
+      "validationMessage": "Enter comma-separated Java package names, e.g. org.example.cat.domain. Wildcards (*) are not allowed."
     }
   }
 }

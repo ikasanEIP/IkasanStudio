@@ -2,10 +2,14 @@ package org.ikasan.studio.ui;
 
 import org.junit.jupiter.api.Test;
 
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SUISUtilsTest {
     @Test
@@ -65,6 +69,45 @@ public class SUISUtilsTest {
         List<String> actual = StudioUIUtils.splitStringIntoMultipleRows("XXXXX", 3);
         assertThat(actual.size(), is(1));
         assertThat(actual.get(0), is("XXXXX"));
+    }
+
+    /**
+     * Regression: drawCenteredStringFromTopCentre derives numberOfRows from (stringWidth/maxWidth)+1, so a
+     * caller with a very small or zero maxWidth (e.g. IkasanFlowViewHandler measuring its title's height
+     * before the flow's real width is known - see DesignerCanvas#saveAsImage's tight-content measuring pass)
+     * can ask for a numberOfRows far larger than the text's own length. The split branch's own guard
+     * (numberOfRows < text.length()) then never runs, and this used to return an empty list for genuinely
+     * non-empty text - which made drawCenteredStringFromTopCentre report zero height for a title that still
+     * gets drawn, letting the row below overlap it.
+     */
+    @Test
+    public void test_splitStringIntoMultipleRows_numberOfRowsFarExceedingTextLength_returnsWholeTextAsOneRow() {
+        List<String> actual = StudioUIUtils.splitStringIntoMultipleRows("flow0 create an order", 500);
+        assertThat(actual.size(), is(1));
+        assertThat(actual.get(0), is("flow0 create an order"));
+    }
+
+    /**
+     * Same regression as above, exercised through the actual method IkasanFlowViewHandler calls to measure a
+     * flow title's height before positioning its component row below it. A zero/near-zero maxWidth (as passed
+     * transiently while the flow's real width is still unknown) used to make this return exactly {@code topY}
+     * unchanged - i.e. "the title takes up no vertical space at all" - even though the title still gets drawn
+     * on the next real paint pass once the true width is known, so the component row ended up positioned to
+     * overlap the title text.
+     */
+    @Test
+    public void test_drawCenteredStringFromTopCentre_zeroMaxWidth_stillReservesOneLineOfHeight() {
+        BufferedImage scratch = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = scratch.createGraphics();
+        try {
+            Font font = new Font(Font.SANS_SERIF, Font.BOLD, 12);
+            int topY = 100;
+            int bottomY = StudioUIUtils.drawCenteredStringFromTopCentre(
+                    g, PaintMode.DIMENSION_ONLY, "flow0 create an order", 500, topY, 0, font);
+            assertTrue(bottomY > topY, "zero maxWidth must not collapse the title's measured height to zero");
+        } finally {
+            g.dispose();
+        }
     }
 
     @Test

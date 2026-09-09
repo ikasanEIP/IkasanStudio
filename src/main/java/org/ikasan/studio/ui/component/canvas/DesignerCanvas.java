@@ -2964,7 +2964,50 @@ public class DesignerCanvas extends JPanel {
         this.initialiseAllDimensions = initialiseAllDimensions;
     }
 
+    /** The default "Save image" file name for a module's diagram - also used by ModuleDiagramAutoSaver. */
+    public static String moduleDiagramFileName(Module ikasanModule) {
+        return "ModuleDiagram-" + ikasanModule.getIdentity() + ".png";
+    }
+
     public void saveAsImage(File file, String imageFormat, boolean transparentBackground) {
+        try {
+            saveDiagramSilently(file, imageFormat, transparentBackground);
+            StudioUIUtils.displayMessage(project, StudioBundle.message("message.SavedFileTo", file.getAbsolutePath()));
+        } catch (IOException ioe) {
+            StudioUIUtils.displayErrorMessage(project, StudioBundle.message("message.CouldNotSaveImageToFile", file.getAbsolutePath()));
+            LOG.warn("STUDIO: Error saving image to file " + file.getAbsolutePath(), ioe);
+        }
+    }
+
+    /**
+     * The rendering/writing core of {@link #saveAsImage}, without any user-facing notification either way -
+     * shared with {@code ModuleDiagramAutoSaver}'s silent, best-effort save on project close, which must never
+     * pop up a message of its own. Throws IOException when {@link ImageIO#write} reports it couldn't find a
+     * writer for {@code imageFormat}, so every failure path is reported the same way to callers that don't
+     * want any UI side effect.
+     */
+    public void saveDiagramSilently(File file, String imageFormat, boolean transparentBackground) throws IOException {
+        Dimension originalSize = getSize();
+        Module ikasanModule = getIkasanModule();
+        AbstractViewHandlerIntellij moduleViewHandler = ikasanModule != null
+                ? ViewHandlerCache.getAbstractViewHandler(project, ikasanModule) : null;
+        if (moduleViewHandler != null) {
+            // Measure the diagram's own tight content bounds - the module title plus every flow, each
+            // already padded by IkasanModuleViewHandler's FLOW_X_RIGHT_BUFFER/FLOW_Y_BOTTTOM_BUFFER margin -
+            // instead of the canvas's live on-screen size. CanvasPanel adds this (non-Scrollable) canvas to a
+            // JViewport, whose default ViewportLayout stretches the view to at least fill the scroll pane's
+            // visible area, so a short diagram previously exported as tall as the IDE window happened to be,
+            // with a large blank area below the actual flows.
+            BufferedImage measuringSurface = ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+            Graphics measuringGraphics = measuringSurface.getGraphics();
+            try {
+                moduleViewHandler.initialiseDimensions(measuringGraphics, 0, 0, 0, 0);
+            } finally {
+                measuringGraphics.dispose();
+            }
+            setSize(moduleViewHandler.getWidth(), moduleViewHandler.getHeight());
+            initialiseAllDimensions = false;
+        }
         int imageType = transparentBackground ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
         BufferedImage bufferedImage = ImageUtil.createImage(getWidth(), getHeight(), imageType);
         Graphics graphics = bufferedImage.getGraphics();
@@ -2974,15 +3017,16 @@ public class DesignerCanvas extends JPanel {
         }
         paint(graphics);
         try {
-            boolean saved = ImageIO.write(bufferedImage, imageFormat, file);
-            if (!saved) {
-                StudioUIUtils.displayErrorMessage(project, StudioBundle.message("message.CouldNotSaveFile", file.getAbsolutePath()));
-            } else {
-                StudioUIUtils.displayMessage(project, StudioBundle.message("message.SavedFileTo", file.getAbsolutePath()));
+            if (!ImageIO.write(bufferedImage, imageFormat, file)) {
+                throw new IOException("No registered ImageIO writer for format [" + imageFormat + "]");
             }
-        } catch (IOException ioe) {
-            StudioUIUtils.displayErrorMessage(project, StudioBundle.message("message.CouldNotSaveImageToFile", file.getAbsolutePath()));
-            LOG.warn("STUDIO: Error saving image to file " + file.getAbsolutePath(), ioe);
+        } finally {
+            // Restore the canvas to its normal on-screen size and force a full re-layout against the live
+            // viewport on the next paint, rather than leaving it pinned at the tight export size above.
+            setSize(originalSize);
+            initialiseAllDimensions = true;
+            revalidate();
+            repaint();
         }
     }
 

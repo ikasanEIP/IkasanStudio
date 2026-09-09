@@ -32,6 +32,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     private JCheckBox showJmsConnectorsCheckBox;
     private JCheckBox testMailServerLivePollingCheckBox;
     private JCheckBox flowErrorMonitoringCheckBox;
+    private JCheckBox autoSaveModuleDiagramCheckBox;
     private JSpinner componentDistanceSpinner;
     private JSpinner flowDistanceSpinner;
     private JSpinner flowXStartPointSpinner;
@@ -99,6 +100,15 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         JLabel flowErrorMonitoringNote = wrappingNote("label.FlowErrorMonitoringNote");
         flowErrorMonitoringPanel.add(flowErrorMonitoringNote, BorderLayout.CENTER);
 
+        autoSaveModuleDiagramCheckBox = new JCheckBox(StudioBundle.message("checkbox.ModuleDiagramAutoSave"));
+
+        JPanel autoSaveModuleDiagramPanel = new JPanel(new BorderLayout(0, 4));
+        autoSaveModuleDiagramPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.ModuleDiagramAutoSave")));
+        autoSaveModuleDiagramPanel.add(autoSaveModuleDiagramCheckBox, BorderLayout.NORTH);
+
+        JLabel autoSaveModuleDiagramNote = wrappingNote("label.ModuleDiagramAutoSaveNote");
+        autoSaveModuleDiagramPanel.add(autoSaveModuleDiagramNote, BorderLayout.CENTER);
+
         componentDistanceSpinner = canvasDistanceSpinner(IkasanStudioSettings.DEFAULT_COMPONENT_DISTANCE);
         flowDistanceSpinner = canvasDistanceSpinner(IkasanStudioSettings.DEFAULT_FLOW_DISTANCE);
         flowXStartPointSpinner = flowStartPointSpinner(IkasanStudioSettings.DEFAULT_FLOW_X_START_POINT);
@@ -155,6 +165,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         northPanel.add(canvasLayoutPanel);
         northPanel.add(testMailServerPanel);
         northPanel.add(flowErrorMonitoringPanel);
+        northPanel.add(autoSaveModuleDiagramPanel);
         JPanel reportingPanel = new JPanel(new BorderLayout());
         reportingPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.ErrorReporting")));
         reportingPanel.add(wrappingNote("label.ErrorReportingNote"), BorderLayout.CENTER);
@@ -182,7 +193,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
                 || spinnerValue(flowXStartPointSpinner) != IkasanStudioSettings.getFlowXStartPoint()
                 || spinnerValue(flowYStartPointSpinner) != IkasanStudioSettings.getFlowYStartPoint()
                 || testMailServerLivePollingCheckBox.isSelected() != IkasanStudioSettings.isTestMailServerLivePollingEnabled()
-                || flowErrorMonitoringCheckBox.isSelected() != IkasanStudioSettings.isFlowErrorMonitoringEnabled();
+                || flowErrorMonitoringCheckBox.isSelected() != IkasanStudioSettings.isFlowErrorMonitoringEnabled()
+                || autoSaveModuleDiagramCheckBox.isSelected() != IkasanStudioSettings.isAutoSaveModuleDiagramOnCloseEnabled();
     }
 
     @Override
@@ -200,6 +212,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
             state.flowYStartPoint = spinnerValue(flowYStartPointSpinner);
             state.testMailServerLivePollingEnabled = testMailServerLivePollingCheckBox.isSelected();
             state.flowErrorMonitoringEnabled = flowErrorMonitoringCheckBox.isSelected();
+            state.autoSaveModuleDiagramOnClose = autoSaveModuleDiagramCheckBox.isSelected();
         }
         repaintOpenCanvases();
     }
@@ -216,6 +229,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         flowYStartPointSpinner.setValue(IkasanStudioSettings.getFlowYStartPoint());
         testMailServerLivePollingCheckBox.setSelected(IkasanStudioSettings.isTestMailServerLivePollingEnabled());
         flowErrorMonitoringCheckBox.setSelected(IkasanStudioSettings.isFlowErrorMonitoringEnabled());
+        autoSaveModuleDiagramCheckBox.setSelected(IkasanStudioSettings.isAutoSaveModuleDiagramOnCloseEnabled());
     }
 
     @Override

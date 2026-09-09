@@ -133,15 +133,20 @@ class ComponentPropertiesPanelLabelAlignmentTest {
     }
 
 
+    /**
+     * Both call sites (confirmSelectionChangeWithPendingEdits and preparePendingChangesForLaunch) build and
+     * show the same UnsavedPropertyChangesDialog and convert its Choice through this one shared method, so
+     * there's a single place - rather than two independently maintained mappings - where "what does each of
+     * the dialog's three buttons mean" is decided. JUMP_TO_PROPERTIES (the button that replaced the old plain
+     * Cancel) still declines to apply or discard anything, exactly as Cancel always did.
+     */
     @Test
     void selectionRunAndDebugShareTheSameApplyDiscardCancelMeaning() {
-        assertThat(ComponentPropertiesPanel.pendingEditChoice(0))
+        assertThat(ComponentPropertiesPanel.pendingEditChoice(UnsavedPropertyChangesDialog.Choice.APPLY))
                 .isEqualTo(ComponentPropertiesPanel.PendingEditChoice.APPLY);
-        assertThat(ComponentPropertiesPanel.pendingEditChoice(1))
+        assertThat(ComponentPropertiesPanel.pendingEditChoice(UnsavedPropertyChangesDialog.Choice.DISCARD))
                 .isEqualTo(ComponentPropertiesPanel.PendingEditChoice.DISCARD);
-        assertThat(ComponentPropertiesPanel.pendingEditChoice(2))
-                .isEqualTo(ComponentPropertiesPanel.PendingEditChoice.CANCEL);
-        assertThat(ComponentPropertiesPanel.pendingEditChoice(-1))
+        assertThat(ComponentPropertiesPanel.pendingEditChoice(UnsavedPropertyChangesDialog.Choice.JUMP_TO_PROPERTIES))
                 .isEqualTo(ComponentPropertiesPanel.PendingEditChoice.CANCEL);
     }
 

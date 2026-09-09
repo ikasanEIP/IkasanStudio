@@ -66,6 +66,7 @@ public final class IkasanStudioEditorService
                     public void projectClosing(@NotNull Project closingProject) {
                         if (closingProject == project) {
                             recordProjectClosing();
+                            ModuleDiagramAutoSaver.saveOnProjectClose(project);
                         }
                     }
                 });

@@ -72,6 +72,16 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 <#compress>
 <#list flow.ftlGetAllFlowElementsInAnyRouteNoEndpoints()![] as flowElement>
+    <#assign trustedPackages = (flowElement.getPropertyValue("trustedObjectPackages")!"")?trim>
+    <#if trustedPackages?has_content>
+        <#if !trustedPackages?matches("[A-Za-z_$][\\w$]*(\\.[A-Za-z_$][\\w$]*)*(\\s*,\\s*[A-Za-z_$][\\w$]*(\\.[A-Za-z_$][\\w$]*)*)*")>
+            <#stop "Trusted object packages must contain comma-separated Java package names, without wildcards: " + flowElement.componentName>
+        </#if>
+        <#if (flowElement.getPropertyValue("connectionFactoryJndiProperties")!"")?has_content>
+            <#stop "Trusted object packages: use individual ActiveMQ connection settings instead of a custom JNDI properties map, or configure trust in your custom connection factory: " + flowElement.componentName>
+        </#if>
+        <#include "trustedObjectPackages_en.ftl">
+    </#if>
     public ${flowElement.componentMeta.componentType} get${flowElement.getJavaClassName()}() {
     <#if flowElement.componentMeta.usesBuilderInFactory>
         <#if flowElement.componentMeta.ikasanComponentFactoryMethod??>
@@ -103,7 +113,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
                 <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
             <#else>
                 <#if propValue.meta.isUserSuppliedClass()>
-                    <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.toJavaIdentifier(propValue.valueString)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
+                    <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(<#if trustedPackages?has_content && propKey == "connectionFactory">Trusted${flowElement.getJavaClassName()}ContextFactory.configure(</#if>${StudioBuildUtils.toJavaIdentifier(propValue.valueString)}<#if trustedPackages?has_content && propKey == "connectionFactory">)</#if>)<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                 <#else>
                     <#if propValue.meta.usageDataType?? && propValue.meta.usageDataType == "java.lang.String">
                         <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}("${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.valueString)}")<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
@@ -114,6 +124,15 @@ org.ikasan.builder.BuilderFactory builderFactory;
             </#if>
         </#if>
     </#list>
+    <#if trustedPackages?has_content && !(flowElement.getPropertyValue("connectionFactory")!"")?has_content>
+        .setConnectionFactoryJndiPropertyFactoryInitial(Trusted${flowElement.getJavaClassName()}ContextFactory.initialFactoryName(
+        <#if (flowElement.getPropertyValue("connectionFactoryJndiPropertyFactoryInitial")!"")?has_content>
+            ${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, flowElement.getProperty("connectionFactoryJndiPropertyFactoryInitial").meta.propertyConfigFileLabel)}
+        <#else>
+            "org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+        </#if>
+        ))
+    </#if>
     <#-- Special case for message filter, set configuredResourceId to default -->
     <#if flowElement.componentMeta.name=="Message Filter" && flowElement.getProperty("IsConfiguredResource")?has_content && flowElement.getProperty("IsConfiguredResource").getValue() && (!flowElement.getProperty("ConfiguredResourceId")?has_content || !flowElement.getProperty("ConfiguredResourceId").getValue()?has_content)>
         ${flowElement.getJavaVariableName()}.setConfiguredResourceId("${StudioBuildUtils.toJavaIdentifier(module.name)}-${StudioBuildUtils.toJavaIdentifier(flow.identity)}-${StudioBuildUtils.toJavaIdentifier(flowElement.componentName)}");

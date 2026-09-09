@@ -405,3 +405,6 @@ Generic converters offer persistent recipe selection, downstream type suggestion
 ## Testing strategy
 
 See [Engine and meta-pack testing](docs/TestingEngineAndMetaPacks.md) for test ownership, engine and pack suite commands, focused tests, reports, and broader verification.
+
+For Java objects sent through ActiveMQ, see [JMS Object Messages](docs/JmsObjectMessages.md)
+for the **Trusted object packages (ActiveMQ)** setting and a two-flow example.

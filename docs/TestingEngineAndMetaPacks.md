@@ -123,3 +123,7 @@ headless suite before releasing either pack. Engine tests cover legacy manifest 
 independent revisions, and rejection of missing/invalid revisions or incompatible generator APIs.
 See [Independent pack releases](IndependentMetaPackArtifacts.md) for artifact coordinates,
 compatibility rules, and publication commands.
+
+ActiveMQ ObjectMessage trust generation and provider runtime checks are documented in
+[JMS Object Messages](JmsObjectMessages.md). Run them with
+`./gradlew -p headless :studio-bundled-packs:test --tests '*Trusted*'`.

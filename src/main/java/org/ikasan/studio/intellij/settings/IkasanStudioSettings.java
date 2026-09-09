@@ -94,6 +94,16 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
 
         /** Vertical canvas pixel offset of the topmost flow from the panel edge - see flowXStartPoint. */
         public int flowYStartPoint = DEFAULT_FLOW_Y_START_POINT;
+
+        /**
+         * When a project with a configured module closes, silently (re-)write its module diagram as
+         * ModuleDiagram-&lt;name&gt;.png at the project root - the same file DesignerCanvas' own "Save image"
+         * action produces, in the same default location - so a developer browsing project folders on disk (or
+         * their file manager's thumbnail view) can recognise a module without opening it in Studio first. Off
+         * by default: unlike the other settings here, this one writes a file into the project directory
+         * without the developer asking each time, so it stays opt-in. See ModuleDiagramAutoSaver.
+         */
+        public boolean autoSaveModuleDiagramOnClose = false;
     }
 
     private State state = new State();
@@ -255,6 +265,27 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         State s = instance != null ? instance.getState() : null;
         if (s != null) {
             s.flowErrorMonitoringEnabled = flowErrorMonitoringEnabled;
+        }
+    }
+
+    public static boolean isAutoSaveModuleDiagramOnCloseEnabled() {
+        IkasanStudioSettings instance = getInstance();
+        if (instance == null) return false;
+        State s = instance.getState();
+        return s != null && s.autoSaveModuleDiagramOnClose;
+    }
+
+    // No caller today (IkasanStudioSettingsConfigurable#apply() currently writes the State field directly, like
+    // the other settings here) - kept as the public setter symmetric with isAutoSaveModuleDiagramOnCloseEnabled()
+    // and this class's other isX()/setX() pairs, matching setPromptBeforeDeletingUserCode's own real external
+    // caller (DeleteComponentAction) as the precedent for why a settings setter earns its place even before a
+    // second caller exists.
+    @SuppressWarnings("unused")
+    public static void setAutoSaveModuleDiagramOnClose(boolean autoSaveModuleDiagramOnClose) {
+        IkasanStudioSettings instance = getInstance();
+        State s = instance != null ? instance.getState() : null;
+        if (s != null) {
+            s.autoSaveModuleDiagramOnClose = autoSaveModuleDiagramOnClose;
         }
     }
 }

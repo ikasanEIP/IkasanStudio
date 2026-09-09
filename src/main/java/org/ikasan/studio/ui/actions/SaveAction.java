@@ -7,6 +7,7 @@ import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,11 +28,12 @@ public class SaveAction implements ActionListener {
          StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.SavingImage"));
          // Transparent background / SVG cant get this to work for now, see commented-out block below.
          String[] extensions = new String[]{"png", "jpg"};
-         String moduleName = uiContext.getIkasanModule().getComponentName();
+         // Shared with ModuleDiagramAutoSaver, so a manual save and the auto-save on project close agree on
+         // where to look for a module's diagram.
+         String imageFileName = DesignerCanvas.moduleDiagramFileName(module);
          // FileChooserFactory (behind StudioProjectFiles.chooseSaveFile) handles platform-specific file
          // extensions automatically, including using native dialogs on Mac.
-         String imageFileName = "ModuleDiagram-" + moduleName + ".png";
-         File file = StudioProjectFiles.chooseSaveFile(
+         File file = StudioProjectFiles.chooseSaveFile(project,
                  StudioBundle.message("dialog.SaveAsImage"),
                  StudioBundle.message("message.ChooseTheDestinationToSaveTheImage"), extensions, imageFileName);
 

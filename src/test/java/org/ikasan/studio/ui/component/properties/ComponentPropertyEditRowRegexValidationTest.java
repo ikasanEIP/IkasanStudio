@@ -86,4 +86,39 @@ public class ComponentPropertyEditRowRegexValidationTest {
         assertTrue(issues.get(0).message.startsWith("toRecipient:"),
                 "the validation message must name the property it refers to, was: " + issues.get(0).message);
     }
+    @Test
+    public void trustedPackagesCanBeClearedButInvalidPackagesAreRejected() throws Exception {
+        for (String pack : List.of("V3.3.9", "V4.1.6")) {
+            for (String role : List.of("Consumer", "Producer")) {
+                var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Spring JMS " + role)
+                        .getMetadata("trustedObjectPackages");
+                for (String empty : List.of("", "   ")) {
+                    var row = new ComponentPropertyEditRow(null,
+                            new ComponentProperty(meta, "org.example.cat.domain"), false, () -> {}, new HashMap<>());
+                    row.resetDataEntryComponentsWithNewValues();
+                    row.getOverridingInputField().setText("*");
+                    assertFalse(row.doValidateAll().isEmpty(), "wildcards must still be rejected");
+                    row.getOverridingInputField().setText("org.example.domain, org.example.shared");
+                    assertTrue(row.doValidateAll().isEmpty());
+                    row.getOverridingInputField().setText(empty);
+                    assertTrue(row.propertyValueHasChanged());
+                    assertTrue(row.doValidateAll().isEmpty(), pack + " " + role + " must allow clearing trust");
+                    row.updateValueObjectWithEnteredValues();
+                    assertTrue(row.inputfieldIsUnset(), "saving must remove the previous packages");
+                }
+            }
+        }
+    }
+
+    @Test
+    public void clearingARequiredValueStillFailsValidation() {
+        var meta = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
+                .propertyName("requiredValue").mandatory(true).validation("[a-z]+").build();
+        var row = new ComponentPropertyEditRow(null, new ComponentProperty(meta, "old"),
+                false, () -> {}, new HashMap<>());
+        row.resetDataEntryComponentsWithNewValues();
+        row.getOverridingInputField().setText("");
+        assertTrue(row.doValidateAll().stream().anyMatch(issue -> issue.message.contains("must be set")));
+    }
+
 }
