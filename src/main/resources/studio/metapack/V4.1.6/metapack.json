@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "V4.1.6",
   "ikasanVersion": "4.1.6",
   "javaVersion": "17",
@@ -10,5 +10,7 @@
       "version": "4.1.6"
     }
   ],
-  "compatibilityOverrides": []
+  "compatibilityOverrides": [],
+  "packVersion": "0.1.0-SNAPSHOT",
+  "generatorApiVersion": 1
 }

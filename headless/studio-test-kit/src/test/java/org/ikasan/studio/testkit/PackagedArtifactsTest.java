@@ -18,6 +18,10 @@ class PackagedArtifactsTest {
             var resource = getClass().getClassLoader().getResource("studio/metapack/" + version + "/metapack.json");
             assertNotNull(resource);
             assertEquals("jar", resource.getProtocol());
+            String artifact = version.startsWith("V3") ? "studio-pack-v3" : "studio-pack-v4";
+            var manifest = ComponentLibrary.getMetaPackManifest(version);
+            assertTrue(resource.toString().contains(artifact + "-" + manifest.packVersion() + ".jar!"),
+                    "Pack resources must come from their individually versioned artifact: " + resource);
             var sample = Module.moduleBuilder().version(version).name("Example")
                     .applicationPackageName("org.example").port("8080").h2PortNumber("8092")
                     .h2WebPortNumber("8093").flows(List.of()).build();

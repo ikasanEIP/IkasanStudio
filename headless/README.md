@@ -8,9 +8,11 @@ This standalone Gradle build uses Java 17 and Maven libraries only. Running it d
 | --- | --- | --- |
 | `org.ikasan.studio:studio-generator:0.1.0-SNAPSHOT` | Core model, JSON IO, metadata validation, migration and FreeMarker generators; shared schema resources | Jackson, Maven model, FreeMarker, Commons IO, SLF4J |
 | `org.ikasan.studio:studio-test-kit:0.1.0-SNAPSHOT` | Pack validation/rendering helpers and a reusable JUnit Jupiter contract | Generator and JUnit Jupiter API |
-| `org.ikasan.studio:studio-bundled-packs:0.1.0-SNAPSHOT` | Existing official pack descriptors, templates and images | None |
+| `org.ikasan.studio:studio-pack-v3:0.1.0-SNAPSHOT` | V3.3.9 descriptors, templates and images | None |
+| `org.ikasan.studio:studio-pack-v4:0.1.0-SNAPSHOT` | V4.1.6 descriptors, templates and images | None |
+| `org.ikasan.studio:studio-bundled-packs:0.1.0-SNAPSHOT` | Bundle selecting exact official pack revisions | Both pack artifacts |
 
-These are initial development artifact versions, independent of the plugin version. Nothing is automatically published remotely. The bundled pack artifact currently contains the official packs together; independently releasing individual packs is a later packaging step.
+These are initial development artifact versions, independent of the plugin version. Nothing is automatically published remotely. Each official pack takes its artifact version from its own `metapack.json`. The bundled-packs artifact has no pack resources; its dependency metadata selects both exact pack revisions. See [Independent pack releases](../docs/IndependentMetaPackArtifacts.md) for versioning and release commands.
 
 The generator has no dependency on either the test kit or bundled packs. The test kit has no production dependency on bundled packs. Consumers supply their own pack resources on the application classpath using the existing `studio/metapack/<id>/...` structure. Resource discovery merges directories across engine and pack JARs.
 
@@ -19,7 +21,7 @@ The generator has no dependency on either the test kit or bundled packs. The tes
 Production Java sources have their own module source root so IntelliJ and Gradle agree on ownership. Resources and existing tests still use their repository locations:
 
 - `studio-generator` owns `headless/studio-generator/src/main/java/`, containing `org/ikasan/studio/core/**` and `StudioRuntimeException.java`, and packages `studio/metapack/schema/**`.
-- `studio-bundled-packs` packages the remaining `src/main/resources/studio/metapack/**` resources.
+- `studio-pack-v3` and `studio-pack-v4` each package only their own directory under `src/main/resources/studio/metapack/`. `studio-bundled-packs` selects them and hosts the combined official-pack regression suite.
 - The root IntelliJ build excludes those resources and depends on these artifacts through a composite build in `settings.gradle.kts`.
 - The headless engine and pack test tasks reuse the corresponding tests from `src/test/java/org/ikasan/studio/testing`. Official test fixtures stay in the repository's test sources; they are not exported in the test-kit JAR.
 
@@ -37,6 +39,10 @@ From the repository root, using the existing wrapper:
 
 # Engine contracts, synthetic packs, and verification that IntelliJ/official packs are absent
 ./gradlew -p headless :studio-generator:test
+
+# Each pack in isolation, with the generator/test kit but without the other pack
+./gradlew -p headless :studio-pack-v3:test
+./gradlew -p headless :studio-pack-v4:test
 
 # V3/V4 golden outputs, dependency/namespace contracts and reusable-contract examples
 ./gradlew -p headless :studio-bundled-packs:test

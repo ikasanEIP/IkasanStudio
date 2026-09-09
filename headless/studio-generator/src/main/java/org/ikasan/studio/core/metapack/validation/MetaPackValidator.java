@@ -12,13 +12,27 @@ import java.util.Set;
 
 /** Enforces the version contract before a meta-pack can be exposed to Studio. */
 public final class MetaPackValidator {
+    /** Increment only when the pack-facing generator contract changes incompatibly. */
+    public static final int GENERATOR_API_VERSION = 1;
     private MetaPackValidator() { }
 
     public static void validate(String directoryName, MetaPackManifest manifest,
                                 Map<String, ComponentMeta> components) throws StudioBuildException {
         if (manifest == null) fail(directoryName, "is missing metapack.json");
-        if (manifest.schemaVersion() != 1) {
+        if (manifest.schemaVersion() != 1 && manifest.schemaVersion() != 2) {
             fail(directoryName, "uses unsupported schemaVersion " + manifest.schemaVersion());
+        }
+        if (manifest.schemaVersion() == 2 || manifest.packVersion() != null) {
+            require(directoryName, "packVersion", manifest.packVersion());
+            if (!manifest.packVersion().matches("[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?")) {
+                fail(directoryName, "packVersion must be a fixed major.minor.patch revision (optionally with a qualifier)");
+            }
+        }
+        if (manifest.schemaVersion() == 2 || manifest.generatorApiVersion() != null) {
+            if (!Integer.valueOf(GENERATOR_API_VERSION).equals(manifest.generatorApiVersion())) {
+                fail(directoryName, "requires generatorApiVersion " + manifest.generatorApiVersion()
+                        + "; this generator supports " + GENERATOR_API_VERSION);
+            }
         }
         require(directoryName, "id", manifest.id());
         require(directoryName, "ikasanVersion", manifest.ikasanVersion());

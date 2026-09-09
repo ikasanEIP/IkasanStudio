@@ -1,14 +1,11 @@
 plugins { `java-library` }
 dependencies {
+    api(project(":studio-pack-v3"))
+    api(project(":studio-pack-v4"))
     testImplementation(project(":studio-test-kit"))
     testImplementation("commons-io:commons-io:2.22.0")
 }
 sourceSets {
-    main {
-        resources.setSrcDirs(listOf("../../src/main/resources"))
-        resources.include("studio/metapack/**")
-        resources.exclude("studio/metapack/schema/**")
-    }
     test {
         java.srcDir("../../src/test/java")
         java.include("org/ikasan/studio/testing/packs/**", "org/ikasan/studio/core/TestFixtures.java",

@@ -9,7 +9,17 @@ public record MetaPackManifest(
         String ikasanVersion,
         String javaVersion,
         List<BomImport> dependencyManagement,
-        List<CompatibilityOverride> compatibilityOverrides) {
+        List<CompatibilityOverride> compatibilityOverrides,
+        String packVersion,
+        Integer generatorApiVersion) {
+
+    /** Source compatibility for legacy schema-1 manifests; revision metadata was not recorded. */
+    public MetaPackManifest(int schemaVersion, String id, String ikasanVersion, String javaVersion,
+                            List<BomImport> dependencyManagement,
+                            List<CompatibilityOverride> compatibilityOverrides) {
+        this(schemaVersion, id, ikasanVersion, javaVersion, dependencyManagement,
+                compatibilityOverrides, null, null);
+    }
 
     public MetaPackManifest {
         dependencyManagement = dependencyManagement == null ? List.of() : List.copyOf(dependencyManagement);

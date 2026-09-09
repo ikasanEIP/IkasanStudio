@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "V3.3.9",
   "ikasanVersion": "3.3.9",
   "javaVersion": "11",
@@ -17,5 +17,7 @@
       "version": "1.85.2",
       "reason": "JSch 0.2.17 requires Bouncy Castle for Ed25519/Ed448 authentication on Java 11. Verified with Ikasan 3.3.9 SFTP; native Java support starts at Java 15."
     }
-  ]
+  ],
+  "packVersion": "0.1.0-SNAPSHOT",
+  "generatorApiVersion": 1
 }

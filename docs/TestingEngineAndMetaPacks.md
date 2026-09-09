@@ -106,3 +106,20 @@ The [headless build guide](../headless/README.md) documents module ownership, ar
 The three test tasks cover the engine, official packs, and consumption of packaged JARs respectively. They run on plain Java 17, without IntelliJ. Reports are separate under `headless/<module>/build/reports/tests/test/`. Root `check` also includes the headless checks.
 
 Independent binary/source JARs and Maven publication metadata are now available within this repository. Remote publication is not configured or automatic. Certification by compiling and starting generated applications remains subsequent work; a passing rendering contract is not a substitute for it.
+
+## Independently versioned pack artifacts
+
+All artifacts remain in this repository and use the same CI job. `./gradlew -p headless test`
+runs the engine, test-kit, individual pack and combined official-pack suites; root
+`./gradlew check` also includes all five headless module checks.
+
+- `./gradlew -p headless :studio-pack-v3:test` validates and renders V3 in isolation.
+- `./gradlew -p headless :studio-pack-v4:test` validates and renders V4 in isolation.
+- `./gradlew -p headless :studio-bundled-packs:test` retains the detailed V3/V4 golden-output and component expectations.
+- `./gradlew -p headless :studio-test-kit:test` verifies consumption from the two individually versioned pack JARs.
+
+Individual pack smoke contracts supplement the combined regression suite; run the full
+headless suite before releasing either pack. Engine tests cover legacy manifest loading,
+independent revisions, and rejection of missing/invalid revisions or incompatible generator APIs.
+See [Independent pack releases](IndependentMetaPackArtifacts.md) for artifact coordinates,
+compatibility rules, and publication commands.
