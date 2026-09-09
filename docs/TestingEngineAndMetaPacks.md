@@ -15,7 +15,7 @@ The generator and metadata tests have two owners under `src/test/java/org/ikasan
 
 ## Running the tests
 
-Run commands from the repository root. The build uses the Java 17 toolchain. Use `gradlew.bat` instead of `./gradlew` on Windows. Initial dependency resolution requires access to the configured artifact repositories.
+Run commands from the repository root. The build uses the Java 17 toolchain. Use `gradlew.bat` instead of `./gradlew` on Windows. Initial dependency resolution requires access to the configured artifact repositories. Both the root and independent `headless` build configure the Foojay toolchain resolver, so a machine running Gradle on Java 21 (including Travis) can download JDK 17 automatically. Included builds need their own resolver configuration. The first build also needs network access to the toolchain provider; offline builds require JDK 17 to be installed or already provisioned. There is no need to publish the headless artifacts before building the plugin.
 
 Run the suites with the standard IntelliJ-configured Gradle test task:
 
