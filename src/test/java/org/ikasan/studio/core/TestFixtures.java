@@ -26,7 +26,16 @@ public class TestFixtures {
     // that is not specific to a particular meta pack version. By default, the oldest supported meta pack is used.
     public static final String BASE_META_PACK = META_IKASAN_PACK_3_3_9;
     public static Stream<String> metaPacksToTest() {
-        return Stream.of(META_IKASAN_PACK_3_3_9);
+        return Stream.of(META_IKASAN_PACK_3_3_9, META_IKASAN_PACK_4_1_6);
+    }
+
+    /** Explicit expectations: a new pack needs a reviewed namespace rather than inheriting V4 assumptions. */
+    public static String enterpriseNamespace(String metaPackVersion) {
+        return switch (metaPackVersion) {
+            case META_IKASAN_PACK_3_3_9 -> "javax";
+            case META_IKASAN_PACK_4_1_6 -> "jakarta";
+            default -> throw new IllegalArgumentException("No test namespace defined for " + metaPackVersion);
+        };
     }
 
     public static final String TEST_FLOW_NAME = "MyFlow1";
@@ -416,18 +425,20 @@ public class TestFixtures {
 
     // ------------------------- ExceptionResolver -------------------------
     public static ExceptionResolution getTestJMSExceptionResolution(String metaPackVersion) throws StudioBuildException {
+        String jmsExceptionClass = enterpriseNamespace(metaPackVersion) + ".jms.JMSException.class";
         return ExceptionResolution.exceptionResolutionBuilder()
                 .metapackVersion(metaPackVersion)
-                .exceptionsCaught("javax.jms.JMSException.class")
+                .exceptionsCaught(jmsExceptionClass)
                 .theAction("retry")
                 .componentProperties(getRetryProperties(metaPackVersion))
                 .build();
     }
 
     public static ExceptionResolution getTestResourceExceptionResolution(String metaPackVersion) throws StudioBuildException {
+        String resourceExceptionClass = enterpriseNamespace(metaPackVersion) + ".resource.ResourceException.class";
         return ExceptionResolution.exceptionResolutionBuilder()
                 .metapackVersion(metaPackVersion)
-                .exceptionsCaught("javax.resource.ResourceException.class")
+                .exceptionsCaught(resourceExceptionClass)
                 .theAction("ignore")
                 .build();
     }

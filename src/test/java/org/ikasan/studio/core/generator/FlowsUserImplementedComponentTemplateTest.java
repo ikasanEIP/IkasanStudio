@@ -122,16 +122,20 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
     public void testJmsToFileTransferRecipeSelectsItsMetapackTemplate(String metaPackVersion) throws Exception {
+        // The conversion recipe is registered per metapack against that version's own JMS namespace
+        // (javax.jms for V3.3.9, jakarta.jms for V4.1.6) - see Converter/component-meta_en_GB.json's
+        // conversionRecipes[].sourceType - so the FROM_TYPE used to select the recipe must match.
+        String jmsMessageType = TestFixtures.enterpriseNamespace(metaPackVersion) + ".jms.Message";
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE, "javax.jms.Message");
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE, jmsMessageType);
         flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.TO_TYPE, "org.ikasan.filetransfer.Payload");
         flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.CONVERSION_RECIPE_ID,
                 "jms-message-to-file-transfer-payload");
 
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
 
-        assertTrue(templateString.contains("implements Converter<javax.jms.Message, org.ikasan.filetransfer.Payload>"));
+        assertTrue(templateString.contains("implements Converter<" + jmsMessageType + ", org.ikasan.filetransfer.Payload>"));
         assertTrue(templateString.contains("new org.ikasan.filetransfer.component.DefaultPayload"));
         assertTrue(templateString.contains("FilePayloadAttributeNames.FILE_NAME"));
     }
@@ -160,9 +164,13 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.core.TestFixtures#metaPacksToTest")
     public void testJmsToEmailRecipeSelectsItsMetapackTemplate(String metaPackVersion) throws Exception {
+        // See testJmsToFileTransferRecipeSelectsItsMetapackTemplate's comment: the recipe's registered
+        // sourceType is namespace-specific per metapack.
+        String jmsMessageType = TestFixtures.enterpriseNamespace(metaPackVersion) + ".jms.Message";
+        String jmsPackage = TestFixtures.enterpriseNamespace(metaPackVersion) + ".jms";
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE, "javax.jms.Message");
+        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE, jmsMessageType);
         flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.TO_TYPE,
                 "org.ikasan.component.endpoint.email.producer.EmailPayload");
         flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.CONVERSION_RECIPE_ID,
@@ -170,10 +178,10 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
 
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
 
-        assertTrue(templateString.contains("implements Converter<javax.jms.Message, org.ikasan.component.endpoint.email.producer.EmailPayload>"));
+        assertTrue(templateString.contains("implements Converter<" + jmsMessageType + ", org.ikasan.component.endpoint.email.producer.EmailPayload>"));
         assertTrue(templateString.contains("result.setEmailBody(text(body, charset))"));
-        assertTrue(templateString.contains("source instanceof javax.jms.TextMessage"));
-        assertTrue(templateString.contains("source instanceof javax.jms.BytesMessage"));
+        assertTrue(templateString.contains("source instanceof " + jmsPackage + ".TextMessage"));
+        assertTrue(templateString.contains("source instanceof " + jmsPackage + ".BytesMessage"));
     }
 
     @ParameterizedTest
