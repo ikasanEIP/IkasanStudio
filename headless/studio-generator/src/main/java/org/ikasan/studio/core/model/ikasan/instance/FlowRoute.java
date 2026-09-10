@@ -89,37 +89,61 @@ public class FlowRoute  implements IkasanComponent {
     }
 
     /**
-     * Ensure this route has a child FlowRoute (with its Router Endpoint marker already in place, matching what
-     * {@code ModuleDeserializer#addNewRoutesForRouter} (private, and in a different package, so not linkable here)
-     * builds on a full model.json reload) for every name currently in the given router's routeNames property.
-     * Live add/edit of a router never keeps childRoutes in sync with routeNames on its own - only a full reload
-     * does that - so without this, a freshly added or just-edited router has no branches to actually drop
-     * components into, and the canvas wrongly reports "cannot have a router AND a producer" against this
-     * (the router's own containing) route instead. Existing child routes (and anything already inside them)
-     * are left untouched; only routeNames not yet represented get a new (empty, endpoint-only) child route.
-     * @param metapackVersion of the router
-     * @param router whose routeNames should be reflected in this route's children
+     * Reconcile router branches with their names. Keep exact matches; pair remaining old and new names
+     * in order as renames, preserving branch contents. Only empty surplus branches may be removed.
      */
     public void syncChildRoutesForRouter(String metapackVersion, FlowElement router) throws StudioBuildException {
-        Object rawRouteNames = router.getPropertyValue(ROUTE_NAMES);
-        if (!(rawRouteNames instanceof List<?> routeNames)) {
-            return;
+        Object raw = router.getPropertyValue(ROUTE_NAMES);
+        if (!(raw instanceof List<?> names)) return;
+        List<String> desired = normalizedRouteNames(names);
+        String problem = validateChildRouteNames(desired);
+        if (problem != null) throw new StudioBuildException(problem);
+        String endpointKey = router.getComponentMeta().getEndpointKey();
+        if (endpointKey == null) return;
+        ComponentMeta endpointMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, endpointKey);
+        var unmatched = childRoutes.stream().filter(r -> !desired.contains(r.getRouteName()))
+                .collect(Collectors.toCollection(ArrayList::new));
+        List<FlowRoute> reconciled = new ArrayList<>();
+        for (String name : desired) {
+            FlowRoute child = findRouteOfName(name);
+            if (child == null && !unmatched.isEmpty()) {
+                child = unmatched.remove(0);
+                child.setRouteName(name);
+                for (FlowElement endpoint : child.getFlowElements()) {
+                    if (endpoint.getComponentMeta().isInternalEndpoint()) {
+                        endpoint.setPropertyValue("componentName", name);
+                    }
+                }
+            }
+            if (child == null) {
+                child = FlowRoute.flowRouteBuilder().flow(flow).routeName(name).build();
+                FlowElement endpoint = FlowElementFactory.createFlowElement(metapackVersion, endpointMeta, flow, child, name);
+                child.getFlowElements().add(endpoint);
+            }
+            reconciled.add(child);
         }
-        String endpointComponentName = router.getComponentMeta().getEndpointKey();
-        if (endpointComponentName == null) {
-            LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, null));
-            return;
-        }
-        for (Object routeNameObj : routeNames) {
-            if (routeNameObj instanceof String childRouteName && !childRouteName.isBlank() && findRouteOfName(childRouteName) == null) {
-                FlowRoute newChild = FlowRoute.flowRouteBuilder().flow(flow).routeName(childRouteName).build();
-                childRoutes.add(newChild);
-                ComponentMeta endpointMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, endpointComponentName);
-                FlowElement endpoint = FlowElementFactory.createFlowElement(metapackVersion, endpointMeta, flow, newChild, childRouteName);
-                endpoint.setContainingFlowRoute(newChild);
-                newChild.getFlowElements().add(endpoint);
+        childRoutes.clear();
+        childRoutes.addAll(reconciled);
+    }
+
+    /** Returns a validation message before edits are committed if they would discard branch contents. */
+    public String validateChildRouteNames(List<?> names) {
+        List<String> desired = normalizedRouteNames(names);
+        List<FlowRoute> unmatched = childRoutes.stream().filter(r -> !desired.contains(r.getRouteName())).toList();
+        long replacements = desired.stream().filter(name -> findRouteOfName(name) == null).count();
+        for (int i = (int) Math.min(replacements, unmatched.size()); i < unmatched.size(); i++) {
+            FlowRoute removed = unmatched.get(i);
+            if (!removed.getChildRoutes().isEmpty() || removed.getFlowElements().stream()
+                    .anyMatch(element -> !element.getComponentMeta().isInternalEndpoint())) {
+                return "Route '" + removed.getRouteName() + "' contains components. Move or remove them before removing this route.";
             }
         }
+        return null;
+    }
+
+    private static List<String> normalizedRouteNames(List<?> names) {
+        return names.stream().filter(String.class::isInstance).map(String.class::cast)
+                .map(String::trim).filter(name -> !name.isEmpty()).distinct().toList();
     }
 
 

@@ -700,7 +700,9 @@ public class GeneratedProjectSynchronizer {
         if (ikasanFlow.getFlowRoute() == null) {
             return;
         }
-        for (FlowElement component : ikasanFlow.getFlowRoute().getConsumerAndFlowRouteElements()) {
+        // Router branches can contain further routers and other user-implemented components.
+        // Use the same recursive traversal as generation and default flow-code navigation.
+        for (FlowElement component : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
             if (!(component instanceof FlowUserImplementedElement)) {
                 continue;
             }

@@ -590,4 +590,35 @@ class FlowRouteTest {
         rootRoute.syncChildRoutesForRouter(BASE_META_PACK, router);
         assertThat(route1.getFlowElements()).contains(producer1);
     }
+    @Test
+    public void routeRenamesPreserveContentsAndUpdateEndpointNames() throws StudioBuildException {
+        FlowElement router = TestFixtures.getMultiRecipientRouter(BASE_META_PACK);
+        FlowRoute root = FlowRoute.flowRouteBuilder().flow(testFlow).flowElements(List.of(router)).build();
+        root.syncChildRoutesForRouter(BASE_META_PACK, router);
+        FlowRoute first = root.getChildRoutes().get(0);
+        FlowRoute second = root.getChildRoutes().get(1);
+        FlowElement producer = TestFixtures.getDevNullProducer(BASE_META_PACK);
+        first.getFlowElements().add(producer);
+        router.setPropertyValue(ComponentPropertyMeta.ROUTE_NAMES, List.of("even", "odd"));
+        root.syncChildRoutesForRouter(BASE_META_PACK, router);
+        assertThat(root.getChildRoutes()).containsExactly(first, second);
+        assertThat(first.getRouteName()).isEqualTo("even");
+        assertThat(first.getFlowElements()).contains(producer);
+        assertThat(first.getFlowElements().get(0).getComponentName()).isEqualTo("even");
+        assertThat(second.getRouteName()).isEqualTo("odd");
+        // Reordering exact names must not swap branch contents.
+        router.setPropertyValue(ComponentPropertyMeta.ROUTE_NAMES, List.of("odd", "even"));
+        root.syncChildRoutesForRouter(BASE_META_PACK, router);
+        assertThat(root.getChildRoutes()).containsExactly(second, first);
+        // An empty branch may be removed, but a populated one must never disappear silently.
+        assertThat(root.validateChildRouteNames(List.of("odd"))).contains("contains components");
+        router.setPropertyValue(ComponentPropertyMeta.ROUTE_NAMES, List.of("odd"));
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> root.syncChildRoutesForRouter(BASE_META_PACK, router))
+                .isInstanceOf(StudioBuildException.class);
+        assertThat(root.getChildRoutes()).containsExactly(second, first);
+        router.setPropertyValue(ComponentPropertyMeta.ROUTE_NAMES, List.of("even"));
+        root.syncChildRoutesForRouter(BASE_META_PACK, router);
+        assertThat(root.getChildRoutes()).containsExactly(first);
+    }
+
 }

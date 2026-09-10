@@ -74,6 +74,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     // properties without first having to change (and revert) some unrelated property just to trigger doOKAction's
     // changed-property-driven regenerate.
     private JButton regenerateClassButton;
+    private JButton cancelEditsButton;
     private final SimpleChangeListener listenerForAnyEditChanges;
     private final Map<String, ComponentPropertyEditRow> componentPropertyEditBoxMap = new HashMap<>();
     private CompletableFuture<Void> latestGeneration = CompletableFuture.completedFuture(null);
@@ -130,6 +131,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             List<ValidationInfo> validationIssues = doValidateAll();
             boolean hasValidationIssues = !validationIssues.isEmpty();
             boolean okToProcess = dataHasChangedAndOKToProcess() && !hasValidationIssues;
+            if (cancelEditsButton != null) cancelEditsButton.setEnabled(dataHasChangedAndOKToProcess());
             // A disabled button still shows its tooltip on hover (Swing dispatches hover/mouse-motion events to
             // disabled components; only the click itself is suppressed), and the pulsating border draws the
             // developer's eye there in the first place - without both, a validation failure (e.g. a duplicate
@@ -157,6 +159,14 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             }
         };
         if (footerPanel != null) {
+            cancelEditsButton = new JButton(StudioBundle.message("button.Cancel"));
+            cancelEditsButton.setToolTipText(StudioBundle.message("tooltip.CancelPropertyEdits"));
+            cancelEditsButton.setEnabled(false);
+            cancelEditsButton.addActionListener(e -> {
+                populatePropertiesEditorPanel();
+                redrawPanel();
+            });
+            footerPanel.add(cancelEditsButton);
             regenerateClassButton = new JButton(StudioBundle.message("button.RegenerateClass"));
             regenerateClassButton.setToolTipText(StudioBundle.message("tooltip.RegenerateClass"));
             regenerateClassButton.addActionListener(e -> regenerateSelectedUserImplementedClass());
@@ -512,8 +522,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 new String[]{Messages.getYesButton(), Messages.getNoButton()},
                 StudioBundle.message("checkbox.BackupUserImplementedClassBeforeOverwrite"),
                 true,
-                -1,
-                -1,
+                Messages.YES, // Enter activates Yes immediately when the dialog opens.
+                Messages.YES,
                 Messages.getWarningIcon(),
                 (exitCode, checkbox) -> {
                     backupTicked[0] = checkbox.isSelected();
@@ -662,6 +672,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     protected void populatePropertiesEditorPanel() {
         if (!componentInitialisation) {
             updateCodeButton.setEnabled(false);
+            updateCodeButton.setToolTipText(null);
+            StudioUIUtils.setAttentionPulse(updateCodeButton, false);
+            if (cancelEditsButton != null) cancelEditsButton.setEnabled(false);
             // Guarded: this is first called from the PropertiesPanel superclass constructor, before this
             // subclass's own constructor body (which creates regenerateClassButton) has run.
             if (regenerateClassButton != null) {
@@ -1111,14 +1124,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     protected void clearOptionalProperties() {
         for (ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
             // isInOptionalSection(), not getMeta().isOptional() - see the identical fix/comment in
-            // toggleOptionalSection(). Here the stakes are higher than a display refresh: clearValue() commits
-            // componentProperty.setValue(null), so this button would otherwise silently wipe a genuinely
-            // conditionally-mandatory field's saved value (e.g. Email Producer's toRecipient, SFTP's password)
-            // while believing it was only clearing optional ones.
+            // toggleOptionalSection(). Clear only optional editor values; the model changes on Update Code.
             if (isInOptionalSection(componentPropertyEditRow.getMeta())) {
                 componentPropertyEditRow.clearValue();
             }
         }
+        listenerForAnyEditChanges.actionEvent();
         redrawPanel();
     }
 
@@ -1295,6 +1306,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             }
             if (componentPropertyEditRow.getDefaultValueButton() != null) componentPropertyEditRow.getDefaultValueButton().setEnabled(false);
         }
+        if (!componentInitialisation) {
+            componentPropertyEditRow.getInputField().applyOnEnter(updateCodeButton);
+        }
         addLabelAndParamInput(propertiesEditorPanel, gc, tabley, componentPropertyEditRow.getPropertyTitleField(), componentPropertyEditRow.getDataValidationHelper(), componentPropertyEditRow.getDefaultValueButton(), componentPropertyEditRow.getChooseValueButton(), componentPropertyEditRow.getRowOverwriteCheckBox(), componentPropertyEditRow.getAffectsUserImplementedClassIndicator(), componentPropertyEditRow.getInputField(), componentPropertyEditRow.getMeta());
         return componentPropertyEditRow;
     }
@@ -1440,6 +1454,14 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         }
         if (getSelectedComponent() != null) result.addAll(ConversionRecipeEditor.validate(
                 getSelectedComponent().getComponentMeta().getConversionRecipes(), componentPropertyEditBoxMap));
+        if (getSelectedComponent() instanceof FlowElement router && router.getComponentMeta().isRouter()
+                && router.getContainingFlowRoute() != null) {
+            ComponentPropertyEditRow names = componentPropertyEditBoxMap.get(ComponentPropertyMeta.ROUTE_NAMES);
+            if (names != null && names.getValue() instanceof List<?> desired) {
+                String problem = router.getContainingFlowRoute().validateChildRouteNames(desired);
+                if (problem != null) result.add(new ValidationInfo(problem, names.getOverridingInputField()));
+            }
+        }
         result.addAll(validateComponentNameIsUniqueInFlow());
         return result;
     }

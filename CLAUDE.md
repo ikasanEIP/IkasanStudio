@@ -129,7 +129,8 @@ Do not stop merely to:
 
 - report progress
 - ask whether to continue
-- ask whether to run a cat or python or python3 command or gradle or gradlew task
+- ask whether to run a command that reads or writes to files within the directory you have already been given permission for
+- ask permission to run python or python3 command or gradle or gradlew task
 - ask permission for routine implementation choices
 - ask permission to run builds or tests
 - ask permission to fix compilation/test failures caused by your changes

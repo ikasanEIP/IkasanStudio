@@ -54,6 +54,66 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
         createTestProjectStructure("src/test/testData" + TEST_DATA_DIR);
     }
 
+    public void test_routerCodeNavigationIncludesNestedBranchesAndKeepsMissingClassFallback() throws Exception {
+        String pack = TestFixtures.BASE_META_PACK;
+        Flow flow = TestFixtures.getUnbuiltFlow(pack)
+                .consumer(TestFixtures.getEventGeneratingConsumer(pack)).build();
+        var root = flow.getFlowRoute();
+        var branch = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
+                .flow(flow).routeName("route1").build();
+        root.getChildRoutes().add(branch);
+        var rootRouter = router(pack, flow, root, "Multi Recipient Router", "RootRouter");
+        var single = router(pack, flow, branch, "Single Recipient Router", "EitherOrRouter");
+        var multi = router(pack, flow, branch, "Multi Recipient Router", "NestedMultiRouter");
+        var missing = router(pack, flow, branch, "Single Recipient Router", "MissingRouter");
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
+        UiContext context = myProject.getService(UiContext.class);
+        context.setIkasanModule(module);
+        context.setViewHandlerFactory(new ViewHandlerCache(myProject));
+        String flowPackage = org.ikasan.studio.core.generator.Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();
+        String userPackage = org.ikasan.studio.core.generator.GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
+        String flowPath = "generated/src/main/java/" + flowPackage.replace('.', '/') + "/" + flow.getJavaClassName() + ".java";
+        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction(myProject, () -> {
+            try {
+                com.intellij.openapi.vfs.VfsUtil.saveText(
+                        com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing(base, flowPath.substring(0, flowPath.lastIndexOf('/')))
+                                .findOrCreateChildData(this, flow.getJavaClassName() + ".java"),
+                        "package " + flowPackage + "; public class " + flow.getJavaClassName() + " {}");
+                var userDir = com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing(base,
+                        "user/src/main/java/" + userPackage.replace('.', '/'));
+                for (String name : List.of("RootRouter", "EitherOrRouter", "NestedMultiRouter")) {
+                    com.intellij.openapi.vfs.VfsUtil.saveText(userDir.findOrCreateChildData(this, name + ".java"),
+                            "package " + userPackage + "; public class " + name + " {}");
+                }
+            } catch (java.io.IOException e) {
+                throw new java.io.UncheckedIOException(e);
+            }
+        });
+        for (int refresh = 0; refresh < 2; refresh++) {
+            new GeneratedProjectSynchronizer(myProject).initialisePsiFileHandles();
+            com.intellij.openapi.application.impl.NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
+            for (FlowElement router : List.of(rootRouter, single, multi)) {
+                var target = ViewHandlerCache.getFlowComponentViewHandler(myProject, router).getCodeNavigationTarget();
+                assertTrue(target.isPresent());
+                assertEquals(router.getComponentName() + ".java", target.psiFile().getName());
+            }
+            assertEquals(flow.getJavaClassName() + ".java",
+                    ViewHandlerCache.getFlowComponentViewHandler(myProject, missing).getCodeNavigationTarget().psiFile().getName());
+        }
+    }
+
+    private FlowElement router(String pack, Flow flow,
+                               org.ikasan.studio.core.model.ikasan.instance.FlowRoute route,
+                               String type, String name) throws Exception {
+        var meta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, type);
+        var router = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory
+                .createFlowElement(pack, meta, flow, route, name);
+        router.setPropertyValue("userImplementedClassName", name);
+        route.getFlowElements().add(router);
+        return router;
+    }
+
     public void test_jumpToPropertiesTargets() throws Exception {
         FlowElement ftpConsumer = TestFixtures.getFtpConsumer(TestFixtures.BASE_META_PACK);
         Flow flowWithTargets = TestFixtures.getUnbuiltFlow(TestFixtures.BASE_META_PACK)

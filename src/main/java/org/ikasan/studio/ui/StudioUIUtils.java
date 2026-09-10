@@ -335,13 +335,15 @@ public class StudioUIUtils {
             StringBuilder subString = new StringBuilder();
             for (String s : splitInput) {
                 subString.append(s).append(" ");
-                if (subString.length() >= targetLength) {
+                if (subString.length() >= targetLength && returnList.size() < numberOfRows - 1) {
                     returnList.add(subString.toString().trim());
-                    // If we are on the last row, just absorb remaining words.
-                    if (returnList.size() < numberOfRows) {
-                        subString = new StringBuilder();
-                    }
+                    subString.setLength(0);
                 }
+            }
+            // Always emit the remaining words, even when the final line is shorter than the target.
+            // Once the requested last row is reached, accumulate it fully before emitting it once.
+            if (!subString.toString().isBlank()) {
+                returnList.add(subString.toString().trim());
             }
         }
         if (returnList.isEmpty() && text != null && !text.isEmpty() && numberOfRows > 0) {

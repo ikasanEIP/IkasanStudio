@@ -13,6 +13,42 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SUISUtilsTest {
     @Test
+    public void wrappedComponentNamesKeepShortFinalLines() {
+        assertThat(StudioUIUtils.splitStringIntoMultipleRows("Both routes get it", 2),
+                is(List.of("Both routes", "get it")));
+    }
+
+    @Test
+    public void wrappingPreservesEveryWordExactlyOnce() {
+        for (String name : List.of("Both routes get it", "a b c d e f g h i j",
+                "connect to previous flow", "Either Or Router", "a verylongword x")) {
+            for (int rows = 1; rows <= name.length() + 1; rows++) {
+                List<String> wrapped = StudioUIUtils.splitStringIntoMultipleRows(name, rows);
+                assertThat(String.join(" ", wrapped), is(name));
+                assertTrue(wrapped.size() <= rows);
+            }
+        }
+    }
+
+    @Test
+    public void shortFinalLineIsIncludedInBothMeasuredAndPaintedHeight() {
+        BufferedImage image = new BufferedImage(300, 120, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+        try {
+            Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
+            g.setFont(font);
+            int lineHeight = StudioUIUtils.getTextHeight(g);
+            int width = g.getFontMetrics().stringWidth("Both routes get it") * 3 / 4;
+            for (PaintMode mode : List.of(PaintMode.DIMENSION_ONLY, PaintMode.PAINT)) {
+                assertThat(StudioUIUtils.drawCenteredStringFromTopCentre(g, mode,
+                        "Both routes get it", 150, 10, width, font), is(10 + 2 * lineHeight));
+            }
+        } finally {
+            g.dispose();
+        }
+    }
+
+    @Test
     public void test_splitStringIntoMultipleRows_simple_split() {
         List<String> actual = StudioUIUtils.splitStringIntoMultipleRows("the fat cat", 3);
         assertThat(actual.size(), is(3));

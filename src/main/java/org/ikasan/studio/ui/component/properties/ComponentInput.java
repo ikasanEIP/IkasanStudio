@@ -49,6 +49,26 @@ public class ComponentInput {
         return firstComponent;
     }
 
+    /** Submit single-line edits through the sidebar's existing validated Update Code action. */
+    void applyOnEnter(JButton updateButton) {
+        // Popups retain their DialogWrapper default action; dropdowns retain Enter-to-select behavior.
+        if (propertyValueField == null || updateButton == null) {
+            return;
+        }
+        String actionKey = "studio.applyPropertyEdits";
+        propertyValueField.getInputMap(JComponent.WHEN_FOCUSED)
+                .put(KeyStroke.getKeyStroke("ENTER"), actionKey);
+        propertyValueField.getActionMap().put(actionKey, new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent event) {
+                // The Update action validates and reads the current text, including uncommitted numeric edits.
+                if (propertyValueField.isEnabled() && propertyValueField.isEditable() && updateButton.isEnabled()) {
+                    updateButton.doClick(0);
+                }
+            }
+        });
+    }
+
     public void setEnabled(boolean enabled) {
         if (propertyChoiceValueField != null) propertyChoiceValueField.setEnabled(enabled);
         if (trueBox != null) {

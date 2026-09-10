@@ -474,8 +474,7 @@ public class ComponentPropertyEditRow {
                     project.getService(UiContext.class).getDesignerCanvas(),
                     cronPanel);
             if (cronPopupDialogue.showAndGet()) {
-                componentProperty.setValue(cronPanel.getValue());
-                resetDataEntryComponentsWithNewValues();
+                propertyValueField.setText(cronPanel.getValue());
             }
     }
 
@@ -549,7 +548,6 @@ public class ComponentPropertyEditRow {
 
     public void clearValue() {
         if (componentProperty != null) {
-            componentProperty.setValue(null);
             showingDefaultOnly = false;
             if (meta.getChoices() != null) {
                 propertyChoiceValueField.setSelectedItem("");
