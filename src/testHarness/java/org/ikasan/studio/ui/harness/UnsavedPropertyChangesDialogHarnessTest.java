@@ -214,6 +214,9 @@ public class UnsavedPropertyChangesDialogHarnessTest extends ComponentTestHarnes
             if (c instanceof javax.swing.JLabel label && label.getText() != null) {
                 texts.add(label.getText());
             }
+            if (c instanceof javax.swing.text.JTextComponent text && text.getText() != null) {
+                texts.add(text.getText());
+            }
             if (c instanceof Container container) {
                 for (Component child : container.getComponents()) {
                     stack.push(child);

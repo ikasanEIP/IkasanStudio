@@ -83,6 +83,7 @@ public class GeneratedProjectSynchronizer {
         completion.whenComplete((result, failure) -> {
             uiContext.endGeneration();
             com.intellij.openapi.util.Disposer.dispose(lifetime);
+            if (failure != null && uiContext.isLatestGeneration(revision)) reportGenerationFailure(failure);
         });
         try {
             // Project itself is deliberately not used as the Disposer parent here - the platform's plugin
@@ -110,8 +111,7 @@ public class GeneratedProjectSynchronizer {
                 // UiContext.getIkasanPomModel() is deliberately cache-only (EDT callers must never hit disk),
                 // but this whole block already runs on a pooled thread, so loading it here is safe and also
                 // populates the cache for next time. Without this, every regeneration attempt for a
-                // never-warmed project NPEs right here, silently (the outer catch below has no logging),
-                // aborting before a single file is written - indistinguishable from "nothing happened".
+                // never-warmed project would fail before a single source file could be generated.
                 ikasanPomModel = StudioProjectFiles.pomLoadFromVirtualDisk(project);
             }
             if (ikasanPomModel != null && ikasanPomModel.isNewDependency(module.getAllUniqueSortedJarDependencies())) {
@@ -202,24 +202,10 @@ public class GeneratedProjectSynchronizer {
                     "Undo group ID");
                 completion.complete(null);
                 } catch (Exception failure) {
-                    // Completing the future exceptionally isn't enough on its own - none of this method's
-                    // callers actually inspect it for a failure (see refreshCodeFromModel and its own
-                    // callers), so without a log line here, a failure this late in generation is otherwise
-                    // completely silent: no exception surfaces anywhere, no file gets written, and it looks
-                    // to the user exactly like nothing happened.
-                    if (!project.isDisposed() && !(failure instanceof com.intellij.openapi.progress.ProcessCanceledException)) {
-                    LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_FAILED, failure, uiContext.getIkasanModule() == null ? null : uiContext.getIkasanModule().getIdentity(), null, null));
-                    displayIdeaWarnMessage(project, "Generation failed. No further project files will be changed. "
-                            + failure.getMessage());
-                    }
                     completion.completeExceptionally(failure);
                 }
             });
             } catch (Exception failure) {
-                // See the sibling catch above - this future's exceptional completion is not observed by any
-                // caller, so this is the only place this failure is ever recorded.
-                if (!project.isDisposed() && !(failure instanceof com.intellij.openapi.progress.ProcessCanceledException))
-                    LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_FAILED, failure, null, null, null));
                 completion.completeExceptionally(failure);
             }
         });
@@ -227,6 +213,23 @@ public class GeneratedProjectSynchronizer {
             completion.completeExceptionally(failure);
         }
         return completion;
+    }
+
+    /** All asynchronous failure paths report once through the generation completion future. */
+    private void reportGenerationFailure(Throwable failure) {
+        if (project.isDisposed() || failure instanceof com.intellij.openapi.progress.ProcessCanceledException
+                || failure instanceof java.util.concurrent.CancellationException) return;
+        LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_FAILED, failure, null, null, null));
+        ApplicationManager.getApplication().invokeLater(() -> {
+            if (!project.isDisposed()) {
+                String detail = failure.getMessage() == null ? failure.getClass().getSimpleName() : failure.getMessage();
+                org.ikasan.studio.ui.StudioUIUtils.displayIdeaErrorMessage(project,
+                        "<html><b>Ikasan Studio code generation failed</b><br><br>"
+                                + org.ikasan.studio.ui.StudioUIUtils.escapeHtml(detail)
+                                + "<br><br>The requested code update did not complete. Review the details above before regenerating."
+                                + "<br>The IDE log records this as GENERATION_FAILED.</html>");
+            }
+        });
     }
 
     private boolean stopObsoleteGeneration(UiContext context, Module module, long revision, CompletableFuture<Void> completion) {

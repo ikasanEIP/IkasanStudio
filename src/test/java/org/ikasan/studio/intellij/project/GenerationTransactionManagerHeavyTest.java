@@ -6,6 +6,8 @@ import org.ikasan.studio.StudioRuntimeException;
 
 import java.nio.charset.StandardCharsets;
 
+import static org.junit.Assert.assertNotEquals;
+
 /** Exercises the file-ownership and all-or-nothing guarantees against a real project VFS. */
 public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase {
     private static final String TEST_DATA_DIR = "/ikasanStandardSampleApps/general/";
@@ -45,6 +47,8 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         StudioRuntimeException validationFailure = expectGenerationFailure(
                 () -> GenerationTransactionManager.commit(myProject));
         assertTrue(validationFailure.getMessage().contains("Generated Java is invalid"));
+        assertTrue(validationFailure.getMessage().contains("generated/Broken.java (line 1, column "));
+        assertTrue(validationFailure.getMessage().contains("No source files in this generation batch were replaced"));
         assertNull(baseDir.findFileByRelativePath("generated/must-not-appear.txt"));
 
         // Existing developer files cannot be changed merely because a generator targeted them.
@@ -155,7 +159,7 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         assertNotNull(file);
         long initialStamp = file.getModificationStamp();
         String formatted = read(base, path);
-        assertFalse("Fixture must actually be formatted", source.equals(formatted));
+        assertNotEquals("Fixture must actually be formatted", source, formatted);
         GenerationTransactionManager.begin();
         StudioProjectFiles.createFileWithDirectories(myProject, path, source, null);
         assertEquals(1, GenerationTransactionManager.commit(myProject).unchanged());

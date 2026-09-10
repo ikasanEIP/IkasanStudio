@@ -8,14 +8,9 @@ package ${studioPackageTag};
 *
 * Once created, this class is the users responsibility to maintain.
 *
-* Each new resource should be annotated with the @Resource tag e.g.
-* @Resource
-* public myComplexClass  getMyProperty() { return new myComplexClass(); }
-*
-* @TODO - verify whether jms.provider.url is part of the ikasan domain or the solution domain.
-* The users is encouraged to access any properties that might be exposed from the ikasan properties e.g.
-* @Value("${jms.provider.url}")
-* private String brokerUrl;
+* Provide resource beans using the appropriate Spring annotations, for example {@code @Bean}.
+* Inject configuration with Spring's {@code @Value} annotation on a field or constructor parameter.
+* Use an application property placeholder for the broker URL rather than embedding it in code.
 */
 
 @org.springframework.stereotype.Component("${studioPackageTag}.ResourceFactoryImpl")

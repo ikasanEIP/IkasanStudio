@@ -26,9 +26,12 @@ import org.ikasan.spec.component.splitting.SplitterException;
 public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Splitter<${flowElement.getPropertyValue('fromType')}, ${flowElement.getPropertyValue('toType')}>
 {
 /**
+* Split the incoming payload into outgoing messages for the next component.
+*
 * @param payload the single incoming payload to split
 * @return an ordered list of the outgoing payloads to send downstream, one at a time - must contain at least
 * one element, a null or empty list is not valid and throws a SplitterException at runtime
+* @throws SplitterException if the payload cannot be split into valid outgoing messages
 */
 public java.util.List<${flowElement.getPropertyValue('toType')}> split(${flowElement.getPropertyValue('fromType')} payload) throws SplitterException
 {

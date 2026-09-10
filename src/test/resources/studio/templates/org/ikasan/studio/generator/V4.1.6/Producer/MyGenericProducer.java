@@ -17,8 +17,9 @@ private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(my
 /**
 * Push the payload to your protocol endpoint.
 *
-* @param payload
-* @throws org.ikasan.spec.component.endpoint.EndpointException
+* @param payload - the message payload to send to the endpoint
+* @throws org.ikasan.spec.component.endpoint.EndpointException if the payload cannot be delivered,
+* for example because the endpoint is unavailable or rejects the request
 */
 @Override
 public void invoke(java.lang.String payload) throws org.ikasan.spec.component.endpoint.EndpointException

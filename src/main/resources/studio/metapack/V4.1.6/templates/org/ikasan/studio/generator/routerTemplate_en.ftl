@@ -34,6 +34,7 @@ public static final String ${route?upper_case} = "${route}";
 * @return the route names (see the constants above) payload should be sent to, in any combination - null or an
 * empty list is not valid, at least one route is always required (there is no "default" fallback for this
 * router type - see org.ikasan.flow.visitorPattern.invoker.MultiRecipientRouterFlowElementInvoker)
+* @throws org.ikasan.spec.component.routing.RouterException if the routing decision cannot be evaluated from the payload
 */
 @Override
 public ${flowElement.getPropertyValue("toType")} route(${flowElement.getPropertyValue("fromType")} payload) throws org.ikasan.spec.component.routing.RouterException
@@ -51,6 +52,7 @@ return java.util.List.of(<#list flowElement.getPropertyValue("routeNames")![] as
 * matches none of this router's own routes, the flow throws an InvalidFlowException at runtime (see
 * org.ikasan.flow.visitorPattern.invoker.SingleRecipientRouterFlowElementInvoker), so only rely on null if a
 * "default" route genuinely exists among the route names above.
+* @throws org.ikasan.spec.component.routing.RouterException if the routing decision cannot be evaluated from the payload
 */
 @Override
 public ${flowElement.getPropertyValue("toType")} route(${flowElement.getPropertyValue("fromType")} payload) throws org.ikasan.spec.component.routing.RouterException

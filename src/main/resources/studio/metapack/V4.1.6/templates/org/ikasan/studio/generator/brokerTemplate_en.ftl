@@ -34,6 +34,13 @@ public ${flowElement.getPropertyValue('toType')} invoke(${flowElement.getPropert
 {
 // Uncomment for diagnostics without logging message contents.
 // LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
+<#if flowElement.getPropertyValue('toType') == 'java.lang.String' || flowElement.getPropertyValue('toType') == 'String'>
 return ${flowElement.getPropertyValue('toType')}.valueOf(payload);
+<#else>
+// TODO: Fetch or create the result matching the return type above.
+// For List<String>, return a list of strings, for example java.util.List.of("first", "second").
+// Collections and custom classes do not have a general-purpose valueOf(payload) method.
+throw new EndpointException("Implement this broker to return the configured output type");
+</#if>
 }
 }

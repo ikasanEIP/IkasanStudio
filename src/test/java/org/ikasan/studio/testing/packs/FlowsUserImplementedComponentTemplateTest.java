@@ -35,6 +35,20 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    void brokerGenericReturnTypeUpdatesBothSignaturesWithoutInvalidValueOf(String pack) throws Exception {
+        var module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
+        var broker = TestFixtures.getBroker(pack);
+        broker.setPropertyValue("fromType", "org.quartz.JobExecutionContext");
+        broker.setPropertyValue("toType", "java.util.List<java.lang.String>");
+        String generated = generateUserImplementedComponentTemplate(pack, module, broker);
+        assertTrue(generated.contains("implements Broker<org.quartz.JobExecutionContext, java.util.List<java.lang.String>>"));
+        assertTrue(generated.contains("public java.util.List<java.lang.String> invoke(org.quartz.JobExecutionContext payload)"));
+        assertFalse(generated.contains(".valueOf(payload)"));
+        assertTrue(generated.contains("throw new EndpointException("));
+    }
+
     //  ------------------------------- BROKER ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/Converter/MyBroker.java

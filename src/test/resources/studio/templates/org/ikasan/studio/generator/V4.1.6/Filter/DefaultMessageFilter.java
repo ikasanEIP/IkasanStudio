@@ -28,10 +28,11 @@ String configurationId;
 /**
 * Evaluate the message against this rule.
 *
-* @param message
+* @param message - the message payload
 * @return true if the message is accepted (passed through, unmodified) - false to stop processing it here;
 * there is no separate "discarded" destination it gets routed to, flow processing for this event simply ends.
-* @throws org.ikasan.spec.component.filter.FilterException
+* @throws org.ikasan.spec.component.filter.FilterException if the rule cannot be evaluated, for example
+* because required payload data is invalid or a lookup fails; normal rejection returns false
 */
 public boolean accept(java.lang.String message) throws org.ikasan.spec.component.filter.FilterException
 {

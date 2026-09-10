@@ -441,7 +441,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * package (module-level relocation case), {@code description} for the confirmation dialog, {@code file}
      * (may be null if nothing has been generated yet) for the optional backup (component self-edit case).
      */
-    private record AffectedUserImplementedClass(Flow flow, String className, String description, UserClassReference userClassReference) {}
+    private record AffectedUserImplementedClass(Flow flow, String className, RegenerateUserClassDialog.AffectedClass description, UserClassReference userClassReference) {}
 
     /**
      * Ask the user to confirm the pending change, wording it according to what will actually happen to any
@@ -476,12 +476,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             return Messages.showYesNoDialog(project, message, StudioBundle.message("dialog.ConfirmRegenerateUserImplementedClass"), Messages.getWarningIcon()) == Messages.YES;
         }
 
-        List<String> descriptions = new ArrayList<>();
-        for (AffectedUserImplementedClass affectedClass : affected) {
-            descriptions.add(affectedClass.description());
-        }
         String message = StudioBundle.message("message.ConfirmRegenerateUserImplementedClassNamed",
-                String.join(", ", changedPropertyLabels), String.join("\n\n", descriptions));
+                String.join(", ", changedPropertyLabels));
         return confirmWithOptionalBackup(message, affected);
     }
 
@@ -498,11 +494,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             return Messages.showYesNoDialog(project, message, StudioBundle.message("dialog.ConfirmRegenerateUserImplementedClass"), Messages.getWarningIcon()) == Messages.YES;
         }
 
-        List<String> descriptions = new ArrayList<>();
-        for (AffectedUserImplementedClass affectedClass : affected) {
-            descriptions.add(affectedClass.description());
-        }
-        String message = StudioBundle.message("message.ConfirmForceRegenerateUserImplementedClassNamed", String.join("\n\n", descriptions));
+        String message = StudioBundle.message("message.ConfirmForceRegenerateUserImplementedClassNamed");
         return confirmWithOptionalBackup(message, affected);
     }
 
@@ -512,25 +504,10 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * ({@link #confirmForceRegenerateUserImplementedClass}) - only the message text differs between the two.
      */
     private boolean confirmWithOptionalBackup(String message, List<AffectedUserImplementedClass> affected) {
-        // showCheckboxMessageDialog's exitFunc is only invoked once, purely to translate the pressed button's
-        // index into a return value - it's just a convenient hook to also capture the checkbox's final state
-        // into an array the enclosing method can still read once the (modal) call below returns.
-        boolean[] backupTicked = {true};
-        int result = Messages.showCheckboxMessageDialog(
-                message,
-                StudioBundle.message("dialog.ConfirmRegenerateUserImplementedClass"),
-                new String[]{Messages.getYesButton(), Messages.getNoButton()},
-                StudioBundle.message("checkbox.BackupUserImplementedClassBeforeOverwrite"),
-                true,
-                Messages.YES, // Enter activates Yes immediately when the dialog opens.
-                Messages.YES,
-                Messages.getWarningIcon(),
-                (exitCode, checkbox) -> {
-                    backupTicked[0] = checkbox.isSelected();
-                    return exitCode;
-                });
-        boolean confirmed = result == Messages.YES;
-        if (confirmed && backupTicked[0]) {
+        var dialog = new RegenerateUserClassDialog(project, message,
+                affected.stream().map(AffectedUserImplementedClass::description).toList());
+        boolean confirmed = dialog.showAndGet();
+        if (confirmed && dialog.isBackupSelected()) {
             for (AffectedUserImplementedClass affectedClass : affected) {
                 StudioProjectFiles.backupUserImplementedClassFile(project, affectedClass.userClassReference());
             }
@@ -624,26 +601,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             return null;
         }
         String componentType = component.getComponentMeta().getComponentTypeMeta().getComponentShortType();
-        String description = formatAffectedClassDescription(flow.getIdentity(), componentType, className);
+        var description = new RegenerateUserClassDialog.AffectedClass(flow.getIdentity(), componentType, className);
         UserClassReference userClassReference = module != null
                 ? new UserClassReference(GeneratorUtils.getUserImplementedClassesPackageName(module, flow), className)
                 : null;
         return new AffectedUserImplementedClass(flow, className, description, userClassReference);
-    }
-
-    /**
-     * "Flow:" / "Component (Type):" as two aligned, labelled lines rather than one "flowName: ClassName.java"
-     * line - so a developer scanning several affected classes at once can tell at a glance which flow and
-     * which kind of component each one belongs to, not just the flow name and file name run together.
-     * Package-private (not private) purely so this can be exercised directly from a same-package test without
-     * needing a full ComponentPropertiesPanel/Project to construct.
-     */
-    static String formatAffectedClassDescription(String flowIdentity, String componentType, String className) {
-        String flowLabel = "Flow:";
-        String componentLabel = "Component (" + componentType + "):";
-        int labelWidth = componentLabel.length();
-        return String.format("%-" + labelWidth + "s %s", flowLabel, flowIdentity)
-                + "\n" + String.format("%-" + labelWidth + "s %s", componentLabel, className);
     }
 
     /**

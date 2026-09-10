@@ -7,9 +7,6 @@ package ${studioPackageTag};
 * This stub will not be over-written unless the overwrite checkbox is explicitly selected.
 */
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 @org.springframework.stereotype.Component("${studioPackageTag}.${className}")
 @org.springframework.boot.context.properties.EnableConfigurationProperties

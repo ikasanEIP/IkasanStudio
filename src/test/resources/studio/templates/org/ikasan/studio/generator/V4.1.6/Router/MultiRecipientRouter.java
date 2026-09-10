@@ -28,6 +28,7 @@ public static final String ROUTE2 = "route2";
 * @return the route names (see the constants above) payload should be sent to, in any combination - null or an
 * empty list is not valid, at least one route is always required (there is no "default" fallback for this
 * router type - see org.ikasan.flow.visitorPattern.invoker.MultiRecipientRouterFlowElementInvoker)
+* @throws org.ikasan.spec.component.routing.RouterException if the routing decision cannot be evaluated from the payload
 */
 @Override
 public java.util.List<java.lang.String> route(java.lang.String payload) throws org.ikasan.spec.component.routing.RouterException

@@ -5,7 +5,7 @@ package ${studioPackageTag};
 import org.ikasan.spec.component.transformation.Converter;
 import org.ikasan.spec.component.transformation.TransformationException;
 
-/** ${conversionRecipe.displayName}. Unsupported content is rejected; provide a custom mapping when needed. */
+/** ${conversionRecipe.displayName?html}. Unsupported content is rejected; provide a custom mapping when needed. */
 @org.springframework.stereotype.Component("${studioPackageTag}.${className}")
 public class ${className} implements Converter<${conversionRecipe.sourceType}, ${conversionRecipe.targetType}> {
 private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(${className}.class);

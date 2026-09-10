@@ -33,6 +33,9 @@ public java.lang.Integer invoke(java.lang.String payload) throws EndpointExcepti
 {
 // Uncomment for diagnostics without logging message contents.
 // LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
-return java.lang.Integer.valueOf(payload);
+// TODO: Fetch or create the result matching the return type above.
+// For List<String>, return a list of strings, for example java.util.List.of("first", "second").
+// Collections and custom classes do not have a general-purpose valueOf(payload) method.
+throw new EndpointException("Implement this broker to return the configured output type");
 }
 }

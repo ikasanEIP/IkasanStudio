@@ -33,9 +33,10 @@ String configurationId;
 * here (there is no separate "discarded" destination it gets routed to); the invocation is recorded with a
 * FILTER final action, and optionally logged, depending on this component's own logFiltered setting.
 *
-* @param message
+* @param message - the message payload
 * @return the (unmodified) message to let it continue through the flow, or null to stop processing it here.
-* @throws FilterException
+* @throws FilterException if the filtering decision cannot be evaluated, for example because
+* required payload data is invalid or a lookup fails; normal rejection returns null
 */
 public ${flowElement.getPropertyValue("fromType")} filter(${flowElement.getPropertyValue("fromType")} message) throws org.ikasan.spec.component.filter.FilterException
 {

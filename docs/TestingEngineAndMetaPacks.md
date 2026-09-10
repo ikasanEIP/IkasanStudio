@@ -127,3 +127,5 @@ compatibility rules, and publication commands.
 ActiveMQ ObjectMessage trust generation and provider runtime checks are documented in
 [JMS Object Messages](JmsObjectMessages.md). Run them with
 `./gradlew -p headless :studio-bundled-packs:test --tests '*Trusted*'`.
+
+See [Generated Java warning review](GeneratedCodeWarnings.md) for the template Javadoc checks, fixes, and remaining application-specific warning limits.

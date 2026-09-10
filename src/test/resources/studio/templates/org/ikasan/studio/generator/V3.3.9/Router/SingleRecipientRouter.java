@@ -26,6 +26,7 @@ public static final String ROUTE2 = "route2";
 * matches none of this router's own routes, the flow throws an InvalidFlowException at runtime (see
 * org.ikasan.flow.visitorPattern.invoker.SingleRecipientRouterFlowElementInvoker), so only rely on null if a
 * "default" route genuinely exists among the route names above.
+* @throws org.ikasan.spec.component.routing.RouterException if the routing decision cannot be evaluated from the payload
 */
 @Override
 public java.lang.String route(java.lang.String payload) throws org.ikasan.spec.component.routing.RouterException

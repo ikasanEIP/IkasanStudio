@@ -20,13 +20,17 @@ import org.ikasan.spec.component.transformation.TransformationException;
 public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Translator<${flowElement.getPropertyValue('type')}>
 {
 /**
-* Transforms or otherwise changes the passed in <code>Event</code>
+* Modifies the supplied mutable payload in place; no replacement object is returned.
 *
-* @param payload Event to transform
-* @throws TransformationException Exception if we could not transform
+* @param payload - the mutable message payload to update
+* @throws TransformationException if the payload cannot be translated, for example because required data is invalid
 */
+@Override
 public void translate(${flowElement.getPropertyValue('type')} payload) throws TransformationException
 {
-System.out.println("Payload was" + payload);
+// TODO: Update the mutable payload in place. Use a Converter to replace an immutable value such as String.
+// Enable DEBUG logging for this package to inspect arrivals without logging message contents.
+org.slf4j.LoggerFactory.getLogger(getClass()).debug("Processing payload type {}",
+        payload == null ? "null" : payload.getClass().getName());
 }
 }

@@ -136,8 +136,14 @@ final class GenerationTransactionManager {
                 PsiFile candidate = PsiFileFactory.getInstance(project).createFileFromText(
                         artifact.relativePath(), JavaFileType.INSTANCE, artifact.content());
                 PsiErrorElement error = PsiTreeUtil.findChildOfType(candidate, PsiErrorElement.class);
-                if (error != null) throw new StudioRuntimeException("Generated Java is invalid before replacement: "
-                        + artifact.relativePath() + ": " + error.getErrorDescription());
+                if (error != null) {
+                    String prefix = artifact.content().substring(0, Math.min(error.getTextOffset(), artifact.content().length()));
+                    long line = prefix.chars().filter(c -> c == '\n').count() + 1;
+                    int column = prefix.length() - prefix.lastIndexOf('\n');
+                    throw new StudioRuntimeException("Generated Java is invalid before replacement: "
+                            + artifact.relativePath() + " (line " + line + ", column " + column + "): "
+                            + error.getErrorDescription() + ". No source files in this generation batch were replaced.");
+                }
             } else if (artifact.relativePath().endsWith("pom.xml")) {
                 try {
                     new MavenXpp3Reader().read(new StringReader(artifact.content()));

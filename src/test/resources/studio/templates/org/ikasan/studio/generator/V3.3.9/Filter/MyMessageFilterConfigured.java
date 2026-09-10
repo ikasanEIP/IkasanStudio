@@ -18,9 +18,10 @@ MyConfigurationClass configuration;
 * If the message does not match the criteria, return null; route the message to a discarded
 * message channel.
 *
-* @param message
+* @param message - the message payload
 * @return Message or null.
-* @throws FilterException
+* @throws FilterException if the filtering decision cannot be evaluated, for example because
+* required payload data is invalid or a lookup fails; normal rejection returns null
 */
 public class java.lang.String filter(class java.lang.String message) throws org.ikasan.spec.component.filter.FilterException
 {

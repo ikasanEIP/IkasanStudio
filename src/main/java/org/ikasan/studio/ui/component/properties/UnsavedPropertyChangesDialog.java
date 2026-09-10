@@ -2,22 +2,13 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -53,7 +44,7 @@ public class UnsavedPropertyChangesDialog extends DialogWrapper {
         super(project, false);
         this.message = message;
         this.componentName = componentName;
-        this.changes = changes;
+        this.changes = List.copyOf(changes);
         setTitle(title);
         init();
     }
@@ -64,67 +55,39 @@ public class UnsavedPropertyChangesDialog extends DialogWrapper {
 
     @Override
     protected JComponent createCenterPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(JBUI.Borders.empty(4));
-
-        JPanel messageRow = new JPanel(new BorderLayout(12, 0));
-        JLabel iconLabel = new JLabel(Messages.getWarningIcon());
-        iconLabel.setVerticalAlignment(SwingConstants.TOP);
-        messageRow.add(iconLabel, BorderLayout.WEST);
-        JBLabel messageLabel = new JBLabel("<html>" + StudioUIUtils.escapeHtml(message) + "</html>");
-        messageRow.add(messageLabel, BorderLayout.CENTER);
-        panel.add(messageRow);
-
-        if (!changes.isEmpty()) {
-            panel.add(buildDetailsPanel());
-        }
-
-        JPanel sized = new JPanel(new BorderLayout());
-        sized.add(panel, BorderLayout.NORTH);
-        sized.setPreferredSize(JBUI.size(480, panel.getPreferredSize().height));
-        return sized;
+        return buildContent(message, componentName, changes);
     }
 
-    private JPanel buildDetailsPanel() {
-        JPanel table = new JPanel(new GridBagLayout());
-        table.setBorder(BorderFactory.createTitledBorder(
-                StudioBundle.message("label.ChangedPropertiesFor", componentName)));
-        GridBagConstraints labelConstraints = new GridBagConstraints();
-        labelConstraints.gridx = 0;
-        labelConstraints.anchor = GridBagConstraints.WEST;
-        labelConstraints.insets = JBUI.insets(2, 0, 2, 8);
-        GridBagConstraints oldValueConstraints = new GridBagConstraints();
-        oldValueConstraints.gridx = 1;
-        oldValueConstraints.anchor = GridBagConstraints.WEST;
-        oldValueConstraints.insets = JBUI.insets(2, 0, 2, 6);
-        GridBagConstraints arrowConstraints = new GridBagConstraints();
-        arrowConstraints.gridx = 2;
-        arrowConstraints.anchor = GridBagConstraints.WEST;
-        arrowConstraints.insets = JBUI.insets(2, 0, 2, 6);
-        GridBagConstraints newValueConstraints = new GridBagConstraints();
-        newValueConstraints.gridx = 3;
-        newValueConstraints.anchor = GridBagConstraints.WEST;
-        newValueConstraints.insets = JBUI.insets(2, 0);
-
-        int row = 0;
-        for (PropertyChangeDetail change : changes) {
-            labelConstraints.gridy = row;
-            oldValueConstraints.gridy = row;
-            arrowConstraints.gridy = row;
-            newValueConstraints.gridy = row;
-            table.add(new JBLabel("<html><b>" + StudioUIUtils.escapeHtml(change.label()) + "</b></html>"), labelConstraints);
-            table.add(new JBLabel(StudioUIUtils.escapeHtml(change.oldValueDisplay())), oldValueConstraints);
-            table.add(new JBLabel("→"), arrowConstraints);
-            table.add(new JBLabel(StudioUIUtils.escapeHtml(change.newValueDisplay())), newValueConstraints);
-            row++;
+    static JComponent buildContent(String message, String componentName, List<PropertyChangeDetail> changes) {
+        JPanel details = new JPanel(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.gridwidth = 2;
+        c.weightx = 1;
+        c.insets = JBUI.insetsBottom(12);
+        details.add(PropertyDialogLayout.wrappedText(message, 520), c);
+        if (!changes.isEmpty()) {
+            c.gridy++;
+            details.add(PropertyDialogLayout.wrappedText(
+                    StudioBundle.message("label.ChangedPropertiesFor", componentName), 520), c);
+            for (PropertyChangeDetail change : changes) {
+                c.gridy++;
+                c.gridx = 0;
+                c.gridwidth = 2;
+                c.weightx = 1;
+                c.insets = JBUI.insets(12, 0, 3, 0);
+                var heading = PropertyDialogLayout.wrappedText(change.label(), 520);
+                heading.setFont(heading.getFont().deriveFont(java.awt.Font.BOLD));
+                details.add(heading, c);
+                c.gridwidth = 1;
+                PropertyDialogLayout.addRow(details, c, StudioBundle.message("label.SavedPropertyValue"), change.oldValueDisplay());
+                PropertyDialogLayout.addRow(details, c, StudioBundle.message("label.NewPropertyValue"), change.newValueDisplay());
+            }
         }
-        JBScrollPane scrollPane = new JBScrollPane(table);
-        scrollPane.setBorder(JBUI.Borders.empty());
-        scrollPane.setPreferredSize(JBUI.size(450, Math.min(200, table.getPreferredSize().height + 10)));
-        JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.add(scrollPane, BorderLayout.CENTER);
-        return wrapper;
+        return PropertyDialogLayout.wrap(details, null);
     }
 
     // Deliberately not @NotNull-annotated - see CLAUDE.md: this project avoids @NotNull since the IntelliJ
