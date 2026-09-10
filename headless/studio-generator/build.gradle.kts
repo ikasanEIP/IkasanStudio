@@ -5,8 +5,10 @@ dependencies {
     api("org.apache.maven:maven-model:3.9.16")
     // Export the patched Plexus dependency to consumers, including Maven consumers.
     api("org.codehaus.plexus:plexus-utils:4.1.0") {
-        because("Fix CVE-2025-67030 while retaining the Maven model's Plexus 3.x API")
+        because("Keep the patched Plexus utilities available to all consumers")
     }
+    // Plexus Utils 4 moved the Maven 3 XML parser classes into this separate artifact.
+    api("org.codehaus.plexus:plexus-xml:3.0.2")
     api("org.freemarker:freemarker:2.3.35")
     implementation("commons-io:commons-io:2.22.0")
     implementation("org.slf4j:slf4j-api:2.0.19")

@@ -122,6 +122,60 @@ public class UserImplementedClassRelocatorHeavyTest extends HeavyPlatformTestCas
                 relocatedContent.contains(distinctiveMarker), is(true));
     }
 
+    public void test_moveUpdatesGeneratedBeanName() throws Exception {
+        assertMovedBeanName(null, false);
+    }
+
+    public void test_moveAndRenameUpdatesGeneratedBeanName() throws Exception {
+        assertMovedBeanName(null, true);
+    }
+
+    public void test_movePreservesCustomBeanName() throws Exception {
+        assertMovedBeanName("myCustomBroker", false);
+    }
+
+    private void assertMovedBeanName(String customBeanName, boolean collision) throws Exception {
+        FlowElement broker = TestFixtures.getBroker(TestFixtures.BASE_META_PACK);
+        broker.setContainingFlow(flow2);
+        broker.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "MessageGenerator");
+        if (collision) {
+            FlowElement sibling = TestFixtures.getBroker(TestFixtures.BASE_META_PACK);
+            sibling.setPropertyValue(USER_IMPLEMENTED_CLASS_NAME, "MessageGenerator");
+            flow2.getFlowRoute().getFlowElements().add(sibling);
+        }
+        String oldPackage = GeneratorUtils.getUserImplementedClassesPackageName(module, flow1);
+        String oldBeanName = customBeanName == null ? oldPackage + ".MessageGenerator" : customBeanName;
+        String source = "package " + oldPackage + ";\n"
+                + "import org.springframework.stereotype.Component;\n"
+                + "@Component(\"" + oldBeanName + "\")\n"
+                + "public class MessageGenerator { public String payload() { return \"preserved\"; } }";
+        StudioProjectFiles.createJavaSourceFile(myProject, StudioProjectFiles.USER_CONTENT_ROOT,
+                StudioProjectFiles.SRC_MAIN_JAVA_CODE, oldPackage, "MessageGenerator", source, null);
+        VirtualFile sourceRoot = StudioProjectFiles.getUserImplementedClassFile(myProject, oldPackage, "MessageGenerator").getParent();
+        for (String ignored : oldPackage.split("\\.")) {
+            sourceRoot = sourceRoot.getParent();
+        }
+        com.intellij.testFramework.PsiTestUtil.addContentRoot(myModule, sourceRoot);
+        com.intellij.testFramework.PsiTestUtil.addSourceRoot(myModule, sourceRoot);
+        StudioProjectFiles.createJavaSourceFile(myProject, StudioProjectFiles.USER_CONTENT_ROOT,
+                StudioProjectFiles.SRC_MAIN_JAVA_CODE, "org.springframework.stereotype", "Component",
+                "package org.springframework.stereotype; public @interface Component { String value(); }", null);
+
+        UserImplementedClassRelocator.relocateIfNeeded(myProject, module, broker, flow1, flow2);
+
+        String newName = collision ? "MessageGenerator2" : "MessageGenerator";
+        String newPackage = GeneratorUtils.getUserImplementedClassesPackageName(module, flow2);
+        VirtualFile relocated = StudioProjectFiles.getUserImplementedClassFile(myProject, newPackage, newName);
+        assertNotNull(relocated);
+        String content = com.intellij.openapi.application.ReadAction.compute(() ->
+                com.intellij.psi.PsiManager.getInstance(myProject).findFile(relocated).getText());
+        String expectedBeanName = customBeanName == null ? newPackage + "." + newName : customBeanName;
+        assertTrue(content, content.contains("package " + newPackage + ";"));
+        assertTrue(content, content.contains("@Component(\"" + expectedBeanName + "\")"));
+        assertTrue(content, content.contains("return \"preserved\""));
+        assertNull(StudioProjectFiles.getUserImplementedClassFile(myProject, oldPackage, "MessageGenerator"));
+    }
+
     public void test_requiresStubFalse_neverTouchesAnExistingUserSuppliedClass() throws Exception {
         FlowElement broker = TestFixtures.getBroker(TestFixtures.BASE_META_PACK);
         broker.setContainingFlow(flow1);

@@ -6,6 +6,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiLiteralExpression;
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
@@ -170,18 +173,20 @@ public final class UserImplementedClassRelocator {
             PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(project).findFile(oldFile));
             if (psiFile instanceof PsiJavaFile javaFile && javaFile.getClasses().length > 0) {
                 PsiClass psiClass = javaFile.getClasses()[0];
+                String oldQualifiedName = psiClass.getQualifiedName();
                 VirtualFile destinationDir = StudioProjectFiles.ensureUserImplementedClassPackageDirectory(project, newPackageName);
                 if (destinationDir != null) {
                     PsiDirectory psiDestinationDir = ReadAction.compute(() -> PsiManager.getInstance(project).findDirectory(destinationDir));
                     if (psiDestinationDir != null) {
-                        WriteCommandAction.runWriteCommandAction(project, () -> {
-                            MoveClassesOrPackagesUtil.doMoveClass(psiClass, psiDestinationDir);
-                        });
-                        if (!newClassName.equals(psiClass.getName())) {
+                        PsiClass relocatedClass = WriteCommandAction.writeCommandAction(project).compute(() ->
+                                MoveClassesOrPackagesUtil.doMoveClass(psiClass, psiDestinationDir));
+                        if (!newClassName.equals(relocatedClass.getName())) {
                             // RenameProcessor manages its own write action/command internally - run it as a
                             // separate step rather than nesting it inside the move's WriteCommandAction above.
-                            new RenameProcessor(project, psiClass, newClassName, false, false).run();
+                            new RenameProcessor(project, relocatedClass, newClassName, false, false).run();
                         }
+                        WriteCommandAction.runWriteCommandAction(project, () ->
+                                updateGeneratedBeanName(relocatedClass, oldQualifiedName));
                         moved[0] = true;
                     }
                 }
@@ -196,6 +201,16 @@ public final class UserImplementedClassRelocator {
         } else {
             StudioUIUtils.displayIdeaWarnMessage(project,
                     StudioBundle.message("message.CouldNotRelocateUserImplementedClass", movedElement.getComponentName()));
+        }
+    }
+    /** Update Studio's explicit Spring bean identity; preserve deliberately customised bean names. */
+    private static void updateGeneratedBeanName(PsiClass psiClass, String oldQualifiedName) {
+        PsiAnnotation annotation = psiClass.getAnnotation("org.springframework.stereotype.Component");
+        if (annotation != null
+                && annotation.findDeclaredAttributeValue("value") instanceof PsiLiteralExpression literal
+                && oldQualifiedName != null && oldQualifiedName.equals(literal.getValue())) {
+            annotation.setDeclaredAttributeValue("value", JavaPsiFacade.getElementFactory(psiClass.getProject())
+                    .createExpressionFromText("\"" + psiClass.getQualifiedName() + "\"", annotation));
         }
     }
 }

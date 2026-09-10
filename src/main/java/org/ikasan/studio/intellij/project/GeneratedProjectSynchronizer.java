@@ -217,8 +217,7 @@ public class GeneratedProjectSynchronizer {
 
     /** All asynchronous failure paths report once through the generation completion future. */
     private void reportGenerationFailure(Throwable failure) {
-        if (project.isDisposed() || failure instanceof com.intellij.openapi.progress.ProcessCanceledException
-                || failure instanceof java.util.concurrent.CancellationException) return;
+        if (project.isDisposed() || failure instanceof java.util.concurrent.CancellationException) return;
         LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_FAILED, failure, null, null, null));
         ApplicationManager.getApplication().invokeLater(() -> {
             if (!project.isDisposed()) {
