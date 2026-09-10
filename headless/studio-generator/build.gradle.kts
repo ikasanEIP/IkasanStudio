@@ -9,7 +9,7 @@ dependencies {
     }
     api("org.freemarker:freemarker:2.3.35")
     implementation("commons-io:commons-io:2.22.0")
-    implementation("org.slf4j:slf4j-api:2.0.18")
+    implementation("org.slf4j:slf4j-api:2.0.19")
     compileOnly("org.projectlombok:lombok:1.18.48")
     annotationProcessor("org.projectlombok:lombok:1.18.48")
     testImplementation("com.tngtech.archunit:archunit:1.5.0")
