@@ -34,6 +34,37 @@ public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
                 "The provider must reach the generated application's runtime classpath");
     }
 
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    void nestedRoutesContributeDependenciesAndSpringImports(String pack) throws Exception {
+        var email = TestFixtures.getEmailProducer(pack);
+        var nestedEmail = TestFixtures.getEmailProducer(pack);
+        var support = org.ikasan.studio.core.model.ikasan.instance.FlowElement.flowElementBuilder()
+                .componentMeta(org.ikasan.studio.core.metapack.model.ComponentMeta.builder().name("Nested support").componentTypeMeta(email.getComponentMeta().getComponentTypeMeta())
+                        .importResources(java.util.Set.of("classpath:nested-context.xml"))
+                        .importConfigurationClasses(java.util.Set.of("example.NestedConfiguration"))
+                        .build()).componentName("nested support").build();
+        var flow = TestFixtures.getUnbuiltFlow(pack)
+                .consumer(TestFixtures.getEventGeneratingConsumer(pack)).build();
+        var nested = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
+                .flow(flow).routeName("nested")
+                .flowElements(java.util.List.of(nestedEmail, support)).build();
+        var branch = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
+                .flow(flow).routeName("route2").flowElements(java.util.List.of(email))
+                .childRoutes(java.util.List.of(nested)).build();
+        flow.setFlowRoute(org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
+                .flow(flow).flowElements(java.util.List.of()).childRoutes(java.util.List.of(branch)).build());
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, java.util.List.of(flow));
+
+        assertEquals(1, module.getAllUniqueSortedJarDependencies().stream()
+                .filter(d -> "org.ikasan".equals(d.getGroupId())
+                        && "ikasan-email-endpoint".equals(d.getArtifactId())).count());
+        org.junit.jupiter.api.Assertions.assertTrue(module.getAllUniqueSortedImportResources()
+                .contains("classpath:nested-context.xml"));
+        org.junit.jupiter.api.Assertions.assertTrue(module.getAllUniqueSortedImportConfigurationClasses()
+                .contains("example.NestedConfiguration"));
+    }
+
     /**
      * See also application_emptyFlow.properties
      * @throws IOException if the template cant be generated

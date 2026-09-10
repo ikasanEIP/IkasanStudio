@@ -1,6 +1,5 @@
 <#assign StudioBuildUtils=statics['org.ikasan.studio.core.StudioBuildUtils']>
 <#macro iterateSubflow __flowRoute>
-    <#assign __processingWhen = "yes">
     .when("${__flowRoute.getRouteName()}"
     <#-- This will be the one of the branches of a MRR, not the default branch -->
     <#list __flowRoute.ftlGetConsumerAndFlowElementsNoEndPoints()![] as flowElement>
@@ -14,15 +13,14 @@
                  that order against a separate clone of the event (see MultiRecipientRouterInvokerConfiguration.
                  cloneEventPerRoute, default true) - so it must be wired in via componentFactory here just like
                  any other user-implemented component. -->
-            ,builderFactory.getRouteBuilder().${flowElement.getComponentMeta().getFlowBuilderMethod()}("${flowElement.getComponentName()}", componentFactory.get${flowElement.getJavaClassName()}())
+            <#if flowElement?is_first>,builderFactory.getRouteBuilder()</#if>.${flowElement.getComponentMeta().getFlowBuilderMethod()}("${flowElement.getComponentName()}", componentFactory.get${flowElement.getJavaClassName()}())
             <#list __flowRoute.getChildRoutes()![] as childRoute>
                 <@iterateSubflow childRoute />
             </#list>
             .build()
         <#else>
-            <#if __processingWhen == "yes">
+            <#if flowElement?is_first>
             ,builderFactory.getRouteBuilder().${flowElement.componentMeta.flowBuilderMethod}("${flowElement.getComponentName()}",
-            <#assign __processingWhen = "no">
             <#else>
             .${flowElement.componentMeta.flowBuilderMethod}("${flowElement.getComponentName()}",
             </#if>

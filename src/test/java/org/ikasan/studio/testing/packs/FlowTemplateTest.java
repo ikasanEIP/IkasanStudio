@@ -310,6 +310,30 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
     }
 
 
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    void nestedRouterContinuesTheBranchBuilder(String pack) throws Exception {
+        for (boolean converterBeforeRouter : new boolean[]{false, true}) {
+            for (boolean multiRecipient : new boolean[]{false, true}) {
+                var flow = TestFixtures.getEventGeneratingConsumerRouterFlow(pack);
+                var nestedFlow = multiRecipient ? TestFixtures.getEventGeneratingConsumerRouterFlow(pack)
+                        : TestFixtures.getEventGeneratingConsumerSingleRecipientRouterFlow(pack);
+                var branch = flow.getFlowRoute().getChildRoutes().get(0);
+                branch.setFlowElements(new java.util.ArrayList<>(nestedFlow.getFlowRoute().getFlowElements()));
+                if (!converterBeforeRouter) branch.getFlowElements().remove(0);
+                branch.setChildRoutes(nestedFlow.getFlowRoute().getChildRoutes());
+                Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, java.util.List.of(flow));
+                String generated = generateFlowTemplateStringForModule(module).replaceAll("\\s+", "");
+                String method = multiRecipient ? "multiRecipientRouter" : "singleRecipientRouter";
+                // One builder per .when(): parent branch, its two nested branches, and the sibling branch.
+                assertEquals(4, generated.split("builderFactory.getRouteBuilder", -1).length - 1);
+                org.junit.jupiter.api.Assertions.assertTrue(generated.contains(converterBeforeRouter
+                        ? ")." + method + "("
+                        : ",builderFactory.getRouteBuilder()." + method + "("), generated);
+            }
+        }
+    }
+
     // ------------------------------------- PRODUCERS -------------------------------------
 
     /**

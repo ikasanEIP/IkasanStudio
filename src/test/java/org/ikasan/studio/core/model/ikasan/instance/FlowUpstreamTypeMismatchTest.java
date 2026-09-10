@@ -170,6 +170,38 @@ class FlowUpstreamTypeMismatchTest {
         assertEquals(converter, flow.findPayloadSourceElement(splitter));
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+            "V3.3.9, Single Recipient Router", "V3.3.9, Multi Recipient Router",
+            "V4.1.6, Single Recipient Router", "V4.1.6, Multi Recipient Router"
+    })
+    void branchAnchorDoesNotReplaceTheForwardedPayloadType(String pack, String routerName) throws StudioBuildException {
+        FlowElement consumer = FlowElement.flowElementBuilder()
+                .componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Spring JMS Consumer"))
+                .componentName("consumer").build();
+        FlowElement router = FlowElement.flowElementBuilder()
+                .componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, routerName))
+                .componentName("router").build();
+        String messageType = pack.startsWith("V3") ? "javax.jms.Message" : "jakarta.jms.Message";
+        router.setPropertyValue(FROM_TYPE, messageType);
+        FlowElement anchor = FlowElement.flowElementBuilder()
+                .componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Router Endpoint"))
+                .componentName("route2").build();
+        FlowElement output = TestFixtures.getDevNullProducer(pack);
+        Flow flow = TestFixtures.getUnbuiltFlow(pack).consumer(consumer).build();
+        FlowRoute branch = FlowRoute.flowRouteBuilder().flow(flow).routeName("route2")
+                .flowElements(new ArrayList<>(List.of(anchor, output))).build();
+        FlowRoute root = FlowRoute.flowRouteBuilder().flow(flow)
+                .flowElements(new ArrayList<>(List.of(router))).childRoutes(List.of(branch)).build();
+        flow.setFlowRoute(root);
+        wireContainingFlowRoute(root);
+
+        // Both drop-position paths must cross the diagram anchor and router to the real source.
+        assertEquals(consumer, flow.findPayloadSourceElement(output));
+        assertEquals(consumer, flow.skipNonPayloadBearingElements(anchor));
+        assertEquals(messageType, flow.findPayloadSourceElement(output).getEffectiveOutputTypeDescription());
+    }
+
     @Test
     public void findPayloadSourceElement_skips_over_a_filter_to_find_the_real_payload_source() throws StudioBuildException {
         // Converter(toType=Integer) -> MessageFilter(fromType=String, no toType - it never changes the payload) ->

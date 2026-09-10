@@ -20,7 +20,7 @@
       "usageDataType": "classLiteral",
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.String",
-      "helpText": "The data type of the single incoming payload to this splitter (not a list) - the splitter reads one of these and produces a list of 'toType' payloads from it.",
+      "helpText": "The input parameter type of split(fromType payload). This can be a single value or a collection, such as java.lang.String or java.util.List&lt;java.lang.String&gt;. The method returns java.util.List&lt;toType&gt;.",
       "mandatory": true,
       "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
       "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the splitter."
@@ -31,7 +31,7 @@
       "usageDataType": "classLiteral",
       "affectsUserImplementedClass": "true",
       "defaultValue": "java.lang.String",
-      "helpText": "The data type of the objects being sent to the downstream consumer.",
+      "helpText": "The type of each element in the list returned by split(). For string outputs, use java.lang.String; Studio generates a java.util.List&lt;java.lang.String&gt; return type. By default, each element is sent separately to the next component.",
       "mandatory": true,
       "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
       "validationMessage": "Provide a fully qualified Java class name to be used as the type for the output of the splitter."

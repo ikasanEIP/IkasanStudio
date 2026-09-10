@@ -164,7 +164,7 @@ public class Module extends BasicElement {
         Set<Dependency> allJarDepedencies = new HashSet<>(this.getComponentMeta().getJarDependencies());
 
          for(Flow flow : this.getFlows()) {
-             for (FlowElement flowElement : flow.getFlowRoute().getConsumerAndFlowRouteElements()) {
+             for (FlowElement flowElement : flow.ftlGetConsumerAndFlowElements()) {
                  if (flowElement.getComponentMeta().getJarDependencies() != null) {
                      allJarDepedencies.addAll(flowElement.getComponentMeta().getJarDependencies());
                  }
@@ -189,7 +189,7 @@ public class Module extends BasicElement {
         }
 
         for (Flow flow : this.getFlows()) {
-            for (FlowElement flowElement : flow.getFlowRoute().getConsumerAndFlowRouteElements()) {
+            for (FlowElement flowElement : flow.ftlGetConsumerAndFlowElements()) {
                 if (flowElement.getComponentMeta().getImportResources() != null) {
                     allImportResources.addAll(flowElement.getComponentMeta().getImportResources());
                 }
@@ -214,7 +214,7 @@ public class Module extends BasicElement {
         }
 
         for (Flow flow : this.getFlows()) {
-            for (FlowElement flowElement : flow.getFlowRoute().getConsumerAndFlowRouteElements()) {
+            for (FlowElement flowElement : flow.ftlGetConsumerAndFlowElements()) {
                 if (flowElement.getComponentMeta().getImportConfigurationClasses() != null) {
                     allImportConfigurationClasses.addAll(flowElement.getComponentMeta().getImportConfigurationClasses());
                 }

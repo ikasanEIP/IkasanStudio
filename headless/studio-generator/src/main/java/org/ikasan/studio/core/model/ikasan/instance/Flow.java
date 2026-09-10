@@ -166,7 +166,8 @@ public class Flow extends BasicElement {
      * further back past any component that never changes the payload's type - Routers (whose own 'toType',
      * where they declare one, is the routing decision, not the payload), Filters (which only decide
      * accept/reject, with no 'toType' of their own at all), and Debug breakpoints (which always pass the
-     * original message through unchanged - see DebugTransitionComponent#filter) - to the nearest element whose
+     * original message through unchanged - see DebugTransitionComponent#filter), and internal route anchors
+     * (diagram structure, not payload-producing components) - to the nearest element whose
      * declared type really is what flows into whatever candidate feeds. Also usable directly against a
      * not-yet-inserted candidate (e.g. resolved from drop coordinates before a new component has a position of
      * its own - see DesignerCanvas#applySuggestedInputTypeFromUpstream), unlike {@link #findPayloadSourceElement}
@@ -178,7 +179,8 @@ public class Flow extends BasicElement {
         FlowElement predecessor = candidate;
         while (predecessor != null && predecessor.getComponentMeta() != null
                 && (predecessor.getComponentMeta().isRouter() || predecessor.getComponentMeta().isFilter()
-                    || predecessor.getComponentMeta().isDebug())) {
+                    || predecessor.getComponentMeta().isDebug()
+                    || predecessor.getComponentMeta().isInternalEndpoint())) {
             predecessor = findImmediatePredecessor(predecessor);
         }
         return predecessor;
