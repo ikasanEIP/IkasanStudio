@@ -8,6 +8,9 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -32,12 +35,24 @@ public final class IkasanStudioEditorService
     private final IkasanStudioVirtualFile studioFile = new IkasanStudioVirtualFile();
     private EditorState state = new EditorState();
     private boolean projectClosing;
+    private boolean disposed;
 
     public IkasanStudioEditorService(Project project) {
         this.project = project;
+        DebugCanvasSelection debugSelection = new DebugCanvasSelection(FileEditorManager.getInstance(project),
+                IkasanStudioSettings::isKeepCanvasSelectedAtDebugBreakpoints, () -> disposed || project.isDisposed(),
+                path -> project.getService(IkasanDebugSessionService.class).isPausedComponentSource(path),
+                () -> project.getService(IkasanDebugSessionService.class).getPauseRevision(),
+                task -> ApplicationManager.getApplication().invokeLater(task));
         project.getMessageBus().connect(this).subscribe(
                 FileEditorManagerListener.FILE_EDITOR_MANAGER,
                 new FileEditorManagerListener() {
+                    @Override
+                    public void selectionChanged(FileEditorManagerEvent event) {
+                        debugSelection.selectionChanged(event.getOldFile(), event.getNewFile(),
+                                java.awt.EventQueue.getCurrentEvent() instanceof java.awt.event.InputEvent);
+                    }
+
                     @Override
                     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
                         if (file.equals(studioFile)) {
@@ -121,7 +136,6 @@ public final class IkasanStudioEditorService
 
     @Override
     public void dispose() {
-        // Disposed automatically by the platform when the project closes; nothing to release here
-        // beyond the message-bus connection expiring via connect(this).
+        disposed = true; // Cancels any queued debugger-driven editor selection as well as the bus connection.
     }
 }

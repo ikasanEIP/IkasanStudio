@@ -19,9 +19,10 @@ public class ${StudioBuildUtils.substitutePlaceholderInPascalCase(module, flow, 
 @Override
 public void debug(java.lang.Object payload)
 {
-// Add breakpoints here
-org.slf4j.LoggerFactory.getLogger(getClass()).debug("Flow debug invoked for payload type {}",
-        payload == null ? "null" : payload.getClass().getName());
+org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(getClass());
+String payloadType = payload == null ? "null" : payload.getClass().getName();
+// Set your breakpoint on the following line: it executes once per incoming payload.
+logger.debug("Flow debug invoked for payload type {}", payloadType);
 }
 
 }

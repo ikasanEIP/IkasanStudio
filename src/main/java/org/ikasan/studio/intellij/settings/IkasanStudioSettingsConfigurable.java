@@ -33,6 +33,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     private JCheckBox testMailServerLivePollingCheckBox;
     private JCheckBox flowErrorMonitoringCheckBox;
     private JCheckBox autoSaveModuleDiagramCheckBox;
+    private JCheckBox keepCanvasSelectedCheckBox;
     private JSpinner componentDistanceSpinner;
     private JSpinner flowDistanceSpinner;
     private JSpinner flowXStartPointSpinner;
@@ -100,6 +101,11 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         JLabel flowErrorMonitoringNote = wrappingNote("label.FlowErrorMonitoringNote");
         flowErrorMonitoringPanel.add(flowErrorMonitoringNote, BorderLayout.CENTER);
 
+        keepCanvasSelectedCheckBox = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("checkbox.KeepCanvasSelectedAtDebugBreakpoints"));
+        JPanel debugCanvasPanel = new JPanel(new BorderLayout(0, 4));
+        debugCanvasPanel.add(keepCanvasSelectedCheckBox, BorderLayout.NORTH);
+        debugCanvasPanel.add(wrappingNote("label.KeepCanvasSelectedAtDebugBreakpointsNote"), BorderLayout.CENTER);
+
         autoSaveModuleDiagramCheckBox = new JCheckBox(StudioBundle.message("checkbox.ModuleDiagramAutoSave"));
 
         JPanel autoSaveModuleDiagramPanel = new JPanel(new BorderLayout(0, 4));
@@ -166,6 +172,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         northPanel.add(testMailServerPanel);
         northPanel.add(flowErrorMonitoringPanel);
         northPanel.add(autoSaveModuleDiagramPanel);
+        northPanel.add(debugCanvasPanel);
         JPanel reportingPanel = new JPanel(new BorderLayout());
         reportingPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.ErrorReporting")));
         reportingPanel.add(wrappingNote("label.ErrorReportingNote"), BorderLayout.CENTER);
@@ -184,7 +191,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
 
     @Override
     public boolean isModified() {
-        return gettingStartedHintsCheckBox.isSelected() != IkasanStudioSettings.areGettingStartedHintsEnabled()
+        return keepCanvasSelectedCheckBox.isSelected() != IkasanStudioSettings.isKeepCanvasSelectedAtDebugBreakpoints()
+                || gettingStartedHintsCheckBox.isSelected() != IkasanStudioSettings.areGettingStartedHintsEnabled()
                 || promptBeforeDeletingUserCodeCheckBox.isSelected() != IkasanStudioSettings.isPromptBeforeDeletingUserCode()
                 || showAdvancedControlsCheckBox.isSelected() != IkasanStudioSettings.isShowAdvancedControlsEnabled()
                 || showJmsConnectorsCheckBox.isSelected() != IkasanStudioSettings.areJmsConnectorsEnabled()
@@ -202,6 +210,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         IkasanStudioSettings instance = IkasanStudioSettings.getInstance();
         IkasanStudioSettings.State state = instance != null ? instance.getState() : null;
         if (state != null) {
+            state.keepCanvasSelectedAtDebugBreakpoints = keepCanvasSelectedCheckBox.isSelected();
             state.gettingStartedHintsEnabled = gettingStartedHintsCheckBox.isSelected();
             state.promptBeforeDeletingUserCode = promptBeforeDeletingUserCodeCheckBox.isSelected();
             state.showAdvancedControls = showAdvancedControlsCheckBox.isSelected();
@@ -219,6 +228,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
 
     @Override
     public void reset() {
+        keepCanvasSelectedCheckBox.setSelected(IkasanStudioSettings.isKeepCanvasSelectedAtDebugBreakpoints());
         gettingStartedHintsCheckBox.setSelected(IkasanStudioSettings.areGettingStartedHintsEnabled());
         promptBeforeDeletingUserCodeCheckBox.setSelected(IkasanStudioSettings.isPromptBeforeDeletingUserCode());
         showAdvancedControlsCheckBox.setSelected(IkasanStudioSettings.isShowAdvancedControlsEnabled());

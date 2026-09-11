@@ -115,6 +115,14 @@ public class DesignCanvasContextMenu {
             addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
         }
         if (ikasanBasicElement instanceof Module module) {
+            JCheckBoxMenuItem keepCanvas = new JCheckBoxMenuItem(
+                    StudioBundle.message("checkbox.KeepCanvasSelectedAtDebugBreakpoints"),
+                    org.ikasan.studio.intellij.settings.IkasanStudioSettings.isKeepCanvasSelectedAtDebugBreakpoints());
+            keepCanvas.setToolTipText(StudioBundle.message("tooltip.KeepCanvasSelectedAtDebugBreakpointsMenu"));
+            keepCanvas.addActionListener(event -> org.ikasan.studio.intellij.settings.IkasanStudioSettings
+                    .setKeepCanvasSelectedAtDebugBreakpoints(keepCanvas.isSelected()));
+            menu.add(keepCanvas);
+            menu.addSeparator();
             JMenuItem migrate = new JMenuItem(StudioBundle.message("action.IkasanStudio.MigrateVersion.text"));
             migrate.setToolTipText(StudioBundle.message("action.IkasanStudio.MigrateVersion.description"));
             migrate.setEnabled(module.isInitialised());

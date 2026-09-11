@@ -17,6 +17,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Alarm;
 import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.XDebugProcess;
+import com.intellij.xdebugger.XDebuggerManagerListener;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import com.intellij.xdebugger.XDebuggerManager;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.UiContext;
@@ -41,6 +44,7 @@ public final class IkasanDebugSessionService implements Disposable {
     private static final int REACHABILITY_PROBE_INTERVAL_MS = 1000;
 
     private final Project project;
+    private final DebugPauseTracker pausedLocations = new DebugPauseTracker(this::repaintCanvas);
     private final Set<ProcessHandler> moduleProcesses =
             Collections.newSetFromMap(new IdentityHashMap<>());
     private final Set<ProcessHandler> debugProcesses =
@@ -76,7 +80,53 @@ public final class IkasanDebugSessionService implements Disposable {
                 updateProcess(handler, environment, false, false);
             }
         });
+        project.getMessageBus().connect(this).subscribe(XDebuggerManager.TOPIC, new XDebuggerManagerListener() {
+            @Override
+            public void processStarted(XDebugProcess process) {
+                trackPausedLocation(process.getSession());
+            }
+
+            @Override
+            public void processStopped(XDebugProcess process) {
+                pausedLocations.clear(process.getSession(), true);
+            }
+
+            @Override
+            public void currentSessionChanged(XDebugSession previous, XDebugSession current) {
+                if (current != null) trackPausedLocation(current);
+            }
+        });
+        for (XDebugSession session : XDebuggerManager.getInstance(project).getDebugSessions()) {
+            trackPausedLocation(session);
+        }
         registerAlreadyRunningDebugProcesses();
+    }
+
+    private void trackPausedLocation(XDebugSession session) {
+        // Source matching below already limits highlights to this project's Debug components.
+        // A session can also come from Maven or an attached JVM, without an ApplicationConfiguration.
+        pausedLocations.attach(session, this);
+    }
+
+    public boolean hasPausedLocation() {
+        return pausedLocations.hasPausedLocation();
+    }
+
+    public long getPauseRevision() {
+        return pausedLocations.getPauseRevision();
+    }
+
+    public boolean isPausedComponentSource(String path) {
+        return pausedLocations.contains(path) && ComponentBreakpointSource.uniqueMatch(project.getBasePath(),
+                project.getService(UiContext.class).getIkasanModule(), path) != null;
+    }
+
+    /** Canvas retention and flashing use exactly the same unambiguous component mapping. */
+    public boolean isPausedAt(FlowElement element) {
+        if (element == null) return false;
+        Module module = project.getService(UiContext.class).getIkasanModule();
+        return pausedLocations.sourcePaths().stream().anyMatch(source ->
+                ComponentBreakpointSource.uniqueMatch(project.getBasePath(), module, source) == element);
     }
 
     public synchronized boolean isDebugModuleRunning() {
@@ -340,6 +390,7 @@ public final class IkasanDebugSessionService implements Disposable {
     @Override
     public synchronized void dispose() {
         disposed = true;
+        pausedLocations.dispose();
         reachabilityAlarm.cancelAllRequests();
         moduleProcesses.clear();
         debugProcesses.clear();

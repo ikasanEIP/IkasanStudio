@@ -104,6 +104,7 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
          * without the developer asking each time, so it stays opt-in. See ModuleDiagramAutoSaver.
          */
         public boolean autoSaveModuleDiagramOnClose = false;
+        public boolean keepCanvasSelectedAtDebugBreakpoints = false;
     }
 
     private State state = new State();
@@ -266,6 +267,16 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         if (s != null) {
             s.flowErrorMonitoringEnabled = flowErrorMonitoringEnabled;
         }
+    }
+
+    public static void setKeepCanvasSelectedAtDebugBreakpoints(boolean enabled) {
+        IkasanStudioSettings instance = getInstance();
+        if (instance != null && instance.getState() != null) instance.getState().keepCanvasSelectedAtDebugBreakpoints = enabled;
+    }
+
+    public static boolean isKeepCanvasSelectedAtDebugBreakpoints() {
+        IkasanStudioSettings instance = getInstance();
+        return instance != null && instance.getState() != null && instance.getState().keepCanvasSelectedAtDebugBreakpoints;
     }
 
     public static boolean isAutoSaveModuleDiagramOnCloseEnabled() {

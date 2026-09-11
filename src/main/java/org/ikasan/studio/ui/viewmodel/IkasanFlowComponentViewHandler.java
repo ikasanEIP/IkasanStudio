@@ -60,24 +60,22 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         }
         getCanvasIcon().paintIcon(canvas, g, getLeftX(), getTopY());
         paintDecorators(canvas, g);
-        paintRestartPendingOutlineIfNeeded(canvas, g);
+        paintAttentionOutlineIfNeeded(canvas, g);
     }
 
     /**
-     * Debug components added while the module is running flash until it is restarted - see
+     * Highlights paused Debug components and components awaiting a module restart - see
      * DesignerCanvas#isRestartPendingFor / UiContext#markRestartPending.
      */
-    private void paintRestartPendingOutlineIfNeeded(JPanel canvas, Graphics g) {
-        if (!(canvas instanceof DesignerCanvas designerCanvas)
-                || !designerCanvas.isRestartPendingFor(flowElement)
-                || !designerCanvas.isAttentionFlashOn()) {
-            return;
-        }
+    private void paintAttentionOutlineIfNeeded(JPanel canvas, Graphics g) {
+        if (!(canvas instanceof DesignerCanvas designerCanvas) || !designerCanvas.isAttentionFlashOn()) return;
+        boolean paused = designerCanvas.isPausedAt(flowElement);
+        if (!paused && !designerCanvas.isRestartPendingFor(flowElement)) return;
         Graphics2D g2d = (Graphics2D) g.create();
         try {
             int width = getCanvasIcon().getIconWidth();
             int height = getCanvasIcon().getIconHeight();
-            g2d.setColor(StudioUIUtils.getAttentionColor());
+            g2d.setColor(paused ? StudioUIUtils.getBreakpointColor() : StudioUIUtils.getAttentionColor());
             g2d.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             g2d.drawRoundRect(getLeftX() - 3, getTopY() - 3, width + 6, height + 6, 10, 10);
         } finally {

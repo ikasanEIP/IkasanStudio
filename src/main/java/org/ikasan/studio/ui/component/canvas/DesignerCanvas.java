@@ -2246,14 +2246,17 @@ public class DesignerCanvas extends JPanel {
                 nodeLeftX + (TEST_JMS_HARNESS_NODE_WIDTH / 2),
                 nodeTopY + TEST_JMS_HARNESS_NODE_HEIGHT + TEST_JMS_HARNESS_LABEL_GAP,
                 TEST_JMS_HARNESS_NODE_WIDTH + 60, StudioUIUtils.getMainFont());
-        if (isRestartPendingFor(link.harnessFlow()) && flowErrorFlashOn) {
-            paintRestartPendingOutline(g2d, new Rectangle(nodeLeftX, nodeTopY, TEST_JMS_HARNESS_NODE_WIDTH, TEST_JMS_HARNESS_NODE_HEIGHT));
+        // The compact card represents the hidden harness flow, including its Debug component.
+        boolean pausedInHarness = link.harnessFlow().getFlowElementsNoExternalEndPoints().stream()
+                .anyMatch(this::isPausedAt);
+        if ((isRestartPendingFor(link.harnessFlow()) || pausedInHarness) && flowErrorFlashOn) {
+            paintHarnessAttentionOutline(g2d, new Rectangle(nodeLeftX, nodeTopY, TEST_JMS_HARNESS_NODE_WIDTH, TEST_JMS_HARNESS_NODE_HEIGHT), pausedInHarness);
         }
     }
 
-    /** Flashing attention outline drawn around elements added while the module was still running. */
-    private void paintRestartPendingOutline(Graphics2D g2d, Rectangle bounds) {
-        g2d.setColor(StudioUIUtils.getAttentionColor());
+    /** Breakpoints use green; pending restarts retain orange. A current pause takes precedence. */
+    private void paintHarnessAttentionOutline(Graphics2D g2d, Rectangle bounds, boolean paused) {
+        g2d.setColor(paused ? StudioUIUtils.getBreakpointColor() : StudioUIUtils.getAttentionColor());
         g2d.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g2d.drawRoundRect(bounds.x - 3, bounds.y - 3, bounds.width + 6, bounds.height + 6, 10, 10);
     }
@@ -2336,12 +2339,17 @@ public class DesignerCanvas extends JPanel {
         // running (see UiContext#markRestartPending) - stop it only once neither error flags nor restart-pending
         // elements remain.
         boolean restartPending = project.getService(UiContext.class).hasRestartPendingElements();
-        updateFlowErrorFlashTimer(errorStates.hasAnyFlagged() || restartPending);
+        updateFlowErrorFlashTimer(errorStates.hasAnyFlagged() || restartPending
+                || project.getService(IkasanDebugSessionService.class).hasPausedLocation());
     }
 
     /** The shared 500ms on/off tick used by error-status text and restart-pending outlines. */
     public boolean isAttentionFlashOn() {
         return flowErrorFlashOn;
+    }
+
+    public boolean isPausedAt(FlowElement element) {
+        return project.getService(IkasanDebugSessionService.class).isPausedAt(element);
     }
 
     public boolean isRestartPendingFor(Flow flow) {
