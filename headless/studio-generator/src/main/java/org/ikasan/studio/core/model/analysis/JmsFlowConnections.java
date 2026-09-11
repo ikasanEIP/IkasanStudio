@@ -60,7 +60,7 @@ public final class JmsFlowConnections {
                 consumers.add(flow.getConsumer());
             }
             for (FlowElement element : flow.ftlGetConsumerAndFlowElements()) {
-                if (isJmsProducer(element)) {
+                if (isJmsProducer(element) && TestJmsHarnessLinks.destinationOverride(module, element) == null) {
                     producers.add(element);
                 }
             }

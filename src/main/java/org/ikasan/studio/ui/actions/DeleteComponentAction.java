@@ -99,6 +99,7 @@ public class DeleteComponentAction implements ActionListener {
                Module ikasanModule = uiContext.getIkasanModule();
                List<Flow> flows = ikasanModule.getFlows();
                int flowIndex = flows.indexOf(ikasanFlowToRemove);
+               boolean divertedHarness = org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.isDivertedHarness(ikasanFlowToRemove);
                CommandProcessor.getInstance().executeCommand(project, () -> {
                   List<FlowElement> removedElements = ikasanFlowToRemove.getFlowElementsNoExternalEndPoints();
                   flows.remove(ikasanFlowToRemove);
@@ -109,11 +110,15 @@ public class DeleteComponentAction implements ActionListener {
                              flows.remove(ikasanFlowToRemove);
                              uiContext.resetSelectionAfterDeletion();
                           },
-                          GenerationRequest.moduleStructure(ikasanFlowToRemove)));
+                          divertedHarness ? GenerationRequest.full() : GenerationRequest.moduleStructure(ikasanFlowToRemove)));
                   // Kept inside this command so the JSON model save nests into (and is undone/redone as
                   // part of) the same undo step as the model mutation above.
                   StudioProjectFiles.refreshCodeFromModelAndCauseRedraw(project,
-                          GenerationRequest.moduleStructure(null));
+                          divertedHarness ? GenerationRequest.full() : GenerationRequest.moduleStructure(null));
+                  if (divertedHarness) {
+                     StudioUIUtils.displayIdeaInfoMessage(project,
+                             StudioBundle.message("message.TestJmsDestinationRestored"));
+                  }
                   uiContext.resetSelectionAfterDeletion();
                }, StudioBundle.message("menu.DeleteComponent"), null);
             }

@@ -72,7 +72,8 @@ public class TriggerScheduledConsumerAction implements ActionListener {
                     if (response.statusCode() == 200) {
                         JsonNode responseBody = new ObjectMapper().readTree(response.body());
                         String identifier = responseBody.path("identifier").asText("");
-                        String criteriaText = formatCriteria(responseBody.path("criteria"));
+                        boolean fileConsumer = flowElement.getComponentMeta().isFileBasedConsumer();
+                        String criteriaText = fileConsumer ? formatCriteria(responseBody.path("criteria")) : "";
                         // Deliberately info (not warn): this is operational transparency for a feature whose whole
                         // point is helping developers see why a triggered scan delivered nothing - see
                         // TriggerNowLimitations bundle message. The criteria are configured component values
@@ -81,8 +82,9 @@ public class TriggerScheduledConsumerAction implements ActionListener {
                                 + " identifier " + identifier + " criteria [" + criteriaText + "]");
                         ApplicationManager.getApplication().invokeLater(() ->
                                 StudioUIUtils.displayIdeaInfoMessage(project,
-                                        StudioBundle.message("message.ScheduledConsumerTriggeredWithCriteria",
-                                                identifier, criteriaText)));
+                                        fileConsumer
+                                                ? StudioBundle.message("message.ScheduledConsumerTriggeredWithCriteria", identifier, criteriaText)
+                                                : StudioBundle.message("message.ScheduledConsumerTriggered", identifier)));
                     } else if (response.statusCode() == 401) {
                         ApplicationManager.getApplication().invokeLater(() ->
                                 StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMessageAuthenticationFailed")));

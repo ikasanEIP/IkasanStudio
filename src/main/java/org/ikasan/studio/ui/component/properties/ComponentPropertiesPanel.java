@@ -525,8 +525,16 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 affected.stream().map(AffectedUserImplementedClass::description).toList());
         boolean confirmed = dialog.showAndGet();
         if (confirmed && dialog.isBackupSelected()) {
-            for (AffectedUserImplementedClass affectedClass : affected) {
-                StudioProjectFiles.backupUserImplementedClassFile(project, affectedClass.userClassReference());
+            try {
+                for (AffectedUserImplementedClass affectedClass : affected) {
+                    StudioProjectFiles.backupUserImplementedClassFile(project, affectedClass.userClassReference());
+                }
+            } catch (org.ikasan.studio.StudioRuntimeException failure) {
+                LOG.warn("User class backup failed; regeneration cancelled", failure);
+                Messages.showWarningDialog(project,
+                        StudioBundle.message("message.UserClassBackupFailed", failure.getMessage()),
+                        StudioBundle.message("dialog.ConfirmRegenerateUserImplementedClass"));
+                return false;
             }
         }
         return confirmed;

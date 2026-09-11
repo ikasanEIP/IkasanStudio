@@ -936,7 +936,8 @@ public class StudioProjectFiles {
 
     /**
      * Copy an existing file to a timestamped backup alongside it (e.g. Foo.java -&gt; Foo.java.backup20260821_153012)
-     * before it is about to be regenerated/overwritten, so the user's prior hand-written content isn't lost.
+     * before regeneration/overwrite, using the latest editor text even when it is unsaved or invalid Java.
+     * Backup failure aborts the caller; existing timestamped backups are never replaced.
      * @param project is the Intellij project instance
      * @param fileToBackup the file to copy, ignored if null or already invalid - nothing to back up is not an error
      */
@@ -944,12 +945,26 @@ public class StudioProjectFiles {
         if (fileToBackup == null || !fileToBackup.isValid()) {
             return;
         }
-        String backupName = fileToBackup.getName() + ".backup" + LocalDateTime.now().format(BACKUP_TIMESTAMP_FORMAT);
         WriteCommandAction.runWriteCommandAction(project, () -> {
             try {
-                fileToBackup.copy(StudioProjectFiles.class, fileToBackup.getParent(), backupName);
-            } catch (IOException ee) {
-                LOG.warn("STUDIO: WARN: Unable to backup file " + fileToBackup.getPath() + " exception was " + ee.getMessage());
+                // PSI may be uncommitted or syntactically invalid. The editor document is still the
+                // authoritative user text; copying only the VFS file would preserve the last disk save.
+                Document document = FileDocumentManager.getInstance().getCachedDocument(fileToBackup);
+                String editorText = document == null ? null : document.getText();
+                String baseName = fileToBackup.getName() + ".backup" + LocalDateTime.now().format(BACKUP_TIMESTAMP_FORMAT);
+                String backupName = baseName;
+                int suffix = 2;
+                while (fileToBackup.getParent().findChild(backupName) != null) {
+                    backupName = baseName + "-" + suffix++;
+                }
+                VirtualFile backup = fileToBackup.copy(StudioProjectFiles.class, fileToBackup.getParent(), backupName);
+                if (editorText != null) {
+                    backup.setCharset(fileToBackup.getCharset());
+                    VfsUtil.saveText(backup, editorText);
+                }
+            } catch (IOException failure) {
+                // An explicitly requested backup is a precondition for overwriting handwritten code.
+                throw new StudioRuntimeException("Could not back up " + fileToBackup.getPath(), failure);
             }
         });
     }

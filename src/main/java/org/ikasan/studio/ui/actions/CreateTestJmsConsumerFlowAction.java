@@ -53,6 +53,7 @@ public class CreateTestJmsConsumerFlowAction implements ActionListener {
         Module module = context.getIkasanModule();
         DesignerCanvas canvas = context.getDesignerCanvas();
         if (module == null || canvas == null) return;
+        if (TestJmsHarnessLinks.findLinks(module).stream().anyMatch(link -> link.ownerProducer() == producer)) return;
 
         try {
             String version = module.getMetaVersion();
@@ -69,6 +70,9 @@ public class CreateTestJmsConsumerFlowAction implements ActionListener {
             FlowElement consumer = FlowElementFactory.createFlowElement(version, consumerMeta, testFlow,
                     testFlow.getFlowRoute(), "Receive " + suffix);
             copyCompatibleConfiguration(producer, consumer);
+            String testDestination = TestJmsHarnessLinks.newTestDestination(producer);
+            testFlow.setPropertyValue(TestJmsHarnessLinks.TEST_DESTINATION, testDestination);
+            consumer.setPropertyValue("destinationJndiName", testDestination);
             consumer.setPropertyValue("autoContentConversion", true);
             consumer.defaultUnsetMandatoryProperties();
             testFlow.setConsumer(consumer);
@@ -85,9 +89,9 @@ public class CreateTestJmsConsumerFlowAction implements ActionListener {
 
             // Reuse the normal insertion path so debug identity, generated class naming and code generation
             // stay identical to a developer choosing "Add Debug" manually.
-            if (canvas.insertDebugComponentAfter(consumer) == null) {
-                StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.moduleStructure(testFlow));
-            }
+            canvas.insertDebugComponentAfter(consumer);
+            // Both the new reader and the existing producer's factory change.
+            StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.full());
             StudioUIUtils.displayIdeaInfoMessage(project,
                     StudioBundle.message("message.TestJmsConsumerFlowCreated", testFlow.getIdentity(), suffix));
         } catch (StudioBuildException | RuntimeException failure) {

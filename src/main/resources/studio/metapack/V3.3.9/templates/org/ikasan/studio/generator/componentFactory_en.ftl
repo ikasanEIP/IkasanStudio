@@ -1,4 +1,5 @@
 <#assign StudioBuildUtils=statics['org.ikasan.studio.core.StudioBuildUtils']>
+<#assign TestJmsHarnessLinks=statics['org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks']>
 package ${studioPackageTag};
 
 /**
@@ -82,6 +83,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
         </#if>
         <#include "trustedObjectPackages_en.ftl">
     </#if>
+    <#assign testDestination=TestJmsHarnessLinks.destinationOverride(module, flowElement)!"">
     public ${flowElement.componentMeta.componentType} get${flowElement.getJavaClassName()}() {
     <#if flowElement.componentMeta.usesBuilderInFactory>
         <#if flowElement.componentMeta.ikasanComponentFactoryMethod??>
@@ -109,7 +111,9 @@ org.ikasan.builder.BuilderFactory builderFactory;
             <#else>
                 <#assign setter="set${StudioBuildUtils.toPascalCase(propValue.meta.propertyName)}">
             </#if>
-            <#if propValue.meta.propertyConfigFileLabel?? &&  propValue.meta.propertyConfigFileLabel!= "">
+            <#if propKey == "destinationJndiName" && testDestination?has_content>
+                .${setter}("${testDestination?j_string}")
+            <#elseif propValue.meta.propertyConfigFileLabel?? &&  propValue.meta.propertyConfigFileLabel!= "">
                 <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
             <#else>
                 <#if propValue.meta.isUserSuppliedClass()>

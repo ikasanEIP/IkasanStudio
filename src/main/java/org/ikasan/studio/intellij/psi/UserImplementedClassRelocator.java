@@ -167,9 +167,9 @@ public final class UserImplementedClassRelocator {
      */
     private static void relocateHandWrittenClass(Project project, FlowElement movedElement, VirtualFile oldFile,
                                                   String newPackageName, String newClassName) {
-        StudioProjectFiles.backupFile(project, oldFile);
         boolean[] moved = {false};
         try {
+            StudioProjectFiles.backupFile(project, oldFile);
             PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(project).findFile(oldFile));
             if (psiFile instanceof PsiJavaFile javaFile && javaFile.getClasses().length > 0) {
                 PsiClass psiClass = javaFile.getClasses()[0];

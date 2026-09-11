@@ -83,8 +83,7 @@ public class DesignCanvasContextMenu {
                 menu.add(directory);
             }
             if (JmsFlowConnections.isJmsProducer(flowElement)
-                    && CreateTestJmsConsumerFlowAction.supports(flowElement)
-                    && !JmsFlowConnections.hasMatchingConsumer(project.getService(UiContext.class).getIkasanModule(), flowElement)) {
+                    && CreateTestJmsConsumerFlowAction.supports(flowElement)) {
                 menu.addSeparator();
                 menu.add(createTestJmsConsumerFlowMenuItem(project, flowElement));
             }
@@ -267,8 +266,7 @@ public class DesignCanvasContextMenu {
             menu.add(directory);
         }
         if (JmsFlowConnections.isJmsProducer(flowElement)
-                && CreateTestJmsConsumerFlowAction.supports(flowElement)
-                && !JmsFlowConnections.hasMatchingConsumer(project.getService(UiContext.class).getIkasanModule(), flowElement)) {
+                && CreateTestJmsConsumerFlowAction.supports(flowElement)) {
             addSeparatorIfNotEmpty(menu);
             menu.add(createTestJmsConsumerFlowMenuItem(project, flowElement));
         }
@@ -333,6 +331,13 @@ public class DesignCanvasContextMenu {
     }
 
     private static JMenuItem createTestJmsConsumerFlowMenuItem(Project project, FlowElement producer) {
+        if (TestJmsHarnessLinks.findLinks(project.getService(UiContext.class).getIkasanModule())
+                .stream().anyMatch(link -> link.ownerProducer() == producer)) {
+            JMenuItem unavailable = new JMenuItem(StudioBundle.message("menu.TestJmsConsumerAlreadyExists"));
+            unavailable.setEnabled(false);
+            unavailable.setToolTipText(StudioBundle.message("tooltip.TestJmsConsumerAlreadyExists"));
+            return unavailable;
+        }
         JMenuItem item = new JMenuItem(StudioBundle.message("menu.CreateTestJmsConsumerFlow"));
         item.addActionListener(new CreateTestJmsConsumerFlowAction(project, producer));
         return item;

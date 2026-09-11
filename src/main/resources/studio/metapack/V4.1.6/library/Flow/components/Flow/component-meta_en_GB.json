@@ -48,6 +48,12 @@
       "propertyDataType": "java.lang.Boolean",
       "defaultValue": false
     },
+    "testHarnessDestination": {
+      "propertyName": "testHarnessDestination",
+      "hiddenProperty": true,
+      "helpText": "Private JMS destination used by the test reader and its producer while this harness exists. The producer's configured destination is preserved.",
+      "usageDataType": "java.lang.String"
+    },
     "testHarnessOwner": {
       "propertyName": "testHarnessOwner",
       "hiddenProperty": true,

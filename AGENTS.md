@@ -154,3 +154,5 @@ All three paths were present when this document was written. Treat them as refer
 - `CLAUDE.md` contains useful implementation and command guidance but is tool-specific; this `AGENTS.md` is the primary tool-neutral project context.
 - `docs/IkasanStudioRoadmap.md` contains a deeper technical/product roadmap, particularly for formalising the meta-pack ecosystem.
 - Keep user-facing terminology and screenshots aligned with the actual supported plugin and Ikasan versions as the Marketplace release approaches.
+
+- Whenever `src/main/resources/messages/studioBundle.properties` is changed, update `studioBundle_ja.properties` in the same change. Keep keys, format placeholders, HTML markup, and user-facing meaning aligned.

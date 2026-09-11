@@ -17,6 +17,7 @@ import java.util.List;
  */
 public final class TestJmsHarnessLinks {
 
+    public static final String TEST_DESTINATION = "testHarnessDestination";
     private static final String SEPARATOR = "/";
 
     private TestJmsHarnessLinks() {}
@@ -67,6 +68,29 @@ public final class TestJmsHarnessLinks {
             links.add(new Link(owner, flow, findDebugComponent(flow)));
         }
         return links;
+    }
+
+    /** A persisted private destination; the producer's configured destination is never changed. */
+    public static String newTestDestination(FlowElement producer) {
+        String prefix = Boolean.TRUE.equals(producer.getPropertyValue("pubSubDomain"))
+                ? "dynamicTopics/" : "dynamicQueues/";
+        return prefix + "studio-test-" + java.util.UUID.randomUUID();
+    }
+
+    public static boolean isDivertedHarness(Flow flow) {
+        Object destination = flow.getPropertyValue(TEST_DESTINATION);
+        return destination != null && !destination.toString().isBlank();
+    }
+
+    /** Used by generated wiring and canvas links, never by persisted producer configuration. */
+    public static String destinationOverride(Module module, FlowElement element) {
+        for (Link link : findLinks(module)) {
+            if (isDivertedHarness(link.harnessFlow())
+                    && (link.ownerProducer() == element || link.harnessFlow().getConsumer() == element)) {
+                return link.harnessFlow().getPropertyValue(TEST_DESTINATION).toString();
+            }
+        }
+        return null;
     }
 
     private static FlowElement resolveOwner(Module module, String ownerKey) {
