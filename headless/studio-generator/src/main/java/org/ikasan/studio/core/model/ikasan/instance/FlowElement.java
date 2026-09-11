@@ -155,8 +155,6 @@ public class FlowElement extends BasicElement {
     // Debug breakpoint's fixed, hidden fromType), so it can never conflict with anything either. Applied
     // symmetrically to both sides of the comparison - this component's expected input and the upstream's declared
     // output - and compared against as a simple (unqualified) type name.
-    private static final String FLOW_EVENT_SIMPLE_NAME = "FlowEvent";
-    private static final String OBJECT_SIMPLE_NAME = "Object";
     // A marker interface, not a concrete type - substring name-matching (see the per-candidate loop below) is
     // structurally the wrong tool for it, since an implementing class has no reason to have "Serializable"
     // anywhere in its own name (e.g. Ikasan's real org.ikasan.filetransfer.component.DefaultPayload implements
@@ -208,13 +206,12 @@ public class FlowElement extends BasicElement {
             return null;
         }
         List<String> candidates = new ArrayList<>();
-        for (String rawCandidate : expectedInputTypes.split(",")) {
+        for (String rawCandidate : PayloadTypes.alternatives(expectedInputTypes)) {
             String candidate = rawCandidate.trim();
             if (candidate.isEmpty()) {
                 continue;
             }
-            String candidateSimpleName = candidate.substring(candidate.lastIndexOf('.') + 1);
-            if (OBJECT_SIMPLE_NAME.equals(candidateSimpleName) || FLOW_EVENT_SIMPLE_NAME.equals(candidateSimpleName)) {
+            if (PayloadTypes.unknown(candidate)) {
                 // This component declares it accepts anything - nothing to check, regardless of how many other
                 // candidates are also listed alongside it.
                 return null;
@@ -232,8 +229,7 @@ public class FlowElement extends BasicElement {
         if (upstreamOutputType == null || upstreamOutputType.isBlank()) {
             return null;
         }
-        String upstreamSimpleName = upstreamOutputType.substring(upstreamOutputType.lastIndexOf('.') + 1);
-        if (OBJECT_SIMPLE_NAME.equals(upstreamSimpleName) || FLOW_EVENT_SIMPLE_NAME.equals(upstreamSimpleName)) {
+        if (PayloadTypes.unknown(upstreamOutputType)) {
             return null;
         }
 
@@ -249,8 +245,7 @@ public class FlowElement extends BasicElement {
                 }
                 continue;
             }
-            String candidateSimpleName = candidate.substring(candidate.lastIndexOf('.') + 1);
-            if (upstreamOutputType.toLowerCase().contains(candidateSimpleName.toLowerCase())) {
+            if (PayloadTypes.accepts(candidate, upstreamOutputType)) {
                 return null;
             }
         }
@@ -301,6 +296,15 @@ public class FlowElement extends BasicElement {
     public String getEffectiveOutputTypeDescription() {
         if (getComponentMeta() == null) {
             return null;
+        }
+        if ("org.ikasan.component.splitter.DefaultListSplitter".equals(getComponentMeta().getImplementingClass())
+                && containingFlow != null) {
+            FlowElement upstream = containingFlow.findPayloadSourceElement(this);
+            String output = upstream == null ? null : upstream.getEffectiveOutputTypeDescription();
+            if (!PayloadTypes.unknown(output) && PayloadTypes.accepts("java.util.List", output)) {
+                List<String> arguments = PayloadTypes.arguments(output);
+                if (arguments.size() == 1 && !arguments.get(0).contains("?")) return arguments.get(0);
+            }
         }
         return getComponentMeta().getEffectiveOutputTypeDescription(this::getPropertyValueAsString);
     }

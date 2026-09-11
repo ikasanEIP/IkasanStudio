@@ -22,6 +22,46 @@ class TestMailServerLinksTest {
     }
 
     @Test
+    void unsetPortNeedsConfigurationBecauseProducerDefaultsTo25() throws Exception {
+        FlowElement producer = emailProducerWithNoSmtpConfig("mail");
+        assertThat(TestMailServerLinks.needsLocalConfiguration(producer)).isTrue();
+        assertThat(TestMailServerLinks.producerAddressDescription(producer)).endsWith(":25");
+    }
+
+    @Test
+    void explicitLocalTestPortsRemainUnchanged() throws Exception {
+        for (int port : new int[]{1025, 2525, 65535}) {
+            FlowElement producer = emailProducer("mail", "localhost", port);
+            assertThat(TestMailServerLinks.needsLocalConfiguration(producer)).isFalse();
+            assertThat(TestMailServerLinks.resolveSmtpPort(producer)).isEqualTo(port);
+        }
+    }
+
+    @Test
+    void remoteAndUnusableAddressesNeedAnExplicitChoiceWithoutMutatingTheProducer() throws Exception {
+        FlowElement remote = emailProducer("mail", "smtp.example.com", 2525);
+        assertThat(TestMailServerLinks.needsLocalConfiguration(remote)).isTrue();
+        assertThat(TestMailServerLinks.resolveSmtpHost(remote)).isEqualTo("smtp.example.com");
+        for (int port : new int[]{-1, 0, 25, 65536}) {
+            assertThat(TestMailServerLinks.needsLocalConfiguration(emailProducer("mail", "localhost", port))).isTrue();
+        }
+        remote.setPropertyValue("mailSmtpHost", "localhost");
+        remote.setPropertyValue("mailSmtpPort", "invalid");
+        assertThat(TestMailServerLinks.needsLocalConfiguration(remote)).isTrue();
+    }
+
+    @Test
+    void localConfigurationChangesOnlyHostAndPort() throws Exception {
+        FlowElement producer = emailProducer("mail", "smtp.example.com", 25);
+        producer.setPropertyValue("mailSubject", "Keep this subject");
+        TestMailServerLinks.configureForLocalTesting(producer);
+        assertThat(TestMailServerLinks.needsLocalConfiguration(producer)).isFalse();
+        assertThat(TestMailServerLinks.resolveSmtpHost(producer)).isEqualTo("127.0.0.1");
+        assertThat(TestMailServerLinks.resolveSmtpPort(producer)).isEqualTo(1025);
+        assertThat(producer.getPropertyValueAsString("mailSubject")).isEqualTo("Keep this subject");
+    }
+
+    @Test
     void groupsProducersSharingTheSameAddressIntoOneLink() throws StudioBuildException {
         FlowElement producerA = emailProducer("producerA", "127.0.0.1", 1025);
         FlowElement producerB = emailProducer("producerB", "127.0.0.1", 1025);

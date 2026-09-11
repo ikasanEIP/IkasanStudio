@@ -484,7 +484,11 @@ public class GeneratedProjectSynchronizer {
                     }
                 }
 
-                if (component instanceof FlowUserImplementedElement && componentRequiresStub(component)) {
+                if (component instanceof FlowUserImplementedElement implementation && componentRequiresStub(component)) {
+                    if (implementation.isUserClassGenerationDeferred()) {
+                        StudioProjectFiles.afterGenerationCommit(() -> implementation.setUserClassGenerationDeferred(false));
+                        continue;
+                    }
                     String newClassName = (String)component.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME).getValue();
                     String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
                     // overwriteEnabled is a plain in-memory flag (see FlowUserImplementedElement) that
@@ -496,8 +500,7 @@ public class GeneratedProjectSynchronizer {
                     // never have it created - the "don't clobber hand-written code" guard permanently blocks
                     // its own first-ever generation instead.
                     boolean stubMissing = StudioProjectFiles.getUserImplementedClassFile(project, newPackageName, newClassName) == null;
-                    if (!(((FlowUserImplementedElement) component).isOverwriteEnabled()
-                            || stubMissing)) {
+                    if (!implementation.shouldGenerateUserClass(stubMissing)) {
                         continue;
                     }
                     String templateString;
@@ -507,12 +510,12 @@ public class GeneratedProjectSynchronizer {
                         throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
                     }
                     if (templateString != null) {
-                        if (((FlowUserImplementedElement) component).isOverwriteEnabled()) {
+                        if (implementation.isOverwriteEnabled()) {
                             StudioProjectFiles.authoriseUserJavaReplacement(newPackageName, newClassName);
                         }
                         StudioProjectFiles.createJavaSourceFile(project, StudioProjectFiles.USER_CONTENT_ROOT, StudioProjectFiles.SRC_MAIN_JAVA_CODE,
                                 newPackageName, newClassName, templateString, componentViewHandler);
-                        StudioProjectFiles.afterGenerationCommit(() -> ((FlowUserImplementedElement) component).setOverwriteEnabled(false));
+                        StudioProjectFiles.afterGenerationCommit(() -> implementation.setOverwriteEnabled(false));
                     }
                 }
             }

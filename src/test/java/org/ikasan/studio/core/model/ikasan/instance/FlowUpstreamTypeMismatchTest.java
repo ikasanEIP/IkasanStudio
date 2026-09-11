@@ -32,6 +32,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SharedResourceExtension.class)
 class FlowUpstreamTypeMismatchTest {
 
+    @Test
+    void listSplitterExposesItemTypeToDownstreamComponents() throws StudioBuildException {
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        converter.setPropertyValue(TO_TYPE, "java.util.List<java.lang.String>");
+        FlowElement splitter = TestFixtures.getDefaultListSplitter(BASE_META_PACK);
+        FlowElement downstream = TestFixtures.getCustomConverter(BASE_META_PACK);
+        downstream.setPropertyValue(FROM_TYPE, "java.lang.String");
+        buildFlowWithTopLevelElements(converter, splitter, downstream);
+        assertEquals("java.lang.String", splitter.getEffectiveOutputTypeDescription());
+        assertNull(downstream.getUpstreamTypeMismatchWarning());
+        downstream.setPropertyValue(FROM_TYPE, "java.lang.Integer");
+        assertTrue(downstream.getUpstreamTypeMismatchWarning().contains("java.lang.String"));
+    }
+
+    @Test
+    void livePropertyChangesRecalculateWarnings() throws StudioBuildException {
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        FlowElement downstream = TestFixtures.getCustomConverter(BASE_META_PACK);
+        downstream.setPropertyValue(FROM_TYPE, "java.lang.String");
+        buildFlowWithTopLevelElements(converter, downstream);
+        converter.setPropertyValue(TO_TYPE, "java.util.List<java.lang.String>");
+        assertTrue(downstream.getUpstreamTypeMismatchWarning().contains("Possible type mismatch"));
+        converter.setPropertyValue(TO_TYPE, "java.lang.String");
+        assertNull(downstream.getUpstreamTypeMismatchWarning());
+        converter.setPropertyValue(TO_TYPE, "java.lang.Object (auto-converted)");
+        assertNull(downstream.getUpstreamTypeMismatchWarning());
+    }
+
     // ---- getEffectiveInputTypeDescription / getEffectiveOutputTypeDescription (no Flow context needed) ----
 
     @Test
@@ -143,7 +171,7 @@ class FlowUpstreamTypeMismatchTest {
     }
 
     @Test
-    public void findPayloadSourceElement_skips_over_router_to_find_the_real_payload_source() throws StudioBuildException {
+    public void findPayloadSourceElement_uses_router_payload_contract_across_branch() throws StudioBuildException {
         // Consumer -> Converter(toType=Integer) -> MultiRecipientRouter -> [route1: DefaultListSplitter -> DevNullProducer1]
         FlowElement eventGeneratingConsumer = TestFixtures.getEventGeneratingConsumer(BASE_META_PACK);
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
@@ -166,8 +194,10 @@ class FlowUpstreamTypeMismatchTest {
         flow.setFlowRoute(topLevelRoute);
         wireContainingFlowRoute(topLevelRoute);
 
-        // The router itself is skipped - its own 'toType' is the routing decision, not the payload.
-        assertEquals(converter, flow.findPayloadSourceElement(splitter));
+        // The payload contract uses fromType, never the route-name list returned by the router.
+        assertEquals(router, flow.findPayloadSourceElement(splitter));
+        assertEquals("java.lang.String", flow.findPayloadSourceElement(splitter).getEffectiveOutputTypeDescription());
+        assertTrue(router.getUpstreamTypeMismatchWarning().contains("java.lang.Integer"));
     }
 
     @org.junit.jupiter.params.ParameterizedTest
@@ -196,9 +226,9 @@ class FlowUpstreamTypeMismatchTest {
         flow.setFlowRoute(root);
         wireContainingFlowRoute(root);
 
-        // Both drop-position paths must cross the diagram anchor and router to the real source.
-        assertEquals(consumer, flow.findPayloadSourceElement(output));
-        assertEquals(consumer, flow.skipNonPayloadBearingElements(anchor));
+        // Both paths cross the diagram anchor and retain the router's declared payload contract.
+        assertEquals(router, flow.findPayloadSourceElement(output));
+        assertEquals(router, flow.skipNonPayloadBearingElements(anchor));
         assertEquals(messageType, flow.findPayloadSourceElement(output).getEffectiveOutputTypeDescription());
     }
 
@@ -278,7 +308,54 @@ class FlowUpstreamTypeMismatchTest {
         FlowElement router = TestFixtures.getMultiRecipientRouter(BASE_META_PACK);
         Flow flow = buildFlowWithTopLevelElements(converter, router);
 
+        assertEquals(router, flow.skipNonPayloadBearingElements(router));
+        router.setPropertyValue(FROM_TYPE, "java.lang.Object");
         assertEquals(converter, flow.skipNonPayloadBearingElements(router));
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void nestedRouterUsesForwardedStringRatherThanRouteNamesOrEarlierConsumer(String pack) throws StudioBuildException {
+        FlowElement earlier = TestFixtures.getCustomConverter(pack);
+        FlowElement outer = TestFixtures.getMultiRecipientRouter(pack);
+        FlowElement inner = FlowElement.flowElementBuilder()
+                .componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Single Recipient Router"))
+                .componentName("Either Or Router").build();
+        outer.setPropertyValue(FROM_TYPE, "java.lang.String");
+        outer.setPropertyValue(TO_TYPE, "java.util.List<java.lang.String>");
+        inner.setPropertyValue(FROM_TYPE, "java.lang.String");
+        Flow flow = TestFixtures.getUnbuiltFlow(pack).consumer(TestFixtures.getEventGeneratingConsumer(pack)).build();
+        FlowRoute branch = FlowRoute.flowRouteBuilder().flow(flow).routeName("route1")
+                .flowElements(new ArrayList<>(List.of(inner))).build();
+        FlowRoute root = FlowRoute.flowRouteBuilder().flow(flow)
+                .flowElements(new ArrayList<>(List.of(earlier, outer))).childRoutes(List.of(branch)).build();
+        List<FlowElement> emailConverters = new ArrayList<>();
+        List<FlowRoute> emailBranches = new ArrayList<>();
+        for (String name : List.of("odd", "even")) {
+            FlowElement debug = TestFixtures.getDebugTransition(pack);
+            debug.setIdentity(name + "Debug");
+            FlowElement email = TestFixtures.getEmailConverter(pack);
+            email.setIdentity("String to email " + name);
+            email.setPropertyValue(FROM_TYPE, "java.lang.String");
+            emailConverters.add(email);
+            emailBranches.add(FlowRoute.flowRouteBuilder().flow(flow).routeName(name)
+                    .flowElements(new ArrayList<>(List.of(debug, email, TestFixtures.getDevNullProducer(pack)))).build());
+        }
+        branch.setChildRoutes(emailBranches);
+        flow.setFlowRoute(root);
+        wireContainingFlowRoute(root);
+        for (FlowElement email : emailConverters) {
+            assertEquals(inner, flow.findPayloadSourceElement(email));
+            assertNull(email.getUpstreamTypeMismatchWarning(), email.getIdentity());
+        }
+        assertEquals(outer, flow.findPayloadSourceElement(inner));
+        assertNull(inner.getUpstreamTypeMismatchWarning());
+        assertTrue(outer.getUpstreamTypeMismatchWarning().contains("java.lang.Integer"));
+        inner.setPropertyValue(FROM_TYPE, "java.lang.Integer");
+        assertTrue(inner.getUpstreamTypeMismatchWarning().contains("java.lang.String"));
+        for (FlowElement email : emailConverters) {
+            assertTrue(email.getUpstreamTypeMismatchWarning().contains("java.lang.Integer"));
+        }
     }
 
     @Test

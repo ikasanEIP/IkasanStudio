@@ -49,6 +49,24 @@ public final class TestMailServerLinks {
         return configured != null ? configured : DEFAULT_SMTP_PORT;
     }
 
+    /** Framework default differs from the harness fallback; do not treat an unset port as compatible. */
+    public static boolean needsLocalConfiguration(FlowElement producer) {
+        String host = resolveSmtpHost(producer);
+        Integer port = toInteger(producer.getPropertyValue("mailSmtpPort"));
+        return !("localhost".equalsIgnoreCase(host) || DEFAULT_SMTP_HOST.equals(host))
+                || port == null || port < 1024 || port > 65535;
+    }
+
+    public static String producerAddressDescription(FlowElement producer) {
+        String configured = producer.getPropertyValueAsString("mailSmtpPort");
+        return resolveSmtpHost(producer) + ":" + (configured == null || configured.isBlank() ? "25" : configured);
+    }
+
+    public static void configureForLocalTesting(FlowElement producer) {
+        producer.setPropertyValue("mailSmtpHost", DEFAULT_SMTP_HOST);
+        producer.setPropertyValue("mailSmtpPort", DEFAULT_SMTP_PORT);
+    }
+
     private static Integer toInteger(Object value) {
         if (value instanceof Number number) {
             return number.intValue();

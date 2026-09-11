@@ -95,6 +95,17 @@ public class PaletteTabPanel extends JBPanel {
         paletteBodyPanel.add(paletteSplitPane, BorderLayout.CENTER);
         paletteBodyPanel.setBackground(getThemeAwareBackgroundColor());
         add(paletteBodyPanel, BorderLayout.CENTER);
+
+        JButton fitWidthButton = new JButton(StudioBundle.message("button.FitPaletteWidth"));
+        fitWidthButton.setToolTipText(StudioBundle.message("tooltip.FitPaletteWidth"));
+        fitWidthButton.addActionListener(event -> {
+            if (project.isDisposed()) return;
+            var designer = project.getService(UiContext.class).getDesignerUI();
+            if (designer != null) designer.fitPalettePanelWidth();
+        });
+        JPanel widthControl = new JBPanel(new FlowLayout(FlowLayout.LEADING, JBUI.scale(4), JBUI.scale(4)));
+        widthControl.add(fitWidthButton);
+        add(widthControl, BorderLayout.NORTH);
     }
 
     public void setPaletteList() {

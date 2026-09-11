@@ -23,7 +23,7 @@ class AffectedClassDescriptionFormatTest {
             collect(content, all);
             var text = all.stream().filter(JTextArea.class::isInstance).map(JTextArea.class::cast).toList();
             assertThat(text).extracting(JTextArea::getText).contains("Filters Flow", "MessageGenerator");
-            assertThat(text.get(0).getText()).contains("This will affect:", "toType");
+            assertThat(text.get(0).getText()).contains("Affected class:", "toType");
             var flow = text.stream().filter(t -> t.getText().equals("Filters Flow")).findFirst().orElseThrow();
             var clazz = text.stream().filter(t -> t.getText().equals("MessageGenerator")).findFirst().orElseThrow();
             assertThat(flow.getX()).isEqualTo(clazz.getX());

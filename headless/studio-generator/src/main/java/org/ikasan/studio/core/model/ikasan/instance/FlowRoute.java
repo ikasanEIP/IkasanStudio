@@ -257,6 +257,23 @@ public class FlowRoute  implements IkasanComponent {
         }
     }
 
+    /** Insert at a requested position while preserving the producer as the route's terminal component. */
+    public void insertFlowElement(int requestedIndex, FlowElement element) {
+        int index = Math.max(0, Math.min(requestedIndex, flowElements.size()));
+        if (element.getComponentMeta().isProducer()) {
+            index = flowElements.size();
+        } else {
+            for (int i = 0; i < flowElements.size(); i++) {
+                if (flowElements.get(i).getComponentMeta().isProducer()) {
+                    index = Math.min(index, i);
+                    break;
+                }
+            }
+        }
+        flowElements.add(index, element);
+        element.setContainingFlowRoute(this);
+    }
+
     /**
      * Return true if it is valid to add the supplied component
      * @param newComponent to br added

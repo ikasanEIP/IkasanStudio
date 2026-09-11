@@ -9,6 +9,11 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import org.ikasan.studio.core.generation.GenerationRequest;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
+import org.ikasan.studio.ui.UiContext;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.terminal.ui.TerminalWidget;
@@ -69,6 +74,47 @@ public class StartTestMailServerAction implements ActionListener {
         if (project.isDisposed()) return;
         if (!(ikasanBasicElement instanceof FlowElement flowElement) || !flowElement.getComponentMeta().supportsTestMailServer()) {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMailServerCanOnlyBeUsedOnEmailProducer"));
+            return;
+        }
+
+        UiContext context = project.getService(UiContext.class);
+        if (context.getSelectedComponent() == flowElement && context.getPropertiesPanel() != null
+                && context.getPropertiesPanel().dataHasChangedAndOKToProcess()) {
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMailServerUnsavedProperties"));
+            return;
+        }
+        if (TestMailServerLinks.needsLocalConfiguration(flowElement)) {
+            int choice = Messages.showYesNoDialog(project,
+                    StudioBundle.message("message.TestMailServerConfigureLocal",
+                            flowElement.getComponentName(), TestMailServerLinks.producerAddressDescription(flowElement),
+                            TestMailServerLinks.DEFAULT_SMTP_HOST + ":" + TestMailServerLinks.DEFAULT_SMTP_PORT),
+                    StudioBundle.message("dialog.TestMailServerConfiguration"),
+                    StudioBundle.message("button.ConfigureLocalEmailTesting"),
+                    StudioBundle.message("button.Cancel"), Messages.getWarningIcon());
+            if (choice != Messages.YES) return;
+            TestMailServerLinks.configureForLocalTesting(flowElement);
+            project.getService(IkasanDebugSessionService.class).markRestartRequired(flowElement);
+            if (context.getSelectedComponent() == flowElement && context.getPropertiesPanel() != null) {
+                context.getPropertiesPanel().updateTargetComponent(flowElement);
+            }
+            try {
+                StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flowElement.getContainingFlow()))
+                        .whenComplete((ignored, failure) -> invokeLaterIfProjectOpen(() -> {
+                            if (failure != null) {
+                                StudioUIUtils.displayIdeaWarnMessage(project,
+                                        StudioBundle.message("message.TestMailServerConfigurationFailed"));
+                                return;
+                            }
+                            StudioUIUtils.displayIdeaInfoMessage(project,
+                                    StudioBundle.message("message.TestMailServerConfigurationUpdated"));
+                            // Recheck the current model after asynchronous generation before starting.
+                            actionPerformed(actionEvent);
+                        }));
+            } catch (RuntimeException failure) {
+                LOG.warn("STUDIO: Could not save local email test configuration", failure);
+                StudioUIUtils.displayIdeaWarnMessage(project,
+                        StudioBundle.message("message.TestMailServerConfigurationFailed"));
+            }
             return;
         }
 

@@ -2,7 +2,6 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -16,18 +15,38 @@ import java.util.List;
 final class RegenerateUserClassDialog extends DialogWrapper {
     record AffectedClass(String flow, String type, String className) {}
     private final String message;
+    private final boolean allowManualUpdate;
+    private boolean manualUpdate;
     private final List<AffectedClass> affected;
     private final JBCheckBox backup = new JBCheckBox(
             StudioBundle.message("checkbox.BackupUserImplementedClassBeforeOverwrite"), true);
 
-    RegenerateUserClassDialog(Project project, String message, List<AffectedClass> affected) {
+    RegenerateUserClassDialog(Project project, String message, List<AffectedClass> affected, boolean allowManualUpdate) {
         super(project, false);
+        this.allowManualUpdate = allowManualUpdate;
         this.message = message;
         this.affected = List.copyOf(affected);
         setTitle(StudioBundle.message("dialog.ConfirmRegenerateUserImplementedClass"));
-        setOKButtonText(Messages.getYesButton());
-        setCancelButtonText(Messages.getNoButton());
+        setOKButtonText(StudioBundle.message("button.RegenerateClass"));
+        setCancelButtonText(StudioBundle.message("button.Cancel"));
         init();
+    }
+
+    boolean isManualUpdateSelected() { return manualUpdate; }
+
+    // CLAUDE.md prohibits @NotNull; this override always returns an action array.
+    @SuppressWarnings("NullableProblems")
+    @Override
+    protected Action[] createActions() {
+        if (!allowManualUpdate) return super.createActions();
+        Action manual = new AbstractAction(StudioBundle.message("button.UpdateUserCodeMyself")) {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent event) {
+                manualUpdate = true;
+                close(OK_EXIT_CODE);
+            }
+        };
+        return new Action[]{manual, getOKAction(), getCancelAction()};
     }
 
     boolean isBackupSelected() { return backup.isSelected(); }

@@ -1375,7 +1375,7 @@ public class DesignerCanvas extends JPanel {
             // No routes currently exist
             if (containingFlowRoute == null && !containingFlow.anyFlowRouteHasComponents(containingFlow.getFlowRoute())) {
                 List<FlowElement> components = containingFlow.getFlowRoute().getFlowElements() ;
-                components.add(ikasanFlowComponent);
+                containingFlow.getFlowRoute().insertFlowElement(components.size(), ikasanFlowComponent);
             } else {
 
                 FlowRoute targetRoute = containingFlowRoute;
@@ -1415,7 +1415,7 @@ public class DesignerCanvas extends JPanel {
                             (surroundingComponents.getLeft() != null && surroundingComponents.getLeft().getComponentMeta().isConsumer());
 
                     if (numberOfComponents == 0 || droppedAdjacentToConsumer) {
-                        components.add(0, ikasanFlowComponent);
+                        targetRoute.insertFlowElement(0, ikasanFlowComponent);
                     } else {
                         boolean inserted = false;
                         for (int ii = 0; ii < numberOfComponents; ii++) {
@@ -1431,11 +1431,11 @@ public class DesignerCanvas extends JPanel {
                                 // the "ball" instead of after (only a full model.json reload self-heals that,
                                 // since ModuleDeserializer always rebuilds a branch with its endpoint first).
                                 int insertAt = components.get(ii).getComponentMeta().isInternalEndpoint() ? ii + 1 : ii;
-                                components.add(insertAt, ikasanFlowComponent);
+                                targetRoute.insertFlowElement(insertAt, ikasanFlowComponent);
                                 inserted = true;
                                 break;
                             } else if (components.get(ii).equals(surroundingComponents.getLeft())) {
-                                components.add(ii + 1, ikasanFlowComponent);
+                                targetRoute.insertFlowElement(ii + 1, ikasanFlowComponent);
                                 inserted = true;
                                 break;
                             }

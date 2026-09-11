@@ -9,6 +9,7 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper=true)
 public class FlowUserImplementedElement extends FlowElement {
+    private boolean userClassGenerationDeferred;
     private boolean overwriteEnabled;    // The auto-generated template will not overwrite any existing code unless this is true.
 
     /**
@@ -31,7 +32,18 @@ public class FlowUserImplementedElement extends FlowElement {
 
     public void setOverwriteEnabled(boolean overwriteEnabled) {
         this.overwriteEnabled = overwriteEnabled;
+        if (overwriteEnabled) userClassGenerationDeferred = false;
     }
+
+    /** In-memory, per-save choice: also suppress creation if the user is renaming their class manually. */
+    public boolean isUserClassGenerationDeferred() { return userClassGenerationDeferred; }
+
+    public void setUserClassGenerationDeferred(boolean deferred) { userClassGenerationDeferred = deferred; }
+
+    public boolean shouldGenerateUserClass(boolean stubMissing) {
+        return !userClassGenerationDeferred && (overwriteEnabled || stubMissing);
+    }
+
 
     @Override
     public String toString() {

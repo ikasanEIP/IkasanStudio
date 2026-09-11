@@ -57,6 +57,7 @@ public abstract class PropertiesPanel extends JBPanel implements Disposable {
     // super() returns, without this base class needing to know about every subclass-specific action.
     protected JBPanel footerPanel;
     private boolean dataValid = true;
+    private JButton fitWidthButton;
 
     protected PropertiesPanel(Project project, boolean componentInitialisation) {
         this(project, componentInitialisation, false);
@@ -78,10 +79,18 @@ public abstract class PropertiesPanel extends JBPanel implements Disposable {
         setBackground(JBColor.WHITE);
 
         if (! componentInitialisation) {
-            JBPanel propertiesHeaderPanel = new JBPanel();
+            JBPanel propertiesHeaderPanel = new JBPanel(new BorderLayout());
             propertiesHeaderPanel.setBorder(null);
             propertiesHeaderLabel.setBorder(JBUI.Borders.empty(12, 0));
-            propertiesHeaderPanel.add(propertiesHeaderLabel);
+            propertiesHeaderLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            propertiesHeaderPanel.add(propertiesHeaderLabel, BorderLayout.CENTER);
+            fitWidthButton = new JButton(StudioBundle.message("button.FitPropertiesWidth"));
+            fitWidthButton.setToolTipText(StudioBundle.message("tooltip.FitPropertiesWidth"));
+            fitWidthButton.setVisible(false);
+            JPanel widthControl = new JBPanel(new GridBagLayout());
+            widthControl.setBorder(JBUI.Borders.empty(0, 4));
+            widthControl.add(fitWidthButton);
+            propertiesHeaderPanel.add(widthControl, BorderLayout.WEST);
             add(propertiesHeaderPanel, BorderLayout.NORTH);
         }
 
@@ -136,6 +145,17 @@ public abstract class PropertiesPanel extends JBPanel implements Disposable {
         setFocusOnFirstComponent();
     }
 
+
+    /** Only the docked designer supplies this action; popup panels retain normal dialog sizing. */
+    public void setFitWidthAction(Runnable action) {
+        if (fitWidthButton != null) {
+            for (var listener : fitWidthButton.getActionListeners()) {
+                fitWidthButton.removeActionListener(listener);
+            }
+            fitWidthButton.addActionListener(event -> action.run());
+            fitWidthButton.setVisible(true);
+        }
+    }
 
     protected void okActionListener(ActionEvent ae) {
         List<ValidationInfo> infoList = doValidateAll();

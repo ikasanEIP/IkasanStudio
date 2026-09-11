@@ -91,6 +91,7 @@ public class DesignerUI implements Disposable {
                 paletteAndProperties
         );
 
+        componentPropertiesPanel.setFitWidthAction(this::fitPropertiesPanelWidth);
         propertiesAndCanvasSplitPane.setBorder(JBUI.Borders.empty());
         propertiesAndCanvasSplitPane.setDividerSize(2);
         // Canvas (left) absorbs all extra space when the IDE window is resized;
@@ -171,6 +172,43 @@ public class DesignerUI implements Disposable {
             ApplicationManager.getApplication().invokeLater(
                     () -> applyRightPanelWidth(uiContext, paletteTabPanel, 0));
         }
+    }
+
+    /** Explicit user sizing, using live form dimensions without rebuilding or committing the fields. */
+    private void fitPropertiesPanelWidth() {
+        if (disposed || project.isDisposed()) {
+            return;
+        }
+        UiContext context = project.getService(UiContext.class);
+        int available = propertiesAndCanvasSplitPane.getWidth() - propertiesAndCanvasSplitPane.getDividerSize();
+        if (available <= 0 || context.getPropertiesTabPanel() == null) {
+            return;
+        }
+        // Reserve useful canvas space, even when a field contains an unusually long value.
+        int canvasReserve = Math.min(JBUI.scale(320), available / 2);
+        int preferred = context.getPropertiesTabPanel().getPropertiesPreferredWidth() + JBUI.scale(16);
+        int target = Math.min(preferred, available - canvasReserve);
+        if (target > getRightPanelWidth()) {
+            // The existing divider listener persists this just like a manual drag.
+            propertiesAndCanvasSplitPane.setDividerLocation(available - target);
+        }
+    }
+
+    /** Fit the palette independently of the wider properties form, allowing the sidebar to shrink. */
+    public void fitPalettePanelWidth() {
+        if (disposed || project.isDisposed()) {
+            return;
+        }
+        PaletteTabPanel palette = project.getService(UiContext.class).getPalettePanel();
+        int available = propertiesAndCanvasSplitPane.getWidth() - propertiesAndCanvasSplitPane.getDividerSize();
+        if (available <= 0 || palette == null) {
+            return;
+        }
+        int canvasReserve = Math.min(JBUI.scale(320), available / 2);
+        int preferred = palette.getPaletteScrollPanePreferredWidth() + JBUI.scale(16);
+        int target = Math.min(preferred, available - canvasReserve);
+        // Persist through the same divider listener used for manual resizing.
+        propertiesAndCanvasSplitPane.setDividerLocation(available - target);
     }
 
     private static final int MAX_APPLY_WIDTH_RETRIES = 10;
