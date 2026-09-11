@@ -6,14 +6,14 @@ package org.ikasan.studio.component;
 */
 public abstract class DebugTransitionComponent implements org.ikasan.spec.component.filter.Filter<Object> {
     @Override
-    public final Object filter(Object message) throws org.ikasan.spec.component.filter.FilterException {
-        debug(org.ikasan.studio.component.utils.DeepCopyUtil.deepCopy(message));
-        return message;
+    public final Object filter(Object payload) throws org.ikasan.spec.component.filter.FilterException {
+        debug(org.ikasan.studio.component.utils.DeepCopyUtil.deepCopy(payload));
+        return payload;
     }
 
     /**
      * Expose the payload for debugging purposes
-     * @param message the message payload
+     * @param payload the incoming payload
      */
-    public abstract void debug(Object message);
+    public abstract void debug(Object payload);
 }

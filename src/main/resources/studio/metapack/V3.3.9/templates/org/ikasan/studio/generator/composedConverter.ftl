@@ -11,10 +11,10 @@ public class ${className} implements Converter<${conversionRecipe.sourceType}, $
 private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(${className}.class);
 
     @Override
-    public ${conversionRecipe.targetType} convert(${conversionRecipe.sourceType} source) throws TransformationException {
+    public ${conversionRecipe.targetType} convert(${conversionRecipe.sourceType} payload) throws TransformationException {
 // Uncomment for diagnostics without logging message contents.
-// LOG.debug("Processing payload type {}", source == null ? "null" : source.getClass().getName());
-        if (source == null) throw new TransformationException("Cannot convert null content");
+// LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
+        if (payload == null) throw new TransformationException("Cannot convert null content");
         try {
             // Blank unless the developer has explicitly configured a fixed name - each construction template
             // (see construct-file.ftl/construct-email-attachment.ftl) applies its own independent fallback when

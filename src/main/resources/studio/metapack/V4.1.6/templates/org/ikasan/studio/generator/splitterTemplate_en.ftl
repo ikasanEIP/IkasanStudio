@@ -1,4 +1,6 @@
 <#assign StudioBuildUtils=statics['org.ikasan.studio.core.StudioBuildUtils']>
+<#assign inputRawType=(flowElement.getPropertyValue('fromType')!'')?keep_before('<')?trim>
+<#assign inputName=(inputRawType == 'org.ikasan.spec.flow.FlowEvent' || inputRawType == 'FlowEvent')?then('event', 'payload')>
 package ${studioPackageTag};
 
 /**
@@ -12,7 +14,7 @@ package ${studioPackageTag};
 * ClassCastException if that fails - java.lang.Object accepts anything without ever throwing, so it silently
 * locks in "pass the whole FlowEvent" mode instead of the payload you're expecting. Leave the input type as the
 * real payload type (e.g. String) to receive just the payload; set it to org.ikasan.spec.flow.FlowEvent instead
-* if you need the full event (identifier, timestamp, etc. as well as the payload) - call payload.getPayload()
+* if you need the full event (identifier, timestamp, etc. as well as the payload) - call event.getPayload()
 * inside split() to get the payload out.
 *
 * This is an auto generated stub. The user is expected to fill in the details of the conversion below.
@@ -26,14 +28,14 @@ import org.ikasan.spec.component.splitting.SplitterException;
 public class ${StudioBuildUtils.toPascalCase(flowElement.getPropertyValue('userImplementedClassName'))} implements Splitter<${flowElement.getPropertyValue('fromType')}, ${flowElement.getPropertyValue('toType')}>
 {
 /**
-* Split the incoming payload into outgoing messages for the next component.
+* Split the incoming <#if inputName == "event">event's payload<#else>payload</#if> into outgoing payloads for the next component.
 *
-* @param payload the single incoming payload to split
+* @param ${inputName} <#if inputName == "event">the full flow event containing the payload to split<#else>the incoming payload to split</#if>
 * @return an ordered list of the outgoing payloads to send downstream, one at a time - must contain at least
 * one element, a null or empty list is not valid and throws a SplitterException at runtime
 * @throws SplitterException if the payload cannot be split into valid outgoing messages
 */
-public java.util.List<${flowElement.getPropertyValue('toType')}> split(${flowElement.getPropertyValue('fromType')} payload) throws SplitterException
+public java.util.List<${flowElement.getPropertyValue('toType')}> split(${flowElement.getPropertyValue('fromType')} ${inputName}) throws SplitterException
 {
 //@TODO implement your splitting logic, returning at least one ${flowElement.getPropertyValue('toType')} payload for the downstream component
 return java.util.List.of();

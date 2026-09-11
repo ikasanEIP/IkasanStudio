@@ -22,25 +22,25 @@ public class myFilter implements org.ikasan.spec.component.filter.Filter<java.la
 {
 MyConfigurationClass configuration;
 /**
-* If the message matches the criteria specified by the MessageFilter implementation,
-* the message is returned (passed through) and in turn routed to next part of the flow.
-* If the message does not match the criteria, return null - flow processing for this event simply stops
+* If the payload matches the criteria specified by the MessageFilter implementation,
+* the payload is returned (passed through) and in turn routed to next part of the flow.
+* If the payload does not match the criteria, return null - flow processing for this event simply stops
 * here (there is no separate "discarded" destination it gets routed to); the invocation is recorded with a
 * FILTER final action, and optionally logged, depending on this component's own logFiltered setting.
 *
-* @param message - the message payload
-* @return the (unmodified) message to let it continue through the flow, or null to stop processing it here.
+* @param payload - the incoming payload
+* @return the (unmodified) payload to let it continue through the flow, or null to stop processing it here.
 * @throws FilterException if the filtering decision cannot be evaluated, for example because
 * required payload data is invalid or a lookup fails; normal rejection returns null
 */
-public java.lang.String filter(java.lang.String message) throws org.ikasan.spec.component.filter.FilterException
+public java.lang.String filter(java.lang.String payload) throws org.ikasan.spec.component.filter.FilterException
 {
 if (true) {
-//@TODO implement your filter logic, return the message if it is allowed by your filter
-return message;
+//@TODO implement your filter logic, return the payload if it is allowed by your filter
+return payload;
 }
 else {
-//@TODO return null if your filter has filtered this message, maybe log this result.
+//@TODO return null if your filter has filtered this payload, maybe log this result.
 return null;
 }
 }

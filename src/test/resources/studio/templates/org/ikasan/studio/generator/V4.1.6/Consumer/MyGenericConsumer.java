@@ -185,7 +185,7 @@ public void invoke(Throwable throwable)
 }
 
 @Override
-public void invoke(org.ikasan.spec.event.Resubmission event)
+public void invoke(org.ikasan.spec.event.Resubmission resubmission)
 {
 // LOG.debug("Sample listener received a resubmission");
 }

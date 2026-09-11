@@ -2,8 +2,8 @@ package org.ikasan;
 
 /**
 * Filtering rule (algorithm) for org.ikasan.filter.DefaultMessageFilter, which wraps an instance of this class
-* and delegates each message to it - accept() decides whether the message continues through the flow (true)
-* or is discarded (false); unlike a plain Filter implementation there's no need to hand back the message here,
+* and delegates each payload to it - accept() decides whether the payload continues through the flow (true)
+* or is discarded (false); unlike a plain Filter implementation there's no need to hand back the payload here,
 * since DefaultMessageFilter itself returns the original object unchanged whenever accept() returns true.
 *
 * Note: accept() below always receives just the payload, never the full FlowEvent - unlike Broker/Converter,
@@ -26,15 +26,15 @@ public class myFilter implements org.ikasan.spec.component.filter.FilterRule<jav
 MyConfigurationClass configuration;
 String configurationId;
 /**
-* Evaluate the message against this rule.
+* Evaluate the payload against this rule.
 *
-* @param message - the message payload
-* @return true if the message is accepted (passed through, unmodified) - false to stop processing it here;
+* @param payload - the incoming payload
+* @return true if the payload is accepted (passed through, unmodified) - false to stop processing it here;
 * there is no separate "discarded" destination it gets routed to, flow processing for this event simply ends.
 * @throws org.ikasan.spec.component.filter.FilterException if the rule cannot be evaluated, for example
 * because required payload data is invalid or a lookup fails; normal rejection returns false
 */
-public boolean accept(java.lang.String message) throws org.ikasan.spec.component.filter.FilterException
+public boolean accept(java.lang.String payload) throws org.ikasan.spec.component.filter.FilterException
 {
 //@TODO implement your filter rule logic
 return true;

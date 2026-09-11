@@ -21,7 +21,7 @@ for pack, release, jms in [('V3.3.9', '11', 'javax.jms'), ('V4.1.6', '17', 'jaka
     if not jars:
         raise SystemExit('Missing cached Ikasan artifacts for ' + pack)
     for location in ['org/springframework/spring-context', 'javax/jms', 'jakarta/jms',
-                     'com/sun/mail', 'javax/activation', 'jakarta/activation']:
+                     'com/sun/mail', 'javax/activation', 'jakarta/activation', 'org/slf4j/slf4j-api']:
         jars += list((M2 / location).rglob('*.jar'))
     folder = EXPORT / pack
     classes = folder / 'classes'

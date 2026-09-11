@@ -39,6 +39,18 @@ public final class StudioPsiUtils {
         return selected != null ? selected.getQualifiedName() : null;
     }
 
+    /**
+     * Shows the class chooser including project sources, dependencies and the configured JDK.
+     * Class-literal properties can name any of these types, such as java.lang.String.
+     * @return the chosen class's fully qualified name, or null on cancellation
+     */
+    public static String chooseClassQualifiedName(Project project, String dialogTitle) {
+        TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project).createAllProjectScopeChooser(dialogTitle);
+        chooser.showDialog();
+        PsiClass selected = chooser.getSelected();
+        return selected != null ? selected.getQualifiedName() : null;
+    }
+
     /** Shows the native package chooser; cancellation leaves the caller's value unchanged. */
     public static String chooseProjectPackageQualifiedName(Project project, String dialogTitle) {
         var chooser = new com.intellij.ide.util.PackageChooserDialog(dialogTitle, project);

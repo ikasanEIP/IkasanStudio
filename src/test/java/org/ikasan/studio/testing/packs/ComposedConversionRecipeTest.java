@@ -25,7 +25,8 @@ class ComposedConversionRecipeTest extends AbstractGeneratorTestFixtures {
             converter.setPropertyValue("userImplementedClassName", "Recipe" + recipes.indexOf(recipe));
             String generated = generateUserImplementedComponentTemplate(version, module, converter);
             assertTrue(generated.contains("implements Converter<" + recipe.getSourceType() + ", " + recipe.getTargetType() + ">"), recipe.getId());
-            assertFalse(generated.contains("String.valueOf(source)"));
+            assertTrue(generated.contains("convert(" + recipe.getSourceType() + " payload)"), recipe.getId());
+            assertFalse(generated.contains("String.valueOf(payload)"));
             assertFalse(generated.contains("payload.toString()"));
             assertTrue(generated.contains("throw new TransformationException"));
             String export = System.getenv("STUDIO_RECIPE_EXPORT");

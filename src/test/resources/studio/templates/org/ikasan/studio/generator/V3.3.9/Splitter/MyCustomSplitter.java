@@ -11,7 +11,7 @@ package org.ikasan;
 * ClassCastException if that fails - java.lang.Object accepts anything without ever throwing, so it silently
 * locks in "pass the whole FlowEvent" mode instead of the payload you're expecting. Leave the input type as the
 * real payload type (e.g. String) to receive just the payload; set it to org.ikasan.spec.flow.FlowEvent instead
-* if you need the full event (identifier, timestamp, etc. as well as the payload) - call payload.getPayload()
+* if you need the full event (identifier, timestamp, etc. as well as the payload) - call event.getPayload()
 * inside split() to get the payload out.
 *
 * This is an auto generated stub. The user is expected to fill in the details of the conversion below.
@@ -25,9 +25,9 @@ import org.ikasan.spec.component.splitting.SplitterException;
 public class MySplitter implements Splitter<java.lang.String, java.lang.String>
 {
 /**
-* Split the incoming payload into outgoing messages for the next component.
+* Split the incoming payload into outgoing payloads for the next component.
 *
-* @param payload the single incoming payload to split
+* @param payload the incoming payload to split
 * @return an ordered list of the outgoing payloads to send downstream, one at a time - must contain at least
 * one element, a null or empty list is not valid and throws a SplitterException at runtime
 * @throws SplitterException if the payload cannot be split into valid outgoing messages

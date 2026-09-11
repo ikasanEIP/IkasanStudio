@@ -239,9 +239,8 @@ public class ComponentPropertyEditRow {
                 isList = true;
             }
 
-            // CLASS_LITERAL properties (e.g. Object To XML String Converter's objectClass) always name
-            // an existing project class, exactly like SendTestMessagePayloadDialog's payload class field - offer
-            // the same project-scope TreeClassChooser rather than requiring the fully-qualified name to be typed.
+            // CLASS_LITERAL properties include payload types from project sources, libraries and the JDK.
+            // Offer the native class chooser while retaining free-text entry for arrays and generics.
             if (CLASS_LITERAL.equals(meta.getUsageDataType())) {
                 chooseValueButton = new JButton(StudioBundle.message("button.ChooseClass"));
                 chooseValueButton.addActionListener(e -> chooseClass());
@@ -418,12 +417,10 @@ public class ComponentPropertyEditRow {
     }
 
     /**
-     * Project scope only (not libraries) - mirrors SendTestMessagePayloadDialog's chooseClass(), since this is
-     * for a CLASS_LITERAL property naming one of the user's own project classes (e.g. objectClass on Object
-     * Message To XML String Converter), not an arbitrary library/JDK class.
+     * Class-literal properties can name project, library or JDK classes, including router input types.
      */
     private void chooseClass() {
-        String selected = StudioPsiUtils.chooseProjectClassQualifiedName(project, StudioBundle.message("dialog.ChooseClass"));
+        String selected = StudioPsiUtils.chooseClassQualifiedName(project, StudioBundle.message("dialog.ChooseClass"));
         if (selected != null) {
             // A genuine, deliberate edit - goes through the field's own DocumentListener like any typed change,
             // so showingDefaultOnly/autoDerivedValue are cleared and listenerFoAnyEditChanges fires normally.

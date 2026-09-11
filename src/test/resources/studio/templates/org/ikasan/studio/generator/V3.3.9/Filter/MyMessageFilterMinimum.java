@@ -12,24 +12,24 @@ package org.ikasan;
 public class MyMessageFilter implements org.ikasan.spec.component.filter.Filter<class java.lang.String>
 {
 /**
-* If the message matches the criteria specified by the MessageFilter implementation,
-* the message is returned (passed through) and in turn routed to next part of the flow.
-* If the message does not match the criteria, return null; route the message to a discarded
-* message channel.
+* If the payload matches the criteria specified by the MessageFilter implementation,
+* the payload is returned (passed through) and in turn routed to next part of the flow.
+* If the payload does not match the criteria, return null; route the payload to a discarded
+* payload channel.
 *
-* @param message - the message payload
+* @param payload - the incoming payload
 * @return Message or null.
 * @throws FilterException if the filtering decision cannot be evaluated, for example because
 * required payload data is invalid or a lookup fails; normal rejection returns null
 */
-public class java.lang.String filter(class java.lang.String message) throws org.ikasan.spec.component.filter.FilterException
+public class java.lang.String filter(class java.lang.String payload) throws org.ikasan.spec.component.filter.FilterException
 {
 if (true) {
-//@TODO implement your filter logic, return the message if it is allowed by your filter
-return message;
+//@TODO implement your filter logic, return the payload if it is allowed by your filter
+return payload;
 }
 else {
-//@TODO return null if your filter has filtered this message, maybe log this result.
+//@TODO return null if your filter has filtered this payload, maybe log this result.
 return null;
 }
 }

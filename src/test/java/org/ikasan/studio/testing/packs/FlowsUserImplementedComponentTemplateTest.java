@@ -20,6 +20,32 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @org.junit.jupiter.api.Tag("packs")
 public class FlowsUserImplementedComponentTemplateTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    void inputNamesDistinguishPayloadsFromFullEvents(String pack) throws Exception {
+        var module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
+        for (var component : java.util.List.of(TestFixtures.getCustomConverter(pack),
+                TestFixtures.getEmailConverter(pack), TestFixtures.getBroker(pack),
+                TestFixtures.getCustomSplitter(pack))) {
+            for (String inputType : java.util.List.of("java.lang.String",
+                    "org.ikasan.spec.flow.FlowEvent",
+                    "org.ikasan.spec.flow.FlowEvent<java.lang.String, java.lang.String>")) {
+                component.setPropertyValue("fromType", inputType);
+                String generated = generateUserImplementedComponentTemplate(pack, module, component);
+                boolean fullEvent = inputType.startsWith("org.ikasan.spec.flow.FlowEvent");
+                String inputName = fullEvent ? "event" : "payload";
+                assertTrue(generated.contains("(" + inputType + " " + inputName + ")"), generated);
+                assertFalse(generated.contains("payload.getPayload()"), generated);
+                if (fullEvent) {
+                    assertFalse(generated.contains("payload =="), generated);
+                    assertFalse(generated.contains("payload.toString()"), generated);
+                    assertFalse(generated.contains("valueOf(payload)"), generated);
+                    assertFalse(generated.contains("@param payload"), generated);
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void customComponentsIncludeLoggingExamples(String version) throws Exception {
         var module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
@@ -116,7 +142,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         assertTrue(generated.contains("hasAttachments"));
         assertTrue(generated.contains("result.setEmailBody(\"Source file: \" + filename)"));
         assertFalse(generated.toLowerCase().contains("please see the attached file"));
-        assertTrue(generated.contains("source.getAttribute(\"fileName\")"));
+        assertTrue(generated.contains("payload.getAttribute(\"fileName\")"));
         assertTrue(generated.contains("throw new TransformationException"));
         org.junit.jupiter.api.Assertions.assertFalse(generated.contains("payload.toString()"));
     }
@@ -197,8 +223,8 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
 
         assertTrue(templateString.contains("implements Converter<" + jmsMessageType + ", org.ikasan.component.endpoint.email.producer.EmailPayload>"));
         assertTrue(templateString.contains("result.setEmailBody(text(body, charset))"));
-        assertTrue(templateString.contains("source instanceof " + jmsPackage + ".TextMessage"));
-        assertTrue(templateString.contains("source instanceof " + jmsPackage + ".BytesMessage"));
+        assertTrue(templateString.contains("payload instanceof " + jmsPackage + ".TextMessage"));
+        assertTrue(templateString.contains("payload instanceof " + jmsPackage + ".BytesMessage"));
     }
 
     @ParameterizedTest
