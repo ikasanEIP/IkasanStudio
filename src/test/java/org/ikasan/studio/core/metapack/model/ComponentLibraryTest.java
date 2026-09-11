@@ -282,10 +282,12 @@ class ComponentLibraryTest {
             () -> assertEquals("https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/Readme.md", flow.getWebHelpURL()),
             () -> assertFalse(ComponentIconProvider.getSmallIcon(flow) instanceof ImageIcon),
             () -> assertFalse(ComponentIconProvider.getCanvasIcon(flow) instanceof ImageIcon),
-            () -> assertEquals(8, flow.getAllowableProperties().size()),
+            () -> assertEquals(9, flow.getAllowableProperties().size()),
             () -> assertTrue(flow.getAllowableProperties().containsKey("isRecording")),
             () -> assertTrue(flow.getAllowableProperties().containsKey("recordedEventTimeToLive")),
             () -> assertTrue(flow.getAllowableProperties().containsKey("invokeContextListeners")),
+            () -> assertTrue(flow.getAllowableProperties().containsKey("testHarnessDestination")),
+            () -> assertTrue(flow.getAllowableProperties().get("testHarnessDestination").isHiddenProperty()),
             () -> assertTrue(flow.getAllowableProperties().containsKey("testHarnessOwner")),
             () -> assertTrue(flow.getAllowableProperties().get("testHarnessOwner").isHiddenProperty())
         );
