@@ -196,6 +196,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             // If the meta version has changed, we need to rerender the screen
             boolean metaPackChanged = getSelectedComponent().getComponentMeta().isModule() && propertyHasChanged(VERSION);
             updateComponentsWithNewValues();
+            project.getService(org.ikasan.studio.intellij.execution.IkasanDebugSessionService.class)
+                    .markRestartRequired(getSelectedComponent());
             if (getSelectedComponent() instanceof FlowElement router
                     && router.getComponentMeta().isRouter()
                     && router.getContainingFlowRoute() != null) {
@@ -359,6 +361,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         }
         StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CodeGenerationInProgressPleaseWait"));
         flowUserImplementedElement.setOverwriteEnabled(true);
+        project.getService(org.ikasan.studio.intellij.execution.IkasanDebugSessionService.class)
+                .markRestartRequired(flowUserImplementedElement);
         StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flowUserImplementedElement.getContainingFlow()));
     }
 

@@ -1060,9 +1060,7 @@ public class DesignerCanvas extends JPanel {
                     } else {
                         ((FlowElement) newComponent).defaultUnsetMandatoryProperties();
                         insertNewComponentBetweenSurroundingPair(containingFlow, containingFlowRoute, (FlowElement) newComponent, x, y);
-                        if (newComponent.getComponentMeta().isDebug()) {
-                            markRestartPendingIfModuleRunning((FlowElement) newComponent);
-                        }
+                        markRestartPendingIfModuleRunning((FlowElement) newComponent);
                         if (newComponent.getComponentMeta().isRouter()) {
                             syncChildRoutesForRouter((FlowElement) newComponent);
                         }
@@ -2249,7 +2247,9 @@ public class DesignerCanvas extends JPanel {
         // The compact card represents the hidden harness flow, including its Debug component.
         boolean pausedInHarness = link.harnessFlow().getFlowElementsNoExternalEndPoints().stream()
                 .anyMatch(this::isPausedAt);
-        if ((isRestartPendingFor(link.harnessFlow()) || pausedInHarness) && flowErrorFlashOn) {
+        boolean restartPendingInHarness = isRestartPendingFor(link.harnessFlow())
+                || link.harnessFlow().getFlowElementsNoExternalEndPoints().stream().anyMatch(this::isRestartPendingFor);
+        if ((restartPendingInHarness || pausedInHarness) && flowErrorFlashOn) {
             paintHarnessAttentionOutline(g2d, new Rectangle(nodeLeftX, nodeTopY, TEST_JMS_HARNESS_NODE_WIDTH, TEST_JMS_HARNESS_NODE_HEIGHT), pausedInHarness);
         }
     }
@@ -2366,9 +2366,7 @@ public class DesignerCanvas extends JPanel {
      * flash it and its menus/tooltips can warn that a restart is required. Cleared when the module stops.
      */
     private void markRestartPendingIfModuleRunning(FlowElement flowElement) {
-        if (!project.getService(IkasanDebugSessionService.class).isModuleStopped()) {
-            project.getService(UiContext.class).markRestartPending(UiContext.restartPendingKey(flowElement));
-        }
+        project.getService(IkasanDebugSessionService.class).markRestartRequired(flowElement);
     }
 
     private void updateFlowErrorFlashTimer(boolean anyFlagged) {

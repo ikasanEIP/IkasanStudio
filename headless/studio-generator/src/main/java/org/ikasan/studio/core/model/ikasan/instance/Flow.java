@@ -164,8 +164,7 @@ public class Flow extends BasicElement {
     /**
      * Starting from candidate (typically an immediate upstream neighbour, however that was determined), walks
      * further back past any component that never changes the payload's type - Routers (whose own 'toType',
-     * where they declare one, is the routing decision, not the payload), Filters (which only decide
-     * accept/reject, with no 'toType' of their own at all), and Debug breakpoints (which always pass the
+     * where they declare one, is the routing decision, not the payload), untyped Filters, and Debug breakpoints (which always pass the
      * original message through unchanged - see DebugTransitionComponent#filter), and internal route anchors
      * (diagram structure, not payload-producing components) - to the nearest element whose
      * declared type really is what flows into whatever candidate feeds. Also usable directly against a
@@ -173,17 +172,25 @@ public class Flow extends BasicElement {
      * its own - see DesignerCanvas#applySuggestedInputTypeFromUpstream), unlike {@link #findPayloadSourceElement}
      * which requires flowElement to already have a containingFlowRoute.
      * @param candidate the starting point to walk back from (may itself be a Router/Filter/Debug, or null)
-     * @return the nearest non-Router, non-Filter, non-Debug FlowElement reachable from candidate, or null
+     * Typed filters provide a downstream contract even though they do not transform accepted payloads.
+     * Their own upstream mismatch is checked separately. Debug components remain transparent.
+     * @return the nearest element with a payload type, including a typed filter, or null
      */
     public FlowElement skipNonPayloadBearingElements(FlowElement candidate) {
         FlowElement predecessor = candidate;
         while (predecessor != null && predecessor.getComponentMeta() != null
-                && (predecessor.getComponentMeta().isRouter() || predecessor.getComponentMeta().isFilter()
+                && (predecessor.getComponentMeta().isRouter()
+                    || (predecessor.getComponentMeta().isFilter() && !hasConcreteFilterOutput(predecessor))
                     || predecessor.getComponentMeta().isDebug()
                     || predecessor.getComponentMeta().isInternalEndpoint())) {
             predecessor = findImmediatePredecessor(predecessor);
         }
         return predecessor;
+    }
+
+    private static boolean hasConcreteFilterOutput(FlowElement element) {
+        String output = element.getEffectiveOutputTypeDescription();
+        return output != null && !output.isBlank() && !"java.lang.Object".equals(output) && !"Object".equals(output);
     }
 
     /**

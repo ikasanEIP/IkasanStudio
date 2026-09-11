@@ -52,8 +52,7 @@ public class DesignCanvasContextMenu {
             menu.add(createNavigateToCode(project, ikasanBasicElement, false));
             addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
         } else if (ikasanBasicElement instanceof FlowElement flowElement) {
-            if (flowElement.getComponentMeta().isDebug()
-                    && project.getService(UiContext.class).isRestartPending(UiContext.restartPendingKey(flowElement))) {
+            if (project.getService(UiContext.class).isRestartPending(UiContext.restartPendingKey(flowElement))) {
                 menu.add(createModuleRestartRequiredMenuItem(project));
                 menu.addSeparator();
             }

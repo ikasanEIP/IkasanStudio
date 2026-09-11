@@ -203,15 +203,31 @@ class FlowUpstreamTypeMismatchTest {
     }
 
     @Test
-    public void findPayloadSourceElement_skips_over_a_filter_to_find_the_real_payload_source() throws StudioBuildException {
-        // Converter(toType=Integer) -> MessageFilter(fromType=String, no toType - it never changes the payload) ->
-        // DefaultListSplitter. The Filter itself must not be mistaken for the payload source.
+    public void findPayloadSourceElement_uses_typed_filter_contract_and_checks_its_own_input() throws StudioBuildException {
+        // A typed filter provides the downstream contract; mismatches before that filter remain visible.
         FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
         FlowElement filter = TestFixtures.getMessageFilter(BASE_META_PACK);
         FlowElement splitter = TestFixtures.getDefaultListSplitter(BASE_META_PACK);
         Flow flow = buildFlowWithTopLevelElements(converter, filter, splitter);
 
-        assertEquals(converter, flow.findPayloadSourceElement(splitter));
+        assertEquals(filter, flow.findPayloadSourceElement(splitter));
+        assertTrue(filter.getUpstreamTypeMismatchWarning().contains("java.lang.Integer"));
+    }
+
+    @Test
+    public void matchingFiltersSeparatedByDebugDoNotRepeatEarlierMismatch() throws StudioBuildException {
+        FlowElement converter = TestFixtures.getCustomConverter(BASE_META_PACK);
+        FlowElement first = TestFixtures.getMessageFilter(BASE_META_PACK);
+        FlowElement debug = TestFixtures.getDebugTransition(BASE_META_PACK);
+        FlowElement second = TestFixtures.getMessageFilter(BASE_META_PACK);
+        first.setPropertyValue(FROM_TYPE, "java.lang.String");
+        second.setPropertyValue(FROM_TYPE, "java.lang.String");
+        Flow flow = buildFlowWithTopLevelElements(converter, first, debug, second);
+        assertEquals(first, flow.findPayloadSourceElement(second));
+        assertNull(second.getUpstreamTypeMismatchWarning());
+        assertTrue(first.getUpstreamTypeMismatchWarning().contains("java.lang.Integer"));
+        first.setPropertyValue(FROM_TYPE, "java.lang.Object");
+        assertEquals(converter, flow.findPayloadSourceElement(second));
     }
 
     @Test

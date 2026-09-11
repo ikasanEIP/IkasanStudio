@@ -333,8 +333,8 @@ public final class UiContext {
     }
 
     /**
-     * Elements (a Test JMS harness Flow, or a Debug component) added while the module process is still running
-     * cannot exist in that running instance until it is restarted. The canvas flashes them, hover reveals the
+     * Components added or changed while the module process is running need a restart before that
+     * running instance contains their current configuration. The canvas flashes them, hover reveals the
      * restart warning, and their context menus offer a "Restart required" warning until the module next stops.
      * Keys are built by {@link #restartPendingKey(Flow)} / {@link #restartPendingKey(FlowElement)}.
      */

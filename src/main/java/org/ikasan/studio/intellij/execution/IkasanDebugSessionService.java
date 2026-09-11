@@ -81,11 +81,14 @@ public final class IkasanDebugSessionService implements Disposable {
             }
         });
         project.getMessageBus().connect(this).subscribe(XDebuggerManager.TOPIC, new XDebuggerManagerListener() {
+            // Follow the same no-@NotNull policy as the execution listener above.
+            @SuppressWarnings("NullableProblems")
             @Override
             public void processStarted(XDebugProcess process) {
                 trackPausedLocation(process.getSession());
             }
 
+            @SuppressWarnings("NullableProblems")
             @Override
             public void processStopped(XDebugProcess process) {
                 pausedLocations.clear(process.getSession(), true);
@@ -127,6 +130,30 @@ public final class IkasanDebugSessionService implements Disposable {
         Module module = project.getService(UiContext.class).getIkasanModule();
         return pausedLocations.sourcePaths().stream().anyMatch(source ->
                 ComponentBreakpointSource.uniqueMatch(project.getBasePath(), module, source) == element);
+    }
+
+    /** Records model/code changes that the current module process cannot yet contain. */
+    public void markRestartRequired(org.ikasan.studio.core.model.ikasan.instance.BasicElement changed) {
+        recordRestartRequired(project.getService(UiContext.class), changed, !isModuleStopped());
+        repaintCanvas();
+    }
+
+    static void recordRestartRequired(UiContext context,
+            org.ikasan.studio.core.model.ikasan.instance.BasicElement changed, boolean running) {
+        if (!running || changed == null) return;
+        if (changed instanceof FlowElement element) {
+            context.markRestartPending(UiContext.restartPendingKey(element));
+        } else if (changed instanceof org.ikasan.studio.core.model.ikasan.instance.Flow flow) {
+            markFlowRestartRequired(context, flow);
+        } else if (changed instanceof Module module && module.getFlows() != null) {
+            module.getFlows().forEach(flow -> markFlowRestartRequired(context, flow));
+        }
+    }
+
+    private static void markFlowRestartRequired(UiContext context, org.ikasan.studio.core.model.ikasan.instance.Flow flow) {
+        context.markRestartPending(UiContext.restartPendingKey(flow));
+        flow.getFlowElementsNoExternalEndPoints().forEach(element ->
+                context.markRestartPending(UiContext.restartPendingKey(element)));
     }
 
     public synchronized boolean isDebugModuleRunning() {

@@ -44,6 +44,7 @@
 .idea/**/sonarlint/
 
 # Per-plugin local state, not classic JetBrains project config
+.idea/.copilot-plugin
 .idea/copilot.data.migration*.xml
 .idea/kotlinc.xml
 
