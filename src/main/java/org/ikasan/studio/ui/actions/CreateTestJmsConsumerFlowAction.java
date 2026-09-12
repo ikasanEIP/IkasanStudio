@@ -93,7 +93,7 @@ public class CreateTestJmsConsumerFlowAction implements ActionListener {
             // Both the new reader and the existing producer's factory change.
             StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.full());
             StudioUIUtils.displayIdeaInfoMessage(project,
-                    StudioBundle.message("message.TestJmsConsumerFlowCreated", testFlow.getIdentity(), suffix));
+                    StudioBundle.message("message.TestJmsConsumerFlowCreated", suffix));
         } catch (StudioBuildException | RuntimeException failure) {
             StudioUIUtils.displayIdeaWarnMessage(project,
                     StudioBundle.message("message.TestJmsConsumerFlowFailed", failure.getMessage()));

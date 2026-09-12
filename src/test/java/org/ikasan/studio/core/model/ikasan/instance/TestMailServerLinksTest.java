@@ -22,6 +22,23 @@ class TestMailServerLinksTest {
     }
 
     @Test
+    void modulePreflightFindsAllProducersThatMissTheSelectedInbox() throws Exception {
+        FlowElement correct = emailProducer("output1", "127.0.0.1", 1025);
+        FlowElement wrong = emailProducer("output2", "localhost", 25);
+        FlowElement otherPort = emailProducer("output3", "localhost", 2525);
+        FlowElement remote = emailProducer("remote", "smtp.example.com", 1025);
+        FlowElement alias = emailProducer("alias", "localhost", 1025);
+        Module module = moduleWith(flowWithProducer(correct), flowWithProducer(wrong),
+                flowWithProducer(otherPort), flowWithProducer(remote), flowWithProducer(alias));
+        assertThat(TestMailServerLinks.incompatibleProducers(module, 1025))
+                .containsExactly(wrong, otherPort, remote);
+        for (FlowElement producer : TestMailServerLinks.incompatibleProducers(module, 1025)) {
+            TestMailServerLinks.configureForLocalTesting(producer);
+        }
+        assertThat(TestMailServerLinks.incompatibleProducers(module, 1025)).isEmpty();
+    }
+
+    @Test
     void unsetPortNeedsConfigurationBecauseProducerDefaultsTo25() throws Exception {
         FlowElement producer = emailProducerWithNoSmtpConfig("mail");
         assertThat(TestMailServerLinks.needsLocalConfiguration(producer)).isTrue();

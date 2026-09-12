@@ -14,21 +14,21 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("#{'${myflow1.email.producer.bccRecipients}'.split(',')}")
-java.util.List<String> myFlow1EmailProducerBccRecipients;
-@org.springframework.beans.factory.annotation.Value("#{'${myflow1.email.producer.ccRecipients}'.split(',')}")
-java.util.List<String> myFlow1EmailProducerCcRecipients;
-@org.springframework.beans.factory.annotation.Value("#{'${myflow1.email.producer.toRecipients}'.split(',')}")
-java.util.List<String> myFlow1EmailProducerToRecipients;
+@org.springframework.beans.factory.annotation.Value("#{'${myflow1.myemailproducer.email.producer.bccRecipients}'.split(',')}")
+java.util.List<String> myFlow1MyEmailProducerEmailProducerBccRecipients;
+@org.springframework.beans.factory.annotation.Value("#{'${myflow1.myemailproducer.email.producer.ccRecipients}'.split(',')}")
+java.util.List<String> myFlow1MyEmailProducerEmailProducerCcRecipients;
+@org.springframework.beans.factory.annotation.Value("#{'${myflow1.myemailproducer.email.producer.toRecipients}'.split(',')}")
+java.util.List<String> myFlow1MyEmailProducerEmailProducerToRecipients;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration myConfigurationClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMyEmailProducer() {
 return builderFactory.getComponentBuilder().emailProducer()
 .setBccRecipient("myBccRecipient")
-.setBccRecipients(myFlow1EmailProducerBccRecipients)
+.setBccRecipients(myFlow1MyEmailProducerEmailProducerBccRecipients)
 .setCcRecipient("myCcRecipient")
-.setCcRecipients(myFlow1EmailProducerCcRecipients)
+.setCcRecipients(myFlow1MyEmailProducerEmailProducerCcRecipients)
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setCriticalOnStartup(true)
@@ -52,7 +52,7 @@ return builderFactory.getComponentBuilder().emailProducer()
 .setMailSubject("myMailSubject")
 .setMailhost("myMailhostAddress")
 .setToRecipient("myToRecipient")
-.setToRecipients(myFlow1EmailProducerToRecipients)
+.setToRecipients(myFlow1MyEmailProducerEmailProducerToRecipients)
 .setTransportProtocol("myTransportProtocol")
 .setUser("myUser")
 .build();

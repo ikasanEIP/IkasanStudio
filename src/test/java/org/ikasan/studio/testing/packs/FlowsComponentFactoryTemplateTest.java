@@ -23,6 +23,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixtures {
     private static final String TEST_COMPONENT_FACTORY = "ComponentFactory";
 
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    void emailProducersInSeparateBranchesHaveIndependentRecipientFields(String pack) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
+        var flow = TestFixtures.getUnbuiltFlow(pack).build();
+        module.addFlow(flow);
+        for (String name : java.util.List.of("Output 1", "Output 3")) {
+            FlowElement producer = TestFixtures.getEmailProducer(pack);
+            producer.setComponentName(name);
+            producer.setPropertyValue("toRecipients", name.equals("Output 1") ? "[first@example.com]" : "[third@example.com]");
+            var route = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
+                    .flow(flow).routeName(name).flowElements(java.util.List.of(producer)).build();
+            producer.setContainingFlowRoute(route);
+            flow.getFlowRoute().getChildRoutes().add(route);
+        }
+        String factory = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        String properties = PropertiesTemplate.create(module);
+        for (String recipient : java.util.List.of("ToRecipients", "CcRecipients", "BccRecipients")) {
+            for (String name : java.util.List.of("Output1", "Output3")) {
+                String field = "myFlow1" + name + "EmailProducer" + recipient;
+                assertEquals(1, factory.split("java.util.List<String> " + field + ";", -1).length - 1, factory);
+                assertTrue(factory.contains(".set" + recipient + "(" + field + ")"), factory);
+            }
+        }
+        assertTrue(properties.contains("myflow1.output1.email.producer.toRecipients=first@example.com"), properties);
+        assertTrue(properties.contains("myflow1.output3.email.producer.toRecipients=third@example.com"), properties);
+    }
+
     //  ------------------------------- BROKER ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedBrokerComponent.java

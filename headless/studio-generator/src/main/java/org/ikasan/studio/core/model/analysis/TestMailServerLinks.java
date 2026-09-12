@@ -57,6 +57,13 @@ public final class TestMailServerLinks {
                 || port == null || port < 1024 || port > 65535;
     }
 
+    /** All producers that would miss this local inbox, including producers on other router branches. */
+    public static List<FlowElement> incompatibleProducers(Module module, int harnessPort) {
+        return findLinks(module).stream().flatMap(link -> link.producers().stream())
+                .filter(producer -> needsLocalConfiguration(producer) || resolveSmtpPort(producer) != harnessPort)
+                .toList();
+    }
+
     public static String producerAddressDescription(FlowElement producer) {
         String configured = producer.getPropertyValueAsString("mailSmtpPort");
         return resolveSmtpHost(producer) + ":" + (configured == null || configured.isBlank() ? "25" : configured);

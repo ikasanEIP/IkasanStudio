@@ -83,22 +83,40 @@ public class StartTestMailServerAction implements ActionListener {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMailServerUnsavedProperties"));
             return;
         }
-        if (TestMailServerLinks.needsLocalConfiguration(flowElement)) {
+        int harnessPort = TestMailServerLinks.needsLocalConfiguration(flowElement)
+                ? TestMailServerLinks.DEFAULT_SMTP_PORT : TestMailServerLinks.resolveSmtpPort(flowElement);
+        String harnessHost = TestMailServerLinks.needsLocalConfiguration(flowElement)
+                ? TestMailServerLinks.DEFAULT_SMTP_HOST : TestMailServerLinks.resolveSmtpHost(flowElement);
+        var mismatches = TestMailServerLinks.incompatibleProducers(context.getIkasanModule(), harnessPort);
+        if (!mismatches.isEmpty()) {
+            if (mismatches.stream().anyMatch(producer -> producer == context.getSelectedComponent())
+                    && context.getPropertiesPanel() != null
+                    && context.getPropertiesPanel().dataHasChangedAndOKToProcess()) {
+                StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMailServerUnsavedProperties"));
+                return;
+            }
+            String details = mismatches.stream().map(producer ->
+                    (producer.getContainingFlow() == null ? "" : producer.getContainingFlow().getIdentity() + " / ")
+                            + producer.getComponentName() + " — " + TestMailServerLinks.producerAddressDescription(producer))
+                    .collect(java.util.stream.Collectors.joining("\n"));
             int choice = Messages.showYesNoDialog(project,
-                    StudioBundle.message("message.TestMailServerConfigureLocal",
-                            flowElement.getComponentName(), TestMailServerLinks.producerAddressDescription(flowElement),
-                            TestMailServerLinks.DEFAULT_SMTP_HOST + ":" + TestMailServerLinks.DEFAULT_SMTP_PORT),
+                    StudioBundle.message("message.TestMailServerAlignProducers", harnessHost + ":" + harnessPort, details),
                     StudioBundle.message("dialog.TestMailServerConfiguration"),
-                    StudioBundle.message("button.ConfigureLocalEmailTesting"),
+                    StudioBundle.message("button.AlignEmailProducers"),
                     StudioBundle.message("button.Cancel"), Messages.getWarningIcon());
             if (choice != Messages.YES) return;
-            TestMailServerLinks.configureForLocalTesting(flowElement);
-            project.getService(IkasanDebugSessionService.class).markRestartRequired(flowElement);
-            if (context.getSelectedComponent() == flowElement && context.getPropertiesPanel() != null) {
-                context.getPropertiesPanel().updateTargetComponent(flowElement);
+            GenerationRequest request = GenerationRequest.modelOnly();
+            for (FlowElement producer : mismatches) {
+                producer.setPropertyValue("mailSmtpHost", harnessHost);
+                producer.setPropertyValue("mailSmtpPort", harnessPort);
+                project.getService(IkasanDebugSessionService.class).markRestartRequired(producer);
+                request = request.merge(GenerationRequest.flow(producer.getContainingFlow()));
+                if (context.getSelectedComponent() == producer && context.getPropertiesPanel() != null) {
+                    context.getPropertiesPanel().updateTargetComponent(producer);
+                }
             }
             try {
-                StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flowElement.getContainingFlow()))
+                StudioProjectFiles.refreshCodeFromModel(project, request)
                         .whenComplete((ignored, failure) -> invokeLaterIfProjectOpen(() -> {
                             if (failure != null) {
                                 StudioUIUtils.displayIdeaWarnMessage(project,
@@ -107,7 +125,6 @@ public class StartTestMailServerAction implements ActionListener {
                             }
                             StudioUIUtils.displayIdeaInfoMessage(project,
                                     StudioBundle.message("message.TestMailServerConfigurationUpdated"));
-                            // Recheck the current model after asynchronous generation before starting.
                             actionPerformed(actionEvent);
                         }));
             } catch (RuntimeException failure) {
