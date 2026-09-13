@@ -347,17 +347,17 @@ public class StartTestMailServerAction implements ActionListener {
             String command = quotedBinaryPath + " " + TestMailServerSupport.smtpBindAddrArgument(smtpHost + ":" + smtpPort)
                     + " -api-bind-addr " + uiAddress + " -ui-bind-addr " + uiAddress;
             terminalWidget.sendCommandToExecute(command);
-            Content ownedTab = contentManager.findContent(TestMailServerSupport.TERMINAL_TAB_TITLE);
-            if (ownedTab != null) {
-                project.getService(TestMailServerSessionService.class).registerOwned(smtpHost, smtpPort, () -> {
-                    for (Content content : contentManager.getContents()) {
-                        if (content == ownedTab) {
-                            contentManager.removeContent(ownedTab, true);
-                            break;
-                        }
-                    }
-                });
-            }
+            java.util.Arrays.stream(contentManager.getContents())
+                    .filter(content -> TerminalToolWindowManager.findWidgetByContent(content) == terminalWidget)
+                    .findFirst().ifPresent(ownedTab ->
+                            project.getService(TestMailServerSessionService.class).registerOwned(smtpHost, smtpPort, () -> {
+                                for (Content content : contentManager.getContents()) {
+                                    if (content == ownedTab) {
+                                        contentManager.removeContent(ownedTab, true);
+                                        break;
+                                    }
+                                }
+                            }));
         });
     }
 

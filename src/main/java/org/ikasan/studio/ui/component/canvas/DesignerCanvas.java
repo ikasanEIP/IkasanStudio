@@ -76,7 +76,17 @@ import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.USER_I
 /**
  * The main painting / design panel
  */
-public class DesignerCanvas extends JPanel {
+public class DesignerCanvas extends JPanel implements com.intellij.openapi.actionSystem.UiDataProvider {
+    private final FlowClipboardActions flowClipboardActions;
+
+    @Override
+    public void uiDataSnapshot(com.intellij.openapi.actionSystem.DataSink sink) {
+        sink.set(com.intellij.openapi.actionSystem.PlatformDataKeys.COPY_PROVIDER, flowClipboardActions);
+        sink.set(com.intellij.openapi.actionSystem.PlatformDataKeys.PASTE_PROVIDER, flowClipboardActions);
+    }
+
+    FlowClipboardActions getFlowClipboardActions() { return flowClipboardActions; }
+
     record DropContext(Flow flow, FlowRoute route) { }
 
     static DropContext resolveDropContext(IkasanComponent target) {
@@ -133,6 +143,7 @@ public class DesignerCanvas extends JPanel {
 
     public DesignerCanvas(Project project) {
         this.project = project;
+        this.flowClipboardActions = new FlowClipboardActions(project, this);
         setBackground(getThemeAwareBackgroundColor());
         // Plain JPanels aren't focusable by default, so this canvas never became the focus owner - which
         // meant IntelliJ's Edit > Undo/Redo (resolved from the focused component's DataContext via

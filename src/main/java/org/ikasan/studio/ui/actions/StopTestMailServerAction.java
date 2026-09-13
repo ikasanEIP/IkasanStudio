@@ -16,7 +16,7 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-/** Stops only the mail harness registered as owned by this project. External listeners are never terminated. */
+/** Stops registered harnesses, or a verified MailHog descendant of this project's harness terminal. */
 public class StopTestMailServerAction implements ActionListener {
     private static final Logger LOG = Logger.getInstance("#StopTestMailServerAction");
     private final Project project;
@@ -29,6 +29,7 @@ public class StopTestMailServerAction implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
+        if (project.isDisposed()) return;
         if (!(ikasanBasicElement instanceof FlowElement flowElement)
                 || !flowElement.getComponentMeta().supportsTestMailServer()) {
             StudioUIUtils.displayIdeaWarnMessage(project,
@@ -39,6 +40,13 @@ public class StopTestMailServerAction implements ActionListener {
         int smtpPort = TestMailServerLinks.resolveSmtpPort(flowElement);
         String smtpAddress = smtpHost + ":" + smtpPort;
         TestMailServerSessionService service = project.getService(TestMailServerSessionService.class);
+        ProcessHandle terminalShell = null;
+        try {
+            terminalShell = MailHarnessProcessRecovery.terminalShell(project);
+        } catch (RuntimeException failure) {
+            LOG.warn("STUDIO: Could not inspect the test mail terminal", failure);
+        }
+        ProcessHandle shell = terminalShell;
         ProgressManager.getInstance().run(new Task.Backgroundable(project,
                 StudioBundle.message("message.StoppingTestMailServer")) {
             @SuppressWarnings("NullableProblems")
@@ -46,8 +54,34 @@ public class StopTestMailServerAction implements ActionListener {
             public void run(ProgressIndicator indicator) {
                 boolean listening = TestMailServerSupport.isAlreadyListening(smtpHost, smtpPort);
                 boolean owned = service.hasAnyOwned();
+                if (!owned) {
+                    try {
+                        ProcessHandle harness = MailHarnessProcessRecovery.findHarness(shell, smtpHost, smtpPort);
+                        if (harness != null) {
+                            // Recheck the shell association immediately before requesting graceful termination.
+                            if (project.isDisposed() || !shell.isAlive()) return;
+                            if (!harness.destroy()) throw new IllegalStateException("Termination request was rejected");
+                            harness.onExit().get(3, java.util.concurrent.TimeUnit.SECONDS);
+                            service.pollNow();
+                            ApplicationManager.getApplication().invokeLater(() -> {
+                                if (!project.isDisposed()) StudioUIUtils.displayIdeaInfoMessage(project,
+                                        StudioBundle.message("message.TestMailServerRecoveredStopped"));
+                            });
+                            return;
+                        }
+                    } catch (Exception failure) {
+                        if (failure instanceof InterruptedException) Thread.currentThread().interrupt();
+                        String detail = redact(failure.getMessage() == null ? failure.getClass().getSimpleName() : failure.getMessage());
+                        LOG.warn("STUDIO: Could not stop the recovered mail harness: " + detail);
+                        ApplicationManager.getApplication().invokeLater(() -> {
+                            if (!project.isDisposed()) StudioUIUtils.displayIdeaWarnMessage(project,
+                                    StudioBundle.message("message.CouldNotStopTestMailServer", detail));
+                        });
+                        return;
+                    }
+                }
                 ApplicationManager.getApplication().invokeLater(
-                        () -> stopOnEdt(service, smtpAddress, listening, owned));
+                        () -> { if (!project.isDisposed()) stopOnEdt(service, smtpAddress, listening, owned); });
             }
         });
     }

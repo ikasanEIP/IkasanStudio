@@ -41,6 +41,12 @@ public class DesignCanvasContextMenu {
 
     static JPopupMenu createCanvasMenu(Project project, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
         JPopupMenu menu = new JPopupMenu();
+        DesignerCanvas canvas = project.getService(UiContext.class).getDesignerCanvas();
+        if (canvas != null && (ikasanBasicElement instanceof Flow || ikasanBasicElement instanceof Module)) {
+            if (ikasanBasicElement instanceof Flow flow) menu.add(canvas.getFlowClipboardActions().copyItem(flow));
+            menu.add(canvas.getFlowClipboardActions().pasteItem());
+            menu.addSeparator();
+        }
 
         if (ikasanBasicElement instanceof Flow flow) {
             menu.add(createDeleteComponentMenuItem(project, ikasanBasicElement));
