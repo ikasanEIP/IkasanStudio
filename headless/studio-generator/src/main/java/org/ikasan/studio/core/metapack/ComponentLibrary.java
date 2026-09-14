@@ -123,7 +123,7 @@ public final class ComponentLibrary {
      * List all metapack installed.
      */
     public static List<String> getMetapackList() {
-        String[] directroies = getSubdirectories(ComponentLibraryLoader.METAPACK_BASE_DIRECTORY);
+        String[] directroies = LOADER.subdirectories(ComponentLibraryLoader.METAPACK_BASE_DIRECTORY);
         if (directroies != null) {
 
             return Arrays.stream(directroies)
@@ -133,10 +133,6 @@ public final class ComponentLibrary {
         } else {
             return Collections.emptyList();
         }
-    }
-
-    private static String[] getSubdirectories(String baseDirectory) {
-        return LOADER.subdirectories(baseDirectory);
     }
 
     /**
@@ -162,7 +158,6 @@ public final class ComponentLibrary {
         }
         return deserialsiationMetaMap;
     }
-
 
     /**
      * When reading Module flows from JSON we have only implementingClass and componentType in the standard Ikasan
@@ -275,16 +270,10 @@ public final class ComponentLibrary {
         return componentMeta;
     }
 
-
-
     public static Set<String> getIkasanComponentNames(String ikasanMetaDataPackVersion) throws StudioBuildException {
         Map<String, ComponentMeta> safeIkasanComponentMetaMap = getIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
         return safeIkasanComponentMetaMap.keySet();
     }
-//    public static Collection<ComponentMeta>  getIkasanComponentList(String ikasanMetaDataPackVersion) throws StudioBuildException {
-//        Map<String, ComponentMeta> safeIkasanComponentMetaMap = getIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
-//        return safeIkasanComponentMetaMap.values();
-//    }
     public static Collection<ComponentMeta>  getPaletteComponentList(String ikasanMetaDataPackVersion) throws StudioBuildException {
         Map<String, ComponentMeta> safeIkasanComponentMetaMap = getIkasanComponentMetaMapByKey(ikasanMetaDataPackVersion);
         return safeIkasanComponentMetaMap.values().stream()
@@ -322,7 +311,8 @@ public final class ComponentLibrary {
                 LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, se, null, null, targetFlowElement.getIdentity()));
             }
             if (endpointFlowElement == null) {
-                LOG.warn("STUDIO: Expected to find endpoint for flow element " + targetFlowElement.getIdentity() + " the key was " + endpointComponentName + " but no endpoint was found");
+                LOG.warn("STUDIO: Expected to find endpoint for flow element {} the key was {} but no endpoint was found",
+                        targetFlowElement.getIdentity(), endpointComponentName);
             }
         }
         return endpointFlowElement;

@@ -25,8 +25,6 @@ import java.awt.image.BufferedImage;
 public class PaletteExportTransferHandler extends TransferHandler // implements Transferable
 {
     private static final Logger LOG = Logger.getInstance("#PaletteExportTransferHandler");
-//    private static final DataFlavor ikasanFlowUIComponentFlavor = new DataFlavor(FlowElement.class, "FlowElement");
-//    private static final DataFlavor[] flavors = { ikasanFlowUIComponentFlavor };
     private final Project project;
 
     // Source actions i.e. methods called for the source of the copy
@@ -134,27 +132,5 @@ public class PaletteExportTransferHandler extends TransferHandler // implements 
             designerCanvas.resetContextSensitiveHighlighting();
         }
     }
-
-//    /**
-//     * This method is called on a successful drop (or paste) and initiates the transfer of data to the target component.
-//     * This method returns true if the import was successful and false otherwise.
-//     * @param targetComponent under the mouse that has registered as being able to receive this flavor of component.
-//     * @param t the data object being dragged.
-//     * @return true if the import was a success
-//     */
-//    @Override
-//    public boolean importData(JComponent targetComponent, Transferable t) {
-//
-//        if (targetComponent instanceof JPanel) {
-//            if (t.isDataFlavorSupported(ikasanFlowUIComponentFlavor)) {
-//                try {
-//                    IkasanFlowUIComponentTransferable ikasanFlowUIComponent = (IkasanFlowUIComponentTransferable) t.getTransferData(ikasanFlowUIComponentFlavor);
-//                    return true;
-//                } catch (UnsupportedFlavorException | IOException ignored) {
-//                }
-//            }
-//        }
-//        return false;
-//    }
 
 }

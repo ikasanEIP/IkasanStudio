@@ -23,18 +23,11 @@ public class ExceptionResolverMeta extends ComponentMeta {
     List<ExceptionActionMeta> actionList;
     private static final Logger LOG = LoggerFactory.getLogger(ExceptionResolverMeta.class);
 
-    // Stub pending real validation logic - see the commented-out getPropertyMetaListForAction() below, which
-    // notes the same "Not yet implemented" gap. Kept as a genuine parameter (not removed) since it's exactly
-    // what a real implementation would need to validate against.
+    // Stub pending real validation logic. Keep the action parameter for future validation.
     @SuppressWarnings("unused")
     public static boolean isValidAction(String action) {
         return true;
     }
-
-//    public static List<ComponentPropertyMeta> getPropertyMetaListForAction(String action) {
-//        LOG.error("STUDIO: Not yet implemented");
-//        return null;
-//    }
 
     public ExceptionActionMeta getExceptionActionWithName(String actionName) {
         for (ExceptionActionMeta exceptionActionMeta : actionList) {

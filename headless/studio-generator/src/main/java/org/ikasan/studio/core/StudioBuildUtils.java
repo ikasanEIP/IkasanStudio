@@ -308,7 +308,6 @@ public class StudioBuildUtils {
         return returnList;
     }
 
-
     /**
      * When generating the properties file, there is a multi-lined string containing name value pairs.
      * This method turns that string into a map, exposing application generated application properties for reuse
@@ -405,29 +404,4 @@ public class StudioBuildUtils {
         return labels;
     }
 
-//    /**
-//     * Gven a string that potentially contains placeholders, attempt to extract the placeholders
-//     * @param input to be examined
-//     * @return a list of placeholders or empty list of there were none
-//     */
-//    public static List<String> extractPlaceholders(String input) {
-//        // Define regex patterns for different placeholder formats
-//        String placeholderPattern = "\\$\\{[^}]+\\}|\\{\\{[^}]+\\}\\}|%[^%]+%";
-//
-//        // Compile the pattern
-//        Pattern pattern = Pattern.compile(placeholderPattern);
-//
-//        // Create a matcher for the input string
-//        Matcher matcher = pattern.matcher(input);
-//
-//        // List to hold the extracted placeholders
-//        List<String> placeholders = new ArrayList<>();
-//
-//        // Find and add all placeholders to the list
-//        while (matcher.find()) {
-//            placeholders.add(matcher.group());
-//        }
-//
-//        return placeholders;
-//    }
 }

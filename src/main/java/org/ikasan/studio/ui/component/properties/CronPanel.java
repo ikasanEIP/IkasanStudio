@@ -225,15 +225,15 @@ public class CronPanel extends JBPanel {
         gc.gridy++;
     }
 
-
     public void editBoxChangeListener(DocumentEvent e, CronExpression cronField, JLabel description) {
         javax.swing.text.Document doc = e.getDocument();
         // Get the current text from the document
-        String currentText = null;
+        String currentText;
         try {
             currentText = doc.getText(0, doc.getLength());
         } catch (BadLocationException ex) {
-//            LOG.warn("STUDIO: WARN, non-fatal unexpected BadLocationException " + ex.getMessage());
+            LOG.warn("STUDIO: Could not read the cron expression field", ex);
+            return;
         }
         setMessageField(currentText, cronField, description);
     }

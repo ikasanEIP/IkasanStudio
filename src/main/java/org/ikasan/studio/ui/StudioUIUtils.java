@@ -21,7 +21,6 @@ public class StudioUIUtils {
     // Private constructor emphasizes that this is a utils class, not to be instantiated.
     private StudioUIUtils() {}
 
-    //    public static final Color IKASAN_ORANGE = new JBColor(new Color(241, 90, 35), new Color(241, 90, 35));
     private static final Logger LOG = Logger.getInstance("#StudioUIUtils");
 
     /**
@@ -176,7 +175,6 @@ public class StudioUIUtils {
         }
     }
 
-
     public static Font getBoldFont() {
         return StudioUIUtils.getMainFont();
     }
@@ -305,23 +303,6 @@ public class StudioUIUtils {
 
         return numberOfLines > 0 ? textY - stringHeight : topY;
     }
-
-//    /**
-//     * Draw the text string, center the first line at centerX and CenterY
-//     * If the string is bigger then maxWidth, split it over multiple substrings
-//     * @param g the graphics object
-//     * @param text to display
-//     * @param centerX for the text
-//     * @param centerY for the text
-//     * @param maxWidth for the text
-//     * @param font for the text
-//     * @return the bottom y value of the last string (se we know how far down we went)
-//     */
-//    public static int drawCenteredStringFromMiddleCentre(Graphics g, PaintMode paintMode, String text, int centerX, int centerY, int maxWidth, Font font) {
-//        int stringHeight = StudioUIUtils.getTextHeight(g);
-//        int initialY = centerY - (stringHeight / 2);
-//        return drawCenteredStringFromTopCentre(g, paintMode, text, centerX, initialY, maxWidth, font);
-//    }
 
     public static List<String> splitStringIntoMultipleRows(String text, int numberOfRows) {
         List<String> returnList = new ArrayList<>() ;

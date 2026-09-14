@@ -120,8 +120,6 @@ public class GeneratedProjectSynchronizer {
                 pomDependenciesHaveChanged.set(false);
             }
 
-            // ProjectManager.getInstance().reloadProject(uiContext.getProject(project))
-
             LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - source from model");
             LOG.info(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_STARTED, null, uiContext.getIkasanModule().getIdentity(), null, null));
 
@@ -251,7 +249,6 @@ public class GeneratedProjectSynchronizer {
         return false;
     }
 
-
     /** Keeps the offline AI contract derived from the same model and meta-pack APIs used by Studio itself. */
     private void saveAiProjectContract(Project project, Module module) {
         try {
@@ -296,20 +293,6 @@ public class GeneratedProjectSynchronizer {
             throw failure;
         }
     }
-
-//    public static long timeLog(long startTime, String message) {
-//
-//        if (startTime == 0) {
-//            startTime = System.currentTimeMillis();
-//            LOG.warn("STUDIO: time log START- " + message);
-//            return startTime;
-//        } else {
-//            long endNow = java.lang.System.currentTimeMillis();
-//            long diff = endNow - startTime;
-//            LOG.warn("STUDIO: time log END - " + message + " - " + diff);
-//            return 0;
-//        }
-//    }
 
     /**
      * Save the Spring Boot Application class
@@ -805,7 +788,6 @@ public class GeneratedProjectSynchronizer {
             throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
         }
         if (templateString != null) {
-//            StudioProjectFiles.createFile(project, StudioProjectFiles.GENERATED_CONTENT_ROOT, StudioProjectFiles.SRC_MAIN_RESOURCES, null, MODULE_PROPERTIES_FILENAME_WITH_EXTENSION, templateString, false);
             StudioProjectFiles.createPropertiesFile(project, templateString);
             // Unlike initialisePsiFileHandles() (which calls resolveApplicationPropertiesPsiFile() from a
             // background pooled thread), this method runs inside CommandProcessor.executeCommand on the EDT

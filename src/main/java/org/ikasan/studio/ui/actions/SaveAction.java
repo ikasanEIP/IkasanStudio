@@ -26,7 +26,6 @@ public class SaveAction implements ActionListener {
 
       if (module != null) {
          StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.SavingImage"));
-         // Transparent background / SVG cant get this to work for now, see commented-out block below.
          String[] extensions = new String[]{"png", "jpg"};
          // Shared with ModuleDiagramAutoSaver, so a manual save and the auto-save on project close agree on
          // where to look for a module's diagram.
@@ -45,12 +44,7 @@ public class SaveAction implements ActionListener {
          if (imageFormat.trim().isEmpty()) {
             imageFormat = "png";
          }
-// SVG has temporary compatibility problems with Intellij Verify.
-//      if ("svg".equals(imageFormat)) {
-//         uiContext.getDesignerCanvas(project).saveAsSvg(file, false);
-//      } else {
          uiContext.getDesignerCanvas().saveAsImage(file, imageFormat, false);
-//      }
       } else {
          StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.SaveOfImageCantBeLaunchedUnlessAModuleIsDefined"));
       }

@@ -29,7 +29,6 @@ public class FlowElementFactory {
                     .build();
         }
 
-//        flowElement.componentProperties()
         return flowElement;
     }
 }

@@ -114,13 +114,5 @@ public class ComponentPropertyMetaTest {
                     () -> assertEquals(VALIDATION_MESSAGE, componentPropertyMeta.getValidationMessage())
             );
         }
-//        {
-//            Matcher matcher = validationPattern.matcher("inValidClass");
-//            assertAll(
-//                    "Check the module contains the expected values",
-//                    () -> assertFalse(matcher.matches()),
-//                    () -> assertEquals(VALIDATION_MESSAGE, componentPropertyMeta.getValidationMessage())
-//            );
-//        }
     }
 }

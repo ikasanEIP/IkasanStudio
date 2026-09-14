@@ -1164,7 +1164,6 @@ public class TestFixtures {
     public static FlowElement getXProducerComponent(String metaPackVersion) throws StudioBuildException {
         FlowElement newXProducerComponent =  FlowElement.flowElementBuilder()
                 .componentMeta(ComponentLibrary.getIkasanComponentByKey(metaPackVersion, "X Producer"))
-//                .componentMeta(getXProducerComponentMeta(metaPackVersion))
                 .decorators(new ArrayList<>())
                 .build();
         // The properties reflect the state of an instance used in a specific route.

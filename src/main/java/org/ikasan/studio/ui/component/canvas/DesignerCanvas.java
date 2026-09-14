@@ -178,7 +178,6 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             }
         });
 
-
         if (project.getService(UiContext.class).getOptions().isHintsEnabled()) {
             addMouseMotionListener(new MouseAdapter() {
                 @Override
@@ -686,7 +685,6 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         }
     }
 
-
     /**
      * Ensure everything is deselected.
      */
@@ -916,8 +914,6 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
 
             if ((ikasanBasicElement.getComponentMeta().isDebug() && targetElement instanceof FlowElement && !((FlowElement)targetElement).getComponentMeta().isProducer()) ||
                 (!ikasanBasicElement.getComponentMeta().isDebug() && (targetFlowRoute != null || targetFlow != null))) {
-                // Enabled when trcing UI drop issues
-                //LOG.info("Taget element was " + targetElement);
 
                 String issue = "";
                 if (targetFlowRoute != null) {
@@ -1326,7 +1322,6 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
                 newFlowComponent.defaultUnsetMandatoryProperties();
             }
         }
-
 
         boolean offersRecipes = newComponent.getComponentMeta().getConversionRecipes() != null
                 && !newComponent.getComponentMeta().getConversionRecipes().isEmpty();

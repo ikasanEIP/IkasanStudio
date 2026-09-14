@@ -16,10 +16,10 @@ import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
 
 import java.nio.file.Path;
 import java.util.Arrays;
-
 
 public final class StudioNavigator {
     private static final Logger LOG = Logger.getInstance("#Navigator");
@@ -61,26 +61,6 @@ public final class StudioNavigator {
         });
         return true;
     }
-
-//    public static void navigateToClass(Project project, String fullyQualifiedClassName) {
-//        // Find the class by its fully qualified name
-//        PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(fullyQualifiedClassName, GlobalSearchScope.allScope(project));
-//
-//        if (psiClass == null) {
-//            LOG.warn("STUDIO: WARNING, attempt to invoke navigator but the class was not found [" +
-//                    fullyQualifiedClassName + "]" + Arrays.toString(Thread.currentThread().getStackTrace()));
-//            return;
-//        }
-//        VirtualFile virtualFile = psiClass.getContainingFile().getVirtualFile();
-//        if (virtualFile == null) {
-//            LOG.warn("STUDIO: WARNING, attempt to invoke navigator but the virtualFile was not found [" +
-//                    fullyQualifiedClassName + "]" + Arrays.toString(Thread.currentThread().getStackTrace()));
-//            return;
-//        }
-//
-//        // Navigate to the class
-//        PsiNavigationSupport.getInstance().createNavigatable(project, virtualFile, psiClass.getTextOffset()).navigate(true);
-//    }
 
     /**
      * Navigates to source of given class, at the element's own text offset.
@@ -131,7 +111,7 @@ public final class StudioNavigator {
      * a pooled thread under a read action, then hops back to the EDT - at the default modality, since callers
      * here are plain canvas actions, not a modal dialog with its own modality to match (contrast
      * StudioPsiUtils's callers) - to do the actual editor open/navigate, which itself must stay on the EDT.
-     * expireWith(project) cancels the read action if the project closes before it completes.
+     * The Studio project service cancels the read action on project close or plugin unload.
      * @param offset null to navigate to the resolved element's own text offset, otherwise navigate to this
      *               specific offset instead (both still resolved off the EDT, since PsiElement#getTextOffset()
      *               is itself PSI access).
@@ -149,7 +129,7 @@ public final class StudioNavigator {
                     int resolvedOffset = offset != null ? offset : classToNavigateTo.getTextOffset();
                     return new ResolvedNavigation(virtualFile, resolvedOffset);
                 })
-                .expireWith(project)
+                .expireWith(project.getService(StudioProjectInitialisationService.class))
                 .finishOnUiThread(ModalityState.defaultModalityState(), resolved -> {
                     if (resolved == null) {
                         LOG.warn("STUDIO: WARNING, attempt to invoke navigator but the class to navigate to was null or invalid [" +

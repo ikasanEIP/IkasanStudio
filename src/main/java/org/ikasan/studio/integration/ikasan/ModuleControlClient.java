@@ -135,11 +135,6 @@ public final class ModuleControlClient {
         }
     }
 
-//    public static String fetchLatestErrorSummary(Module module, String flowName) {
-//        ErrorDetails details = fetchLatestErrorDetails(module, flowName);
-//        return details != null ? details.summary() : null;
-//    }
-
     public static ErrorDetails parseLatestErrorDetails(String json) throws Exception {
         PagedErrorResponse result = OBJECT_MAPPER.readValue(json, PagedErrorResponse.class);
         if (result == null) throw new IOException("Error response is null");
@@ -206,7 +201,7 @@ public final class ModuleControlClient {
      */
     public static void changeFlowState(Module module, String flowName, FlowControlOperation operation) throws Exception {
         String requestBody = buildChangeFlowStateRequestBody(module.getIdentity(), flowName, operation);
-        HttpResponse<String> response = put(module, "/rest/moduleControl", requestBody);
+        HttpResponse<String> response = putFlowState(module, requestBody);
         if (response.statusCode() != 200) {
             throw new IOException("moduleControl PUT responded with HTTP " + response.statusCode()
                     + (response.body() != null && !response.body().isBlank() ? ": " + response.body() : ""));
@@ -222,10 +217,10 @@ public final class ModuleControlClient {
         return OBJECT_MAPPER.writeValueAsString(requestBody);
     }
 
-    private static HttpResponse<String> put(Module module, String path, String jsonBody) throws Exception {
+    private static HttpResponse<String> putFlowState(Module module, String jsonBody) throws Exception {
         String port = module.getPort() != null ? module.getPort() : "8080";
         String contextPath = "/" + StudioBuildUtils.toUrlString(module.getIdentity());
-        URI uri = new URI("http", null, "localhost", Integer.parseInt(port), contextPath + path, null, null);
+        URI uri = new URI("http", null, "localhost", Integer.parseInt(port), contextPath + "/rest/moduleControl", null, null);
 
         String credentials = Base64.getEncoder().encodeToString(DEFAULT_CREDENTIALS.getBytes(StandardCharsets.UTF_8));
         HttpRequest request = HttpRequest.newBuilder()

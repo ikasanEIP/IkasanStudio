@@ -1,7 +1,6 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-//import liquibase.pro.packaged.J;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -75,7 +74,6 @@ public class ComponentProperty {
     public ComponentPropertyMeta getMeta() {
         return meta;
     }
-
 
     public boolean affectsUserImplementedClass() {
         return getMeta().isAffectsUserImplementedClass();

@@ -176,7 +176,6 @@ public class ComponentMeta implements IkasanMeta {
     @Builder.Default
     private String webHelpURL = DEFAULT_README;
 
-
     @JsonIgnore
     @EqualsAndHashCode.Exclude
     private String iconResourceDirectory;
@@ -287,14 +286,6 @@ public class ComponentMeta implements IkasanMeta {
     public boolean isExceptionResolver() {
         return EXCEPTION_RESOLVER_TYPE.equals(componentTypeMeta.getComponentShortType());
     }
-
-//    public String getDisplayComponentType() {
-//        if (componentType.contains(".")) {
-//            return componentType.substring(componentType.lastIndexOf('.') + 1).trim();
-//        } else {
-//            return "";
-//        }
-//    }
 
     public String getComponentType() {
         if (componentType == null || componentType.isEmpty()) {

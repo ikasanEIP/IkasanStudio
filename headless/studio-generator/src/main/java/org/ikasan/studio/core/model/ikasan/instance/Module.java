@@ -29,7 +29,6 @@ import java.util.*;
 @Getter
 @Setter
 @ToString
-//@AllArgsConstructor
 public class Module extends BasicElement {
     public static final Logger LOG = LoggerFactory.getLogger(Module.class);
     public static final String DUMB_MODULE_VERSION = "DUMB_MODULE";     // Allows creation of emergency model to cope with crash scenarios

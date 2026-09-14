@@ -45,10 +45,6 @@ public final class StudioSessionOptions {
         return getOption(PACKAGE_NAME, String.class, null);
     }
 
-//    public boolean isAutoReloadMavenEnabled() {
-//        return getOption(AUTO_RELOAD_MAVEN, Boolean.class, Boolean.FALSE);
-//    }
-
     public void setAutoReloadMavenEnabled(boolean hintTipsEnabled) {
         applicationOptions.put(AUTO_RELOAD_MAVEN, hintTipsEnabled);
     }

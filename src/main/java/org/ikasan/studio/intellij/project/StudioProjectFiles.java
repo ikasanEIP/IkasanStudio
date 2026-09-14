@@ -201,7 +201,6 @@ public class StudioProjectFiles {
         }
     }
 
-
     /**
      * Add in the standard properties for the ikasanPomModel, based on project level config e.g. JDK
      * @param pom is the root level ikasanPomModel to be updated
@@ -258,7 +257,6 @@ public class StudioProjectFiles {
      * @param subDir under the sourceRoodDir, this can be dot delimited a.b.c
      * @param content of the file that is to be created / updated
      */
-    // StudioProjectFiles.createPomFile(project, StudioProjectFiles.GENERATED_CONTENT_ROOT, "h2", h2StartStopPomString);
     public static void createPomFile(final Project project, final String contentRoot, final String subDir, final String content) {
         if (project == null || content == null) {
             LOG.warn("STUDIO: SERIOUS: Invalid calll to createJavaSourceFile project [" + project + "] contentRoot [" + contentRoot +
@@ -274,7 +272,6 @@ public class StudioProjectFiles {
                 content,
                 null);
     }
-
 
     public static void afterGenerationCommit(Runnable action) {
         GenerationTransactionManager.afterCommit(action);
@@ -312,7 +309,6 @@ public class StudioProjectFiles {
                 content,
                 componentViewHandler);
     }
-
 
     /**
      * Conveniance method to create a model.json for the supplied content. The location of the
@@ -454,7 +450,6 @@ public class StudioProjectFiles {
             ApplicationManager.getApplication().invokeLater(redraw);
         }
     }
-
 
     /**
      * Get the Virtual file for the project root
@@ -772,7 +767,6 @@ public class StudioProjectFiles {
         }
     }
 
-
     /**
      * Creates directories recursively in the IntelliJ VFS.
      *
@@ -850,7 +844,6 @@ public class StudioProjectFiles {
         }
         return sourceCodeRoot;
     }
-
 
     public static boolean isBlank(String str) {
         return str == null || str.isBlank();
@@ -1206,8 +1199,6 @@ public class StudioProjectFiles {
         return getSpecificContentRootFromCache(project) != null;
     }
 
-
-
     /**
      * Find the directory representing the base package, remove any sub package (subdirectory) that is not in the subPackagesToKeep
      * @param project is the Intellij project instance
@@ -1221,8 +1212,6 @@ public class StudioProjectFiles {
         if (baseDir == null) {
             LOG.warn("Studio: WARN: Could not get project root for directory for project [" + project + "]");
         } else {
-//            final VirtualFile sourceRoot = StudioProjectFiles.getExistingSourceDirectoryForContentRoot(project, baseDir.getPath(), contentRoot, StudioProjectFiles.SRC_MAIN_JAVA_CODE);
-//            final PsiDirectory sourceRootDir = PsiDirectoryFactory.getInstance(project).createDirectory(sourceRoot);
 
             CompletableFuture<PsiDirectory[]> leafPackageDirectoryFuture = CompletableFuture.supplyAsync(() -> {
                 try {

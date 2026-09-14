@@ -29,7 +29,6 @@ public class ExceptionResolutionEditBox {
     private final JLabel actionTitleField;
     private String currentAction = null;
     private final ComboBox<String> actionJComboBox;
-    private final JLabel paramsTitleField;
     private List<ComponentPropertyEditRow> componentPropertyEditRowList = new ArrayList<>();
     private final boolean componentInitialisation;
     private final ExceptionResolution exceptionResolution;
@@ -42,7 +41,6 @@ public class ExceptionResolutionEditBox {
         this.componentInitialisation = componentInitialisation;
 
         this.actionTitleField = new JLabel(StudioBundle.message("label.Action"));
-        this.paramsTitleField = new JLabel(StudioBundle.message("label.Params"));
 
         List<String> currentExceptions = exceptionResolverMeta.getExceptionsCaught();
         String[] exceptions = currentExceptions.toArray(new String[0]);
@@ -102,7 +100,6 @@ public class ExceptionResolutionEditBox {
                 for (ComponentPropertyMeta propertyMeta : exceptionActionMeta.getActionProperties().values()) {
                     if (!propertyMeta.isVoid()) {
                         ComponentProperty newActionProperty = new ComponentProperty(propertyMeta);
-//                        ComponentPropertyMeta componentPropertyMeta = exceptionActionMeta.getMetaProperty(fieldName);
                         // The property has to be added to this exception resolution so that it can be updated later.
                         exceptionResolution.addComponentProperty(newActionProperty.getMeta().getPropertyName(), newActionProperty);
                         ComponentPropertyEditRow actionParam = new ComponentPropertyEditRow(project, newActionProperty, this.componentInitialisation);
@@ -131,7 +128,6 @@ public class ExceptionResolutionEditBox {
             }
         }
     }
-
 
     /**
      * Determine if the edit box has values in all mandatory fields.
@@ -247,10 +243,6 @@ public class ExceptionResolutionEditBox {
 
     public JComboBox<String> getActionJComboBox() {
         return actionJComboBox;
-    }
-
-    public JLabel getParamsTitleField() {
-        return paramsTitleField;
     }
 
     /**

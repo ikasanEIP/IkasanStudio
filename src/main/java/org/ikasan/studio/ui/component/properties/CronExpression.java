@@ -1,7 +1,5 @@
 package org.ikasan.studio.ui.component.properties;
 
-//import org.quartz.CronExpression;
-
 import com.google.common.primitives.Ints;
 import lombok.Getter;
 import org.ikasan.studio.ui.StudioBundle;
@@ -223,13 +221,6 @@ public enum CronExpression {
         Integer day = Ints.tryParse(dayString);
         if (day != null) {
             return dayOfWeek.get(day.toString());
-        }
-        return null;
-    }
-    private static Integer dayOfMonthFromString(String dayString) {
-        Integer day = Ints.tryParse(dayString);
-        if (day!= null && day >0 && day < 32) {
-            return day;
         }
         return null;
     }

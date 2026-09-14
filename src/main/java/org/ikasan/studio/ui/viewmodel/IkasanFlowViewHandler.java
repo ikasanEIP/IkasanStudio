@@ -147,7 +147,6 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
                     getLeftX() + FLOW_CONTAINER_BORDER,
                     getTopY() + FLOW_CONTAINER_BORDER);
         }
-//        LOG.info("StudioXX: planted flow " + this.getFlow().getIdentity() + " flow box TestV1:"  + getLeftX() + " y:" + getTopY() + " width:" + getWidth() + " height:" + getHeight());
     }
 
     static boolean isRecording(Flow flow) {
@@ -195,7 +194,6 @@ public class IkasanFlowViewHandler extends AbstractViewHandlerIntellij {
         StudioUIUtils.paintWarningPopup(g, warningX, warningY, canvas.getX() + canvas.getWidth(), canvas.getY() + canvas.getHeight(), warningText);
         return getBottomY();
     }
-
 
     private int getYAfterPaintingFlowTitle(Graphics g) {
         return paintFlowTitle(g, PaintMode.DIMENSION_ONLY) + FLOW_Y_TITLE_SPACING;

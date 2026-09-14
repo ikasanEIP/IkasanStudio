@@ -141,8 +141,6 @@ public class CanvasPanel extends JBPanel implements Disposable {
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Migrate…"),
                 event -> org.ikasan.studio.intellij.migration.MigrationController.open(project, false),
                 "Preview migration to another Ikasan version and save a recovery snapshot");
-//        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Save Img"), new SaveAction(project), "Save the module drawing as an image file");
-//        addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Debug"), new DebugAction(project), "Dump information to log files");
 
         // This may be redundant now we have Intellij Messaging
         canvasTextArea = new JTextArea();
