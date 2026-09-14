@@ -75,7 +75,14 @@ jobs:
 
       # Build plugin
       - name: Build plugin
-        run: ./gradlew buildPlugin
+        run: ./gradlew buildPlugin verifyReleaseArchive
+
+      - name: Upload release archive audit
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-archive-audit
+          path: build/reports/release/archive.json
 
       # Prepare plugin archive content for creating artifact
       - name: Prepare Plugin Artifact
@@ -217,7 +224,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ needs.build.outputs.pluginVerifierHomeDir }}/ides
-          key: plugin-verifier-${{ hashFiles('build/listProductsReleases.txt') }}
+          key: plugin-verifier-${{ hashFiles('gradle.properties') }}
 
       # Run Verify Plugin task and IntelliJ Plugin Verifier tool
       # Retried because the underlying JetBrains plugin-verifier library has a known

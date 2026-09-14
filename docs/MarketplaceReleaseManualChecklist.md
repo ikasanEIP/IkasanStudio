@@ -38,4 +38,6 @@
 ## Automated gates
 
 - Run `./gradlew cleanTest test`.
-- Run `./gradlew buildPlugin verifyPlugin`.
+- Run `./gradlew buildPlugin verifyReleaseArchive verifyPlugin`.
+- Complete the boundary IDE, installation, upgrade, uninstall and clean-profile matrix in
+  [ReleaseCandidateVerification.md](ReleaseCandidateVerification.md).

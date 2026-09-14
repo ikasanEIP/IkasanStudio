@@ -71,7 +71,6 @@ dependencies {
     implementation("org.ikasan.studio:ikasan-studio-ide-mediator:1.0.2")
     testImplementation("org.freemarker:freemarker:2.3.35")
     testImplementation("org.mockito:mockito-core:5.23.0")
-    implementation("org.mockito:mockito-inline:5.2.0")
     implementation("org.apache.ftpserver:ftpserver-core:1.2.1") {
         exclude(group = "org.slf4j", module = "slf4j-api")
     }
@@ -182,11 +181,10 @@ intellijPlatform {
 
     pluginVerification {
         ides {
-            // Verify against the same IntelliJ Platform version already resolved for
-            // compilation (platformType/platformVersion in gradle.properties), rather than
-            // querying JetBrains' release-channel list — that query silently returns zero
-            // matches in CI (e.g. Travis) and fails the build with "No IDE versions configured".
+            // Explicit release boundaries avoid a silently empty release-channel query.
+            create("IC", providers.gradleProperty("verificationOldestIde").get())
             current()
+            create("IU", providers.gradleProperty("verificationNewestIde").get())
         }
     }
 }
@@ -279,6 +277,10 @@ tasks {
         useJUnitPlatform {
             if (suite != "all") includeTags(suite)
         }
+    }
+
+    processResources {
+        from("LICENSE.txt") { into("META-INF") }
     }
 
     compileJava {
@@ -392,4 +394,20 @@ tasks.register<Test>("performanceTest") {
         benchmark.systemProperties.putAll(standard.systemProperties)
         benchmark.environment.putAll(standard.environment)
     }
+}
+
+// Audit the actual Marketplace archive, including resources supplied by separate pack JARs.
+tasks.register<Exec>("verifyReleaseArchive") {
+    group = "verification"
+    description = "Checks release metadata, Java bytecode, licensing and all packaged resources in the plugin ZIP."
+    dependsOn(tasks.buildPlugin)
+    val archive = tasks.buildPlugin.flatMap { it.archiveFile }
+    inputs.file(archive)
+    inputs.file("scripts/verify-release-archive.py")
+    inputs.dir("src/main/resources")
+    inputs.file("LICENSE.txt")
+    val report = layout.buildDirectory.file("reports/release/archive.json")
+    outputs.file(report)
+    commandLine("python3", "scripts/verify-release-archive.py", "--zip", archive.get().asFile.absolutePath,
+        "--report", report.get().asFile.absolutePath)
 }

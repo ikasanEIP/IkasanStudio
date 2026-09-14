@@ -47,7 +47,8 @@ class DesignerCanvasTest {
             var menu = DesignCanvasContextMenu.createCanvasMenu(project, null, element);
             List<String> labels = java.util.Arrays.stream(menu.getComponents())
                     .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast).map(JMenuItem::getText).toList();
-            assertThat(labels).contains(StudioBundle.message("menu.EditComponent"), StudioBundle.message("menu.JumpToCode"))
+            assertThat(labels).contains(StudioBundle.message("menu.EditComponent"))
+                    .doesNotContain(StudioBundle.message("menu.JumpToCode"), StudioBundle.message("menu.JumpToProperties"))
                     .doesNotContainAnyElementsOf(moduleLabels);
             assertThat(menu.getComponent(menu.getComponentCount() - 1)).isInstanceOf(JMenuItem.class);
         }
