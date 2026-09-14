@@ -244,8 +244,11 @@ public class ComponentPropertyMeta {
      * @return a compiled Pattern
      */
     public Pattern getValidationPattern() {
-        if (validationPattern == null && validation != null && !validation.isBlank()) {
-            this.validationPattern = Pattern.compile(validation);
+        if (validation == null || validation.isBlank()) {
+            validationPattern = null;
+        } else if (validationPattern == null || !validation.equals(validationPattern.pattern())) {
+            // Also handles toBuilder() copies that retain a cache from the previous regex.
+            validationPattern = Pattern.compile(validation);
         }
         return validationPattern;
     }
@@ -256,10 +259,10 @@ public class ComponentPropertyMeta {
 
     /**
      * Standard equals method to compare two ComponentPropertyMeta objects.
-     * Note we can't use annotation bases because Pattern is a library class that does not expose field based equals.
+     * The compiled pattern is a derived cache; only its validation source participates in equality.
      *
      * @param o to check
-     * @return true if the value is a substitution value
+     * @return true if the property metadata is equal
      */
     @Override
     public boolean equals(Object o) {
@@ -293,9 +296,7 @@ public class ComponentPropertyMeta {
                 Objects.equals(usageDataType, that.usageDataType) &&
                 Objects.equals(userImplementClassFtlTemplate, that.userImplementClassFtlTemplate) &&
                 Objects.equals(validation, that.validation) &&
-                Objects.equals(validationMessage, that.validationMessage) &&
-                Objects.equals(this.getValidationPattern() == null ? null : this.getValidationPattern().pattern(),
-                        that.getValidationPattern() == null ? null : that.getValidationPattern().pattern());
+                Objects.equals(validationMessage, that.validationMessage);
     }
 
     @Override
@@ -306,7 +307,6 @@ public class ComponentPropertyMeta {
                 hiddenProperty, ignoreProperty, mandatory, propertyConfigFileLabel, propertyDataType, readOnlyProperty, setterProperty,
                 setterMethod, usageDataType, userDefineResource, userImplementClassFtlTemplate, userSuppliedClass,
                 protectFromOverwrite, noStubRequired, preserveWhitespace,
-                validation, validationMessage,
-                validationPattern!= null ? validationPattern.pattern() : "");
+                validation, validationMessage);
     }
 }

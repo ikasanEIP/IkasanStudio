@@ -124,7 +124,7 @@ public class StudioBuildUtils {
         if (input != null && !input.isEmpty()) {
             return  input
                     .replaceAll("  +", " ")
-                    .replaceAll("[ -]+", "-").toLowerCase();
+                    .replaceAll("[ -]+", "-").toLowerCase(Locale.ROOT);
         } else {
             return input;
         }

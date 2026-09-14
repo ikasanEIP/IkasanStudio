@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.generation;
 
+import java.util.Locale;
+
 /** Pure naming rules shared by generators and templates. */
 public final class JavaSourceNames {
     private JavaSourceNames() {
@@ -18,7 +20,7 @@ public final class JavaSourceNames {
             return input;
         }
         String prefixed = Character.isDigit(input.charAt(0)) ? "_" + input : input;
-        return prefixed.replaceAll("[^a-zA-Z0-9_]+", "").toLowerCase();
+        return prefixed.replaceAll("[^a-zA-Z0-9_]+", "").toLowerCase(Locale.ROOT);
     }
 
     public static String toIdentifier(String input) {

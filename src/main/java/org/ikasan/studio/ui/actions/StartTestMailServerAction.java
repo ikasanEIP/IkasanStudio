@@ -287,10 +287,10 @@ public class StartTestMailServerAction implements ActionListener {
     }
 
     static String mailHogAssetName(String osName, String archName) throws UnsupportedPlatformException {
-        String os = osName.toLowerCase();
-        String arch = archName.toLowerCase();
+        String os = osName.toLowerCase(java.util.Locale.ROOT);
+        String arch = archName.toLowerCase(java.util.Locale.ROOT);
         boolean is64Bit = arch.contains("64");
-        if (os.contains("win")) {
+        if (os.startsWith("windows")) {
             return is64Bit ? "MailHog_windows_amd64.exe" : "MailHog_windows_386.exe";
         }
         if (os.contains("mac") || os.contains("darwin")) {
