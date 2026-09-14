@@ -1,5 +1,8 @@
 package org.ikasan.studio.intellij.settings;
 
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBCheckBox;
+
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -47,54 +50,54 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
 
     @Override
     public JComponent createComponent() {
-        gettingStartedHintsCheckBox = new JCheckBox(StudioBundle.message("checkbox.ShowGettingStartedHints"));
+        gettingStartedHintsCheckBox = new JBCheckBox(StudioBundle.message("checkbox.ShowGettingStartedHints"));
 
-        JPanel hintsPanel = new JPanel(new BorderLayout(0, 4));
+        JPanel hintsPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         hintsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.Onboarding")));
         hintsPanel.add(gettingStartedHintsCheckBox, BorderLayout.NORTH);
 
         JLabel hintsNote = wrappingNote("label.HintsNote");
         hintsPanel.add(hintsNote, BorderLayout.CENTER);
 
-        promptBeforeDeletingUserCodeCheckBox = new JCheckBox(StudioBundle.message("checkbox.PromptBeforeDeletingUserCode"));
+        promptBeforeDeletingUserCodeCheckBox = new JBCheckBox(StudioBundle.message("checkbox.PromptBeforeDeletingUserCode"));
 
-        JPanel userCodePanel = new JPanel(new BorderLayout(0, 4));
+        JPanel userCodePanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         userCodePanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.UserCodeDeletion")));
         userCodePanel.add(promptBeforeDeletingUserCodeCheckBox, BorderLayout.NORTH);
 
         JLabel userCodeNote = wrappingNote("label.UserCodeDeletionNote");
         userCodePanel.add(userCodeNote, BorderLayout.CENTER);
 
-        showAdvancedControlsCheckBox = new JCheckBox(StudioBundle.message("checkbox.ShowAdvancedControls"));
+        showAdvancedControlsCheckBox = new JBCheckBox(StudioBundle.message("checkbox.ShowAdvancedControls"));
 
-        JPanel advancedControlsPanel = new JPanel(new BorderLayout(0, 4));
+        JPanel advancedControlsPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         advancedControlsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.AdvancedControls")));
         advancedControlsPanel.add(showAdvancedControlsCheckBox, BorderLayout.NORTH);
 
         JLabel advancedControlsNote = wrappingNote("label.AdvancedControlsNote");
         advancedControlsPanel.add(advancedControlsNote, BorderLayout.CENTER);
 
-        showJmsConnectorsCheckBox = new JCheckBox(StudioBundle.message("checkbox.ShowJmsConnectors"));
+        showJmsConnectorsCheckBox = new JBCheckBox(StudioBundle.message("checkbox.ShowJmsConnectors"));
 
-        JPanel jmsConnectorsPanel = new JPanel(new BorderLayout(0, 4));
+        JPanel jmsConnectorsPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         jmsConnectorsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.JmsConnectors")));
         jmsConnectorsPanel.add(showJmsConnectorsCheckBox, BorderLayout.NORTH);
 
         JLabel jmsConnectorsNote = wrappingNote("label.JmsConnectorsNote");
         jmsConnectorsPanel.add(jmsConnectorsNote, BorderLayout.CENTER);
 
-        testMailServerLivePollingCheckBox = new JCheckBox(StudioBundle.message("checkbox.TestMailServerLivePolling"));
+        testMailServerLivePollingCheckBox = new JBCheckBox(StudioBundle.message("checkbox.TestMailServerLivePolling"));
 
-        JPanel testMailServerPanel = new JPanel(new BorderLayout(0, 4));
+        JPanel testMailServerPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         testMailServerPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.TestMailServerLivePolling")));
         testMailServerPanel.add(testMailServerLivePollingCheckBox, BorderLayout.NORTH);
 
         JLabel testMailServerNote = wrappingNote("label.TestMailServerLivePollingNote");
         testMailServerPanel.add(testMailServerNote, BorderLayout.CENTER);
 
-        flowErrorMonitoringCheckBox = new JCheckBox(StudioBundle.message("checkbox.FlowErrorMonitoring"));
+        flowErrorMonitoringCheckBox = new JBCheckBox(StudioBundle.message("checkbox.FlowErrorMonitoring"));
 
-        JPanel flowErrorMonitoringPanel = new JPanel(new BorderLayout(0, 4));
+        JPanel flowErrorMonitoringPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         flowErrorMonitoringPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.FlowErrorMonitoring")));
         flowErrorMonitoringPanel.add(flowErrorMonitoringCheckBox, BorderLayout.NORTH);
 
@@ -102,13 +105,13 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         flowErrorMonitoringPanel.add(flowErrorMonitoringNote, BorderLayout.CENTER);
 
         keepCanvasSelectedCheckBox = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("checkbox.KeepCanvasSelectedAtDebugBreakpoints"));
-        JPanel debugCanvasPanel = new JPanel(new BorderLayout(0, 4));
+        JPanel debugCanvasPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         debugCanvasPanel.add(keepCanvasSelectedCheckBox, BorderLayout.NORTH);
         debugCanvasPanel.add(wrappingNote("label.KeepCanvasSelectedAtDebugBreakpointsNote"), BorderLayout.CENTER);
 
-        autoSaveModuleDiagramCheckBox = new JCheckBox(StudioBundle.message("checkbox.ModuleDiagramAutoSave"));
+        autoSaveModuleDiagramCheckBox = new JBCheckBox(StudioBundle.message("checkbox.ModuleDiagramAutoSave"));
 
-        JPanel autoSaveModuleDiagramPanel = new JPanel(new BorderLayout(0, 4));
+        JPanel autoSaveModuleDiagramPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         autoSaveModuleDiagramPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.ModuleDiagramAutoSave")));
         autoSaveModuleDiagramPanel.add(autoSaveModuleDiagramCheckBox, BorderLayout.NORTH);
 
@@ -155,7 +158,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         resetButtonConstraints.insets = JBUI.insetsTop(4);
         canvasLayoutFields.add(resetCanvasDistancesButton, resetButtonConstraints);
 
-        JPanel canvasLayoutPanel = new JPanel(new BorderLayout(0, 4));
+        JPanel canvasLayoutPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         canvasLayoutPanel.setBorder(BorderFactory.createTitledBorder(
                 StudioBundle.message("label.CanvasLayout")));
         canvasLayoutPanel.add(canvasLayoutFields, BorderLayout.NORTH);
@@ -286,7 +289,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
                                                 String label, JSpinner spinner) {
         labelConstraints.gridy = rowIndex;
         fieldConstraints.gridy = rowIndex;
-        JLabel fieldLabel = new JLabel(label);
+        JLabel fieldLabel = new JBLabel(label);
         fieldLabel.setLabelFor(spinner);
         target.add(fieldLabel, labelConstraints);
         target.add(spinner, fieldConstraints);

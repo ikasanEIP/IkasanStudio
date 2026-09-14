@@ -1,14 +1,13 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.JBSplitter;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicSplitPaneDivider;
-import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
 
 /**
@@ -23,7 +22,7 @@ import java.awt.*;
  */
 @SuppressWarnings("rawtypes")
 public class ComponentPropertiesTabPanel extends JBPanel {
-    final JSplitPane paletteSplitPane;
+    final JBSplitter paletteSplitPane;
 
     ComponentPropertiesPanel componentPropertiesPanel;
     HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel(StudioBundle.message("dialog.Description"), null);
@@ -34,23 +33,11 @@ public class ComponentPropertiesTabPanel extends JBPanel {
         this.setLayout(new BorderLayout());
         this.setBorder(JBUI.Borders.empty());
 
-        paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, componentPropertiesPanel, htmlScrollingDisplayPanel);
+        paletteSplitPane = new JBSplitter(true, 0.8f, 0.0f, 1.0f);
+        paletteSplitPane.setFirstComponent(componentPropertiesPanel);
+        paletteSplitPane.setSecondComponent(htmlScrollingDisplayPanel);
         paletteSplitPane.setBorder(JBUI.Borders.empty());
-        paletteSplitPane.setUI(new BasicSplitPaneUI() {
-            @Override
-            public BasicSplitPaneDivider createDefaultDivider() {
-                return new BasicSplitPaneDivider(this) {
-                    @Override
-                    public void paint(Graphics g) {
-                        g.setColor(StudioUIUtils.getLineColor());
-                        g.fillRect(0, 0, getSize().width, getSize().height);
-                        // don't call super.paint() which would put in the bevel.
-                    }
-                };
-            }
-        });
-        paletteSplitPane.setDividerSize(2);
-        paletteSplitPane.setDividerLocation(0.8);
+        paletteSplitPane.setDividerWidth(JBUI.scale(2));
 
         @SuppressWarnings("rawtypes")
         JBPanel linePanel = new JBPanel();
@@ -71,7 +58,7 @@ public class ComponentPropertiesTabPanel extends JBPanel {
      * @param selectedComponent that now needs to be updated.
      */
     public void updateTargetComponent(IkasanObject selectedComponent) {
-        paletteSplitPane.setDividerLocation(0.8);
+        paletteSplitPane.setProportion(0.8f);
         componentPropertiesPanel.updateTargetComponent(selectedComponent);
         this.repaint();
     }

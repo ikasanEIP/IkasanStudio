@@ -1,5 +1,8 @@
 package org.ikasan.studio.ui;
 
+import com.intellij.ui.JBSplitter;
+import com.intellij.openapi.ui.Splitter;
+
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -20,8 +23,6 @@ import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicSplitPaneDivider;
-import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
 /**
  * Create all onscreen components and register inter-thread communication components with uiContext
@@ -39,8 +40,8 @@ public class DesignerUI implements Disposable {
     private final StudioInitialisationPanel initialisationPanel;
     private final StudioProjectInitialisationService initialisationService;
     JBTabbedPane paletteAndProperties = new JBTabbedPane();
-    JSplitPane propertiesAndCanvasSplitPane;
-    // Guards the persistence listener below against our own programmatic setDividerLocation() calls -
+    JBSplitter propertiesAndCanvasSplitPane;
+    // Guards the persistence listener below against our own programmatic proportion changes -
     // without this, restoring a persisted width while the split pane hasn't yet been laid out to its
     // real size (getWidth() still small/stale during early startup) computes a wrong divider location,
     // which the listener would then immediately re-persist, silently corrupting the user's saved width
@@ -85,34 +86,11 @@ public class DesignerUI implements Disposable {
         CanvasPanel canvasPanel = new CanvasPanel(this.project);
         Disposer.register(this, canvasPanel);
         uiContext.setCanvasPanel(canvasPanel);
-        propertiesAndCanvasSplitPane = new JSplitPane(
-                JSplitPane.HORIZONTAL_SPLIT,
-                canvasPanel,
-                paletteAndProperties
-        );
-
+        propertiesAndCanvasSplitPane = createContentSplitter(canvasPanel, paletteAndProperties);
         componentPropertiesPanel.setFitWidthAction(this::fitPropertiesPanelWidth);
-        propertiesAndCanvasSplitPane.setBorder(JBUI.Borders.empty());
-        propertiesAndCanvasSplitPane.setDividerSize(2);
-        // Canvas (left) absorbs all extra space when the IDE window is resized;
-        // the palette/properties panel (right) stays at its preferred width.
-        propertiesAndCanvasSplitPane.setResizeWeight(1.0);
-        propertiesAndCanvasSplitPane.setUI(new BasicSplitPaneUI() {
-            @Override
-            public BasicSplitPaneDivider createDefaultDivider() {
-                return new BasicSplitPaneDivider(this) {
-                    @Override
-                    public void paint(Graphics g) {
-                        g.setColor(StudioUIUtils.getLineColor());
-                        g.fillRect(0, 0, getSize().width, getSize().height);
-                        // don't call super.paint() which would put in the bevel.
-                    }
-                };
-            }
-        });
         // Remember whatever width the user leaves the panel at (whether from a manual drag or from the
         // programmatic sizing below), so it doesn't need re-dragging on every project open.
-        propertiesAndCanvasSplitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, evt -> {
+        propertiesAndCanvasSplitPane.addPropertyChangeListener(Splitter.PROP_PROPORTION, evt -> {
             if (restoringDividerLocation) {
                 return;
             }
@@ -144,15 +122,25 @@ public class DesignerUI implements Disposable {
         return contentPanel;
     }
 
+    static JBSplitter createContentSplitter(JComponent canvas, JComponent sidebar) {
+        JBSplitter splitter = new JBSplitter(false, 0.7f, 0.0f, 1.0f);
+        splitter.setFirstComponent(canvas);
+        splitter.setSecondComponent(sidebar);
+        splitter.setBorder(JBUI.Borders.empty());
+        splitter.setDividerWidth(JBUI.scale(2));
+        // Keep the sidebar width while the canvas absorbs window resizing.
+        splitter.setDividerPositionStrategy(Splitter.DividerPositionStrategy.KEEP_SECOND_SIZE);
+        return splitter;
+    }
+
     /**
      * The palette/properties panel's current on-screen width, derived from the split pane's own state
      * (divider location is only meaningful relative to the split's total width, which varies with the
      * window/tool-window size, so the width - not the raw location - is what's persisted and restored).
      */
     private int getRightPanelWidth() {
-        return propertiesAndCanvasSplitPane.getWidth()
-                - propertiesAndCanvasSplitPane.getDividerLocation()
-                - propertiesAndCanvasSplitPane.getDividerSize();
+        int available = propertiesAndCanvasSplitPane.getWidth() - propertiesAndCanvasSplitPane.getDividerWidth();
+        return Math.round(available * (1.0f - propertiesAndCanvasSplitPane.getProportion()));
     }
 
     /**
@@ -180,7 +168,7 @@ public class DesignerUI implements Disposable {
             return;
         }
         UiContext context = project.getService(UiContext.class);
-        int available = propertiesAndCanvasSplitPane.getWidth() - propertiesAndCanvasSplitPane.getDividerSize();
+        int available = propertiesAndCanvasSplitPane.getWidth() - propertiesAndCanvasSplitPane.getDividerWidth();
         if (available <= 0 || context.getPropertiesTabPanel() == null) {
             return;
         }
@@ -190,7 +178,7 @@ public class DesignerUI implements Disposable {
         int target = Math.min(preferred, available - canvasReserve);
         if (target > getRightPanelWidth()) {
             // The existing divider listener persists this just like a manual drag.
-            propertiesAndCanvasSplitPane.setDividerLocation(available - target);
+            setRightPanelWidth(target);
         }
     }
 
@@ -200,7 +188,7 @@ public class DesignerUI implements Disposable {
             return;
         }
         PaletteTabPanel palette = project.getService(UiContext.class).getPalettePanel();
-        int available = propertiesAndCanvasSplitPane.getWidth() - propertiesAndCanvasSplitPane.getDividerSize();
+        int available = propertiesAndCanvasSplitPane.getWidth() - propertiesAndCanvasSplitPane.getDividerWidth();
         if (available <= 0 || palette == null) {
             return;
         }
@@ -208,7 +196,14 @@ public class DesignerUI implements Disposable {
         int preferred = palette.getPaletteScrollPanePreferredWidth() + JBUI.scale(16);
         int target = Math.min(preferred, available - canvasReserve);
         // Persist through the same divider listener used for manual resizing.
-        propertiesAndCanvasSplitPane.setDividerLocation(available - target);
+        setRightPanelWidth(target);
+    }
+
+    private void setRightPanelWidth(int width) {
+        int available = propertiesAndCanvasSplitPane.getWidth() - propertiesAndCanvasSplitPane.getDividerWidth();
+        if (available > 0) {
+            propertiesAndCanvasSplitPane.setProportion(Math.max(0.0f, Math.min(1.0f, 1.0f - (float) width / available)));
+        }
     }
 
     private static final int MAX_APPLY_WIDTH_RETRIES = 10;
@@ -251,8 +246,7 @@ public class DesignerUI implements Disposable {
         }
         restoringDividerLocation = true;
         try {
-            propertiesAndCanvasSplitPane.setDividerLocation(
-                    splitWidth - rightPanelWidth - propertiesAndCanvasSplitPane.getDividerSize());
+            setRightPanelWidth(rightPanelWidth);
         } finally {
             restoringDividerLocation = false;
         }

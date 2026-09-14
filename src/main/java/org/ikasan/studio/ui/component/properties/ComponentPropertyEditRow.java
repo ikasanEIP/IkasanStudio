@@ -1,5 +1,8 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBCheckBox;
+
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -103,7 +106,7 @@ public class ComponentPropertyEditRow {
             // e.g. FtpConsumer's "ftpsKeyStoreFilePath (required if ftps is enabled)".
             labelText += " (required if " + componentProperty.getMeta().getMandatoryIfTrue() + " is enabled)";
         }
-        this.propertyTitleField = new JLabel(labelText);
+        this.propertyTitleField = new JBLabel(labelText);
         // A user troubleshooting a specific property (e.g. reporting an issue) needs to be able to grab its
         // exact name - JLabel has no built-in text selection, so this offers a right-click "Copy" instead.
         StudioUIUtils.makeCopyable(propertyTitleField, propertyTitleField::getText);
@@ -202,8 +205,8 @@ public class ComponentPropertyEditRow {
         } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
             boolean isMandatory = componentProperty.getMeta().isMandatory();
             // BOOLEAN INPUT
-            propertyBooleanFieldTrue = new JCheckBox();
-            propertyBooleanFieldFalse = new JCheckBox();
+            propertyBooleanFieldTrue = new JBCheckBox();
+            propertyBooleanFieldFalse = new JBCheckBox();
             propertyBooleanFieldTrue.setBackground(JBColor.WHITE);
             propertyBooleanFieldFalse.setBackground(JBColor.WHITE);
             propertyBooleanFieldTrue.addActionListener(e -> {
@@ -360,7 +363,7 @@ public class ComponentPropertyEditRow {
         if (componentProperty.affectsUserImplementedClass() && !componentInitialisation) {
             // Nothing to protect yet on first-time creation (componentInitialisation) - the indicator/confirmation
             // only matters once a user-implemented class stub may already exist to be regenerated.
-            affectsUserImplementedClassIndicator = new JLabel(AllIcons.General.Warning);
+            affectsUserImplementedClassIndicator = new JBLabel(AllIcons.General.Warning);
             affectsUserImplementedClassIndicator.setToolTipText(StudioBundle.message("tooltip.AffectsUserImplementedClass"));
         } else {
             affectsUserImplementedClassIndicator = null;
@@ -370,7 +373,7 @@ public class ComponentPropertyEditRow {
         // regeneration, mirroring the component-level "Allow Update" checkbox but scoped to just this property.
         // Nothing to protect yet if the property has never been given a value.
         if (meta.isProtectFromOverwrite() && !componentInitialisation && componentProperty.getValue() != null) {
-            rowOverwriteCheckBox = new JCheckBox();
+            rowOverwriteCheckBox = new JBCheckBox();
             rowOverwriteCheckBox.setToolTipText(StudioBundle.message("tooltip.CheckTheBoxIfYouWishToRewriteOverwriteTheExistingCode"));
         }
     }

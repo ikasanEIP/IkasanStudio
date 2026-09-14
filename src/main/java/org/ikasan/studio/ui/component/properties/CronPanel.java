@@ -1,5 +1,9 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.components.JBTextArea;
+import com.intellij.ui.components.JBLabel;
+
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBPanel;
@@ -66,8 +70,8 @@ public class CronPanel extends JBPanel {
             String[] parts = currentValue.split(" ");
             for (index = 0; index < parts.length && index < maxIndex; index++) {
                 CronExpression cronField = CronExpression.values()[index];
-                textFields[index] = new JTextField(10);
-                labelFields[index] = new JLabel();
+                textFields[index] = new JBTextField(10);
+                labelFields[index] = new JBLabel();
 
                 addRow(gc, dataEntryPanel, cronField, textFields[index], labelFields[index], cronField.defaultValue, parts[index], toolTip(cronField));
             }
@@ -75,8 +79,8 @@ public class CronPanel extends JBPanel {
         // Fill in remaining values with defaults
         for (; index < maxIndex; index++) {
             CronExpression cronField = CronExpression.values()[index];
-            textFields[index] = new JTextField(10);
-            labelFields[index] = new JLabel();
+            textFields[index] = new JBTextField(10);
+            labelFields[index] = new JBLabel();
             addRow(gc, dataEntryPanel, cronField, textFields[index], labelFields[index], cronField.defaultValue, cronField.defaultValue, toolTip(cronField));
         }
 
@@ -88,7 +92,7 @@ public class CronPanel extends JBPanel {
                 TitledBorder.LEFT,
                 TitledBorder.TOP);
         summaryPanel.setBorder(summaryBorder);
-        summaryTextArea = new JTextArea();
+        summaryTextArea = new JBTextArea();
         summaryTextArea.setEditable(false);
         summaryTextArea.setLineWrap(true);
         summaryTextArea.setWrapStyleWord(true);

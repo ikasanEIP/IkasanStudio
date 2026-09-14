@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.ui.components.JBTextArea;
+
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -15,7 +17,7 @@ final class PropertyDialogLayout {
         JPanel topAligned = new JPanel(new BorderLayout());
         topAligned.add(details, BorderLayout.NORTH);
         JBScrollPane scroll = new JBScrollPane(topAligned);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.setBorder(JBUI.Borders.empty());
         scroll.setPreferredSize(JBUI.size(560, Math.min(320, details.getPreferredSize().height + 12)));
         JPanel content = new JPanel(new BorderLayout(JBUI.scale(12), JBUI.scale(12)));
         JLabel warning = new JBLabel(Messages.getWarningIcon());
@@ -39,7 +41,7 @@ final class PropertyDialogLayout {
     }
 
     static JTextArea wrappedText(String text, int width) {
-        JTextArea area = new JTextArea(text);
+        JTextArea area = new JBTextArea(text);
         area.setFont(UIManager.getFont("Label.font"));
         area.setForeground(UIManager.getColor("Label.foreground"));
         area.setEditable(false);

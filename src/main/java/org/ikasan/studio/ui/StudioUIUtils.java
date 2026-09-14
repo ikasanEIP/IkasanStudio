@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui;
 
+import com.intellij.util.ui.JBUI;
+
 import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
 
 import com.intellij.notification.NotificationGroupManager;
@@ -493,7 +495,7 @@ public class StudioUIUtils {
             Border pulseOnBorder = BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(ATTENTION_PULSE_COLOR, 3), originalBorder);
             Border pulseOffBorder = BorderFactory.createCompoundBorder(
-                    BorderFactory.createEmptyBorder(3, 3, 3, 3), originalBorder);
+                    JBUI.Borders.empty(3), originalBorder);
             boolean[] pulseOn = {false};
             Timer timer = new Timer(450, e -> {
                 pulseOn[0] = !pulseOn[0];

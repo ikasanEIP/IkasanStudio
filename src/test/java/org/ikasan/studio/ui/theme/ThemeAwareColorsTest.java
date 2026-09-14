@@ -49,26 +49,56 @@ public class ThemeAwareColorsTest {
 
     @Test
     public void urgentColor_returnsFallback_whenNoUiKeysPresent() {
-        Color c = ThemeAwareColors.getUrgentColor();
-        assertNotNull(c);
-        assertTrue(c instanceof JBColor);
-        JBColor jb = (JBColor) c;
-        Color light = new Color(jb.getRed(), jb.getGreen(), jb.getBlue());
-        Color dark = jb.getDarkVariant();
-        assertEquals(new Color(211, 47, 47), light);
-        assertEquals(new Color(255, 107, 107), dark);
+        assertFallback(ThemeAwareColors.getUrgentColor(), new Color(211, 47, 47), new Color(255, 107, 107));
     }
 
     @Test
     public void warningColor_returnsFallback_whenNoUiKeysPresent() {
-        Color c = ThemeAwareColors.getWarningColor();
-        assertNotNull(c);
-        assertTrue(c instanceof JBColor);
-        JBColor jb = (JBColor) c;
-        Color light = new Color(jb.getRed(), jb.getGreen(), jb.getBlue());
-        Color dark = jb.getDarkVariant();
-        assertEquals(new Color(255, 160, 0), light);
-        assertEquals(new Color(255, 200, 100), dark);
+        assertFallback(ThemeAwareColors.getWarningColor(), new Color(255, 160, 0), new Color(255, 200, 100));
+    }
+
+    private static void assertFallback(Color color, Color light, Color dark) {
+        boolean originallyDark = !JBColor.isBright();
+        try {
+            JBColor.setDark(false);
+            assertEquals(light.getRGB(), color.getRGB());
+            JBColor.setDark(true);
+            assertEquals(dark.getRGB(), color.getRGB());
+        } finally {
+            JBColor.setDark(originallyDark);
+        }
+    }
+
+    @Test
+    public void alreadyAssignedColorsFollowUiDefaultsChanges() {
+        String[] keys = {"EditorPane.background", "Panel.background", "TextArea.foreground",
+                "Separator.separatorColor", "List.selectionBackground", "List.selectionForeground",
+                "TextArea.inactiveForeground", "Notifications.successForeground"};
+        Object[] previous = java.util.Arrays.stream(keys).map(UIManager::get).toArray();
+        try {
+            for (String key : keys) UIManager.put(key, new Color(20, 30, 40));
+            Color[] colors = {ThemeAwareColors.getBackgroundColor(), ThemeAwareColors.getHeaderColor(),
+                    ThemeAwareColors.getTextColor(), ThemeAwareColors.getBorderColor(),
+                    ThemeAwareColors.getSelectionColor(), ThemeAwareColors.getSelectionForegroundColor(),
+                    ThemeAwareColors.getDisabledTextColor(), ThemeAwareColors.getSuccessColor()};
+            JPanel panel = new JPanel();
+            panel.setBackground(colors[0]);
+            Color next = new Color(190, 200, 210);
+            for (String key : keys) UIManager.put(key, next);
+            for (Color color : colors) assertEquals(next.getRGB(), color.getRGB());
+            assertEquals(next.getRGB(), panel.getBackground().getRGB());
+        } finally {
+            for (int i = 0; i < keys.length; i++) UIManager.put(keys[i], previous[i]);
+        }
+    }
+
+    @Test
+    public void retainedAccentColorPicksUpNewOverrideAndFallback() {
+        Color color = ThemeAwareColors.getImportantBorderColor();
+        Color override = new Color(15, 25, 35);
+        UIManager.put("Component.borderColor", override);
+        assertEquals(override.getRGB(), color.getRGB());
+        UIManager.put("Component.borderColor", null);
+        assertFallback(color, new Color(241, 90, 35), new Color(255, 140, 70));
     }
 }
-

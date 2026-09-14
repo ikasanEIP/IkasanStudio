@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.migration;
 
+import com.intellij.ui.JBSplitter;
+
 import com.intellij.diff.DiffContentFactory;
 import com.intellij.diff.DiffManager;
 import com.intellij.diff.DiffRequestPanel;
@@ -90,8 +92,9 @@ final class MigrationPreviewDialog extends DialogWrapper {
                         change.before() == null ? StudioBundle.message("label.NewFile") : StudioBundle.message("label.Current"),
                         change.after() == null ? StudioBundle.message("label.DeleteFile") : StudioBundle.message("label.Proposed")));
             });
-            JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JBScrollPane(paths), diff.getComponent());
-            split.setDividerLocation(JBUI.scale(300));
+            JBSplitter split = new JBSplitter(false, 0.3f);
+            split.setFirstComponent(new JBScrollPane(paths));
+            split.setSecondComponent(diff.getComponent());
             tabs.addTab(StudioBundle.message("tab.FileChangesCount", changed.size()), split);
             paths.setSelectedIndex(0);
         }

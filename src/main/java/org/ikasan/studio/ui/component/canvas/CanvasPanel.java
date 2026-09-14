@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
+import com.intellij.ui.components.JBTextArea;
+
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationActivationListener;
@@ -143,7 +145,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
                 "Preview migration to another Ikasan version and save a recovery snapshot");
 
         // This may be redundant now we have Intellij Messaging
-        canvasTextArea = new JTextArea();
+        canvasTextArea = new JBTextArea();
         uiContext.setCanvasTextArea(canvasTextArea);
         canvasTextArea.setLineWrap(true);
         canvasTextArea.setWrapStyleWord(true);

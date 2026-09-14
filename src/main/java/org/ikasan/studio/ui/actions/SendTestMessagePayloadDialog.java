@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
+import com.intellij.util.ui.JBUI;
+
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -106,13 +108,13 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
 
     @Override
     protected @Nullable JComponent createCenterPanel() {
-        JPanel panel = new JPanel(new BorderLayout(0, 8));
+        JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
 
         // BorderLayout (not BoxLayout) - BoxLayout(Y_AXIS) aligns siblings relative to EACH OTHER's
         // alignmentX, so setting it on just the label wasn't enough while classPanel's own alignmentX stayed
         // at its default. BorderLayout always stretches its NORTH/CENTER children to the container's full
         // width, and JLabel's text is left-aligned by default, so this reliably sits flush left regardless.
-        JPanel topPanel = new JPanel(new BorderLayout(0, 4));
+        JPanel topPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         topPanel.add(createClassPanel(), BorderLayout.NORTH);
         updatePayloadLabel();
         topPanel.add(payloadLabel, BorderLayout.CENTER);
@@ -127,7 +129,7 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
         filePanel.add(loadFromFileButton);
         panel.add(filePanel, BorderLayout.SOUTH);
 
-        panel.setPreferredSize(new Dimension(560, 340));
+        panel.setPreferredSize(JBUI.size(560, 340));
         return panel;
     }
 
@@ -137,7 +139,7 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
      * width, and that wrapped row was being clipped rather than growing the dialog.
      */
     private JPanel createClassPanel() {
-        JPanel classPanel = new JPanel(new BorderLayout(4, 0));
+        JPanel classPanel = new JPanel(new BorderLayout(JBUI.scale(4), 0));
         payloadClassField.setEditable(false);
         // Fixed column width regardless of the actual class name's length - without this, a long fully-
         // qualified name (e.g. org.example.cat.dog.Animal) makes the field's preferred width (and so the
@@ -146,7 +148,7 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
         classPanel.add(new JBLabel(StudioBundle.message("label.PayloadClass")), BorderLayout.WEST);
         classPanel.add(payloadClassField, BorderLayout.CENTER);
 
-        JPanel classButtonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        JPanel classButtonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, JBUI.scale(4), 0));
         JButton chooseClassButton = new JButton(StudioBundle.message("button.ChooseClass"));
         chooseClassButton.addActionListener(e -> chooseClass());
         classButtonsPanel.add(chooseClassButton);
@@ -157,7 +159,7 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
         generateJsonButton.addActionListener(e -> generateSampleJson());
         classButtonsPanel.add(generateJsonButton);
         classPanel.add(classButtonsPanel, BorderLayout.EAST);
-        classPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
+        classPanel.setBorder(JBUI.Borders.emptyBottom(4));
         return classPanel;
     }
 

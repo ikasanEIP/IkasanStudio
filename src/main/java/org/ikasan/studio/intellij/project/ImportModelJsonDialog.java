@@ -1,5 +1,9 @@
 package org.ikasan.studio.intellij.project;
 
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.colors.EditorFontType;
+import com.intellij.util.ui.JBFont;
+
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
@@ -70,7 +74,7 @@ public class ImportModelJsonDialog extends DialogWrapper {
 
         jsonArea.setRows(16);
         jsonArea.setLineWrap(false);
-        jsonArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        jsonArea.setFont(JBFont.create(EditorColorsManager.getInstance().getGlobalScheme().getFont(EditorFontType.PLAIN), false));
         panel.add(new JBScrollPane(jsonArea), BorderLayout.CENTER);
 
         JPanel chooseRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));

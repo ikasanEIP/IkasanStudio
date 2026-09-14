@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.component.palette;
 
+import com.intellij.ui.JBSplitter;
+
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBList;
@@ -18,8 +20,6 @@ import org.ikasan.studio.ui.model.PaletteItem;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicSplitPaneDivider;
-import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -43,12 +43,11 @@ import static org.ikasan.studio.core.model.ikasan.instance.Module.DUMB_MODULE_VE
 @SuppressWarnings("rawtypes")
 public class PaletteTabPanel extends JBPanel {
     private static final Logger LOG = Logger.getInstance("#JPanel");
-    private static final int INITIAL_DIVIDER_LOCATION = 2000;  // Set to push description off the screen
     private final Project project;
     JBScrollPane paletteScrollPane;
     PaletteExportTransferHandler paletteExportTransferHandler;
     JBList<PaletteItem> paletteList;
-    final JSplitPane paletteSplitPane;
+    final JBSplitter paletteSplitPane;
     @SuppressWarnings("rawtypes")
     JBPanel paletteBodyPanel;
     HtmlScrollingDisplayPanel htmlScrollingDisplayPanel = new HtmlScrollingDisplayPanel(StudioBundle.message("dialog.Description"), null);
@@ -69,26 +68,13 @@ public class PaletteTabPanel extends JBPanel {
         htmlScrollingDisplayPanel.setBorder(null);
         paletteExportTransferHandler = new PaletteExportTransferHandler(project);
 
-        paletteSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        paletteSplitPane = new JBSplitter(true, 1.0f, 0.0f, 1.0f);
         paletteSplitPane.setBorder(JBUI.Borders.empty());
-        paletteSplitPane.setDividerSize(JBUI.scale(3));
-        paletteSplitPane.setUI(new BasicSplitPaneUI() {
-            @Override
-            public BasicSplitPaneDivider createDefaultDivider() {
-            return new BasicSplitPaneDivider(this) {
-                @Override
-                public void paint(Graphics g) {
-                    g.setColor(StudioUIUtils.getLineColor());
-                    g.fillRect(0, 0, getSize().width, getSize().height);
-                    // don't call super.paint() which would put in the bevel.
-                }
-            };
-            }
-        });
+        paletteSplitPane.setDividerWidth(JBUI.scale(3));
 
         setPaletteList();
 
-        paletteSplitPane.setRightComponent(htmlScrollingDisplayPanel);
+        paletteSplitPane.setSecondComponent(htmlScrollingDisplayPanel);
         paletteBodyPanel = new JBPanel();
         paletteBodyPanel.setBorder(null);
         paletteBodyPanel.setLayout(new BorderLayout());
@@ -124,7 +110,7 @@ public class PaletteTabPanel extends JBPanel {
         paletteList.addListSelectionListener(listSelectionEvent -> {
             if (paletteList.getSelectedValue() != null) {
                 PaletteItem paletteItem = paletteList.getSelectedValue();
-                paletteSplitPane.setDividerLocation(0.8);
+                paletteSplitPane.setProportion(0.8f);
                 htmlScrollingDisplayPanel.setText(paletteItem.getIkasanPaletteElementViewHandler().getHelpText());
             }
         });
@@ -137,8 +123,8 @@ public class PaletteTabPanel extends JBPanel {
                 handler.exportAsDrag(comp, me, TransferHandler.COPY);
             }
         });
-        paletteSplitPane.setLeftComponent(paletteScrollPane);
-        paletteSplitPane.setDividerLocation(INITIAL_DIVIDER_LOCATION);
+        paletteSplitPane.setFirstComponent(paletteScrollPane);
+        paletteSplitPane.setProportion(1.0f);
     }
 
     public int getPaletteScrollPanePreferredWidth() {

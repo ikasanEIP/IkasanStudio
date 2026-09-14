@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.ui.components.JBTextArea;
+
 import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
 
 import com.intellij.openapi.application.ModalityState;
@@ -871,7 +873,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 // helpText is a full paragraph (source/target line plus several sentences) that wraps to well
                 // more than 3 lines once the panel stretches this area to its actual width. The scrollbar below
                 // still covers anything longer than this.
-                JTextArea recipeHelp = new JTextArea(6, 20);
+                JTextArea recipeHelp = new JBTextArea(6, 20);
                 recipeHelp.setEditable(false);
                 recipeHelp.setLineWrap(true);
                 recipeHelp.setWrapStyleWord(true);
