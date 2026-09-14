@@ -472,7 +472,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         UiContext uiContext = project.getService(UiContext.class);
         ComponentPropertiesPanel currentProperties = uiContext.getPropertiesPanel();
         if (currentProperties != null
-                && !currentProperties.confirmSelectionChangeWithPendingEdits()) {
+                && !currentProperties.confirmSelectionChangeWithPendingEdits(basicElement)) {
             return;
         }
         setSelectedComponent(basicElement);

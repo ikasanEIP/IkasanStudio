@@ -25,6 +25,9 @@ import org.ikasan.studio.intellij.psi.StudioPsiUtils;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.actions.NavigateToCodeAction;
+import org.ikasan.studio.ui.actions.NavigateToPropertiesAction;
+import org.ikasan.studio.ui.actions.ComponentNavigationAvailability;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import javax.swing.*;
@@ -46,16 +49,16 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     enum PendingEditChoice { APPLY, DISCARD, CANCEL }
 
     /**
-     * Shared by both {@link #confirmSelectionChangeWithPendingEdits()} and
+     * Shared by both {@link #confirmSelectionChangeWithPendingEdits(BasicElement)} and
      * {@link #preparePendingChangesForLaunch()} so they agree on what each of UnsavedPropertyChangesDialog's
-     * three buttons means - JUMP_TO_PROPERTIES declines to apply or discard anything, exactly like the plain
-     * Cancel button it replaced, just with the added navigation side effect handled by the caller.
+     * choices mean - both navigation choices decline to apply or discard anything, exactly like the plain
+     * Cancel, with the navigation side effect handled by the caller.
      */
     static PendingEditChoice pendingEditChoice(UnsavedPropertyChangesDialog.Choice dialogChoice) {
         return switch (dialogChoice) {
             case APPLY -> PendingEditChoice.APPLY;
             case DISCARD -> PendingEditChoice.DISCARD;
-            case JUMP_TO_PROPERTIES -> PendingEditChoice.CANCEL;
+            case JUMP_TO_PROPERTIES, JUMP_TO_CODE, CANCEL -> PendingEditChoice.CANCEL;
         };
     }
     public static final Logger LOG = Logger.getInstance("ComponentPropertiesPanel");
@@ -264,20 +267,23 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * silently discards text still held by the old rows. The developer explicitly chooses to apply or discard
      * the edits, or cancels the selection change.
      *
+     * @param clickedComponent the clicked target, retained while the current component's property rows remain dirty
      * @return true when selection may change; false when validation failed or the user declined a required
      * generated-class overwrite confirmation.
      */
-    public boolean confirmSelectionChangeWithPendingEdits() {
+    public boolean confirmSelectionChangeWithPendingEdits(BasicElement clickedComponent) {
         if (!dataHasChangedAndOKToProcess()) {
             return true;
         }
         String[] componentAndProperties = describePendingEditsForDialog();
         UnsavedPropertyChangesDialog.Choice choice = showUnsavedPropertyChangesDialog(
                 StudioBundle.message("message.UnsavedPropertyChangesBeforeSelectionChange", componentAndProperties[0], componentAndProperties[1]),
-                componentAndProperties[0]);
+                componentAndProperties[0], clickedComponent);
         boolean mayChangeSelection = resolveSelectionChange(pendingEditChoice(choice));
-        if (choice == UnsavedPropertyChangesDialog.Choice.JUMP_TO_PROPERTIES) {
-            jumpToPropertiesForCurrentSelection();
+        if (choice == UnsavedPropertyChangesDialog.Choice.JUMP_TO_PROPERTIES && clickedComponent != null) {
+            new NavigateToPropertiesAction(project, clickedComponent).actionPerformed(null);
+        } else if (choice == UnsavedPropertyChangesDialog.Choice.JUMP_TO_CODE && clickedComponent != null) {
+            new NavigateToCodeAction(project, clickedComponent, true).actionPerformed(null);
         }
         return mayChangeSelection;
     }
@@ -320,8 +326,16 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     private UnsavedPropertyChangesDialog.Choice showUnsavedPropertyChangesDialog(String message, String componentName) {
+        return showUnsavedPropertyChangesDialog(message, componentName, null);
+    }
+
+    private UnsavedPropertyChangesDialog.Choice showUnsavedPropertyChangesDialog(
+            String message, String componentName, BasicElement clickedComponent) {
+        var navigation = ComponentNavigationAvailability.forComponent(project, clickedComponent);
         UnsavedPropertyChangesDialog dialog = new UnsavedPropertyChangesDialog(project,
-                StudioBundle.message("dialog.UnsavedPropertyChanges"), message, componentName, getChangedPropertyDetails());
+                StudioBundle.message("dialog.UnsavedPropertyChanges"), message, componentName, getChangedPropertyDetails(),
+                navigation.code() ? clickedComponent.getIdentity() : null,
+                navigation.properties() ? clickedComponent.getIdentity() : null);
         dialog.show();
         return dialog.getChoice();
     }
@@ -429,7 +443,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
     /**
      * Names the currently selected component and its changed properties, for the unsaved-changes dialogs shown
-     * before a selection change ({@link #confirmSelectionChangeWithPendingEdits()}) or a launch
+     * before a selection change ({@link #confirmSelectionChangeWithPendingEdits(BasicElement)}) or a launch
      * ({@link #preparePendingChangesForLaunch()}) - so the developer isn't left guessing which of possibly
      * several components on the canvas, and which of its properties, the dialog is actually about.
      * @return a two-element array: [0] the selected component's display name, [1] its changed property labels

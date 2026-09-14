@@ -15,36 +15,37 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 
 /**
- * The "Unsaved Property Changes" dialog shown before a selection change or a launch discards or applies
- * pending edits - see ComponentPropertiesPanel#confirmSelectionChangeWithPendingEdits /
- * #preparePendingChangesForLaunch. Beyond the one-line summary (already naming the component and its changed
- * property labels), a details section always lists each changed property's old and new value, so a developer
- * isn't left guessing what actually changed before choosing to Apply or Discard - or, for a change they don't
- * recognise making at all, seeing exactly what it was helps track down why it happened. The third button
- * (previously a plain "Cancel") is "Jump to Properties": it declines to apply or discard anything, exactly as
- * Cancel always did, but also opens/focuses the Studio editor and switches to the Properties tab so the
- * affected component's editor is immediately in view rather than wherever the developer happened to be
- * looking when the dialog appeared.
+ * Resolves pending edits before a selection change or launch. Navigation is offered only for destinations
+ * available on the clicked component's context menu. Navigation and Cancel preserve the original edits.
  */
 public class UnsavedPropertyChangesDialog extends DialogWrapper {
 
     public record PropertyChangeDetail(String label, String oldValueDisplay, String newValueDisplay) {}
 
-    public enum Choice { APPLY, DISCARD, JUMP_TO_PROPERTIES }
+    public enum Choice { APPLY, DISCARD, JUMP_TO_PROPERTIES, JUMP_TO_CODE, CANCEL }
 
     private final String message;
     private final String componentName;
     private final List<PropertyChangeDetail> changes;
+    private final String codeTargetName;
+    private final String propertiesTargetName;
     // Chosen by whichever button closes the dialog; a window-close (X) or Escape leaves this at its default,
     // matching Cancel's old behaviour of declining to apply or discard anything.
-    private Choice choice = Choice.JUMP_TO_PROPERTIES;
+    private Choice choice = Choice.CANCEL;
 
     public UnsavedPropertyChangesDialog(Project project, String title, String message, String componentName,
                                          List<PropertyChangeDetail> changes) {
+        this(project, title, message, componentName, changes, null, null);
+    }
+
+    public UnsavedPropertyChangesDialog(Project project, String title, String message, String componentName,
+                                         List<PropertyChangeDetail> changes, String codeTargetName, String propertiesTargetName) {
         super(project, false);
         this.message = message;
         this.componentName = componentName;
         this.changes = List.copyOf(changes);
+        this.codeTargetName = codeTargetName;
+        this.propertiesTargetName = propertiesTargetName;
         setTitle(title);
         init();
     }
@@ -111,13 +112,30 @@ public class UnsavedPropertyChangesDialog extends DialogWrapper {
                 close(NEXT_USER_EXIT_CODE);
             }
         };
-        Action jumpToProperties = new AbstractAction(StudioBundle.message("button.JumpToProperties")) {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                choice = Choice.JUMP_TO_PROPERTIES;
-                close(CANCEL_EXIT_CODE);
-            }
-        };
-        return new Action[]{apply, discard, jumpToProperties};
+        java.util.List<Action> actions = new java.util.ArrayList<>(List.of(apply, discard));
+        if (codeTargetName != null) {
+            Action jumpToCode = new AbstractAction(StudioBundle.message("button.JumpToCode")) {
+                @Override public void actionPerformed(ActionEvent e) {
+                    choice = Choice.JUMP_TO_CODE;
+                    close(CANCEL_EXIT_CODE);
+                }
+            };
+            jumpToCode.putValue(Action.SHORT_DESCRIPTION,
+                    StudioBundle.message("tooltip.JumpToCodeWithPendingEdits", codeTargetName));
+            actions.add(jumpToCode);
+        }
+        if (propertiesTargetName != null) {
+            Action jumpToProperties = new AbstractAction(StudioBundle.message("button.JumpToProperties")) {
+                @Override public void actionPerformed(ActionEvent e) {
+                    choice = Choice.JUMP_TO_PROPERTIES;
+                    close(CANCEL_EXIT_CODE);
+                }
+            };
+            jumpToProperties.putValue(Action.SHORT_DESCRIPTION,
+                    StudioBundle.message("tooltip.JumpToPropertiesWithPendingEdits", propertiesTargetName));
+            actions.add(jumpToProperties);
+        }
+        actions.add(getCancelAction());
+        return actions.toArray(Action[]::new);
     }
 }
