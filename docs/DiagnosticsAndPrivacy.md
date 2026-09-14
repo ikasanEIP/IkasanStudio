@@ -1,5 +1,24 @@
 # Logging, diagnostics and privacy
 
+## Network behaviour and local data
+
+Designing a flow, matching converter recipes and rendering templates use local model data and bundled metadata. Studio does not send these to an AI service. The generated AI catalogue is a local project artifact; any external AI tool you choose has its own data-handling rules.
+
+| Operation | Connection or data involved |
+| --- | --- |
+| Project creation, Maven import/build | Maven contacts repositories configured for the project/settings to resolve archetypes, plugins and dependencies. Cached dependencies can avoid downloads. |
+| Plugin installation/updates | IntelliJ manages downloads through its configured plugin repositories. A local ZIP installation does not itself publish the project. |
+| Start Test Mail Server | On first use, Studio downloads the platform MailHog v1.0.1 executable from `https://github.com/mailhog/MailHog/releases/download/v1.0.1/`, following download redirects. It caches it under IntelliJ's system directory at `ikasan-studio/mailhog`. The current downloader has no independent checksum/signature verification step. |
+| Mail/FTP harnesses | Local listening sockets accept test traffic. MailHog's web inbox/API bind to `127.0.0.1:8025`; SMTP uses the supported local configured address. FTP uses the configured local address and keeps test files under the IDE system directory. See [Harnesses](Harnesses.md). |
+| Running-module controls and tests | Studio uses local HTTP requests to the module's configured port/context path for flow controls, status and test injection. Injected messages can include your chosen text or file content. Runtime/status polling and optional mail-harness polling can generate background local traffic. |
+| Console and component web help | These actions open the browser at the local Blue Console or the component's configured documentation URL. External websites receive normal browser requests. |
+| Generated application | Runs separately and connects to the JMS, SMTP, FTP/SFTP, database or other services you configure. Test injection can trigger real downstream writes or sends. |
+| Diagnostics and error reporting | Diagnostics are saved locally. The IDE error dialog offers explicit report submission through JetBrains; details follow below. |
+
+Models, generated properties, developer code, model backups and migration snapshots may contain entered credentials or business configuration. Harness inboxes/files and application logs may contain payloads. These are not automatically encrypted or removed by the diagnostics redactor. Stopping a harness is not a secure-erasure operation. Review artifacts before sharing and use test data/endpoints for development.
+
+Offline use requires previously available plugin assets, dependencies and any mail harness binary. Proxy/firewall policies may affect Maven, browser help, plugin updates and the MailHog download independently. Not all networking is governed by Maven settings, and generated applications are not confined to local connections.
+
 ## Reporting unexpected plugin failures through JetBrains
 
 Ikasan Studio registers JetBrains' built-in `JetBrainsMarketplaceErrorReportSubmitter`. When IntelliJ attributes an unexpected error to Studio, developers can use the IDE error dialog to review and explicitly submit a report through JetBrains Marketplace. No custom upload server, automatic background reporting sink or telemetry has been added.

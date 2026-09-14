@@ -6,100 +6,29 @@ Ikasan Studio is a visual designer and integrated development environment for th
 
 When combined as a plugin to Intellij, it provides a fully functional, standalone IDE for designing and maintaining Ikasan modules.
 
-## Developer Quickstart
+## Start here
 
-Ikasan Studio is coming towards the end of its Beta testing phase and a formal first release is expected soon.
-The formal will be available from the Intellij plugin marketplace.
-In the meantime, the plugin can be installed manually into Intellij using the instructions below.
-The Plugin was developed using JDK17 to support the most common versions of intellij i.e. 2022.1 and above.
-If you encounter any issues, please raise them on the IkasanStudio github project or email me directly at david@davihilton.net
+The current release candidate requires IntelliJ IDEA 2024.2 or newer (build 242) and bundles Ikasan V3.3.9 and V4.1.6. See [Supported versions](docs/SupportedVersions.md) for tested IDE builds and the separate project JDK requirements.
 
-### Download the zip & jar
+Install the candidate ZIP through **Settings → Plugins → gear → Install Plugin from Disk**. Plugin developers can build it with `./gradlew buildPlugin`; the ZIP appears under `build/distributions/`. Follow the release's own download instructions when installing a published candidate.
 
-A prebuilt version of the plugin is available from https://github.com/ikasanEIP/IkasanStudio/blob/main/downloads/ikasanstudio-1.0.0.zip
+Start with [Your first module in five minutes](docs/GettingStarted.md): create a Maven archetype project, add a Scheduled Consumer and Logging Producer, run the module, then inspect its Blue Console.
 
-### Install the plugin
+| Guide | What it covers |
+| --- | --- |
+| [Supported versions](docs/SupportedVersions.md) | IntelliJ, Ikasan packs and project JDKs |
+| [Harnesses](docs/Harnesses.md) | Email, FTP, JMS readers, injection and real scans |
+| [Project files and recovery](docs/ProjectFilesAndRecovery.md) | Generated/user ownership, model backups and restoration |
+| [Troubleshooting](docs/Troubleshooting.md) | Ports, Maven, indexing, startup and debugging |
+| [Type guidance](docs/TypeGuidance.md) | Type warnings and converter suggestions |
+| [Privacy and network behaviour](docs/DiagnosticsAndPrivacy.md) | Local data, downloads, connections and reporting |
+| [Known limitations](docs/KnownLimitations.md) | Current boundaries and release checks |
+| [Version migration](docs/IkasanVersionMigration.md) | Preview, apply and restore between supported packs |
+| [Flow copy/paste](docs/FlowCopyPaste.md) | Reuse flows across projects |
 
-In Intellij, locate File/Settings, on the popup window local Plugins on the left nav to display the screen below, click the Cog Wheel to the right of 'Installed', on the popup menu, choose 'Install plugin from Disk'.
+Studio opens in IntelliJ's main editor area. Reopen it with the squid icon on the far-right stripe, **Tools → Open Ikasan Studio**, or Find Action. The **Console** control opens the module-local Blue Console, distinct from the central Ikasan Dashboard.
 
-<img src="docs/images/20240415-Intellij-AddPlugin.png" alt="Install Plugin from Disk" width="600">
-
-Choose the location that you have stored the IkasanStudio-1.0.0.zip file and accept (note, the plugin will be copied to an internal location within the Intellij installation).
-
-<img src="docs/images/20240416-PluginUpload2.png" alt="Install Plugin from Disk" width="600">
-
-Restart Intellij
-
-### Create a new project
-
-#### Using Intellij
-
-The recommended way to create new projects is via Intellij
-
-From the main menu, choose 'File'/'New'/'Project'
-
-From the Intellij new project wizard. Ensure you select 'Maven Archetype' on the **left nav**.
-
-On the **main body** of the form, set the _Catalog_ field to **Maven Central**, then in the _Archetype_ field, start to type **ikasan-studio** (all **lower case**), that should be enough for auto-complete to display the full plugin name.
-
-<img src="docs/images/IntellijNewProjectWizard.png" alt="Create new project wizard" width="600">
-
-In most cases, the ikasan-studio archetype will be available without any special setup, if it is not appearing in the _Archetype_ field, you may be subject to a company or local Maven refresh policy, to force a refresh of the archetypes cache, you may use the following maven command from within any Maven project (any directory that contains a pom.xml):
-
-`mvn archetype:update-local-catalog`
-
-Note: If you are experiancing issues creating a new project from Intellij, it is possible to create a new project manually, see Appendix A
-
-Once the project has been created, Ikasan Studio opens automatically as a tab in the main editor area. If you close it, click the Ikasan squid icon on the far-right IDE stripe to open it again with one click. You can also use **Tools → Open Ikasan Studio** or search for **Open Ikasan Studio** with IntelliJ's **Find Action** (`Ctrl+Shift+A`).
-
-### Creating a new Ikasan module
-
-Observe in the project window on the left, there are 2 submodules
-
-* generated - holds the studio auto generated code.
-* user - holds the stubs generated by studio that will be implemented by the user.
-
-Ikasan Studio is displayed in the main editor area alongside Java, XML, and properties files. The canvas occupies the centre of the tab, with Properties and Palette available within the designer. The squid icon on the far-right IDE stripe is a direct launcher that opens or focuses this editor tab.
-
-The Palette contains new components for you to use by dragging them onto the central canvas. First though, we need to choose the version of Ikasan and 'component set' to use.
-
-From the drop-down in the Canvas, choose meta-pack V3.3.x (**not VHS3.3.x**), then click the button to the **right** of the chooser
-
-You should see the **Module Properties** popup below, pre-populate with the project name and version you have chosen,
-feel free to update the properties as you wish (you may want to click 'true' for the field **useEmbeddedH2** to make your startups easier, or leave **flowStartupType** at its default of **AUTOMATIC** so that flows start when the module starts). Finish by clicking the **Update Code** button.
-
-<img src="docs/images/20241416-ModuleForm.png" alt="Install Plugin from Disk" width="300">
-
-You can now start to drag flows onto the canvas, and components onto the flows, the simplest flow involves an 'Event Generating Consumer' and a 'Logging Producer'
-
-#### Creating a Simple Flow
-
-First we need to add the flow, choose the flow element from the right palette and drag it onto the canvas, filling in the properties.
-
-<img src="docs/images/20250110-NewFlowOnCanvas.png" alt="Install Plugin from Disk" width="800">
-
-Now we can drag the 'Event Generating Consumer' onto the flow, again filling in the standard properties.
-
-<img src="docs/images/20250110AddEventGeneratingConsumer.PNG" alt="Install Plugin from Disk" width="600">
-
-Finally, we can drag on the 'Logging Consumer'
-
-<img src="docs/images/20250110LoggingProducer.PNG" alt="Install Plugin from Disk" width="700">
-
-This flow is complete. Click **Run module** in the designer to create, select, and run the standard IntelliJ Application configuration. The same configuration can then be run or debugged using IntelliJ's normal controls
-
-#### More advanced flows
-
-There are many components in the standard palette, you are encouraged to experiment and try out different properties and components.
-Please see the YouTube library for further documentation and help.
-
-* https://github.com/ikasanEIP
-* https://www.youtube.com/@Ikasan-nq3js
-
-<img src="docs/images/20240416-PopulatedCanvas.png" alt="Install Plugin from Disk" width="1200">
-
-* There are some performance issues due to the way Intellij is caching, they will be addressed soon.
-* At the moment, the effort is being put into the backend and 'engine' so the look and feel is clunky, that will be addressed soon.
+The following architecture and roadmap sections contain historical design context. Use the guides above for current user workflows and supported behaviour.
 
 ## High level design / motivations
 
@@ -226,88 +155,24 @@ Other
 * Jira ?
 * Public Forum for self-help (stack overflow sub-site)
 
-## Starting a new project
+## Manual archetype fallback
 
-### Using the maven archetype from Intellij
+In the Maven Archetype wizard, search for `org.ikasan.studio:ikasan-studio-project-archetype`. Choose the version supplied for your release. The source tree currently declares version `1.0.3`; this is not a statement that this version has been published to Maven Central.
 
-If this does not rectify the issue, you can manually install the archetype locally using the following procedures:
+Plugin contributors can install the checked-out archetype and its parent locally, from the repository root:
 
-### Installing the maven archetype
+```sh
+mvn -f ikasan-studio-ancillary/pom.xml -N install
+mvn -f ikasan-studio-ancillary/ikasan-studio-project-archetype/pom.xml install
+```
 
-The archetype zip can be generated by opening a window in IkasaStudio/ikasan-studio-archetype and issuing the maven command
+Then, from a separate directory where you want to create the example:
 
-`mvn clean package`
+```sh
+mvn archetype:generate -DarchetypeGroupId=org.ikasan.studio -DarchetypeArtifactId=ikasan-studio-project-archetype -DarchetypeVersion=1.0.3 -DgroupId=org.example -DartifactId=my-module -DinteractiveMode=false
+```
 
-This will create a jar file in the target folder with the name ikasan-studio-archetype-1.0.2-SNAPSHOT.jar
-
-This first needs to be uploaded into your local Maven archetype library (~/.m2/repository/archetype-catalog.xml) using the following maven command:
-
-**Unix**
-
-`mvn install:install-file -Dfile=./target/ikasan-studio-archetype-1.0-SNAPSHOT.jar -DgroupId=org.ikasan.studio -DartifactId=ikasan-studio  -Dversion=1.0-SNAPSHOT -Dpackaging=jar`
-
-**Windows (which needs each -D option surrounded by douple quotes)**
-
-`mvn install:install-file "-Dfile=.\target\ikasan-studio-archetype-1.0-SNAPSHOT.jar" "-DgroupId=org.ikasan.studio" "-DartifactId=ikasan-studio"  "-Dversion=1.0-SNAPSHOT" "-Dpackaging=jar"`
-(you may need to also perform mvn.cmd archetype:crawl if you can't find ~/.m2/repository/archetype-catalog.xml)
-
-### Using the maven archetype from Intellij
-
-If there are still issues using the archetype, it can also be used from the command line :
-
-**Unix**
-
-`mvn archetype:generate -DarchetypeGroupId=org.ikasan.studio -DarchetypeArtifactId=ikasan-studio -DarchetypeVersion=1.0-SNAPSHOT -DgroupId=org.me.test  -DartifactId=my-module`
-
-**Windows (which needs each -D option surrounded by douple quotes)**
-
-`mvn archetype:generate "-DarchetypeGroupId=org.ikasan.studio" "-DarchetypeArtifactId=ikasan-studio" "-DarchetypeVersion=1.0-SNAPSHOT" "-DgroupId=org.me.test" "-DartifactId=my-module"`
-
-(remember so swap org.me.test and my-module for the package and module name for **your project**)
-
-## Appendix A - Manually creating a new project
-
-It is not recommended to use the manual method. If you are having problems with the project creation wizard, it is possible to manually create a new project using the maven archtype jar,.
-
-1. Download and install the maven archetype from
-   https://mvnrepository.com/artifact/org.ikasan.studio/ikasan-studio-project-archetype.
-2. Use the standard maven process for installing the archetype locally e.g.
-
-**Unix**
-
-`mvn install:install-file -Dfile=./ikasan-studio-project-archetype-1.0.0.jar -DgroupId=org.ikasan.studio -DartifactId=studio-project  -Dversion=1.0.0 -Dpackaging=jar`
-
-**Windows (which needs each -D option surrounded by douple quotes)**
-
-`mvn install:install-file "-Dfile=.\ikasan-studio-project-archetype-1.0.0.jar" "-DgroupId=org.ikasan.studio" "-DartifactId=studio-project"  "-Dversion=1.0.0" "-Dpackaging=jar"`
-
-(you may need to also perform mvn.cmd archetype:crawl if you can't find ~/.m2/repository/archetype-catalog.xml)
-
-3. Now create the new project using the standard maven commands
-
-**Unix**
-
-`mvn archetype:generate -DarchetypeGroupId=org.ikasan.studio -DarchetypeArtifactId=studio-project -DarchetypeVersion=1.0.0 -DgroupId=org.me.test  -DartifactId=my-module`
-
-**Windows (which needs each -D option surrounded by douple quotes)**
-
-`mvn archetype:generate "-DarchetypeGroupId=org.ikasan.studio" "-DarchetypeArtifactId=studio-project" "-DarchetypeVersion=1.0.0" "-DgroupId=org.me.test" "-DartifactId=my-module"`
-
-(remember so swap org.me.test and my-module for the package and module name for **your project**)
-
-## Appendix B - Known issues
-
-### Does not build
-
-To get  project to build, the flows must be valid i.e. they must have at least a consumer and a producer.
-
-### Dependencies not satisfied
-
-When you first create a project, you may find red highlights and basic Spring dependencies are not satisfied. Use the (standard) Maven update for the project, it will re-pull the dependencies (the root casue is a threading issue inside Intellij, this will be fixed eventually)
-
-### Deleted components are not always removed
-
-Please work around this for now, it will be fixed shortly.
+On Windows shells that split Maven property arguments, quote each complete `-Dname=value` argument. Open the generated project's root `pom.xml` in IntelliJ and allow Maven import/indexing to finish. Continue with [module configuration](docs/GettingStarted.md#2-configure-the-module). See [Troubleshooting](docs/Troubleshooting.md) for repository access or SDK failures.
 
 ## Reporting problems
 
@@ -342,8 +207,6 @@ You don't have to make many mistakes to get blacklisted.
 * **1_0_x** is used for formal builds / deployment to Maven Central.
 
 ![Build](https://github.com/davidhilton68/ikasanstudio/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
 
 ## Template ToDo list
 
@@ -353,7 +216,7 @@ You don't have to make many mistakes to get blacklisted.
 - [ ]  Adjust the plugin description in `README` (see [Tips][docs:plugin-description])
 - [ ]  Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html?from=IJPluginTemplate).
 - [ ]  [Publish a plugin manually](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html?from=IJPluginTemplate) for the first time.
-- [ ]  Set the `MARKETPLACE_ID` in the above README badges. You can obtain it once the plugin is published to JetBrains Marketplace.
+- [ ] Add the verified Marketplace listing link after publication.
 - [ ]  Set the [Plugin Signing](https://plugins.jetbrains.com/docs/intellij/plugin-signing.html?from=IJPluginTemplate) related [secrets](https://github.com/JetBrains/intellij-platform-plugin-template#environment-variables).
 - [ ]  Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html?from=IJPluginTemplate).
 - [ ]  Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
@@ -376,20 +239,7 @@ Ikasan EIP is a mature and well maintained integration platform based on industr
 
 ## Installation
 
-- Using the IDE built-in plugin system:
-
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "ikasanstudio"</kbd> >
-  <kbd>Install</kbd>
-- Using JetBrains Marketplace:
-
-  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
-
-  You can also download the [latest release](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID/versions) from JetBrains Marketplace and install it manually using
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
-- Manually:
-
-  Download the [latest release](https://github.com/ikasanEIP/IkasanStudio/releases/latest) and install it manually using
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
+Use the ZIP installation instructions under [Start here](#start-here). Marketplace installation instructions and a direct listing link will be added when the listing is published and verified.
 
 ---
 
