@@ -14,9 +14,70 @@ import java.util.*;
 /** Detached clipboard data. Unlike saved transitions, the route tree also preserves unfinished flows. */
 public final class FlowClipboard {
     public static final String PREFIX = "Ikasan Studio flow/1\n";
+    public static final String SOURCE_PREFIX = "Ikasan Studio flow/2\n";
     private static final int MAX_LENGTH = 8 * 1024 * 1024;
 
     private FlowClipboard() { }
+
+    public record Sources(String packageName, Map<String, String> files) {
+        public Sources { files = Map.copyOf(files); }
+        public static Sources empty() { return new Sources("", Map.of()); }
+
+        public void validate() throws IOException {
+            if (!files.isEmpty() && (packageName == null || !javax.lang.model.SourceVersion.isName(packageName))) {
+                throw new IOException("Invalid source package");
+            }
+            for (String path : files.keySet()) {
+                if (!path.endsWith(".java") || path.startsWith("/") || path.contains("\\")) {
+                    throw new IOException("Invalid source path");
+                }
+                String[] parts = path.substring(0, path.length() - 5).split("/", -1);
+                for (int i = 0; i < parts.length; i++) {
+                    boolean packageInfo = i == parts.length - 1 && parts[i].equals("package-info");
+                    if ((!packageInfo && !javax.lang.model.SourceVersion.isName(parts[i])) || parts[i].contains(".")) {
+                        throw new IOException("Invalid source path");
+                    }
+                }
+            }
+        }
+    }
+
+    public record Transfer(Flow flow, Sources sources) { }
+
+    public static boolean isFlow(String text) {
+        return text != null && (text.startsWith(PREFIX) || text.startsWith(SOURCE_PREFIX));
+    }
+
+    public static String encode(Map<String, Object> snapshot, Sources sources) throws IOException {
+        sources.validate();
+        if (sources.files().isEmpty()) return encode(snapshot);
+        String result = SOURCE_PREFIX + StudioJson.newObjectMapper().writeValueAsString(
+                Map.of("flow", snapshot, "sources", sources));
+        if (result.length() > MAX_LENGTH) throw new IOException("Flow exceeds clipboard size limit");
+        return result;
+    }
+
+    public static Transfer decodeTransfer(String text, String version) throws IOException, StudioBuildException {
+        if (text != null && text.startsWith(PREFIX)) return new Transfer(decode(text, version), Sources.empty());
+        if (text == null || !text.startsWith(SOURCE_PREFIX) || text.length() > MAX_LENGTH) {
+            throw new IOException("Invalid flow clipboard data");
+        }
+        ObjectMapper mapper = StudioJson.newObjectMapper();
+        JsonNode root = mapper.readTree(text.substring(SOURCE_PREFIX.length()));
+        if (root == null) throw new IOException("Missing flow clipboard data");
+        requireObject(root.path("flow"));
+        JsonNode source = root.path("sources");
+        requireObject(source.path("files"));
+        if (!source.path("packageName").isTextual()) throw new IOException("Missing source package");
+        Map<String, String> files = new LinkedHashMap<>();
+        for (var field : source.get("files").properties()) {
+            if (!field.getValue().isTextual()) throw new IOException("Invalid source text");
+            files.put(field.getKey(), field.getValue().textValue());
+        }
+        Sources sources = new Sources(source.get("packageName").textValue(), files);
+        sources.validate();
+        return new Transfer(decode(PREFIX + mapper.writeValueAsString(root.get("flow")), version), sources);
+    }
 
     /** Capture on the model-owning thread; contains no model references, metadata lookups or JSON parsing. */
     public static Map<String, Object> capture(Flow flow, String version) {

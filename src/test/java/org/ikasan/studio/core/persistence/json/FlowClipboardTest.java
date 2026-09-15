@@ -114,6 +114,34 @@ class FlowClipboardTest {
         }
     }
 
+    @Test void transfersSourcesWithoutChangingLegacyClipboardSupport() throws Exception {
+        Flow flow = TestFixtures.getEventGeneratingConsumerRouterFlow(BASE_META_PACK);
+        var snapshot = FlowClipboard.capture(flow, BASE_META_PACK);
+        var sources = new FlowClipboard.Sources("example.flow", java.util.Map.of(
+                "Custom.java", "package example.flow; class Custom {}",
+                "helpers/Helper.java", "package example.flow.helpers; class Helper {}"));
+        String text = FlowClipboard.encode(snapshot, sources);
+        assertTrue(FlowClipboard.isFlow(text));
+        var restored = FlowClipboard.decodeTransfer(text, BASE_META_PACK);
+        assertEquals(sources, restored.sources());
+        assertEquals(snapshot, FlowClipboard.capture(restored.flow(), BASE_META_PACK));
+        assertThrows(FlowClipboard.VersionMismatch.class, () -> FlowClipboard.decodeTransfer(text, "V4.1.6"));
+        assertTrue(FlowClipboard.decodeTransfer(FlowClipboard.encode(snapshot), BASE_META_PACK).sources().files().isEmpty());
+        assertThrows(IOException.class, () -> FlowClipboard.decode(text, BASE_META_PACK));
+    }
+
+    @Test void rejectsUnsafeSourcePathsAndOversizedPayloads() throws Exception {
+        var snapshot = FlowClipboard.capture(TestFixtures.getEventGeneratingConsumerRouterFlow(BASE_META_PACK), BASE_META_PACK);
+        for (String path : List.of("../Outside.java", "/Outside.java", "nested/../../Outside.java", "nested//Outside.java", "pom.xml")) {
+            var sources = new FlowClipboard.Sources("example.flow", java.util.Map.of(path, "text"));
+            assertThrows(IOException.class, () -> FlowClipboard.encode(snapshot, sources), path);
+        }
+        String hostile = FlowClipboard.SOURCE_PREFIX + "{\"flow\":{},\"sources\":{\"packageName\":\"example.flow\",\"files\":{\"../Outside.java\":\"text\"}}}";
+        assertThrows(IOException.class, () -> FlowClipboard.decodeTransfer(hostile, BASE_META_PACK));
+        var oversized = new FlowClipboard.Sources("example.flow", java.util.Map.of("Large.java", "x".repeat(8 * 1024 * 1024)));
+        assertThrows(IOException.class, () -> FlowClipboard.encode(snapshot, oversized));
+    }
+
     private void assertParents(Flow flow, FlowRoute route) {
         assertSame(flow, route.getFlow());
         for (var element : route.getFlowElements()) {

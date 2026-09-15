@@ -90,4 +90,36 @@ class FlowClipboardActionsTest {
             commands.verifyNoInteractions();
         }
     }
+    @Test void sourceConflictAbortsBeforeChangingTheModelOrStartingGeneration() throws Exception {
+        Project project = mock(Project.class);
+        UiContext context = mock(UiContext.class);
+        DesignerCanvas canvas = mock(DesignerCanvas.class);
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, new ArrayList<>());
+        Flow pasted = new Flow(TestFixtures.BASE_META_PACK);
+        pasted.setName("Copied");
+        when(project.getService(UiContext.class)).thenReturn(context);
+        when(context.tryBeginMigration()).thenReturn(true);
+        var sources = new org.ikasan.studio.core.persistence.json.FlowClipboard.Sources("dest.copied",
+                java.util.Map.of("Custom.java", "package dest.copied; class Custom {}"));
+        try (var commands = mockStatic(CommandProcessor.class);
+             var files = mockStatic(StudioProjectFiles.class);
+             var sourceFiles = mockStatic(org.ikasan.studio.intellij.project.FlowSourceTransfer.class);
+             var notifications = mockStatic(StudioUIUtils.class);
+             var undos = mockStatic(UndoManager.class)) {
+            CommandProcessor command = mock(CommandProcessor.class);
+            commands.when(CommandProcessor::getInstance).thenReturn(command);
+            doAnswer(call -> { call.getArgument(1, Runnable.class).run(); return null; })
+                    .when(command).executeCommand(eq(project), any(Runnable.class), anyString(), isNull());
+            sourceFiles.when(() -> org.ikasan.studio.intellij.project.FlowSourceTransfer.install(project, sources))
+                    .thenThrow(new org.ikasan.studio.intellij.project.FlowSourceTransfer.DestinationExists("dest.copied"));
+            new FlowClipboardActions(project, canvas).completeInsertion(module, pasted, sources);
+            assertTrue(module.getFlows().isEmpty());
+            files.verifyNoInteractions();
+            undos.verifyNoInteractions();
+            verify(context).endMigration();
+            notifications.verify(() -> StudioUIUtils.displayIdeaWarnMessage(project,
+                    StudioBundle.message("message.FlowClipboardSourceConflict", "dest.copied")));
+        }
+    }
+
 }
