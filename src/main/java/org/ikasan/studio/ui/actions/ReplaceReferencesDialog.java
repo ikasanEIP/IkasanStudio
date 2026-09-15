@@ -9,6 +9,7 @@ import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.analysis.ModelReferenceReplacement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.intellij.psi.StudioPsiUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -61,11 +62,11 @@ final class ReplaceReferencesDialog extends DialogWrapper {
         JBLabel findLabel = new JBLabel(StudioBundle.message("replaceReferences.Find"));
         findLabel.setLabelFor(find);
         fields.add(findLabel);
-        fields.add(find);
+        fields.add(withClassChooser(find));
         JBLabel replaceLabel = new JBLabel(StudioBundle.message("replaceReferences.ReplaceWith"));
         replaceLabel.setLabelFor(replacement);
         fields.add(replaceLabel);
-        fields.add(replacement);
+        fields.add(withClassChooser(replacement));
         JButton preview = new JButton(StudioBundle.message("replaceReferences.Preview"));
         preview.addActionListener(event -> preview());
         fields.add(preview);
@@ -88,6 +89,18 @@ final class ReplaceReferencesDialog extends DialogWrapper {
         scroll.setPreferredSize(JBUI.size(900, 300));
         panel.add(scroll, BorderLayout.CENTER);
         return panel;
+    }
+
+    private JComponent withClassChooser(JBTextField field) {
+        JPanel input = new JPanel(new BorderLayout(JBUI.scale(8), 0));
+        input.add(field, BorderLayout.CENTER);
+        JButton chooseClass = new JButton(StudioBundle.message("button.ChooseClass"));
+        chooseClass.addActionListener(event -> {
+            String selected = StudioPsiUtils.chooseClassQualifiedName(project, StudioBundle.message("dialog.ChooseClass"));
+            if (selected != null) field.setText(selected);
+        });
+        input.add(chooseClass, BorderLayout.EAST);
+        return input;
     }
 
     private void preview() {
