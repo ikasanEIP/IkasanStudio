@@ -18,6 +18,14 @@ Older design-only clipboard data is still accepted. A clipboard containing Java 
 
 Different Ikasan versions are currently rejected. Studio also rejects clipboard data if the destination cannot preserve its contents. Configure matching versions before copying; this feature does not migrate flows.
 
+## Updating shared domain references
+
+After moving a shared class with IntelliJ refactoring, use **Tools → Replace References…**, or right-click the Studio module background and choose **Replace References…**. For example, find `org.example.cat.domain` and replace it with `org.example.debug.domain`.
+
+Choose **Preview replacements** to see each affected flow, component, property and before/after value. Clear any rows you do not want to change, then choose **Apply**. This can update both class properties and JMS trusted-package lists. Matching is literal and case-sensitive, respects Java name boundaries, and includes subpackages; `org.example.cat.domainExtra` will not match `org.example.cat.domain`.
+
+Studio updates the live model, saves `model.json` and regenerates the affected code. There is no reload step. IntelliJ Undo/Redo reverses or restores the selected property changes; finish pending property edits and generation first. User Java files, module application packages and flow/component names are outside this operation. Move Java classes and update their code references with IntelliJ refactoring separately.
+
 ## Manual verification
 
 - Open two configured projects with the same version. Copy a flow with a consumer, router branches, decorators and exception rules; paste into the other project. Check the design and generated files.

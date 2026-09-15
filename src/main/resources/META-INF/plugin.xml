@@ -47,6 +47,9 @@
         <action id="IkasanStudio.CollectDiagnostics" class="org.ikasan.studio.intellij.diagnostics.CollectStudioDiagnosticsAction">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
+        <action id="IkasanStudio.ReplaceReferences" class="org.ikasan.studio.ui.actions.ReplaceReferencesAction">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
         <action id="IkasanStudio.MigrateVersion" class="org.ikasan.studio.intellij.migration.MigrateIkasanVersionAction">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>

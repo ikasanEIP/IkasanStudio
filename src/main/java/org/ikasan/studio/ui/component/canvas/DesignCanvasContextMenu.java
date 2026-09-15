@@ -137,6 +137,10 @@ public class DesignCanvasContextMenu {
             migrate.addActionListener(event -> MigrationController.open(project, false));
             menu.add(migrate);
             menu.addSeparator();
+            JMenuItem replaceReferences = new JMenuItem(StudioBundle.message("action.IkasanStudio.ReplaceReferences.text"));
+            replaceReferences.setEnabled(module.isInitialised());
+            replaceReferences.addActionListener(event -> org.ikasan.studio.ui.actions.ReplaceReferencesAction.open(project));
+            menu.add(replaceReferences);
             JMenuItem importModel = new JMenuItem(StudioBundle.message("button.ImportModelJson"));
             importModel.setToolTipText(StudioBundle.message("tooltip.ImportModelJson"));
             importModel.addActionListener(event ->
