@@ -25,7 +25,11 @@ final class NavigationTextReader {
         // the whole session; StudioProjectInitialisationService is this plugin's own project-scoped Disposable
         // with the same effective lifetime (created for the project, disposed when it closes) - see
         // GeneratedProjectSynchronizer's own identical comment on the same tradeoff.
-        ReadAction.nonBlocking(() -> readSnapshot(resolve.get()))
+        readComputed(project, () -> readSnapshot(resolve.get()), apply);
+    }
+
+    static <T> void readComputed(Project project, java.util.function.Supplier<T> resolve, Consumer<T> apply) {
+        ReadAction.nonBlocking(resolve::get)
                 .expireWith(project.getService(StudioProjectInitialisationService.class))
                 .finishOnUiThread(ModalityState.defaultModalityState(), snapshot -> {
                     if (!project.isDisposed() && snapshot != null) apply.accept(snapshot);

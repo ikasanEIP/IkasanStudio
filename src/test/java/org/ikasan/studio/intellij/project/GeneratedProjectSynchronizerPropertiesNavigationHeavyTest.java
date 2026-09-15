@@ -103,6 +103,47 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
         }
     }
 
+    public void testFirstGenerationAfterRenameReplacesCachedFlowTargets() throws Exception {
+        String pack = TestFixtures.BASE_META_PACK;
+        FlowElement consumer = TestFixtures.getEventGeneratingConsumer(pack);
+        Flow flow = TestFixtures.getUnbuiltFlow(pack).name("Flow 1").consumer(consumer).build();
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
+        UiContext context = myProject.getService(UiContext.class);
+        context.setIkasanModule(module);
+        context.setViewHandlerFactory(new ViewHandlerCache(myProject));
+        String root = org.ikasan.studio.core.generator.Generator.STUDIO_FLOW_PACKAGE;
+        StudioProjectFiles.createJavaSourceFile(myProject, StudioProjectFiles.GENERATED_CONTENT_ROOT,
+                StudioProjectFiles.SRC_MAIN_JAVA_CODE, root + ".flow1", "Flow1",
+                "package " + root + ".flow1; public class Flow1 {}", null);
+        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base);
+        var oldFile = base.findFileByRelativePath("generated/src/main/java/" + root.replace('.', '/') + "/flow1/Flow1.java");
+        assertNotNull(oldFile);
+        var oldTarget = org.ikasan.studio.intellij.navigation.NavigationTarget.forFile(
+                com.intellij.psi.PsiManager.getInstance(myProject).findFile(oldFile));
+        ViewHandlerCache.getFlowViewHandler(myProject, flow).setCodeNavigationTarget(oldTarget);
+        ViewHandlerCache.getFlowComponentViewHandler(myProject, consumer).setCodeNavigationTarget(oldTarget);
+        flow.setName("Transform The Order");
+        var synchronizer = new GeneratedProjectSynchronizer(myProject);
+        var generate = GeneratedProjectSynchronizer.class.getDeclaredMethod("generateAndSaveJavaCodeIkasanFlow",
+                com.intellij.openapi.project.Project.class, Module.class, String.class, Flow.class);
+        generate.setAccessible(true);
+        GenerationTransactionManager.begin();
+        try {
+            generate.invoke(synchronizer, myProject, module, root + ".transformtheorder", flow);
+            GenerationTransactionManager.commit(myProject);
+        } finally {
+            GenerationTransactionManager.abort();
+        }
+        StudioProjectFiles.deleteFile(myProject, oldFile);
+        com.intellij.openapi.application.impl.NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
+        var target = ViewHandlerCache.getFlowComponentViewHandler(myProject, consumer).getCodeNavigationTarget();
+        assertTrue(target.isPresent());
+        assertTrue(target.psiFile().isValid());
+        assertEquals("TransformTheOrder.java", target.psiFile().getName());
+        assertTrue(target.elementToNavigateTo().isValid());
+    }
+
     private FlowElement router(String pack, Flow flow,
                                org.ikasan.studio.core.model.ikasan.instance.FlowRoute route,
                                String type, String name) throws Exception {

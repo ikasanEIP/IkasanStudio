@@ -407,17 +407,7 @@ public class GeneratedProjectSynchronizer {
         generateAndSaveJavaCodeIkasanComponentFactory(project, module, flowPackageName, ikasanFlow);
         generateAndSaveJavaCodeIkasanFlow(project, module, flowPackageName, ikasanFlow);
         generateAndSaveUserImplementClassStubsForFlow(project, module, ikasanFlow);
-        // generateAndSaveJavaCodeIkasanFlow (above) unconditionally points every component's "jump to code"
-        // target at the Flow.java file via setFlowComponentNavigationTargets - correct as a default, but wrong
-        // for a FlowUserImplementedElement (Broker, Converter, etc.) whose stub, once generated, is normally
-        // NOT regenerated on every save (see isOverwriteEnabled() in generateAndSaveUserImplementClassStubsForFlow
-        // above), so nothing re-points the target back at its own class file after this first clobber. Re-running
-        // this after every save (not just on project load, where it was previously the only caller) keeps "jump
-        // to code" pointing at the user's own class regardless of whether its stub was actually rewritten.
-        VirtualFile projectBaseDir = StudioProjectFiles.getProjectBaseDir(project);
-        if (projectBaseDir != null) {
-            setUserImplementedClassNavigationTargets(module, ikasanFlow, projectBaseDir);
-        }
+
     }
 
     private void generateAndSaveUserImplementClassStubsForFlow(Project project, Module module, Flow ikasanFlow) {
@@ -549,7 +539,16 @@ public class GeneratedProjectSynchronizer {
                     flowTemplateString,
                     flowViewHandler);
         }
-        setFlowComponentNavigationTargets(ikasanFlow, flowViewHandler.getCodeNavigationTarget().psiFile());
+        // The write above can be staged and the view handler itself is updated asynchronously.
+        // Resolve the committed file by its new path instead of capturing the previous flow's PSI.
+        String path = StudioProjectFiles.GENERATED_CONTENT_ROOT.substring(1) + "/"
+                + StudioProjectFiles.SRC_MAIN_JAVA_CODE + "/" + flowPackageName.replace('.', '/')
+                + "/" + ikasanFlow.getJavaClassName() + ".java";
+        setFlowComponentNavigationTargets(ikasanFlow, () -> {
+            VirtualFile base = StudioProjectFiles.getProjectBaseDir(project);
+            VirtualFile file = base == null ? null : base.findFileByRelativePath(path);
+            return file == null || !file.isValid() ? null : PsiManager.getInstance(project).findFile(file);
+        });
     }
 
     /** Resolve document/PSI on a pooled read action; loading either can refresh the workspace index. */
@@ -576,36 +575,67 @@ public class GeneratedProjectSynchronizer {
      * Default "jump to code" target for a flow component: the component's reference within the containing flow's
      * generated Java file (e.g. the {@code "My Consumer"} literal in {@code .consumer("My Consumer", ...)}), located
      * by text offset so navigation lands on the component's own line rather than just the top of the flow class.
-     * Components that generate their own user-editable class (see {@link #setUserImplementedClassNavigationTargets})
+     * Components that generate their own user-editable class (when their implementation exists)
      * have this superseded by a more specific target.
      */
     private void setFlowComponentNavigationTargets(Flow ikasanFlow, PsiFile flowPsiFile) {
         if (flowPsiFile == null) {
             return;
         }
-        withNavigationText(flowPsiFile, snapshot -> {
-            String flowFileText = snapshot.text();
+        setFlowComponentNavigationTargets(ikasanFlow, () -> flowPsiFile);
+    }
+
+    private record ComponentCodeTarget(FlowElement component, NavigationTarget target) {}
+
+    private void setFlowComponentNavigationTargets(Flow ikasanFlow, java.util.function.Supplier<PsiFile> resolve) {
+        UiContext context = project.getService(UiContext.class);
+        var owner = context.getViewHandlerFactory();
+        var module = context.getIkasanModule();
+        var generation = context.getLatestGeneration();
+        if (owner == null) return;
+        Runnable read = () -> NavigationTextReader.readComputed(project, () -> {
+            var flowSnapshot = NavigationTextReader.readSnapshot(resolve.get());
+            if (flowSnapshot == null) return null;
+            java.util.List<ComponentCodeTarget> targets = new java.util.ArrayList<>();
+            VirtualFile base = StudioProjectFiles.getProjectBaseDir(project);
             int searchFromOffset = 0;
-            for (FlowElement flowElement : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
-                IkasanFlowComponentViewHandler flowComponentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, flowElement);
-                if (flowComponentViewHandler != null) {
-                    // A user-class target assigned while this read was pending is more specific.
-                    if (flowElement instanceof FlowUserImplementedElement
-                            && flowComponentViewHandler.getCodeNavigationTarget().isPresent()
-                            && flowComponentViewHandler.getCodeNavigationTarget().psiFile() != flowPsiFile) continue;
-                    NavigationTarget target = snapshot.target();
-                    String componentName = flowElement.getComponentName();
-                    if (componentName != null) {
-                        int offset = flowFileText.indexOf("\"" + componentName + "\"", searchFromOffset);
-                        if (offset >= 0) {
-                            target = target.withOffset(offset);
-                            searchFromOffset = offset + componentName.length();
-                        }
+            for (FlowElement component : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
+                NavigationTarget target = flowSnapshot.target();
+                String name = component.getComponentName();
+                if (name != null) {
+                    int offset = flowSnapshot.text().indexOf("\"" + name + "\"", searchFromOffset);
+                    if (offset >= 0) {
+                        target = target.withOffset(offset);
+                        searchFromOffset = offset + name.length();
                     }
-                    flowComponentViewHandler.setCodeNavigationTarget(target);
                 }
+                if (base != null && component instanceof FlowUserImplementedElement) {
+                    Object className = component.getPropertyValue(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME);
+                    if (className instanceof String nameOfClass) {
+                        String path = StudioProjectFiles.USER_CONTENT_ROOT.substring(1) + "/"
+                                + StudioProjectFiles.SRC_MAIN_JAVA_CODE + "/"
+                                + GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow).replace('.', '/')
+                                + "/" + nameOfClass + ".java";
+                        VirtualFile file = base.findFileByRelativePath(path);
+                        var implementation = file == null || !file.isValid() ? null
+                                : NavigationTextReader.readSnapshot(PsiManager.getInstance(project).findFile(file));
+                        if (implementation != null) target = implementation.target();
+                    }
+                }
+                targets.add(new ComponentCodeTarget(component, target));
+            }
+            return targets;
+        }, targets -> {
+            if (targets == null || context.getViewHandlerFactory() != owner || context.getIkasanModule() != module
+                    || context.getLatestGeneration() != generation) return;
+            for (ComponentCodeTarget entry : targets) {
+                var handler = ViewHandlerCache.getFlowComponentViewHandler(project, entry.component());
+                if (handler != null) handler.setCodeNavigationTarget(entry.target());
             }
         });
+        // Resolve every default and implementation target in one read, then publish them together.
+        if (GenerationTransactionManager.isActive()) StudioProjectFiles.afterGenerationCommit(read);
+        else read.run();
     }
 
     /**
@@ -678,44 +708,6 @@ public class GeneratedProjectSynchronizer {
     }
 
     /**
-     * Components such as Debug or Converter generate their own user-editable class under the project's
-     * {@code user/src/main/java} tree (see {@link #generateAndSaveUserImplementClassStubsForFlow}). "Jump to code"
-     * for these should navigate to that class rather than to the flow file. The class name is a persisted property
-     * ({@link ComponentPropertyMeta#USER_IMPLEMENTED_CLASS_NAME}) so, unlike the flow-file offset above, this target
-     * can be reconstructed on project reload without needing to regenerate anything or store extra state.
-     */
-    private void setUserImplementedClassNavigationTargets(Module module, Flow ikasanFlow, VirtualFile projectBaseDir) {
-        if (ikasanFlow.getFlowRoute() == null) {
-            return;
-        }
-        // Router branches can contain further routers and other user-implemented components.
-        // Use the same recursive traversal as generation and default flow-code navigation.
-        for (FlowElement component : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
-            if (!(component instanceof FlowUserImplementedElement)) {
-                continue;
-            }
-            IkasanFlowComponentViewHandler componentViewHandler = ViewHandlerCache.getFlowComponentViewHandler(project, component);
-            if (componentViewHandler == null) {
-                continue;
-            }
-            ComponentProperty classNameProperty = component.getProperty(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME);
-            String className = classNameProperty != null ? (String) classNameProperty.getValue() : null;
-            if (className == null) {
-                continue;
-            }
-            String packageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
-            String relPath = StudioProjectFiles.USER_CONTENT_ROOT.substring(1) + "/" +
-                    StudioProjectFiles.SRC_MAIN_JAVA_CODE + "/" +
-                    packageName.replace(".", "/") + "/" +
-                    className + ".java";
-            withNavigationText(() -> {
-                VirtualFile vFile = projectBaseDir.findFileByRelativePath(relPath);
-                return vFile == null || !vFile.isValid() ? null : PsiManager.getInstance(project).findFile(vFile);
-            }, snapshot -> componentViewHandler.setCodeNavigationTarget(snapshot.target()));
-        }
-    }
-
-    /**
      * On project load there is no need to regenerate all source code, but the PSI file handles that enable
      * "jump to code" navigation must still be resolved. This method looks up the already-generated flow
      * Java files on disk and sets them on every flow and flow-component view handler, replicating what
@@ -756,7 +748,6 @@ public class GeneratedProjectSynchronizer {
                     flowViewHandler.setCodeNavigationTarget(NavigationTarget.forFile(flowPsiFile));
                 }
                 setFlowComponentNavigationTargets(ikasanFlow, flowPsiFile);
-                setUserImplementedClassNavigationTargets(module, ikasanFlow, projectBaseDir);
             });
         }
     }

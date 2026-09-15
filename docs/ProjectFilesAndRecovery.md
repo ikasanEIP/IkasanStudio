@@ -12,6 +12,33 @@ Use **Jump to Code** to locate the actual implementation before editing. Propert
 
 Commit the model and your implementations together. Do not delete the whole `generated/` directory as a build-cleaning shortcut. Maven `target/` directories are separate build output.
 
+## Renaming a flow
+
+Change the flow name in Properties and choose **Update Code**. If its Java package
+changes, **Rename and refactor** shows the old/new package and affected files.
+Studio uses IntelliJ package refactoring to retain implementations, helper classes
+and subpackages, update Java references, and update its default Spring bean names
+and matching `@Resource`/`@Qualifier` references. Custom bean names are preserved.
+The model is saved before generated code and navigation are refreshed. Class names
+are retained; renaming a flow does not require renaming each implementation class.
+
+Wait for Maven import, indexing and any active generation to finish. An existing
+destination package blocks the rename rather than merging or deleting files.
+Packages shared outside the project's `user/` and `generated/` source trees, or
+containing explicitly supplied external implementations, require manual refactoring.
+Review references in external configuration or arbitrary string literals yourself;
+these are not globally replaced.
+
+Cancel leaves the name and files unchanged. A refactoring failure attempts to restore
+the affected sources and references. If generation fails after a successful rename,
+the new model name and moved implementations are retained: fix the reported problem
+and run **Update Code** again. Do not delete the moved implementations or regenerate
+them as empty stubs. Commit the model and source changes together.
+
+To reverse the operation, rename the flow back through Properties. Whole-operation
+IntelliJ Undo is not supported: the protected model save and asynchronous generation
+are not a single undo transaction, so Studio blocks partial Undo of the refactor.
+
 ## Automatic model backups
 
 Before replacing an existing valid model, Studio retains its previous contents beside it as `model.json.bak.1`, rotating up to `.bak.3`. `.bak.1` is the most recent saved predecessor. These are a short history of saves, not three days of history or a backup of the whole project.

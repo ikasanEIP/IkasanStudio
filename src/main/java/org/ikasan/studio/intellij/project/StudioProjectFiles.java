@@ -730,10 +730,17 @@ public class StudioProjectFiles {
      */
     private static void setCodeNavigationTargetAsync(AbstractViewHandlerIntellij componentViewHandler, PsiFile psiFile) {
         Project project = psiFile.getProject();
+        UiContext context = project.getService(UiContext.class);
+        var generation = context.getLatestGeneration();
+        var owner = context.getViewHandlerFactory();
         ReadAction.nonBlocking(() -> psiFile.isValid() ? NavigationTarget.forFile(psiFile) : NavigationTarget.none())
                 .inSmartMode(project)
                 .expireWith(project.getService(StudioProjectInitialisationService.class))
-                .finishOnUiThread(ModalityState.nonModal(), componentViewHandler::setCodeNavigationTarget)
+                .finishOnUiThread(ModalityState.nonModal(), target -> {
+                    if (context.getLatestGeneration() == generation && context.getViewHandlerFactory() == owner) {
+                        componentViewHandler.setCodeNavigationTarget(target);
+                    }
+                })
                 .submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
     }
 

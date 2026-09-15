@@ -471,17 +471,35 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     private record AffectedUserImplementedClass(Flow flow, String className, RegenerateUserClassDialog.AffectedClass description, UserClassReference userClassReference) {}
 
-    /** Explain the manual migration before committing a flow rename that changes its Java package. */
+    /** Refactor existing implementations before committing the name or generating any new stubs. */
     private boolean confirmFlowPackageChange() {
         if (!(getSelectedComponent() instanceof Flow flow)) return true;
         ComponentPropertyEditRow row = componentPropertyEditBoxMap.get(ComponentPropertyMeta.NAME);
         if (row == null || !row.propertyValueHasChanged() || !(row.getValue() instanceof String name)) return true;
-        Module module = project.getService(UiContext.class).getIkasanModule();
+        UiContext context = project.getService(UiContext.class);
+        Module module = context.getIkasanModule();
         String oldPackage = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
         String newPackage = module.getApplicationPackageName() + "."
                 + org.ikasan.studio.core.StudioBuildUtils.toJavaPackageName(name);
-        return oldPackage.equals(newPackage)
-                || new FlowPackageChangeDialog(project, oldPackage, newPackage).showAndGet();
+        if (!context.tryBeginMigration()) {
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.FlowRenameBusy"));
+            return false;
+        }
+        try {
+            var plan = org.ikasan.studio.intellij.psi.FlowPackageRefactoring.prepare(project, module, flow, name);
+            if (plan == null) return false;
+            if (!oldPackage.equals(newPackage)
+                    && !new FlowPackageChangeDialog(project, oldPackage, newPackage, plan.files()).showAndGet()) return false;
+            return org.ikasan.studio.intellij.psi.FlowPackageRefactoring.renameAndSave(plan, module, flow, name);
+        } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+            throw cancelled;
+        } catch (RuntimeException failure) {
+            LOG.warn("STUDIO: Flow package refactoring failed", failure);
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.FlowRenameFailed", failure.getMessage()));
+            return false;
+        } finally {
+            context.endMigration();
+        }
     }
 
     /**
