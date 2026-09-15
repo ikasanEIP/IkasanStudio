@@ -41,6 +41,7 @@ public class DesignerUI implements Disposable {
     private final StudioProjectInitialisationService initialisationService;
     JBTabbedPane paletteAndProperties = new JBTabbedPane();
     JBSplitter propertiesAndCanvasSplitPane;
+    private final PanelWidthToggle panelWidthToggle;
     // Guards the persistence listener below against our own programmatic proportion changes -
     // without this, restoring a persisted width while the split pane hasn't yet been laid out to its
     // real size (getWidth() still small/stale during early startup) computes a wrong divider location,
@@ -87,6 +88,11 @@ public class DesignerUI implements Disposable {
         Disposer.register(this, canvasPanel);
         uiContext.setCanvasPanel(canvasPanel);
         propertiesAndCanvasSplitPane = createContentSplitter(canvasPanel, paletteAndProperties);
+        panelWidthToggle = new PanelWidthToggle(propertiesAndCanvasSplitPane, paletteAndProperties, restore -> {
+            componentPropertiesPanel.setRestoreWidthAvailable(restore);
+            PaletteTabPanel palette = uiContext.getPalettePanel();
+            if (palette != null) palette.setRestoreWidthAvailable(restore);
+        });
         componentPropertiesPanel.setFitWidthAction(this::fitPropertiesPanelWidth);
         // Remember whatever width the user leaves the panel at (whether from a manual drag or from the
         // programmatic sizing below), so it doesn't need re-dragging on every project open.
@@ -172,14 +178,7 @@ public class DesignerUI implements Disposable {
         if (available <= 0 || context.getPropertiesTabPanel() == null) {
             return;
         }
-        // Reserve useful canvas space, even when a field contains an unusually long value.
-        int canvasReserve = Math.min(JBUI.scale(320), available / 2);
-        int preferred = context.getPropertiesTabPanel().getPropertiesPreferredWidth() + JBUI.scale(16);
-        int target = Math.min(preferred, available - canvasReserve);
-        if (target > getRightPanelWidth()) {
-            // The existing divider listener persists this just like a manual drag.
-            setRightPanelWidth(target);
-        }
+        panelWidthToggle.toggle(context.getPropertiesTabPanel().getPropertiesPreferredWidth() + JBUI.scale(16));
     }
 
     /** Fit the palette independently of the wider properties form, allowing the sidebar to shrink. */
@@ -192,11 +191,7 @@ public class DesignerUI implements Disposable {
         if (available <= 0 || palette == null) {
             return;
         }
-        int canvasReserve = Math.min(JBUI.scale(320), available / 2);
-        int preferred = palette.getPaletteScrollPanePreferredWidth() + JBUI.scale(16);
-        int target = Math.min(preferred, available - canvasReserve);
-        // Persist through the same divider listener used for manual resizing.
-        setRightPanelWidth(target);
+        panelWidthToggle.toggle(palette.getPaletteScrollPanePreferredWidth() + JBUI.scale(16));
     }
 
     private void setRightPanelWidth(int width) {

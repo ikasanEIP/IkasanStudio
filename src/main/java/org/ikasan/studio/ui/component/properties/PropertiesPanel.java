@@ -157,6 +157,12 @@ public abstract class PropertiesPanel extends JBPanel implements Disposable {
         }
     }
 
+    public void setRestoreWidthAvailable(boolean restore) {
+        if (fitWidthButton == null) return;
+        fitWidthButton.setText(StudioBundle.message(restore ? "button.RestorePanelWidth" : "button.FitPropertiesWidth"));
+        fitWidthButton.setToolTipText(StudioBundle.message(restore ? "tooltip.RestorePanelWidth" : "tooltip.FitPropertiesWidth"));
+    }
+
     protected void okActionListener(ActionEvent ae) {
         List<ValidationInfo> infoList = doValidateAll();
         if (!infoList.isEmpty()) {

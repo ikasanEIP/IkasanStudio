@@ -44,6 +44,7 @@ import static org.ikasan.studio.core.model.ikasan.instance.Module.DUMB_MODULE_VE
 public class PaletteTabPanel extends JBPanel {
     private static final Logger LOG = Logger.getInstance("#JPanel");
     private final Project project;
+    private final JButton fitWidthButton;
     JBScrollPane paletteScrollPane;
     PaletteExportTransferHandler paletteExportTransferHandler;
     JBList<PaletteItem> paletteList;
@@ -82,7 +83,7 @@ public class PaletteTabPanel extends JBPanel {
         paletteBodyPanel.setBackground(getThemeAwareBackgroundColor());
         add(paletteBodyPanel, BorderLayout.CENTER);
 
-        JButton fitWidthButton = new JButton(StudioBundle.message("button.FitPaletteWidth"));
+        fitWidthButton = new JButton(StudioBundle.message("button.FitPaletteWidth"));
         fitWidthButton.setToolTipText(StudioBundle.message("tooltip.FitPaletteWidth"));
         fitWidthButton.addActionListener(event -> {
             if (project.isDisposed()) return;
@@ -92,6 +93,11 @@ public class PaletteTabPanel extends JBPanel {
         JPanel widthControl = new JBPanel(new FlowLayout(FlowLayout.LEADING, JBUI.scale(4), JBUI.scale(4)));
         widthControl.add(fitWidthButton);
         add(widthControl, BorderLayout.NORTH);
+    }
+
+    public void setRestoreWidthAvailable(boolean restore) {
+        fitWidthButton.setText(StudioBundle.message(restore ? "button.RestorePanelWidth" : "button.FitPaletteWidth"));
+        fitWidthButton.setToolTipText(StudioBundle.message(restore ? "tooltip.RestorePanelWidth" : "tooltip.FitPaletteWidth"));
     }
 
     public void setPaletteList() {
