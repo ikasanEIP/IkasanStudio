@@ -54,15 +54,16 @@ public final class ReplaceReferencesAction extends DumbAwareAction {
         new ReplaceReferencesDialog(project, context.getIkasanModule()).show();
     }
 
-    static void apply(Project project, Module module, List<ModelReferenceReplacement.Change> changes) {
+    static java.util.concurrent.CompletableFuture<Void> apply(Project project, Module module, List<ModelReferenceReplacement.Change> changes) {
         requireCurrent(project, module);
-        if (changes.isEmpty()) return;
+        if (changes.isEmpty()) return java.util.concurrent.CompletableFuture.completedFuture(null);
         GenerationRequest request = changes.stream().map(change -> GenerationRequest.flow(change.flow()))
                 .reduce(GenerationRequest.modelOnly(), GenerationRequest::merge);
         // Initialise the undo listener before its command starts (also needed on a fresh project).
         UndoManager undoManager = UndoManager.getInstance(project);
         ModelReferenceReplacement.apply(module, changes, true);
-        try { StudioProjectFiles.refreshCodeFromModel(project, request); }
+        java.util.concurrent.CompletableFuture<Void> generation;
+        try { generation = StudioProjectFiles.refreshCodeFromModel(project, request); }
         catch (RuntimeException failure) {
             ModelReferenceReplacement.apply(module, changes, false);
             throw failure;
@@ -94,6 +95,7 @@ public final class ReplaceReferencesAction extends DumbAwareAction {
             });
             refreshProperties(project);
         }, StudioBundle.message("action.IkasanStudio.ReplaceReferences.text"), null);
+        return generation;
     }
 
     private static void requireCurrent(Project project, Module module) {

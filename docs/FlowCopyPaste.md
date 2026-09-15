@@ -20,9 +20,11 @@ Different Ikasan versions are currently rejected. Studio also rejects clipboard 
 
 ## Updating shared domain references
 
-After moving a shared class with IntelliJ refactoring, use **Tools → Replace References…**, or right-click the Studio module background and choose **Replace References…**. For example, find `org.example.cat.domain` and replace it with `org.example.debug.domain`.
+After moving a shared class with IntelliJ refactoring, use **Tools → Find and Replace in Model…**, or right-click the Studio module background and choose **Find and Replace in Model…**. For example, find `org.example.cat.domain` and replace it with `org.example.debug.domain`.
 
 Choose **Preview replacements** to see each affected flow, component, property and before/after value. Clear any rows you do not want to change, then choose **Apply**. This can update both class properties and JMS trusted-package lists. Matching is literal and case-sensitive, respects Java name boundaries, and includes subpackages; `org.example.cat.domainExtra` will not match `org.example.cat.domain`.
+
+To review remaining references in project files, select **Open Replace in Files after applying**. After successful generation, Studio opens IntelliJ's **Replace in Files** window for the current project with the same Find and Replace values. Review its matches and choose which to replace; opening the window does not change any files. IntelliJ uses ordinary literal text matching here, so review similarly named packages as well.
 
 Studio updates the live model, saves `model.json` and regenerates the affected code. There is no reload step. IntelliJ Undo/Redo reverses or restores the selected property changes; finish pending property edits and generation first. User Java files, module application packages and flow/component names are outside this operation. Move Java classes and update their code references with IntelliJ refactoring separately.
 

@@ -25,6 +25,8 @@ final class ReplaceReferencesDialog extends DialogWrapper {
     private final Module module;
     private final JBTextField find = new JBTextField();
     private final JBTextField replacement = new JBTextField();
+    private final JBCheckBox openReplaceInFiles = new JBCheckBox(
+            StudioBundle.message("replaceReferences.OpenReplaceInFiles"), true);
     private final DefaultTableModel rows = new DefaultTableModel(new Object[]{
             StudioBundle.message("replaceReferences.Include"), StudioBundle.message("replaceReferences.Flow"),
             StudioBundle.message("replaceReferences.Component"), StudioBundle.message("replaceReferences.Property"),
@@ -88,6 +90,7 @@ final class ReplaceReferencesDialog extends DialogWrapper {
         JBScrollPane scroll = new JBScrollPane(table);
         scroll.setPreferredSize(JBUI.size(900, 300));
         panel.add(scroll, BorderLayout.CENTER);
+        panel.add(openReplaceInFiles, BorderLayout.SOUTH);
         return panel;
     }
 
@@ -127,8 +130,13 @@ final class ReplaceReferencesDialog extends DialogWrapper {
 
     @Override protected void doOKAction() {
         try {
-            ReplaceReferencesAction.apply(project, module, selectedChanges());
+            var generation = ReplaceReferencesAction.apply(project, module, selectedChanges());
+            String findText = find.getText().trim();
+            String replacementText = replacement.getText().trim();
+            boolean openFiles = openReplaceInFiles.isSelected();
             super.doOKAction();
+            if (openFiles) org.ikasan.studio.intellij.project.StudioReplaceInFiles.afterGeneration(
+                    project, module, generation, findText, replacementText);
         } catch (RuntimeException failure) {
             setErrorText(StudioBundle.message("message.ReplaceReferencesApplyFailed"));
         }
