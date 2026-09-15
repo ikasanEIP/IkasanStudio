@@ -11,6 +11,9 @@ import java.util.zip.ZipOutputStream;
 /** Explicit allowlist export. No project traversal and no model-file access. */
 public final class StudioDiagnosticBundle {
     public static final int MAX_LOG_BYTES = 2 * 1024 * 1024;
+    private static final java.util.regex.Pattern LOG_ENVELOPE = java.util.regex.Pattern.compile("[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:,.]+ +\\[ *[0-9]+] +(INFO|WARN|DEBUG|ERROR) +- +[#a-zA-Z0-9_.$]+ +- +");
+    private static final java.util.regex.Pattern EVENT_RECORD = java.util.regex.Pattern.compile("STUDIO-DIAG v1 event=[A-Z_]+ level=(INFO|WARN|DEBUG) module=(none|[a-f0-9]{16}) flow=(none|[a-f0-9]{16}) component=(none|[a-f0-9]{16})( error=[a-zA-Z0-9_.$]+| frame=org\\.ikasan\\.studio\\.[a-zA-Z0-9_.$]+:[0-9]+)*");
+    private static final java.util.regex.Pattern TIMESTAMP = java.util.regex.Pattern.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:,.]+)");
     private StudioDiagnosticBundle() { }
 
     public static String redactLogs(String source) {
@@ -24,18 +27,18 @@ public final class StudioDiagnosticBundle {
             }
             // The record must be the entire IDE log message, never a substring of a property value.
             String envelope = line.substring(0, start);
-            if (!envelope.matches("[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:,.]+ +\\[ *[0-9]+] +(INFO|WARN|DEBUG|ERROR) +- +[#a-zA-Z0-9_.$]+ +- +")) {
+            if (!LOG_ENVELOPE.matcher(envelope).matches()) {
                 omitted++; continue;
             }
             String event = line.substring(start).strip();
             // A strict whole-record grammar rejects multiline payloads, paths, values and extra fields.
-            if (event.length() > 8192 || !event.matches("STUDIO-DIAG v1 event=[A-Z_]+ level=(INFO|WARN|DEBUG) module=(none|[a-f0-9]{16}) flow=(none|[a-f0-9]{16}) component=(none|[a-f0-9]{16})( error=[a-zA-Z0-9_.$]+| frame=org\\.ikasan\\.studio\\.[a-zA-Z0-9_.$]+:[0-9]+)*")) {
+            if (event.length() > 8192 || !EVENT_RECORD.matcher(event).matches()) {
                 omitted++; continue;
             }
             try { StudioDiagnosticEvent.Event.valueOf(event.split(" ")[2].substring(6)); }
             catch (IllegalArgumentException unknown) { omitted++; continue; }
             // Timestamp and severity only from the IDE envelope, never arbitrary prefix text.
-            var timestamp = java.util.regex.Pattern.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:,.]+)").matcher(line);
+            var timestamp = TIMESTAMP.matcher(line);
             if (timestamp.find()) result.append(timestamp.group(1)).append(' ');
             result.append(event).append('\n');
         }

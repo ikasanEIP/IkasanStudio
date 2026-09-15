@@ -36,6 +36,8 @@ public final class StudioInjectClient {
     // nothing in UI responsiveness - it just keeps the progress indicator up longer for genuinely slow flows
     // instead of reporting a spurious timeout. If real-world use still hits this, it's cheap to raise further.
     static final Duration RESPONSE_TIMEOUT = Duration.ofSeconds(30);
+    // Configure once; keep the shared mapper private so callers cannot mutate it.
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     // Ikasan's default seeded admin user (see overwriteDBCreation.sql in ikasan-h2-standalone-persistence),
     // granted the ALL authority so it can reach any endpoint. If a module's admin password has been changed
     // from the default, this will fail with a 401 - callers handle that status explicitly.
@@ -50,6 +52,14 @@ public final class StudioInjectClient {
             .build();
 
     private StudioInjectClient() {
+    }
+
+    public static String writeJson(Object value) throws com.fasterxml.jackson.core.JsonProcessingException {
+        return OBJECT_MAPPER.writeValueAsString(value);
+    }
+
+    public static com.fasterxml.jackson.databind.JsonNode readJson(String value) throws com.fasterxml.jackson.core.JsonProcessingException {
+        return OBJECT_MAPPER.readTree(value);
     }
 
     public static HttpResponse<String> getScanDirectories(Module module, String flowName) throws Exception {
@@ -84,7 +94,6 @@ public final class StudioInjectClient {
         // that prefix 403s from the CSRF filter itself on Ikasan 4.x, even with valid Basic Auth credentials.
         URI uri = new URI("http", null, "localhost", Integer.parseInt(port), contextPath + "/rest/studio/inject/" + flowName, null, null);
 
-        ObjectMapper objectMapper = new ObjectMapper();
         Map<String, String> requestBodyMap = new LinkedHashMap<>();
         requestBodyMap.put("payload", payload);
         if (payloadClassName != null && !payloadClassName.isBlank()) {
@@ -96,7 +105,7 @@ public final class StudioInjectClient {
         if (payloadFilename != null && !payloadFilename.isBlank()) {
             requestBodyMap.put("payloadFilename", payloadFilename);
         }
-        String requestBody = objectMapper.writeValueAsString(requestBodyMap);
+        String requestBody = writeJson(requestBodyMap);
 
         String credentials = Base64.getEncoder().encodeToString(DEFAULT_CREDENTIALS.getBytes(StandardCharsets.UTF_8));
         HttpRequest request = HttpRequest.newBuilder()

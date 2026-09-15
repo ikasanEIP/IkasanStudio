@@ -29,8 +29,8 @@ class JmsFlowConnectionsTest {
     @Test
     void matchesAProducerAndConsumerOnTheSameDestinationInDifferentFlows() throws StudioBuildException {
         Module module = moduleWith(
-                flowWithProducer(destination(getJmsProducer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, PROVIDER_URL, false)),
-                flowWithConsumer(destination(getSpringJmsConsumer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, PROVIDER_URL, false)));
+                flowWithProducer(destination(getJmsProducer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, false)),
+                flowWithConsumer(destination(getSpringJmsConsumer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, false)));
 
         List<JmsFlowConnections.JmsLink> links = JmsFlowConnections.findMatchingLinks(module);
 
@@ -43,8 +43,8 @@ class JmsFlowConnectionsTest {
     @Test
     void doesNotMatchDifferentDestinationNames() throws StudioBuildException {
         Module module = moduleWith(
-                flowWithProducer(destination(getJmsProducer(BASE_META_PACK), "queueA", CONNECTION_FACTORY, PROVIDER_URL, false)),
-                flowWithConsumer(destination(getSpringJmsConsumer(BASE_META_PACK), "queueB", CONNECTION_FACTORY, PROVIDER_URL, false)));
+                flowWithProducer(destination(getJmsProducer(BASE_META_PACK), "queueA", CONNECTION_FACTORY, false)),
+                flowWithConsumer(destination(getSpringJmsConsumer(BASE_META_PACK), "queueB", CONNECTION_FACTORY, false)));
 
         assertThat(JmsFlowConnections.findMatchingLinks(module)).isEmpty();
     }
@@ -54,8 +54,8 @@ class JmsFlowConnectionsTest {
         // Two unrelated brokers can coincidentally both have a queue literally named "myQueue" - the
         // connection factory / provider URL must also agree, or this isn't really the same destination.
         Module module = moduleWith(
-                flowWithProducer(destination(getJmsProducer(BASE_META_PACK), DESTINATION, "factoryA", PROVIDER_URL, false)),
-                flowWithConsumer(destination(getSpringJmsConsumer(BASE_META_PACK), DESTINATION, "factoryB", PROVIDER_URL, false)));
+                flowWithProducer(destination(getJmsProducer(BASE_META_PACK), DESTINATION, "factoryA", false)),
+                flowWithConsumer(destination(getSpringJmsConsumer(BASE_META_PACK), DESTINATION, "factoryB", false)));
 
         assertThat(JmsFlowConnections.findMatchingLinks(module)).isEmpty();
     }
@@ -63,8 +63,8 @@ class JmsFlowConnectionsTest {
     @Test
     void doesNotMatchSameNameQueueAgainstTopic() throws StudioBuildException {
         Module module = moduleWith(
-                flowWithProducer(destination(getJmsProducer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, PROVIDER_URL, false)),
-                flowWithConsumer(destination(getSpringJmsConsumer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, PROVIDER_URL, true)));
+                flowWithProducer(destination(getJmsProducer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, false)),
+                flowWithConsumer(destination(getSpringJmsConsumer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, true)));
 
         assertThat(JmsFlowConnections.findMatchingLinks(module)).isEmpty();
     }
@@ -72,15 +72,15 @@ class JmsFlowConnectionsTest {
     @Test
     void doesNotMatchWhenBothSidesHaveABlankDestination() throws StudioBuildException {
         Module module = moduleWith(
-                flowWithProducer(destination(getJmsProducer(BASE_META_PACK), "", CONNECTION_FACTORY, PROVIDER_URL, false)),
-                flowWithConsumer(destination(getSpringJmsConsumer(BASE_META_PACK), "", CONNECTION_FACTORY, PROVIDER_URL, false)));
+                flowWithProducer(destination(getJmsProducer(BASE_META_PACK), "", CONNECTION_FACTORY, false)),
+                flowWithConsumer(destination(getSpringJmsConsumer(BASE_META_PACK), "", CONNECTION_FACTORY, false)));
 
         assertThat(JmsFlowConnections.findMatchingLinks(module)).isEmpty();
     }
 
     @Test
     void findsAProducerBehindARouterBranch() throws StudioBuildException {
-        FlowElement producer = destination(getJmsProducer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, PROVIDER_URL, false);
+        FlowElement producer = destination(getJmsProducer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, false);
         FlowElement router = getSingleRecipientRouter(BASE_META_PACK);
 
         Flow producerFlow = new Flow(BASE_META_PACK);
@@ -92,7 +92,7 @@ class JmsFlowConnectionsTest {
         producer.setContainingFlowRoute(branch);
         producerFlow.getFlowRoute().getChildRoutes().add(branch);
 
-        Module module = moduleWith(producerFlow, flowWithConsumer(destination(getSpringJmsConsumer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, PROVIDER_URL, false)));
+        Module module = moduleWith(producerFlow, flowWithConsumer(destination(getSpringJmsConsumer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, false)));
 
         List<JmsFlowConnections.JmsLink> links = JmsFlowConnections.findMatchingLinks(module);
 
@@ -100,11 +100,30 @@ class JmsFlowConnectionsTest {
         assertThat(links.get(0).producer()).isSameAs(producer);
     }
 
+    @Test
+    void preservesSharedDestinationLinksAndReflectsPropertyEdits() throws StudioBuildException {
+        FlowElement producer = destination(getJmsProducer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, false);
+        FlowElement first = destination(getSpringJmsConsumer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, false);
+        FlowElement second = destination(getSpringJmsConsumer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, false);
+        Flow producerFlow = flowWithProducer(producer);
+        FlowElement sameFlow = destination(getSpringJmsConsumer(BASE_META_PACK), DESTINATION, CONNECTION_FACTORY, false);
+        producerFlow.setConsumer(sameFlow);
+        sameFlow.setContainingFlow(producerFlow);
+        Module module = moduleWith(producerFlow, flowWithConsumer(first), flowWithConsumer(second));
+
+        assertThat(JmsFlowConnections.findMatchingLinks(module)).containsExactly(
+                new JmsFlowConnections.JmsLink(producer, first), new JmsFlowConnections.JmsLink(producer, second));
+        second.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "vm://another-broker");
+        assertThat(JmsFlowConnections.findMatchingLinks(module)).containsExactly(new JmsFlowConnections.JmsLink(producer, first));
+        first.setPropertyValue("destinationJndiName", "   ");
+        assertThat(JmsFlowConnections.findMatchingLinks(module)).isEmpty();
+    }
+
     private static FlowElement destination(FlowElement element, String destinationJndiName, String connectionFactoryName,
-                                            String connectionFactoryJndiPropertyProviderUrl, boolean pubSubDomain) {
+                                            boolean pubSubDomain) {
         element.setPropertyValue("destinationJndiName", destinationJndiName);
         element.setPropertyValue("connectionFactoryName", connectionFactoryName);
-        element.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", connectionFactoryJndiPropertyProviderUrl);
+        element.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", PROVIDER_URL);
         element.setPropertyValue("pubSubDomain", pubSubDomain);
         return element;
     }

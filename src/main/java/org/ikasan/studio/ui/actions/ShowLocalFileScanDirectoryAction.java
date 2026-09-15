@@ -1,6 +1,5 @@
 package org.ikasan.studio.ui.actions;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -38,7 +37,7 @@ public final class ShowLocalFileScanDirectoryAction implements ActionListener {
                     throw new IllegalStateException(response.statusCode() + ": " + response.body()
                             + (response.statusCode() == 404 ? " (Update Code and restart Debug module to install the scan-directory endpoint.)" : ""));
                 }
-                var body = new ObjectMapper().readTree(response.body());
+                var body = StudioInjectClient.readJson(response.body());
                 var directories = new java.util.ArrayList<String>();
                 body.path("directories").forEach(path -> directories.add(path.asText()));
                 String details = StudioBundle.message("message.LocalFileScanDetails", String.join("\n", directories),

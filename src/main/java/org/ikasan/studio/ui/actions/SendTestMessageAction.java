@@ -1,14 +1,8 @@
 package org.ikasan.studio.ui.actions;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
@@ -23,8 +17,6 @@ import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.ConnectException;
-import java.net.http.HttpResponse;
 import java.util.List;
 
 /**
@@ -80,7 +72,7 @@ public class SendTestMessageAction implements ActionListener {
                     return;
                 }
                 try {
-                    String payload = new ObjectMapper().writeValueAsString(filePaths);
+                    String payload = StudioInjectClient.writeJson(filePaths);
                     // The generated controller deserializes this canonical List<File> type.
                     sendPayload(module, flowName, new PreparedPayload(payload, flowElement.getEffectiveOutputTypeDescription(), flowElement.getComponentMeta().isLocalFileConsumer() ? "studio-local-file-list" : null, null));
                 } catch (Exception e) {
@@ -98,56 +90,18 @@ public class SendTestMessageAction implements ActionListener {
     }
 
     private void sendPayload(Module module, String flowName, PreparedPayload preparedPayload) {
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, StudioBundle.message("message.SendingTestMessage")) {
-            // Deliberately not @NotNull-annotated: this project avoids @NotNull (see CLAUDE.md) because
-            // the IntelliJ Gradle plugin instruments it with a runtime assertion that would surface as an
-            // uncaught plugin exception rather than failing gracefully.
-            @SuppressWarnings("NullableProblems")
-            @Override
-            public void run(ProgressIndicator indicator) {
-                try {
-                    HttpResponse<String> response = StudioInjectClient.postPayload(module, flowName, preparedPayload.payload(),
-                            preparedPayload.payloadClassName(), preparedPayload.payloadAdapter(), preparedPayload.payloadFilename());
-
-                    if (response.statusCode() == 200) {
-                        JsonNode responseBody = new ObjectMapper().readTree(response.body());
-                        if (("studio-local-file-list".equals(preparedPayload.payloadAdapter())
-                                || org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER.equals(preparedPayload.payloadAdapter()))
-                                && !"invoked".equals(responseBody.path("status").asText())) {
-                            ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaWarnMessage(project,
-                                    StudioBundle.message("message.LocalFileTestNeedsRegeneration")));
-                            return;
-                        }
-                        String identifier = responseBody.path("identifier").asText("");
-                        ApplicationManager.getApplication().invokeLater(() ->
-                                StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.TestMessageSent", identifier)));
-                    } else if (response.statusCode() == 401) {
-                        ApplicationManager.getApplication().invokeLater(() ->
-                                StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMessageAuthenticationFailed")));
-                    } else {
-                        String errorDetail = response.statusCode() + ": " + response.body();
-                        ApplicationManager.getApplication().invokeLater(() ->
-                                StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", errorDetail)));
+        TestInjectionTask.run(project, StudioBundle.message("message.SendingTestMessage"), flowName,
+                () -> StudioInjectClient.postPayload(module, flowName, preparedPayload.payload(),
+                        preparedPayload.payloadClassName(), preparedPayload.payloadAdapter(), preparedPayload.payloadFilename()),
+                responseBody -> {
+                    if (("studio-local-file-list".equals(preparedPayload.payloadAdapter())
+                            || org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER.equals(preparedPayload.payloadAdapter()))
+                            && !"invoked".equals(responseBody.path("status").asText())) {
+                        return TestInjectionTask.Notice.warning(StudioBundle.message("message.LocalFileTestNeedsRegeneration"));
                     }
-                } catch (ConnectException e) {
-                    // The single most common real-world cause: the debug process is alive (isDebugModuleRunning()
-                    // above only checks the ProcessHandler, not whether Spring Boot has finished starting) but
-                    // Tomcat hasn't bound its port yet - Spring only opens it right at the end of context
-                    // refresh, and a JMS-backed consumer's listener container/JNDI setup can push that out by
-                    // several seconds. Give a specific, actionable message rather than the generic one below.
-                    LOG.warn("STUDIO: Could not send test message to flow " + flowName + " - module not yet accepting connections", e);
-                    ApplicationManager.getApplication().invokeLater(() ->
-                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.ModuleNotYetAcceptingConnections")));
-                } catch (Exception e) {
-                    // warn (not error): IntelliJ's logger renders error-level stack traces directly to the
-                    // user, and this is already surfaced via the popup below - see CLAUDE.md.
-                    LOG.warn("STUDIO: Could not send test message to flow " + flowName, e);
-                    String errorDetail = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-                    ApplicationManager.getApplication().invokeLater(() ->
-                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", errorDetail)));
-                }
-            }
-        });
+                    return TestInjectionTask.Notice.info(StudioBundle.message("message.TestMessageSent",
+                            responseBody.path("identifier").asText("")));
+                });
     }
 
     /**

@@ -5,7 +5,8 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Finds pairs of JMS Producer/Consumer components, in different Flows of the same Module, that reference the
@@ -46,7 +47,7 @@ public final class JmsFlowConnections {
         }
 
         List<FlowElement> producers = new ArrayList<>();
-        List<FlowElement> consumers = new ArrayList<>();
+        Map<Destination, List<FlowElement>> consumers = new HashMap<>();
         for (Flow flow : module.getFlows()) {
             if (flow == null || isTestHarnessFlow(flow)) {
                 // A JMS test-consumer harness flow's own Consumer is deliberately configured against the same
@@ -57,7 +58,10 @@ public final class JmsFlowConnections {
                 continue;
             }
             if (isJmsConsumer(flow.getConsumer())) {
-                consumers.add(flow.getConsumer());
+                Destination destination = destinationOf(flow.getConsumer());
+                if (destination != null) {
+                    consumers.computeIfAbsent(destination, ignored -> new ArrayList<>()).add(flow.getConsumer());
+                }
             }
             for (FlowElement element : flow.ftlGetConsumerAndFlowElements()) {
                 if (isJmsProducer(element) && TestJmsHarnessLinks.destinationOverride(module, element) == null) {
@@ -67,8 +71,8 @@ public final class JmsFlowConnections {
         }
 
         for (FlowElement producer : producers) {
-            for (FlowElement consumer : consumers) {
-                if (producer.getContainingFlow() != consumer.getContainingFlow() && sameDestination(producer, consumer)) {
+            for (FlowElement consumer : consumers.getOrDefault(destinationOf(producer), List.of())) {
+                if (producer.getContainingFlow() != consumer.getContainingFlow()) {
                     links.add(new JmsLink(producer, consumer));
                 }
             }
@@ -98,17 +102,17 @@ public final class JmsFlowConnections {
         return isJms(element) && element.getComponentMeta().isConsumer();
     }
 
-    private static boolean sameDestination(FlowElement producer, FlowElement consumer) {
-        String destination = stringOrNull(producer.getPropertyValue(DESTINATION_JNDI_NAME));
-        // A blank destination on either side is an incomplete/half-configured component, not a real match -
-        // without this guard, every incomplete producer would match every incomplete consumer.
+    // Immutable value keys preserve matching semantics without hashing mutable model objects.
+    private record Destination(String name, String factory, String providerUrl, boolean topic) {}
+
+    private static Destination destinationOf(FlowElement element) {
+        String destination = stringOrNull(element.getPropertyValue(DESTINATION_JNDI_NAME));
         if (destination == null || destination.isBlank()) {
-            return false;
+            return null;
         }
-        return destination.equals(stringOrNull(consumer.getPropertyValue(DESTINATION_JNDI_NAME)))
-                && Objects.equals(stringOrNull(producer.getPropertyValue(CONNECTION_FACTORY_NAME)), stringOrNull(consumer.getPropertyValue(CONNECTION_FACTORY_NAME)))
-                && Objects.equals(stringOrNull(producer.getPropertyValue(CONNECTION_FACTORY_JNDI_PROPERTY_PROVIDER_URL)), stringOrNull(consumer.getPropertyValue(CONNECTION_FACTORY_JNDI_PROPERTY_PROVIDER_URL)))
-                && booleanOrDefault(producer.getPropertyValue(PUB_SUB_DOMAIN)) == booleanOrDefault(consumer.getPropertyValue(PUB_SUB_DOMAIN));
+        return new Destination(destination, stringOrNull(element.getPropertyValue(CONNECTION_FACTORY_NAME)),
+                stringOrNull(element.getPropertyValue(CONNECTION_FACTORY_JNDI_PROPERTY_PROVIDER_URL)),
+                booleanOrDefault(element.getPropertyValue(PUB_SUB_DOMAIN)));
     }
 
     private static String stringOrNull(Object value) {

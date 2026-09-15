@@ -411,3 +411,29 @@ tasks.register<Exec>("verifyReleaseArchive") {
     commandLine("python3", "scripts/verify-release-archive.py", "--zip", archive.get().asFile.absolutePath,
         "--report", report.get().asFile.absolutePath)
 }
+
+// Optional duplication report; analysis dependencies never enter the plugin distribution.
+val cpdTools = configurations.create("cpdTools") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+dependencies {
+    add(cpdTools.name, "net.sourceforge.pmd:pmd-cli:7.27.0")
+    add(cpdTools.name, "net.sourceforge.pmd:pmd-java:7.27.0")
+}
+val cpdReportFile = layout.buildDirectory.file("reports/cpd/duplicates.txt")
+val cpdSourceDirectories = listOf(file("src/main/java"), file("headless/studio-generator/src/main/java"))
+tasks.register<JavaExec>("cpdReport") {
+    group = "verification"
+    description = "Reports substantial duplication in production Java without failing on matches."
+    classpath = cpdTools
+    mainClass.set("net.sourceforge.pmd.cli.PmdCli")
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(17)) })
+    inputs.files(cpdSourceDirectories.map { directory -> fileTree(directory) { include("**/*.java") } })
+    outputs.file(cpdReportFile)
+    args("cpd", "--minimum-tokens", "120", "--language", "java", "--format", "text",
+        "--no-fail-on-violation", "--report-file", cpdReportFile.get().asFile.absolutePath)
+    cpdSourceDirectories.forEach { args("--dir", it.absolutePath) }
+    val reportDirectory = cpdReportFile.get().asFile.parentFile
+    doFirst { reportDirectory.mkdirs() }
+}

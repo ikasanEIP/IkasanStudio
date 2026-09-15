@@ -1,12 +1,7 @@
 package org.ikasan.studio.ui.actions;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -19,8 +14,6 @@ import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.ConnectException;
-import java.net.http.HttpResponse;
 
 /**
  * Fires a time-event (Quartz-scheduled) Consumer's flow immediately, via the same /rest/studio/inject/{flowName}
@@ -59,56 +52,18 @@ public class TriggerScheduledConsumerAction implements ActionListener {
         Module module = project.getService(UiContext.class).getIkasanModule();
         String flowName = flowElement.getContainingFlow().getIdentity();
 
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, StudioBundle.message("message.TriggeringScheduledConsumer")) {
-            // Deliberately not @NotNull-annotated: this project avoids @NotNull (see CLAUDE.md) because
-            // the IntelliJ Gradle plugin instruments it with a runtime assertion that would surface as an
-            // uncaught plugin exception rather than failing gracefully.
-            @SuppressWarnings("NullableProblems")
-            @Override
-            public void run(ProgressIndicator indicator) {
-                try {
-                    HttpResponse<String> response = StudioInjectClient.postPayload(module, flowName, NO_PAYLOAD, null);
-
-                    if (response.statusCode() == 200) {
-                        JsonNode responseBody = new ObjectMapper().readTree(response.body());
-                        String identifier = responseBody.path("identifier").asText("");
-                        boolean fileConsumer = flowElement.getComponentMeta().isFileBasedConsumer();
-                        String criteriaText = fileConsumer ? formatCriteria(responseBody.path("criteria")) : "";
-                        // Deliberately info (not warn): this is operational transparency for a feature whose whole
-                        // point is helping developers see why a triggered scan delivered nothing - see
-                        // TriggerNowLimitations bundle message. The criteria are configured component values
-                        // (pattern, min age, duplicate flags), never payloads or credentials.
-                        LOG.info("STUDIO: Triggered scheduled consumer for flow " + flowName
-                                + " identifier " + identifier + " criteria [" + criteriaText + "]");
-                        ApplicationManager.getApplication().invokeLater(() ->
-                                StudioUIUtils.displayIdeaInfoMessage(project,
-                                        fileConsumer
-                                                ? StudioBundle.message("message.ScheduledConsumerTriggeredWithCriteria", identifier, criteriaText)
-                                                : StudioBundle.message("message.ScheduledConsumerTriggered", identifier)));
-                    } else if (response.statusCode() == 401) {
-                        ApplicationManager.getApplication().invokeLater(() ->
-                                StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMessageAuthenticationFailed")));
-                    } else {
-                        String errorDetail = response.statusCode() + ": " + response.body();
-                        ApplicationManager.getApplication().invokeLater(() ->
-                                StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", errorDetail)));
-                    }
-                } catch (ConnectException e) {
-                    // See the matching catch in SendTestMessageAction - isDebugModuleRunning() above only
-                    // checks the ProcessHandler, not whether Spring Boot has finished starting/bound its port.
-                    LOG.warn("STUDIO: Could not trigger scheduled consumer for flow " + flowName + " - module not yet accepting connections", e);
-                    ApplicationManager.getApplication().invokeLater(() ->
-                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.ModuleNotYetAcceptingConnections")));
-                } catch (Exception e) {
-                    // warn (not error): IntelliJ's logger renders error-level stack traces directly to the
-                    // user, and this is already surfaced via the popup below - see CLAUDE.md.
-                    LOG.warn("STUDIO: Could not trigger scheduled consumer for flow " + flowName, e);
-                    String errorDetail = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-                    ApplicationManager.getApplication().invokeLater(() ->
-                            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.CouldNotSendTestMessage", errorDetail)));
-                }
-            }
-        });
+        TestInjectionTask.run(project, StudioBundle.message("message.TriggeringScheduledConsumer"), flowName,
+                () -> StudioInjectClient.postPayload(module, flowName, NO_PAYLOAD, null),
+                responseBody -> {
+                    String identifier = responseBody.path("identifier").asText("");
+                    boolean fileConsumer = flowElement.getComponentMeta().isFileBasedConsumer();
+                    String criteriaText = fileConsumer ? formatCriteria(responseBody.path("criteria")) : "";
+                    LOG.info("STUDIO: Triggered scheduled consumer for flow " + flowName
+                            + " identifier " + identifier + " criteria [" + criteriaText + "]");
+                    return TestInjectionTask.Notice.info(fileConsumer
+                            ? StudioBundle.message("message.ScheduledConsumerTriggeredWithCriteria", identifier, criteriaText)
+                            : StudioBundle.message("message.ScheduledConsumerTriggered", identifier));
+                });
     }
 
     /**
