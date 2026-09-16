@@ -26,8 +26,11 @@ final class MetaPackDataValidator {
             "Broker", "Consumer", "Converter", "Debug", "End Point", "Exception Resolver",
             "Filter", "Flow", "Module", "Producer", "Router", "Splitter", "Translator");
     private static final Pattern JAVA_IDENTIFIER = Pattern.compile("[A-Za-z_$][A-Za-z0-9_$]*");
+    // '$' already belongs to an identifier, including binary inner-class names. A separate
+    // repeated '$' suffix makes matching ambiguous; possessive identifiers also avoid
+    // backtracking through long names or deeply qualified names on invalid input.
     private static final Pattern JAVA_TYPE = Pattern.compile(
-            "(?:[A-Za-z_$][A-Za-z0-9_$]*\\.)*[A-Za-z_$][A-Za-z0-9_$]*(?:\\$[A-Za-z_$][A-Za-z0-9_$]*)*"
+            "[A-Za-z_$][A-Za-z0-9_$]*+(?:\\.[A-Za-z_$][A-Za-z0-9_$]*+)*+"
                     + "(?:<.*>)?(?:\\[])?(?: \\(auto-converted\\))?");
 
     private MetaPackDataValidator() { }

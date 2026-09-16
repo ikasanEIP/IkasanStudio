@@ -10,11 +10,55 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 @org.junit.jupiter.api.Tag("engine")
 class MetaPackValidatorTest {
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {
+            "int", "byte[]", "org.example.Outer$Inner", "org.example.Outer$1", "$", "$$$",
+            "org.example.$Factory_1", "java.util.List<java.lang.String>",
+            "java.util.Map<String, java.util.List<Integer>>", "java.lang.String[] (auto-converted)"
+    })
+    void acceptsExistingJavaTypeFormats(String type) throws Exception {
+        var components = validComponents();
+        var component = components.values().iterator().next();
+        component.setProducedOutputType(type);
+        MetaPackValidator.validate("SyntheticValidator", manifest("SyntheticValidator"), components);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {
+            ".Type", "org..Type", "org.Type.", "1Type", "Type!", "List<String", "Type[][]"
+    })
+    void rejectsMalformedJavaTypes(String type) {
+        assertInvalidJavaType(type);
+    }
+
+    @Test
+    void validatesLongJavaTypesWithoutExcessiveBacktracking() {
+        assertTimeoutPreemptively(Duration.ofSeconds(3), () -> {
+            acceptsExistingJavaTypeFormats("$".repeat(20_000));
+            acceptsExistingJavaTypeFormats("org.".repeat(10_000) + "Type$Inner");
+            assertInvalidJavaType("$".repeat(20_000) + "!");
+            assertInvalidJavaType("org.".repeat(10_000) + "!");
+        });
+    }
+
+    private static void assertInvalidJavaType(String type) {
+        var components = validComponents();
+        var component = components.values().iterator().next();
+        component.setImplementingClass(type);
+        component.setProducedOutputType(type);
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest("SyntheticValidator"), components))
+                .isInstanceOf(org.ikasan.studio.core.StudioBuildException.class)
+                .hasMessageContaining("invalid qualified Java name")
+                .hasMessageContaining("invalid Java type declaration");
+    }
+
     @Test
     void rejectsAnIkasanDependencyFromAnotherRelease() {
         ComponentMeta component = new ComponentMeta();
