@@ -343,9 +343,20 @@ intellijPlatformTesting {
     runIde {
         register("runIdeModern") {
             type = IntelliJPlatformType.IntellijIdea
-            version = providers.gradleProperty("sandboxIdeVersion")
+            val sandboxVersion = providers.gradleProperty("sandboxIdeVersion")
+            version = sandboxVersion
             task {
                 description = "Runs Studio in the newer IntelliJ IDEA sandbox."
+                // IDEA 2026.2.2's UniversalFileChooser resolves chosen SDK paths through VFS on EDT.
+                // Use the platform's fallback chooser for this sandbox until the upstream bug is fixed.
+                // Keep slow-operation diagnostics enabled and do not change installed users' settings.
+                jvmArgumentProviders += CommandLineArgumentProvider {
+                    if (sandboxVersion.get() == "2026.2.2") {
+                        listOf("-Duniversal.file.chooser.is.enabled=false")
+                    } else {
+                        emptyList()
+                    }
+                }
             }
         }
         register("runIdeInternal") {

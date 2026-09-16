@@ -206,6 +206,17 @@ The newer IDE uses the unified IntelliJ IDEA distribution; its free features do 
 `./gradlew runIdeModern -PsandboxIdeVersion=2026.2.2`. Compilation and automated tests continue to target
 Community 2024.3.7 through `platformType` and `platformVersion`; do not change those just to switch sandboxes.
 
+The 2026.2.2 sandbox uses IntelliJ's fallback file chooser to avoid an upstream EDT slow-operation error
+when selecting a JDK in **Project Structure → SDKs** (`UniversalFileChooser.toVirtualFiles`).
+This is scoped to `runIdeModern` with `sandboxIdeVersion=2026.2.2`, using
+`-Duniversal.file.chooser.is.enabled=false`; slow-operation checks remain enabled.
+Restart the sandbox through **Run Plugin** after reloading Gradle to apply it.
+For an already running IDE, open **Find Action → Registry…**, turn off
+`universal.file.chooser.is.enabled`, then reopen the SDK chooser.
+JetBrains documents this [file chooser fallback](https://platform.jetbrains.com/t/file-chooser-ui-is-different-in-intellij-versions-2026-1-and-2026-2-when-running-tests-with-the-native-file-chooser-disabled/4827).
+The separate `preferences.language.Kotlin.scripting` deprecated-group warning comes from the bundled Kotlin plugin.
+
+
 ### Do not let any exceptions bubble up to Intellij
 
 These get reported directly to the user with the recommendation to disable the plugin and report it to Idea.
