@@ -184,6 +184,28 @@ For other support investigations, **Tools â†’ Collect Ikasan Studio Diagnosticsâ
 
 These guidelines are for developers working on the plugin itself.
 
+### Choose a sandbox IDE
+
+Select **Run Plugin** in IntelliJ's Run/Debug menu to launch Studio in IntelliJ IDEA 2026.2.2.
+For regression testing, select **Run Plugin (2024.3.7 Regression)** to launch IntelliJ IDEA Community 2024.3.7.
+Reload the Gradle project after changing the build configuration.
+
+The equivalent terminal commands are:
+
+```shell
+./gradlew runIdeModern  # IntelliJ IDEA 2026.2.2
+./gradlew runIde        # IntelliJ IDEA Community 2024.3.7
+```
+
+These sandboxes keep separate settings and installed plugins. The first launch may download the IDE and its runtime.
+In the newer sandbox, install/update **JetBrains AI Assistant**, select **Codex** in AI Chat, and sign in with ChatGPT.
+See [JetBrains' agent activation instructions](https://www.jetbrains.com/help/ai-assistant/activate-agents.html).
+The newer IDE uses the unified IntelliJ IDEA distribution; its free features do not require an Ultimate subscription.
+
+`sandboxIdeVersion` in `gradle.properties` controls only the newer sandbox. You can override it for one run with
+`./gradlew runIdeModern -PsandboxIdeVersion=2026.2.2`. Compilation and automated tests continue to target
+Community 2024.3.7 through `platformType` and `platformVersion`; do not change those just to switch sandboxes.
+
 ### Do not let any exceptions bubble up to Intellij
 
 These get reported directly to the user with the recommendation to disable the plugin and report it to Idea.

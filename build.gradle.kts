@@ -1,6 +1,7 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import groovy.json.JsonSlurper
 import java.net.URI
 import java.net.http.HttpClient
@@ -340,6 +341,13 @@ tasks {
 
 intellijPlatformTesting {
     runIde {
+        register("runIdeModern") {
+            type = IntelliJPlatformType.IntellijIdea
+            version = providers.gradleProperty("sandboxIdeVersion")
+            task {
+                description = "Runs Studio in the newer IntelliJ IDEA sandbox."
+            }
+        }
         register("runIdeInternal") {
             task {
                 jvmArgumentProviders += CommandLineArgumentProvider {

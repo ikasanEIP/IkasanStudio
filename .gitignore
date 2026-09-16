@@ -50,7 +50,9 @@
 
 # IntelliJ Platform Gradle Plugin (this project builds an IntelliJ plugin)
 .intellijPlatform/
-.run/
+.run/*
+!.run/Run Plugin.run.xml
+!.run/Run Plugin (2024.3.7 Regression).run.xml
 out/
 
 # Gradle files

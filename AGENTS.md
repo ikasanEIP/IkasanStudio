@@ -109,7 +109,8 @@ The main plugin itself uses Gradle and the IntelliJ Platform Gradle Plugin.
 - `./gradlew test` runs automated tests.
 - `./gradlew runHarness` runs the separate visual Swing harness.
 - `./gradlew buildPlugin` builds the distributable plugin ZIP.
-- `./gradlew runIde` launches a sandbox IDE.
+- `./gradlew runIdeModern` launches the newer IntelliJ IDEA sandbox (version selected by `sandboxIdeVersion`); the shared **Run Plugin** configuration uses this task.
+- `./gradlew runIde` launches the Community 2024.3.7 regression sandbox; the shared **Run Plugin (2024.3.7 Regression)** configuration uses this task. Compilation and automated tests retain the 2024.3.7 target.
 - `./gradlew verifyPlugin` performs plugin verification.
 - Qodana and GitHub Actions provide static analysis and CI checks.
 - Marketplace publication is configured through the IntelliJ Platform Gradle Plugin and environment-provided signing/publishing credentials.
