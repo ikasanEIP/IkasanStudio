@@ -25,6 +25,7 @@ import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
+import org.ikasan.studio.core.model.analysis.FtpFlowConnections;
 import org.ikasan.studio.core.model.analysis.TestFtpServerLinks;
 import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
 import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
@@ -118,6 +119,27 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     private Timer flowErrorFlashTimer;
     private boolean flowErrorFlashOn = false;
     private boolean disposed;
+    private boolean showSharedEndpoints;
+    private final List<SharedEndpointLine> sharedEndpointLines = new ArrayList<>();
+    private record SharedEndpointLine(Shape hitArea, FtpFlowConnections.Link link) { }
+
+    public void setShowSharedEndpoints(boolean show) {
+        showSharedEndpoints = show;
+        sharedEndpointLines.clear();
+        repaint();
+    }
+
+    @Override
+    public String getToolTipText(MouseEvent event) {
+        for (SharedEndpointLine line : sharedEndpointLines) {
+            if (line.link().isVisible(project.getService(UiContext.class).getSelectedComponent(), showSharedEndpoints)
+                    && line.hitArea().contains(event.getPoint())) {
+                return StudioBundle.message("tooltip.SharedFtpEndpoint", line.link().endpoint().address());
+            }
+        }
+        return super.getToolTipText(event);
+    }
+
     // The OS-level click that brings the whole IDE window back into focus (e.g. after switching to
     // another desktop app) is also delivered to whichever component is underneath it as a genuine
     // MOUSE_PRESSED event. If that happens to land on empty canvas, it would otherwise be treated as a
@@ -150,6 +172,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         // PlatformCoreDataKeys.FILE_EDITOR) could never find this editor and stayed permanently disabled
         // while working here, regardless of what was on the undo stack.
         setFocusable(true);
+        ToolTipManager.sharedInstance().registerComponent(this);
         CanvasKeyboardNavigation.install(this, project);
         addMouseListener(new MouseAdapter() {
             @Override
@@ -476,6 +499,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         }
         setSelectedComponent(basicElement);
         uiContext.setSelectedComponent(basicElement);
+        repaint();
         if (basicElement instanceof ExceptionResolver resolver) {
             ExceptionResolverPanel exceptionResolverPanel = new ExceptionResolverPanel(project, true);
             exceptionResolverPanel.updateTargetComponent(basicElement);
@@ -1662,6 +1686,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
      */
     @Override
     public void paintComponent(Graphics g) {
+        sharedEndpointLines.clear();
         Module ikasanModule = getIkasanModule();
         if (ikasanModule != null && ikasanModule.isInitialised()) {
             disableModuleInitialiseProcess();
@@ -1698,6 +1723,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
                 moduleViewHandler.paintComponent(this, g, -1, -1);
                 paintDraggedComponentGhost(g);
                 paintJmsDestinationConnectors(g, ikasanModule);
+                paintSharedFtpEndpoints(g, ikasanModule);
                 paintTestMailServerNode(g, ikasanModule);
                 paintTestFtpServerNode(g, ikasanModule);
                 paintTestJmsHarnessNode(g, ikasanModule);
@@ -1707,6 +1733,41 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         }
         paintGettingStartedHint(g, ikasanModule);
         updateRunModuleButtonState(ikasanModule);
+    }
+
+    private void paintSharedFtpEndpoints(Graphics graphics, Module module) {
+        Object selection = project.getService(UiContext.class).getSelectedComponent();
+        if (!showSharedEndpoints && !(selection instanceof FlowElement)) return;
+        Graphics2D g = (Graphics2D) graphics.create();
+        try {
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setColor(new JBColor(new Color(126, 92, 153), new Color(183, 151, 210)));
+            g.setStroke(new BasicStroke(JBUI.scale(1.5f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                    0, new float[]{JBUI.scale(4f), JBUI.scale(5f)}, 0));
+            int index = 0;
+            for (var link : FtpFlowConnections.findMatchingLinks(module)) {
+                if (!link.isVisible(selection, showSharedEndpoints)) continue;
+                var producerFlow = flowHandlerFor(link.producer());
+                var consumerFlow = flowHandlerFor(link.consumer());
+                var producer = producerFlow == null ? null : producerFlow.getEndpointViewHandlerFor(link.producer());
+                var consumer = consumerFlow == null ? null : consumerFlow.getEndpointViewHandlerFor(link.consumer());
+                if (producer == null || consumer == null) continue;
+                List<Point> route = areAdjacentDownstreamFlows(module, link.producer().getContainingFlow(), link.consumer().getContainingFlow())
+                        ? jmsAdjacentFlowRoute(new Rectangle(producerFlow.getLeftX(), producerFlow.getTopY(), producerFlow.getWidth(), producerFlow.getHeight()),
+                            new Rectangle(consumerFlow.getLeftX(), consumerFlow.getTopY(), consumerFlow.getWidth(), consumerFlow.getHeight()),
+                            producer.getRightConnectorPoint(), consumer.getLeftConnectorPoint())
+                        : jmsPerimeterRoute(externalJmsRoutingBounds(), producer.getRightConnectorPoint(), consumer.getLeftConnectorPoint(), index);
+                Path2D path = new Path2D.Double();
+                path.moveTo(route.get(0).x, route.get(0).y);
+                for (int i = 1; i < route.size(); i++) path.lineTo(route.get(i).x, route.get(i).y);
+                g.draw(path);
+                paintArrowhead(g, consumer.getLeftConnectorPoint());
+                sharedEndpointLines.add(new SharedEndpointLine(new BasicStroke(JBUI.scale(10f)).createStrokedShape(path), link));
+                index++;
+            }
+        } finally {
+            g.dispose();
+        }
     }
 
     private void paintDraggedComponentGhost(Graphics graphics) {
@@ -2396,6 +2457,8 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
 
     /** Releases canvas-owned Swing activity before the editor hierarchy is discarded. */
     public void disposeCanvas() {
+        ToolTipManager.sharedInstance().unregisterComponent(this);
+        sharedEndpointLines.clear();
         disposed = true;
         if (flowErrorFlashTimer != null) {
             flowErrorFlashTimer.stop();

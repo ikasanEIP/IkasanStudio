@@ -139,6 +139,10 @@ public class CanvasPanel extends JBPanel implements Disposable {
         addButtonsToPanel(canvasHeaderButtonPanel, consoleButton, new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
         addButtonsToPanel(canvasHeaderButtonPanel, loadModuleButton, new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
         refreshAdvancedControlsVisibility();
+        var sharedEndpoints = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("label.ShowSharedEndpoints"));
+        sharedEndpoints.setToolTipText(StudioBundle.message("tooltip.ShowSharedEndpoints"));
+        sharedEndpoints.addActionListener(event -> designerCanvas.setShowSharedEndpoints(sharedEndpoints.isSelected()));
+        canvasHeaderButtonPanel.add(sharedEndpoints);
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.RegenerateCode"), SAVE_ICON), new ModelRebuildAction(project), StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
         addButtonsToPanel(canvasHeaderButtonPanel, new JButton("Migrate…"),
                 event -> org.ikasan.studio.intellij.migration.MigrationController.open(project, false),

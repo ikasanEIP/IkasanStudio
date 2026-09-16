@@ -48,6 +48,7 @@ class ReplaceReferencesActionTest {
             ReplaceReferencesAction.open(project);
             verify(panel).updateTargetComponent(flow.getConsumer());
             assertEquals(2, dialogs.constructed().size());
+            verify(dialogs.constructed().get(1)).show();
             verify(panel, never()).updateTargetComponent(isNull());
 
             when(panel.confirmSelectionChangeWithPendingEdits(null)).thenReturn(false);
@@ -84,30 +85,43 @@ class ReplaceReferencesActionTest {
             // Mockito records this invocation to configure the static mock.
             //noinspection ResultOfMethodCallIgnored
             applications.when(ApplicationManager::getApplication).thenReturn(application);
-            doAnswer(call -> { call.getArgument(0, Runnable.class).run(); return null; })
-                    .when(application).invokeLater(any(Runnable.class));
             if (failSave) {
                 files.when(() -> StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flow)))
                         .thenThrow(new IllegalStateException("Save failed"));
                 assertThrows(IllegalStateException.class, () -> ReplaceReferencesAction.apply(project, module, changes));
                 assertEquals("org.example.cat.domain", consumer.getPropertyValue("trustedObjectPackages"));
-                verifyNoInteractions(undo);
+                files.verify(() -> StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flow)));
+                verifyNoInteractions(undo, command, application);
                 return;
             }
-            ReplaceReferencesAction.apply(project, module, changes);
+            CompletableFuture<Void> generation = new CompletableFuture<>();
+            files.when(() -> StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flow)))
+                    .thenReturn(generation);
+            assertSame(generation, ReplaceReferencesAction.apply(project, module, changes));
+            assertFalse(generation.isDone());
+            generation.complete(null);
             assertEquals("org.example.debug.domain", consumer.getPropertyValue("trustedObjectPackages"));
             var captured = ArgumentCaptor.forClass(UndoableAction.class);
             verify(undo).undoableActionPerformed(captured.capture());
             assertTrue(captured.getValue().isGlobal());
             captured.getValue().undo();
             assertEquals("org.example.cat.domain", consumer.getPropertyValue("trustedObjectPackages"));
+            var callbacks = ArgumentCaptor.forClass(Runnable.class);
+            verify(application).invokeLater(callbacks.capture());
+            files.verify(() -> StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flow)));
+            callbacks.getValue().run();
             captured.getValue().redo();
             assertEquals("org.example.debug.domain", consumer.getPropertyValue("trustedObjectPackages"));
+            verify(application, times(2)).invokeLater(callbacks.capture());
+            files.verify(() -> StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flow)), times(2));
+            callbacks.getValue().run();
             files.verify(() -> StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flow)), times(3));
             verify(panel, times(3)).updateTargetComponent(module);
             verify(panel, never()).updateTargetComponent(isNull());
-            when(context.getIkasanModule()).thenReturn(null);
+            when(context.getIkasanModule()).thenReturn(mock(Module.class));
             assertThrows(UnexpectedUndoException.class, () -> captured.getValue().undo());
+            verify(application, times(2)).invokeLater(any(Runnable.class));
+            files.verify(() -> StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flow)), times(3));
             assertEquals("org.example.debug.domain", consumer.getPropertyValue("trustedObjectPackages"));
         }
     }

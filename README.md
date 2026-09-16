@@ -234,6 +234,12 @@ Studio supports reviewed migration between Ikasan V3.3.9 and V4.1.6. Use **Migra
 the canvas or **Tools → Migrate Ikasan Version…**. See [version migration](docs/IkasanVersionMigration.md)
 for previews, compatibility checks and recovery snapshots.
 
+Select an FTP producer or consumer to see dashed arrows to components sharing its configured host,
+port, security mode and directory. **Show shared endpoints** displays all these connections in the module.
+Hover over an arrow to see the endpoint. These indicate possible file hand-offs; filename filters,
+account home directories and runtime configuration can affect delivery. Unresolved property expressions
+and custom source-directory factories are not matched.
+
 
 Ikasan EIP is a mature and well maintained integration platform based on industrial patterns (https://www.enterpriseintegrationpatterns.com/) to satisfy complex, disparate and demanding integration requirements of the finance sector.
 
