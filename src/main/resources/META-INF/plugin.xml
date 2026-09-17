@@ -44,6 +44,9 @@
                            bundle="messages.studioBundle"/>
     </extensions>
     <actions>
+        <action id="IkasanStudio.ConnectAI" class="org.ikasan.studio.intellij.ai.StudioAiConnectionAction">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
         <action id="IkasanStudio.CollectDiagnostics" class="org.ikasan.studio.intellij.diagnostics.CollectStudioDiagnosticsAction">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>

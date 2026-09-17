@@ -151,6 +151,7 @@ All three paths were present when this document was written. Treat them as refer
 
 ## Documentation Notes
 
+- The `AGENTS.md` under `ikasan-studio-ancillary/ikasan-studio-project-archetype/src/main/resources/archetype-resources/` is a template shipped into generated Ikasan applications. Its instructions govern those applications; this root file governs development of the Studio plugin, including its archetype templates. Keep both filenames so agents can discover the instructions in each resulting project.
 - `README.md` is the user/developer introduction and currently documents installation, archetype creation, module creation, architecture motivations, and manual project creation.
 - `CLAUDE.md` contains useful implementation and command guidance but is tool-specific; this `AGENTS.md` is the primary tool-neutral project context.
 - `docs/IkasanStudioRoadmap.md` contains a deeper technical/product roadmap, particularly for formalising the meta-pack ecosystem.

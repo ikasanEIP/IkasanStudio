@@ -184,6 +184,13 @@ For other support investigations, **Tools → Collect Ikasan Studio Diagnostics�
 
 These guidelines are for developers working on the plugin itself.
 
+### Use an AI with the live Studio design
+
+Select **Tools → Connect AI to Ikasan Studio…** and copy the MCP configuration into your AI client
+(Python 3 required). The AI can read the live design and component catalogue, then submit a validated
+proposal. Review and **Apply** it in Studio as one undoable model change. See the
+[Studio AI bridge guide](docs/StudioAiBridge.md) for setup, supported operations and examples.
+
 ### Choose a sandbox IDE
 
 Select **Run Plugin** in IntelliJ's Run/Debug menu to launch Studio in IntelliJ IDEA 2026.2.2.

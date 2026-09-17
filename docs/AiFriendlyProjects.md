@@ -1,6 +1,7 @@
 # AI-friendly projects
 
-Studio provides an offline project contract. No network, MCP server or cloud connection is required.
+Studio provides an offline project contract and an optional [live MCP bridge](StudioAiBridge.md).
+The offline contract requires no network, MCP server or cloud connection.
 
 ## Files and ownership
 
@@ -46,8 +47,9 @@ Run `./gradlew test` and `./gradlew validateMetaPacks --no-configuration-cache` 
 consistency between archetype and generated discovery instructions. Exercise source generation
 in the IDE to verify the complete project-file lifecycle.
 
-A future local MCP server can expose the same contract and delegate validation or generation
-to Studio. Keep the files independently usable so that MCP does not become mandatory.
+The optional [live Studio AI bridge](StudioAiBridge.md) exposes snapshots and the catalogue through MCP,
+validates proposed operations and lets developers apply them as an undoable model change. Use it while
+Studio is open. Offline file edits require closing Studio first and reloading afterwards.
 
 ## Version migration
 

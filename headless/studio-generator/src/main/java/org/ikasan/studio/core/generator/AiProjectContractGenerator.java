@@ -22,6 +22,11 @@ public final class AiProjectContractGenerator {
         return """
                 # Ikasan Studio agent instructions
 
+                When Studio is open, its live in-memory model is authoritative. If the Studio MCP bridge is
+                connected, use studio_snapshot, studio_catalogue and studio_propose; wait for the developer
+                to Apply in Studio and check studio_proposal_status. Never edit model.json behind an open Studio.
+                If no bridge is available, close Studio before offline edits and reload afterwards.
+
                 This project is managed by Ikasan Studio. Before editing `generated/src/main/model/model.json`,
                 read `generated/IKASAN_STUDIO.md` and
                 `generated/src/main/model/component-catalogue.json`.
@@ -49,7 +54,16 @@ public final class AiProjectContractGenerator {
                 - Java, Maven and configuration files in `generated/` are Studio-owned derived output.
                 - Files in `user/` are developer-owned. Never replace them without explicit confirmation.
 
-                ## Safe editing workflow
+                ## Live Studio workflow
+
+                Use Tools -> Connect AI to Ikasan Studio to obtain the MCP client configuration (Python 3).
+                Read studio_snapshot and studio_catalogue, then submit studio_propose with the returned revision
+                and structured operations. Studio validates and previews the proposal before the developer applies
+                it as one undoable change. Read studio_proposal_status to distinguish applied changes from rejected,
+                cancelled or failed generation. While Studio is open, do not edit model.json on disk.
+                The initial bridge supports complete linear flows; routers, deletion and renaming require Studio.
+
+                ## Safe offline editing workflow (close Studio first)
 
                 1. Read the current model and component catalogue; never guess property names.
                 2. Make the smallest possible edit and preserve fields you do not understand.
@@ -171,6 +185,10 @@ public final class AiProjectContractGenerator {
         if (meta.getDefaultValue() != null) result.put("default", meta.getDefaultValue());
         if (meta.getChoices() != null && !meta.getChoices().isEmpty()) result.put("choices", meta.getChoices());
         if (meta.isHiddenProperty()) result.put("hidden", true);
+        if (meta.isChoicesEditable()) result.put("choicesEditable", true);
+        if (meta.getValidation() != null && !meta.getValidation().isBlank()) result.put("validation", meta.getValidation());
+        if (meta.getMandatoryIfTrue() != null) result.put("mandatoryIfTrue", meta.getMandatoryIfTrue());
+        if (meta.getMandatoryUnlessAnyOf() != null) result.put("mandatoryUnlessAnyOf", meta.getMandatoryUnlessAnyOf());
         return result;
     }
 }
