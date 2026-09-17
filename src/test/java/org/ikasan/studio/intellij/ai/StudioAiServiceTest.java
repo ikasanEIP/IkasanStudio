@@ -37,6 +37,7 @@ class StudioAiServiceTest {
         var model = ModelProposalTest.model();
         when(project.getService(UiContext.class)).thenReturn(context);
         when(project.getName()).thenReturn("test-project");
+        when(project.getBasePath()).thenReturn(directory.resolve("project").toString());
         when(context.getIkasanModule()).thenReturn(model);
         when(context.getPipsiIkasanModel()).thenReturn(mock(GeneratedProjectSynchronizer.class));
         when(context.getLatestGeneration()).thenReturn(CompletableFuture.completedFuture(null));
@@ -44,6 +45,7 @@ class StudioAiServiceTest {
         when(context.getPropertiesPanel()).thenReturn(properties);
         var before = LiveModelSnapshot.capture(model);
         StudioAiService service = new StudioAiService(project);
+        when(project.getService(StudioAiService.class)).thenReturn(service);
         AtomicReference<StudioAiService.Proposal> reviewed = new AtomicReference<>();
         try (var applications = mockStatic(ApplicationManager.class);
              var paths = mockStatic(PathManager.class);
@@ -61,7 +63,7 @@ class StudioAiServiceTest {
             doAnswer(call -> { call.getArgument(0, Runnable.class).run(); return null; })
                     .when(app).invokeAndWait(any(Runnable.class), any(ModalityState.class));
             doAnswer(call -> { call.getArgument(0, Runnable.class).run(); return null; }).when(app).invokeLater(any(Runnable.class));
-            paths.when(PathManager::getSystemPath).thenReturn(directory.toString());
+            paths.when(PathManager::getConfigPath).thenReturn(directory.toString());
             CommandProcessor command = mock(CommandProcessor.class);
             commands.when(CommandProcessor::getInstance).thenReturn(command);
             doAnswer(call -> { call.getArgument(1, Runnable.class).run(); return null; })
@@ -72,12 +74,12 @@ class StudioAiServiceTest {
             if (failSave) files.when(() -> StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.full())).thenThrow(new IllegalStateException("Save failed"));
             else files.when(() -> StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.full())).thenReturn(generated);
             String config = service.start();
-            assertThat(config).contains("python3", "--connection").doesNotContain("Bearer");
+            assertThat(config).contains("studio-mcp-adapter.jar", "-jar", "--connection").doesNotContain("Bearer", "python");
             // Exercise the actual HTTP/stdio transport against this server, without any IDE model request.
             var args = JSON.readTree(config).path("mcpServers").path("ikasan-studio").path("args");
             // This connection file belongs to the local JUnit temporary directory.
             //noinspection UseOptimizedEelFunctions
-            var connection = JSON.readTree(Files.readString(Path.of(args.get(2).asText())));
+            var connection = JSON.readTree(Files.readString(Path.of(args.get(3).asText())));
             var http = java.net.http.HttpClient.newHttpClient();
             var endpoint = java.net.URI.create(connection.path("url").asText());
             var unauthenticated = java.net.http.HttpRequest.newBuilder(endpoint)
@@ -88,7 +90,12 @@ class StudioAiServiceTest {
                     .header("Origin", "https://example.com")
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString("{}"));
             assertThat(http.send(browser.build(), java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode()).isEqualTo(403);
-            var process = new ProcessBuilder("python3", args.get(0).asText(), args.get(1).asText(), args.get(2).asText()).start();
+            var serverConfig = JSON.readTree(config).path("mcpServers").path("ikasan-studio");
+            assertThat(Path.of(serverConfig.path("command").asText())).isAbsolute().exists();
+            var launch = new java.util.ArrayList<String>();
+            launch.add(serverConfig.path("command").asText());
+            args.forEach(argument -> launch.add(argument.asText()));
+            var process = new ProcessBuilder(launch).start();
             try (var stdin = process.outputWriter()) {
                 stdin.write("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\"}\n");
                 stdin.write("{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}\n");
@@ -100,6 +107,9 @@ class StudioAiServiceTest {
             assertThat(replies).hasSize(2);
             assertThat(JSON.readTree(replies.get(1)).path("result").path("tools")).hasSize(4);
 
+            assertThat(service.getLastAccessTransport()).isNull();
+            StudioAiService.nativeCall(project, "studio_snapshot", "{}");
+            assertThat(service.getLastAccessTransport()).isEqualTo("native");
             var snapshot = (Map<?, ?>) service.call("studio_snapshot", JSON.createObjectNode());
             String revision = snapshot.get("revision").toString();
             var request = JSON.readTree("""
@@ -108,7 +118,9 @@ class StudioAiServiceTest {
             ((com.fasterxml.jackson.databind.node.ObjectNode) request).put("revision", revision);
             StudioAiService other = new StudioAiService(project);
             try {
+                when(project.getBasePath()).thenReturn(directory.resolve("other-project").toString());
                 other.start();
+                when(project.getBasePath()).thenReturn(directory.resolve("project").toString());
                 assertThatThrownBy(() -> other.call("studio_propose", request)).hasMessageContaining("Unknown or expired revision");
             } finally { other.dispose(); }
 
@@ -127,6 +139,8 @@ class StudioAiServiceTest {
             doAnswer(call -> { call.getArgument(0, Runnable.class).run(); return null; })
                     .when(app).invokeAndWait(any(Runnable.class), any(ModalityState.class));
             assertThatThrownBy(() -> service.call("studio_propose", request)).hasMessageContaining("Unknown or expired revision");
+            assertThat(service.start()).isEqualTo(config);
+            assertThat(service.getLastAccessTransport()).isNull();
             snapshot = (Map<?, ?>) service.call("studio_snapshot", JSON.createObjectNode());
             ((com.fasterxml.jackson.databind.node.ObjectNode) request).put("revision", snapshot.get("revision").toString());
             service.call("studio_propose", request);

@@ -24,7 +24,6 @@ import org.ikasan.studio.ui.UiContext;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.*;
@@ -40,7 +39,19 @@ public final class StudioAiService implements Disposable {
     private volatile HttpServer server;
     private volatile boolean disposed;
     private ExecutorService executor;
-    private Path connectionFile;
+    private StudioAiConnectionFiles connectionFiles;
+    private CompletableFuture<Void> cleanup = CompletableFuture.completedFuture(null);
+    private volatile String lastAccessTransport;
+
+    public String getLastAccessTransport() { return lastAccessTransport; }
+
+    /** The native host supplies the target project; never infer it from focus or open-project order. */
+    public static String nativeCall(Project project, String name, String arguments) throws Exception {
+        StudioAiService service = project.getService(StudioAiService.class);
+        if (!service.isRunning()) throw new IllegalStateException(StudioBundle.message("ai.EnableFirst"));
+        Object result = service.callFrom(name, JSON.readTree(arguments), "native");
+        return JSON.writeValueAsString(result);
+    }
     private String configuration;
     private volatile Proposal pending;
 
@@ -59,59 +70,84 @@ public final class StudioAiService implements Disposable {
     /** Runs off EDT, returning a ready-to-copy MCP server configuration. */
     public String start() throws Exception {
         synchronized (this) { if (server != null) return configuration; }
-        onEdt(() -> { requireReady(); return null; });
         synchronized (this) {
             if (disposed || project.isDisposed()) throw new IllegalStateException("Project closed");
             if (server != null) return configuration;
-            Path directory = Files.createTempDirectory(Path.of(PathManager.getSystemPath()), "ikasan-ai-");
-            if (Files.getFileStore(directory).supportsFileAttributeView("posix"))
-                Files.setPosixFilePermissions(directory, PosixFilePermissions.fromString("rwx------"));
-            Path script = directory.resolve("studio_mcp.py");
-            try (var source = getClass().getResourceAsStream("/studio/ai/studio_mcp.py")) {
+            cleanup.join();
+            String projectPath = project.getBasePath();
+            if (projectPath == null) throw new IllegalStateException("Open a project before connecting AI.");
+            StudioAiConnectionFiles files;
+            try (var source = getClass().getResourceAsStream("/studio/ai/studio-mcp-adapter.jar")) {
                 if (source == null) throw new IllegalStateException("Studio MCP adapter is missing");
-                Files.copy(source, script);
+                files = StudioAiConnectionFiles.open(Path.of(PathManager.getConfigPath()), projectPath, source.readAllBytes());
             }
-            Path connection = directory.resolve("connection.json");
+            Path adapter = files.adapter();
+            Path connection = files.connection();
             String token = UUID.randomUUID() + "-" + UUID.randomUUID();
-            HttpServer created = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-            ExecutorService workers = AppExecutorUtil.createBoundedApplicationPoolExecutor("Ikasan Studio AI bridge", 2);
-            var protocol = new StudioMcpProtocol(this::call);
-            created.createContext("/rpc", exchange -> {
-                try (exchange) {
-                    String auth = exchange.getRequestHeaders().getFirst("Authorization");
-                    if (exchange.getRequestHeaders().containsKey("Origin") || auth == null
-                            || !MessageDigest.isEqual(auth.getBytes(StandardCharsets.UTF_8), ("Bearer " + token).getBytes(StandardCharsets.UTF_8))) {
-                        exchange.sendResponseHeaders(403, -1); return;
-                    }
-                    if (!"POST".equals(exchange.getRequestMethod()) || !"/rpc".equals(exchange.getRequestURI().getPath())) {
-                        exchange.sendResponseHeaders(405, -1); return;
-                    }
-                    byte[] input = exchange.getRequestBody().readNBytes(1_048_577);
-                    if (input.length > 1_048_576) { exchange.sendResponseHeaders(413, -1); return; }
-                    Object response;
-                    try { response = protocol.handle(JSON.readTree(input)); }
-                    catch (Exception invalid) { exchange.sendResponseHeaders(400, -1); return; }
-                    if (response == null) { exchange.sendResponseHeaders(202, -1); return; }
-                    byte[] output = JSON.writeValueAsBytes(response);
-                    exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
-                    exchange.sendResponseHeaders(200, output.length);
-                    exchange.getResponseBody().write(output);
-                }
-            });
-            created.setExecutor(workers);
+            HttpServer created = null;
+            ExecutorService workers = null;
             try {
-                Files.writeString(connection, JSON.writeValueAsString(Map.of("url", "http://127.0.0.1:" + created.getAddress().getPort() + "/rpc", "token", token)));
-                if (Files.getFileStore(connection).supportsFileAttributeView("posix"))
-                    Files.setPosixFilePermissions(connection, PosixFilePermissions.fromString("rw-------"));
+                created = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+                workers = AppExecutorUtil.createBoundedApplicationPoolExecutor("Ikasan Studio AI bridge", 2);
+                var protocol = new StudioMcpProtocol((name, arguments) -> callFrom(name, arguments, "adapter"));
+                created.createContext("/rpc", exchange -> {
+                    try (exchange) {
+                        String auth = exchange.getRequestHeaders().getFirst("Authorization");
+                        if (exchange.getRequestHeaders().containsKey("Origin") || auth == null
+                                || !MessageDigest.isEqual(auth.getBytes(StandardCharsets.UTF_8), ("Bearer " + token).getBytes(StandardCharsets.UTF_8))) {
+                            exchange.sendResponseHeaders(403, -1); return;
+                        }
+                        if (!"POST".equals(exchange.getRequestMethod()) || !"/rpc".equals(exchange.getRequestURI().getPath())) {
+                            exchange.sendResponseHeaders(405, -1); return;
+                        }
+                        byte[] input = exchange.getRequestBody().readNBytes(1_048_577);
+                        if (input.length > 1_048_576) { exchange.sendResponseHeaders(413, -1); return; }
+                        Object response;
+                        try { response = protocol.handle(JSON.readTree(input)); }
+                        catch (Exception invalid) { exchange.sendResponseHeaders(400, -1); return; }
+                        if (response == null) { exchange.sendResponseHeaders(202, -1); return; }
+                        byte[] output = JSON.writeValueAsBytes(response);
+                        exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+                        exchange.sendResponseHeaders(200, output.length);
+                        exchange.getResponseBody().write(output);
+                    }
+                });
+                created.setExecutor(workers);
+                files.publish(JSON.writeValueAsString(Map.of("url", "http://127.0.0.1:" + created.getAddress().getPort() + "/rpc", "token", token)));
                 configuration = JSON.writerWithDefaultPrettyPrinter().writeValueAsString(Map.of("mcpServers", Map.of("ikasan-studio",
-                        Map.of("command", "python3", "args", List.of(script.toString(), "--connection", connection.toString())))));
-                connectionFile = connection;
+                        Map.of("command", javaExecutable().toString(), "args", List.of("-jar", adapter.toString(), "--connection", connection.toString())))));
+                connectionFiles = files;
+                lastAccessTransport = null;
                 executor = workers;
                 server = created;
                 created.start();
                 return configuration;
-            } catch (Exception failure) { created.stop(0); workers.shutdownNow(); throw failure; }
+            } catch (Exception failure) {
+                server = null;
+                executor = null;
+                connectionFiles = null;
+                configuration = null;
+                if (created != null) created.stop(0);
+                if (workers != null) workers.shutdownNow();
+                try { files.close(); } catch (Exception cleanupFailure) { failure.addSuppressed(cleanupFailure); }
+                throw failure;
+            }
         }
+    }
+
+    private static Path javaExecutable() {
+        Path bin = Path.of(System.getProperty("java.home"), "bin").toAbsolutePath();
+        Path executable = bin.resolve(com.intellij.openapi.util.SystemInfo.isWindows ? "java.exe" : "java");
+        if (!Files.isRegularFile(executable)) throw new IllegalStateException("IDE Java executable is missing");
+        return executable;
+    }
+
+    private Object callFrom(String name, JsonNode arguments, String transport) throws Exception {
+        HttpServer session = server;
+        Object result = call(name, arguments);
+        if (("studio_snapshot".equals(name) || "studio_catalogue".equals(name)) && server == session && session != null)
+            lastAccessTransport = transport;
+        return result;
     }
 
     Object call(String name, JsonNode arguments) throws Exception {
@@ -174,6 +210,12 @@ public final class StudioAiService implements Disposable {
 
     private Snapshot capture() { requireReady(); Module module = context().getIkasanModule(); return new Snapshot(module, LiveModelSnapshot.capture(module)); }
     private UiContext context() { return project.getService(UiContext.class); }
+    /** Cheap EDT-only readiness check for connection guidance; does not read or publish a snapshot. */
+    String connectionReadinessIssue() {
+        try { requireReady(); return null; }
+        catch (IllegalStateException notReady) { return notReady.getMessage(); }
+    }
+
     private void requireReady() {
         ApplicationManager.getApplication().assertIsDispatchThread();
         var context = context();
@@ -267,11 +309,15 @@ public final class StudioAiService implements Disposable {
         synchronized (snapshots) { snapshots.clear(); }
         synchronized (proposals) { proposals.clear(); }
         if (pending != null) { pending.status = "cancelled"; pending = null; }
-        Path file = connectionFile;
-        connectionFile = null;
-        if (file != null) AppExecutorUtil.getAppExecutorService().execute(() -> {
-            try { Files.deleteIfExists(file); } catch (java.io.IOException ignored) { /* Server and token already invalid. */ }
-        });
+        lastAccessTransport = null;
+        StudioAiConnectionFiles files = connectionFiles;
+        connectionFiles = null;
+        if (files != null) cleanup = CompletableFuture.runAsync(() -> {
+            try { files.close(); }
+            catch (java.io.IOException failure) {
+                com.intellij.openapi.diagnostic.Logger.getInstance(StudioAiService.class).warn("Could not remove stopped AI connection", failure);
+            }
+        }, AppExecutorUtil.getAppExecutorService());
     }
     @Override public void dispose() { disposed = true; stop(); }
 }

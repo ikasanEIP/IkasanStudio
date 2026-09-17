@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
     alias(libs.plugins.qodana) // Gradle Qodana Plugin
+    id("org.jetbrains.kotlin.jvm") version "2.3.20" apply false
     id("idea")
 }
 
@@ -101,6 +102,7 @@ dependencies {
         // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file for plugin from JetBrains Marketplace.
         plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
 
+        pluginModule(runtimeOnly(project(":native-mcp")))
         pluginVerifier()
         zipSigner()
         testFramework(TestFrameworkType.Platform)
@@ -123,6 +125,27 @@ sourceSets {
                 configurations["testCompileClasspath"]
         runtimeClasspath += output + configurations["testRuntimeClasspath"]
     }
+}
+
+// A standalone stdio process, deliberately independent of IntelliJ's classpath.
+val mcpAdapter = sourceSets.create("mcpAdapter")
+dependencies {
+    add(mcpAdapter.implementationConfigurationName, "com.fasterxml.jackson.core:jackson-databind:2.22.2")
+}
+val mcpAdapterJar = tasks.register<Jar>("mcpAdapterJar") {
+    archiveFileName.set("studio-mcp-adapter.jar")
+    destinationDirectory.set(layout.buildDirectory.dir("mcp-adapter"))
+    manifest.attributes["Main-Class"] = "org.ikasan.studio.ai.StudioMcpAdapter"
+    from(mcpAdapter.output)
+    from({ configurations[mcpAdapter.runtimeClasspathConfigurationName].map {
+        if (it.isDirectory) it else zipTree(it)
+    } })
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude("META-INF/*.SF", "META-INF/*.RSA", "META-INF/*.DSA", "module-info.class",
+        "META-INF/versions/**/module-info.class")
+}
+tasks.named<ProcessResources>("processResources") {
+    from(mcpAdapterJar) { into("studio/ai") }
 }
 
 // Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html

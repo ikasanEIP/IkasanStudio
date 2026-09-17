@@ -5,12 +5,20 @@ dependencies {
     testImplementation(project(":studio-test-kit"))
     testImplementation("commons-io:commons-io:2.22.0")
 }
-sourceSets {
-    test {
-        java.srcDir("../../src/test/java")
-        java.include("org/ikasan/studio/testing/packs/**", "org/ikasan/studio/core/TestFixtures.java",
+// Give this module its own source root. Sharing the plugin's entire test root with
+// include filters makes IntelliJ assign unrelated plugin tests to this module.
+val sharedTestSources = tasks.register<Sync>("syncSharedTestSources") {
+    from("../../src/test/java") {
+        include("org/ikasan/studio/testing/packs/**", "org/ikasan/studio/core/TestFixtures.java",
             "org/ikasan/studio/core/generator/TestUtils.java", "org/ikasan/studio/SharedResourceExtension.java",
             "org/ikasan/studio/testkit/**")
+    }
+    into(layout.buildDirectory.dir("generated/sources/sharedTest/java"))
+}
+
+sourceSets {
+    test {
+        java.srcDir(sharedTestSources)
         resources.srcDir("../../src/test/resources")
         resources.include("studio/templates/**", "studio/metapack/TestV*/**")
     }

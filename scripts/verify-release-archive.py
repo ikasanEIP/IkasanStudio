@@ -56,6 +56,12 @@ def audit(archive, root):
                 errors.append("Missing plugin metadata: " + field)
         if "Initial scaffold" in descriptor.findtext("change-notes", ""):
             errors.append("Change notes still contain template boilerplate")
+        # Optional content modules still need their descriptors at plugin load time.
+        for module in descriptor.findall("content/module"):
+            module_name = module.get("name", "")
+            module_descriptor = module_name + ".xml"
+            if module_descriptor not in resources:
+                errors.append("Missing declared module descriptor: " + module_descriptor)
         dependencies = {item.text for item in descriptor.findall("depends")}
         for required in ("com.intellij.modules.platform", "com.intellij.java", "org.jetbrains.idea.maven",
                          "org.jetbrains.plugins.terminal"):

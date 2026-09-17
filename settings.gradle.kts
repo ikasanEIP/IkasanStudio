@@ -5,3 +5,5 @@ plugins {
 rootProject.name = "ikasanstudio"
 
 includeBuild("headless") { name = "studio-headless" }
+
+include(":native-mcp")

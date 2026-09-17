@@ -17,6 +17,12 @@ dependencies {
     testImplementation("com.tngtech.archunit:archunit:1.5.0")
 }
 
+// Use a separate source root so IntelliJ does not claim the plugin's UI tests.
+val sharedTestSources = tasks.register<Sync>("syncSharedTestSources") {
+    from("../../src/test/java") { include("org/ikasan/studio/testing/engine/**") }
+    into(layout.buildDirectory.dir("generated/sources/sharedTest/java"))
+}
+
 // Production Java sources live in this module; the plugin consumes its JAR.
 sourceSets {
     main {
@@ -24,8 +30,7 @@ sourceSets {
         resources.include("studio/metapack/schema/**")
     }
     test {
-        java.srcDir("../../src/test/java")
-        java.include("org/ikasan/studio/testing/engine/**")
+        java.srcDir(sharedTestSources)
         resources.srcDir("../../src/test/resources")
         resources.include("studio/metapack/Engine*/**", "studio/metapack/FailureInjection/**",
             "studio/metapack/TestV1/**", "studio/validation/**")

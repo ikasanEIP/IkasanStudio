@@ -11,6 +11,9 @@
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.idea.maven</depends>
     <depends>org.jetbrains.plugins.terminal</depends>
+    <content>
+        <module name="ikasanstudio.native-mcp" loading="optional"/>
+    </content>
 
     <resource-bundle>messages.studioBundle</resource-bundle>
 
@@ -22,6 +25,8 @@
                     anchor="right"
 		    icon="/studio/icons/squid13x13.svg"
         />
+
+        <backgroundPostStartupActivity implementation="org.ikasan.studio.intellij.ai.StudioAiStartupActivity"/>
 
         <backgroundPostStartupActivity
             implementation="org.ikasan.studio.intellij.onboarding.IkasanStudioOnboardingActivity"/>
@@ -44,19 +49,24 @@
                            bundle="messages.studioBundle"/>
     </extensions>
     <actions>
-        <action id="IkasanStudio.ConnectAI" class="org.ikasan.studio.intellij.ai.StudioAiConnectionAction">
+        <action id="IkasanStudio.ConnectAI" class="org.ikasan.studio.intellij.ai.StudioAiConnectionAction"
+                icon="/studio/icons/squid13x13.svg">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
-        <action id="IkasanStudio.CollectDiagnostics" class="org.ikasan.studio.intellij.diagnostics.CollectStudioDiagnosticsAction">
+        <action id="IkasanStudio.CollectDiagnostics" class="org.ikasan.studio.intellij.diagnostics.CollectStudioDiagnosticsAction"
+                icon="/studio/icons/squid13x13.svg">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
-        <action id="IkasanStudio.ReplaceReferences" class="org.ikasan.studio.ui.actions.ReplaceReferencesAction">
+        <action id="IkasanStudio.ReplaceReferences" class="org.ikasan.studio.ui.actions.ReplaceReferencesAction"
+                icon="/studio/icons/squid13x13.svg">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
-        <action id="IkasanStudio.MigrateVersion" class="org.ikasan.studio.intellij.migration.MigrateIkasanVersionAction">
+        <action id="IkasanStudio.MigrateVersion" class="org.ikasan.studio.intellij.migration.MigrateIkasanVersionAction"
+                icon="/studio/icons/squid13x13.svg">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
-        <action id="IkasanStudio.RestoreMigration" class="org.ikasan.studio.intellij.migration.RestoreIkasanMigrationAction">
+        <action id="IkasanStudio.RestoreMigration" class="org.ikasan.studio.intellij.migration.RestoreIkasanMigrationAction"
+                icon="/studio/icons/squid13x13.svg">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
         <action id="IkasanStudio.OpenEditor"

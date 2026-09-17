@@ -1,0 +1,11 @@
+<idea-plugin>
+    <dependencies>
+        <!-- Public marker for the bundled MCP implementation. Studio already requires the Terminal plugin; legacy Marketplace MCP plugins lack this module. -->
+        <module name="intellij.mcpserver.terminal"/>
+        <plugin id="com.github.ikasaneip.ikasanstudio"/>
+        <plugin id="com.intellij.mcpServer"/>
+    </dependencies>
+    <extensions defaultExtensionNs="com.intellij">
+        <mcpServer.mcpToolset implementation="org.ikasan.studio.intellij.ai.StudioNativeMcpToolset"/>
+    </extensions>
+</idea-plugin>

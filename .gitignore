@@ -57,6 +57,7 @@ out/
 
 # Gradle files
 .gradle/
+.kotlin/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 # Avoid ignoring Gradle wrapper jar as it's needed to run the build

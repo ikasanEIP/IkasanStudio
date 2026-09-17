@@ -1,5 +1,39 @@
 # AI bridge implementation handover — 17 September 2026
 
+## Current state after stash recovery — 17 September 2026
+
+This section supersedes the historical Python-adapter and unfinished-work notes below.
+
+The sandbox failed to load because plugin.xml declared `ikasanstudio.native-mcp`, but the
+native module was absent. The recoverable popped stash (`b214be9d24649b246ed3cd28029588a46297f8c2`)
+already contained empty native-toolset/adapter files and omitted the Gradle integration.
+Recovered the missing source from recorded edits and the surviving working distribution,
+preserving unrelated checkout changes and the existing Git index. Recovery copies are in
+`/tmp/ikasan-recovery`; this directory is temporary, so the working tree is the durable source.
+
+- `settings.gradle.kts` includes `:native-mcp`; the root build uses
+  `pluginModule(runtimeOnly(project(":native-mcp")))`. Do not use pluginComposedModule here.
+- The native module descriptor must be bundled as `ikasanstudio.native-mcp.xml` in
+  `lib/modules/ikasanstudio.native-mcp.jar`. It uses the public marker
+  `intellij.mcpserver.terminal`; `intellij.libraries.kotlinx.io` is internal and rejected at runtime.
+- The standalone adapter is Java, built by `mcpAdapterJar` and bundled under `studio/ai`.
+  It uses the running IDE's Java executable. Stable project connection paths and rotated
+  session files replace the previous Python/temp-directory implementation.
+- The connection dialog retains the seven spaced steps, bold inline settings button,
+  translated wording, aligned checklist, and automatic reopening preference.
+- `verifyReleaseArchive` now rejects missing declared content-module descriptors.
+  Verified against a temporary ZIP with the native module removed.
+- Full Gradle test suite and release archive audit passed. The normal Run Plugin sandbox was refreshed. A fresh headless IDEA 2026.2.2 startup passed,
+  registered all four Studio MCP tools, and reported no invalid/missing descriptor errors.
+  This is plugin-loading verification, not a new manual AI-client interaction test.
+
+Startup verification command:
+
+```sh
+JAVA_TOOL_OPTIONS=-Djava.awt.headless=true ./gradlew runIdeModern --args='traverseUI /tmp/ikasan-recovery/smoke-options true' -PstudioSandboxDirectory=/tmp/ikasan-recovery/smoke-sandbox --no-configuration-cache
+```
+
+
 ## Resume completion — 17 September 2026
 
 The implementation and automated verification below are now complete. The remaining sections retain the earlier handover as history; the interrupted edits and automated checks listed there are no longer pending.
