@@ -67,7 +67,10 @@ public final class ModelProposal {
                         FlowElement element = findElement(flow, text(op, "component"));
                         String property = text(op, "property");
                         var meta = element.getComponentMeta().getMetadata(property);
-                        if (meta != null && meta.isAffectsUserImplementedClass()) fail("Edit implementation class properties in Studio: " + property);
+                        // A protected user-supplied class is a bean reference, not a request to regenerate its code.
+                        if (meta != null && meta.isAffectsUserImplementedClass()
+                                && !(meta.isUserSuppliedClass() && meta.isProtectFromOverwrite()))
+                            fail("Edit implementation class properties in Studio: " + property);
                         setProperty(element, property, op.get("value"));
                         summary.add("Set " + flowName + " / " + element.getIdentity() + " / " + property);
                     }
@@ -175,6 +178,9 @@ public final class ModelProposal {
                         Object before = previous == null ? null : previous.getValue();
                         Object after = property.getValue();
                         if (!Objects.equals(before, after)) {
+                            if (previous != null && previous.getMeta().isUserSuppliedClass()
+                                    && previous.getMeta().isProtectFromOverwrite() && previous.isOverwriteEnabled())
+                                fail("Turn off source overwrite in Studio before changing the bean reference: " + key);
                             forward.add(() -> existing.setPropertyValue(key, after));
                             backward.add(() -> { if (previous == null) existing.removeProperty(key); else existing.setPropertyValue(key, before); });
                         }

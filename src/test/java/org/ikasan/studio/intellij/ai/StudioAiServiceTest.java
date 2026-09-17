@@ -164,7 +164,7 @@ class StudioAiServiceTest {
                 assertThat(reviewed.get().status).isEqualTo("cancelled");
                 return;
             }
-            service.apply(reviewed.get());
+            assertThat(service.apply(reviewed.get())).isSameAs(generated);
             assertThat(reviewed.get().status).isEqualTo("generating");
             generated.complete(null);
             assertThat(reviewed.get().status).isEqualTo("applied");

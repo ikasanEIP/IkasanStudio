@@ -118,6 +118,10 @@ Operations execute in array order on a detached candidate. Up to 100 operations 
   A consumer occupies the flow's consumer slot; other components are inserted before its terminal
   producer. Required properties with metadata defaults are materialised as in Studio.
 - `setProperty`: `type`, `flow`, `component` (existing name), `property`, `value` (scalar or null).
+  Protected user-supplied bean references, such as `endpointEventProvider`, can point to an
+  existing implementation (for example `MinuteEventProvider`). The proposal still requires
+  review and Apply. It does not create or verify the Java implementation; source overwrite
+  must be off. Properties that regenerate implementation code still require editing in Studio.
 - `connect`: `type`, `flow`, `order` (every component name exactly once, consumer first).
   This defines a linear flow order. Studio derives its persisted transitions.
 

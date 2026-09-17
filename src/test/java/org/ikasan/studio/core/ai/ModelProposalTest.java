@@ -119,6 +119,46 @@ public class ModelProposalTest {
                 """))).hasMessageContaining("mismatch");
     }
 
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void wiresProtectedProviderWithReviewApplyAndUndo(String version) throws Exception {
+        Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, List.of());
+        Module live = ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree("""
+                [{"type":"addFlow","flow":"flow1"},
+                 {"type":"addComponent","flow":"flow1","key":"Event Generating Consumer","name":"my egc"},
+                 {"type":"addComponent","flow":"flow1","key":"Dev Null Producer","name":"Discard"}]
+                """)).draft();
+        var before = LiveModelSnapshot.capture(live);
+        var operations = JSON.readTree("""
+                [{"type":"setProperty","flow":"flow1","component":"my egc",
+                  "property":"endpointEventProvider","value":"MinuteEventProvider"}]
+                """);
+        var prepared = ModelProposal.prepare(before, operations);
+        assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
+        var consumer = live.getFlows().get(0).getConsumer();
+        var changes = ModelProposal.changes(live, prepared);
+        changes.apply();
+        assertThat(consumer.getPropertyValue("endpointEventProvider")).isEqualTo("MinuteEventProvider");
+        assertThat(consumer.getProperty("endpointEventProvider").isOverwriteEnabled()).isFalse();
+        assertThat(ComponentIO.toValidatedModuleJson(live)).contains("MinuteEventProvider");
+        changes.undo();
+        assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
+        changes.apply();
+        assertThat(consumer.getPropertyValue("endpointEventProvider")).isEqualTo("MinuteEventProvider");
+        consumer.getProperty("endpointEventProvider").setOverwriteEnabled(true);
+        ((com.fasterxml.jackson.databind.node.ObjectNode) operations.get(0)).put("value", "OtherProvider");
+        var overwriteProposal = ModelProposal.prepare(LiveModelSnapshot.capture(live), operations);
+        assertThatThrownBy(() -> ModelProposal.changes(live, overwriteProposal))
+                .hasMessageContaining("Turn off source overwrite");
+        assertThat(consumer.getPropertyValue("endpointEventProvider")).isEqualTo("MinuteEventProvider");
+        ((com.fasterxml.jackson.databind.node.ObjectNode) operations.get(0)).put("value", "minuteEventProvider");
+        assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(live), operations))
+                .hasMessageContaining("validation rule");
+        ((com.fasterxml.jackson.databind.node.ObjectNode) operations.get(0)).put("property", "managedEventIdentifierService")
+                .put("value", "CustomIdentifierService");
+        assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(live), operations))
+                .hasMessageContaining("Edit implementation class properties in Studio");
+    }
+
     public static Module model() throws Exception {
         Module empty = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, List.of());
         return ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree(CREATE)).draft();

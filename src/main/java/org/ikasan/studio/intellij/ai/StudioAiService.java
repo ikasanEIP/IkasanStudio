@@ -232,7 +232,7 @@ public final class StudioAiService implements Disposable {
             throw new IllegalStateException(StudioBundle.message("ai.Stale"));
     }
 
-    void apply(Proposal proposal) {
+    CompletableFuture<Void> apply(Proposal proposal) {
         if (pending != proposal || !isRunning()) throw new IllegalStateException(StudioBundle.message("ai.Stale"));
         requireCurrent(proposal.snapshot);
         ModelProposal.ChangeSet changes = ModelProposal.changes(proposal.snapshot.source(), proposal.prepared);
@@ -272,6 +272,7 @@ public final class StudioAiService implements Disposable {
         pending = null;
         proposal.status = "generating";
         generation.whenComplete((ignored, failure) -> proposal.status = failure == null ? "applied" : "generation_failed");
+        return generation;
     }
 
     void cancel(Proposal proposal) {
