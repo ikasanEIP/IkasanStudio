@@ -58,6 +58,7 @@ public final class StudioAiService implements Disposable {
 
     record Snapshot(Module source, Map<String, Object> model) { }
     static final class Proposal {
+        boolean userCodeReviewRequired;
         final String id = UUID.randomUUID().toString();
         final Snapshot snapshot;
         final ModelProposal.Prepared prepared;
@@ -203,7 +204,7 @@ public final class StudioAiService implements Disposable {
                 if (pending != null) throw new IllegalStateException("Review or cancel the pending proposal in Studio first.");
                 pending = proposal;
                 synchronized (proposals) { proposals.put(proposal.id, proposal); trim(proposals, 16); }
-                reviewOrApply(proposal, arguments.path("operations"));
+                reviewOrApply(proposal);
             }
             return null;
         });
@@ -216,16 +217,31 @@ public final class StudioAiService implements Disposable {
     /** Returns false without opening a dialog when a watched file requires manual review. */
     boolean tryAutoImport(String json) throws Exception { return importProposal(json, true); }
 
-    static boolean canAutoApply(JsonNode operations) {
-        if (IkasanStudioSettings.isAlwaysAskAiApproval() || !operations.isArray() || operations.isEmpty()) return false;
-        for (JsonNode operation : operations) {
-            if (!"addFlow".equals(operation.path("type").asText())) return false;
+    static boolean requiresUserCodeReview(Module... modules) {
+        // Full generation can revisit unchanged flows. Transient overwrite flags in the live
+        // model are not preserved in the JSON snapshot, so inspect both live and proposed models.
+        for (Module module : modules) {
+            for (var flow : module.getFlows()) {
+                for (var element : flow.getFlowElementsNoExternalEndPoints()) {
+                    if (element instanceof org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement implementation
+                            && implementation.isOverwriteEnabled()) return true;
+                    for (var property : element.getUserSuppliedClassProperties()) {
+                        if (property.getMeta().isProtectFromOverwrite() && !property.getMeta().isNoStubRequired()
+                                && property.isOverwriteEnabled()) return true;
+                    }
+                }
+            }
         }
-        return true;
+        return false;
     }
 
-    private void reviewOrApply(Proposal proposal, JsonNode operations) {
-        if (!canAutoApply(operations)) {
+    private boolean canAutoApply(Proposal proposal) {
+        proposal.userCodeReviewRequired = requiresUserCodeReview(proposal.snapshot.source(), proposal.prepared.draft());
+        return !IkasanStudioSettings.isAlwaysAskAiApproval() && !proposal.userCodeReviewRequired;
+    }
+
+    private void reviewOrApply(Proposal proposal) {
+        if (!canAutoApply(proposal)) {
             new StudioAiProposalDialog(project, this, proposal).show();
             return;
         }
@@ -245,7 +261,7 @@ public final class StudioAiService implements Disposable {
 
     private boolean importProposal(String json, boolean autoOnly) throws Exception {
         JsonNode operations = JSON.readTree(json).path("operations");
-        if (autoOnly && !canAutoApply(operations)) return false;
+        if (autoOnly && IkasanStudioSettings.isAlwaysAskAiApproval()) return false;
         Snapshot snapshot = onEdt(this::capture);
         Path modelFile = Path.of(project.getBasePath(), "generated", "src", "main", "model", "model.json");
         byte[] saved;
@@ -257,11 +273,11 @@ public final class StudioAiService implements Disposable {
         proposal.fileBased = true;
         return onEdt(() -> {
             // Settings may have changed while validation ran in the background.
-            if (autoOnly && !canAutoApply(operations)) return false;
+            if (autoOnly && !canAutoApply(proposal)) return false;
             requireCurrent(snapshot);
             if (pending != null) throw new IllegalStateException("Review or cancel the pending proposal in Studio first.");
             pending = proposal;
-            reviewOrApply(proposal, operations);
+            reviewOrApply(proposal);
             return true;
         });
     }

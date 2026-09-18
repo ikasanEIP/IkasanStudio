@@ -29,12 +29,12 @@ public final class AiProjectContractGenerator {
 
                 When Studio is open, its live in-memory model is authoritative. If the Studio MCP bridge is
                 connected, use studio_snapshot, studio_catalogue and studio_propose, then check studio_proposal_status.
-                Empty-flow-only additions can apply automatically unless Always ask for approval is enabled.
+                Validated supported changes can apply automatically unless Always ask for approval is enabled or developer-owned code could be replaced.
                 Ask the developer to Apply only when the status is awaiting_review; wait for applied before continuing. Never edit model.json behind an open Studio.
                 If MCP is unavailable, use the proposal-file workflow in generated/IKASAN_STUDIO.md. Read the
                 saved model, calculate its SHA-256, and write a uniquely named .studio-proposal.json file in
                 the project-root ai-proposals/ folder. Write to a temporary file first, then rename it into
-                place when complete. New empty-flow-only files can apply automatically under the same setting;
+                place when complete. New proposal files can apply automatically under the same setting and user-code protection;
                 confirm the saved model reflects the change before continuing. For proposals awaiting review,
                 ask the developer to click Review on the AI proposal ready notification,
                 or Tools -> Review Latest AI Proposal, then Apply. Keep IntelliJ and Studio open; no MCP connection or direct model edit is needed.
@@ -74,9 +74,9 @@ public final class AiProjectContractGenerator {
 
                 Use Tools -> Connect AI to Ikasan Studio for IntelliJ MCP or the bundled Java adapter.
                 Read studio_snapshot and studio_catalogue, then submit studio_propose with the returned revision
-                and structured operations. Studio validates every proposal. Empty-flow-only additions apply automatically
+                and structured operations. Studio validates every proposal. Validated supported changes apply automatically
                 unless Settings -> Tools -> Ikasan Studio -> Always ask for approval is enabled (default: off).
-                All other operations require review and Apply. Both routes create one undoable change.
+                Potential developer-owned code replacement always requires review and Apply. Both routes create one undoable change.
                 Check studio_proposal_status: request Apply only for awaiting_review, wait while generating,
                 and continue only after applied. Report generation_failed instead of assuming success. If the chat turn ended while
                 awaiting review, the developer must tell the AI to continue; Apply does not restart an idle chat.
@@ -104,8 +104,8 @@ public final class AiProjectContractGenerator {
                    }
                    ```
 
-                4. Studio detects new or updated files directly in ai-proposals/. Empty-flow-only proposals can
-                   apply automatically unless Always ask for approval is enabled. Confirm the saved model has
+                4. Studio detects new or updated files directly in ai-proposals/. Validated supported proposals can
+                   apply automatically unless Always ask for approval is enabled or developer-owned code could be replaced. Confirm the saved model has
                    changed before continuing; writing a proposal is never proof of application.
                    Other proposals show AI proposal ready.
                    Ask the developer to click Review on that notification, or Tools -> Review Latest AI Proposal,

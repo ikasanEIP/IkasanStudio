@@ -47,7 +47,8 @@ class StudioAiServiceTest {
         StudioAiService service = new StudioAiService(project);
         when(project.getService(StudioAiService.class)).thenReturn(service);
         AtomicReference<StudioAiService.Proposal> reviewed = new AtomicReference<>();
-        try (var applications = mockStatic(ApplicationManager.class);
+        try (var settings = mockStatic(org.ikasan.studio.intellij.settings.IkasanStudioSettings.class);
+             var applications = mockStatic(ApplicationManager.class);
              var paths = mockStatic(PathManager.class);
              var modalities = mockStatic(ModalityState.class);
              var commands = mockStatic(CommandProcessor.class);
@@ -55,6 +56,7 @@ class StudioAiServiceTest {
              var files = mockStatic(StudioProjectFiles.class);
              var dialogs = mockConstruction(StudioAiProposalDialog.class, (dialog, construction) ->
                      reviewed.set((StudioAiService.Proposal) construction.arguments().get(2)))) {
+            settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
             Application app = mock(Application.class);
             modalities.when(ModalityState::any).thenReturn(mock(ModalityState.class));
             // Mockito records this call for stubbing; its return value is intentionally ignored.
@@ -175,6 +177,18 @@ class StudioAiServiceTest {
             assertThat(LiveModelSnapshot.capture(model)).isEqualTo(before);
             captured.getValue().redo();
             assertThat(model.getFlows().get(0).getConsumer().getPropertyValue("sourceDirectory")).isEqualTo("/new");
+            service.start();
+            settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(false);
+            // Completion notifications are not part of this transport/Undo test.
+            doNothing().when(app).invokeLater(any(Runnable.class));
+            snapshot = (Map<?, ?>) service.call("studio_snapshot", JSON.createObjectNode());
+            ((com.fasterxml.jackson.databind.node.ObjectNode) request).put("revision", snapshot.get("revision").toString());
+            ((com.fasterxml.jackson.databind.node.ObjectNode) request.path("operations").get(0)).put("value", "/automatic");
+            var result = (Map<?, ?>) service.call("studio_propose", request);
+            assertThat(result.get("status")).isEqualTo("applied");
+            assertThat(model.getFlows().get(0).getConsumer().getPropertyValue("sourceDirectory")).isEqualTo("/automatic");
+            assertThat(dialogs.constructed()).hasSize(1);
+            service.stop();
             when(context.getIkasanModule()).thenReturn(ModelProposalTest.model());
             assertThatThrownBy(() -> captured.getValue().undo()).isInstanceOf(UnexpectedUndoException.class);
             assertThatThrownBy(() -> service.call("studio_snapshot", JSON.createObjectNode())).hasMessageContaining("stopped");

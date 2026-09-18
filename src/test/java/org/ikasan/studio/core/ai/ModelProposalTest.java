@@ -97,6 +97,21 @@ public class ModelProposalTest {
         assertThat(live.getFlows().get(0).getFlowRoute().getFlowElements()).isEmpty();
     }
 
+    @Test void canAddProducerToAnExistingFlowBeforeItsConsumer() throws Exception {
+        Module live = TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", new java.util.ArrayList<>());
+        ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live),
+                JSON.readTree("[{\"type\":\"addFlow\",\"flow\":\"bob\"}]"))).apply();
+        var proposal = ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
+                [{"type":"addComponent","flow":"bob","key":"Dev Null Producer","name":"Discard"}]
+                """));
+        var changes = ModelProposal.changes(live, proposal);
+        changes.apply();
+        assertThat(live.getFlows().get(0).getConsumer()).isNull();
+        assertThat(live.getFlows().get(0).getFlowRoute().getFlowElements()).hasSize(1);
+        changes.undo();
+        assertThat(live.getFlows().get(0).getFlowRoute().getFlowElements()).isEmpty();
+    }
+
     @Test void editsRetainOriginalObjectsAndUndoRestoresValues() throws Exception {
         Module live = model();
         var flow = live.getFlows().get(0);

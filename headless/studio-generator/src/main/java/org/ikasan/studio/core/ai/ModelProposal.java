@@ -206,7 +206,7 @@ public final class ModelProposal {
                 targets.put(candidate.getIdentity(), target);
             }
             var oldConsumer = original.getConsumer();
-            var newConsumer = targets.get(draftFlow.getConsumer().getIdentity());
+            var newConsumer = draftFlow.getConsumer() == null ? null : targets.get(draftFlow.getConsumer().getIdentity());
             var oldBody = new ArrayList<>(original.getFlowRoute().getFlowElements());
             var newBody = draftFlow.getFlowRoute().getFlowElements().stream().map(e -> targets.get(e.getIdentity())).toList();
             forward.add(() -> { original.setConsumer(newConsumer); original.getFlowRoute().getFlowElements().clear(); original.getFlowRoute().getFlowElements().addAll(newBody); });

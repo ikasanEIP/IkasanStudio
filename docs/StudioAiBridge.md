@@ -6,8 +6,8 @@ not edit `model.json` or apply changes itself.
 
 ## At a glance
 
-The agent proposes changes to the live model. Empty-flow-only additions can apply automatically
-when Always ask for approval is off (the default). All other changes require review and Apply.
+The agent proposes changes to the live model. Validated supported changes can apply automatically
+when Always ask for approval is off (the default). Potential developer-owned code replacement always requires review and Apply.
 Studio validates, saves and generates files in both cases.
 
 ```mermaid
@@ -24,7 +24,7 @@ sequenceDiagram
     Studio->>Studio: Validate an isolated candidate model
     alt Proposal is invalid or stale
         Studio-->>Agent: Reject with diagnostics
-    else Empty-flow-only proposal and approval preference is off
+    else Validated proposal without user-code overwrite risk and approval preference is off
         Studio->>Studio: Recheck, apply, save and generate files
         Studio-->>Developer: Automatic application notification (Undo available)
         Studio-->>Agent: Proposal ID and current status
@@ -192,7 +192,7 @@ updates serialized transitions. It does not rename Java implementation classes o
 Without MCP, agents write a uniquely named `*.studio-proposal.json` directly into the project's
 `ai-proposals/` folder. Write a temporary file first and rename it into place once complete.
 Studio checks that folder in the background every three seconds and waits for stable file metadata
-before showing **AI proposal ready → Review**. No dialog opens automatically. Eligible empty-flow additions may apply automatically; other changes wait for review.
+before showing **AI proposal ready → Review**. No dialog opens automatically. Validated changes may apply automatically; user-code overwrite risks or the approval preference require review.
 **Tools → Review Latest AI Proposal** opens the most recently modified proposal without a chooser.
 Existing files are not announced again on IDE startup. The import action still accepts other files.
 All routes retain the saved-model hash, live-model, operation validation and explicit Apply checks.
@@ -212,8 +212,12 @@ required-property and ordering validation still applies.
 ### Automatic application
 
 Settings → Tools → Ikasan Studio → **Always ask for approval** defaults to off.
-Only proposals consisting entirely of `addFlow` operations can skip review. These add empty
-flows without changing existing components. All other operations still require review and Apply.
+All validated supported operations can skip review: adding flows/components, editing properties,
+renaming components and connecting linear flows. Full generation is checked for developer-owned
+code overwrite flags in both the live and proposed models, including unaffected flows. Any such
+risk requires explicit review, even when the preference is off. The generation transaction also
+refuses unauthorised replacement of existing files under `user/`. Deletion is not supported by
+this proposal API; it cannot silently delete developer-owned code.
 The same policy applies to MCP, manual imports and new proposal files detected in `ai-proposals/`.
 Validation, stale-state checks, code generation and Undo remain in place. A completion notification
 identifies automatically applied changes. Failed automatic file imports retain a review banner.

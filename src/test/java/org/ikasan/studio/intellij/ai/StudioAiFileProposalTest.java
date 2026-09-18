@@ -43,13 +43,15 @@ class StudioAiFileProposalTest {
         var before = LiveModelSnapshot.capture(live);
         var reviewed = new AtomicReference<StudioAiService.Proposal>();
         var service = new StudioAiService(project);
-        try (var applications = mockStatic(ApplicationManager.class);
+        try (var settings = mockStatic(org.ikasan.studio.intellij.settings.IkasanStudioSettings.class);
+             var applications = mockStatic(ApplicationManager.class);
              var modalities = mockStatic(ModalityState.class);
              var commands = mockStatic(CommandProcessor.class);
              var undos = mockStatic(UndoManager.class);
              var files = mockStatic(StudioProjectFiles.class);
              var dialogs = mockConstruction(StudioAiProposalDialog.class, (dialog, args) ->
                      reviewed.set((StudioAiService.Proposal) args.arguments().get(2)))) {
+            settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
             var app = mock(Application.class);
             applications.when(ApplicationManager::getApplication).thenReturn(app);
             modalities.when(ModalityState::any).thenReturn(mock(ModalityState.class));
@@ -85,7 +87,7 @@ class StudioAiFileProposalTest {
                     "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
                     "operations", json.readTree("[{\"type\":\"addFlow\",\"flow\":\"bob\"}]")));
             int reviewsBefore = dialogs.constructed().size();
-            try (var settings = mockStatic(org.ikasan.studio.intellij.settings.IkasanStudioSettings.class)) {
+            {
                 settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
                 assertThat(service.tryAutoImport(addFlow)).isFalse();
                 assertThat(live.getFlows()).hasSize(1);
@@ -100,11 +102,41 @@ class StudioAiFileProposalTest {
                 assertThat(live.getFlows().get(1).getIdentity()).isEqualTo("bob");
                 assertThatThrownBy(() -> service.tryAutoImport(addFlow)).isInstanceOf(Exception.class);
                 assertThat(live.getFlows()).hasSize(2);
-                assertThat(service.tryAutoImport(proposal)).isFalse(); // Renames always need review.
-                assertThat(StudioAiService.canAutoApply(json.readTree("[]"))).isFalse();
-                assertThat(StudioAiService.canAutoApply(json.readTree("""
-                        [{"type":"addFlow","flow":"later"},{"type":"setProperty"}]
-                        """))).isFalse();
+                Files.writeString(modelFile, ComponentIO.toValidatedModuleJson(live));
+                String rename = json.writeValueAsString(Map.of("formatVersion", 1,
+                        "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
+                        "operations", json.readTree("""
+                        [{"type":"renameComponent","flow":"Transfer","component":"ReadEvents","name":"ReadAgain"},
+                         {"type":"setProperty","flow":"Transfer","component":"ReadAgain","property":"sourceDirectory","value":"/auto"}]
+                        """)));
+                assertThat(service.tryAutoImport(rename)).isTrue();
+                assertThat(live.getFlows().get(0).getConsumer().getIdentity()).isEqualTo("ReadAgain");
+                assertThat(live.getFlows().get(0).getConsumer().getPropertyValue("sourceDirectory")).isEqualTo("/auto");
+                assertThat(dialogs.constructed()).hasSize(reviewsBefore + 1);
+                var risky = ModelProposal.prepare(LiveModelSnapshot.capture(
+                        org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", java.util.List.of())),
+                        json.readTree("""
+                        [{"type":"addFlow","flow":"existing"},
+                         {"type":"addComponent","flow":"existing","key":"Event Generating Consumer","name":"Input",
+                          "properties":{"endpointEventProvider":"MinuteEventProvider"}}]
+                        """)).draft();
+                when(context.getIkasanModule()).thenReturn(risky);
+                var property = risky.getFlows().get(0).getConsumer().getProperty("endpointEventProvider");
+                property.setOverwriteEnabled(true);
+                Files.writeString(modelFile, ComponentIO.toValidatedModuleJson(risky));
+                String unrelatedAddition = json.writeValueAsString(Map.of("formatVersion", 1,
+                        "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
+                        "operations", json.readTree("[{\"type\":\"addFlow\",\"flow\":\"unrelated\"}]")));
+                assertThat(service.tryAutoImport(unrelatedAddition)).isFalse();
+                assertThat(risky.getFlows()).hasSize(1);
+                service.importProposal(unrelatedAddition);
+                assertThat(reviewed.get().userCodeReviewRequired).isTrue();
+                assertThat(risky.getFlows()).hasSize(1);
+                service.cancel(reviewed.get());
+                property.setOverwriteEnabled(false);
+                assertThat(service.tryAutoImport(unrelatedAddition)).isTrue();
+                assertThat(risky.getFlows()).hasSize(2);
+
             }
 
         } finally { service.dispose(); }

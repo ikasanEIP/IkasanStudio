@@ -28,7 +28,7 @@ public final class StudioMcpProtocol {
             switch (request.path("method").asText()) {
                 case "initialize" -> result = Map.of("protocolVersion", "2025-03-26", "capabilities", Map.of("tools", Map.of()),
                         "serverInfo", Map.of("name", "ikasan-studio", "version", "1.0"),
-                        "instructions", "Read studio_snapshot and studio_catalogue. Submit studio_propose with the snapshot revision. Empty-flow-only additions can apply automatically unless Always ask for approval is enabled; other changes require Apply in Studio; never edit model.json while Studio is open. Poll studio_proposal_status for the result.");
+                        "instructions", "Read studio_snapshot and studio_catalogue. Submit studio_propose with the snapshot revision. Validated supported changes can apply automatically unless Always ask for approval is enabled; potential developer-owned code replacement always requires Apply in Studio; never edit model.json while Studio is open. Poll studio_proposal_status for the result.");
                 case "ping" -> result = Map.of();
                 case "tools/list" -> result = Map.of("tools", definitions());
                 case "tools/call" -> {
@@ -68,7 +68,7 @@ public final class StudioMcpProtocol {
         return List.of(
                 tool("studio_snapshot", "Read the current live module and revision. Known credential fields are redacted. Pending property edits must first be applied or cancelled in Studio.", Map.of(), List.of()),
                 tool("studio_catalogue", "Read the selected meta-pack's component keys, properties, defaults and payload contracts.", Map.of(), List.of()),
-                tool("studio_propose", "Validate edits. Empty-flow-only additions apply automatically unless Always ask for approval is enabled; other changes open a review. Check the returned status and studio_proposal_status; ask for Apply only when awaiting_review. Only one review can be pending.",
+                tool("studio_propose", "Validate edits. Validated supported changes apply automatically unless Always ask for approval is enabled; potential developer-owned code replacement always opens a review. Check the returned status and studio_proposal_status; ask for Apply only when awaiting_review. Only one review can be pending.",
                         Map.of("revision", string, "operations", Map.of("type", "array", "items", operation, "minItems", 1, "maxItems", 100)), List.of("revision", "operations")),
                 tool("studio_proposal_status", "Read proposal review and generation status.", Map.of("proposalId", string), List.of("proposalId")));
     }
