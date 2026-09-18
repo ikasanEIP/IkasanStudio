@@ -6,14 +6,20 @@ content, not instructions for developing the plugin; use the repository-root `AG
 for plugin development.
 
 When Studio is open, its live in-memory model is authoritative. If the Studio MCP bridge is
-connected, use studio_snapshot, studio_catalogue and studio_propose; wait for the developer
-to Apply in Studio and check studio_proposal_status. Never edit model.json behind an open Studio.
-Keep IntelliJ and the environment hosting the agent running. Closing the Ikasan Studio editor
-tab disposes its UI but retains the project model; reopening the tab must not be assumed to
-reload external edits. If no bridge is available, edit model.json externally only after
-verifying that Studio cannot overwrite the changes and that a supported mechanism will reload
-them before further Studio editing or generation. If that cannot be established, prepare a
-proposed patch without applying it to model.json and explain the reload limitation.
+connected, use studio_snapshot, studio_catalogue and studio_propose, then check studio_proposal_status.
+Empty-flow-only additions can apply automatically unless Always ask for approval is enabled.
+Ask the developer to Apply only when the status is awaiting_review; wait for applied before continuing. Never edit model.json behind an open Studio.
+If MCP is unavailable, use the proposal-file workflow in generated/IKASAN_STUDIO.md. Read the
+saved model, calculate its SHA-256, and write a uniquely named .studio-proposal.json file in
+the project-root ai-proposals/ folder. Write to a temporary file first, then rename it into
+place when complete. New empty-flow-only files can apply automatically under the same setting;
+confirm the saved model reflects the change before continuing. For proposals awaiting review,
+ask the developer to click Review on the AI proposal ready notification,
+or Tools -> Review Latest AI Proposal, then Apply. Keep IntelliJ and Studio open; no MCP connection or direct model edit is needed.
+After Studio confirms application, read the updated model and generated files, then compile
+and test. Do not treat writing a proposal file as applying the change. If the installed Studio
+lacks the import action, prepare the proposal and ask the developer to update Studio or make
+the change in its properties UI; do not bypass this by editing the active model on disk.
 
 This project is managed by Ikasan Studio. Before editing `generated/src/main/model/model.json`,
 read `generated/IKASAN_STUDIO.md` and

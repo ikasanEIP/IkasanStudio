@@ -49,6 +49,14 @@
                            bundle="messages.studioBundle"/>
     </extensions>
     <actions>
+        <action id="IkasanStudio.ReviewLatestAIProposal" class="org.ikasan.studio.intellij.ai.StudioAiReviewLatestProposalAction"
+                icon="/studio/icons/squid13x13.svg">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+        <action id="IkasanStudio.ImportAIProposal" class="org.ikasan.studio.intellij.ai.StudioAiImportProposalAction"
+                icon="/studio/icons/squid13x13.svg">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
         <action id="IkasanStudio.ConnectAI" class="org.ikasan.studio.intellij.ai.StudioAiConnectionAction"
                 icon="/studio/icons/squid13x13.svg">
             <add-to-group group-id="ToolsMenu" anchor="last"/>

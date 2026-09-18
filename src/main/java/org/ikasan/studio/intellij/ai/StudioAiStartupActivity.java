@@ -13,6 +13,7 @@ import kotlin.coroutines.Continuation;
 public final class StudioAiStartupActivity implements ProjectActivity {
     static final String RECONNECT = "ikasan.studio.ai.reconnect";
     @Override public Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
+        project.getService(StudioAiProposalInboxService.class).start();
         if (PropertiesComponent.getInstance(project).getBoolean(RECONNECT, false)) {
             ApplicationManager.getApplication().executeOnPooledThread(() -> {
                 if (project.isDisposed()) return;

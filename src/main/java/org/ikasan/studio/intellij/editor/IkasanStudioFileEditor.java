@@ -11,16 +11,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JComponent;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
+import org.ikasan.studio.intellij.ai.StudioAiProposalBanner;
 import java.beans.PropertyChangeListener;
 
 final class IkasanStudioFileEditor extends UserDataHolderBase implements FileEditor {
     private final VirtualFile file;
     private final DesignerUI designerUI;
+    private final JPanel content = new JPanel(new BorderLayout());
     private boolean disposed;
 
     IkasanStudioFileEditor(Project project, VirtualFile file) {
         this.file = file;
         designerUI = new DesignerUI(project);
+        content.add(new StudioAiProposalBanner(project, designerUI), BorderLayout.NORTH);
+        content.add(designerUI.getContent(), BorderLayout.CENTER);
     }
 
     @Override
@@ -30,7 +36,7 @@ final class IkasanStudioFileEditor extends UserDataHolderBase implements FileEdi
 
     @Override
     public @NotNull JComponent getComponent() {
-        return designerUI.getContent();
+        return content;
     }
 
     @Override

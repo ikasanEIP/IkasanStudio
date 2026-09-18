@@ -39,6 +39,64 @@ public class ModelProposalTest {
         assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(persisted);
     }
 
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void emptyFlowCanBeReviewedAppliedGeneratedAndUndoneThroughEitherProposalRoute(String version) throws Exception {
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        var before = LiveModelSnapshot.capture(live);
+        var operations = JSON.readTree("[{\"type\":\"addFlow\",\"flow\":\"bob\"}]");
+        var prepared = ModelProposal.prepare(before, operations);
+        byte[] saved = ComponentIO.toValidatedModuleJson(live).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        String file = JSON.writeValueAsString(java.util.Map.of("formatVersion", 1,
+                "baseModelSha256", OfflineModelProposal.sha256(saved), "operations", operations));
+        assertThat(OfflineModelProposal.prepare(file, saved, before).summary()).isEqualTo(prepared.summary());
+        assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
+        assertThat(prepared.summary()).anyMatch(line -> line.contains("is incomplete"));
+        var changes = ModelProposal.changes(live, prepared);
+        changes.apply();
+        var bob = live.getFlows().get(0);
+        assertThat(bob.getIdentity()).isEqualTo("bob");
+        assertThat(bob.getConsumer()).isNull();
+        assertThat(bob.getFlowIntegrityStatus()).isNotBlank();
+        String persisted = ComponentIO.toValidatedModuleJson(live);
+        assertThat(ComponentIO.validatePersistedModuleJson(persisted, "test", false).getFlows()).hasSize(1);
+        // Generation must support the same incomplete scaffold as a manually added Studio flow.
+        assertThat(org.ikasan.studio.core.generator.FlowTemplate.create(TestFixtures.DEFAULT_PACKAGE, live, bob))
+                .contains("class Bob");
+        assertThat(org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, live, bob))
+                .contains("ComponentFactoryBob");
+        assertThat(org.ikasan.studio.core.generator.ModuleConfigTemplate.create(live)).contains("getBob()");
+        changes.undo();
+        assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
+        changes.apply();
+        assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(persisted);
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void buildsFlowIncrementallyAcrossSeparateReviews(String version) throws Exception {
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        var create = ModelProposal.prepare(LiveModelSnapshot.capture(live),
+                JSON.readTree("[{\"type\":\"addFlow\",\"flow\":\"bob\"}]"));
+        ModelProposal.changes(live, create).apply();
+        var consumer = ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
+                [{"type":"addComponent","flow":"bob","key":"FTP Consumer","name":"ReadFiles",
+                  "properties":{"cronExpression":"0/5 * * * * ?","sourceDirectory":"/incoming"}}]
+                """));
+        assertThat(consumer.summary()).anyMatch(line -> line.contains("is incomplete"));
+        ModelProposal.changes(live, consumer).apply();
+        assertThat(live.getFlows().get(0).getConsumer()).isNotNull();
+        assertThat(live.getFlows().get(0).getFlowIntegrityStatus()).contains("producer");
+        var producer = ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
+                [{"type":"addComponent","flow":"bob","key":"FTP Producer","name":"WriteFiles",
+                  "properties":{"outputDirectory":"/outgoing"}}]
+                """));
+        var changes = ModelProposal.changes(live, producer);
+        changes.apply();
+        assertThat(live.getFlows().get(0).getFlowIntegrityStatus()).isBlank();
+        changes.undo();
+        assertThat(live.getFlows().get(0).getConsumer()).isNotNull();
+        assertThat(live.getFlows().get(0).getFlowRoute().getFlowElements()).isEmpty();
+    }
+
     @Test void editsRetainOriginalObjectsAndUndoRestoresValues() throws Exception {
         Module live = model();
         var flow = live.getFlows().get(0);
@@ -73,10 +131,7 @@ public class ModelProposalTest {
         }
     }
 
-    @Test void rejectsIncompleteFlowAndMissingRequiredProperties() throws Exception {
-        Module empty = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, List.of());
-        assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree("[{\"type\":\"addFlow\",\"flow\":\"Empty\"}]")))
-                .hasMessageContaining("consumer");
+    @Test void rejectsMissingRequiredProperties() throws Exception {
         Module live = model();
         assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
                 [{"type":"setProperty","flow":"Transfer","component":"ReadFiles","property":"cronExpression","value":null}]
@@ -157,6 +212,44 @@ public class ModelProposalTest {
                 .put("value", "CustomIdentifierService");
         assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(live), operations))
                 .hasMessageContaining("Edit implementation class properties in Studio");
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void renamesKeepIdentityTransitionsAndUndo(String version) throws Exception {
+        Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, List.of());
+        Module live = ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree(CREATE)).draft();
+        var before = LiveModelSnapshot.capture(live);
+        var consumer = live.getFlows().get(0).getConsumer();
+        var producer = live.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
+        var prepared = ModelProposal.prepare(before, JSON.readTree("""
+                [{"type":"renameComponent","flow":"Transfer","component":"ReadFiles","name":"ReadEvents"},
+                 {"type":"setProperty","flow":"Transfer","component":"ReadEvents","property":"sourceDirectory","value":"/new"},
+                 {"type":"renameComponent","flow":"Transfer","component":"WriteFiles","name":"WriteEvents"},
+                 {"type":"renameComponent","flow":"Transfer","component":"ReadEvents","name":"ReadAgain"}]
+                """));
+        assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
+        var changes = ModelProposal.changes(live, prepared);
+        changes.apply();
+        assertThat(live.getFlows().get(0).getConsumer()).isSameAs(consumer);
+        assertThat(live.getFlows().get(0).getFlowRoute().getFlowElements().get(0)).isSameAs(producer);
+        var json = JSON.readTree(ComponentIO.toValidatedModuleJson(live));
+        assertThat(json.path("flows").get(0).path("transitions").get(0).path("from").asText()).isEqualTo("ReadAgain");
+        assertThat(json.path("flows").get(0).path("transitions").get(0).path("to").asText()).isEqualTo("WriteEvents");
+        assertThat(consumer.getPropertyValue("sourceDirectory")).isEqualTo("/new");
+        changes.undo();
+        assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
+        changes.apply();
+        assertThat(consumer.getIdentity()).isEqualTo("ReadAgain");
+    }
+
+    @Test void rejectsRenameCollisionsAndInvalidNames() throws Exception {
+        var snapshot = LiveModelSnapshot.capture(model());
+        for (String name : List.of("WriteFiles", "Write Files", "../escape", "")) {
+            var operation = JSON.createObjectNode().put("type", "renameComponent").put("flow", "Transfer")
+                    .put("component", "ReadFiles").put("name", name);
+            assertThatThrownBy(() -> ModelProposal.prepare(snapshot, JSON.createArrayNode().add(operation)))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
     }
 
     public static Module model() throws Exception {

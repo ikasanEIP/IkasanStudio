@@ -28,6 +28,9 @@ class AiProjectContractGeneratorTest {
         assertThat(schema.path("$defs").path("flow").isObject()).isTrue();
         assertThat(AiProjectContractGenerator.agentsGuide()).contains("model.json", "preserve unknown", "fields");
         assertThat(AiProjectContractGenerator.studioGuide("SyntheticGuide"))
-                .contains("SyntheticGuide", "component-catalogue.json", "developer-owned");
+                .contains("SyntheticGuide", "component-catalogue.json", "developer-owned",
+                        "baseModelSha256", "renameComponent", "Import AI Proposal", "Keep Studio and IntelliJ open",
+                        "ai-proposals/", "Review Latest AI Proposal", "temporary file", "notification")
+                .doesNotContain("Python 3", "close Studio first", "renaming require Studio");
     }
 }

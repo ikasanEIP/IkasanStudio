@@ -119,7 +119,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     private Timer flowErrorFlashTimer;
     private boolean flowErrorFlashOn = false;
     private boolean disposed;
-    private boolean showSharedEndpoints;
+    private boolean showSharedEndpoints = IkasanStudioSettings.areSharedEndpointsShown();
     private final List<SharedEndpointLine> sharedEndpointLines = new ArrayList<>();
     private record SharedEndpointLine(Shape hitArea, FtpFlowConnections.Link link) { }
 
@@ -334,6 +334,33 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         importModelJsonButton.addActionListener(event ->
                 org.ikasan.studio.intellij.project.ModelImporter.openImportDialog(this.project));
         panel.add(importModelJsonButton);
+
+        panel.add(Box.createVerticalStrut(JBUI.scale(24)));
+        JBLabel aiHeading = new JBLabel(StudioBundle.message("ai.OnboardingHeading"));
+        aiHeading.setFont(aiHeading.getFont().deriveFont(Font.BOLD));
+        aiHeading.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(aiHeading);
+        panel.add(Box.createVerticalStrut(JBUI.scale(8)));
+
+        JBTextArea aiExplanation = new JBTextArea(StudioBundle.message("ai.OnboardingExplanation"));
+        aiExplanation.setEditable(false);
+        aiExplanation.setFocusable(false);
+        aiExplanation.setLineWrap(true);
+        aiExplanation.setWrapStyleWord(true);
+        aiExplanation.setOpaque(false);
+        aiExplanation.setFont(javax.swing.UIManager.getFont("Label.font"));
+        aiExplanation.setColumns(58);
+        aiExplanation.setBorder(JBUI.Borders.empty());
+        aiExplanation.setAlignmentX(Component.LEFT_ALIGNMENT);
+        aiExplanation.getAccessibleContext().setAccessibleName(StudioBundle.message("ai.OnboardingHeading"));
+        panel.add(aiExplanation);
+        panel.add(Box.createVerticalStrut(JBUI.scale(12)));
+
+        JButton connectAiButton = new JButton(StudioBundle.message("ai.ConnectionTitle"));
+        connectAiButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        connectAiButton.addActionListener(event ->
+                org.ikasan.studio.intellij.ai.StudioAiConnectionAction.open(project));
+        panel.add(connectAiButton);
         return panel;
     }
 

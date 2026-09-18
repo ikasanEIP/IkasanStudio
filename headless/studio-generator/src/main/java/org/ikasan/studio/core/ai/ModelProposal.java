@@ -13,12 +13,15 @@ import java.util.*;
 /** Validates an AI edit on an isolated model and prepares reversible edits retaining live object identity. */
 public final class ModelProposal {
     private ModelProposal() { }
-    public record Prepared(Module draft, Set<String> affectedFlows, List<String> summary) { }
+    public record Prepared(Module draft, Set<String> affectedFlows, List<String> summary,
+                           Map<FlowElement, String> originalNames) { }
 
     public static Prepared prepare(Map<String, Object> snapshot, JsonNode operations) throws Exception {
         if (!operations.isArray() || operations.isEmpty() || operations.size() > 100)
             throw new IllegalArgumentException("Provide between 1 and 100 operations.");
         Module draft = ComponentIO.validatePersistedModuleJson(StudioJson.newObjectMapper().writeValueAsString(snapshot), "AI snapshot", false);
+        Map<FlowElement, String> originalNames = new IdentityHashMap<>();
+        draft.getFlows().forEach(flow -> elements(flow).forEach(element -> originalNames.put(element, element.getIdentity())));
         Set<String> affected = new LinkedHashSet<>();
         List<String> summary = new ArrayList<>();
         for (JsonNode op : operations) {
@@ -74,6 +77,17 @@ public final class ModelProposal {
                         setProperty(element, property, op.get("value"));
                         summary.add("Set " + flowName + " / " + element.getIdentity() + " / " + property);
                     }
+                    case "renameComponent" -> {
+                        fields(op, "type", "flow", "component", "name");
+                        FlowElement element = findElement(flow, text(op, "component"));
+                        String name = text(op, "name");
+                        checkName(name);
+                        if (elements(flow).stream().anyMatch(other -> other != element && sameGeneratedName(other.getIdentity(), name)))
+                            fail("Component already exists: " + name);
+                        String previous = element.getIdentity();
+                        element.setName(name);
+                        summary.add("Rename " + flowName + " / " + previous + " to " + name);
+                    }
                     case "connect" -> {
                         fields(op, "type", "flow", "order");
                         JsonNode order = op.path("order");
@@ -98,8 +112,11 @@ public final class ModelProposal {
         }
         for (String name : affected) {
             Flow flow = findFlow(draft, name);
+            // Like manual Studio editing, proposals may leave a design in progress.
+            // Completeness is a review warning; structural and property checks still apply below.
             String integrity = flow.getFlowIntegrityStatus();
-            if (!integrity.isBlank()) fail(name + ": " + integrity);
+            if (!integrity.isBlank()) summary.add("Flow " + name + " is incomplete: " + integrity
+                    + " Complete the flow before running it.");
             List<FlowElement> body = flow.getFlowRoute().getFlowElements();
             for (int i = 0; i < body.size() - 1; i++) if (body.get(i).getComponentMeta().isProducer()) fail("A producer must be last in its flow.");
             for (FlowElement element : elements(flow)) {
@@ -117,7 +134,7 @@ public final class ModelProposal {
             }
         }
         ComponentIO.toValidatedModuleJson(draft);
-        return new Prepared(draft, Set.copyOf(affected), List.copyOf(summary));
+        return new Prepared(draft, Set.copyOf(affected), List.copyOf(summary), Collections.unmodifiableMap(originalNames));
     }
 
     private static void setProperty(FlowElement element, String key, JsonNode value) {
@@ -166,7 +183,7 @@ public final class ModelProposal {
             elements(original).forEach(e -> originals.put(e.getIdentity(), e));
             Map<String, FlowElement> targets = new HashMap<>();
             for (FlowElement candidate : elements(draftFlow)) {
-                FlowElement target = originals.get(candidate.getIdentity());
+                FlowElement target = originals.get(prepared.originalNames().get(candidate));
                 if (target == null) {
                     target = candidate;
                     target.setContainingFlow(original);

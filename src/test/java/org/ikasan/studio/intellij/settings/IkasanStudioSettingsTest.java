@@ -8,6 +8,7 @@ class IkasanStudioSettingsTest {
     @Test
     void newSettingsPreserveTheExistingCanvasDistances() {
         IkasanStudioSettings.State state = new IkasanStudioSettings.State();
+        assertThat(state.alwaysAskAiApproval).isFalse();
         assertThat(state.componentDistance).isEqualTo(30);
         assertThat(state.flowDistance).isEqualTo(20);
         assertThat(state.flowXStartPoint).isEqualTo(260);

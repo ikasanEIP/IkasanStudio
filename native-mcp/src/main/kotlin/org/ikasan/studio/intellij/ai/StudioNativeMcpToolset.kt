@@ -27,7 +27,7 @@ class StudioNativeMcpToolset : McpToolset {
     suspend fun studio_catalogue(): String = call("studio_catalogue", "{}")
 
     @McpTool
-    @McpDescription("Validate linear-flow changes and show a review in Studio. Does not apply changes: the developer must select Apply. Use the revision from studio_snapshot. Operations: addFlow {type,flow}; addComponent {type,flow,key,name,properties?}; setProperty {type,flow,component,property,value}; connect {type,flow,order:[all component names,consumer first]}. Submit complete valid flows. No routers, deletion, renaming or version changes. Read studio_proposal_status afterwards.")
+    @McpDescription("Validate linear-flow changes. Empty-flow-only additions apply automatically unless Always ask for approval is enabled; other changes require review and Apply. Check the returned status and studio_proposal_status; ask for Apply only when awaiting_review. Use the revision from studio_snapshot. Operations: addFlow {type,flow}; addComponent {type,flow,key,name,properties?}; setProperty {type,flow,component,property,value}; renameComponent {type,flow,component,name}; connect {type,flow,order:[all component names,consumer first]}. Empty flows and incremental flow construction are supported; incomplete flows show review warnings and must be completed before running. No routers, deletion, flow renaming or version changes. Read studio_proposal_status afterwards.")
     suspend fun studio_propose(
         @McpDescription("Opaque revision from studio_snapshot") revision: String,
         @McpDescription("Ordered array of 1 to 100 operation objects") operations: JsonArray

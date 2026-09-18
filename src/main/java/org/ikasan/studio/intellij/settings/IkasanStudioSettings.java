@@ -50,6 +50,11 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
          */
         public boolean jmsConnectorsEnabled = true;
 
+        /** Show all shared endpoint connections, including unselected components. */
+        public boolean showSharedEndpoints = true;
+
+        public boolean alwaysAskAiApproval = false;
+
         /**
          * Periodically poll (every few seconds, in the background) whether a local test mail server is
          * actually listening at each Email Producer's configured address, so the canvas's "Test Mail Server"
@@ -123,6 +128,18 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
     @Override
     public void loadState(@NotNull State state) {
         this.state = state;
+    }
+
+    public static boolean isAlwaysAskAiApproval() {
+        IkasanStudioSettings instance = getInstance();
+        State s = instance != null ? instance.getState() : null;
+        return s != null && s.alwaysAskAiApproval;
+    }
+
+    public static boolean areSharedEndpointsShown() {
+        IkasanStudioSettings instance = getInstance();
+        State s = instance != null ? instance.getState() : null;
+        return s == null || s.showSharedEndpoints;
     }
 
     public static boolean areGettingStartedHintsEnabled() {

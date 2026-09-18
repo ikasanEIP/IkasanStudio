@@ -6,8 +6,9 @@ not edit `model.json` or apply changes itself.
 
 ## At a glance
 
-The agent proposes changes to the live model; the developer reviews them in Studio before
-anything is applied. Studio handles saving and generation after approval.
+The agent proposes changes to the live model. Empty-flow-only additions can apply automatically
+when Always ask for approval is off (the default). All other changes require review and Apply.
+Studio validates, saves and generates files in both cases.
 
 ```mermaid
 sequenceDiagram
@@ -23,6 +24,10 @@ sequenceDiagram
     Studio->>Studio: Validate an isolated candidate model
     alt Proposal is invalid or stale
         Studio-->>Agent: Reject with diagnostics
+    else Empty-flow-only proposal and approval preference is off
+        Studio->>Studio: Recheck, apply, save and generate files
+        Studio-->>Developer: Automatic application notification (Undo available)
+        Studio-->>Agent: Proposal ID and current status
     else Proposal is ready for review
         Studio-->>Agent: Proposal ID and summary
         Studio-->>Developer: Show proposed changes in Studio
@@ -142,13 +147,13 @@ For example, with an FTP-capable selected meta-pack:
 ```
 
 Read the catalogue for required host, port and credential settings; the example uses metadata
-defaults where available. Submit complete valid flows. Unsupported components/properties, duplicate
+defaults where available. Empty flows and incremental flow construction are supported; incomplete flows show review warnings and must be completed before running. Unsupported components/properties, duplicate
 names, missing required values, invalid property types/choices and known payload mismatches reject
 the whole proposal. Payload checking uses Studio's design-time metadata and is not a substitute
 for compiling and testing the generated application.
 
 The initial API supports linear flows. Routers, edits to branched flows, exception resolvers,
-deletion, renaming, implementation-class changes and version migration must use Studio's existing UI.
+deletion, flow renaming, implementation regeneration and version migration must use Studio's existing UI.
 Unrelated flows and their object identities are preserved. No operation grants permission to
 overwrite developer-owned code.
 
@@ -163,3 +168,53 @@ remains applied so the developer can fix the problem and regenerate or undo it.
 For external model edits, follow the project AGENTS.md guidance on overwrite protection and a
 verified reload mechanism. Closing and reopening the editor tab alone does not guarantee a reload.
 Keep IntelliJ and the agent running; use the live bridge for changes to an open Studio session.
+
+## Proposal files without MCP
+
+Use **Tools → Import AI Proposal into Ikasan Studio…** to review a JSON proposal without
+starting the bridge. The connection dialog also has a **Proposal file (no MCP)** tab.
+Agents read `generated/IKASAN_STUDIO.md` for the versioned file format and examples.
+A proposal contains `formatVersion: 1`, `baseModelSha256` (SHA-256 of the exact saved
+`generated/src/main/model/model.json` bytes), and the usual `operations` array.
+Store it outside `generated/`, for example under `ai-proposals/`.
+
+Import checks the saved model digest and its agreement with the live design. Validation and
+review do not modify the model. Apply uses the existing undoable model change and generation
+pipeline; the developer returns to the AI chat after completion. Regenerate an existing project
+through Studio to refresh its generated agent guide after installing this feature.
+
+`renameComponent` accepts `flow`, `component` (old name), and `name` (new name). It supports
+consumers and body components in linear flows, preserves component identity for Undo, and
+updates serialized transitions. It does not rename Java implementation classes or flow names.
+
+### Automatic proposal discovery
+
+Without MCP, agents write a uniquely named `*.studio-proposal.json` directly into the project's
+`ai-proposals/` folder. Write a temporary file first and rename it into place once complete.
+Studio checks that folder in the background every three seconds and waits for stable file metadata
+before showing **AI proposal ready → Review**. No dialog opens automatically. Eligible empty-flow additions may apply automatically; other changes wait for review.
+**Tools → Review Latest AI Proposal** opens the most recently modified proposal without a chooser.
+Existing files are not announced again on IDE startup. The import action still accepts other files.
+All routes retain the saved-model hash, live-model, operation validation and explicit Apply checks.
+The inbox is project-scoped and its monitoring stops when the project closes.
+
+The Studio editor also shows a persistent proposal banner with **Review changes** and **Dismiss**.
+The pending filename is saved in project workspace state, so closing the editor or restarting IntelliJ
+preserves the banner. Opening a review successfully or explicitly dismissing it clears the banner;
+load/validation errors leave it available for retry. Dismiss does not delete the proposal file.
+A newer proposal replaces the banner's pending proposal; the import action can still open older files.
+
+`addFlow` also accepts an empty flow as a design placeholder, matching Studio’s manual Add flow action.
+Review and Apply work through MCP and proposal files. The generated scaffold is incomplete until a
+consumer and producer are added; the review summary identifies this. Components can be added in separate proposals. Incomplete flows produce review warnings, while
+required-property and ordering validation still applies.
+
+### Automatic application
+
+Settings → Tools → Ikasan Studio → **Always ask for approval** defaults to off.
+Only proposals consisting entirely of `addFlow` operations can skip review. These add empty
+flows without changing existing components. All other operations still require review and Apply.
+The same policy applies to MCP, manual imports and new proposal files detected in `ai-proposals/`.
+Validation, stale-state checks, code generation and Undo remain in place. A completion notification
+identifies automatically applied changes. Failed automatic file imports retain a review banner.
+Agents must inspect MCP status (or reread the saved model for file proposals) before claiming success.

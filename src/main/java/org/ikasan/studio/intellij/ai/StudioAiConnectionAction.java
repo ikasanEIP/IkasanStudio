@@ -77,6 +77,12 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
             copy.addActionListener(event -> CopyPasteManager.getInstance().setContents(new StringSelection(configuration)));
             manual.add(copy, BorderLayout.SOUTH);
             tabs.addTab(StudioBundle.message("ai.AdapterTab"), manual);
+            JPanel fileSetup = new JPanel(new BorderLayout(0, JBUI.scale(8)));
+            fileSetup.add(text(StudioBundle.message("ai.FileInstructions")), BorderLayout.CENTER);
+            JButton importFile = new JButton(StudioBundle.message("ai.ImportTitle"));
+            importFile.addActionListener(event -> StudioAiImportProposalAction.open(project));
+            fileSetup.add(importFile, BorderLayout.SOUTH);
+            tabs.addTab(StudioBundle.message("ai.FileTab"), fileSetup);
             panel.add(tabs, BorderLayout.CENTER);
             JPanel footer = new JPanel(new BorderLayout(0, JBUI.scale(8)));
             var reconnect = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("ai.Reconnect"),
@@ -120,6 +126,9 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
             guidance.add(next, BorderLayout.CENTER);
             refreshStatus = () -> {
                 if (project.isDisposed()) return;
+                boolean fileRoute = tabs.getSelectedIndex() == tabs.getTabCount() - 1;
+                guidance.setVisible(!fileRoute);
+                reconnect.setVisible(!fileRoute);
                 boolean running = service.isRunning();
                 String issue = running ? service.connectionReadinessIssue() : null;
                 String transport = service.getLastAccessTransport();

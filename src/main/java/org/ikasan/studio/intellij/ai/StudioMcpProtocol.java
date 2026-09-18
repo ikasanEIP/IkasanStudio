@@ -28,7 +28,7 @@ public final class StudioMcpProtocol {
             switch (request.path("method").asText()) {
                 case "initialize" -> result = Map.of("protocolVersion", "2025-03-26", "capabilities", Map.of("tools", Map.of()),
                         "serverInfo", Map.of("name", "ikasan-studio", "version", "1.0"),
-                        "instructions", "Read studio_snapshot and studio_catalogue. Submit studio_propose with the snapshot revision. Changes require Apply in Studio; never edit model.json while Studio is open. Poll studio_proposal_status for the result.");
+                        "instructions", "Read studio_snapshot and studio_catalogue. Submit studio_propose with the snapshot revision. Empty-flow-only additions can apply automatically unless Always ask for approval is enabled; other changes require Apply in Studio; never edit model.json while Studio is open. Poll studio_proposal_status for the result.");
                 case "ping" -> result = Map.of();
                 case "tools/list" -> result = Map.of("tools", definitions());
                 case "tools/call" -> {
@@ -60,15 +60,15 @@ public final class StudioMcpProtocol {
     static List<Map<String, Object>> definitions() {
         Map<String, Object> string = Map.of("type", "string");
         Map<String, Object> operation = Map.of("type", "object", "description",
-                "addFlow: {type,flow}. addComponent: {type,flow,key,name,properties?}. setProperty: {type,flow,component,property,value}. connect: {type,flow,order:[all component names, consumer first]}. Operations are applied in order. Submit complete valid linear flows. No routers, deletion, renaming or version changes.",
-                "properties", Map.of("type", Map.of("type", "string", "enum", List.of("addFlow", "addComponent", "setProperty", "connect")),
+                "addFlow: {type,flow}. addComponent: {type,flow,key,name,properties?}. setProperty: {type,flow,component,property,value}. renameComponent: {type,flow,component,name}. connect: {type,flow,order:[all component names, consumer first]}. Operations are applied in order. Empty flows and incremental linear-flow construction are supported; incomplete flows show review warnings and must be completed before running. No routers, deletion, flow renaming or version changes.",
+                "properties", Map.of("type", Map.of("type", "string", "enum", List.of("addFlow", "addComponent", "setProperty", "renameComponent", "connect")),
                         "flow", string, "key", string, "name", string, "component", string, "property", string,
                         "value", Map.of(), "properties", Map.of("type", "object"), "order", Map.of("type", "array", "items", string)),
                 "required", List.of("type", "flow"), "additionalProperties", false);
         return List.of(
                 tool("studio_snapshot", "Read the current live module and revision. Known credential fields are redacted. Pending property edits must first be applied or cancelled in Studio.", Map.of(), List.of()),
                 tool("studio_catalogue", "Read the selected meta-pack's component keys, properties, defaults and payload contracts.", Map.of(), List.of()),
-                tool("studio_propose", "Validate edits and open a preview in Studio. Does not apply edits. Only one review can be pending.",
+                tool("studio_propose", "Validate edits. Empty-flow-only additions apply automatically unless Always ask for approval is enabled; other changes open a review. Check the returned status and studio_proposal_status; ask for Apply only when awaiting_review. Only one review can be pending.",
                         Map.of("revision", string, "operations", Map.of("type", "array", "items", operation, "minItems", 1, "maxItems", 100)), List.of("revision", "operations")),
                 tool("studio_proposal_status", "Read proposal review and generation status.", Map.of("proposalId", string), List.of("proposalId")));
     }

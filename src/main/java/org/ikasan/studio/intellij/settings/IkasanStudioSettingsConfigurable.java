@@ -33,6 +33,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     private JCheckBox promptBeforeDeletingUserCodeCheckBox;
     private JCheckBox showAdvancedControlsCheckBox;
     private JCheckBox showJmsConnectorsCheckBox;
+    private JCheckBox showSharedEndpointsCheckBox;
+    private JCheckBox alwaysAskAiApprovalCheckBox;
     private JCheckBox testMailServerLivePollingCheckBox;
     private JCheckBox flowErrorMonitoringCheckBox;
     private JCheckBox autoSaveModuleDiagramCheckBox;
@@ -76,6 +78,13 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
 
         JLabel advancedControlsNote = wrappingNote("label.AdvancedControlsNote");
         advancedControlsPanel.add(advancedControlsNote, BorderLayout.CENTER);
+
+        showSharedEndpointsCheckBox = new JBCheckBox(StudioBundle.message("label.ShowSharedEndpoints"));
+        showSharedEndpointsCheckBox.setToolTipText(StudioBundle.message("tooltip.ShowSharedEndpoints"));
+        JPanel sharedEndpointsPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
+        sharedEndpointsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.SharedEndpoints")));
+        sharedEndpointsPanel.add(showSharedEndpointsCheckBox, BorderLayout.NORTH);
+        sharedEndpointsPanel.add(wrappingNote("tooltip.ShowSharedEndpoints"), BorderLayout.CENTER);
 
         showJmsConnectorsCheckBox = new JBCheckBox(StudioBundle.message("checkbox.ShowJmsConnectors"));
 
@@ -165,12 +174,20 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         JLabel canvasLayoutNote = wrappingNote("label.CanvasLayoutNote");
         canvasLayoutPanel.add(canvasLayoutNote, BorderLayout.CENTER);
 
+        alwaysAskAiApprovalCheckBox = new JBCheckBox(StudioBundle.message("ai.AlwaysAskApproval"));
+        JPanel aiPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
+        aiPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("ai.SettingsHeading")));
+        aiPanel.add(alwaysAskAiApprovalCheckBox, BorderLayout.NORTH);
+        aiPanel.add(wrappingNote("ai.ApprovalNote"), BorderLayout.CENTER);
+
         JPanel northPanel = new JPanel();
         northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
         northPanel.add(hintsPanel);
+        northPanel.add(aiPanel);
         northPanel.add(userCodePanel);
         northPanel.add(advancedControlsPanel);
         northPanel.add(jmsConnectorsPanel);
+        northPanel.add(sharedEndpointsPanel);
         northPanel.add(canvasLayoutPanel);
         northPanel.add(testMailServerPanel);
         northPanel.add(flowErrorMonitoringPanel);
@@ -198,6 +215,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
                 || gettingStartedHintsCheckBox.isSelected() != IkasanStudioSettings.areGettingStartedHintsEnabled()
                 || promptBeforeDeletingUserCodeCheckBox.isSelected() != IkasanStudioSettings.isPromptBeforeDeletingUserCode()
                 || showAdvancedControlsCheckBox.isSelected() != IkasanStudioSettings.isShowAdvancedControlsEnabled()
+                || alwaysAskAiApprovalCheckBox.isSelected() != IkasanStudioSettings.isAlwaysAskAiApproval()
+                || showSharedEndpointsCheckBox.isSelected() != IkasanStudioSettings.areSharedEndpointsShown()
                 || showJmsConnectorsCheckBox.isSelected() != IkasanStudioSettings.areJmsConnectorsEnabled()
                 || spinnerValue(componentDistanceSpinner) != IkasanStudioSettings.getComponentDistance()
                 || spinnerValue(flowDistanceSpinner) != IkasanStudioSettings.getFlowDistance()
@@ -217,6 +236,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
             state.gettingStartedHintsEnabled = gettingStartedHintsCheckBox.isSelected();
             state.promptBeforeDeletingUserCode = promptBeforeDeletingUserCodeCheckBox.isSelected();
             state.showAdvancedControls = showAdvancedControlsCheckBox.isSelected();
+            state.alwaysAskAiApproval = alwaysAskAiApprovalCheckBox.isSelected();
+            state.showSharedEndpoints = showSharedEndpointsCheckBox.isSelected();
             state.jmsConnectorsEnabled = showJmsConnectorsCheckBox.isSelected();
             state.componentDistance = spinnerValue(componentDistanceSpinner);
             state.flowDistance = spinnerValue(flowDistanceSpinner);
@@ -235,6 +256,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         gettingStartedHintsCheckBox.setSelected(IkasanStudioSettings.areGettingStartedHintsEnabled());
         promptBeforeDeletingUserCodeCheckBox.setSelected(IkasanStudioSettings.isPromptBeforeDeletingUserCode());
         showAdvancedControlsCheckBox.setSelected(IkasanStudioSettings.isShowAdvancedControlsEnabled());
+        alwaysAskAiApprovalCheckBox.setSelected(IkasanStudioSettings.isAlwaysAskAiApproval());
+        showSharedEndpointsCheckBox.setSelected(IkasanStudioSettings.areSharedEndpointsShown());
         showJmsConnectorsCheckBox.setSelected(IkasanStudioSettings.areJmsConnectorsEnabled());
         componentDistanceSpinner.setValue(IkasanStudioSettings.getComponentDistance());
         flowDistanceSpinner.setValue(IkasanStudioSettings.getFlowDistance());
@@ -254,6 +277,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         for (Project project : ProjectManager.getInstance().getOpenProjects()) {
             UiContext context = project.getService(UiContext.class);
             if (context != null && context.getDesignerCanvas() != null) {
+                context.getDesignerCanvas().setShowSharedEndpoints(IkasanStudioSettings.areSharedEndpointsShown());
                 context.getDesignerCanvas().setInitialiseAllDimensions(true);
                 context.getDesignerCanvas().repaint();
             }

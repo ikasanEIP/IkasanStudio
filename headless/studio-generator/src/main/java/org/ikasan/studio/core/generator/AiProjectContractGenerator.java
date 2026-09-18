@@ -28,14 +28,20 @@ public final class AiProjectContractGenerator {
                 for plugin development.
 
                 When Studio is open, its live in-memory model is authoritative. If the Studio MCP bridge is
-                connected, use studio_snapshot, studio_catalogue and studio_propose; wait for the developer
-                to Apply in Studio and check studio_proposal_status. Never edit model.json behind an open Studio.
-                Keep IntelliJ and the environment hosting the agent running. Closing the Ikasan Studio editor
-                tab disposes its UI but retains the project model; reopening the tab must not be assumed to
-                reload external edits. If no bridge is available, edit model.json externally only after
-                verifying that Studio cannot overwrite the changes and that a supported mechanism will reload
-                them before further Studio editing or generation. If that cannot be established, prepare a
-                proposed patch without applying it to model.json and explain the reload limitation.
+                connected, use studio_snapshot, studio_catalogue and studio_propose, then check studio_proposal_status.
+                Empty-flow-only additions can apply automatically unless Always ask for approval is enabled.
+                Ask the developer to Apply only when the status is awaiting_review; wait for applied before continuing. Never edit model.json behind an open Studio.
+                If MCP is unavailable, use the proposal-file workflow in generated/IKASAN_STUDIO.md. Read the
+                saved model, calculate its SHA-256, and write a uniquely named .studio-proposal.json file in
+                the project-root ai-proposals/ folder. Write to a temporary file first, then rename it into
+                place when complete. New empty-flow-only files can apply automatically under the same setting;
+                confirm the saved model reflects the change before continuing. For proposals awaiting review,
+                ask the developer to click Review on the AI proposal ready notification,
+                or Tools -> Review Latest AI Proposal, then Apply. Keep IntelliJ and Studio open; no MCP connection or direct model edit is needed.
+                After Studio confirms application, read the updated model and generated files, then compile
+                and test. Do not treat writing a proposal file as applying the change. If the installed Studio
+                lacks the import action, prepare the proposal and ask the developer to update Studio or make
+                the change in its properties UI; do not bypass this by editing the active model on disk.
 
                 This project is managed by Ikasan Studio. Before editing `generated/src/main/model/model.json`,
                 read `generated/IKASAN_STUDIO.md` and
@@ -66,26 +72,73 @@ public final class AiProjectContractGenerator {
 
                 ## Live Studio workflow
 
-                Use Tools -> Connect AI to Ikasan Studio to obtain the MCP client configuration (Python 3).
+                Use Tools -> Connect AI to Ikasan Studio for IntelliJ MCP or the bundled Java adapter.
                 Read studio_snapshot and studio_catalogue, then submit studio_propose with the returned revision
-                and structured operations. Studio validates and previews the proposal before the developer applies
-                it as one undoable change. Read studio_proposal_status to distinguish applied changes from rejected,
-                cancelled or failed generation. While Studio is open, do not edit model.json on disk.
-                The initial bridge supports complete linear flows; routers, deletion and renaming require Studio.
+                and structured operations. Studio validates every proposal. Empty-flow-only additions apply automatically
+                unless Settings -> Tools -> Ikasan Studio -> Always ask for approval is enabled (default: off).
+                All other operations require review and Apply. Both routes create one undoable change.
+                Check studio_proposal_status: request Apply only for awaiting_review, wait while generating,
+                and continue only after applied. Report generation_failed instead of assuming success. If the chat turn ended while
+                awaiting review, the developer must tell the AI to continue; Apply does not restart an idle chat.
+                While Studio is open, do not edit model.json on disk.
 
-                ## Safe offline editing workflow (close Studio first)
+                ## Proposal file workflow (no MCP required)
 
-                1. Read the current model and component catalogue; never guess property names.
-                2. Make the smallest possible edit and preserve fields you do not understand.
-                3. Give every flow and component a unique name within its scope.
-                4. A flow has one `consumer`; ordered body components live in `flowElements`.
-                5. Keep `transitions` consistent with that order. A normal edge is
-                   `{ "from": "sourceName", "to": "targetName", "name": "default" }`.
-                6. Use the catalogue `key` as `additionalKey` whenever the catalogue supplies one. Retain the
-                   catalogue's `componentType` and `implementingClass` exactly.
-                7. Reopen or reload the model in Studio. Studio validates external JSON before accepting it,
-                   preserves rejected content, and maintains last-known-good backups.
-                8. Regenerate through Studio and compile the project before considering the change complete.
+                1. Keep Studio and IntelliJ open. Read the saved model and component catalogue.
+                2. Calculate SHA-256 of the exact bytes of generated/src/main/model/model.json, for example
+                   `sha256sum generated/src/main/model/model.json`. Do not reformat the model before hashing.
+                3. Write a UTF-8 file such as ai-proposals/rename-consumer.studio-proposal.json, outside generated/.
+                   Create ai-proposals/ in the project root if needed. Use a new filename for each proposal;
+                   preserve previous proposals. Write a temporary file without the .studio-proposal.json suffix,
+                   then rename it to the final filename when complete so Studio does not read a partial file.
+                   Use this format, replacing the digest and names with values from the current project:
+
+                   ```json
+                   {
+                     "formatVersion": 1,
+                     "baseModelSha256": "<64-character SHA-256 of the saved model>",
+                     "operations": [
+                       {"type": "renameComponent", "flow": "flow1", "component": "my egc",
+                        "name": "EventGeneratingConsumer"}
+                     ]
+                   }
+                   ```
+
+                4. Studio detects new or updated files directly in ai-proposals/. Empty-flow-only proposals can
+                   apply automatically unless Always ask for approval is enabled. Confirm the saved model has
+                   changed before continuing; writing a proposal is never proof of application.
+                   Other proposals show AI proposal ready.
+                   Ask the developer to click Review on that notification, or Tools -> Review Latest AI Proposal,
+                   then review the operations and click Apply. The menu selects the most recently modified file.
+                   Existing files do not trigger notifications on IDE restart; use the menu to review them.
+                   Tools -> Import AI Proposal into Ikasan Studio remains available for selecting any proposal.
+                   Importing does not enable an MCP server or give the AI live access.
+                5. Studio checks the digest, compares the saved model with its live design, validates operations,
+                   and rejects stale proposals. If rejected, save any intended changes through Studio and prepare
+                   a fresh proposal from the updated model. Never edit model.json to make a proposal pass.
+                6. After Apply and generation complete, ask the AI to read the updated files and compile/test.
+                   A saved proposal file is not an applied change. The model changes support Undo in Studio.
+
+                ## Supported proposal operations
+
+                Both MCP and file proposals use the same operations (1 to 100 per proposal):
+
+                - addFlow: type, flow (new name). May create an empty design placeholder; do not invent components.
+                  Flows can be built incrementally across proposals. An incomplete flow is a design in progress,
+                  not a rejection; it needs a consumer and producer before it can run.
+                - addComponent: type, flow, key (exact catalogue key), name, optional properties object.
+                - setProperty: type, flow, component (current name), property, value (scalar or null).
+                  Protected user-supplied bean references such as endpointEventProvider may refer to existing
+                  classes. Implementation regeneration remains a Studio operation.
+                - renameComponent: type, flow, component (current name), name (new name).
+                  Subsequent operations use the new name. Studio updates linear-flow transitions; it does not
+                  rename Java implementation classes or edit developer-owned source files.
+                - connect: type, flow, order (every component name exactly once, consumer first).
+
+                Existing edits and component renaming support linear flows only. Routers, deletion, flow renaming,
+                and exception-resolver changes require Studio. Do not alter transitions on disk to work around this.
+                Preserve unknown fields; use catalogue keys and property validation rules. Names must be unique
+                within their scope, including their generated Java names. Complete flows require a consumer.
 
                 To change Ikasan versions, use Studio's Migrate action. It previews the model, generated
                 code and Maven changes and saves a recovery snapshot before applying the conversion.

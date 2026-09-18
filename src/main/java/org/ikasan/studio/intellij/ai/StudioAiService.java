@@ -20,6 +20,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -62,6 +63,7 @@ public final class StudioAiService implements Disposable {
         final ModelProposal.Prepared prepared;
         final String details;
         volatile String status = "awaiting_review";
+        boolean fileBased;
         Proposal(Snapshot snapshot, ModelProposal.Prepared prepared, String details) { this.snapshot = snapshot; this.prepared = prepared; this.details = details; }
     }
     public StudioAiService(Project project) { this.project = project; }
@@ -201,11 +203,67 @@ public final class StudioAiService implements Disposable {
                 if (pending != null) throw new IllegalStateException("Review or cancel the pending proposal in Studio first.");
                 pending = proposal;
                 synchronized (proposals) { proposals.put(proposal.id, proposal); trim(proposals, 16); }
-                new StudioAiProposalDialog(project, this, proposal).show();
+                reviewOrApply(proposal, arguments.path("operations"));
             }
             return null;
         });
         return Map.of("proposalId", proposal.id, "status", proposal.status, "summary", prepared.summary());
+    }
+
+    /** Runs off EDT. Import needs no MCP server and never writes the incoming model file. */
+    void importProposal(String json) throws Exception { importProposal(json, false); }
+
+    /** Returns false without opening a dialog when a watched file requires manual review. */
+    boolean tryAutoImport(String json) throws Exception { return importProposal(json, true); }
+
+    static boolean canAutoApply(JsonNode operations) {
+        if (IkasanStudioSettings.isAlwaysAskAiApproval() || !operations.isArray() || operations.isEmpty()) return false;
+        for (JsonNode operation : operations) {
+            if (!"addFlow".equals(operation.path("type").asText())) return false;
+        }
+        return true;
+    }
+
+    private void reviewOrApply(Proposal proposal, JsonNode operations) {
+        if (!canAutoApply(operations)) {
+            new StudioAiProposalDialog(project, this, proposal).show();
+            return;
+        }
+        try {
+            apply(proposal).whenComplete((ignored, failure) -> ApplicationManager.getApplication().invokeLater(() -> {
+                if (project.isDisposed()) return;
+                String message = StudioBundle.message(failure == null ? "ai.AutoApplied" : "ai.ApplyGenerationFailed")
+                        + "\n" + String.join("\n", proposal.prepared.summary());
+                if (failure == null) org.ikasan.studio.ui.StudioUIUtils.displayIdeaInfoMessage(project, message);
+                else org.ikasan.studio.ui.StudioUIUtils.displayIdeaErrorMessage(project, message);
+            }));
+        } catch (RuntimeException failure) {
+            cancel(proposal);
+            throw failure;
+        }
+    }
+
+    private boolean importProposal(String json, boolean autoOnly) throws Exception {
+        JsonNode operations = JSON.readTree(json).path("operations");
+        if (autoOnly && !canAutoApply(operations)) return false;
+        Snapshot snapshot = onEdt(this::capture);
+        Path modelFile = Path.of(project.getBasePath(), "generated", "src", "main", "model", "model.json");
+        byte[] saved;
+        try (var input = Files.newInputStream(modelFile)) { saved = input.readNBytes(8_388_609); }
+        if (saved.length > 8_388_608) throw new IllegalArgumentException("Saved Studio model exceeds 8 MiB.");
+        var prepared = org.ikasan.studio.core.ai.OfflineModelProposal.prepare(json, saved, snapshot.model());
+        Proposal proposal = new Proposal(snapshot, prepared,
+                JSON.writerWithDefaultPrettyPrinter().writeValueAsString(JSON.readTree(json).path("operations")));
+        proposal.fileBased = true;
+        return onEdt(() -> {
+            // Settings may have changed while validation ran in the background.
+            if (autoOnly && !canAutoApply(operations)) return false;
+            requireCurrent(snapshot);
+            if (pending != null) throw new IllegalStateException("Review or cancel the pending proposal in Studio first.");
+            pending = proposal;
+            reviewOrApply(proposal, operations);
+            return true;
+        });
     }
 
     private Snapshot capture() { requireReady(); Module module = context().getIkasanModule(); return new Snapshot(module, LiveModelSnapshot.capture(module)); }
@@ -233,7 +291,7 @@ public final class StudioAiService implements Disposable {
     }
 
     CompletableFuture<Void> apply(Proposal proposal) {
-        if (pending != proposal || !isRunning()) throw new IllegalStateException(StudioBundle.message("ai.Stale"));
+        if (pending != proposal || (!proposal.fileBased && !isRunning())) throw new IllegalStateException(StudioBundle.message("ai.Stale"));
         requireCurrent(proposal.snapshot);
         ModelProposal.ChangeSet changes = ModelProposal.changes(proposal.snapshot.source(), proposal.prepared);
         UndoManager undo = UndoManager.getInstance(project);
@@ -309,7 +367,7 @@ public final class StudioAiService implements Disposable {
         if (executor != null) { executor.shutdownNow(); executor = null; }
         synchronized (snapshots) { snapshots.clear(); }
         synchronized (proposals) { proposals.clear(); }
-        if (pending != null) { pending.status = "cancelled"; pending = null; }
+        if (pending != null && (!pending.fileBased || disposed)) { pending.status = "cancelled"; pending = null; }
         lastAccessTransport = null;
         StudioAiConnectionFiles files = connectionFiles;
         connectionFiles = null;
