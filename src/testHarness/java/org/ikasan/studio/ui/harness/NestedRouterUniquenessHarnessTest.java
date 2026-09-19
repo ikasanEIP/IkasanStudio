@@ -173,4 +173,41 @@ public class NestedRouterUniquenessHarnessTest extends ComponentTestHarness {
         List<?> cleanResult = (List<?>) validateMethod.invoke(panel);
         assertThat(cleanResult).isEmpty();
     }
+
+    @Test
+    void componentNamesThatGenerateTheSameJavaNameAreRejected() throws Exception {
+        String metapackVersion = TestFixtures.BASE_META_PACK;
+        Flow flow = buildFlowWithRouterNestedInsideAnotherRoutersRoute1(metapackVersion);
+        FlowRoute routeA2 = flow.getFlowRoute().getChildRoutes().stream()
+                .filter(r -> "route2".equals(r.getRouteName())).findFirst().orElseThrow();
+
+        FlowElement existing = TestFixtures.getDevNullProducer(metapackVersion);
+        existing.setComponentName("ReadFiles");
+        existing.setContainingFlowRoute(routeA2);
+        routeA2.getFlowElements().add(existing);
+        // "Read Files" is not equal text, but both generate getReadFiles() in the flow's component factory.
+        FlowElement spaced = TestFixtures.getDevNullProducer(metapackVersion);
+        spaced.setComponentName("Read Files");
+        spaced.setContainingFlowRoute(routeA2);
+        routeA2.getFlowElements().add(spaced);
+
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metapackVersion, new ArrayList<>(List.of(flow)));
+        Project project = getProject();
+        UiContext uiContext = project.getService(UiContext.class);
+        uiContext.setViewHandlerFactory(new ViewHandlerCache(project));
+        uiContext.setIkasanModule(module);
+
+        ComponentPropertiesPanel panel = new ComponentPropertiesPanel(project, false);
+        panel.updateTargetComponent(spaced);
+        Method validateMethod = ComponentPropertiesPanel.class.getDeclaredMethod("validateComponentNameIsUniqueInFlow");
+        validateMethod.setAccessible(true);
+
+        assertThat((List<?>) validateMethod.invoke(panel))
+                .as("Names differing only by spaces generate the same Java member and must be rejected")
+                .isNotEmpty();
+
+        spaced.setComponentName("Write Files");
+        panel.updateTargetComponent(spaced);
+        assertThat((List<?>) validateMethod.invoke(panel)).isEmpty();
+    }
 }
