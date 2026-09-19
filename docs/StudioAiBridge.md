@@ -153,7 +153,7 @@ the whole proposal. Payload checking uses Studio's design-time metadata and is n
 for compiling and testing the generated application.
 
 The initial API supports linear flows. Routers, edits to branched flows, exception resolvers,
-deletion, flow renaming, implementation regeneration and version migration must use Studio's existing UI.
+flow deletion, flow renaming, implementation regeneration and version migration must use Studio's existing UI.
 Unrelated flows and their object identities are preserved. No operation grants permission to
 overwrite developer-owned code.
 
@@ -216,9 +216,23 @@ All validated supported operations can skip review: adding flows/components, edi
 renaming components and connecting linear flows. Full generation is checked for developer-owned
 code overwrite flags in both the live and proposed models, including unaffected flows. Any such
 risk requires explicit review, even when the preference is off. The generation transaction also
-refuses unauthorised replacement of existing files under `user/`. Deletion is not supported by
-this proposal API; it cannot silently delete developer-owned code.
+refuses unauthorised replacement of existing files under `user/`. Component deletion removes model entries only and retains developer-owned source files.
 The same policy applies to MCP, manual imports and new proposal files detected in `ai-proposals/`.
 Validation, stale-state checks, code generation and Undo remain in place. A completion notification
 identifies automatically applied changes. Failed automatic file imports retain a review banner.
 Agents must inspect MCP status (or reread the saved model for file proposals) before claiming success.
+
+### Delete or replace a component
+
+`deleteComponent {type, flow, component}` removes a component from a linear flow.
+`replaceComponent {type, flow, component, key, name, properties?}` changes its type and configuration
+while retaining its position. Consumers can only be replaced with consumers; body components with
+body components. Defaults come from the new type, with explicit properties overriding them.
+Both operations retain developer-owned source files, support Undo/Redo and follow the automatic
+application preference and overwrite-risk checks. Routers/branched flows and flow deletion remain unsupported.
+
+For example, replace a consumer and preserve its downstream connection:
+```json
+{"type":"replaceComponent","flow":"toby","component":"bob","key":"Spring JMS Consumer",
+ "name":"Receive from Tom","properties":{"destinationJndiName":"tom.to.toby"}}
+```

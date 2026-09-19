@@ -127,6 +127,12 @@ public final class AiProjectContractGenerator {
                   Flows can be built incrementally across proposals. An incomplete flow is a design in progress,
                   not a rejection; it needs a consumer and producer before it can run.
                 - addComponent: type, flow, key (exact catalogue key), name, optional properties object.
+                - deleteComponent: type, flow, component (current name). Removes only the design component;
+                  retains developer-owned source files. Remaining linear components stay connected in order.
+                - replaceComponent: type, flow, component (current name), key (new catalogue key), name,
+                  optional properties object. Preserves position; consumers must be replaced with consumers.
+                  Uses the new type's defaults plus the supplied properties, not the old type's configuration.
+                  Retains developer-owned source files. Prefer this for changing an existing consumer's type.
                 - setProperty: type, flow, component (current name), property, value (scalar or null).
                   Protected user-supplied bean references such as endpointEventProvider may refer to existing
                   classes. Implementation regeneration remains a Studio operation.
@@ -135,7 +141,7 @@ public final class AiProjectContractGenerator {
                   rename Java implementation classes or edit developer-owned source files.
                 - connect: type, flow, order (every component name exactly once, consumer first).
 
-                Existing edits and component renaming support linear flows only. Routers, deletion, flow renaming,
+                Existing edits and component renaming support linear flows only. Routers, flow deletion, flow renaming,
                 and exception-resolver changes require Studio. Do not alter transitions on disk to work around this.
                 Preserve unknown fields; use catalogue keys and property validation rules. Names must be unique
                 within their scope, including their generated Java names. Complete flows require a consumer.

@@ -315,6 +315,10 @@ public final class StudioAiService implements Disposable {
         CompletableFuture<Void> generation;
         try { generation = StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.full()); }
         catch (RuntimeException failure) { changes.undo(); throw failure; }
+        if (proposal.fileBased) {
+            var inbox = project.getService(StudioAiProposalInboxService.class);
+            if (inbox != null) inbox.clearPreviousAfterSuccess(generation);
+        }
         Snapshot after = new Snapshot(proposal.snapshot.source(), LiveModelSnapshot.capture(proposal.snapshot.source()));
         CommandProcessor.getInstance().executeCommand(project, () -> {
             undo.undoableActionPerformed(new UndoableAction() {

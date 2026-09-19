@@ -113,6 +113,20 @@ class StudioAiFileProposalTest {
                 assertThat(live.getFlows().get(0).getConsumer().getIdentity()).isEqualTo("ReadAgain");
                 assertThat(live.getFlows().get(0).getConsumer().getPropertyValue("sourceDirectory")).isEqualTo("/auto");
                 assertThat(dialogs.constructed()).hasSize(reviewsBefore + 1);
+                Files.writeString(modelFile, ComponentIO.toValidatedModuleJson(live));
+                String replace = json.writeValueAsString(Map.of("formatVersion", 1,
+                        "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
+                        "operations", json.readTree("""
+                        [{"type":"replaceComponent","flow":"Transfer","component":"ReadAgain",
+                          "key":"Spring JMS Consumer","name":"Receive from Tom",
+                          "properties":{"destinationJndiName":"tom.to.toby"}},
+                         {"type":"replaceComponent","flow":"Transfer","component":"WriteFiles",
+                          "key":"Dev Null Producer","name":"Discard"}]
+                        """)));
+                assertThat(service.tryAutoImport(replace)).isTrue();
+                assertThat(live.getFlows().get(0).getConsumer().getIdentity()).isEqualTo("Receive from Tom");
+                assertThat(dialogs.constructed()).hasSize(reviewsBefore + 1);
+                files.verify(() -> StudioProjectFiles.deleteUserImplementedClassFile(any(), any()), never());
                 var risky = ModelProposal.prepare(LiveModelSnapshot.capture(
                         org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", java.util.List.of())),
                         json.readTree("""

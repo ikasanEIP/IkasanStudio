@@ -60,8 +60,8 @@ public final class StudioMcpProtocol {
     static List<Map<String, Object>> definitions() {
         Map<String, Object> string = Map.of("type", "string");
         Map<String, Object> operation = Map.of("type", "object", "description",
-                "addFlow: {type,flow}. addComponent: {type,flow,key,name,properties?}. setProperty: {type,flow,component,property,value}. renameComponent: {type,flow,component,name}. connect: {type,flow,order:[all component names, consumer first]}. Operations are applied in order. Empty flows and incremental linear-flow construction are supported; incomplete flows show review warnings and must be completed before running. No routers, deletion, flow renaming or version changes.",
-                "properties", Map.of("type", Map.of("type", "string", "enum", List.of("addFlow", "addComponent", "setProperty", "renameComponent", "connect")),
+                "addFlow: {type,flow}. addComponent: {type,flow,key,name,properties?}. setProperty: {type,flow,component,property,value}. renameComponent: {type,flow,component,name}. deleteComponent: {type,flow,component}. replaceComponent: {type,flow,component,key,name,properties?}; preserves position, replaces consumers only with consumers, preserves developer-owned source files. connect: {type,flow,order:[all component names, consumer first]}. Operations are applied in order. Empty flows and incremental linear-flow construction are supported; incomplete flows show review warnings and must be completed before running. No routers, flow deletion, flow renaming or version changes.",
+                "properties", Map.of("type", Map.of("type", "string", "enum", List.of("addFlow", "addComponent", "setProperty", "renameComponent", "deleteComponent", "replaceComponent", "connect")),
                         "flow", string, "key", string, "name", string, "component", string, "property", string,
                         "value", Map.of(), "properties", Map.of("type", "object"), "order", Map.of("type", "array", "items", string)),
                 "required", List.of("type", "flow"), "additionalProperties", false);

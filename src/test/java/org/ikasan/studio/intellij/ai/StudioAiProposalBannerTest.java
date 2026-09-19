@@ -5,6 +5,45 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 
 public class StudioAiProposalBannerTest extends HeavyPlatformTestCase {
+    public void testSuccessfulApplicationClearsEarlierBannerButFailureAndNewerProposalDoNot() {
+        var properties = PropertiesComponent.getInstance(getProject());
+        var inbox = getProject().getService(StudioAiProposalInboxService.class);
+        var owner = Disposer.newDisposable();
+        try {
+            properties.setValue(StudioAiProposalInboxService.PENDING, "old-draft.studio-proposal.json");
+            properties.setValue(StudioAiProposalInboxService.REVISION, "old");
+            var banner = new StudioAiProposalBanner(getProject(), owner);
+            var failed = new java.util.concurrent.CompletableFuture<Void>();
+            inbox.clearPreviousAfterSuccess(failed);
+            failed.completeExceptionally(new IllegalStateException("Generation failed"));
+            com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents();
+            assertTrue(banner.isVisible());
+            var generation = new java.util.concurrent.CompletableFuture<Void>();
+            inbox.clearPreviousAfterSuccess(generation);
+            assertTrue(banner.isVisible());
+            generation.complete(null);
+            com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents();
+            assertFalse(banner.isVisible());
+            assertNull(inbox.getPendingProposal());
+
+            properties.setValue(StudioAiProposalInboxService.PENDING, "old-draft.studio-proposal.json");
+            properties.setValue(StudioAiProposalInboxService.REVISION, "old");
+            var delayed = new java.util.concurrent.CompletableFuture<Void>();
+            inbox.clearPreviousAfterSuccess(delayed);
+            properties.setValue(StudioAiProposalInboxService.PENDING, "new-request.studio-proposal.json");
+            properties.setValue(StudioAiProposalInboxService.REVISION, "new");
+            getProject().getMessageBus().syncPublisher(StudioAiProposalInboxService.CHANGED).run();
+            delayed.complete(null);
+            com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents();
+            assertTrue(banner.isVisible());
+            assertEquals("new-request.studio-proposal.json", inbox.getPendingProposal().getFileName().toString());
+        } finally {
+            Disposer.dispose(owner);
+            properties.unsetValue(StudioAiProposalInboxService.PENDING);
+            properties.unsetValue(StudioAiProposalInboxService.REVISION);
+        }
+    }
+
     public void testPendingProposalRestoresAcrossEditorRecreationAndDismissPersists() {
         var properties = PropertiesComponent.getInstance(getProject());
         properties.setValue(StudioAiProposalInboxService.PENDING, "rename.studio-proposal.json");

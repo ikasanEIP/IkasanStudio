@@ -44,10 +44,6 @@ public final class StudioAiProposalInboxService implements Disposable {
                 var stamp = files.get(path);
                 if (!tryAutoApply(path)) {
                     ApplicationManager.getApplication().invokeLater(() -> announce(path, stamp.toString()));
-                } else {
-                    ApplicationManager.getApplication().invokeLater(() -> {
-                        if (!disposed && !project.isDisposed() && path.equals(getPendingProposal())) dismissPending();
-                    });
                 }
             });
         } catch (Exception failure) {
@@ -89,6 +85,14 @@ public final class StudioAiProposalInboxService implements Disposable {
         PropertiesComponent.getInstance(project).unsetValue(REVISION);
         if (notification != null) notification.expire();
         project.getMessageBus().syncPublisher(CHANGED).run();
+    }
+
+    /** Called on EDT when a file proposal is applied. Do not dismiss a later incoming proposal. */
+    void clearPreviousAfterSuccess(CompletableFuture<Void> generation) {
+        Path previous = getPendingProposal();
+        String revision = pendingRevision();
+        if (previous == null) return;
+        generation.thenRun(() -> ApplicationManager.getApplication().invokeLater(() -> dismiss(previous, revision)));
     }
 
     public void dismissPending() { dismiss(getPendingProposal(), pendingRevision()); }

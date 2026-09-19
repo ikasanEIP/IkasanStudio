@@ -43,26 +43,27 @@ public final class ModelProposal {
                 switch (type) {
                     case "addComponent" -> {
                         fields(op, "type", "flow", "key", "name", "properties");
-                        String name = text(op, "name");
-                        checkName(name);
-                        if (elements(flow).stream().anyMatch(e -> sameGeneratedName(e.getIdentity(), name))) fail("Component already exists: " + name);
-                        var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(draft.getVersion(), text(op, "key"));
-                        if (meta.isModule() || meta.isFlow() || meta.isEndpoint() || meta.isRouter() || meta.isExceptionResolver())
-                            fail("Choose a consumer or a linear flow component. Routers, endpoints and resolvers are not supported by this operation.");
-                        String issue = flow.issueCausedByAdding(meta, flow.getFlowRoute()) + flow.getFlowRoute().issueCausedByAdding(meta);
-                        if (!issue.isBlank()) fail(issue);
-                        FlowElement element = FlowElementFactory.createFlowElement(draft.getVersion(), meta, flow, flow.getFlowRoute(), name);
-                        if (op.has("properties")) {
-                            if (!op.get("properties").isObject()) fail("properties must be an object");
-                            for (var property : op.get("properties").properties()) {
-                                setProperty(element, property.getKey(), property.getValue());
-                            }
-                        }
-                        element.defaultUnsetMandatoryProperties();
-                        StudioBuildUtils.substituteAllPlaceholderInPascalCase(draft, flow, element);
-                        if (meta.isConsumer()) flow.setConsumer(element);
-                        else flow.getFlowRoute().insertFlowElement(flow.getFlowRoute().getFlowElements().size(), element);
-                        summary.add("Add " + text(op, "key") + ": " + flowName + " / " + name);
+                        addComponent(draft, flow, op, flow.getFlowRoute().getFlowElements().size());
+                        summary.add("Add " + text(op, "key") + ": " + flowName + " / " + text(op, "name"));
+                    }
+                    case "deleteComponent" -> {
+                        fields(op, "type", "flow", "component");
+                        FlowElement element = findElement(flow, text(op, "component"));
+                        removeComponent(flow, element);
+                        summary.add("Delete component: " + flowName + " / " + element.getIdentity()
+                                + " (developer-owned source files are retained)");
+                    }
+                    case "replaceComponent" -> {
+                        fields(op, "type", "flow", "component", "key", "name", "properties");
+                        FlowElement previous = findElement(flow, text(op, "component"));
+                        var replacementMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(draft.getVersion(), text(op, "key"));
+                        if (previous.getComponentMeta().isConsumer() != replacementMeta.isConsumer())
+                            fail("Replace a consumer with another consumer; replace body components with body components.");
+                        int position = flow.getFlowRoute().getFlowElements().indexOf(previous);
+                        removeComponent(flow, previous);
+                        addComponent(draft, flow, op, Math.max(0, position));
+                        summary.add("Replace " + flowName + " / " + previous.getIdentity() + " with "
+                                + text(op, "name") + " (" + text(op, "key") + "; developer-owned source files are retained)");
                     }
                     case "setProperty" -> {
                         fields(op, "type", "flow", "component", "property", "value");
@@ -135,6 +136,31 @@ public final class ModelProposal {
         }
         ComponentIO.toValidatedModuleJson(draft);
         return new Prepared(draft, Set.copyOf(affected), List.copyOf(summary), Collections.unmodifiableMap(originalNames));
+    }
+
+    private static void removeComponent(Flow flow, FlowElement element) {
+        if (flow.getConsumer() == element) flow.setConsumer(null);
+        else flow.getFlowRoute().getFlowElements().remove(element);
+    }
+
+    private static void addComponent(Module draft, Flow flow, JsonNode op, int position) throws Exception {
+        String name = text(op, "name");
+        checkName(name);
+        if (elements(flow).stream().anyMatch(e -> sameGeneratedName(e.getIdentity(), name))) fail("Component already exists: " + name);
+        var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(draft.getVersion(), text(op, "key"));
+        if (meta.isModule() || meta.isFlow() || meta.isEndpoint() || meta.isRouter() || meta.isExceptionResolver())
+            fail("Choose a consumer or a linear flow component. Routers, endpoints and resolvers are not supported by this operation.");
+        String issue = flow.issueCausedByAdding(meta, flow.getFlowRoute()) + flow.getFlowRoute().issueCausedByAdding(meta);
+        if (!issue.isBlank()) fail(issue);
+        FlowElement element = FlowElementFactory.createFlowElement(draft.getVersion(), meta, flow, flow.getFlowRoute(), name);
+        if (op.has("properties")) {
+            if (!op.get("properties").isObject()) fail("properties must be an object");
+            for (var property : op.get("properties").properties()) setProperty(element, property.getKey(), property.getValue());
+        }
+        element.defaultUnsetMandatoryProperties();
+        StudioBuildUtils.substituteAllPlaceholderInPascalCase(draft, flow, element);
+        if (meta.isConsumer()) flow.setConsumer(element);
+        else flow.getFlowRoute().insertFlowElement(position, element);
     }
 
     private static void setProperty(FlowElement element, String key, JsonNode value) {
