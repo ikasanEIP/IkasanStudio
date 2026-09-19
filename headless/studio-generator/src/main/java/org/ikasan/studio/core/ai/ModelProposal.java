@@ -30,7 +30,6 @@ public final class ModelProposal {
         for (JsonNode op : operations) {
             String type = text(op, "type");
             String flowName = text(op, "flow");
-            checkName(flowName);
             deletesContent |= Set.of("deleteFlow", "deleteComponent", "replaceComponent").contains(type);
             Flow flow;
             if (type.equals("deleteFlow")) {
@@ -44,6 +43,9 @@ public final class ModelProposal {
                 summary.add("Delete entire flow: " + flowName + " and all its components (developer-owned source files are retained)");
             } else if (type.equals("addFlow")) {
                 fields(op, "type", "flow");
+                // Only names this proposal introduces are constrained; existing flows are validated by lookup
+                // and may legitimately carry names Studio's own UI allows (e.g. "Order-Flow").
+                checkName(flowName);
                 if (draft.getFlows().stream().anyMatch(f -> sameGeneratedName(f.getIdentity(), flowName))) fail("Flow already exists: " + flowName);
                 flow = new Flow(draft.getVersion());
                 flow.setName(flowName);

@@ -72,6 +72,28 @@ public class ModelProposalTest {
     }
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void existingFlowWithNameOutsideNewNamePatternCanStillBeEditedAndDeleted(String version) throws Exception {
+        // Studio does not restrict flow names in the UI, so a developer can legitimately have "Order-Flow".
+        // The new-name pattern must apply only to names the proposal introduces, not to existing flows.
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live),
+                JSON.readTree("[{\"type\":\"addFlow\",\"flow\":\"Transfer\"}]"))).apply();
+        live.getFlows().get(0).setName("Order-Flow");
+        var snapshot = LiveModelSnapshot.capture(live);
+
+        var addComponent = ModelProposal.prepare(snapshot, JSON.readTree(
+                "[{\"type\":\"addComponent\",\"flow\":\"Order-Flow\",\"key\":\"FTP Consumer\",\"name\":\"ReadFiles\","
+                        + "\"properties\":{\"cronExpression\":\"0/5 * * * * ?\",\"sourceDirectory\":\"/incoming\"}}]"));
+        assertThat(addComponent.summary()).anyMatch(line -> line.contains("Order-Flow"));
+
+        var delete = ModelProposal.prepare(snapshot, JSON.readTree("[{\"type\":\"deleteFlow\",\"flow\":\"Order-Flow\"}]"));
+        assertThat(delete.summary()).anyMatch(line -> line.contains("Delete entire flow: Order-Flow"));
+
+        assertThatThrownBy(() -> ModelProposal.prepare(snapshot, JSON.readTree("[{\"type\":\"addFlow\",\"flow\":\"New-Flow\"}]")))
+                .hasMessageContaining("Names must start with a letter");
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void buildsFlowIncrementallyAcrossSeparateReviews(String version) throws Exception {
         Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
         var create = ModelProposal.prepare(LiveModelSnapshot.capture(live),
