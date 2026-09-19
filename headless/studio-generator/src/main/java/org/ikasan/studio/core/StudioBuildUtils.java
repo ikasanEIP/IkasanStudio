@@ -318,7 +318,8 @@ public class StudioBuildUtils {
         if (commaSeperatedList != null) {
             commaSeperatedList = commaSeperatedList.replace("[", "").replace("]", "");
             List<String> rawList = Arrays.asList(commaSeperatedList.split("\\s*,\\s*"));
-            Set<String> deduplicate = new HashSet<>(rawList);
+            // LinkedHashSet keeps first-seen order: the user's ordering must survive de-duplication.
+            Set<String> deduplicate = new LinkedHashSet<>(rawList);
             if (rawList.size() > deduplicate.size()) {
                 returnList = new ArrayList<>(deduplicate);
             } else {

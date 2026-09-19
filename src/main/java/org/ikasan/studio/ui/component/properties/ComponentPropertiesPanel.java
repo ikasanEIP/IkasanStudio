@@ -13,6 +13,7 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
@@ -1531,12 +1532,19 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         if (!(candidateValue instanceof String candidateName) || candidateName.isBlank()) {
             return List.of();
         }
-        boolean duplicate = flowElement.getContainingFlow().ftlGetConsumerAndFlowElements().stream()
-                .anyMatch(sibling -> sibling != flowElement && candidateName.equals(sibling.getIdentity()));
-        if (duplicate) {
-            return List.of(new ValidationInfo(
-                    StudioBundle.message("message.ComponentNameMustBeUniqueInFlow", candidateName),
-                    componentNameRow.getOverridingInputField()));
+        // Names that differ only by spaces/dots generate the same Java member (e.g. "Read Files" and "ReadFiles"
+        // both give getReadFiles()), so compare the generated name as well as the raw text.
+        String candidateJavaName = StudioBuildUtils.toPascalCase(candidateName);
+        FlowElement clash = flowElement.getContainingFlow().ftlGetConsumerAndFlowElements().stream()
+                .filter(sibling -> sibling != flowElement && sibling.getIdentity() != null
+                        && (candidateName.equals(sibling.getIdentity())
+                        || candidateJavaName.equals(StudioBuildUtils.toPascalCase(sibling.getIdentity()))))
+                .findFirst().orElse(null);
+        if (clash != null) {
+            String message = candidateName.equals(clash.getIdentity())
+                    ? StudioBundle.message("message.ComponentNameMustBeUniqueInFlow", candidateName)
+                    : StudioBundle.message("message.ComponentNameCollidesInFlow", candidateName, clash.getIdentity());
+            return List.of(new ValidationInfo(message, componentNameRow.getOverridingInputField()));
         }
         return List.of();
     }
