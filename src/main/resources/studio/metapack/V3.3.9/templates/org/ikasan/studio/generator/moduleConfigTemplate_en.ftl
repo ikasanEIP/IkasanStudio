@@ -28,7 +28,7 @@ public org.ikasan.spec.module.Module myModule()
 {
 <#if module.getDescription()??>
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName)
-.withDescription("${module.getDescription()}");
+.withDescription("${module.getDescription()?j_string}");
 <#else>
 org.ikasan.builder.ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName);
 </#if>
@@ -58,8 +58,8 @@ new java.util.ArrayList<>(listener.getTriggers()).stream()
     <#list flow.ftlGetConsumerAndFlowElements()![] as element>
         <#list element.getLogWiretaps()![] as logWiretap>
 listener.addDynamicTrigger(new org.ikasan.trigger.model.TriggerImpl(
-moduleName, "${flow.getIdentity()}", "${logWiretap.getPosition()}",
-"loggingJob", "${element.getComponentName()}", new java.util.HashMap<>()));
+moduleName, "${flow.getIdentity()?j_string}", "${logWiretap.getPosition()}",
+"loggingJob", "${element.getComponentName()?j_string}", new java.util.HashMap<>()));
         </#list>
     </#list>
 </#list>
