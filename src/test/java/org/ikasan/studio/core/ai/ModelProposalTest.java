@@ -135,7 +135,7 @@ public class ModelProposalTest {
         Module live = model();
         var snapshot = LiveModelSnapshot.capture(live);
         for (String operation : List.of(
-                "{\"type\":\"deleteFlow\",\"flow\":\"Transfer\"}",
+                "{\"type\":\"deleteFlow\",\"flow\":\"Missing\"}",
                 "{\"type\":\"addFlow\",\"flow\":\"Transfer\"}",
                 "{\"type\":\"setProperty\",\"flow\":\"Transfer\",\"component\":\"ReadFiles\",\"property\":\"notReal\",\"value\":true}",
                 "{\"type\":\"setProperty\",\"flow\":\"Transfer\",\"component\":\"ReadFiles\",\"property\":\"ftps\",\"value\":\"yes\"}",
@@ -271,4 +271,49 @@ public class ModelProposalTest {
         Module empty = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, List.of());
         return ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree(CREATE)).draft();
     }
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void derivedImplementationDefaultsGenerateDistinctClassesAndAllowOnlyPlaceholderRepairs(String version) throws Exception {
+        Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        var prepared = ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree("""
+                [{"type":"addFlow","flow":"Delivery"},
+                 {"type":"addComponent","flow":"Delivery","key":"Scheduled Consumer","name":"Schedule"},
+                 {"type":"addComponent","flow":"Delivery","key":"Converter","name":"Create Text",
+                  "properties":{"fromType":"org.quartz.JobExecutionContext","toType":"java.lang.String"}},
+                 {"type":"addComponent","flow":"Delivery","key":"Converter","name":"Build Payload",
+                  "properties":{"conversionRecipeId":"string-to-file-transfer-payload","fromType":"java.lang.String","toType":"org.ikasan.filetransfer.Payload"}},
+                 {"type":"addComponent","flow":"Delivery","key":"FTP Producer","name":"Send"}]
+                """));
+        var module = prepared.draft();
+        var flow = module.getFlows().get(0);
+        var first = flow.getFlowRoute().getFlowElements().get(0);
+        var second = flow.getFlowRoute().getFlowElements().get(1);
+        assertThat(first.getPropertyValueAsString("userImplementedClassName")).isEqualTo("CreateText");
+        assertThat(second.getPropertyValueAsString("userImplementedClassName")).isEqualTo("BuildPayload");
+        for (var component : java.util.List.of(first, second)) {
+            assertThat(org.ikasan.studio.core.generator.FlowsUserImplementedComponentTemplate.create(
+                    TestFixtures.DEFAULT_PACKAGE, module, flow, component))
+                    .contains("class " + component.getPropertyValueAsString("userImplementedClassName"))
+                    .doesNotContain("__fieldName:");
+        }
+        var repair = JSON.readTree("""
+                [{"type":"setProperty","flow":"Delivery","component":"Create Text",
+                  "property":"userImplementedClassName","value":"CreateDeliveryText"}]
+                """);
+        assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(module), repair))
+                .hasMessageContaining("Edit implementation class properties in Studio");
+        first.setPropertyValue("userImplementedClassName", "__fieldName:componentName");
+        var recovery = ModelProposal.prepare(LiveModelSnapshot.capture(module), repair);
+        var changes = ModelProposal.changes(module, recovery);
+        changes.apply();
+        assertThat(first.getPropertyValueAsString("userImplementedClassName")).isEqualTo("CreateDeliveryText");
+        changes.undo();
+        assertThat(first.getPropertyValueAsString("userImplementedClassName")).isEqualTo("__fieldName:componentName");
+        for (String invalid : java.util.List.of("../Bad", "class", "bad-name")) {
+            var invalidRepair = repair.deepCopy();
+            ((com.fasterxml.jackson.databind.node.ObjectNode) invalidRepair.get(0)).put("value", invalid);
+            assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(module), invalidRepair))
+                    .hasMessageContaining("Edit implementation class properties in Studio");
+        }
+    }
+
 }

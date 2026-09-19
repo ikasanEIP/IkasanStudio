@@ -33,4 +33,16 @@ class AiProjectContractGeneratorTest {
                         "ai-proposals/", "Review Latest AI Proposal", "temporary file", "notification")
                 .doesNotContain("Python 3", "close Studio first", "renaming require Studio");
     }
+    @Test
+    void completionGuidanceSeparatesScaffoldsFromWorkingCodeAndPreservesOwnership() {
+        String guide = AiProjectContractGenerator.studioGuide("V3.3.9");
+        assertThat(guide).contains("visual showcase", "runnable demonstration", "UnsupportedOperationException",
+                "List<File>", "individual File", "non-object message", "javax.jms", "jakarta.jms",
+                "newly generated, unmodified stubs", "preserve existing logic", "external requirements",
+                "representative success and failure payloads", "runtime behaviour remains unverified",
+                "unsupported routers/exception resolvers", "recipeConfigurations");
+        assertThat(AiProjectContractGenerator.agentsGuide()).contains("Inspect the file and",
+                "its diff first", "ask before replacing", "completion", "unfinished implementations");
+    }
+
 }

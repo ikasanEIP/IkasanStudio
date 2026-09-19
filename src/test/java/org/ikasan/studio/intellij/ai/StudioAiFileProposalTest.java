@@ -86,6 +86,18 @@ class StudioAiFileProposalTest {
             String addFlow = json.writeValueAsString(Map.of("formatVersion", 1,
                     "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
                     "operations", json.readTree("[{\"type\":\"addFlow\",\"flow\":\"bob\"}]")));
+            settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(false);
+            settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isConfirmAiDeletes).thenReturn(true);
+            String deletion = json.writeValueAsString(Map.of("formatVersion", 1,
+                    "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
+                    "operations", json.readTree("[{\"type\":\"deleteFlow\",\"flow\":\"Transfer\"}]")));
+            assertThat(service.tryAutoImport(deletion)).isFalse();
+            service.importProposal(deletion);
+            assertThat(reviewed.get().deletionReviewRequired).isTrue();
+            assertThat(live.getFlows()).hasSize(1);
+            service.cancel(reviewed.get());
+            assertThat(live.getFlows()).hasSize(1);
+            settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isConfirmAiDeletes).thenReturn(false);
             int reviewsBefore = dialogs.constructed().size();
             {
                 settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
@@ -126,6 +138,26 @@ class StudioAiFileProposalTest {
                 assertThat(service.tryAutoImport(replace)).isTrue();
                 assertThat(live.getFlows().get(0).getConsumer().getIdentity()).isEqualTo("Receive from Tom");
                 assertThat(dialogs.constructed()).hasSize(reviewsBefore + 1);
+                files.verify(() -> StudioProjectFiles.deleteUserImplementedClassFile(any(), any()), never());
+                Files.writeString(modelFile, ComponentIO.toValidatedModuleJson(live));
+                String deleteBob = json.writeValueAsString(Map.of("formatVersion", 1,
+                        "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
+                        "operations", json.readTree("[{\"type\":\"deleteFlow\",\"flow\":\"bob\"}]")));
+                settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isConfirmAiDeletes).thenReturn(true);
+                service.importProposal(deleteBob);
+                assertThat(reviewed.get().deletionReviewRequired).isTrue();
+                assertThat(live.getFlows()).hasSize(2);
+                service.apply(reviewed.get()).join();
+                assertThat(live.getFlows()).hasSize(1);
+                Files.writeString(modelFile, ComponentIO.toValidatedModuleJson(live));
+                String deleteTransfer = json.writeValueAsString(Map.of("formatVersion", 1,
+                        "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
+                        "operations", json.readTree("[{\"type\":\"deleteFlow\",\"flow\":\"Transfer\"}]")));
+                settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isConfirmAiDeletes).thenReturn(false);
+                int reviewsBeforeAutoDelete = dialogs.constructed().size();
+                assertThat(service.tryAutoImport(deleteTransfer)).isTrue();
+                assertThat(live.getFlows()).isEmpty();
+                assertThat(dialogs.constructed()).hasSize(reviewsBeforeAutoDelete);
                 files.verify(() -> StudioProjectFiles.deleteUserImplementedClassFile(any(), any()), never());
                 var risky = ModelProposal.prepare(LiveModelSnapshot.capture(
                         org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", java.util.List.of())),

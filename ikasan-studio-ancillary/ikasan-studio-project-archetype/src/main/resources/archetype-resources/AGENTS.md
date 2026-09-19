@@ -7,7 +7,7 @@ for plugin development.
 
 When Studio is open, its live in-memory model is authoritative. If the Studio MCP bridge is
 connected, use studio_snapshot, studio_catalogue and studio_propose, then check studio_proposal_status.
-Validated supported changes can apply automatically unless Always ask for approval is enabled or developer-owned code could be replaced.
+Validated supported changes can apply automatically unless Confirm deletes requires review (enabled by default for deletions and replacements) or Always ask for approval is enabled or developer-owned code could be replaced.
 Ask the developer to Apply only when the status is awaiting_review; wait for applied before continuing. Never edit model.json behind an open Studio.
 If MCP is unavailable, use the proposal-file workflow in generated/IKASAN_STUDIO.md. Read the
 saved model, calculate its SHA-256, and write a uniquely named .studio-proposal.json file in
@@ -28,4 +28,10 @@ read `generated/IKASAN_STUDIO.md` and
 `model.json` is the version-neutral source of truth. Make minimal changes, preserve unknown
 fields, validate the result, and let Ikasan Studio regenerate its owned files. Do not directly
 edit files under `generated/` other than `model.json`. Developer-owned implementations belong
-under `user/` and must never be overwritten without explicit permission.
+under `user/`. When the requested task includes working behaviour, completing a newly generated,
+unmodified stub for that task is authorised; use focused edits and tests. Inspect the file and
+its diff first. Preserve existing developer logic and ask before replacing it or regenerating
+its implementation. If ownership or intent is unclear, ask rather than assume a file is a stub.
+A generated class or completed diagram is not proof of working behaviour. Follow the completion
+checklist and demo guidance in generated/IKASAN_STUDIO.md; report unfinished implementations
+and unsupported components explicitly.

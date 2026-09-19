@@ -18,7 +18,7 @@
         "recipeCharset",
         "recipeFilename"
       ],
-      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique name (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Malformed text is rejected rather than replaced."
+      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique .dat filename (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Ensure the receiving consumer filenamePattern accepts .dat. Malformed text is rejected rather than replaced."
     },
     {
       "id": "string-to-email-payload",
@@ -74,7 +74,7 @@
         "recipeCharset",
         "recipeFilename"
       ],
-      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique name (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Malformed text is rejected rather than replaced."
+      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique .dat filename (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Ensure the receiving consumer filenamePattern accepts .dat. Malformed text is rejected rather than replaced."
     },
     {
       "id": "bytes-to-email-payload",
@@ -185,7 +185,7 @@
         "recipeCharset",
         "recipeFilename"
       ],
-      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique name (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Malformed text is rejected rather than replaced."
+      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique .dat filename (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Ensure the receiving consumer filenamePattern accepts .dat. Malformed text is rejected rather than replaced."
     },
     {
       "id": "auto-converted-jms-content-to-email-payload",
@@ -254,7 +254,7 @@
         "recipeCharset",
         "recipeFilename"
       ],
-      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique name (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Malformed text is rejected rather than replaced."
+      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique .dat filename (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Ensure the receiving consumer filenamePattern accepts .dat. Malformed text is rejected rather than replaced."
     },
     {
       "id": "jms-message-to-email-payload",

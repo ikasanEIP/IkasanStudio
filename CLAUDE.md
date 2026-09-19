@@ -8,9 +8,9 @@ For exact package paths, versions, and task behaviour, check the current source,
 
 Ikasan Studio is an **IntelliJ IDEA plugin** that provides a visual drag-and-drop designer for Ikasan Enterprise Integration Platform modules. It persists a version-neutral JSON model and generates Java, Maven, and configuration artefacts through FreeMarker templates. Preserve the separation between Studio-owned `generated/` output and developer-owned `user/` implementation.
 
-- **Java compilation toolchain**: 17.
-- **Build target**: IntelliJ IDEA Community 2024.3.7 (`platformType=IC`, `platformVersion=2024.3.7`). Compatibility is declared from build 242 with no upper bound; this declaration does not prove compatibility with every future IDE.
-- **Verifier targets**: configured in `build.gradle.kts` using the current target and the oldest/newest verification properties in `gradle.properties`.
+- **Java compilation toolchain**: 17 for the root plugin and `headless`. The optional `:native-mcp` module (see below) uses a separate Java 21 Kotlin toolchain while still emitting JVM 17 bytecode; Gradle provisions that JDK automatically via the `foojay-resolver-convention` plugin in `settings.gradle.kts`.
+- **Build target**: IntelliJ IDEA Community 2024.3.7 (`platformType=IC`, `platformVersion=2024.3.7`). Compatibility is declared from build 242 with no upper bound; this declaration does not prove compatibility with every future IDE. `sandboxIdeVersion` in `gradle.properties` selects a separate, newer interactive sandbox (see `runIdeModern` below); it does not change the compilation/test/verification target.
+- **Verifier targets**: configured in `build.gradle.kts` using the current target and the `verificationOldestIde`/`verificationNewestIde` properties in `gradle.properties`.
 - **Distribution**: the plugin ZIP is published to JetBrains Marketplace by `.github/workflows/release.yml`. The README separately documents `main` for development/SNAPSHOT builds and `1_0_x` for formal Maven Central builds; do not confuse Maven artefact publication with plugin publication.
 
 ## Build & Test Commands
@@ -44,11 +44,19 @@ Run these from the repository root:
 # Run enabled tests from the separate UI harness source set
 ./gradlew runHarness
 
-# Launch IntelliJ with the plugin loaded for manual testing
+# Launch IntelliJ with the plugin loaded for manual testing (2024.3.7 regression sandbox;
+# matches the compilation/test/verification target and the "Run Plugin (2024.3.7 Regression)" run config)
 ./gradlew runIde
 
-# Plugin binary compatibility verification
+# Launch the newer interactive sandbox instead (version from sandboxIdeVersion in gradle.properties;
+# matches the "Run Plugin" run config). Compilation and automated tests are unaffected.
+./gradlew runIdeModern
+
+# Plugin binary compatibility verification (oldest/current/newest IDEs from gradle.properties)
 ./gradlew verifyPlugin
+
+# Build the plugin ZIP and audit its contents (also run by CI before packaging)
+./gradlew buildPlugin verifyReleaseArchive
 
 # Static analysis
 ./gradlew qodanaScan
@@ -77,7 +85,7 @@ The root `settings.gradle.kts` includes the standalone `headless` build as a com
 - **`intellij.editor`** — Main-editor integration. `IkasanStudioFileEditor` exclusively owns `DesignerUI`; the stripe launcher must only open/focus that editor. Preserve deliberate tab closure and disposal of UI references while retaining the project model.
 - **`intellij.project`** — Project initialisation and generated-project synchronisation.
 - **`intellij.psi.StudioPsiUtils`** — Centralised PSI/file operations; prefer this over direct PSI usage.
-- **`intellij` subpackages** — Platform adapters including settings, execution, debugging, and the tool-window launcher.
+- **`intellij` subpackages** — Platform adapters including settings, execution, debugging, the tool-window launcher, onboarding, navigation, migration, and diagnostics. AI integration (`intellij.ai`) is covered separately below.
 - **`ui.component.canvas`** — Visual design surface (`DesignerCanvas`, `CanvasPanel`).
 - **`ui.component.palette`** — Component palette (`PaletteTabPanel`).
 - **`ui.component.properties`** — Property editor panels (`ComponentPropertiesPanel`, `ComponentPropertiesTabPanel`).
@@ -91,6 +99,13 @@ The current official packs are `V3.3.9` and `V4.1.6`. Each supplies `metapack.js
 `headless/studio-pack-v3` and `headless/studio-pack-v4` package the respective resource directories. `studio-bundled-packs` selects those artefacts; the root plugin resource source set excludes `studio/metapack/**` to avoid duplicate packaging.
 
 A new pack needs a valid manifest, metadata, templates, packaging configuration, and contract/generated-output validation. Do not assume adding a directory alone provides support for another Ikasan version. See [METAPACK.md](src/main/resources/studio/metapack/METAPACK.md) and [IndependentMetaPackArtifacts.md](docs/IndependentMetaPackArtifacts.md).
+
+### AI integration
+
+- **`intellij.ai`** (`src/main/java/`) — project-scoped live-model bridge, proposal validation/application, connection UI, and proposal inbox (`StudioAiService`, `StudioMcpProtocol`, `StudioAiProposalDialog`, `StudioAiProposalInboxService`). Framework-independent proposal/model types (`ModelProposal`, `OfflineModelProposal`, `LiveModelSnapshot`) live in `core.ai` under `headless/studio-generator/src/main/java/`.
+- **`:native-mcp`** — an optional Gradle subproject/Kotlin module (`native-mcp/`) that integrates IntelliJ's bundled MCP Server plugin (`com.intellij.mcpServer`). It is included via `include(":native-mcp")` in the root `settings.gradle.kts` and registered as an optional content module (`ikasanstudio.native-mcp`, `loading="optional"`) in `src/main/resources/META-INF/plugin.xml`, with its own descriptor at `native-mcp/src/main/resources/ikasanstudio.native-mcp.xml`. It compiles against IU 2026.2.2 and a Java 21 Kotlin toolchain (see `native-mcp/build.gradle.kts`) but targets JVM 17 bytecode; it depends on the root plugin's compiled classes rather than its JAR to avoid a packaging cycle. It does not affect the main plugin's JDK 17/IDEA 2024.3.7 compilation target.
+- **`src/mcpAdapter/java/`** — the bundled Java adapter source set for manual/legacy MCP client setup on IntelliJ versions that predate or don't expose the native MCP server.
+- See [Studio AI bridge](docs/StudioAiBridge.md) and [AI-friendly projects](docs/AiFriendlyProjects.md) for the feature contract; `AGENTS.md` documents product-level AI integration scope. This subsystem was under active refactor as of the September 2026 commits on `main` — check current source rather than treating any single commit message as the final design.
 
 ### Ancillary Maven projects
 

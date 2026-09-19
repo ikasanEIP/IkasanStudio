@@ -31,6 +31,7 @@ final class StudioAiProposalDialog extends DialogWrapper {
     }
     @Override protected JComponent createCenterPanel() {
         JBTextArea text = new StudioAiConnectionText(StudioBundle.message("ai.PreviewExplanation") + "\n\n"
+                + (proposal.deletionReviewRequired ? StudioBundle.message("ai.DeleteReviewRequired") + "\n\n" : "")
                 + (proposal.userCodeReviewRequired ? StudioBundle.message("ai.UserCodeReviewRequired") + "\n\n" : "")
                 + String.join("\n", proposal.prepared.summary()) + "\n\n" + proposal.details);
         text.setEditable(false);

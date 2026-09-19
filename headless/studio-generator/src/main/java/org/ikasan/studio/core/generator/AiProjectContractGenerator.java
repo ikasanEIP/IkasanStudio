@@ -29,7 +29,7 @@ public final class AiProjectContractGenerator {
 
                 When Studio is open, its live in-memory model is authoritative. If the Studio MCP bridge is
                 connected, use studio_snapshot, studio_catalogue and studio_propose, then check studio_proposal_status.
-                Validated supported changes can apply automatically unless Always ask for approval is enabled or developer-owned code could be replaced.
+                Validated supported changes can apply automatically unless Confirm deletes requires review (enabled by default for deletions and replacements) or Always ask for approval is enabled or developer-owned code could be replaced.
                 Ask the developer to Apply only when the status is awaiting_review; wait for applied before continuing. Never edit model.json behind an open Studio.
                 If MCP is unavailable, use the proposal-file workflow in generated/IKASAN_STUDIO.md. Read the
                 saved model, calculate its SHA-256, and write a uniquely named .studio-proposal.json file in
@@ -50,7 +50,13 @@ public final class AiProjectContractGenerator {
                 `model.json` is the version-neutral source of truth. Make minimal changes, preserve unknown
                 fields, validate the result, and let Ikasan Studio regenerate its owned files. Do not directly
                 edit files under `generated/` other than `model.json`. Developer-owned implementations belong
-                under `user/` and must never be overwritten without explicit permission.
+                under `user/`. When the requested task includes working behaviour, completing a newly generated,
+                unmodified stub for that task is authorised; use focused edits and tests. Inspect the file and
+                its diff first. Preserve existing developer logic and ask before replacing it or regenerating
+                its implementation. If ownership or intent is unclear, ask rather than assume a file is a stub.
+                A generated class or completed diagram is not proof of working behaviour. Follow the completion
+                checklist and demo guidance in generated/IKASAN_STUDIO.md; report unfinished implementations
+                and unsupported components explicitly.
                 """;
     }
 
@@ -68,14 +74,132 @@ public final class AiProjectContractGenerator {
                 - `src/main/model/component-catalogue.json` is generated from the selected meta-pack and lists
                   valid component keys, roles, properties, defaults, types and choices.
                 - Java, Maven and configuration files in `generated/` are Studio-owned derived output.
-                - Files in `user/` are developer-owned. Never replace them without explicit confirmation.
+                - Files in `user/` are developer-owned. Complete newly generated, unmodified stubs when working
+                  behaviour is part of the requested task; preserve existing logic and confirm before replacing it.
+
+                ## Component guidance and implementation ownership
+
+                Read each component's helpText (which may contain HTML), documentation reference, payload
+                contracts and property help. The catalogue's proposalOperations and proposalSupport explain
+                what the AI bridge can configure; presence in the catalogue alone does not imply support.
+                Endpoints are associated visual/configuration elements, not independent flow processors.
+
+                generatesUserImplementedClass means Studio may create a class in user/; it does not mean
+                that class implements the requested behaviour. Check requiresStub, userImplementedClassName
+                and the generated Java. A selected conversion recipe can supply an implementation, whereas
+                a generic Converter may only contain UnsupportedOperationException. Other scaffolds may
+                return a constant, pass data through, or do nothing: successful compilation is not sufficient.
+                Property flags userSuppliedClass, protectFromOverwrite, noStubRequired and
+                affectsUserImplementedClass distinguish bean references, protected implementations and
+                generation-sensitive configuration. A noStubRequired reference needs an existing configured
+                bean; do not create a stub merely because a property is marked userSuppliedClass.
+
+                Inspect user/ files and existing diffs before editing. A request for working functionality
+                authorises focused implementation of newly generated, unmodified stubs for that task.
+                It does not authorise replacing existing developer logic or enabling Studio's overwrite flag.
+                Make Java implementation edits in user/ using the AI client's normal code-editing tools;
+                use Studio proposals for model changes. Preserve Spring bean names, interfaces and method
+                signatures. If code is already customised or intent is uncertain, ask before replacing it.
+
+                ## Defaults and model property changes
+
+                A catalogue default is a literal value; defaultExpression is an internal derivation rule,
+                not a Java class name or a value to copy into a proposal. Omit derived properties on creation
+                and let Studio resolve them, or provide explicit, meaningful Java class names. Different
+                implementations in the same flow need distinct class names. Display renaming does not rename
+                an existing implementation class. Check setPropertySupported and editGuidance before editing:
+                addComponent/replaceComponent accept initial implementation settings, but setProperty cannot
+                normally change implementation-sensitive properties. Do not repeatedly retry a forbidden edit.
+                Exception: an unresolved __fieldName: value in userImplementedClassName can be repaired with
+                setProperty and a valid concrete Java class name; this does not rename existing valid classes.
+
+                ## Cross-flow transport connections and ordering
+
+                A producer hands off to a consumer through transport configuration, not a cross-flow connect
+                operation. connect only orders components inside one flow. Plan related flows together and
+                add them in the desired canvas order; numeric names do not reorder existing flows. The proposal
+                API has no flow-reordering operation: use Studio to reorder existing flows, never delete and
+                recreate them just to change their position.
+
+                - JMS: match destinationJndiName, connectionFactoryName, connectionFactoryJndiPropertyProviderUrl
+                  and pubSubDomain. Check the broker, JNDI factory, message type, autoContentConversion and trusted
+                  object packages as well. Matching labels alone do not prove messages can be delivered.
+                - FTP/FTPS: match protocol/security mode, host, port and producer outputDirectory to consumer
+                  sourceDirectory. Match generated filenames to the consumer filenamePattern, and verify
+                  credentials, permissions, polling and post-consumption handling. File-transfer recipes default to
+                  unique .dat filenames when no input filename or recipeFilename is supplied; a .txt-only
+                  consumer will miss them. A fixed recipeFilename can collide on repeated deliveries. A custom source directory
+                  factory may change the actual location. Avoid endless reprocessing or overwriting files.
+                - SFTP: apply the same directory/filename checks with SSH authentication and host-key validation.
+                  SFTP is a separate protocol from FTP/FTPS. Studio currently draws shared-endpoint connectors
+                  for JMS and FTP/FTPS, not SFTP; matching SFTP configuration still permits a runtime hand-off.
+                Shared-endpoint lines indicate inferred configuration matches, not verified delivery. Check
+                payload types at both ends and report external services still needing setup or runtime tests.
+
+                ## Generation failures and recovery
+
+                Model application and Java generation are separate outcomes. After every proposal, wait for
+                generation to finish before dependent work. A generation_failed status or Studio error is a
+                real failure, not a routine progress message to ignore until all proposals finish. Stop dependent
+                submissions, inspect the error, reread the current model/revision, and prepare a focused repair
+                using supported operations. Do not resubmit the whole creation batch into an already updated model.
+                For file proposals, recompute the saved model SHA-256 and use a new proposal filename.
+                Tell the developer whether you are repairing the failure or need their action; do not ask them
+                to click Apply unless Studio actually requires review. Verify that expected flow factories and
+                user classes exist after successful generation. Compiling an old skeleton does not validate new
+                flows. Keep compilation, runtime delivery and visual coverage claims separate.
+
+                ## Payload examples and recipe selection
+
+                Use recipeConfigurations as ready-to-use property examples, and read the corresponding
+                conversionRecipes entry for preconditions and configuration. Match the entire source and
+                target type, including collection element types and the meta-pack's javax/jakarta namespace.
+                Never fix a rejected recipe by merely removing its ID and then claiming the converter is done.
+                Either choose a matching recipe or implement and test the custom conversion in user/.
+
+                - Local File Consumer emits List<File>. Default List Splitter emits individual File values.
+                  After splitting, a File-to-String converter must read each file using an explicit charset
+                  (for example UTF-8: a file containing hello produces the String hello). Test read failures.
+                  single-local-file-to-string instead accepts List<File> containing exactly one file; it is
+                  not suitable after a splitter, or for silently ignoring the rest of a batch.
+                - JMS Message-to-ObjectMessage is a type check, not a universal cast. A custom converter
+                  must accept an ObjectMessage and reject other message kinds with a clear transformation
+                  failure. Test an ObjectMessage and a non-object message. Use the selected meta-pack's
+                  interfaces and catalogue recipes; do not mix javax.jms and jakarta.jms.
+                - A Translator changes a mutable payload in place. Use a Converter when replacing a value
+                  such as String. Give filters, brokers, splitters and producers actual demonstration
+                  behaviour and tests rather than leaving their default pass-through or no-op scaffolds.
+
+                ## Demonstration scope and completion checklist
+
+                Establish whether the user wants a visual showcase or a runnable demonstration. If unclear,
+                state the intended scope; do not silently present a diagram as a working demonstration.
+                For an every-component request, compare the selected catalogue's component keys with the
+                resulting model. Report unsupported routers/exception resolvers and associated endpoints
+                separately from executable components; do not omit them silently or bypass the bridge.
+
+                For a runnable demonstration:
+                1. Confirm Studio applied the model and generation completed; reread the saved model and files.
+                2. Inspect the relevant user/ classes for throwing stubs, TODO implementations, constant dummy
+                   results and no-op methods. Implement the required behaviour within the ownership rules above.
+                   Explanatory TODO comments alone do not prove that a component is unfinished.
+                3. Check payload compatibility across the whole flow, bean references and implementation names.
+                4. List external requirements: input files/directories, FTP/SFTP servers, JMS brokers, SMTP,
+                   databases and credentials as applicable. Prefer supported local test facilities for demos,
+                   verify they are configured, and never claim that an unavailable service was exercised.
+                5. Compile and run relevant tests, including representative success and failure payloads.
+                   If authorised to run the module, verify startup and sample messages; otherwise report that
+                   runtime behaviour remains unverified. Do not send real external messages without authorisation.
+                6. Report model application, implementation, compilation, tests and runtime verification
+                   separately. List incomplete classes, unsupported components and remaining setup explicitly.
 
                 ## Live Studio workflow
 
                 Use Tools -> Connect AI to Ikasan Studio for IntelliJ MCP or the bundled Java adapter.
                 Read studio_snapshot and studio_catalogue, then submit studio_propose with the returned revision
                 and structured operations. Studio validates every proposal. Validated supported changes apply automatically
-                unless Settings -> Tools -> Ikasan Studio -> Always ask for approval is enabled (default: off).
+                unless Settings -> Tools -> Ikasan Studio -> Always ask for approval is enabled (default: off),
+                or Confirm deletes is enabled (default: on) and the proposal deletes flows/components or replaces components.
                 Potential developer-owned code replacement always requires review and Apply. Both routes create one undoable change.
                 Check studio_proposal_status: request Apply only for awaiting_review, wait while generating,
                 and continue only after applied. Report generation_failed instead of assuming success. If the chat turn ended while
@@ -105,7 +229,7 @@ public final class AiProjectContractGenerator {
                    ```
 
                 4. Studio detects new or updated files directly in ai-proposals/. Validated supported proposals can
-                   apply automatically unless Always ask for approval is enabled or developer-owned code could be replaced. Confirm the saved model has
+                   apply automatically unless Confirm deletes requires review (enabled by default for deletions and replacements) or Always ask for approval is enabled or developer-owned code could be replaced. Confirm the saved model has
                    changed before continuing; writing a proposal is never proof of application.
                    Other proposals show AI proposal ready.
                    Ask the developer to click Review on that notification, or Tools -> Review Latest AI Proposal,
@@ -123,6 +247,7 @@ public final class AiProjectContractGenerator {
 
                 Both MCP and file proposals use the same operations (1 to 100 per proposal):
 
+                - deleteFlow: type, flow (existing name). Removes the entire flow and its attached test harnesses; retains developer-owned source files.
                 - addFlow: type, flow (new name). May create an empty design placeholder; do not invent components.
                   Flows can be built incrementally across proposals. An incomplete flow is a design in progress,
                   not a rejection; it needs a consumer and producer before it can run.
@@ -141,7 +266,7 @@ public final class AiProjectContractGenerator {
                   rename Java implementation classes or edit developer-owned source files.
                 - connect: type, flow, order (every component name exactly once, consumer first).
 
-                Existing edits and component renaming support linear flows only. Routers, flow deletion, flow renaming,
+                Existing edits and component renaming support linear flows only. Router editing, flow renaming,
                 and exception-resolver changes require Studio. Do not alter transitions on disk to work around this.
                 Preserve unknown fields; use catalogue keys and property validation rules. Names must be unique
                 within their scope, including their generated Java names. Complete flows require a consumer.
@@ -234,24 +359,64 @@ public final class AiProjectContractGenerator {
         result.put("role", meta.getComponentTypeMeta() == null ? null : meta.getComponentTypeMeta().getComponentShortType());
         result.put("componentType", meta.getComponentType());
         result.put("implementingClass", meta.getImplementingClass());
+        putText(result, "helpText", meta.getHelpText());
+        putText(result, "documentation", meta.getWebHelpURL());
+        putText(result, "endpointKey", meta.getEndpointKey());
+        result.put("generatesUserImplementedClass", meta.isGeneratesUserImplementedClass());
+        result.put("implementationGuidance", meta.isGeneratesUserImplementedClass()
+                ? "Inspect the generated user/ implementation. A class may be only a stub; a recipe may supply behaviour. Complete and test it within the requested scope, preserving existing developer logic."
+                : "Configure the component using its property help. Check userSuppliedClass properties for required implementation or bean references.");
+        boolean ordinaryComponent = !meta.isModule() && !meta.isFlow() && !meta.isEndpoint()
+                && !meta.isRouter() && !meta.isExceptionResolver();
+        result.put("proposalOperations", meta.isFlow() ? List.of("addFlow", "deleteFlow") : ordinaryComponent
+                ? List.of("addComponent", "setProperty", "renameComponent", "deleteComponent", "replaceComponent", "connect") : List.of());
+        result.put("proposalSupport", ordinaryComponent ? "Supported in linear flows; branched flows require Studio."
+                : meta.isFlow() ? "addFlow creates an empty flow; deleteFlow removes the entire flow and attached test harnesses, retaining developer-owned source files. Flow renaming requires Studio."
+                : meta.isEndpoint() ? "Associated endpoint; configure its owning component, do not add as a standalone processor."
+                : "Configure in Studio; the proposal API does not currently support this component role.");
         if (meta.getAdditionalKey() != null) result.put("additionalKey", meta.getAdditionalKey());
         if (meta.getExpectedInputTypes() != null) result.put("acceptedInputTypes", meta.getExpectedInputTypes());
         if (meta.getProducedOutputType() != null) result.put("producedOutputType", meta.getProducedOutputType());
-        if (meta.getConversionRecipes() != null && !meta.getConversionRecipes().isEmpty())
+        if (meta.getConversionRecipes() != null && !meta.getConversionRecipes().isEmpty()) {
             result.put("conversionRecipes", meta.getConversionRecipes());
+            result.put("recipeConfigurations", meta.getConversionRecipes().stream()
+                    .map(recipe -> Map.of("conversionRecipeId", recipe.getId(),
+                            "fromType", recipe.getSourceType(), "toType", recipe.getTargetType())).toList());
+        }
         List<Map<String, Object>> properties = new ArrayList<>();
         meta.getAllowableProperties().forEach((name, property) -> properties.add(property(name, property)));
         result.put("properties", properties);
         return result;
     }
 
+    private static void putText(Map<String, Object> target, String key, String value) {
+        if (value != null && !value.isBlank()) target.put(key, value);
+    }
+
     private static Map<String, Object> property(String name, ComponentPropertyMeta meta) {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("name", name);
         result.put("required", meta.isMandatory());
+        putText(result, "displayLabel", meta.getDisplayLabel());
+        putText(result, "helpText", meta.getHelpText());
+        result.put("userSuppliedClass", meta.isUserSuppliedClass());
+        result.put("protectFromOverwrite", meta.isProtectFromOverwrite());
+        result.put("noStubRequired", meta.isNoStubRequired());
+        result.put("affectsUserImplementedClass", meta.isAffectsUserImplementedClass());
         result.put("type", meta.getPropertyDataType() == null ? "java.lang.String" : meta.getPropertyDataType().getName());
         if (meta.getUsageDataType() != null && !meta.getUsageDataType().isBlank()) result.put("usageType", meta.getUsageDataType());
-        if (meta.getDefaultValue() != null) result.put("default", meta.getDefaultValue());
+        if (ComponentPropertyMeta.isSubstitutionValue(meta.getDefaultValue())) {
+            result.put("defaultExpression", meta.getDefaultValue());
+            result.put("defaultGuidance", "Studio resolves this expression when creating a component. Omit the property or supply a concrete value; never copy the expression into a proposal as a literal.");
+        } else if (meta.getDefaultValue() != null) result.put("default", meta.getDefaultValue());
+        boolean structural = java.util.Set.of("componentName", "name", "version", "testHarnessOwner", "routeNames").contains(name)
+                || meta.isIgnoreProperty();
+        boolean implementationChange = meta.isAffectsUserImplementedClass()
+                && !(meta.isUserSuppliedClass() && meta.isProtectFromOverwrite());
+        result.put("setPropertySupported", !structural && !implementationChange);
+        if (structural || implementationChange) result.put("editGuidance", structural
+                ? "Use a supported structural operation rather than setProperty."
+                : "Choose this value in addComponent/replaceComponent properties. Existing implementation changes require Studio; preserve developer-owned code. A userImplementedClassName containing an unresolved __fieldName: expression can be repaired with setProperty and a concrete Java class name.");
         if (meta.getChoices() != null && !meta.getChoices().isEmpty()) result.put("choices", meta.getChoices());
         if (meta.isHiddenProperty()) result.put("hidden", true);
         if (meta.isChoicesEditable()) result.put("choicesEditable", true);

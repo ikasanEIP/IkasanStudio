@@ -54,6 +54,7 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         public boolean showSharedEndpoints = true;
 
         public boolean alwaysAskAiApproval = false;
+        public boolean confirmAiDeletes = true;
 
         /**
          * Periodically poll (every few seconds, in the background) whether a local test mail server is
@@ -128,6 +129,12 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
     @Override
     public void loadState(@NotNull State state) {
         this.state = state;
+    }
+
+    public static boolean isConfirmAiDeletes() {
+        IkasanStudioSettings instance = getInstance();
+        State s = instance != null ? instance.getState() : null;
+        return s == null || s.confirmAiDeletes;
     }
 
     public static boolean isAlwaysAskAiApproval() {

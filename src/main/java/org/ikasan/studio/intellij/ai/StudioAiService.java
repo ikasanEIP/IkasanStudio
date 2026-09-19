@@ -59,6 +59,7 @@ public final class StudioAiService implements Disposable {
     record Snapshot(Module source, Map<String, Object> model) { }
     static final class Proposal {
         boolean userCodeReviewRequired;
+        boolean deletionReviewRequired;
         final String id = UUID.randomUUID().toString();
         final Snapshot snapshot;
         final ModelProposal.Prepared prepared;
@@ -237,7 +238,8 @@ public final class StudioAiService implements Disposable {
 
     private boolean canAutoApply(Proposal proposal) {
         proposal.userCodeReviewRequired = requiresUserCodeReview(proposal.snapshot.source(), proposal.prepared.draft());
-        return !IkasanStudioSettings.isAlwaysAskAiApproval() && !proposal.userCodeReviewRequired;
+        proposal.deletionReviewRequired = proposal.prepared.deletesContent() && IkasanStudioSettings.isConfirmAiDeletes();
+        return !IkasanStudioSettings.isAlwaysAskAiApproval() && !proposal.userCodeReviewRequired && !proposal.deletionReviewRequired;
     }
 
     private void reviewOrApply(Proposal proposal) {

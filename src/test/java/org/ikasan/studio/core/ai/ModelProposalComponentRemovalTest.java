@@ -96,4 +96,46 @@ class ModelProposalComponentRemovalTest {
             assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
         }
     }
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void deletesWholeFlowAndHarnessWithIdentityPreservingUndoAndRedo(String version) throws Exception {
+        var live = model(version);
+        var original = live.getFlows().get(0);
+        var harness = new org.ikasan.studio.core.model.ikasan.instance.Flow(version);
+        harness.setName("TestHarness");
+        harness.setPropertyValue("testHarnessOwner", "toby/timmy");
+        live.getFlows().add(harness);
+        var before = LiveModelSnapshot.capture(live);
+        var prepared = ModelProposal.prepare(before, json.readTree("""
+                [{"type":"deleteFlow","flow":"toby"}]
+                """));
+        assertThat(prepared.deletesContent()).isTrue();
+        assertThat(prepared.draft().getFlows()).isEmpty();
+        assertThat(prepared.summary()).anyMatch(line -> line.contains("TestHarness"));
+        assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
+        var changes = ModelProposal.changes(live, prepared);
+        changes.apply();
+        assertThat(live.getFlows()).isEmpty();
+        ComponentIO.toValidatedModuleJson(live);
+        changes.undo();
+        assertThat(live.getFlows()).containsExactly(original, harness);
+        assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
+        changes.apply();
+        assertThat(live.getFlows()).isEmpty();
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void deleteAndRecreateSameFlowNameUsesNewFlowAndRestoresOriginalOnUndo(String version) throws Exception {
+        var live = model(version);
+        var original = live.getFlows().get(0);
+        var prepared = ModelProposal.prepare(LiveModelSnapshot.capture(live), json.readTree("""
+                [{"type":"deleteFlow","flow":"toby"},{"type":"addFlow","flow":"toby"}]
+                """));
+        var changes = ModelProposal.changes(live, prepared);
+        changes.apply();
+        assertThat(live.getFlows().get(0)).isNotSameAs(original);
+        assertThat(live.getFlows().get(0).getConsumer()).isNull();
+        changes.undo();
+        assertThat(live.getFlows()).containsExactly(original);
+    }
+
 }

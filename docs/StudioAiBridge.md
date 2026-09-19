@@ -7,7 +7,7 @@ not edit `model.json` or apply changes itself.
 ## At a glance
 
 The agent proposes changes to the live model. Validated supported changes can apply automatically
-when Always ask for approval is off (the default). Potential developer-owned code replacement always requires review and Apply.
+when Always ask for approval is off (the default), subject to Confirm deletes (on by default). Potential developer-owned code replacement always requires review and Apply.
 Studio validates, saves and generates files in both cases.
 
 ```mermaid
@@ -118,6 +118,7 @@ stale proposal from being applied. Obtain a fresh snapshot and propose again.
 Submit `{"revision":"<from studio_snapshot>","operations":[...]}` to `studio_propose`.
 Operations execute in array order on a detached candidate. Up to 100 operations are accepted.
 
+- `deleteFlow`: `type`, `flow` (existing flow name). Removes the entire flow and attached test harnesses, retaining developer-owned source files.
 - `addFlow`: `type`, `flow` (new flow name).
 - `addComponent`: `type`, `flow`, `key` (exact catalogue key), `name`, optional `properties` object.
   A consumer occupies the flow's consumer slot; other components are inserted before its terminal
@@ -153,7 +154,7 @@ the whole proposal. Payload checking uses Studio's design-time metadata and is n
 for compiling and testing the generated application.
 
 The initial API supports linear flows. Routers, edits to branched flows, exception resolvers,
-flow deletion, flow renaming, implementation regeneration and version migration must use Studio's existing UI.
+flow renaming, implementation regeneration and version migration must use Studio's existing UI.
 Unrelated flows and their object identities are preserved. No operation grants permission to
 overwrite developer-owned code.
 
@@ -229,10 +230,37 @@ Agents must inspect MCP status (or reread the saved model for file proposals) be
 while retaining its position. Consumers can only be replaced with consumers; body components with
 body components. Defaults come from the new type, with explicit properties overriding them.
 Both operations retain developer-owned source files, support Undo/Redo and follow the automatic
-application preference and overwrite-risk checks. Routers/branched flows and flow deletion remain unsupported.
+application preference and overwrite-risk checks. Editing routers/branched flows remains unsupported; deleting entire flows, including branched flows, is supported.
 
 For example, replace a consumer and preserve its downstream connection:
 ```json
 {"type":"replaceComponent","flow":"toby","component":"bob","key":"Spring JMS Consumer",
  "name":"Receive from Tom","properties":{"destinationJndiName":"tom.to.toby"}}
 ```
+
+### Guidance for completing implementations
+
+The catalogue exported by `studio_catalogue` and generated into `component-catalogue.json` includes
+component/property help, documentation references, implementation and overwrite flags, supported
+proposal operations, and recipe configuration examples derived from the selected meta-pack.
+The generated guide distinguishes diagram creation from runnable functionality, explains File/List<File>
+and JMS type-check examples, and requires inspection of generated scaffolds, relevant tests and a
+clear report of runtime prerequisites and unfinished work. Completing a new, unmodified stub within
+the user's requested task is distinguished from replacing existing developer logic.
+Existing application guides refresh through normal Studio generation; this change does not modify
+existing application code or enable new router/exception-resolver operations.
+
+**Confirm deletes**, in the AI assistance settings group, defaults to on and requires review for flow deletion, component deletion and component replacement through either MCP or imported proposals. Disabling it permits automatic application unless Always ask for approval or developer-code protection requires review. Whole-flow deletion supports branched flows, removes attached test harnesses, retains developer-owned source files, and supports Undo/Redo.
+
+### Defaults, transport links and failure recovery
+
+The catalogue distinguishes literal `default` values from internal `defaultExpression` rules and exposes
+`setPropertySupported`, `editGuidance` and `endpointKey`. Agents should omit derived defaults on creation
+or supply concrete values. Proposal creation resolves `__fieldName:` defaults without opening Properties.
+An existing unresolved `userImplementedClassName` can be repaired with `setProperty`; valid implementation
+names retain the existing protection against implementation-sensitive edits.
+
+The generated guide now explains cross-flow JMS/FTP/SFTP matching, flow insertion order, and the difference
+between inferred canvas links and tested delivery. SFTP canvas connectors and proposal flow reordering are
+not currently supported. Generation failure must stop dependent work and trigger a focused repair against
+the updated model, not blind retries or a claim that compiling the previous skeleton validates the new flows.

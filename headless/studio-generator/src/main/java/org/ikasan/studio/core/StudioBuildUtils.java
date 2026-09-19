@@ -86,6 +86,9 @@ public class StudioBuildUtils {
     }
 
     /**
+     * Used by FTL: converterTemplate_en.ftl and emailConverterTemplate_en.ftl in both bundled packs.
+     * FreeMarker invokes this through the {@code StudioBuildUtils} statics binding.
+     * <p>
      * A fromType/toType property is free text, and its help/tooltip text is drawn from the same engine that
      * describes an upstream component's Output: for humans (see ComponentMeta#getEffectiveOutputTypeDescription) -
      * that description can carry a trailing explanatory annotation e.g. "java.lang.Object (auto-converted)" for a
@@ -95,6 +98,7 @@ public class StudioBuildUtils {
      * @param input string to be converted
      * @return the input string with any trailing bracketed annotation removed, and surrounding whitespace trimmed
      */
+    @SuppressWarnings("unused")
     public static String toJavaTypeLiteral(final String input) {
         if (input == null) {
             return null;
@@ -114,12 +118,16 @@ public class StudioBuildUtils {
     }
 
     /**
+     * Used by FTL: propertiesTemplate_en.ftl in both bundled packs through the
+     * {@code StudioBuildUtils} statics binding; also called by the plugin's LaunchBlueAction.
+     * <p>
      * Convert the supplied string to url style string i.e.
      *   space and underscore replaced by -
      *   all lower case
      * @param input string to be converted
      * @return the input string in kebab case
      */
+    @SuppressWarnings("unused")
     public static String toUrlString(final String input) {
         if (input != null && !input.isEmpty()) {
             return  input
@@ -141,22 +149,22 @@ public class StudioBuildUtils {
     }
 
     /**
-     * Get the subdirectories of a given directory on the classpath, when in a jar file or file system
-     * Neither the jar FileSystem nor the Files.walk() stream below is closed - both must stay open for the
-     * lifetime of the Intellij process, since closing the FileSystem invalidates every Path handed out from it
-     * (including the ones this method returns), so this deliberately isn't try-with-resources - hence the
-     * "resource" suppression rather than an actual leak.
+     * Get the subdirectories of a given directory on the classpath, in JARs or the file system.
+     * Retained delegate used by StudioBuildUtilsTest in the root plugin test suite, not by FTL.
+     * The scanner closes directory streams but keeps shared JAR file systems open for other resource consumers.
      * @param dir to look through
      * @return a string array of subdirectories
      * @throws URISyntaxException if there were issues
      * @throws IOException if there were issues
      */
+    @SuppressWarnings("unused")
     public static String[] getDirectories(final String dir) throws URISyntaxException, IOException {
         return ClasspathDirectoryScanner.getDirectories(dir);
     }
 
     /**
-     * ** Used by FTL ***
+     * Used by FTL: componentFactory_en.ftl and propertiesTemplate_en.ftl in both bundled packs
+     * through the {@code StudioBuildUtils} statics binding.
      * The supplied string template e.g. __flow.ftp.consumer.cron-expression, replacing meta tags so that the final
      * string represents a call to a property e.f. myFlow.ftp.consumer.cron-expression
      * @param module in scope that might relate to this property
@@ -165,6 +173,7 @@ public class StudioBuildUtils {
      * @param template to be updated
      * @return A string representing a property
      */
+    @SuppressWarnings("unused")
     public static String substitutePlaceholderInLowerCase(Module module, Flow flow, BasicElement ikasanBasicElement, String template) {
         String propertyLabel = template;
         if (template != null && template.contains(SUBSTITUTION_PREFIX)) {
@@ -218,8 +227,19 @@ public class StudioBuildUtils {
      */
     public static void substituteAllPlaceholderInPascalCase(Module module, Flow flow, BasicElement ikasanBasicElement) {
         for (ComponentProperty componentProperty : ikasanBasicElement.getComponentProperties().values()) {
-            if (ComponentPropertyMeta.isSubstitutionValue(componentProperty.getValueString())) {
-                componentProperty.setValue(substitutePlaceholderInPascalCase(module, flow, ikasanBasicElement, componentProperty.getValueString()));
+            String value = componentProperty.getValueString();
+            if (value != null && value.startsWith(ComponentPropertyMeta.SUBSTITUTION_FIELD_NAME)) {
+                // The Properties UI resolves these defaults from another row. Proposals have no UI rows.
+                String[] parts = value.split(ComponentPropertyMeta.SUBSTITUTION_NAME_VALUE_DELIM, 3);
+                String source = parts.length > 1 ? ikasanBasicElement.getPropertyValueAsString(parts[1]) : "";
+                if (source.isBlank() || ComponentPropertyMeta.isSubstitutionValue(source)) {
+                    throw new IllegalArgumentException("Cannot resolve default for " + componentProperty.getMeta().getPropertyName()
+                            + ": supply a value for " + (parts.length > 1 ? parts[1] : value));
+                }
+                String derived = source + (parts.length > 2 ? parts[2] : "");
+                componentProperty.setValue(componentProperty.affectsUserImplementedClass() ? toJavaClassName(derived) : derived);
+            } else if (ComponentPropertyMeta.isSubstitutionValue(value)) {
+                componentProperty.setValue(substitutePlaceholderInPascalCase(module, flow, ikasanBasicElement, value));
             }
             if (componentProperty.getMeta().getDefaultValue() != null && ComponentPropertyMeta.isSubstitutionValue(componentProperty.getMeta().getDefaultValue().toString())) {
                 ComponentPropertyMeta newMeta = componentProperty.getMeta().toBuilder().build();

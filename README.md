@@ -1,310 +1,201 @@
-![IKASAN](docs/images/Ikasan-title-transparent.png)
+![Ikasan](docs/images/Ikasan-title-transparent.png)
 
 # Ikasan Studio
 
-Ikasan Studio is a visual designer and integrated development environment for the Ikasan Enterprise Integration Platform (EIP).
+<!-- Plugin description -->
+Ikasan Studio is an IntelliJ IDEA plugin for designing and maintaining applications built with the Ikasan Enterprise Integration Platform (ESB).
 
-When combined as a plugin to Intellij, it provides a fully functional, standalone IDE for designing and maintaining Ikasan modules.
+Compose modules from flows and components on a visual canvas, configure their properties, and generate Java, Maven and application configuration from a version-neutral JSON model. Inspect, run and debug the resulting application using IntelliJ's normal development tools.
 
-## Start here
+Studio separates generated framework code from developer-owned implementations and uses version-specific meta-packs to support different Ikasan releases.
+<!-- Plugin description end -->
 
-The current release candidate requires IntelliJ IDEA 2024.2 or newer (build 242) and bundles Ikasan V3.3.9 and V4.1.6. See [Supported versions](docs/SupportedVersions.md) for tested IDE builds and the separate project JDK requirements.
+**Release status:** preparing for the first JetBrains Marketplace release. Marketplace installation is not yet available. Use a candidate plugin ZIP supplied for testing, or build one from this repository. A verified Marketplace listing link will be added here after publication.
 
-Install the candidate ZIP through **Settings → Plugins → gear → Install Plugin from Disk**. Plugin developers can build it with `./gradlew buildPlugin`; the ZIP appears under `build/distributions/`. Follow the release's own download instructions when installing a published candidate.
+[Get started](#get-started) · [Documentation](#documentation) · [Build and contribute](#build-and-contribute) · [Report a problem](#report-a-problem)
 
-Start with [Your first module in five minutes](docs/GettingStarted.md): create a Maven archetype project, add a Scheduled Consumer and Logging Producer, run the module, then inspect its Blue Console.
+## What you can do
 
-| Guide | What it covers |
+- Design flows with a component palette, property editor and visual connections in IntelliJ's main editor area.
+- Generate application code and configuration while keeping business logic in developer-owned source files.
+- Run and debug modules through IntelliJ, inspect their module-local Blue Console, and exercise supported endpoints with development harnesses.
+- Use type guidance and converter recipes when connecting components with different payload types.
+- Copy flows between projects and preview migrations between supported Ikasan versions.
+- Connect an AI client to the live design or import structured proposals, with validation, undo and developer-code protection.
+
+Studio helps with integration structure and repetitive implementation work. Application-specific stubs still need business logic and tests; generated code and suggested conversions do not establish that an integration works against its external systems.
+
+## Get started
+
+### Requirements
+
+| Layer | Current repository configuration |
 | --- | --- |
-| [Supported versions](docs/SupportedVersions.md) | IntelliJ, Ikasan packs and project JDKs |
-| [Harnesses](docs/Harnesses.md) | Email, FTP, JMS readers, injection and real scans |
-| [Project files and recovery](docs/ProjectFilesAndRecovery.md) | Generated/user ownership, model backups and restoration |
-| [Troubleshooting](docs/Troubleshooting.md) | Ports, Maven, indexing, startup and debugging |
-| [Type guidance](docs/TypeGuidance.md) | Type warnings and converter suggestions |
-| [Privacy and network behaviour](docs/DiagnosticsAndPrivacy.md) | Local data, downloads, connections and reporting |
-| [Known limitations](docs/KnownLimitations.md) | Current boundaries and release checks |
-| [Version migration](docs/IkasanVersionMigration.md) | Preview, apply and restore between supported packs |
-| [Flow copy/paste](docs/FlowCopyPaste.md) | Reuse flows across projects |
+| IntelliJ IDEA | Minimum 2024.2, platform build 242 |
+| Plugin compilation/test target | IDEA Community 2024.3.7 |
+| Configured binary verification | IDEA 2024.2, 2024.3.7 and 2026.2.2 |
+| Bundled Ikasan meta-packs | V3.3.9 and V4.1.6 |
+| Generated V3.3.9 application | Java 11 |
+| Generated V4.1.6 application | Java 17 |
 
-Studio opens in IntelliJ's main editor area. Reopen it with the squid icon on the far-right stripe, **Tools → Open Ikasan Studio**, or Find Action. The **Console** control opens the module-local Blue Console, distinct from the central Ikasan Dashboard.
+Run IntelliJ with its supplied runtime and configure the application's project SDK, Maven runner/importer and Run/Debug JRE for its Ikasan version. These are separate from the toolchains used to develop the plugin.
 
-The following architecture and roadmap sections contain historical design context. Use the guides above for current user workflows and supported behaviour.
+See [Supported versions](docs/SupportedVersions.md) and [Known limitations](docs/KnownLimitations.md) before choosing a candidate. The plugin has no upper IDE build limit, but that does not mean every later IDE has been tested. Verification evidence is specific to the candidate described in the [release audit](docs/ReleaseAudit-2026-09-14.md).
 
-## High level design / motivations
+### Install and create a module
 
-* Scaling
-  * Reduced learning time for new resources.
-  * Reduced complexity for new resources.
-  * Reduced time to production since most of the code is already written.
-  * Simple modules can be generated directly by the business owner.
-* Quality -
-  * The majority of module is code via configuration, with the underlying code / generated based on best practice implementations from the Ikasan core team.
-  * The graphical representation of the module quickly exposes flaws in the business process path.
-  * Opportunities for localised developer testing and debugging.
-  * Configuration is subjected to validation checks reducing semantic errors.
-  * Core (generated) code is subjected to enhanced automated testing.
-  * Developers are focused on the exception processing, with more time to extend testing for the bespoke data transformations.
-  * Core developers are focused on enhancements to the core code
-  * Opportunities for daily improvement via CI against the core libraries.
-  * Localised payload transformation analysis assists with production issue replication and resolution.
-* Migration
-  * The json model creates a layer of abstraction between the business 'application' and the underlying version of Ikasan, once standard meta-packs have been written, upgrading or downgrading versions of Ikasan can be a simple as a drop-down chooser.
-* Transparency
-  * The business and IT can collaborate quickly on the model generation.
-  * The model diagram forms part of the delivery, by definition will always be upto date.
-* Cost of ownership
-  * Corporate coding standards and implementation standards enforced by the auto-generated code.
-  * Consistency in implementation reduces support costs.
-  * Reduction in project written code results in reduction of development time and all related QA activities
-  * Upgrades between versions of Ikasan greatly simplified via json (not Java) as the source code model, reducing legacy friction and therefore legacy support costs.
-  * Improvements and bug fixes to core Ikasan features can be applied with reduced / no alteration to the module configuration / bespoke code.
-  * Localised developer testing and debugging reduces the reliance on expensive centralised server resource
-* Flexibility
-  * Custom components or implementations can be generated by development teams, with either minor extensions or complete bespoke library of components.
-  * Custom components have a lifecycle route back to the core libraries
+1. Obtain the candidate ZIP or [build the plugin](#build-and-contribute). In IntelliJ, choose **Settings → Plugins → gear → Install Plugin from Disk**, select the ZIP and restart if prompted.
+2. Create a **Maven Archetype** project using `org.ikasan.studio:ikasan-studio-project-archetype` and the version supplied for your candidate. If it is unavailable in your configured repositories, use the [manual archetype fallback](#manual-archetype-fallback).
+3. Allow Maven import and indexing to finish. Studio opens in an editor tab; select the appropriate Ikasan pack and configure the module.
+4. Add a flow, a consumer and the remaining components. Configure their properties and select **Update Code**.
+5. Select **Run module**, wait for application startup, then open **Console**. Use IntelliJ Run/Debug controls for subsequent development.
 
-## Version Neutral Data Model
+Follow [Your first module in five minutes](docs/GettingStarted.md) for a Scheduled Consumer → Logging Producer example requiring no external broker, FTP server or email account.
 
-The Module, Flows and Components are persisted using the Ikasan JSON data model, which is version neutral. This allows the Studio to be used with multiple versions of Ikasan, and for the model to be migrated between versions of Ikasan.
-see https://github.com/ikasanEIP/ikasan/blob/4.0.x/ikasaneip/topology/README.md for further details.
+Reopen Studio with the squid icon on the far-right stripe, **Tools → Open Ikasan Studio**, or Find Action. Closing its editor tab is respected on later project launches.
 
-## Application Split
+**Console** opens the module-local **Blue Console**, which provides flow control and module administration. It is distinct from the central **Ikasan Dashboard**, which manages multiple modules. The walkthrough's local example uses `admin` / `admin`.
 
-Offering is split into 3 artefacts with independent lifecycles
+### Your model and code
 
-<img src="docs/images/20240511-CodeSplit.png" alt="Install Plugin from Disk" width="800">
+| Location in an Ikasan application | Purpose |
+| --- | --- |
+| `generated/src/main/model/model.json` | The source-of-truth visual model; commit it to version control |
+| Other generated Java/configuration under `generated/` | Studio-owned output that regeneration can replace |
+| `user/` | Developer-owned implementations and resources; generated stubs need application-specific implementation |
+| `generated/IKASAN_STUDIO.md` | Generated model-editing and code-ownership guidance |
+| Root `AGENTS.md` | Discovery instructions for AI tools, created only when missing |
 
-### Core (org.ikasan.studio.core)
+Commit the model and your implementations together. Do not delete the whole `generated/` directory as a cleaning step: it contains the model. Read [Project files and recovery](docs/ProjectFilesAndRecovery.md) for backups, flow renaming and recovery, and [AI-friendly projects](docs/AiFriendlyProjects.md) for the generated schema and component catalogue.
 
-* Contains the model.json (de)serialisation
-* Framework for code generation (ftl supplied by meta pack),
-* Framework for unit test support for meta pack, abstract support for meta pack
+### AI-assisted development
 
-### Metapack (resources/studio/metapack) - depends on Core
+Choose **Tools → Connect AI to Ikasan Studio…** for supported IntelliJ MCP setup or a manual client configuration using the bundled Java adapter. An AI client can read the live model and catalogue and submit supported changes. File-based proposals are also available.
 
-* One per supported Ikasan version
-* Reduces the number of updates to the core (UI) plugin, the metapack can be added to (almost) any version of the plugin
-* Distribution / exposed via web / repo / something
-* Component Library - Encapsulates the Components properties, meta-information, helptext, icons and ftl for a version of Ikasan, or an 'approach to auto-generation implementation', or user created components / code practice.
-* Provides extensive unit testing to self certify
-* End user encouraged to create their own, only official metapacks are 'supported'
+Studio validates proposals and applies them according to its approval settings. **Always ask for approval** is off by default; **Confirm deletes** is on by default. Potential replacement of developer-owned code requires review. Consult [Studio AI bridge](docs/StudioAiBridge.md) for connection steps, supported operations, settings, status checks and undo behaviour.
 
-### UI (org.ikasan.studio.ui) - Depends on Core and Metapacks
+## Documentation
 
-* Business driver is cost saving resulting from standard coding of components, reduced build times, reduced migration between versions of Ikasan, reduced complexity in legacy code base
-* The UI should be easy to use, intuitive, dumb down usage for junior / mid-tier devs
-* Abstracted to be driven from the content of a meta pack
-* Support for multiple simultaneous metapacks
-* Resilient and defensive, the UI needs to accommodate developer errors (misconfigured flows or metapacks) without resulting in serious errors in the IDE (Intellij are very keen to expose even slightly wonky plugins). Where possible, the IDE should recover misconfiguration and inform the user via popup / message balloons.
+### Using Studio
 
-## Epics / major stories
+| Guide | Read it for |
+| --- | --- |
+| [Getting started](docs/GettingStarted.md) | Create, configure, run and debug your first module |
+| [Supported versions](docs/SupportedVersions.md) | IDE compatibility, bundled packs and application JDKs |
+| [Project files and recovery](docs/ProjectFilesAndRecovery.md) | Ownership, model backups, flow renaming and restoration |
+| [Type guidance](docs/TypeGuidance.md) | Payload type warnings and converter suggestions |
+| [Converter recipes](docs/ConversionRecipes.md) | Reusable payload extraction and construction |
+| [Harnesses](docs/Harnesses.md) | Local mail/FTP testing, JMS readers, message injection and real scans |
+| [JMS object messages](docs/JmsObjectMessages.md) | ActiveMQ trusted packages and Java-object payloads |
+| [Flow copy/paste](docs/FlowCopyPaste.md) | Reuse flows and update shared references |
+| [Ikasan version migration](docs/IkasanVersionMigration.md) | Preview, apply and recover migrations between supported packs |
+| [Studio AI bridge](docs/StudioAiBridge.md) | Live MCP access and structured model proposals |
+| [AI-friendly projects](docs/AiFriendlyProjects.md) | Generated instructions, schemas and component catalogues |
+| [Generated-code warnings](docs/GeneratedCodeWarnings.md) | Template checks and application-specific warning limits |
+| [Troubleshooting](docs/Troubleshooting.md) | Maven, indexing, ports, startup, debugging and generation failures |
+| [Diagnostics and privacy](docs/DiagnosticsAndPrivacy.md) | Logging, local data, network activity and diagnostic collection |
+| [Known limitations](docs/KnownLimitations.md) | Current feature boundaries and outstanding verification |
 
-Core
+### Developing Studio and meta-packs
 
-* Extract the 'core' part into standard maven1 project, build into jar and expose in repo accessible by project (CAUTION - resource restrictions in official Ikasan Github).
-* Create builder / Maven integration for non-UI code regeneration, integrate into maven.
-* Expand out model.json to accommodate 'code hooks' and any non-standard attributes e.g. meta-pack version (organic, maybe driven by needs of UI).
-* Parametrise meta pack version in build.
-* Explore DB driven configuration.
-* Explore how to integrate with environment configurations solutions.
+| Guide | Read it for |
+| --- | --- |
+| [Contributing](CONTRIBUTING.md) | Setup, engineering expectations, tests and pull requests |
+| [Project context](AGENTS.md) | Product mission, architecture, terminology and working conventions |
+| [Headless generator and test kit](headless/README.md) | Standalone modules, source ownership and build commands |
+| [Meta-pack authoring](src/main/resources/studio/metapack/METAPACK.md) | Manifests, descriptors, templates and pack lifecycle |
+| [Meta-pack compliance](src/main/resources/studio/metapack/METAPACK_COMPLIANCE.md) | Required metadata, dependencies and verification |
+| [Independent pack artifacts](docs/IndependentMetaPackArtifacts.md) | Pack versioning, compatibility and publication commands |
+| [Engine and meta-pack testing](docs/TestingEngineAndMetaPacks.md) | Test ownership, focused suites and expected outputs |
+| [Architecture boundary tests](docs/ArchitectureBoundaryTests.md) | Dependency rules and how to address violations |
+| [Failure-injection testing](docs/FailureInjectionTesting.md) | Recovery and failure-path checks |
+| [Performance testing](docs/PerformanceTesting.md) | Measurements, results and interactive checks |
+| [Accessibility review](docs/AccessibilityReview.md) | Keyboard access, themes and UI verification |
+| [Code quality](docs/CodeQuality.md) | Optional duplication analysis and maintenance guidance |
+| [Ancillary projects](ikasan-studio-ancillary/README.md) | Maven archetype and IDE mediator |
+| [Claude Code guidance](CLAUDE.md) | Supplementary tool-specific development instructions |
 
-Meta pack(s)
+### Releases and project direction
 
-* Ikasan SME to identify the set of core Ikasan components to be supported in MVP1.
-* Ikasan SME to identify review and correct all auto generated classes code properties files (ftl templates).
-* Ikasan SME to identify review and correct all properties for completed components, identify as standard / advanced.
-* Ikasan SME to work on ftl templates for remaining core Ikasan components.
-* Split out metapack with its unit tests into separate module with dependent on code.
-* Add in aggregate components with associated free marker templates.
-* Add metapacks for Ikasan V4.x.
-* Add metapacks for Bespoke implementations / libraries / user overrides.
-* Add Junit stubs for all user generated classes.
-* Support generic bespoke classes e.g. brokers, consumer, splitters etc
+| Guide | Read it for |
+| --- | --- |
+| [Changelog](CHANGELOG.md) | Recorded release changes |
+| [Release-candidate verification](docs/ReleaseCandidateVerification.md) | Automated gates, archive audits and installation/upgrade checks |
+| [Marketplace manual checklist](docs/MarketplaceReleaseManualChecklist.md) | Lifecycle, multi-project and external-process release exercises |
+| [14 September 2026 release audit](docs/ReleaseAudit-2026-09-14.md) | Evidence and outstanding checks for that specific candidate |
+| [Product and technical roadmap](docs/IkasanStudioRoadmap.md) | Architectural direction and historical planning context |
+| [AI bridge handover](docs/AI_BRIDGE_HANDOVER.md) | Dated implementation history; use the feature guide for current behaviour |
 
-UI
+Roadmap status tables and dated audits describe their recorded checkout, not necessarily the current working tree. They do not replace the current feature guides or verification of a new candidate.
 
-* Split component configuration into standard with drop down advance tab.
-* Rework the way mandatory components are highlighted to remove issue with 'user code regeneration' affecting components.
-* Support generic bespoke classes e.g. brokers, consumer, splitters, etc.
-* Expand component configuration to support beyond basic Wrapped Java types e.g. lists.
-* Move component configurations to palette for shared to tabbed usage.
-* Code to support user implemented and user supplied classes - integration into model.json, including 'shared' poms and properties - maybe explore multiple project roots.
-* Validate current methods to run application from UI, ensure H2 config not dangerous
-* Add support for wiretaps
-* Review / improve handling of component deletion, auto generated and user generated.
-* Single step debug mode for flows, using maybe wiretap.
-* Support archetype to build the project, maybe partially implemented projects.
-* Sort out icons with correct scaling and transparency to support standard IntelliJ themes.
-* Update UI look and feel for all modes of Intellij themes.
-* Parametrise meta pack version in model startup.
-* Data exchange / XML mapping of payload for simple transitions / mappers.
-* Explore DB driven configuration.
-* Robustness tests.
-* Eclipse, Vaaden, Javascript based IDE.
+## Build and contribute
 
-CI
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md) before changing the plugin. The main plugin and headless engine use Java 17. The optional native MCP module needs a Java 21 toolchain for its newer IntelliJ SDK and emits JVM 17 bytecode. Gradle can provision the configured toolchains; first builds require network access for dependencies and IDE downloads.
 
-* Determine how / what output from the build process are integrated into standard M processing.
-* Integration with marketplace and Maven central / licence.
+```sh
+git clone https://github.com/ikasanEIP/IkasanStudio.git
+cd IkasanStudio
+./gradlew test
+./gradlew buildPlugin
+```
 
-Other
+The plugin ZIP is written to `build/distributions/`. Use `gradlew.bat` on Windows.
 
-* Videos
-* Help wiki
-* Demos
-* Jira ?
-* Public Forum for self-help (stack overflow sub-site)
+| Command | Purpose |
+| --- | --- |
+| `./gradlew -p headless test` | Test the engine, test kit and packs without configuring IntelliJ |
+| `./gradlew check` | Run root/headless checks and meta-pack validation; remote BOM/help checks need network access |
+| `./gradlew buildPlugin verifyReleaseArchive verifyPlugin` | Build, audit the ZIP and check configured IDE compatibility boundaries; the archive audit needs Python 3 |
+| `./gradlew runIdeModern` | Launch the newer sandbox selected by `sandboxIdeVersion` |
+| `./gradlew runIde` | Launch the IDEA Community 2024.3.7 regression sandbox |
+| `./gradlew runHarness` | Run enabled tests in the separate Swing harness suite |
 
-## Manual archetype fallback
+In IntelliJ, **Run Plugin** uses the newer sandbox; **Run Plugin (2024.3.7 Regression)** uses the compilation-target IDE. Reload all Gradle projects after changing build configuration. Versions are configured in [gradle.properties](gradle.properties) and [native-mcp/build.gradle.kts](native-mcp/build.gradle.kts).
 
-In the Maven Archetype wizard, search for `org.ikasan.studio:ikasan-studio-project-archetype`. Choose the version supplied for your release. The source tree currently declares version `1.0.3`; this is not a statement that this version has been published to Maven Central.
+To package while another sandbox is running, use `./gradlew buildPlugin -PstudioSandboxDirectory=build/verification-sandbox`. The newer sandbox's IDEA 2026.2.2 file-chooser workaround is scoped to that sandbox in [build.gradle.kts](build.gradle.kts); it does not change installed users' settings.
 
-Plugin contributors can install the checked-out archetype and its parent locally, from the repository root:
+### Repository layout
+
+| Location | Responsibility |
+| --- | --- |
+| `src/main/java/org/ikasan/studio/intellij/` | IntelliJ editor, lifecycle, PSI, execution, settings and AI integration |
+| `src/main/java/org/ikasan/studio/ui/` | Canvas, palette, properties and view models |
+| `headless/studio-generator/` | Framework-independent model, persistence, validation, migration and generation |
+| `headless/studio-test-kit/` | Reusable engine/pack testing support |
+| `headless/studio-pack-v3/`, `headless/studio-pack-v4/` | Packaging for the two official meta-packs |
+| `headless/studio-bundled-packs/` | Selection of exact pack revisions and combined pack tests |
+| `src/main/resources/studio/metapack/` | Pack manifests, metadata, templates, icons and shared schemas |
+| `native-mcp/`, `src/mcpAdapter/java/` | Optional native IntelliJ MCP integration and the Java adapter |
+| `ikasan-studio-ancillary/` | Separately versioned Maven archetype and IDE mediator |
+| `src/test/java/`, `src/testHarness/java/` | Root automated tests and the separate visual harness suite |
+
+The root Gradle build includes `headless/` as a composite build. Core generation is shared by the plugin and standalone consumers. Meta-packs adapt the version-neutral model to specific Ikasan APIs; adding a pack requires packaging and contract validation, not just a new resource directory. A downloadable pack marketplace and a standalone generation CLI are not currently provided.
+
+### Manual archetype fallback
+
+Use the archetype version supplied for your candidate. The checked-out archetype declares `1.0.3`; this does not establish that it is available from Maven Central. Contributors can install the parent and archetype locally from the repository root:
 
 ```sh
 mvn -f ikasan-studio-ancillary/pom.xml -N install
 mvn -f ikasan-studio-ancillary/ikasan-studio-project-archetype/pom.xml install
 ```
 
-Then, from a separate directory where you want to create the example:
+Then, in a separate directory where you want the application:
 
 ```sh
 mvn archetype:generate -DarchetypeGroupId=org.ikasan.studio -DarchetypeArtifactId=ikasan-studio-project-archetype -DarchetypeVersion=1.0.3 -DgroupId=org.example -DartifactId=my-module -DinteractiveMode=false
 ```
 
-On Windows shells that split Maven property arguments, quote each complete `-Dname=value` argument. Open the generated project's root `pom.xml` in IntelliJ and allow Maven import/indexing to finish. Continue with [module configuration](docs/GettingStarted.md#2-configure-the-module). See [Troubleshooting](docs/Troubleshooting.md) for repository access or SDK failures.
+On Windows shells that split Maven property arguments, quote each complete `-Dname=value` argument. Open the generated root `pom.xml` in IntelliJ, wait for Maven import/indexing, and continue with [module configuration](docs/GettingStarted.md#2-configure-the-module). See [Troubleshooting](docs/Troubleshooting.md) for repository or SDK failures.
 
-## Reporting problems
+## Report a problem
 
-For an unexpected Ikasan Studio plugin error, IntelliJ's error dialog offers a report action that sends the reviewed report through JetBrains Marketplace to the Studio development team. Review the details, attachments and privacy notice before submitting. Studio does not attach model files.
+Use the repository's [bug report](https://github.com/ikasanEIP/IkasanStudio/issues/new?template=bug_report.yml) or [feature request](https://github.com/ikasanEIP/IkasanStudio/issues/new?template=feature_request.yml) template. Include the plugin version/commit, full IDE build, operating system, selected pack and reproduction steps.
 
-For other support investigations, **Tools → Collect Ikasan Studio Diagnostics…** creates a local ZIP; it does not upload it. See [Diagnostics and privacy](docs/DiagnosticsAndPrivacy.md) for report contents, privacy differences and release verification.
+**Tools → Collect Ikasan Studio Diagnostics…** creates a local ZIP; it does not upload it. Review its contents and remove sensitive information before attaching anything. See [Diagnostics and privacy](docs/DiagnosticsAndPrivacy.md) for collection and error-reporting behaviour.
 
-## Plugin Development Guidelines
+Report suspected vulnerabilities privately using [SECURITY.md](SECURITY.md). Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-These guidelines are for developers working on the plugin itself.
+## Licence and acknowledgements
 
-The main plugin uses the Java 17 toolchain. Building the optional native MCP module also requires
-a Java 21 toolchain for its newer IntelliJ SDK; its output still targets JVM 17. End users need
-no additional runtime for AI setup: the adapter uses the running IDE runtime.
-
-### Use an AI with the live Studio design
-
-Select **Tools → Connect AI to Ikasan Studio…** for guided IntelliJ MCP setup or a reusable manual configuration for your AI client
-(the adapter uses IntelliJ's Java runtime; no separate runtime installation is needed). The AI can
-read the live design and component catalogue, then submit a validated proposal. Review and **Apply** it in Studio as one undoable model change. See the
-[Studio AI bridge guide](docs/StudioAiBridge.md) for setup, supported operations and examples.
-
-### Choose a sandbox IDE
-
-Select **Run Plugin** in IntelliJ's Run/Debug menu to launch Studio in IntelliJ IDEA 2026.2.2.
-For regression testing, select **Run Plugin (2024.3.7 Regression)** to launch IntelliJ IDEA Community 2024.3.7.
-Reload the Gradle project after changing the build configuration.
-
-The equivalent terminal commands are:
-
-```shell
-./gradlew runIdeModern  # IntelliJ IDEA 2026.2.2
-./gradlew runIde        # IntelliJ IDEA Community 2024.3.7
-```
-
-These sandboxes keep separate settings and installed plugins. The first launch may download the IDE and its runtime.
-In the newer sandbox, install/update **JetBrains AI Assistant**, select **Codex** in AI Chat, and sign in with ChatGPT.
-See [JetBrains' agent activation instructions](https://www.jetbrains.com/help/ai-assistant/activate-agents.html).
-The newer IDE uses the unified IntelliJ IDEA distribution; its free features do not require an Ultimate subscription.
-
-`sandboxIdeVersion` in `gradle.properties` controls only the newer sandbox. You can override it for one run with
-`./gradlew runIdeModern -PsandboxIdeVersion=2026.2.2`. Compilation and automated tests continue to target
-Community 2024.3.7 through `platformType` and `platformVersion`; do not change those just to switch sandboxes.
-
-The 2026.2.2 sandbox uses IntelliJ's fallback file chooser to avoid an upstream EDT slow-operation error
-when selecting a JDK in **Project Structure → SDKs** (`UniversalFileChooser.toVirtualFiles`).
-This is scoped to `runIdeModern` with `sandboxIdeVersion=2026.2.2`, using
-`-Duniversal.file.chooser.is.enabled=false`; slow-operation checks remain enabled.
-Restart the sandbox through **Run Plugin** after reloading Gradle to apply it.
-For an already running IDE, open **Find Action → Registry…**, turn off
-`universal.file.chooser.is.enabled`, then reopen the SDK chooser.
-JetBrains documents this [file chooser fallback](https://platform.jetbrains.com/t/file-chooser-ui-is-different-in-intellij-versions-2026-1-and-2026-2-when-running-tests-with-the-native-file-chooser-disabled/4827).
-The separate `preferences.language.Kotlin.scripting` deprecated-group warning comes from the bundled Kotlin plugin.
-
-
-### Do not let any exceptions bubble up to Intellij
-
-These get reported directly to the user with the recommendation to disable the plugin and report it to Idea.
-Where possible, log it with a stack trace and try to recover or abort that particular operation.
-
-### Do not use @NotNull
-
-These bubble up to the IDE with the recommendation to disable the plugin and report it to Idea.
-
-### Do not use anything greater than warn when using Intellij's logger
-
-Anything greater than warn results in a stack trace reported directly to the user with the recommendation to disable the plugin and report it to Idea.
-
-### Defensive coding is essential
-
-You don't have to make many mistakes to get blacklisted.
-
-### Current Branching Strategy
-
-* **main** is used for the current development stream and producing SNAPSHOT builds.
-* **1_0_x** is used for formal builds / deployment to Maven Central.
-
-![Build](https://github.com/davidhilton68/ikasanstudio/workflows/Build/badge.svg)
-
-## Template ToDo list
-
-- [X]  Create a new [IntelliJ Platform Plugin Template][template] project.
-- [ ]  Get familiar with the [template documentation][template].
-- [ ]  Adjust the [pluginGroup](./gradle.properties) and [pluginName](./gradle.properties), as well as the [id](./src/main/resources/META-INF/plugin.xml) and [sources package](./src/main/java).
-- [ ]  Adjust the plugin description in `README` (see [Tips][docs:plugin-description])
-- [ ]  Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html?from=IJPluginTemplate).
-- [ ]  [Publish a plugin manually](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html?from=IJPluginTemplate) for the first time.
-- [ ] Add the verified Marketplace listing link after publication.
-- [ ]  Set the [Plugin Signing](https://plugins.jetbrains.com/docs/intellij/plugin-signing.html?from=IJPluginTemplate) related [secrets](https://github.com/JetBrains/intellij-platform-plugin-template#environment-variables).
-- [ ]  Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html?from=IJPluginTemplate).
-- [ ]  Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
-
-<!-- Plugin description -->
-
-This plugin provides a visual designer and integrated development environment for the Ikasan Enterprise Integration Platform
-
-* https://github.com/ikasanEIP
-* https://www.youtube.com/@Ikasan-nq3js
-
-<!-- Plugin description end -->
-
-Studio supports reviewed migration between Ikasan V3.3.9 and V4.1.6. Use **Migrate…** on
-the canvas or **Tools → Migrate Ikasan Version…**. See [version migration](docs/IkasanVersionMigration.md)
-for previews, compatibility checks and recovery snapshots.
-
-Select an FTP producer or consumer to see dashed arrows to components sharing its configured host,
-port, security mode and directory. **Show shared endpoints** displays all these connections in the module.
-Hover over an arrow to see the endpoint. These indicate possible file hand-offs; filename filters,
-account home directories and runtime configuration can affect delivery. Unresolved property expressions
-and custom source-directory factories are not matched.
-
-
-Ikasan EIP is a mature and well maintained integration platform based on industrial patterns (https://www.enterpriseintegrationpatterns.com/) to satisfy complex, disparate and demanding integration requirements of the finance sector.
-
-## Installation
-
-Use the ZIP installation instructions under [Start here](#start-here). Marketplace installation instructions and a direct listing link will be added when the listing is published and verified.
-
----
-
-Plugin based on the [IntelliJ Platform Plugin Template][template].
-
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
-[docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
-
-### Converter recipes
-
-Generic converters offer persistent recipe selection, downstream type suggestions, and reusable content extraction and payload construction for FTP/SFTP, email and JMS. See [Converter recipes](docs/ConversionRecipes.md) for supported inputs, configuration, code ownership and verification.
-
-## Testing strategy
-
-See [Engine and meta-pack testing](docs/TestingEngineAndMetaPacks.md) for test ownership, engine and pack suite commands, focused tests, reports, and broader verification.
-
-For Java objects sent through ActiveMQ, see [JMS Object Messages](docs/JmsObjectMessages.md)
-for the **Trusted object packages (ActiveMQ)** setting and a two-flow example.
+Ikasan Studio is licensed under the [Apache License 2.0](LICENSE.txt). It is part of the [Ikasan project](https://github.com/ikasanEIP) and is based on the [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template).

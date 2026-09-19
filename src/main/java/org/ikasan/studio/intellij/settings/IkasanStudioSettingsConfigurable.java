@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -35,6 +36,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     private JCheckBox showJmsConnectorsCheckBox;
     private JCheckBox showSharedEndpointsCheckBox;
     private JCheckBox alwaysAskAiApprovalCheckBox;
+    private JCheckBox confirmAiDeletesCheckBox;
     private JCheckBox testMailServerLivePollingCheckBox;
     private JCheckBox flowErrorMonitoringCheckBox;
     private JCheckBox autoSaveModuleDiagramCheckBox;
@@ -175,10 +177,15 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         canvasLayoutPanel.add(canvasLayoutNote, BorderLayout.CENTER);
 
         alwaysAskAiApprovalCheckBox = new JBCheckBox(StudioBundle.message("ai.AlwaysAskApproval"));
-        JPanel aiPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
+        confirmAiDeletesCheckBox = new JBCheckBox(StudioBundle.message("ai.ConfirmDeletes"));
+        JPanel aiPanel = new JPanel();
+        aiPanel.setLayout(new BoxLayout(aiPanel, BoxLayout.Y_AXIS));
         aiPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("ai.SettingsHeading")));
-        aiPanel.add(alwaysAskAiApprovalCheckBox, BorderLayout.NORTH);
-        aiPanel.add(wrappingNote("ai.ApprovalNote"), BorderLayout.CENTER);
+        aiPanel.add(alwaysAskAiApprovalCheckBox);
+        aiPanel.add(wrappingNote("ai.ApprovalNote"));
+        aiPanel.add(Box.createVerticalStrut(JBUI.scale(8)));
+        aiPanel.add(confirmAiDeletesCheckBox);
+        aiPanel.add(wrappingNote("ai.ConfirmDeletesNote"));
 
         JPanel northPanel = new JPanel();
         northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
@@ -215,6 +222,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
                 || gettingStartedHintsCheckBox.isSelected() != IkasanStudioSettings.areGettingStartedHintsEnabled()
                 || promptBeforeDeletingUserCodeCheckBox.isSelected() != IkasanStudioSettings.isPromptBeforeDeletingUserCode()
                 || showAdvancedControlsCheckBox.isSelected() != IkasanStudioSettings.isShowAdvancedControlsEnabled()
+                || confirmAiDeletesCheckBox.isSelected() != IkasanStudioSettings.isConfirmAiDeletes()
                 || alwaysAskAiApprovalCheckBox.isSelected() != IkasanStudioSettings.isAlwaysAskAiApproval()
                 || showSharedEndpointsCheckBox.isSelected() != IkasanStudioSettings.areSharedEndpointsShown()
                 || showJmsConnectorsCheckBox.isSelected() != IkasanStudioSettings.areJmsConnectorsEnabled()
@@ -236,6 +244,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
             state.gettingStartedHintsEnabled = gettingStartedHintsCheckBox.isSelected();
             state.promptBeforeDeletingUserCode = promptBeforeDeletingUserCodeCheckBox.isSelected();
             state.showAdvancedControls = showAdvancedControlsCheckBox.isSelected();
+            state.confirmAiDeletes = confirmAiDeletesCheckBox.isSelected();
             state.alwaysAskAiApproval = alwaysAskAiApprovalCheckBox.isSelected();
             state.showSharedEndpoints = showSharedEndpointsCheckBox.isSelected();
             state.jmsConnectorsEnabled = showJmsConnectorsCheckBox.isSelected();
@@ -256,6 +265,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         gettingStartedHintsCheckBox.setSelected(IkasanStudioSettings.areGettingStartedHintsEnabled());
         promptBeforeDeletingUserCodeCheckBox.setSelected(IkasanStudioSettings.isPromptBeforeDeletingUserCode());
         showAdvancedControlsCheckBox.setSelected(IkasanStudioSettings.isShowAdvancedControlsEnabled());
+        confirmAiDeletesCheckBox.setSelected(IkasanStudioSettings.isConfirmAiDeletes());
         alwaysAskAiApprovalCheckBox.setSelected(IkasanStudioSettings.isAlwaysAskAiApproval());
         showSharedEndpointsCheckBox.setSelected(IkasanStudioSettings.areSharedEndpointsShown());
         showJmsConnectorsCheckBox.setSelected(IkasanStudioSettings.areJmsConnectorsEnabled());

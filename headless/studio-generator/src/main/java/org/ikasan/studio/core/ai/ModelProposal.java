@@ -14,13 +14,16 @@ import java.util.*;
 public final class ModelProposal {
     private ModelProposal() { }
     public record Prepared(Module draft, Set<String> affectedFlows, List<String> summary,
-                           Map<FlowElement, String> originalNames) { }
+                           Map<FlowElement, String> originalNames, Set<Flow> originalFlows, boolean deletesContent) { }
 
     public static Prepared prepare(Map<String, Object> snapshot, JsonNode operations) throws Exception {
         if (!operations.isArray() || operations.isEmpty() || operations.size() > 100)
             throw new IllegalArgumentException("Provide between 1 and 100 operations.");
         Module draft = ComponentIO.validatePersistedModuleJson(StudioJson.newObjectMapper().writeValueAsString(snapshot), "AI snapshot", false);
         Map<FlowElement, String> originalNames = new IdentityHashMap<>();
+        Set<Flow> originalFlows = Collections.newSetFromMap(new IdentityHashMap<>());
+        originalFlows.addAll(draft.getFlows());
+        boolean deletesContent = false;
         draft.getFlows().forEach(flow -> elements(flow).forEach(element -> originalNames.put(element, element.getIdentity())));
         Set<String> affected = new LinkedHashSet<>();
         List<String> summary = new ArrayList<>();
@@ -28,8 +31,18 @@ public final class ModelProposal {
             String type = text(op, "type");
             String flowName = text(op, "flow");
             checkName(flowName);
+            deletesContent |= Set.of("deleteFlow", "deleteComponent", "replaceComponent").contains(type);
             Flow flow;
-            if (type.equals("addFlow")) {
+            if (type.equals("deleteFlow")) {
+                fields(op, "type", "flow");
+                flow = findFlow(draft, flowName);
+                var harnesses = draft.getFlows().stream()
+                        .filter(f -> f.getPropertyValueAsString("testHarnessOwner").startsWith(flowName + "/")).toList();
+                draft.getFlows().remove(flow);
+                draft.getFlows().removeAll(harnesses);
+                harnesses.forEach(f -> summary.add("Delete associated test harness: " + f.getIdentity()));
+                summary.add("Delete entire flow: " + flowName + " and all its components (developer-owned source files are retained)");
+            } else if (type.equals("addFlow")) {
                 fields(op, "type", "flow");
                 if (draft.getFlows().stream().anyMatch(f -> sameGeneratedName(f.getIdentity(), flowName))) fail("Flow already exists: " + flowName);
                 flow = new Flow(draft.getVersion());
@@ -72,7 +85,12 @@ public final class ModelProposal {
                         String property = text(op, "property");
                         var meta = element.getComponentMeta().getMetadata(property);
                         // A protected user-supplied class is a bean reference, not a request to regenerate its code.
-                        if (meta != null && meta.isAffectsUserImplementedClass()
+                        boolean repairsUnresolvedClass = property.equals("userImplementedClassName")
+                                && element.getPropertyValueAsString(property).startsWith("__fieldName:")
+                                && op.path("value").isTextual()
+                                && javax.lang.model.SourceVersion.isIdentifier(op.path("value").asText())
+                                && !javax.lang.model.SourceVersion.isKeyword(op.path("value").asText());
+                        if (meta != null && meta.isAffectsUserImplementedClass() && !repairsUnresolvedClass
                                 && !(meta.isUserSuppliedClass() && meta.isProtectFromOverwrite()))
                             fail("Edit implementation class properties in Studio: " + property);
                         setProperty(element, property, op.get("value"));
@@ -112,7 +130,8 @@ public final class ModelProposal {
             affected.add(flowName);
         }
         for (String name : affected) {
-            Flow flow = findFlow(draft, name);
+            Flow flow = draft.getFlows().stream().filter(f -> f.getIdentity().equals(name)).findFirst().orElse(null);
+            if (flow == null) continue;
             // Like manual Studio editing, proposals may leave a design in progress.
             // Completeness is a review warning; structural and property checks still apply below.
             String integrity = flow.getFlowIntegrityStatus();
@@ -135,7 +154,8 @@ public final class ModelProposal {
             }
         }
         ComponentIO.toValidatedModuleJson(draft);
-        return new Prepared(draft, Set.copyOf(affected), List.copyOf(summary), Collections.unmodifiableMap(originalNames));
+        return new Prepared(draft, Set.copyOf(affected), List.copyOf(summary), Collections.unmodifiableMap(originalNames),
+                Collections.unmodifiableSet(originalFlows), deletesContent);
     }
 
     private static void removeComponent(Flow flow, FlowElement element) {
@@ -197,12 +217,14 @@ public final class ModelProposal {
     public static ChangeSet changes(Module live, Prepared prepared) {
         List<Runnable> forward = new ArrayList<>();
         List<Runnable> backward = new ArrayList<>();
+        var oldFlows = new ArrayList<>(live.getFlows());
+        List<Flow> newFlows = new ArrayList<>();
         for (Flow draftFlow : prepared.draft().getFlows()) {
+            Flow original = prepared.originalFlows().contains(draftFlow)
+                    ? live.getFlows().stream().filter(f -> f.getIdentity().equals(draftFlow.getIdentity())).findFirst().orElse(null) : null;
+            newFlows.add(original == null ? draftFlow : original);
             if (!prepared.affectedFlows().contains(draftFlow.getIdentity())) continue;
-            Flow original = live.getFlows().stream().filter(f -> f.getIdentity().equals(draftFlow.getIdentity())).findFirst().orElse(null);
             if (original == null) {
-                forward.add(() -> live.getFlows().add(draftFlow));
-                backward.add(() -> live.getFlows().removeIf(f -> f == draftFlow));
                 continue;
             }
             Map<String, FlowElement> originals = new HashMap<>();
@@ -238,6 +260,8 @@ public final class ModelProposal {
             forward.add(() -> { original.setConsumer(newConsumer); original.getFlowRoute().getFlowElements().clear(); original.getFlowRoute().getFlowElements().addAll(newBody); });
             backward.add(() -> { original.setConsumer(oldConsumer); original.getFlowRoute().getFlowElements().clear(); original.getFlowRoute().getFlowElements().addAll(oldBody); });
         }
+        forward.add(() -> { live.getFlows().clear(); live.getFlows().addAll(newFlows); });
+        backward.add(() -> { live.getFlows().clear(); live.getFlows().addAll(oldFlows); });
         return new ChangeSet(forward, backward);
     }
 

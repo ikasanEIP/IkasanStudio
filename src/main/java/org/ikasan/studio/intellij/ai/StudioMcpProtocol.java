@@ -28,7 +28,7 @@ public final class StudioMcpProtocol {
             switch (request.path("method").asText()) {
                 case "initialize" -> result = Map.of("protocolVersion", "2025-03-26", "capabilities", Map.of("tools", Map.of()),
                         "serverInfo", Map.of("name", "ikasan-studio", "version", "1.0"),
-                        "instructions", "Read studio_snapshot and studio_catalogue. Submit studio_propose with the snapshot revision. Validated supported changes can apply automatically unless Always ask for approval is enabled; potential developer-owned code replacement always requires Apply in Studio; never edit model.json while Studio is open. Poll studio_proposal_status for the result.");
+                        "instructions", "Read studio_snapshot and studio_catalogue. Submit studio_propose with the snapshot revision. Validated supported changes can apply automatically unless Confirm deletes requires review (enabled by default for deletions and replacements) or Always ask for approval is enabled; potential developer-owned code replacement always requires Apply in Studio; never edit model.json while Studio is open. Poll studio_proposal_status for the result.");
                 case "ping" -> result = Map.of();
                 case "tools/list" -> result = Map.of("tools", definitions());
                 case "tools/call" -> {
@@ -60,15 +60,15 @@ public final class StudioMcpProtocol {
     static List<Map<String, Object>> definitions() {
         Map<String, Object> string = Map.of("type", "string");
         Map<String, Object> operation = Map.of("type", "object", "description",
-                "addFlow: {type,flow}. addComponent: {type,flow,key,name,properties?}. setProperty: {type,flow,component,property,value}. renameComponent: {type,flow,component,name}. deleteComponent: {type,flow,component}. replaceComponent: {type,flow,component,key,name,properties?}; preserves position, replaces consumers only with consumers, preserves developer-owned source files. connect: {type,flow,order:[all component names, consumer first]}. Operations are applied in order. Empty flows and incremental linear-flow construction are supported; incomplete flows show review warnings and must be completed before running. No routers, flow deletion, flow renaming or version changes.",
-                "properties", Map.of("type", Map.of("type", "string", "enum", List.of("addFlow", "addComponent", "setProperty", "renameComponent", "deleteComponent", "replaceComponent", "connect")),
+                "addFlow: {type,flow}. deleteFlow: {type,flow}; removes the entire flow and attached test harnesses, retaining developer-owned source files. addComponent: {type,flow,key,name,properties?}. setProperty: {type,flow,component,property,value}. renameComponent: {type,flow,component,name}. deleteComponent: {type,flow,component}. replaceComponent: {type,flow,component,key,name,properties?}; preserves position, replaces consumers only with consumers, preserves developer-owned source files. connect: {type,flow,order:[all component names, consumer first]}. Operations are applied in order. Empty flows and incremental linear-flow construction are supported; incomplete flows show review warnings and must be completed before running. No router editing, flow renaming or version changes.",
+                "properties", Map.of("type", Map.of("type", "string", "enum", List.of("addFlow", "deleteFlow", "addComponent", "setProperty", "renameComponent", "deleteComponent", "replaceComponent", "connect")),
                         "flow", string, "key", string, "name", string, "component", string, "property", string,
                         "value", Map.of(), "properties", Map.of("type", "object"), "order", Map.of("type", "array", "items", string)),
                 "required", List.of("type", "flow"), "additionalProperties", false);
         return List.of(
                 tool("studio_snapshot", "Read the current live module and revision. Known credential fields are redacted. Pending property edits must first be applied or cancelled in Studio.", Map.of(), List.of()),
-                tool("studio_catalogue", "Read the selected meta-pack's component keys, properties, defaults and payload contracts.", Map.of(), List.of()),
-                tool("studio_propose", "Validate edits. Validated supported changes apply automatically unless Always ask for approval is enabled; potential developer-owned code replacement always opens a review. Check the returned status and studio_proposal_status; ask for Apply only when awaiting_review. Only one review can be pending.",
+                tool("studio_catalogue", "Read component keys, help, properties, payload contracts, recipe configuration examples, implementation/ownership flags and supported proposal operations for the selected meta-pack. Generated stubs may still need implementation and tests.", Map.of(), List.of()),
+                tool("studio_propose", "Validate edits. Validated supported changes apply automatically unless Confirm deletes requires review (enabled by default for deletions and replacements) or Always ask for approval is enabled; potential developer-owned code replacement always opens a review. Check the returned status and studio_proposal_status; ask for Apply only when awaiting_review. Only one review can be pending.",
                         Map.of("revision", string, "operations", Map.of("type", "array", "items", operation, "minItems", 1, "maxItems", 100)), List.of("revision", "operations")),
                 tool("studio_proposal_status", "Read proposal review and generation status.", Map.of("proposalId", string), List.of("proposalId")));
     }
