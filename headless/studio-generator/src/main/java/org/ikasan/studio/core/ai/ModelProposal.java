@@ -287,7 +287,7 @@ public final class ModelProposal {
         node.fieldNames().forEachRemaining(key -> { if (!keys.contains(key)) fail("Unknown operation field: " + key); });
     }
     private static void checkName(String name) {
-        if (!name.matches("[A-Za-z][A-Za-z0-9_ ]{0,79}")) fail("Names must start with a letter and contain only letters, digits, spaces or underscores (maximum 80 characters).");
+        if (!name.matches("[A-Za-z][A-Za-z0-9_ ]{0,79}")) fail("Invalid new name \"" + name + "\". Names must start with a letter and contain only letters, digits, spaces or underscores (maximum 80 characters). For numbered flows, use Flow01 rather than 01.");
     }
     private static boolean sameGeneratedName(String left, String right) {
         return StudioBuildUtils.toPascalCase(left).equals(StudioBuildUtils.toPascalCase(right));

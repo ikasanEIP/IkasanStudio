@@ -338,4 +338,16 @@ public class ModelProposalTest {
         }
     }
 
+    @Test void numberedFlowNameFailureIdentifiesTheNameAndLeavesModelUntouched() throws Exception {
+        var live = TestFixtures.getMyFirstModuleIkasanModule("V3.3.9", new java.util.ArrayList<>());
+        var before = LiveModelSnapshot.capture(live);
+        assertThatThrownBy(() -> ModelProposal.prepare(before, JSON.readTree(
+                "[{\"type\":\"addFlow\",\"flow\":\"01 JMS Publish Orders\"}]")))
+                .hasMessageContaining("01 JMS Publish Orders").hasMessageContaining("Flow01");
+        assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
+        assertThat(ModelProposal.prepare(before, JSON.readTree(
+                "[{\"type\":\"addFlow\",\"flow\":\"Demo01 JMS Publish Orders\"}]")).draft().getFlows())
+                .hasSize(1);
+    }
+
 }

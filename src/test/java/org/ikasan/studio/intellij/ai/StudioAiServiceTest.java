@@ -58,12 +58,16 @@ class StudioAiServiceTest {
                      reviewed.set((StudioAiService.Proposal) construction.arguments().get(2)))) {
             settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
             Application app = mock(Application.class);
-            modalities.when(ModalityState::any).thenReturn(mock(ModalityState.class));
+            var writeSafeModality = mock(ModalityState.class);
+            modalities.when(ModalityState::nonModal).thenReturn(writeSafeModality);
             // Mockito records this call for stubbing; its return value is intentionally ignored.
             //noinspection ResultOfMethodCallIgnored
             applications.when(ApplicationManager::getApplication).thenReturn(app);
-            doAnswer(call -> { call.getArgument(0, Runnable.class).run(); return null; })
-                    .when(app).invokeAndWait(any(Runnable.class), any(ModalityState.class));
+            doAnswer(call -> {
+                assertThat(call.getArgument(1, ModalityState.class)).isSameAs(writeSafeModality);
+                call.getArgument(0, Runnable.class).run();
+                return null;
+            }).when(app).invokeAndWait(any(Runnable.class), nullable(ModalityState.class));
             doAnswer(call -> { call.getArgument(0, Runnable.class).run(); return null; }).when(app).invokeLater(any(Runnable.class));
             paths.when(PathManager::getConfigPath).thenReturn(directory.toString());
             CommandProcessor command = mock(CommandProcessor.class);
@@ -135,11 +139,14 @@ class StudioAiServiceTest {
                 }
                 call.getArgument(0, Runnable.class).run();
                 return null;
-            }).when(app).invokeAndWait(any(Runnable.class), any(ModalityState.class));
+            }).when(app).invokeAndWait(any(Runnable.class), same(writeSafeModality));
             assertThatThrownBy(() -> service.call("studio_propose", request)).hasMessageContaining("stopped or restarted");
             assertThat(reviewed.get()).isNull();
-            doAnswer(call -> { call.getArgument(0, Runnable.class).run(); return null; })
-                    .when(app).invokeAndWait(any(Runnable.class), any(ModalityState.class));
+            doAnswer(call -> {
+                assertThat(call.getArgument(1, ModalityState.class)).isSameAs(writeSafeModality);
+                call.getArgument(0, Runnable.class).run();
+                return null;
+            }).when(app).invokeAndWait(any(Runnable.class), nullable(ModalityState.class));
             assertThatThrownBy(() -> service.call("studio_propose", request)).hasMessageContaining("Unknown or expired revision");
             assertThat(service.start()).isEqualTo(config);
             assertThat(service.getLastAccessTransport()).isNull();

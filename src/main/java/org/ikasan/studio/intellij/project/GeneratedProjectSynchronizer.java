@@ -99,6 +99,9 @@ public class GeneratedProjectSynchronizer {
         // A newer request replaces pending work, so retain changes from every earlier scope.
         GenerationRequest effectiveRequest = uiContext.getPendingGenerationRequest();
         Module module = uiContext.getIkasanModule();
+        // Capture the initiating action's write-safe modality before leaving the UI thread.
+        // Do not inherit a pooled task's modality when scheduling the file commit.
+        ModalityState generationModality = ModalityState.defaultModalityState();
 
         try {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
@@ -202,7 +205,7 @@ public class GeneratedProjectSynchronizer {
                 } catch (Exception failure) {
                     completion.completeExceptionally(failure);
                 }
-            });
+            }, generationModality);
             } catch (Exception failure) {
                 completion.completeExceptionally(failure);
             }

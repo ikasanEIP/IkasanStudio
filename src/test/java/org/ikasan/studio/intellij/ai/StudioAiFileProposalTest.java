@@ -54,9 +54,13 @@ class StudioAiFileProposalTest {
             settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
             var app = mock(Application.class);
             applications.when(ApplicationManager::getApplication).thenReturn(app);
-            modalities.when(ModalityState::any).thenReturn(mock(ModalityState.class));
-            doAnswer(call -> { call.getArgument(0, Runnable.class).run(); return null; })
-                    .when(app).invokeAndWait(any(Runnable.class), any(ModalityState.class));
+            var writeSafeModality = mock(ModalityState.class);
+            modalities.when(ModalityState::nonModal).thenReturn(writeSafeModality);
+            doAnswer(call -> {
+                assertThat(call.getArgument(1, ModalityState.class)).isSameAs(writeSafeModality);
+                call.getArgument(0, Runnable.class).run();
+                return null;
+            }).when(app).invokeAndWait(any(Runnable.class), nullable(ModalityState.class));
             var command = mock(CommandProcessor.class);
             commands.when(CommandProcessor::getInstance).thenReturn(command);
             doAnswer(call -> { call.getArgument(1, Runnable.class).run(); return null; })

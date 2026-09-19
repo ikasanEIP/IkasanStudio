@@ -101,6 +101,10 @@ public final class AiProjectContractGenerator {
                 use Studio proposals for model changes. Preserve Spring bean names, interfaces and method
                 signatures. If code is already customised or intent is uncertain, ask before replacing it.
 
+                ## Proposal names
+
+                New flow and component names must match [A-Za-z][A-Za-z0-9_ ]{0,79}: start with a letter, then letters, digits, spaces or underscores, maximum 80 characters. For numbered flows use Flow01 or Demo01, never a leading number. Existing flow/component references must use their exact saved names.
+
                 ## Defaults and model property changes
 
                 A catalogue default is a literal value; defaultExpression is an internal derivation rule,
@@ -117,7 +121,7 @@ public final class AiProjectContractGenerator {
 
                 A producer hands off to a consumer through transport configuration, not a cross-flow connect
                 operation. connect only orders components inside one flow. Plan related flows together and
-                add them in the desired canvas order; numeric names do not reorder existing flows. The proposal
+                add them in the desired canvas order; numbering names does not reorder existing flows. The proposal
                 API has no flow-reordering operation: use Studio to reorder existing flows, never delete and
                 recreate them just to change their position.
 

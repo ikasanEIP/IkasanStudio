@@ -264,3 +264,5 @@ The generated guide now explains cross-flow JMS/FTP/SFTP matching, flow insertio
 between inferred canvas links and tested delivery. SFTP canvas connectors and proposal flow reordering are
 not currently supported. Generation failure must stop dependent work and trigger a focused repair against
 the updated model, not blind retries or a claim that compiling the previous skeleton validates the new flows.
+
+New names introduced by `addFlow`, `addComponent`, `replaceComponent` and `renameComponent` must match `[A-Za-z][A-Za-z0-9_ ]{0,79}`. Use `Flow01` or `Demo01` for numbered flows, not a leading digit. References to existing flows/components retain their exact saved names. Validation errors identify the rejected new name.

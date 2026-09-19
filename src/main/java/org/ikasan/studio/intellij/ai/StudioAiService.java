@@ -365,8 +365,12 @@ public final class StudioAiService implements Disposable {
         StudioProjectFiles.causeRedraw(project);
     }
     private <T> T onEdt(Supplier<T> action) throws Exception {
+        var application = ApplicationManager.getApplication();
+        if (application.isDispatchThread()) return action.get();
         FutureTask<T> task = new FutureTask<>(action::get);
-        ApplicationManager.getApplication().invokeAndWait(task, ModalityState.any());
+        // Background AI requests may save documents and generate PSI/VFS files. ANY is write-unsafe;
+        // wait until modal UI has closed rather than modifying the project underneath a dialog.
+        application.invokeAndWait(task, ModalityState.nonModal());
         try { return task.get(); }
         catch (ExecutionException failure) {
             if (failure.getCause() instanceof Exception exception) throw exception;
