@@ -179,4 +179,11 @@ public class StudioBuildUtilsTest {
         assertThat(StudioBuildUtils.escapeSpringPropertiesValue(""), is(""));
         assertThat(StudioBuildUtils.escapeSpringPropertiesValue(null), is(""));
     }
+
+    @Test
+    void stringToListKeepsUserOrderWhenRemovingDuplicates() {
+        assertThat(StudioBuildUtils.stringToList("zebra, apple, mango, apple, banana, zebra"),
+                is(List.of("zebra", "apple", "mango", "banana")));
+        assertThat(StudioBuildUtils.stringToList("[c, b, a]"), is(List.of("c", "b", "a")));
+    }
 }
