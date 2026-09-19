@@ -120,7 +120,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
                     <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(<#if trustedPackages?has_content && propKey == "connectionFactory">Trusted${flowElement.getJavaClassName()}ContextFactory.configure(</#if>${StudioBuildUtils.toJavaIdentifier(propValue.valueString)}<#if trustedPackages?has_content && propKey == "connectionFactory">)</#if>)<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                 <#else>
                     <#if propValue.meta.usageDataType?? && propValue.meta.usageDataType == "java.lang.String">
-                        <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}("${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.valueString)}")<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
+                        <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}("${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.valueString)?j_string}")<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                     <#else>
                         <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.toJavaLiteral(propValue.meta, StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.valueString))})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
                     </#if>

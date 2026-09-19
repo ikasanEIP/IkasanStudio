@@ -82,11 +82,12 @@ public class UnsavedPropertyChangesDialogHarnessTest extends ComponentTestHarnes
     @Test
     void eachButtonActionReportsTheRightChoice() {
         UIUtil.invokeAndWaitIfNeeded(() -> {
+            // Both jump targets supplied: Apply, Discard, Jump to code, Jump to properties, Cancel.
             UnsavedPropertyChangesDialog dialog = new UnsavedPropertyChangesDialog(getProject(),
-                    "Unsaved Property Changes", "'X' has unsaved changes to: Y.", "X", List.of());
+                    "Unsaved Property Changes", "'X' has unsaved changes to: Y.", "X", List.of(), "X.java", "X properties");
             try {
                 Action[] actions = invokeCreateActions(dialog);
-                assertThat(actions).hasSize(3);
+                assertThat(actions).hasSize(5);
 
                 silentlyInvoke(actions[0]);
                 assertThat(dialog.getChoice()).isEqualTo(UnsavedPropertyChangesDialog.Choice.APPLY);
@@ -95,7 +96,28 @@ public class UnsavedPropertyChangesDialogHarnessTest extends ComponentTestHarnes
                 assertThat(dialog.getChoice()).isEqualTo(UnsavedPropertyChangesDialog.Choice.DISCARD);
 
                 silentlyInvoke(actions[2]);
+                assertThat(dialog.getChoice()).isEqualTo(UnsavedPropertyChangesDialog.Choice.JUMP_TO_CODE);
+
+                silentlyInvoke(actions[3]);
                 assertThat(dialog.getChoice()).isEqualTo(UnsavedPropertyChangesDialog.Choice.JUMP_TO_PROPERTIES);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            } finally {
+                disposeDialog(dialog);
+            }
+        });
+    }
+
+    @Test
+    void jumpButtonsAreOnlyOfferedWhenTheirTargetIsKnown() {
+        UIUtil.invokeAndWaitIfNeeded(() -> {
+            // No targets: only Apply, Discard and Cancel. Cancel records no choice, so the default (CANCEL) stands.
+            UnsavedPropertyChangesDialog dialog = new UnsavedPropertyChangesDialog(getProject(),
+                    "Unsaved Property Changes", "'X' has unsaved changes to: Y.", "X", List.of());
+            try {
+                Action[] actions = invokeCreateActions(dialog);
+                assertThat(actions).hasSize(3);
+                assertThat(dialog.getChoice()).isEqualTo(UnsavedPropertyChangesDialog.Choice.CANCEL);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             } finally {

@@ -24,6 +24,39 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
+     * Descriptions and names are free text. A quote or backslash in one (e.g. a description of Handles "urgent"
+     * orders) must be escaped in the Java string literal it becomes, or the generated project does not compile.
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void descriptionsAndNamesWithQuotesAndBackslashesAreEscapedInGeneratedJava(String metaPackVersion) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        module.setPropertyValue("description", "Handles \"urgent\" orders in C:\\data");
+        Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion).build();
+        flow.setName("Order \"A\"");
+        flow.setPropertyValue("description", "Flow \"desc\" C:\\in");
+        module.addFlow(flow);
+        FlowElement consumer = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(metaPackVersion,
+                org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Event Generating Consumer"),
+                flow, flow.getFlowRoute(), "Read \"in\"");
+        consumer.defaultUnsetMandatoryProperties();
+        flow.setConsumer(consumer);
+        FlowElement producer = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(metaPackVersion,
+                org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Dev Null Producer"),
+                flow, flow.getFlowRoute(), "Sink \\ end");
+        producer.defaultUnsetMandatoryProperties();
+        flow.getFlowRoute().insertFlowElement(0, producer);
+
+        String moduleConfig = ModuleConfigTemplate.create(module);
+        assertTrue(moduleConfig.contains(".withDescription(\"Handles \\\"urgent\\\" orders in C:\\\\data\")"), moduleConfig);
+        String flowSource = FlowTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertTrue(flowSource.contains(".withDescription(\"Flow \\\"desc\\\" C:\\\\in\")"), flowSource);
+        assertTrue(flowSource.contains("getFlowBuilder(\"Order \\\"A\\\"\")"), flowSource);
+        assertTrue(flowSource.contains("\"Read \\\"in\\\"\""), flowSource);
+        assertTrue(flowSource.contains("\"Sink \\\\ end\""), flowSource);
+    }
+
+    /**
      * Expected output: src/test/resources/studio/templates/org/ikasan/studio/generator/&lt;version&gt;/Module/ModuleConfigEmptyIkasanModel.java
      * @throws IOException if the template cant be generated
      */

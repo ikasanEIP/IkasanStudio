@@ -415,6 +415,22 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
     }
 
     /**
+     * String properties emitted as Java literals (e.g. a key store password) accept free text, so a backslash or
+     * quote - a Windows path, a password - must be escaped or the generated factory does not compile.
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void stringPropertiesWithBackslashesAndQuotesAreEscapedInGeneratedJava(String metaPackVersion) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        FlowElement flowElement = TestFixtures.getFtpProducer(metaPackVersion);
+        flowElement.setPropertyValue("ftpsKeyStoreFilePassword", "pa\"ss\\word");
+        flowElement.setPropertyValue("ftpsKeyStoreFilePath", "C:\\keys\\store.jks");
+        String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
+        assertTrue(templateString.contains(".setFtpsKeyStoreFilePassword(\"pa\\\"ss\\\\word\")"), templateString);
+        assertTrue(templateString.contains(".setFtpsKeyStoreFilePath(\"C:\\\\keys\\\\store.jks\")"), templateString);
+    }
+
+    /**
      * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedSftpProducerComponent.java
      * @throws IOException if the template cant be generated
      */
