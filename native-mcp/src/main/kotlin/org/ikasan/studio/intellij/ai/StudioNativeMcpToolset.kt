@@ -23,7 +23,7 @@ class StudioNativeMcpToolset : McpToolset {
     suspend fun studio_snapshot(): String = call("studio_snapshot", "{}")
 
     @McpTool
-    @McpDescription("Read Ikasan Studio component keys, help, properties, payload contracts, recipe configuration examples, implementation/ownership flags and supported proposal operations for the selected version. Generated stubs may still need implementation and tests. Use before proposing components.")
+    @McpDescription("Read Ikasan Studio component keys, help, properties, payload contracts, recipe configuration examples, implementation/ownership flags and supported proposal operations for the selected version. Includes frameworkReference with version-specific Ikasan source navigation and offline research guidance. Generated stubs may still need implementation and tests. Use before proposing components.")
     suspend fun studio_catalogue(): String = call("studio_catalogue", "{}")
 
     @McpTool

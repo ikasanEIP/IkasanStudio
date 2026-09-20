@@ -19,6 +19,14 @@ class AiProjectContractGeneratorTest {
                     .readTree(AiProjectContractGenerator.componentCatalogue(version));
 
             assertThat(catalogue.path("metapackVersion").asText()).isEqualTo(version);
+            String release = ComponentLibrary.getMetaPackManifest(version).ikasanVersion();
+            assertThat(catalogue.path("ikasanVersion").asText()).isEqualTo(release);
+            var reference = catalogue.path("frameworkReference");
+            assertThat(reference.path("releaseTag").asText()).isEqualTo("ikasaneip-" + release);
+            assertThat(reference.path("releaseSource").asText()).isEqualTo("https://github.com/ikasanEIP/ikasan/tree/ikasaneip-" + release);
+            assertThat(reference.path("navigation").path("interfaces").get(0).asText()).isEqualTo("ikasaneip/spec");
+            assertThat(reference.path("offlineFallback").asText()).contains("resolved dependency version");
+
             assertThat(catalogue.path("components")).hasSize(ComponentLibrary.getNumberOfComponents(version));
             assertThat(catalogue.path("components").findValuesAsText("key"))
                     .contains("Module", "Flow", "Spring JMS Producer", "Spring JMS Consumer");

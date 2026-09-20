@@ -83,6 +83,54 @@ public final class AiProjectContractGenerator {
                 - Files in `user/` are developer-owned. Complete newly generated, unmodified stubs when working
                   behaviour is part of the requested task; preserve existing logic and confirm before replacing it.
 
+                ## Understanding and researching Ikasan
+
+                Ikasan is a Java enterprise integration platform (ESB). A module contains flows; a consumer
+                receives events, processing components transform/filter/route them, and producers deliver results.
+                Builders wire the components into flows. Transactions, recovery, exclusion and replay determine
+                what happens when delivery fails. The module-local Blue Console and central Dashboard have
+                different roles; they are not interchangeable names for the same application.
+
+                Official framework source: https://github.com/ikasanEIP/ikasan
+                Studio plugin source: https://github.com/ikasanEIP/IkasanStudio
+                These repositories serve different purposes: use framework source for runtime API behaviour and
+                the project catalogue/Studio instructions for supported design operations.
+
+                Read ikasanVersion and frameworkReference in component-catalogue.json (or studio_catalogue).
+                Start with the exact releaseSource URL when supplied, not the repository's default branch.
+                Studio currently bundles Ikasan 3.3.9 (Java 11) and 4.1.6 (Java 17). The 3.x, 4.x and 5.x
+                families must not be treated as API-compatible; 5.x is not currently a bundled Studio target.
+                The project POM/BOM and resolved dependencies identify the actual runtime, including overrides.
+                Check namespaces, signatures, property defaults and lifecycle semantics against that version.
+                Do not infer a framework version from an arbitrary custom meta-pack ID, or invent a release tag.
+
+                At the selected release, navigate these paths (layout can vary between releases):
+                - README.md and QuickOverview.md: introduction and links to developer/component/service guides.
+                - ikasaneip/spec: public component and flow interfaces; start here for method contracts.
+                - ikasaneip/component: implementations and component README files; endpoints, converters,
+                  routers and filters. Follow the implementingClass from the catalogue to its source file.
+                - ikasaneip/builder and component-factory: builder methods and component construction.
+                - ikasaneip/flow and module: execution, event handling, flow states and module lifecycle.
+                - ikasaneip/recovery-manager, exclusion, hospital and replay: exception actions, retries,
+                  rejected-event handling and replay. Inspect actual action implementation and tests.
+                - ikasaneip/sample: runnable examples for wiring, transport settings and custom components.
+                - ikasaneip/documentation: ArchitectureGuide and ReferenceGuide; also follow README links.
+                - UpgradePath.md and release POMs: migration notes and dependency/platform requirements.
+                - Relevant src/test directories: examples of successful behaviour, failures and lifecycle rules.
+
+                Research narrowly: locate the exact class, read its interface, implementation and nearby tests,
+                then check a sample using it. Cite the release/path or Maven coordinates supporting a non-obvious
+                API decision. Do not clone/build the whole framework merely to inspect one method. Repository
+                examples explain APIs; they do not override Studio ownership rules or the user's requirements.
+                Keep framework source read-only unless the user explicitly requests framework changes.
+
+                If browsing is unavailable, inspect matching sources attached in IntelliJ or cached Maven
+                *-sources.jar files for the resolved dependency version. Maven's local repository is commonly
+                ~/.m2/repository but may be configured elsewhere. Inspect the dependency tree and overrides;
+                if source is unavailable, inspect the resolved class signatures/bytecode (e.g. javap) and state
+                the remaining uncertainty. Fetch sources only when network access is permitted. These links
+                provide directions, not browsing permissions. Never substitute a different major version silently.
+
                 ## Component guidance and implementation ownership
 
                 Read each component's helpText (which may contain HTML), documentation reference, payload
@@ -480,8 +528,36 @@ public final class AiProjectContractGenerator {
         Map<String, Object> catalogue = new LinkedHashMap<>();
         catalogue.put("contractVersion", CONTRACT_VERSION);
         catalogue.put("metapackVersion", metapackVersion);
+        String ikasanVersion = ComponentLibrary.getMetaPackManifest(metapackVersion).ikasanVersion();
+        catalogue.put("ikasanVersion", ikasanVersion);
+        catalogue.put("frameworkReference", frameworkReference(ikasanVersion));
         catalogue.put("components", components);
         return StudioJson.newObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(catalogue) + "\n";
+    }
+
+    private static Map<String, Object> frameworkReference(String version) {
+        Map<String, Object> reference = new LinkedHashMap<>();
+        String repository = "https://github.com/ikasanEIP/ikasan";
+        reference.put("repository", repository);
+        // Only emit release links verified for bundled targets; custom packs may use other tag conventions.
+        if (java.util.Set.of("3.3.9", "4.1.6").contains(version)) {
+            String tag = "ikasaneip-" + version;
+            reference.put("releaseTag", tag);
+            reference.put("releaseSource", repository + "/tree/" + tag);
+        }
+        reference.put("versionPolicy", "Use the exact resolved Ikasan version and dependency overrides. Never substitute the default branch or another major version. If no releaseSource is supplied, verify the release tag or use matching Maven sources.");
+        reference.put("navigation", Map.of(
+                "introduction", List.of("README.md", "QuickOverview.md"),
+                "interfaces", List.of("ikasaneip/spec"),
+                "implementations", List.of("ikasaneip/component"),
+                "wiring", List.of("ikasaneip/builder", "ikasaneip/component-factory"),
+                "runtime", List.of("ikasaneip/flow", "ikasaneip/module"),
+                "failures", List.of("ikasaneip/recovery-manager", "ikasaneip/exclusion", "ikasaneip/hospital", "ikasaneip/replay"),
+                "examples", List.of("ikasaneip/sample"),
+                "documentation", List.of("ikasaneip/documentation", "UpgradePath.md")));
+        reference.put("researchWorkflow", "Follow the catalogue implementingClass to the matching source. Read its interface, implementation, nearby src/test tests and a sample. Check units, defaults, transaction and lifecycle behaviour; cite the release/path. Layout may vary by release. Keep reference source read-only.");
+        reference.put("offlineFallback", "Use IntelliJ-attached or cached Maven sources for the resolved dependency version; inspect dependency overrides and class signatures when sources are unavailable. Source links do not grant network permissions. State uncertainty rather than guessing.");
+        return reference;
     }
 
     private static Map<String, Object> component(String key, ComponentMeta meta) {

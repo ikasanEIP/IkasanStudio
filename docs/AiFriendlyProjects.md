@@ -57,3 +57,18 @@ Markdown and catalogue responses provide context to the assistant; they do not r
 ## Version migration
 
 Use Studio's **Migrate…** action for version changes rather than editing only the model's version. It previews the model, generated files and Maven changes and saves a recovery snapshot. See [Ikasan version migration](IkasanVersionMigration.md).
+
+## Framework source references
+
+The generated guide introduces Ikasan and maps its repository: interfaces, components, builders,
+flow/module execution, recovery/exclusion, samples and documentation. The catalogue and MCP
+`studio_catalogue` response expose `ikasanVersion` from the pack manifest and a `frameworkReference`
+object with repository navigation, research workflow and offline fallback. Verified source links
+point to `ikasaneip-3.3.9` or `ikasaneip-4.1.6` for the corresponding bundled target. Other versions
+require tag verification; the generator does not invent links from custom pack IDs.
+
+Agents are directed to use the resolved dependency version and overrides, inspect implementation
+and tests, and avoid silently copying APIs from another major version. Where browsing is unavailable,
+matching IntelliJ/Maven sources and class signatures provide a fallback. References do not grant
+network permissions or permission to modify framework source. Refresh generated guidance through
+normal Studio generation; existing developer-owned root instructions remain preserved.
