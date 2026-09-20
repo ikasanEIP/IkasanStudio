@@ -45,6 +45,21 @@ The principal new-user journey is:
 
 The generated project separates Studio-owned output in `generated/` from developer-owned implementation in `user/`.
 
+### ESB runtime lifecycle
+
+Flows are long-lived services, including in demonstrations. When sample input is exhausted,
+a ready flow must remain running and wait for later work. Unexpected Stopped or error states
+are acceptance failures even if the first batch was delivered. Stopping is reserved for an
+explicit operator action, application shutdown or the configured failure policy; finite
+completion is appropriate only for explicitly requested batch examples or bounded tests.
+Do not excuse an unintended stop with documentation or a completion message. Verify first
+delivery, idle readiness and later delivery in the same running application without bean
+reset or flow/application restart. Custom sources must support pacing, cancellation,
+rollback where applicable and resource cleanup; never fake running state or busy-loop.
+Unavailable external paths may be deliberately left MANUAL with visible prerequisites;
+this is an incomplete path awaiting setup, not successful delivery or a substitute for
+implementing the requested functionality.
+
 ### Editor-based onboarding
 
 Ikasan Studio is hosted in IntelliJ's main editor area, alongside Java and configuration files. A newly generated Ikasan project opens the Studio editor automatically on first use. On later project launches, the editor is restored only when the developer left it open; deliberately closing the tab is respected.

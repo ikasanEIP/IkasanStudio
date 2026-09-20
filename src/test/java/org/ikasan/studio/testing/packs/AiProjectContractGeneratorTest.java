@@ -72,6 +72,8 @@ class AiProjectContractGeneratorTest {
             for (String name : java.util.List.of("Single Recipient Router", "Multi Recipient Router")) {
                 assertThat(component(catalogue, name).path("proposalOperations").toString()).contains("addComponent", "configureRoutes");
             }
+            assertThat(component(catalogue, "Flow").path("proposalOperations").toString()).contains("setFlowProperty");
+            assertThat(component(catalogue, "Flow").path("completionChecks").toString()).contains("Run module", "MANUAL");
             var resolver = component(catalogue, "Exception Resolver");
             assertThat(resolver.path("proposalOperations").toString()).contains("setExceptionResolution");
             assertThat(resolver.path("exceptionActions").toString()).contains("excludeEvent", "retry", "maximum retry count");

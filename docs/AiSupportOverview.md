@@ -1,4 +1,4 @@
-# AI support in Ikasan Studio
+# 1AI support in Ikasan Studio
 
 *A quick overview for developers and managers · September 2026*
 
@@ -6,19 +6,21 @@ Ikasan Studio lets an AI assistant help build an integration **through the same 
 
 ## 1. Architecture: one model, two ways in
 
-This C4-style container view shows the logical boundaries. The AI client may run inside IntelliJ or separately; Studio does not bundle an AI model, subscription or cloud service.
+This architecture view shows logical components inside the plugin, rather than separate deployable containers. The AI client may run inside IntelliJ or separately; Studio does not bundle an AI model, subscription or cloud service.
 
 ```mermaid
 flowchart LR
     AI["AI assistant / client"]
     subgraph IDE["IntelliJ IDEA"]
         MCP["IntelliJ MCP Server<br/>Optional Studio toolset"]
-        B["Studio AI bridge<br/>Project-scoped validation and application"]
+        B["Studio AI bridge<br/>Project-scoped request handling"]
+        P["Model proposal layer<br/>Validation + approval policy"]
         UI["Studio visual editor"]
         M["Live project model"]
         G["Protected persistence<br/>and code generation"]
         MCP --> B
-        B --> M
+        B --> P
+        P --> M
         UI <--> M
         M --> G
     end
@@ -57,7 +59,7 @@ In the connection dialog, choose
 
 * IntelliJ MCP - This is the recommended configuration for the tightest integration
 * Manual setup - This offers the same level of integration as 'IntelliJ MCP' but contains more manual steps
-* Proposal file (no MCP) - This is still a good option, each proposed change from the AI must be approved by the developer
+* Proposal file (no MCP) - Uses the same validation and approval policy, without a connected MCP client
 
 For **IntelliJ MCP (Recommedned)** option, open the linked settings and check **Enable MCP Server**. Find your client in **Clients Auto-Configuration** (for reusable client setup), or **Project Clients Auto-Configuration** (for project-specific setup). Select **Configure with Streamable HTTP transport** where offered, then save settings. Start a fresh/reconnected client session (this can be as simple as clicking the **+ new chat button**) and paste **Copy test prompt** into it. The checklist confirms a successful Studio read, not merely that settings were opened. Studio access remains project-specific even with reusable client configuration.
 
@@ -78,6 +80,8 @@ flowchart LR
 ```
 
 In **Settings → Tools → Ikasan Studio**, **Always ask for approval** defaults to **off**; **Confirm deletes** defaults to **on**, covering flow/component deletion and component replacement. Potential developer-code replacement always requires review. Validation and freshness checks still run for automatic changes. Generation failures are reported explicitly; an applied model may remain for correction or undo. Studio's model undo does not encompass separate AI edits to custom Java.
+
+**The model boundary.** The bridge transports requests; `ModelProposal` validates operations on an isolated draft, and `StudioAiService` enforces approval policy and checks that the live model has not changed. Accepted changes update the live model with Undo/Redo support. `ComponentIO` and `ProtectedModelFileWriter` validate and safely persist its JSON representation, with rotating backups. This is a controlled Studio editing path, not a filesystem access restriction or proof of correct runtime behaviour. See [validation, approval and persistence layers](StudioAiBridge.md#validation-approval-and-persistence-layers) for responsibilities and failure boundaries.
 
 ## 3. How the assistant learns the project
 

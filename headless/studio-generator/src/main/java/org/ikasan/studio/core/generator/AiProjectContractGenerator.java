@@ -60,6 +60,10 @@ public final class AiProjectContractGenerator {
                 implementation and tests even when external services are unavailable. Verify required Spring
                 beans against real code/configuration, not just model references. Never claim an implementation
                 exists without locating it. A generated class or completed diagram is not proof of working behaviour.
+                Verify the normal Studio Run module experience as well as test launchers. ESB flows, including demos,
+                must stay running and accept later work after sample input is exhausted; idle is not stopped.
+                Finite completion is allowed only for explicitly requested batch examples or bounded tests.
+                Set flows awaiting external setup to MANUAL through Studio; do not auto-start placeholders.
                 Follow the completion
                 checklist and demo guidance in generated/IKASAN_STUDIO.md; report unfinished implementations
                 and unsupported components explicitly.
@@ -244,18 +248,40 @@ public final class AiProjectContractGenerator {
                 resulting model. Include supported routers and explicit exception policies when requested; report
                 associated endpoints separately from executable components. Do not omit missing work silently.
 
-                Make the demonstration repeatable and its visible state understandable. Identify finite sources,
-                their expected event count and completion state, and provide verified replay/reset instructions.
-                An Event Generating Consumer can finish normally and show Stopped when its provider returns null;
-                restarting the flow does not necessarily reset the provider. Do not disguise this by producing
-                events in an unbounded tight loop. Use a suitable paced source for ongoing demonstrations.
-                Distinguish normal completion from errors using delivery evidence and runtime diagnostics.
+                ESB lifecycle requirement: flows are long-lived services, including demonstration flows.
+                After a sample batch, they must remain running and ready for later input. An unexplained Stopped
+                state is a failed acceptance check even if the first batch was delivered. Stop only for an explicit
+                operator action, application shutdown or a configured failure policy; an explicitly requested
+                finite batch is an exception, not the default. Do not reclassify unintended stopping as success
+                by documenting it in a README or adding a completion notification.
+
+                An Event Generating Consumer terminates when its provider returns null: null is not an idle signal.
+                Do not exhaust a short list and return null in a normal ESB demo. Prefer scheduled, polling or
+                listener-based input with correct idle behaviour. Where catalogue coverage needs an Event
+                Generating Consumer or custom consumer, implement a suitably paced, cancellable source using the
+                selected framework version's lifecycle contract. Verify rollback, interruption, stop/start and
+                worker cleanup. Never fake isRunning, swallow failures, busy-spin or flood logs/messages just to
+                keep the display green. Give repeated events distinct IDs unless deliberately testing replay.
+                Keep bounded fixtures in automated tests; tests should stop the application during teardown,
+                rather than making the normal application self-terminate after its fixtures.
+
+                Acceptance check: observe successful delivery, allow an idle interval, assert that each ready
+                flow remains running, then send another batch through the same running application and verify
+                delivery without resetting a bean, restarting the flow or restarting the application. For a paced
+                generator, observe at least two separated batches and continued readiness. Verify that exclusion
+                or another recoverable policy does not stop the flow and that subsequent valid input is processed.
 
                 When missing external configuration blocks part of the brief, finish independent paths and
                 ask a focused question listing the exact remaining settings. Maintain a requested-versus-delivered
                 inventory; do not silently narrow an every-component request to the currently convenient types.
                 Offer a clearly labelled incomplete design only if Studio's validation permits it; do not invent
                 credentials or claim unavailable transports are configured. Explain how to complete and test them.
+                Do not leave placeholders on automatically starting flows. Use setFlowProperty through Studio to
+                set flowStartupType=MANUAL for each unavailable path (including its sender and receiver). Keep
+                independent ready flows usable. Show the reason and prerequisites in the flow description and
+                handover; intentionally manual is awaiting setup, not verified delivery. Existing database startup
+                controls may override new properties: inspect the effective runtime setting and use supported
+                operator controls. Do not globally force allowDbOverwrite or erase runtime data to conceal this.
 
                 For each requested functional path:
                 1. Confirm Studio applied the model and generation completed; reread the saved model and files.
@@ -301,6 +327,17 @@ public final class AiProjectContractGenerator {
                 external services with a supported test profile or Studio proposal, preserving the intended saved
                 configuration. Do not edit generated/ files or the open model directly to disable flows. Record
                 any model changes and restore temporary test settings through Studio when finished.
+
+                Verify the developer's normal launch path as a separate acceptance check: Studio Run module,
+                its generated Application entry point, actual profiles, working directory and persisted startup
+                controls. A custom launcher that forces every flow MANUAL then starts selected flows verifies
+                only that launcher. It does not establish that Run module is ready. If IDE access is unavailable,
+                exercise the equivalent launch configuration and explicitly mark the interactive check unverified.
+                Compare every flow's expected and observed state after startup and sample delivery; investigate
+                unexpected Stopped, error and recovery states. Distinguish deliberate completion, waiting for
+                setup and failure. Prefer Studio's supported harnesses or documented local service setup; do not
+                hide prerequisites in a test script that the normal launcher never runs. Use free/ephemeral ports
+                for isolated tests where configurable; report port conflicts without stopping another project.
 
                 For each paired path, send a distinctive sample through the real sender and receiving flow.
                 Assert the expected received value or observable output, not only matching endpoint settings,
@@ -423,6 +460,8 @@ public final class AiProjectContractGenerator {
                   rename Java implementation classes or edit developer-owned source files.
                 - connect: type, flow, optional route path, order (all executable components in that route exactly
                   once; include consumer first only for root). Do not list associated endpoint decorations.
+                - setFlowProperty: type, flow, property, value (scalar or null to clear). Use flowStartupType=MANUAL
+                  for a flow awaiting external setup. Names, structural fields and implementation properties are excluded.
                 - configureRoutes: type, flow, component (router name), names (2 to 32 branch names).
                   Names start with a letter and contain only letters/digits. Retain names of populated branches;
                   empty branches may be changed. Add components to each branch using the route path.
@@ -578,10 +617,10 @@ public final class AiProjectContractGenerator {
         boolean ordinaryComponent = !meta.isModule() && !meta.isFlow() && !meta.isEndpoint()
                 && !meta.isExceptionResolver();
         result.put("proposalOperations", meta.isExceptionResolver() ? List.of("setExceptionResolution") : meta.isRouter()
-                ? List.of("addComponent", "configureRoutes", "setProperty", "renameComponent", "deleteComponent", "replaceComponent", "connect") : meta.isFlow() ? List.of("addFlow", "deleteFlow") : ordinaryComponent
+                ? List.of("addComponent", "configureRoutes", "setProperty", "renameComponent", "deleteComponent", "replaceComponent", "connect") : meta.isFlow() ? List.of("addFlow", "deleteFlow", "setFlowProperty") : ordinaryComponent
                 ? List.of("addComponent", "setProperty", "renameComponent", "deleteComponent", "replaceComponent", "connect") : List.of());
         result.put("proposalSupport", ordinaryComponent ? "Supported in root and named branch routes; routers terminate their parent route. Use route paths for addComponent/connect."
-                : meta.isFlow() ? "addFlow creates an empty flow; deleteFlow removes the entire flow and attached test harnesses, retaining developer-owned source files. Flow renaming requires Studio."
+                : meta.isFlow() ? "addFlow creates an empty flow; deleteFlow removes the entire flow and attached test harnesses, retaining developer-owned source files. Use setFlowProperty for metadata-defined flow properties, including flowStartupType. Flow renaming requires Studio."
                 : meta.isEndpoint() ? "Associated endpoint; configure its owning component, do not add as a standalone processor."
                 : meta.isExceptionResolver() ? "Use setExceptionResolution to add or update a flow-wide exception rule."
                 : "Configure in Studio; this role is not a standalone processor.");
@@ -622,6 +661,8 @@ public final class AiProjectContractGenerator {
         List<String> checks = new ArrayList<>();
         if (meta.isModule() || meta.isFlow() || meta.isEndpoint()) {
             checks.add("Verify the configured components and transport relationships; this container or endpoint is not an independent processor implementation.");
+            if (meta.isModule() || meta.isFlow())
+                checks.add("Verify normal Studio Run module startup and effective per-flow startup controls, not only a custom test launcher. Set unavailable paths to MANUAL through setFlowProperty; record the reason and prerequisites. Check observed state and replay after sample delivery.");
             return checks;
         }
         checks.add("Trace a representative input through the component and test the expected output or side effect, including a relevant failure case.");
@@ -630,7 +671,7 @@ public final class AiProjectContractGenerator {
         }
         String role = meta.getComponentTypeMeta() == null ? "" : meta.getComponentTypeMeta().getComponentShortType();
         checks.add(switch (role) {
-            case "Consumer" -> "Verify emitted payload type, listener/event-factory wiring, required provider beans and start/stop lifecycle. A sample source must emit usable sample events. Verify owned workers terminate and stop/start does not duplicate delivery.";
+            case "Consumer" -> "Verify emitted payload type, listener/event-factory wiring, required provider beans and start/stop lifecycle. A sample source must emit usable sample events. Verify owned workers terminate and stop/start does not duplicate delivery. ESB flows must remain running after sample delivery and accept later input without restart. Test idle readiness and a second batch. Finite sources are only for explicitly requested batch examples or bounded tests; null terminates an Event Generating Consumer, it is not an idle signal.";
             case "Producer" -> "Verify the actual destination or observable output, payload compatibility and error handling. An empty invoke method is not a working producer. For file output, test interrupted publication and retry; idempotent filenames alone do not prevent partial files.";
             case "Converter" -> "Implement the declared source-to-target transformation or verify the selected recipe. Test real output values and unsupported input; do not leave UnsupportedOperationException.";
             case "Splitter" -> "Return meaningful records in the intended order. Test multiple records and empty/invalid input; returning an empty list for every input is not an implementation.";

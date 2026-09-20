@@ -10,6 +10,70 @@ See the [AI support overview](AiSupportOverview.md) for architecture and proposa
 
 IntelliJ and the agent stay running throughout. The agent checks the proposal status to learn whether review or generation is still pending, completed, or failed.
 
+## Validation, approval and persistence layers
+
+The **model proposal validation and application layer** sits between AI request handling
+and the live Studio model. The AI sends named operations, not a replacement `model.json`.
+MCP requests and imported proposal files converge on the same validation and application
+path. The visual editor shares the live model and persistence pipeline; manual edits do
+not pass through the AI proposal approval policy.
+
+This data-flow diagram shows responsibilities within Studio, not separate services:
+
+```mermaid
+flowchart TD
+    MCP["MCP request<br/>snapshot revision + operations"] --> S["StudioAiService<br/>Check readiness and base state"]
+    FILE["Proposal file<br/>saved-model hash + operations"] --> OFF["OfflineModelProposal<br/>Check saved hash and live-model agreement"]
+    OFF --> S
+    S --> P["ModelProposal.prepare<br/>Validate operations on an isolated draft"]
+    P --> POLICY{"StudioAiService<br/>Review required by policy?"}
+    POLICY -->|Yes| REVIEW["Developer reviews proposal"]
+    REVIEW -->|Apply| CHECK["Recheck live-model freshness"]
+    POLICY -->|No: automatically authorised| CHECK
+    REVIEW -->|Cancel| STOP["No model change"]
+    CHECK --> CHANGE["ModelProposal.ChangeSet<br/>Apply reversible live-model changes"]
+    CHANGE --> SYNC["GeneratedProjectSynchronizer<br/>Save model and generate project files"]
+    SYNC --> JSON["ComponentIO + ProtectedModelFileWriter<br/>Validate JSON, back up, atomically replace"]
+    JSON --> MODEL[("model.json")]
+    SYNC --> GEN["GenerationTransactionManager<br/>Stage and commit generated artifacts<br/>Protect developer-owned code"]
+    GEN --> OUTPUT[("Generated project files")]
+```
+
+Failed readiness, base-state or proposal checks stop the request before applying its
+changes. The diagram's two output paths are **not one atomic transaction** across the
+live model, `model.json` and all generated files.
+
+| Layer | Responsibility and implementation |
+| --- | --- |
+| Request handling | MCP adapters/toolsets and `StudioAiService` expose project-scoped operations. `OfflineModelProposal` checks the file proposal's saved-model hash and agreement with the live design. |
+| Proposal validation | [`ModelProposal`](../headless/studio-generator/src/main/java/org/ikasan/studio/core/ai/ModelProposal.java) builds an isolated draft and checks supported operations, names, component/property metadata and route constraints before preparing reversible edits. |
+| Approval and freshness | [`StudioAiService`](../src/main/java/org/ikasan/studio/intellij/ai/StudioAiService.java) selects automatic application or review. It rechecks the original live snapshot before application and blocks changes while Studio is unready, property edits are pending, migration is active or generation is unfinished. |
+| Live-model application | `ModelProposal.ChangeSet` updates the existing objects; `StudioAiService` integrates the changes with IntelliJ Undo/Redo and refreshes the designer. The saved JSON is a representation of this model. |
+| Persistence | `GeneratedProjectSynchronizer` serializes the model. `ComponentIO` validates persisted JSON through model deserialization. [`ProtectedModelFileWriter`](../headless/studio-generator/src/main/java/org/ikasan/studio/core/persistence/json/ProtectedModelFileWriter.java) validates the candidate, existing file and temporary content, rotates backups and uses atomic replacement. |
+| Generated-file protection | [`GenerationTransactionManager`](../src/main/java/org/ikasan/studio/intellij/project/GenerationTransactionManager.java) stages output and checks conflicts and authorisation for replacement of developer-owned files. Model approval does not silently grant unrestricted replacement of `user/` code. |
+
+**Approved does not always mean a dialog.** A valid proposal is automatically authorised
+when the configured policy permits it. **Always ask for approval** defaults to off;
+**Confirm deletes** defaults to on for flow/component deletion and component replacement.
+Potential developer-code replacement requires review regardless of those preferences.
+Validation and freshness checks apply in both modes.
+
+**Limits and failure handling.** Structural validity is not proof of a working integration.
+Empty flows can be valid incremental designs; compilation and runtime tests still establish
+API compatibility, bean availability, delivery and recovery behaviour. The published JSON
+schema helps clients understand the format; enforcement also depends on operation checks,
+meta-pack rules and deserialization, not the schema alone.
+
+A generation failure is reported as `generation_failed`; the updated model may remain for
+repair or Undo rather than all changes being rolled back. Model Undo does not encompass
+separate AI edits to custom Java. Atomic replacement protects the model file itself and
+fails without replacing it if the filesystem cannot support that operation.
+
+These are application-level safeguards, **not a filesystem security boundary**. An external
+tool with write access can bypass Studio and edit `model.json` directly. Generated agent
+instructions direct assistants through proposals and prohibit direct edits while Studio is
+open; instructions do not enforce operating-system permissions.
+
 ## Connect
 
 1. Choose **Connect AI to Ikasan Studio** on the module-creation page, or select **Tools → Connect AI to Ikasan Studio…** at any time (also in Find Action).
@@ -90,6 +154,31 @@ The Studio editor also shows a persistent proposal banner with **Review changes*
 ### Automatic application
 
 Settings → Tools → Ikasan Studio → **Always ask for approval** defaults to off. All validated supported operations can skip review: adding flows/components, editing properties, renaming components and connecting components within routes. Full generation is checked for developer-owned code overwrite flags in both the live and proposed models, including unaffected flows. Any such risk requires explicit review, even when the preference is off. The generation transaction also refuses unauthorised replacement of existing files under `user/`. Component deletion removes model entries only and retains developer-owned source files. The same policy applies to MCP, manual imports and new proposal files detected in `ai-proposals/`. Validation, stale-state checks, code generation and Undo remain in place. A completion notification identifies automatically applied changes. Failed automatic file imports retain a review banner. Agents must inspect MCP status (or reread the saved model for file proposals) before claiming success.
+
+### Edit flow properties and startup behaviour
+
+`setFlowProperty {type, flow, property, value}` edits a metadata-defined scalar flow property.
+For example, leave an unfinished transport pair on MANUAL until its server and credentials
+are configured; apply the operation to both flows:
+
+```json
+{"type":"setFlowProperty","flow":"Receive Files","property":"flowStartupType","value":"MANUAL"}
+```
+
+Choices and property types are validated against the selected pack. Null clears an optional
+value. Names, structural/internal fields and implementation properties are excluded. The
+operation follows the same approval, freshness, persistence and Undo/Redo path as component
+edits. Generated per-flow startup entries leave the module default unchanged. Persisted
+runtime startup controls can take precedence; inspect effective settings and use supported
+operator controls rather than forcing database overwrite. MANUAL does not bypass bean creation.
+
+ESB flows, including demonstrations, must remain running and available after sample delivery.
+Generated guidance requires an idle/readiness check and another batch in the same running
+application without resetting beans or restarting flows. Finite completion is reserved for
+explicit batch requirements or bounded tests; completion messages do not excuse an unintended
+Stopped state. Verify Studio's normal **Run module** path separately. A launcher that starts selected flows with overrides is
+useful test evidence but does not establish normal-launch readiness. See the
+[untitled11 review](AiDemoReview-2026-09-20-untitled11.md) for the motivating findings.
 
 ### Delete or replace a component
 

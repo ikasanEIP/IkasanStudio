@@ -55,6 +55,16 @@ public final class ModelProposal {
                 flow = findFlow(draft, flowName);
                 if (!flow.getPropertyValueAsString("testHarnessOwner").isBlank()) fail("Test harness flows cannot be edited by proposals.");
                 switch (type) {
+                    case "setFlowProperty" -> {
+                        fields(op, "type", "flow", "property", "value");
+                        if (!op.has("value")) fail("setFlowProperty requires value (null clears the value).");
+                        String property = text(op, "property");
+                        var meta = flow.getComponentMeta().getMetadata(property);
+                        if (meta != null && (meta.isAffectsUserImplementedClass() || meta.isUserSuppliedClass()))
+                            fail("Edit implementation class properties in Studio: " + property);
+                        setProperty(flow, property, op.get("value"));
+                        summary.add("Set flow " + flowName + " / " + property);
+                    }
                     case "addComponent" -> {
                         fields(op, "type", "flow", "key", "name", "properties", "route");
                         FlowRoute route = findRoute(flow, op.path("route"));
@@ -235,7 +245,7 @@ public final class ModelProposal {
         }
     }
 
-    private static void setProperty(FlowElement element, String key, JsonNode value) {
+    private static void setProperty(BasicElement element, String key, JsonNode value) {
         var meta = element.getComponentMeta().getMetadata(key);
         if (meta == null || Set.of("componentName", "name", "version", "testHarnessOwner", "routeNames").contains(key)
                 || meta.isIgnoreProperty()) fail("Unknown or structural property: " + key);
@@ -283,6 +293,15 @@ public final class ModelProposal {
             if (original == null) {
                 continue;
             }
+            draftFlow.getComponentProperties().forEach((key, property) -> {
+                var previous = original.getComponentProperties().get(key);
+                Object before = previous == null ? null : previous.getValue();
+                Object after = property.getValue();
+                if (!Objects.equals(before, after)) {
+                    forward.add(() -> original.setPropertyValue(key, after));
+                    backward.add(() -> { if (previous == null) original.removeProperty(key); else original.setPropertyValue(key, before); });
+                }
+            });
             Map<String, FlowElement> originals = new HashMap<>();
             elements(original).forEach(e -> originals.put(e.getIdentity(), e));
             Map<String, FlowElement> targets = new HashMap<>();

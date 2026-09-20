@@ -22,6 +22,60 @@ public class ModelProposalTest {
             """;
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void flowStartupPropertyPersistsGeneratesAndSupportsUndoRedo(String version) throws Exception {
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        live.setPropertyValue("flowStartupType", "AUTOMATIC");
+        ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree(CREATE))).apply();
+        var flow = live.getFlows().get(0);
+        var consumer = flow.getConsumer();
+        String before = ComponentIO.toValidatedModuleJson(live);
+        var prepared = ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
+                [{"type":"setFlowProperty","flow":"Transfer","property":"flowStartupType","value":"MANUAL"}]
+                """));
+        assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(before);
+        var changes = ModelProposal.changes(live, prepared);
+        changes.apply();
+        assertThat(live.getFlows().get(0)).isSameAs(flow);
+        assertThat(flow.getConsumer()).isSameAs(consumer);
+        assertThat(flow.getPropertyValue("flowStartupType")).isEqualTo("MANUAL");
+        String after = ComponentIO.toValidatedModuleJson(live);
+        assertThat(ComponentIO.validatePersistedModuleJson(after, "test", false).getFlows().get(0)
+                .getPropertyValue("flowStartupType")).isEqualTo("MANUAL");
+        assertThat(org.ikasan.studio.core.generator.PropertiesTemplate.create(live))
+                .contains("defaultStartupType=AUTOMATIC", "flowStartupTypes[0]=Transfer,MANUAL");
+        changes.undo();
+        assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(before);
+        changes.apply();
+        assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(after);
+        var clear = ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
+                [{"type":"setFlowProperty","flow":"Transfer","property":"flowStartupType","value":null}]
+                """)));
+        clear.apply();
+        assertThat(org.ikasan.studio.core.generator.PropertiesTemplate.create(live)).doesNotContain("flowStartupTypes[0]");
+        clear.undo();
+        assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(after);
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void flowPropertyRejectsInvalidChoicesTypesAndStructuralEditsWithoutChangingLiveModel(String version) throws Exception {
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree(CREATE))).apply();
+        String before = ComponentIO.toValidatedModuleJson(live);
+        for (String property : List.of("name", "version", "testHarnessOwner", "configurationId", "unknown")) {
+            var op = JSON.createObjectNode().put("type", "setFlowProperty").put("flow", "Transfer")
+                    .put("property", property).put("value", "changed");
+            assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.createArrayNode().add(op)))
+                    .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("property");
+        }
+        for (String value : List.of("\"BOGUS\"", "true", "[]")) {
+            assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree(
+                    "[{\"type\":\"setFlowProperty\",\"flow\":\"Transfer\",\"property\":\"flowStartupType\",\"value\":" + value + "}]")))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+        assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(before);
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void nestedFanoutRoutesPersistAndNewBranchesOnExistingFlowsUndo(String version) throws Exception {
         Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
         ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""

@@ -72,3 +72,15 @@ and tests, and avoid silently copying APIs from another major version. Where bro
 matching IntelliJ/Maven sources and class signatures provide a fallback. References do not grant
 network permissions or permission to modify framework source. Refresh generated guidance through
 normal Studio generation; existing developer-owned root instructions remain preserved.
+
+## ESB lifecycle acceptance
+
+Generated guidance treats ESB flows as long-lived services, including demonstrations.
+An exhausted sample list must not make the normal application stop its flows. Agents must
+verify delivery, continued readiness during idle time, and delivery of later input without
+resetting beans or restarting flows. Returning null from an Event Generating Consumer's
+provider ends that source; it is not a way to wait for input. Paced/custom sources must use
+the selected framework's lifecycle correctly and support cancellation and cleanup.
+Explicit batch requirements and bounded test fixtures are exceptions. Documentation of an
+unexpected stop does not turn it into successful ESB behaviour. This is an acceptance
+requirement for agent implementations, not automatic runtime repair by Studio.

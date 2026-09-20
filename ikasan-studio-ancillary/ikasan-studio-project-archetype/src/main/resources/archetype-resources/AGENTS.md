@@ -38,6 +38,10 @@ underspecified demos; ask about material business or destination decisions. Comp
 implementation and tests even when external services are unavailable. Verify required Spring
 beans against real code/configuration, not just model references. Never claim an implementation
 exists without locating it. A generated class or completed diagram is not proof of working behaviour.
+Verify the normal Studio Run module experience as well as test launchers. ESB flows, including demos,
+must stay running and accept later work after sample input is exhausted; idle is not stopped.
+Finite completion is allowed only for explicitly requested batch examples or bounded tests.
+Set flows awaiting external setup to MANUAL through Studio; do not auto-start placeholders.
 Follow the completion
 checklist and demo guidance in generated/IKASAN_STUDIO.md; report unfinished implementations
 and unsupported components explicitly.

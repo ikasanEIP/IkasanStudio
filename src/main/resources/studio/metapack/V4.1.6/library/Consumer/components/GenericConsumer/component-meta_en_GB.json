@@ -2,7 +2,7 @@
   "name": "Generic Consumer",
   "isFileBasedConsumer": "true",
   "generatesUserImplementedClass": "true",
-  "helpText": "<p>This generic variant uses the component interface and requires you to supply its concrete implementation, for example a subclassed Ikasan component or a reusable framework component.</p><p>The downstream payload type depends entirely on your implementing class; Studio cannot infer it.</p>",
+  "helpText": "<p>Implement the Consumer interface to connect a custom source. The downstream payload type depends on your implementation; Studio cannot infer it.</p><p>ESB flows, including demos, must remain running and ready for later input after the initial sample batch. Prefer correctly scheduled, polling or listener-based input. For a custom or event-generating source, implement pacing, cancellation, rollback and stop/start against the selected framework version. Do not fake isRunning, busy-spin, suppress failures or flood output.</p><p>Verify first delivery, continued readiness during idle time, and a later batch in the same running application without bean reset or flow/application restart. Finite completion is only appropriate for explicitly requested batch examples or bounded tests; a README or completion message does not excuse an unexpectedly Stopped ESB flow.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-4.1.6/ikasaneip/component/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "",
