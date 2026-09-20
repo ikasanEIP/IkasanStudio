@@ -543,6 +543,17 @@ public class StudioProjectFiles {
         });
     }
 
+    /** Seeds developer-owned guidance before module configuration; call from a write-safe UI context. */
+    public static void createStartupGuidanceIfMissing(Project project) {
+        createFileWithDirectoriesIfMissing(project,
+                org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.FILE_NAME,
+                org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.content());
+        createFileWithDirectoriesIfMissing(project, "AGENTS.md",
+                org.ikasan.studio.core.generator.AiProjectContractGenerator.agentsGuide());
+        org.ikasan.studio.core.generator.StudioAiSkillTemplates.files().forEach((path, content) ->
+                createFileWithDirectoriesIfMissing(project, path, content));
+    }
+
     /** Creates a project file only when it does not already exist, preserving developer-owned guidance. */
     public static void createFileWithDirectoriesIfMissing(final Project project, final String relativePath,
                                                            final String fileContent) {

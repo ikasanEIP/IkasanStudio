@@ -22,6 +22,43 @@ class AiProjectContractGeneratorTest {
     }
 
     @Test
+    void localEnvironmentTemplateMatchesUnfilteredArchetypeAndKeepsVariableExamplesLiteral() throws Exception {
+        Path resources = Path.of("ikasan-studio-ancillary/ikasan-studio-project-archetype/src/main/resources");
+        String template = LocalTestEnvironmentTemplate.content();
+        assertThat(Files.readString(resources.resolve("archetype-resources/LOCAL_TEST_ENVIRONMENT.md")))
+                .isEqualTo(template);
+        assertThat(template).contains("${IKASAN_TEST_FTP_PASSWORD}", "env:IKASAN_TEST_SFTP_KEY_FILE",
+                "sftp.remoteHost=", "sftp.directory=", "ftp.password=",
+                "smtp.toRecipient=", "jms.destinationJndiName=");
+        var doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                .parse(resources.resolve("META-INF/maven/archetype-metadata.xml").toFile());
+        var xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath();
+        String filtered = xpath.evaluate("//fileSet[includes/include='LOCAL_TEST_ENVIRONMENT.md']/@filtered", doc);
+        assertThat(filtered).isNotEqualTo("true");
+        assertThat(template).contains("root `.gitignore`");
+    }
+
+    @Test
+    void projectSkillsMatchTheArchetypeAndKeepDiscoveryInsideTheProject() throws Exception {
+        Path resources = Path.of("ikasan-studio-ancillary/ikasan-studio-project-archetype/src/main/resources");
+        var files = StudioAiSkillTemplates.files();
+        assertThat(files).hasSize(2);
+        for (var entry : files.entrySet()) {
+            assertThat(Files.readString(resources.resolve("archetype-resources").resolve(entry.getKey())))
+                    .isEqualTo(entry.getValue());
+            assertThat(Path.of(entry.getKey()).isAbsolute()).isFalse();
+            assertThat(Path.of(entry.getKey()).normalize().startsWith("..")).isFalse();
+        }
+        assertThat(files.get(StudioAiSkillTemplates.CLAUDE_PATH)).contains(StudioAiSkillTemplates.WORKFLOW_PATH);
+        var doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                .parse(resources.resolve("META-INF/maven/archetype-metadata.xml").toFile());
+        var xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath();
+        for (String directory : java.util.List.of(".agents/skills", ".claude/skills")) {
+            assertThat(xpath.evaluate("//fileSet[directory='" + directory + "']/@filtered", doc)).isEqualTo("false");
+        }
+    }
+
+    @Test
     void schemaAndGuidanceIdentifyTheProtectedSourceOfTruth() throws Exception {
         JsonNode schema = StudioJson.newObjectMapper().readTree(AiProjectContractGenerator.modelSchema());
 

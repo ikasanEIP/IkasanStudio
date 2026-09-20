@@ -92,6 +92,8 @@ We supply **project context, not model training**. These files and tool response
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | Root`AGENTS.md`                                 | Where to discover Studio instructions; model and code ownership.                                                         |
 | `generated/IKASAN_STUDIO.md`                    | MCP/file workflows, proposal format, completion and verification checks.                                                 |
+| `ikasan-integration-workflow` skill | Task workflow for proposals, implementation, reviews and evidence of delivery plus continued readiness. |
+| `LOCAL_TEST_ENVIRONMENT.md` | Developer-owned test endpoints, credential references, prerequisites and permitted operations; reread for each test-configuration task. |
 | `model.schema.json`                             | Persisted model structure.                                                                                               |
 | `component-catalogue.json` / `studio_catalogue` | Exact component keys, payload types, properties, defaults, recipes, supported operations and implementation obligations. |
 

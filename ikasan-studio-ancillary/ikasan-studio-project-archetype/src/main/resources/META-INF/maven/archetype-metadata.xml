@@ -31,7 +31,16 @@ under the License.
       <includes>
         <include>.ikasan-studio-project</include>
         <include>AGENTS.md</include>
+        <include>LOCAL_TEST_ENVIRONMENT.md</include>
       </includes>
+    </fileSet>
+    <fileSet filtered="false" encoding="UTF-8">
+      <directory>.agents/skills</directory>
+      <includes><include>**/SKILL.md</include></includes>
+    </fileSet>
+    <fileSet filtered="false" encoding="UTF-8">
+      <directory>.claude/skills</directory>
+      <includes><include>**/SKILL.md</include></includes>
     </fileSet>
     <fileSet filtered="true" encoding="UTF-8">
       <directory></directory>

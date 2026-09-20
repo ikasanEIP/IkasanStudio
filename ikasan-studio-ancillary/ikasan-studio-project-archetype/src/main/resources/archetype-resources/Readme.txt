@@ -23,11 +23,20 @@ code stubs into the 'user' submodule but it will only do so if permitted by the 
 Getting Started
 ===============
 
-To get started, select the Ikasan Studio panel on the far right of the IDE. Choose the metapack you wish to base this
-module on then click the 'click here' button.
+1. Open the Ikasan Studio editor (Tools > Open Ikasan Studio if it is not already open).
+2. Select an Ikasan version and create your module.
+3. Review and update LOCAL_TEST_ENVIRONMENT.md in the project root. Fill in the services
+   you need as name=value pairs. Literal local-test passwords are accepted; environment references are optional.
+   Leave unneeded fields blank; the AI uses applicable defaults and asks only for missing required details.
+4. Connect AI if desired, then add flows and components. The project's AGENTS.md tells
+   assistants to consult the local environment file each time test settings are needed.
+   For flow tasks, the ikasan-integration-workflow skill guides implementation and verification.
+   AGENTS.md links its shared file for clients without automatic skill discovery.
+5. Start the required local services before Run module and verify actual delivery.
 
-If you can't see the Ikasan Studio designer window, or require further explination, please refer to the online
-documentation for Ikasan Studio.
+LOCAL_TEST_ENVIRONMENT.md is developer-owned. Add /LOCAL_TEST_ENVIRONMENT.md to the
+root .gitignore before entering machine-specific settings. Local-test passwords may be stored here; use filenames for private keys, never their contents. Its commented examples
+explain environment-variable references; it is not runtime configuration by itself.
 
 Logging from your components
 ============================

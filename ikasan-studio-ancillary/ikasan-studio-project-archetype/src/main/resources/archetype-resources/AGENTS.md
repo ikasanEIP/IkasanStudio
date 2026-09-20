@@ -42,6 +42,26 @@ Verify the normal Studio Run module experience as well as test launchers. ESB fl
 must stay running and accept later work after sample input is exhausted; idle is not stopped.
 Finite completion is allowed only for explicitly requested batch examples or bounded tests.
 Set flows awaiting external setup to MANUAL through Studio; do not auto-start placeholders.
+Before every task needing test settings, reread LOCAL_TEST_ENVIRONMENT.md in the project root.
+Accept a simple name=value block: supplied values override selected catalogue defaults. Blank
+or omitted optional settings keep existing values on existing components, defaults on new ones,
+or remain unset if no default exists. Ask only for missing required details, not every property.
+Filled-in local settings need no READY flag. Respect explicit NOT_CONFIGURED/NOT_USED statuses.
+Local test passwords may be supplied literally and used in the necessary Studio proposals/model
+configuration; do not echo them in chat or logs. Environment references are optional and need
+supported runtime binding, not literal copying of env: names into properties. Use key filenames,
+never private-key contents. sftp.directory / ftp.directory map to producer outputDirectory and
+consumer sourceDirectory; confirm an existing server-visible directory. Choose one supported
+authentication mode, check conditional requirements, and preserve applicable optional defaults.
+Follow the requested test scope and preserve unrelated data. Verify actual delivery and continued
+readiness, not just compilation. This guidance permits the developer's literal local-test values
+even if an older generated guide/skill suggested credential references only. Preserve this file;
+if absent, Studio creates a template during project onboarding or generation.
+For building, changing, troubleshooting or reviewing Studio application flows, read
+.agents/skills/ikasan-integration-workflow/SKILL.md when present and use its workflow.
+Clients with skill discovery may select ikasan-integration-workflow automatically; otherwise
+read the file explicitly. Review-only tasks remain read-only. The skill supplements these
+instructions and the current generated contract; it does not grant extra permissions.
 Follow the completion
 checklist and demo guidance in generated/IKASAN_STUDIO.md; report unfinished implementations
 and unsupported components explicitly.

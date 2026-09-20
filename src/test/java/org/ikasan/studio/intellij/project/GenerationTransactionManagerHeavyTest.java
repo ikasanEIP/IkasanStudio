@@ -28,6 +28,66 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
     }
 
     
+    public void testStartupGuidanceExistsBeforeAnyGenerationAndPreservesCustomisations() throws Exception {
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base);
+        assertFalse(GenerationTransactionManager.isActive());
+        StudioProjectFiles.createStartupGuidanceIfMissing(myProject);
+        String path = org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.FILE_NAME;
+        assertEquals(org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.content(), read(base, path));
+        assertEquals(org.ikasan.studio.core.generator.AiProjectContractGenerator.agentsGuide(), read(base, "AGENTS.md"));
+        for (var entry : org.ikasan.studio.core.generator.StudioAiSkillTemplates.files().entrySet()) {
+            assertEquals(entry.getValue(), read(base, entry.getKey()));
+        }
+        StudioProjectFiles.createFileWithDirectories(myProject, path, "My local settings", null);
+        StudioProjectFiles.createFileWithDirectories(myProject, "AGENTS.md", "Team instructions", null);
+        StudioProjectFiles.createStartupGuidanceIfMissing(myProject);
+        assertEquals("My local settings", read(base, path));
+        assertEquals("Team instructions", read(base, "AGENTS.md"));
+    }
+
+    public void testLocalEnvironmentTemplateIsCreatedOnceAndPreservesDeveloperEdits() throws Exception {
+        String path = org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.FILE_NAME;
+        String template = org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.content();
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base);
+        GenerationTransactionManager.begin();
+        StudioProjectFiles.createFileWithDirectoriesIfMissing(myProject, path, template);
+        assertNull(base.findFileByRelativePath(path));
+        GenerationTransactionManager.commit(myProject);
+        assertEquals(template, read(base, path));
+        StudioProjectFiles.createFileWithDirectories(myProject, path, "Developer test settings", null);
+        var file = base.findFileByRelativePath(path);
+        var documents = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
+        var document = documents.getDocument(file);
+        assertNotNull(document);
+        com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction(myProject,
+                () -> document.setText("Unsaved developer settings"));
+        GenerationTransactionManager.begin();
+        StudioProjectFiles.createFileWithDirectoriesIfMissing(myProject, path, template);
+        GenerationTransactionManager.commit(myProject);
+        assertEquals("Unsaved developer settings", document.getText());
+        assertEquals("Developer test settings", read(base, path));
+        assertTrue(documents.isDocumentUnsaved(document));
+    }
+
+    public void testProjectSkillFilesAreCreatedAndCustomisationsSurviveGeneration() throws Exception {
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base);
+        var files = org.ikasan.studio.core.generator.StudioAiSkillTemplates.files();
+        GenerationTransactionManager.begin();
+        files.forEach((path, content) -> StudioProjectFiles.createFileWithDirectoriesIfMissing(myProject, path, content));
+        GenerationTransactionManager.commit(myProject);
+        for (var entry : files.entrySet()) {
+            assertEquals(entry.getValue(), read(base, entry.getKey()));
+            StudioProjectFiles.createFileWithDirectories(myProject, entry.getKey(), "Team workflow customisation", null);
+        }
+        GenerationTransactionManager.begin();
+        files.forEach((path, content) -> StudioProjectFiles.createFileWithDirectoriesIfMissing(myProject, path, content));
+        GenerationTransactionManager.commit(myProject);
+        for (String path : files.keySet()) assertEquals("Team workflow customisation", read(base, path));
+    }
+
     public void testGenerationIsValidatedAndCommittedAsOneOwnedBatch() throws Exception {
         VirtualFile baseDir = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(baseDir);

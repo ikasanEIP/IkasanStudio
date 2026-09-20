@@ -84,3 +84,60 @@ the selected framework's lifecycle correctly and support cancellation and cleanu
 Explicit batch requirements and bounded test fixtures are exceptions. Documentation of an
 unexpected stop does not turn it into successful ESB behaviour. This is an acceptance
 requirement for agent implementations, not automatic runtime repair by Studio.
+
+## Local test-environment context
+
+New archetype projects include developer-owned `LOCAL_TEST_ENVIRONMENT.md`. Studio also creates
+it after Maven import when opening a recognised Ikasan project, before module configuration,
+including projects from older archetypes. Normal generation retries creation if absent. Existing
+content and editor changes are preserved. The creation
+page and startup checklist ask developers to review it. Root `AGENTS.md` and the refreshed generated
+guide direct agents to reread it for every task needing test settings, respect permitted operations,
+and ask about missing values instead of inventing endpoints or credentials.
+
+The template is a paste-friendly `name=value` block for SFTP, FTP, SMTP and JMS. Fill only the
+settings you need. Literal local-test passwords are supported; environment references are optional.
+No READY flag is required. Missing optional values retain existing settings or selected-catalogue
+defaults. The AI asks for missing required details and chooses coherent flow behaviour from the brief.
+For file pairs, `sftp.directory` / `ftp.directory` map to both ends' server-visible directory.
+
+The file is AI context, not automatically loaded runtime configuration. Agents must read project
+files and apply supported Studio properties or wire the actual runtime configuration. Studio does
+not parse this block or inject it into MCP snapshots. Existing root instructions and environment
+files are preserved; generation refreshes `generated/IKASAN_STUDIO.md` with the current rules.
+Older environment files can be replaced manually with the
+[current template](../ikasan-studio-ancillary/ikasan-studio-project-archetype/src/main/resources/archetype-resources/LOCAL_TEST_ENVIRONMENT.md)
+after retaining any supplied values. This also removes the earlier references-only guidance.
+
+The archetype packages the Markdown without Velocity filtering, preserving `${...}` examples.
+Add `/LOCAL_TEST_ENVIRONMENT.md` to the root `.gitignore` for machine-specific values; Studio leaves
+existing ignore rules unchanged. Verify real runtime delivery; settings alone are not test evidence.
+
+## Integration workflow skill
+
+The project skill **ikasan-integration-workflow** turns an application brief into an acceptance
+inventory, then guides model proposals, implementation and runtime verification. It also supports
+read-only reviews. It reads the current generated contract and catalogue rather than duplicating
+operation schemas or hard-coding a particular demonstration. Its acceptance checks distinguish
+first delivery from continued ESB readiness and later delivery without restarting the application.
+
+The maintained workflow is `.agents/skills/ikasan-integration-workflow/SKILL.md`.
+A small `.claude/skills/ikasan-integration-workflow/SKILL.md` entry points to the same file.
+These are project-scoped discovery locations documented for [Codex skills](https://developers.openai.com/codex/skills/)
+and [Claude Code skills](https://code.claude.com/docs/en/skills). Native discovery depends on the
+client, not merely on using a Codex or Claude model. In particular, availability through an IDE
+agent integration must be checked in that client. Root `AGENTS.md` and the generated guide tell
+clients with file access to read the shared workflow explicitly if necessary.
+
+New archetypes include both files without template filtering. Studio generation creates them
+for existing projects when missing and preserves customisations. Existing skill files are not
+automatically upgraded; review and merge later template improvements deliberately. The skill
+consults `LOCAL_TEST_ENVIRONMENT.md` for settings, and the generated guide/catalogue for current
+capabilities. These remain separate sources of configuration and technical reference. The skill
+grants no extra permissions and does not bypass proposal validation or approval policy.
+
+Example request: “Use the ikasan-integration-workflow skill to implement this brief and report
+which paths were verified through the normal Run module configuration.” For a review, explicitly
+say whether repairs are authorised. Structural validation, packaging tests and edit-preservation
+tests cover the shipped files; successful discovery and improved outcomes in a particular IDE
+client still need to be exercised with a real task. A skill is guidance, not an enforcement layer.

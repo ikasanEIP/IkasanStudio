@@ -255,7 +255,7 @@ public class GeneratedProjectSynchronizer {
     /** Keeps the offline AI contract derived from the same model and meta-pack APIs used by Studio itself. */
     private void saveAiProjectContract(Project project, Module module) {
         try {
-            StudioProjectFiles.createFileWithDirectoriesIfMissing(project, "AGENTS.md", AiProjectContractGenerator.agentsGuide());
+            StudioProjectFiles.createStartupGuidanceIfMissing(project);
             StudioProjectFiles.createFileWithDirectories(project, "generated/IKASAN_STUDIO.md", AiProjectContractGenerator.studioGuide(module.getMetaVersion()), null);
             StudioProjectFiles.createFileWithDirectories(project, "generated/src/main/model/model.schema.json", AiProjectContractGenerator.modelSchema(), null);
             StudioProjectFiles.createFileWithDirectories(project, "generated/src/main/model/component-catalogue.json", AiProjectContractGenerator.componentCatalogue(module.getMetaVersion()), null);

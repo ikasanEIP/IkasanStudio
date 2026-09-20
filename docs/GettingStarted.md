@@ -32,6 +32,15 @@ Wait for Maven import and indexing. Studio opens in an editor tab. To reopen it,
 
 Choose **V3.3.9** or **V4.1.6**, matching your project JDK. Open module configuration using the control beside the version chooser. Give the module a name. For this local example, enable **useEmbeddedH2** and leave **flowStartupType** as **AUTOMATIC**. Apply with **Update Code** and allow Maven to resolve the generated project.
 
+Before configuring external test services, review **LOCAL_TEST_ENVIRONMENT.md** in the project root.
+New archetype projects include it; Studio also creates it after Maven import before module
+configuration if missing. Paste only the `name=value` pairs for your test services. Literal local-test
+passwords are accepted; environment-variable references are optional. Leave unneeded fields blank:
+the AI preserves existing settings or uses applicable catalogue defaults and asks only for missing
+required details. For SFTP, provide the host, username, existing remote directory and either a
+password or existing private-key/known-hosts filenames. The file is AI context, not automatically
+loaded runtime configuration. Add `/LOCAL_TEST_ENVIRONMENT.md` to `.gitignore` for local values.
+
 ## 3. Build the flow
 
 Drag a **Flow** from the palette onto the canvas and name it `HelloFlow`. Add a **Scheduled Consumer**, followed by a **Logging Producer**. Give each a distinct name. On the consumer, set **cronExpression** to `*/5 * * * * ?` (every five seconds), leave **messageProvider** unset to use the built-in Quartz provider, and leave **eager** false. Apply each property form with **Update Code** and complete any mandatory fields highlighted by the selected pack.
