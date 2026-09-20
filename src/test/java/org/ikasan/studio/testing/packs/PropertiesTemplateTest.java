@@ -118,6 +118,19 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         assertTrue(generated.contains("ikasan.flow.configuration[Ordres\\ \\u00e9].isRecording=true"), generated);
     }
 
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void servletContextPathIsAsciiSoStudioCanReachTheModule(String metaPackVersion)
+            throws StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        module.setName("Caf\u00e9 Orders");
+
+        String generated = generatePropertiesTemplateString(metaPackVersion, module, List.of());
+
+        assertTrue(generated.contains("server.servlet.context-path=/cafe-orders"), generated);
+        assertTrue(generated.chars().allMatch(c -> c < 0x7f), "the file must be pure ASCII: " + generated);
+    }
+
     /**
      * See also application_emptyFlow.properties
      * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated

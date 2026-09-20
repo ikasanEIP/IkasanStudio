@@ -130,9 +130,15 @@ public class StudioBuildUtils {
     @SuppressWarnings("unused")
     public static String toUrlString(final String input) {
         if (input != null && !input.isEmpty()) {
-            return  input
+            // Fold accents and drop anything else non-ASCII: this is a servlet context path, which Spring Boot would
+            // misread (it reads .properties as ISO-8859-1) and Studio's own URLs cannot rely on.
+            String ascii = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD)
+                    .replaceAll("\\p{M}+", "")
+                    .replaceAll("[^\\x00-\\x7F]", "");
+            String path = ascii
                     .replaceAll("  +", " ")
                     .replaceAll("[ -]+", "-").toLowerCase(Locale.ROOT);
+            return path.isEmpty() ? "module" : path;
         } else {
             return input;
         }

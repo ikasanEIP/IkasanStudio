@@ -215,4 +215,17 @@ public class StudioBuildUtilsTest {
         properties.load(new java.io.StringReader(escaped + "=v"));
         assertThat(properties.getProperty(original), is("v"));
     }
+
+    /**
+     * The module's servlet context path is built from this by both the generated properties file and Studio's own
+     * runtime clients. A non-ASCII path is misread by Spring Boot and cannot be relied on in a URL, so fold to ASCII.
+     */
+    @Test
+    public void testToUrlString_isAsciiSoTheGeneratedAndClientPathsAgree() {
+        assertThat(StudioBuildUtils.toUrlString("My Module - One"), is("my-module-one"));
+        assertThat(StudioBuildUtils.toUrlString("Caf\u00e9 Orders"), is("cafe-orders"));
+        assertThat(StudioBuildUtils.toUrlString("\u65e5\u672c\u8a9e"), is("module"));
+        assertThat(StudioBuildUtils.toUrlString(""), is(""));
+        assertThat(StudioBuildUtils.toUrlString(null), org.hamcrest.CoreMatchers.nullValue());
+    }
 }
