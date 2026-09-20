@@ -97,6 +97,28 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     }
 
     /**
+     * Studio writes application.properties as UTF-8 but Spring Boot reads it as ISO-8859-1, so non-ASCII text in a
+     * module name, flow name or property value must be written as a unicode escape or it is corrupted at runtime.
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void nonAsciiNamesAndValuesAreWrittenAsUnicodeEscapes(String metaPackVersion)
+            throws StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        module.setName("Caf\u00e9");
+        Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion).metapackVersion(metaPackVersion).build();
+        flow.setName("Ordres \u00e9");
+        flow.setPropertyValue("flowStartupType", "AUTOMATIC");
+        flow.setPropertyValue("isRecording", true);
+
+        String generated = generatePropertiesTemplateString(metaPackVersion, module, List.of(flow));
+
+        assertTrue(generated.contains("module.name=Caf\\u00e9"), generated);
+        assertTrue(generated.contains("flowStartupTypes[0]=Ordres \\u00e9,AUTOMATIC"), generated);
+        assertTrue(generated.contains("ikasan.flow.configuration[Ordres\\ \\u00e9].isRecording=true"), generated);
+    }
+
+    /**
      * See also application_emptyFlow.properties
      * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
      */
