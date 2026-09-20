@@ -141,7 +141,7 @@ public  class BasicElement extends IkasanObject {
 
     @JsonIgnore
     public String getJavaVariableName() {
-        return StudioBuildUtils.toJavaIdentifier(getIdentity());
+        return org.ikasan.studio.core.generation.JavaSourceNames.toVariableName(getIdentity());
     }
 
 

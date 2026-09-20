@@ -19,4 +19,32 @@ class JavaSourceNamesTest {
         assertThat(JavaSourceNames.toClassName("_special flow")).isEqualTo("_specialFlow");
         assertThat(JavaSourceNames.toPackageName("42-valid.package")).isEqualTo("_42validpackage");
     }
+
+    @Test
+    void javaKeywordsAreEscapedWhereTheyWouldBeVariableOrPackageNames() {
+        // "Default" or "Import" is a plausible flow name, but default/import cannot be a variable or package.
+        assertThat(JavaSourceNames.toVariableName("Default")).isEqualTo("default_");
+        assertThat(JavaSourceNames.toVariableName("New")).isEqualTo("new_");
+        assertThat(JavaSourceNames.toPackageName("Import")).isEqualTo("import_");
+        assertThat(JavaSourceNames.toPackageName("Enum")).isEqualTo("enum_");
+        // Class names are capitalised so are never keywords: they must stay exactly as they were.
+        assertThat(JavaSourceNames.toClassName("Default")).isEqualTo("Default");
+        assertThat(JavaSourceNames.toClassName("import")).isEqualTo("Import");
+        assertThat(JavaSourceNames.toIdentifier("Default")).isEqualTo("default");
+        // Ordinary names, including non-keyword lookalikes, are untouched.
+        assertThat(JavaSourceNames.toVariableName("my flow")).isEqualTo("myFlow");
+        assertThat(JavaSourceNames.toVariableName("Defaults")).isEqualTo("defaults");
+        assertThat(JavaSourceNames.toPackageName("Imports")).isEqualTo("imports");
+    }
+
+    @Test
+    void namesWithNoUsableCharactersStillGiveAValidIdentifier() {
+        // Previously these produced an empty class name, i.e. "public class  {".
+        assertThat(JavaSourceNames.toClassName("123")).isEqualTo("_123");
+        assertThat(JavaSourceNames.toIdentifier("123")).isEqualTo("_123");
+        assertThat(JavaSourceNames.toClassName("-")).isEqualTo("Unnamed");
+        // A name that already yields something keeps that exact result (no renaming of existing output).
+        assertThat(JavaSourceNames.toIdentifier("1st Step")).isEqualTo("stStep");
+        assertThat(JavaSourceNames.toIdentifier("")).isEmpty();
+    }
 }
