@@ -13,6 +13,21 @@ The generator and metadata tests have two owners under `src/test/java/org/ikasan
 | `engine` | Template loading, include isolation, rendering, diagnostics, schema/metadata validation and help composition | Small authored synthetic templates, TestV1 metadata and in-memory descriptors |
 | `packs` | Official component libraries, dependency contracts, namespace choices, generated Java/properties and official catalogue contents | Explicit V3.3.9/V4.1.6 matrix and versioned expected output |
 
+### What each test layer establishes
+
+Each layer answers a different question. Passing metadata or rendering tests does not prove that an application starts or delivers messages correctly.
+
+```mermaid
+flowchart TB
+    Q{"What are you checking?"}
+    Q -->|"Reusable generator behaviour"| E["Engine tests<br/>Synthetic templates and metadata"]
+    Q -->|"A specific pack's output"| P["Pack tests<br/>Versioned contracts and expected files"]
+    Q -->|"Behaviour inside IntelliJ"| I["Plugin tests and sandbox checks<br/>UI, lifecycle and project integration"]
+    Q -->|"A working integration"| A["Generated-application checks<br/>Compile, start and test real delivery"]
+```
+
+Choose the relevant suites below and record application/runtime checks separately.
+
 ## Running the tests
 
 Run commands from the repository root. The build uses the Java 17 toolchain. Use `gradlew.bat` instead of `./gradlew` on Windows. Initial dependency resolution requires access to the configured artifact repositories. Both the root and independent `headless` build configure the Foojay toolchain resolver, so a machine running Gradle on Java 21 (including Travis) can download JDK 17 automatically. Included builds need their own resolver configuration. The first build also needs network access to the toolchain provider; offline builds require JDK 17 to be installed or already provisioned. There is no need to publish the headless artifacts before building the plugin.
@@ -109,23 +124,15 @@ Independent binary/source JARs and Maven publication metadata are now available 
 
 ## Independently versioned pack artifacts
 
-All artifacts remain in this repository and use the same CI job. `./gradlew -p headless test`
-runs the engine, test-kit, individual pack and combined official-pack suites; root
-`./gradlew check` also includes all five headless module checks.
+All artifacts remain in this repository and use the same CI job. `./gradlew -p headless test` runs the engine, test-kit, individual pack and combined official-pack suites; root `./gradlew check` also includes all five headless module checks.
 
 - `./gradlew -p headless :studio-pack-v3:test` validates and renders V3 in isolation.
 - `./gradlew -p headless :studio-pack-v4:test` validates and renders V4 in isolation.
 - `./gradlew -p headless :studio-bundled-packs:test` retains the detailed V3/V4 golden-output and component expectations.
 - `./gradlew -p headless :studio-test-kit:test` verifies consumption from the two individually versioned pack JARs.
 
-Individual pack smoke contracts supplement the combined regression suite; run the full
-headless suite before releasing either pack. Engine tests cover legacy manifest loading,
-independent revisions, and rejection of missing/invalid revisions or incompatible generator APIs.
-See [Independent pack releases](IndependentMetaPackArtifacts.md) for artifact coordinates,
-compatibility rules, and publication commands.
+Individual pack smoke contracts supplement the combined regression suite; run the full headless suite before releasing either pack. Engine tests cover legacy manifest loading, independent revisions, and rejection of missing/invalid revisions or incompatible generator APIs. See [Independent pack releases](IndependentMetaPackArtifacts.md) for artifact coordinates, compatibility rules, and publication commands.
 
-ActiveMQ ObjectMessage trust generation and provider runtime checks are documented in
-[JMS Object Messages](JmsObjectMessages.md). Run them with
-`./gradlew -p headless :studio-bundled-packs:test --tests '*Trusted*'`.
+ActiveMQ ObjectMessage trust generation and provider runtime checks are documented in [JMS Object Messages](JmsObjectMessages.md). Run them with `./gradlew -p headless :studio-bundled-packs:test --tests '*Trusted*'`.
 
 See [Generated Java warning review](GeneratedCodeWarnings.md) for the template Javadoc checks, fixes, and remaining application-specific warning limits.

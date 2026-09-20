@@ -36,11 +36,12 @@ class AiProjectContractGeneratorTest {
     @Test
     void completionGuidanceSeparatesScaffoldsFromWorkingCodeAndPreservesOwnership() {
         String guide = AiProjectContractGenerator.studioGuide("V3.3.9");
-        assertThat(guide).contains("visual showcase", "runnable demonstration", "UnsupportedOperationException",
+        assertThat(guide).contains("aim for working behaviour by default", "explicitly requests that scope",
+                "Continue", "Locate every required implementation and Spring bean", "A build with no tests", "UnsupportedOperationException",
                 "List<File>", "individual File", "non-object message", "javax.jms", "jakarta.jms",
                 "newly generated, unmodified stubs", "preserve existing logic", "external requirements",
                 "representative success and failure payloads", "runtime behaviour remains unverified",
-                "unsupported routers/exception resolvers", "recipeConfigurations");
+                "setExceptionResolution", "configureRoutes", "recipeConfigurations");
         assertThat(AiProjectContractGenerator.agentsGuide()).contains("Inspect the file and",
                 "its diff first", "ask before replacing", "completion", "unfinished implementations");
     }

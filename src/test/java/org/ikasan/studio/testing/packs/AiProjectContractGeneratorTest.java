@@ -45,6 +45,13 @@ class AiProjectContractGeneratorTest {
             assertThat(className.path("setPropertySupported").asBoolean()).isFalse();
             assertThat(className.path("editGuidance").asText()).contains("unresolved", "setProperty");
             assertThat(component(catalogue, "FTP Producer").path("endpointKey").asText()).isEqualTo("FTP Endpoint");
+            assertThat(component(catalogue, "Splitter").path("completionChecks").toString()).contains("empty list", "intended order");
+            assertThat(component(catalogue, "Translator").path("completionChecks").toString()).contains("in-place mutation");
+            assertThat(component(catalogue, "Message Filter").path("completionChecks").toString()).contains("accepted and rejected");
+            assertThat(component(catalogue, "Broker").path("completionChecks").toString()).contains("enrichment");
+            assertThat(component(catalogue, "Generic Producer").path("completionChecks").toString()).contains("empty invoke");
+            assertThat(component(catalogue, "Generic Consumer").path("completionChecks").toString()).contains("start/stop lifecycle");
+            assertThat(converter.path("completionChecks").toString()).contains("UnsupportedOperationException");
             JsonNode fileRecipe = null;
             for (JsonNode recipe : converter.path("recipeConfigurations")) {
                 if (recipe.path("conversionRecipeId").asText().equals("single-local-file-to-string")) fileRecipe = recipe;
@@ -54,10 +61,12 @@ class AiProjectContractGeneratorTest {
             assertThat(fileRecipe.path("toType").asText()).isEqualTo("java.lang.String");
             assertThat(component(catalogue, "Local File Consumer").path("producedOutputType").asText())
                     .isEqualTo(fileRecipe.path("fromType").asText());
-            for (String name : java.util.List.of("Single Recipient Router", "Multi Recipient Router", "Exception Resolver")) {
-                assertThat(component(catalogue, name).path("proposalOperations")).isEmpty();
-                assertThat(component(catalogue, name).path("proposalSupport").asText()).contains("Configure in Studio");
+            for (String name : java.util.List.of("Single Recipient Router", "Multi Recipient Router")) {
+                assertThat(component(catalogue, name).path("proposalOperations").toString()).contains("addComponent", "configureRoutes");
             }
+            var resolver = component(catalogue, "Exception Resolver");
+            assertThat(resolver.path("proposalOperations").toString()).contains("setExceptionResolution");
+            assertThat(resolver.path("exceptionActions").toString()).contains("excludeEvent", "retry", "maximum retry count");
             assertThat(component(catalogue, "File Endpoint").path("proposalSupport").asText()).contains("owning component");
             JsonNode provider = null;
             for (JsonNode property : component(catalogue, "Event Generating Consumer").path("properties")) {
@@ -69,6 +78,40 @@ class AiProjectContractGeneratorTest {
             assertThat(provider.path("protectFromOverwrite").asBoolean()).isTrue();
             assertThat(provider.path("affectsUserImplementedClass").asBoolean()).isTrue();
             assertThat(provider.path("noStubRequired").asBoolean()).isFalse();
+            assertThat(provider.path("beanRequirement").asText()).contains("Spring registration", "Do not assume", "user/");
+            boolean externalBeanChecked = false;
+            for (JsonNode entry : catalogue.path("components")) {
+                for (JsonNode property : entry.path("properties")) {
+                    if (property.path("userSuppliedClass").asBoolean() && property.path("noStubRequired").asBoolean()) {
+                        assertThat(property.path("beanRequirement").asText()).contains("existing configured bean", "No stub");
+                        externalBeanChecked = true;
+                    }
+                }
+            }
+            assertThat(externalBeanChecked).isTrue();
+        }
+    }
+
+    @Test
+    void emailAddressRulesAcceptLongDomainSuffixesAndRejectMalformedAddresses() throws Exception {
+        for (String version : PackExpectations.metaPacksToTest().toList()) {
+            JsonNode catalogue = StudioJson.newObjectMapper().readTree(AiProjectContractGenerator.componentCatalogue(version));
+            java.util.Set<String> checked = new java.util.HashSet<>();
+            for (JsonNode property : component(catalogue, "Email Producer").path("properties")) {
+                String name = property.path("name").asText();
+                if (!java.util.Set.of("toRecipient", "from", "ccRecipient", "bccRecipient").contains(name)) continue;
+                var rule = java.util.regex.Pattern.compile(property.path("validation").asText());
+                for (String valid : java.util.List.of("audience@example.invalid", "studio@example.test",
+                        "developer@example.technology", "first.last+demo@example.com")) {
+                    assertThat(rule.matcher(valid).matches()).as("%s %s accepts %s", version, name, valid).isTrue();
+                }
+                for (String invalid : java.util.List.of("audience", "@example.invalid", "audience@",
+                        "audience example@test.com", "audience@example.invalid,other@example.com")) {
+                    assertThat(rule.matcher(invalid).matches()).as("%s %s rejects %s", version, name, invalid).isFalse();
+                }
+                checked.add(name);
+            }
+            assertThat(checked).containsExactlyInAnyOrder("toRecipient", "from", "ccRecipient", "bccRecipient");
         }
     }
 

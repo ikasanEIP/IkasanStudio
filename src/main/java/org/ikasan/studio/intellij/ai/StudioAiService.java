@@ -169,7 +169,7 @@ public final class StudioAiService implements Disposable {
                 JsonNode model = JSON.valueToTree(snapshot.model());
                 redact(model);
                 yield Map.of("revision", revision, "model", model, "project", project.getName(),
-                        "note", "Live model snapshot. Known credential fields are redacted; other model content is shared with your connected AI. Supported edits: linear flows only.");
+                        "note", "Live model snapshot. Known credential fields are redacted; other model content is shared with your connected AI. Supported edits include linear and branched routes, routers and flow-wide exception rules. Read studio_catalogue for operations and action metadata.");
             }
             case "studio_catalogue" -> {
                 String version = onEdt(() -> { requireReady(); return context().getIkasanModule().getVersion(); });
@@ -236,14 +236,14 @@ public final class StudioAiService implements Disposable {
         return false;
     }
 
-    private boolean canAutoApply(Proposal proposal) {
+    private boolean requiresApproval(Proposal proposal) {
         proposal.userCodeReviewRequired = requiresUserCodeReview(proposal.snapshot.source(), proposal.prepared.draft());
         proposal.deletionReviewRequired = proposal.prepared.deletesContent() && IkasanStudioSettings.isConfirmAiDeletes();
-        return !IkasanStudioSettings.isAlwaysAskAiApproval() && !proposal.userCodeReviewRequired && !proposal.deletionReviewRequired;
+        return IkasanStudioSettings.isAlwaysAskAiApproval() || proposal.userCodeReviewRequired || proposal.deletionReviewRequired;
     }
 
     private void reviewOrApply(Proposal proposal) {
-        if (!canAutoApply(proposal)) {
+        if (requiresApproval(proposal)) {
             new StudioAiProposalDialog(project, this, proposal).show();
             return;
         }
@@ -264,18 +264,20 @@ public final class StudioAiService implements Disposable {
     private boolean importProposal(String json, boolean autoOnly) throws Exception {
         JsonNode operations = JSON.readTree(json).path("operations");
         if (autoOnly && IkasanStudioSettings.isAlwaysAskAiApproval()) return false;
+        String projectPath = project.getBasePath();
+        if (projectPath == null) throw new IllegalStateException("Open a project before importing an AI proposal.");
         Snapshot snapshot = onEdt(this::capture);
-        Path modelFile = Path.of(project.getBasePath(), "generated", "src", "main", "model", "model.json");
+        Path modelFile = Path.of(projectPath, "generated", "src", "main", "model", "model.json");
         byte[] saved;
         try (var input = Files.newInputStream(modelFile)) { saved = input.readNBytes(8_388_609); }
         if (saved.length > 8_388_608) throw new IllegalArgumentException("Saved Studio model exceeds 8 MiB.");
         var prepared = org.ikasan.studio.core.ai.OfflineModelProposal.prepare(json, saved, snapshot.model());
         Proposal proposal = new Proposal(snapshot, prepared,
-                JSON.writerWithDefaultPrettyPrinter().writeValueAsString(JSON.readTree(json).path("operations")));
+                JSON.writerWithDefaultPrettyPrinter().writeValueAsString(operations));
         proposal.fileBased = true;
         return onEdt(() -> {
             // Settings may have changed while validation ran in the background.
-            if (autoOnly && !canAutoApply(proposal)) return false;
+            if (autoOnly && requiresApproval(proposal)) return false;
             requireCurrent(snapshot);
             if (pending != null) throw new IllegalStateException("Review or cancel the pending proposal in Studio first.");
             pending = proposal;

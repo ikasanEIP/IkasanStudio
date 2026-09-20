@@ -22,6 +22,104 @@ public class ModelProposalTest {
             """;
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void nestedFanoutRoutesPersistAndNewBranchesOnExistingFlowsUndo(String version) throws Exception {
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
+                [{"type":"addFlow","flow":"Nested"},
+                 {"type":"addComponent","flow":"Nested","key":"Generic Consumer","name":"Input"}]
+                """))).apply();
+        var original = live.getFlows().get(0);
+        var consumer = original.getConsumer();
+        String before = ComponentIO.toValidatedModuleJson(live);
+        var operations = JSON.readTree("""
+                [{"type":"addComponent","flow":"Nested","key":"Single Recipient Router","name":"Choice"},
+                 {"type":"configureRoutes","flow":"Nested","component":"Choice","names":["Accepted","Rejected"]},
+                 {"type":"addComponent","flow":"Nested","route":["Accepted"],"key":"Multi Recipient Router","name":"Fanout"},
+                 {"type":"configureRoutes","flow":"Nested","component":"Fanout","names":["Audit","Delivery"]},
+                 {"type":"addComponent","flow":"Nested","route":["Accepted","Audit"],"key":"Logging Producer","name":"AuditLog"},
+                 {"type":"addComponent","flow":"Nested","route":["Accepted","Delivery"],"key":"Logging Producer","name":"DeliveryLog"},
+                 {"type":"addComponent","flow":"Nested","route":["Rejected"],"key":"Dev Null Producer","name":"Discard"},
+                 {"type":"connect","flow":"Nested","order":["Input","Choice"]},
+                 {"type":"setExceptionResolution","flow":"Nested","exception":"org.ikasan.spec.component.routing.RouterException","action":"excludeEvent"}]
+                """);
+        var edit = ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live), operations));
+        edit.apply();
+        assertThat(live.getFlows().get(0)).isSameAs(original);
+        assertThat(original.getConsumer()).isSameAs(consumer);
+        assertThat(original.getFlowIntegrityStatus()).isBlank();
+        var nested = original.getFlowRoute().getChildRoutes().get(0).getChildRoutes().get(0);
+        assertThat(nested.getFlowElements()).allSatisfy(e -> {
+            assertThat(e.getContainingFlow()).isSameAs(original);
+            assertThat(e.getContainingFlowRoute()).isSameAs(nested);
+        });
+        String saved = ComponentIO.toValidatedModuleJson(live);
+        var reloaded = ComponentIO.validatePersistedModuleJson(saved, "route test", false);
+        assertThat(reloaded.getFlows().get(0).getFlowIntegrityStatus()).isBlank();
+        assertThat(saved).contains("AuditLog", "Fanout", "excludeEvent");
+        String generated = org.ikasan.studio.core.generator.FlowTemplate.create(TestFixtures.DEFAULT_PACKAGE, reloaded, reloaded.getFlows().get(0));
+        assertThat(generated).contains("Accepted", "Rejected", "Audit", "Delivery", "OnException.excludeEvent()");
+        for (var component : reloaded.getFlows().get(0).ftlGetConsumerAndFlowElements()) {
+            if (component.getComponentMeta().isRouter()) {
+                String implementation = org.ikasan.studio.core.generator.FlowsUserImplementedComponentTemplate.create(
+                        TestFixtures.DEFAULT_PACKAGE, reloaded, reloaded.getFlows().get(0), component);
+                assertThat(implementation).contains("route");
+            }
+        }
+
+        edit.undo();
+        assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(before);
+        edit.apply();
+        assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(saved);
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void buildsBranchesAndExceptionPolicyAndPreservesObjectsAcrossUndo(String version) throws Exception {
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        var initial = ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
+                [{"type":"addFlow","flow":"Routing"},
+                 {"type":"addComponent","flow":"Routing","key":"Generic Consumer","name":"Input"},
+                 {"type":"addComponent","flow":"Routing","key":"Single Recipient Router","name":"Choose"},
+                 {"type":"configureRoutes","flow":"Routing","component":"Choose","names":["Accepted","Rejected"]},
+                 {"type":"addComponent","flow":"Routing","route":["Accepted"],"key":"Logging Producer","name":"LogAccepted"},
+                 {"type":"addComponent","flow":"Routing","route":["Rejected"],"key":"Dev Null Producer","name":"DiscardRejected"},
+                 {"type":"setExceptionResolution","flow":"Routing","exception":"org.ikasan.spec.component.routing.RouterException","action":"excludeEvent"}]
+                """));
+        ModelProposal.changes(live, initial).apply();
+        var flow = live.getFlows().get(0);
+        var router = flow.getFlowRoute().getFlowElements().get(0);
+        var branch = flow.getFlowRoute().getChildRoutes().get(0);
+        var producer = branch.getFlowElements().get(branch.getFlowElements().size()-1);
+        String before = ComponentIO.toValidatedModuleJson(live);
+        var prepared = ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
+                [{"type":"renameComponent","flow":"Routing","component":"LogAccepted","name":"AcceptedLog"},
+                 {"type":"addComponent","flow":"Routing","route":["Rejected"],"key":"Converter","name":"Inspect"},
+                 {"type":"connect","flow":"Routing","route":["Rejected"],"order":["Inspect","DiscardRejected"]},
+                 {"type":"setExceptionResolution","flow":"Routing","exception":"org.ikasan.spec.component.routing.RouterException.class","action":"retry","properties":{"delay":5,"interval":3}}]
+                """));
+        var change = ModelProposal.changes(live, prepared);
+        assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(before);
+        change.apply();
+        assertThat(flow.getFlowRoute().getFlowElements().get(0)).isSameAs(router);
+        assertThat(flow.getFlowRoute().getChildRoutes().get(0)).isSameAs(branch);
+        assertThat(branch.getFlowElements()).contains(producer);
+        assertThat(producer.getIdentity()).isEqualTo("AcceptedLog");
+        assertThat(flow.getExceptionResolver().getExceptionResolutionList().get(0).getTheAction()).isEqualTo("retry");
+        String after = ComponentIO.toValidatedModuleJson(live);
+        change.undo();
+        assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(before);
+        change.apply();
+        assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(after);
+        for (String operation : List.of(
+                "{\"type\":\"configureRoutes\",\"flow\":\"Routing\",\"component\":\"Choose\",\"names\":[\"NewA\",\"NewB\"]}",
+                "{\"type\":\"deleteComponent\",\"flow\":\"Routing\",\"component\":\"Choose\"}",
+                "{\"type\":\"setExceptionResolution\",\"flow\":\"Routing\",\"exception\":\"Bad();\",\"action\":\"excludeEvent\"}",
+                "{\"type\":\"setExceptionResolution\",\"flow\":\"Routing\",\"exception\":\"java.lang.Exception\",\"action\":\"invented\"}")) {
+            assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("[" + operation + "]")))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void validatesDetachedThenAppliesAndUndoesCompleteFlow(String version) throws Exception {
         Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
         var before = LiveModelSnapshot.capture(live);

@@ -54,6 +54,23 @@ No project directory is scanned. Model contents, generated code, POM files, appl
 
 Missing logs produce an archive explaining that no logs were collected. A write failure reports a recoverable notification. Output is written to a temporary file and atomically published; failures clean up the temporary file and preserve existing destination contents. Filesystems without atomic replacement report failure instead of falling back to a partial write. The destination must end in `.zip`.
 
+### Collection and submission are separate
+
+The local ZIP collector filters structured events. IntelliJ's error reporter is a separate, explicitly submitted route with its own review and privacy notice.
+
+```mermaid
+flowchart TB
+    L["Bounded tail of idea.log"] --> F["Allowlisted Studio events<br/>Strict export filtering"]
+    E["Allowed environment metadata"] --> Z["Local diagnostics ZIP"]
+    F --> Z
+    Z --> R["Developer reviews archive"]
+    R -->|"Chooses to attach it"| S["Support report"]
+    X["Unexpected plugin error"] --> I["IntelliJ error dialog<br/>Review details and attachments"]
+    I -->|"Explicit submission"| J["JetBrains error-reporting service"]
+```
+
+Collecting the ZIP does not upload it. The collector's filtering does not apply to the separate IDE error report, and model files are not automatically attached by Studio. Marketplace delivery and team access still require the release verification described above.
+
 ## Structured events and levels
 
 Privacy-sensitive generation, model/configuration, property-edit and runtime failure paths now use `StudioDiagnosticEvent`:

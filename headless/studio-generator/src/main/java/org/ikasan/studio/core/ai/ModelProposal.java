@@ -54,11 +54,11 @@ public final class ModelProposal {
             } else {
                 flow = findFlow(draft, flowName);
                 if (!flow.getPropertyValueAsString("testHarnessOwner").isBlank()) fail("Test harness flows cannot be edited by proposals.");
-                if (!flow.getFlowRoute().getChildRoutes().isEmpty()) fail("Editing branched flows is not yet supported: " + flowName);
                 switch (type) {
                     case "addComponent" -> {
-                        fields(op, "type", "flow", "key", "name", "properties");
-                        addComponent(draft, flow, op, flow.getFlowRoute().getFlowElements().size());
+                        fields(op, "type", "flow", "key", "name", "properties", "route");
+                        FlowRoute route = findRoute(flow, op.path("route"));
+                        addComponent(draft, flow, route, op, route.getFlowElements().size());
                         summary.add("Add " + text(op, "key") + ": " + flowName + " / " + text(op, "name"));
                     }
                     case "deleteComponent" -> {
@@ -74,9 +74,11 @@ public final class ModelProposal {
                         var replacementMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(draft.getVersion(), text(op, "key"));
                         if (previous.getComponentMeta().isConsumer() != replacementMeta.isConsumer())
                             fail("Replace a consumer with another consumer; replace body components with body components.");
-                        int position = flow.getFlowRoute().getFlowElements().indexOf(previous);
+                        FlowRoute route = previous.getContainingFlowRoute();
+                        if (route == null) route = flow.getFlowRoute();
+                        int position = route.getFlowElements().indexOf(previous);
                         removeComponent(flow, previous);
-                        addComponent(draft, flow, op, Math.max(0, position));
+                        addComponent(draft, flow, route, op, Math.max(0, position));
                         summary.add("Replace " + flowName + " / " + previous.getIdentity() + " with "
                                 + text(op, "name") + " (" + text(op, "key") + "; developer-owned source files are retained)");
                     }
@@ -109,21 +111,55 @@ public final class ModelProposal {
                         element.setName(name);
                         summary.add("Rename " + flowName + " / " + previous + " to " + name);
                     }
+                    case "configureRoutes" -> {
+                        fields(op, "type", "flow", "component", "names");
+                        FlowElement router = findElement(flow, text(op, "component"));
+                        if (!router.getComponentMeta().isRouter()) fail("configureRoutes requires a router.");
+                        JsonNode names = op.path("names");
+                        if (!names.isArray() || names.size() < 2 || names.size() > 32) fail("Provide 2 to 32 route names.");
+                        List<String> desired = new ArrayList<>();
+                        for (JsonNode name : names) {
+                            if (!name.isTextual()) fail("Route names must be strings.");
+                            if (!name.asText().matches("[A-Za-z][A-Za-z0-9]*")) fail("Route names must start with a letter and contain only letters and digits.");
+                            if (desired.stream().anyMatch(n -> sameGeneratedName(n, name.asText()))) fail("Duplicate route name.");
+                            desired.add(name.asText());
+                        }
+                        FlowRoute parent = router.getContainingFlowRoute();
+                        for (FlowRoute child : parent.getChildRoutes()) {
+                            if (!desired.contains(child.getRouteName()) && (!child.getChildRoutes().isEmpty()
+                                    || child.getFlowElements().stream().anyMatch(e -> !e.getComponentMeta().isEndpoint())))
+                                fail("Cannot remove or rename populated route: " + child.getRouteName());
+                        }
+                        router.setPropertyValue("routeNames", desired);
+                        parent.syncChildRoutesForRouter(draft.getVersion(), router);
+                        summary.add("Configure routes for " + flowName + " / " + router.getIdentity() + ": " + desired);
+                    }
+                    case "setExceptionResolution" -> {
+                        fields(op, "type", "flow", "exception", "action", "properties");
+                        setExceptionResolution(draft, flow, op);
+                        summary.add("Resolve " + text(op, "exception") + " in " + flowName + " with " + text(op, "action"));
+                    }
                     case "connect" -> {
-                        fields(op, "type", "flow", "order");
+                        fields(op, "type", "flow", "order", "route");
+                        FlowRoute route = findRoute(flow, op.path("route"));
+                        List<FlowElement> all = new ArrayList<>(route.getFlowElements().stream()
+                                .filter(e -> !e.getComponentMeta().isEndpoint()).toList());
+                        boolean root = route == flow.getFlowRoute();
+                        if (root && flow.getConsumer() != null) all.add(0, flow.getConsumer());
                         JsonNode order = op.path("order");
-                        List<FlowElement> all = elements(flow);
-                        if (!order.isArray() || order.size() != all.size() || flow.getConsumer() == null)
-                            fail("connect.order must list every component exactly once, starting with the consumer.");
+                        if (!order.isArray() || order.size() != all.size() || (root && flow.getConsumer() == null))
+                            fail("connect.order must list every component in the selected route exactly once, consumer first for the root.");
                         List<FlowElement> ordered = new ArrayList<>();
                         Set<String> names = new HashSet<>();
                         for (JsonNode name : order) {
                             if (!name.isTextual() || !names.add(name.asText())) fail("Duplicate or invalid component in connect.order.");
-                            ordered.add(findElement(flow, name.asText()));
+                            FlowElement element = findElement(flow, name.asText());
+                            if (!all.contains(element)) fail("Component is not in the selected route: " + name.asText());
+                            ordered.add(element);
                         }
-                        if (ordered.get(0) != flow.getConsumer()) fail("The consumer must be first.");
-                        flow.getFlowRoute().getFlowElements().clear();
-                        flow.getFlowRoute().getFlowElements().addAll(ordered.subList(1, ordered.size()));
+                        if (root && ordered.get(0) != flow.getConsumer()) fail("The consumer must be first.");
+                        route.getFlowElements().removeIf(e -> !e.getComponentMeta().isEndpoint());
+                        route.getFlowElements().addAll(root ? ordered.subList(1, ordered.size()) : ordered);
                         summary.add("Connect " + flowName + ": " + String.join(" → ", ordered.stream().map(FlowElement::getIdentity).toList()));
                     }
                     default -> fail("Unknown operation: " + type);
@@ -139,8 +175,7 @@ public final class ModelProposal {
             String integrity = flow.getFlowIntegrityStatus();
             if (!integrity.isBlank()) summary.add("Flow " + name + " is incomplete: " + integrity
                     + " Complete the flow before running it.");
-            List<FlowElement> body = flow.getFlowRoute().getFlowElements();
-            for (int i = 0; i < body.size() - 1; i++) if (body.get(i).getComponentMeta().isProducer()) fail("A producer must be last in its flow.");
+            validateRoute(flow.getFlowRoute());
             for (FlowElement element : elements(flow)) {
                 if (element.hasUnsetMandatoryProperties()) fail(name + " / " + element.getIdentity() + ": missing " + element.listUnsetMandatoryProperties());
                 String recipeId = element.getPropertyValueAsString("conversionRecipeId");
@@ -162,19 +197,27 @@ public final class ModelProposal {
 
     private static void removeComponent(Flow flow, FlowElement element) {
         if (flow.getConsumer() == element) flow.setConsumer(null);
-        else flow.getFlowRoute().getFlowElements().remove(element);
+        else {
+            FlowRoute route = element.getContainingFlowRoute();
+            if (element.getComponentMeta().isRouter() && route.getChildRoutes().stream().anyMatch(r ->
+                    !r.getChildRoutes().isEmpty() || r.getFlowElements().stream().anyMatch(e -> !e.getComponentMeta().isEndpoint())))
+                fail("Remove branch components before deleting or replacing their router.");
+            route.removeFlowElement(element);
+        }
     }
 
-    private static void addComponent(Module draft, Flow flow, JsonNode op, int position) throws Exception {
+    private static void addComponent(Module draft, Flow flow, FlowRoute route, JsonNode op, int position) throws Exception {
         String name = text(op, "name");
         checkName(name);
         if (elements(flow).stream().anyMatch(e -> sameGeneratedName(e.getIdentity(), name))) fail("Component already exists: " + name);
         var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(draft.getVersion(), text(op, "key"));
-        if (meta.isModule() || meta.isFlow() || meta.isEndpoint() || meta.isRouter() || meta.isExceptionResolver())
-            fail("Choose a consumer or a linear flow component. Routers, endpoints and resolvers are not supported by this operation.");
-        String issue = flow.issueCausedByAdding(meta, flow.getFlowRoute()) + flow.getFlowRoute().issueCausedByAdding(meta);
+        if (meta.isModule() || meta.isFlow() || meta.isEndpoint() || meta.isExceptionResolver())
+            fail("Choose a consumer, processor or router. Use setExceptionResolution for exception policies; endpoints are not standalone components.");
+        if (meta.isConsumer() && route != flow.getFlowRoute()) fail("A consumer belongs only in the root route.");
+        if (meta.isRouter() && route.hasProducer()) fail("Remove or move the terminal producer before adding a router.");
+        String issue = flow.issueCausedByAdding(meta, route) + route.issueCausedByAdding(meta);
         if (!issue.isBlank()) fail(issue);
-        FlowElement element = FlowElementFactory.createFlowElement(draft.getVersion(), meta, flow, flow.getFlowRoute(), name);
+        FlowElement element = FlowElementFactory.createFlowElement(draft.getVersion(), meta, flow, route, name);
         if (op.has("properties")) {
             if (!op.get("properties").isObject()) fail("properties must be an object");
             for (var property : op.get("properties").properties()) setProperty(element, property.getKey(), property.getValue());
@@ -182,13 +225,24 @@ public final class ModelProposal {
         element.defaultUnsetMandatoryProperties();
         StudioBuildUtils.substituteAllPlaceholderInPascalCase(draft, flow, element);
         if (meta.isConsumer()) flow.setConsumer(element);
-        else flow.getFlowRoute().insertFlowElement(position, element);
+        else {
+            if (!meta.isRouter() && !meta.isProducer()) {
+                for (int i = 0; i < route.getFlowElements().size(); i++)
+                    if (route.getFlowElements().get(i).getComponentMeta().isRouter()) position = Math.min(position, i);
+            }
+            route.insertFlowElement(position, element);
+            if (meta.isRouter()) route.syncChildRoutesForRouter(draft.getVersion(), element);
+        }
     }
 
     private static void setProperty(FlowElement element, String key, JsonNode value) {
         var meta = element.getComponentMeta().getMetadata(key);
         if (meta == null || Set.of("componentName", "name", "version", "testHarnessOwner", "routeNames").contains(key)
                 || meta.isIgnoreProperty()) fail("Unknown or structural property: " + key);
+        element.setPropertyValue(key, propertyValue(meta, key, value));
+    }
+
+    private static Object propertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta meta, String key, JsonNode value) {
         if (value.isContainerNode()) fail("Property values must be scalar: " + key);
         Object converted = null;
         if (!value.isNull()) {
@@ -212,7 +266,7 @@ public final class ModelProposal {
             if (meta.getValidationPattern() != null && !meta.getValidationPattern().matcher(String.valueOf(converted)).matches())
                 fail("Value does not match the validation rule for " + key);
         }
-        element.setPropertyValue(key, converted);
+        return converted;
     }
 
     /** Run on the model-owning thread after checking the snapshot. Does not change anything until apply(). */
@@ -237,7 +291,7 @@ public final class ModelProposal {
                 if (target == null) {
                     target = candidate;
                     target.setContainingFlow(original);
-                    target.setContainingFlowRoute(original.getFlowRoute());
+
                 } else {
                     FlowElement existing = target;
                     candidate.getComponentProperties().forEach((key, property) -> {
@@ -257,14 +311,119 @@ public final class ModelProposal {
             }
             var oldConsumer = original.getConsumer();
             var newConsumer = draftFlow.getConsumer() == null ? null : targets.get(draftFlow.getConsumer().getIdentity());
-            var oldBody = new ArrayList<>(original.getFlowRoute().getFlowElements());
-            var newBody = draftFlow.getFlowRoute().getFlowElements().stream().map(e -> targets.get(e.getIdentity())).toList();
-            forward.add(() -> { original.setConsumer(newConsumer); original.getFlowRoute().getFlowElements().clear(); original.getFlowRoute().getFlowElements().addAll(newBody); });
-            backward.add(() -> { original.setConsumer(oldConsumer); original.getFlowRoute().getFlowElements().clear(); original.getFlowRoute().getFlowElements().addAll(oldBody); });
+            reconcileRoute(original.getFlowRoute(), draftFlow.getFlowRoute(), original, targets, forward, backward);
+            forward.add(() -> original.setConsumer(newConsumer));
+            backward.add(() -> original.setConsumer(oldConsumer));
+            var resolver = original.getExceptionResolver();
+            var proposedResolver = draftFlow.getExceptionResolver();
+            if (resolver == null) {
+                if (proposedResolver != null) {
+                    proposedResolver.setContainingFlow(original);
+                    forward.add(() -> original.setExceptionResolver(proposedResolver));
+                    backward.add(() -> original.setExceptionResolver(null));
+                }
+            } else if (proposedResolver != null) {
+                var oldRules = resolver.getIkasanExceptionResolutionMap();
+                var newRules = new LinkedHashMap<>(proposedResolver.getIkasanExceptionResolutionMap());
+                forward.add(() -> resolver.setIkasanExceptionResolutionMap(newRules));
+                backward.add(() -> resolver.setIkasanExceptionResolutionMap(oldRules));
+            }
+
         }
         forward.add(() -> { live.getFlows().clear(); live.getFlows().addAll(newFlows); });
         backward.add(() -> { live.getFlows().clear(); live.getFlows().addAll(oldFlows); });
         return new ChangeSet(forward, backward);
+    }
+
+    private static void reconcileRoute(FlowRoute target, FlowRoute candidate, Flow flow,
+                                       Map<String, FlowElement> targets, List<Runnable> forward, List<Runnable> backward) {
+        var oldBody = new ArrayList<>(target.getFlowElements());
+        var oldChildren = new ArrayList<>(target.getChildRoutes());
+        List<FlowElement> newBody = new ArrayList<>();
+        for (FlowElement element : candidate.getFlowElements()) {
+            FlowElement mapped = element.getComponentMeta().isEndpoint()
+                    ? oldBody.stream().filter(e -> e.getComponentMeta().isEndpoint() && e.getIdentity().equals(element.getIdentity()))
+                        .findFirst().orElse(element)
+                    : targets.get(element.getIdentity());
+            newBody.add(mapped);
+        }
+        List<FlowRoute> newChildren = new ArrayList<>();
+        for (FlowRoute child : candidate.getChildRoutes()) {
+            FlowRoute existing = oldChildren.stream().filter(r -> r.getRouteName().equals(child.getRouteName())).findFirst().orElse(null);
+            if (existing == null) {
+                try { existing = FlowRoute.flowRouteBuilder().flow(flow).routeName(child.getRouteName()).build(); }
+                catch (Exception failure) { throw new IllegalArgumentException(failure); }
+            }
+            reconcileRoute(existing, child, flow, targets, forward, backward);
+            newChildren.add(existing);
+        }
+        forward.add(() -> {
+            target.getFlowElements().clear(); target.getFlowElements().addAll(newBody);
+            newBody.forEach(e -> { e.setContainingFlow(flow); e.setContainingFlowRoute(target); });
+            target.getChildRoutes().clear(); target.getChildRoutes().addAll(newChildren);
+        });
+        backward.add(() -> {
+            target.getFlowElements().clear(); target.getFlowElements().addAll(oldBody);
+            oldBody.forEach(e -> { e.setContainingFlow(flow); e.setContainingFlowRoute(target); });
+            target.getChildRoutes().clear(); target.getChildRoutes().addAll(oldChildren);
+        });
+    }
+
+    private static FlowRoute findRoute(Flow flow, JsonNode path) {
+        FlowRoute route = flow.getFlowRoute();
+        if (path.isMissingNode()) return route;
+        if (!path.isArray() || path.size() > 16) { fail("route must be an array of branch names (maximum depth 16)."); }
+        for (JsonNode name : path) {
+            if (!name.isTextual()) fail("route must contain branch names.");
+            route = route.getChildRoutes().stream().filter(r -> r.getRouteName().equals(name.asText())).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Unknown route: " + name.asText()));
+        }
+        return route;
+    }
+
+    private static void validateRoute(FlowRoute route) {
+        List<FlowElement> body = route.getFlowElements().stream().filter(e -> !e.getComponentMeta().isEndpoint()).toList();
+        for (int i = 0; i < body.size() - 1; i++)
+            if (body.get(i).getComponentMeta().isProducer() || body.get(i).getComponentMeta().isRouter())
+                fail("A producer or router must be last in its route.");
+        if (!route.getChildRoutes().isEmpty() && (body.isEmpty() || !body.get(body.size()-1).getComponentMeta().isRouter()))
+            fail("Child routes require a terminal router.");
+        route.getChildRoutes().forEach(ModelProposal::validateRoute);
+    }
+
+    private static void setExceptionResolution(Module draft, Flow flow, JsonNode op) throws Exception {
+        String exception = text(op, "exception");
+        if (exception.endsWith(".class")) exception = exception.substring(0, exception.length()-6);
+        if (!javax.lang.model.SourceVersion.isName(exception) || !exception.contains(".")) fail("Use a fully qualified exception class name.");
+        exception += ".class";
+        var meta = ComponentLibrary.getExceptionResolverMetaMandatory(draft.getVersion());
+        var action = meta.getExceptionActionWithName(text(op, "action"));
+        if (action == null) fail("Unknown exception action: " + text(op, "action"));
+        JsonNode values = op.path("properties");
+        if (!values.isMissingNode() && !values.isObject()) fail("Exception properties must be an object.");
+        var properties = new LinkedHashMap<String, ComponentProperty>();
+        var allowed = action.getActionProperties();
+        for (var entry : values.properties()) if (!allowed.containsKey(entry.getKey())) fail("Unknown exception action property: " + entry.getKey());
+        for (var entry : allowed.entrySet()) {
+            var propertyMeta = entry.getValue();
+            JsonNode value = values.get(entry.getKey());
+            if (value == null && propertyMeta.getDefaultValue() != null) value = StudioJson.newObjectMapper().valueToTree(propertyMeta.getDefaultValue());
+            if (value == null || value.isNull()) {
+                if (propertyMeta.isMandatory()) fail("Missing exception action property: " + entry.getKey());
+                continue;
+            }
+            Object converted = propertyValue(propertyMeta, entry.getKey(), value);
+            if (converted instanceof Number number && number.longValue() < 0) fail("Exception retry values cannot be negative.");
+            if (entry.getKey().equals("cronExpression") && !String.valueOf(converted).matches("[A-Za-z0-9*?,/#LW-]+(?: [A-Za-z0-9*?,/#LW-]+){5,6}"))
+                fail("Invalid exception retry cron expression.");
+            properties.put(entry.getKey(), new ComponentProperty(propertyMeta, converted));
+        }
+        var resolver = flow.getExceptionResolver();
+        if (resolver == null) { resolver = new ExceptionResolver(draft.getVersion(), flow); flow.setExceptionResolver(resolver); }
+        var rules = new LinkedHashMap<>(resolver.getIkasanExceptionResolutionMap());
+        rules.put(exception, ExceptionResolution.exceptionResolutionBuilder().metapackVersion(draft.getVersion())
+                .exceptionsCaught(exception).theAction(action.getActionName()).componentProperties(properties).build());
+        resolver.setIkasanExceptionResolutionMap(rules);
     }
 
     public record ChangeSet(List<Runnable> forward, List<Runnable> backward) {

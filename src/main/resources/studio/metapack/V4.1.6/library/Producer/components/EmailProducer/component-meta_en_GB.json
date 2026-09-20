@@ -29,7 +29,7 @@
       "propertyDisplayOrder": -100,
       "setterProperty": true,
       "usageDataType": "java.lang.String",
-      "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
+      "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,63}$",
       "validationMessage": "Please provide a valid formatted email address.",
       "mandatoryUnlessAnyOf": ["toRecipients", "ccRecipient", "ccRecipients", "bccRecipient", "bccRecipients"],
       "mandatorySectionHeading": "At least one of..."
@@ -79,7 +79,7 @@
       "propertyDisplayOrder": -10,
       "setterProperty": true,
       "usageDataType": "java.lang.String",
-      "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
+      "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,63}$",
       "validationMessage": "Please provide a valid formatted email address."
     },
     "ccRecipient": {
@@ -88,7 +88,7 @@
       "propertyDisplayOrder": -90,
       "setterProperty": true,
       "usageDataType": "java.lang.String",
-      "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
+      "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,63}$",
       "validationMessage": "Please provide a valid formatted email address.",
       "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipients", "bccRecipient", "bccRecipients"],
       "mandatorySectionHeading": "At least one of..."
@@ -109,7 +109,7 @@
       "propertyDisplayOrder": -80,
       "setterProperty": true,
       "usageDataType": "java.lang.String",
-      "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
+      "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,63}$",
       "validationMessage": "Please provide a valid formatted email address.",
       "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipient", "ccRecipients", "bccRecipients"],
       "mandatorySectionHeading": "At least one of..."

@@ -43,6 +43,10 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
             }
         }.queue();
     }
+    // This dialog and its project service currently run together in the local IDE.
+    // Remote-development support requires a frontend UI and an RPC boundary to the service;
+    // the optional native MCP content module does not provide that UI split.
+    @SuppressWarnings("SplitModeApiUsage")
     private static final class ConnectionDialog extends DialogWrapper {
         private final StudioAiService service;
         private final String configuration;
@@ -68,7 +72,8 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
                 tabs.addTab(StudioBundle.message("ai.NativeTab"), nativePanel);
             }
             JPanel manual = new JPanel(new BorderLayout(0, JBUI.scale(8)));
-            manual.add(text(StudioBundle.message("ai.AdapterInstructions")), BorderLayout.NORTH);
+            manual.add(new StudioAiConnectionInstructions(StudioBundle.message("ai.AdapterInstructions"),
+                    StudioBundle.message("ai.AdapterTab")), BorderLayout.NORTH);
             JBTextArea config = text(configuration);
             config.setLineWrap(false);
             config.setRows(6);
@@ -78,7 +83,8 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
             manual.add(copy, BorderLayout.SOUTH);
             tabs.addTab(StudioBundle.message("ai.AdapterTab"), manual);
             JPanel fileSetup = new JPanel(new BorderLayout(0, JBUI.scale(8)));
-            fileSetup.add(text(StudioBundle.message("ai.FileInstructions")), BorderLayout.CENTER);
+            fileSetup.add(new StudioAiConnectionInstructions(StudioBundle.message("ai.FileInstructions"),
+                    StudioBundle.message("ai.FileTab")), BorderLayout.CENTER);
             JButton importFile = new JButton(StudioBundle.message("ai.ImportTitle"));
             importFile.addActionListener(event -> StudioAiImportProposalAction.open(project));
             fileSetup.add(importFile, BorderLayout.SOUTH);

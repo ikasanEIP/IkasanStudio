@@ -207,7 +207,7 @@
       "propertyDisplayOrder": 10,
       "defaultValue": "/",
       "mandatory": true,
-      "helpText": "Remote directory where to deliver the file. Default('/') is the FTP session's root as seen after login, which on a jailed/chrooted account (including the bundled test FTP server) is the account's home directory, not the real filesystem root - '.' (the previous default) also refers to the same directory in principle, but was found to fail the connection against the bundled test FTP server.",
+      "helpText": "Remote directory visible to the FTP login. Default / matches the bundled Studio test FTP server root, not the host filesystem root. Pair it with the consumer sourceDirectory. Use Show Test FTP Server Details / Show Test FTP Directory to confirm the directory exists and is writable. Provision a custom subdirectory before either flow starts; producer createParentDirectory does not ensure it exists before the consumer first polls.",
       "setterProperty": true,
       "propertyConfigFileLabel": "__flow.ftp.producer.outputDirectory"
     },

@@ -477,7 +477,7 @@
       "propertyName": "sourceDirectory",
       "propertyDisplayOrder": -20,
       "defaultValue": "/",
-      "helpText": "Remote directory from which to discover files, e.g. /home/myuser/inbound. Whether this path resolves relative to the account's home directory or the server's real filesystem root depends entirely on the FTP server's configuration (e.g. vsftpd chroot_local_user) - confirm with the server admin, or use the full absolute path if unsure. A wrong value here causes the consumer to silently find zero files, with no error logged. Defaults to '/', matching the bundled test FTP server's root.",
+      "helpText": "Existing remote directory visible to the FTP login. Default / matches the bundled Studio test FTP server root; it is not the host operating-system root. Start the harness and use Show Test FTP Server Details / Show Test FTP Directory to confirm its files. For a paired local demo, use / on both producer and consumer unless a subdirectory has actually been created under the harness root. A missing or inaccessible directory can fail the scan with ClientCommandCdException. Verify directory listing and read/rename permissions before starting the consumer; do not depend on a scheduled producer creating the directory first.",
       "mandatory": true,
       "propertyConfigFileLabel": "__flow.ftp.consumer.source-directory",
       "setterProperty": true,

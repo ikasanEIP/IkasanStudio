@@ -12,32 +12,34 @@ Use **Jump to Code** to locate the actual implementation before editing. Propert
 
 Commit the model and your implementations together. Do not delete the whole `generated/` directory as a build-cleaning shortcut. Maven `target/` directories are separate build output.
 
+## From design to application
+
+The model is saved under `generated/`, but it is an input to generation and must be retained. Generated framework code and developer implementations come together when the application is built.
+
+```mermaid
+flowchart TB
+    S["Studio visual editor"] -->|"Save design"| M["model.json<br/>Commit to version control"]
+    M --> G["Code generation"]
+    P["Selected meta-pack<br/>Templates and metadata"] --> G
+    G -->|"Refresh owned output"| O["Generated Java and configuration"]
+    G -->|"Create missing stubs"| U["user/<br/>Developer-owned implementations"]
+    D["Developer"] -->|"Implement and test business logic"| U
+    O --> B["Maven build"]
+    U --> B
+    B --> A["Ikasan application"]
+```
+
+Existing user implementations are protected; replacing them requires explicit approval. Model backups and migration snapshots serve different recovery needs, described below.
+
 ## Renaming a flow
 
-Change the flow name in Properties and choose **Update Code**. If its Java package
-changes, **Rename and refactor** shows the old/new package and affected files.
-Studio uses IntelliJ package refactoring to retain implementations, helper classes
-and subpackages, update Java references, and update its default Spring bean names
-and matching `@Resource`/`@Qualifier` references. Custom bean names are preserved.
-The model is saved before generated code and navigation are refreshed. Class names
-are retained; renaming a flow does not require renaming each implementation class.
+Change the flow name in Properties and choose **Update Code**. If its Java package changes, **Rename and refactor** shows the old/new package and affected files. Studio uses IntelliJ package refactoring to retain implementations, helper classes and subpackages, update Java references, and update its default Spring bean names and matching `@Resource`/`@Qualifier` references. Custom bean names are preserved. The model is saved before generated code and navigation are refreshed. Class names are retained; renaming a flow does not require renaming each implementation class.
 
-Wait for Maven import, indexing and any active generation to finish. An existing
-destination package blocks the rename rather than merging or deleting files.
-Packages shared outside the project's `user/` and `generated/` source trees, or
-containing explicitly supplied external implementations, require manual refactoring.
-Review references in external configuration or arbitrary string literals yourself;
-these are not globally replaced.
+Wait for Maven import, indexing and any active generation to finish. An existing destination package blocks the rename rather than merging or deleting files. Packages shared outside the project's `user/` and `generated/` source trees, or containing explicitly supplied external implementations, require manual refactoring. Review references in external configuration or arbitrary string literals yourself; these are not globally replaced.
 
-Cancel leaves the name and files unchanged. A refactoring failure attempts to restore
-the affected sources and references. If generation fails after a successful rename,
-the new model name and moved implementations are retained: fix the reported problem
-and run **Update Code** again. Do not delete the moved implementations or regenerate
-them as empty stubs. Commit the model and source changes together.
+Cancel leaves the name and files unchanged. A refactoring failure attempts to restore the affected sources and references. If generation fails after a successful rename, the new model name and moved implementations are retained: fix the reported problem and run **Update Code** again. Do not delete the moved implementations or regenerate them as empty stubs. Commit the model and source changes together.
 
-To reverse the operation, rename the flow back through Properties. Whole-operation
-IntelliJ Undo is not supported: the protected model save and asynchronous generation
-are not a single undo transaction, so Studio blocks partial Undo of the refactor.
+To reverse the operation, rename the flow back through Properties. Whole-operation IntelliJ Undo is not supported: the protected model save and asynchronous generation are not a single undo transaction, so Studio blocks partial Undo of the refactor.
 
 ## Automatic model backups
 

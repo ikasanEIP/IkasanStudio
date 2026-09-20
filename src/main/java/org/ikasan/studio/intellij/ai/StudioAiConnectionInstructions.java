@@ -12,15 +12,24 @@ import java.awt.Dimension;
 /** Selectable, wrapping instructions with IDE action labels emphasised. */
 final class StudioAiConnectionInstructions extends JTextPane {
     StudioAiConnectionInstructions(Runnable openSettings) {
+        this(StudioBundle.message("ai.NativeInstructions"), StudioBundle.message("ai.NativeTab"));
+        emphasizeNativeInstructions(getText(), openSettings);
+    }
+
+    StudioAiConnectionInstructions(String instructions, String accessibleName) {
         setEditable(false);
         setOpaque(false);
         setFont(UIManager.getFont("Label.font"));
-        String instructions = StudioBundle.message("ai.NativeInstructions");
         setText(instructions);
         var spacing = new SimpleAttributeSet();
         StyleConstants.setSpaceAbove(spacing, JBUI.scale(3));
         StyleConstants.setSpaceBelow(spacing, JBUI.scale(3));
         getStyledDocument().setParagraphAttributes(0, instructions.length(), spacing, false);
+        setCaretPosition(0);
+        getAccessibleContext().setAccessibleName(accessibleName);
+    }
+
+    private void emphasizeNativeInstructions(String instructions, Runnable openSettings) {
         var bold = new SimpleAttributeSet();
         StyleConstants.setBold(bold, true);
         for (String label : new String[] {StudioBundle.message("ai.EnableMcpServerLabel"),

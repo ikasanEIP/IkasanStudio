@@ -54,7 +54,13 @@ public final class AiProjectContractGenerator {
                 unmodified stub for that task is authorised; use focused edits and tests. Inspect the file and
                 its diff first. Preserve existing developer logic and ask before replacing it or regenerating
                 its implementation. If ownership or intent is unclear, ask rather than assume a file is a stub.
-                A generated class or completed diagram is not proof of working behaviour. Follow the completion
+                For functional flow, integration or demonstration requests, aim for working behaviour unless
+                the user explicitly asks for a diagram or skeleton. Choose and state simple sample behaviour for
+                underspecified demos; ask about material business or destination decisions. Complete unblocked
+                implementation and tests even when external services are unavailable. Verify required Spring
+                beans against real code/configuration, not just model references. Never claim an implementation
+                exists without locating it. A generated class or completed diagram is not proof of working behaviour.
+                Follow the completion
                 checklist and demo guidance in generated/IKASAN_STUDIO.md; report unfinished implementations
                 and unsupported components explicitly.
                 """;
@@ -80,7 +86,9 @@ public final class AiProjectContractGenerator {
                 ## Component guidance and implementation ownership
 
                 Read each component's helpText (which may contain HTML), documentation reference, payload
-                contracts and property help. The catalogue's proposalOperations and proposalSupport explain
+                contracts, completionChecks and property help. beanRequirement explains the evidence needed
+                for a userSuppliedClass reference. These are obligations, not proof of generated behaviour.
+                The catalogue's proposalOperations and proposalSupport explain
                 what the AI bridge can configure; presence in the catalogue alone does not imply support.
                 Endpoints are associated visual/configuration elements, not independent flow processors.
 
@@ -120,7 +128,7 @@ public final class AiProjectContractGenerator {
                 ## Cross-flow transport connections and ordering
 
                 A producer hands off to a consumer through transport configuration, not a cross-flow connect
-                operation. connect only orders components inside one flow. Plan related flows together and
+                operation. connect only orders components inside one flow route. Plan related flows together and
                 add them in the desired canvas order; numbering names does not reorder existing flows. The proposal
                 API has no flow-reordering operation: use Studio to reorder existing flows, never delete and
                 recreate them just to change their position.
@@ -176,18 +184,45 @@ public final class AiProjectContractGenerator {
 
                 ## Demonstration scope and completion checklist
 
-                Establish whether the user wants a visual showcase or a runnable demonstration. If unclear,
-                state the intended scope; do not silently present a diagram as a working demonstration.
+                For requests to build a flow, integration or demonstration, aim for working behaviour by default.
+                Stop at a diagram or scaffolding only when the user explicitly requests that scope. Do not choose
+                visual-only scope merely because it is easier or external services are unavailable. Complete the
+                locally implementable behaviour and tests, then report the remaining external setup separately.
+                For underspecified demonstrations, choose simple, deterministic sample behaviour and state your
+                assumptions (for example a sample order with fixed fields). Ask only when a missing decision
+                materially changes the required behaviour, destination, data ownership or safety. Do not invent
+                production business rules, credentials or permission to send messages to real external systems.
                 For an every-component request, compare the selected catalogue's component keys with the
-                resulting model. Report unsupported routers/exception resolvers and associated endpoints
-                separately from executable components; do not omit them silently or bypass the bridge.
+                resulting model. Include supported routers and explicit exception policies when requested; report
+                associated endpoints separately from executable components. Do not omit missing work silently.
 
-                For a runnable demonstration:
+                Make the demonstration repeatable and its visible state understandable. Identify finite sources,
+                their expected event count and completion state, and provide verified replay/reset instructions.
+                An Event Generating Consumer can finish normally and show Stopped when its provider returns null;
+                restarting the flow does not necessarily reset the provider. Do not disguise this by producing
+                events in an unbounded tight loop. Use a suitable paced source for ongoing demonstrations.
+                Distinguish normal completion from errors using delivery evidence and runtime diagnostics.
+
+                When missing external configuration blocks part of the brief, finish independent paths and
+                ask a focused question listing the exact remaining settings. Maintain a requested-versus-delivered
+                inventory; do not silently narrow an every-component request to the currently convenient types.
+                Offer a clearly labelled incomplete design only if Studio's validation permits it; do not invent
+                credentials or claim unavailable transports are configured. Explain how to complete and test them.
+
+                For each requested functional path:
                 1. Confirm Studio applied the model and generation completed; reread the saved model and files.
                 2. Inspect the relevant user/ classes for throwing stubs, TODO implementations, constant dummy
                    results and no-op methods. Implement the required behaviour within the ownership rules above.
                    Explanatory TODO comments alone do not prove that a component is unfinished.
-                3. Check payload compatibility across the whole flow, bean references and implementation names.
+                3. Trace a representative payload from consumer through every transformation to producer and,
+                   where applicable, the receiving flow. Check payload types, actual output values, filename
+                   filters and transport settings. Locate every required implementation and Spring bean in code
+                   or dependency configuration: a model reference or successful compilation is not evidence that
+                   a bean exists. Check its type, registration, name/qualifier and component-scan coverage.
+                   If a required custom bean was not generated, inspect the selected version's interface and
+                   create the missing implementation and registration in user/ within the requested scope.
+                   Do not create competing beans or replace existing implementations. For external noStubRequired
+                   beans, verify the actual configured provider rather than inventing a placeholder.
                 4. List external requirements: input files/directories, FTP/SFTP servers, JMS brokers, SMTP,
                    databases and credentials as applicable. Prefer supported local test facilities for demos,
                    verify they are configured, and never claim that an unavailable service was exercised.
@@ -195,7 +230,76 @@ public final class AiProjectContractGenerator {
                    If authorised to run the module, verify startup and sample messages; otherwise report that
                    runtime behaviour remains unverified. Do not send real external messages without authorisation.
                 6. Report model application, implementation, compilation, tests and runtime verification
-                   separately. List incomplete classes, unsupported components and remaining setup explicitly.
+                   separately. Cite the actual implementation files and test results supporting completion.
+                   A build with no tests only proves compilation; do not call it behaviour verification.
+                   List incomplete classes, unsupported components and remaining setup explicitly. Continue
+                   implementing unblocked parts rather than treating the list of gaps as task completion.
+
+                ## Runtime verification of functional paths
+
+                Component tests and an isolated embedded transport test do not exercise the generated application.
+                Use staged verification: compilation, component behaviour, generated application startup, then
+                end-to-end delivery. Report which stages actually ran; do not infer later stages from earlier ones.
+                When local execution is within the user's authorised task, carry out the available stages rather
+                than stopping at a recommendation to test. Otherwise provide reproducible commands and prerequisites.
+
+                Start with a self-contained path using local files or an embedded transport, where supported by
+                the selected version. Load the actual generated application configuration and flow factories;
+                a test that scans only user/ beans does not verify the generated Spring wiring. Check required
+                transaction/configuration beans, flow startup state and startup errors. Do not work around wiring
+                failures with substitute production beans merely to make a test pass.
+
+                Before launch, inspect every automatically starting flow and its destinations. Isolate unavailable
+                external services with a supported test profile or Studio proposal, preserving the intended saved
+                configuration. Do not edit generated/ files or the open model directly to disable flows. Record
+                any model changes and restore temporary test settings through Studio when finished.
+
+                For each paired path, send a distinctive sample through the real sender and receiving flow.
+                Assert the expected received value or observable output, not only matching endpoint settings,
+                a connector line or a log saying the application started. Use bounded waits and identify the
+                failing stage on timeout. Test a relevant rejection/rollback path where applicable. Record the
+                working directory, input, expected output and command so the developer can repeat the check.
+                Verification must use its own inputs and endpoints. Override saved absolute file paths in the
+                test configuration when using a temporary checkout; otherwise the receiver may scan the original
+                project while the test writes elsewhere. Assert the effective input location. Prefer portable
+                demo paths with an explicit working directory, while keeping SSH identity paths user-specific.
+
+                For file-producing implementations, do not expose a partially written final file. Write and close
+                a unique temporary file in the destination filesystem, then publish it using a supported atomic
+                operation. Confirm filesystem and concurrent-writer semantics; do not assume ATOMIC_MOVE preserves
+                an existing target or silently replace developer files. For remote transfers, inspect the selected
+                transport's staging/rename support rather than assuming local filesystem guarantees apply.
+                Test interrupted publication and retry, not only duplicate successful writes. Define how matching
+                completed output, conflicting output and abandoned temporary files are handled. Keep input eligible
+                for retry on failure and distinguish committed delivery from a later input-archiving failure.
+                Idempotent filenames alone do not establish crash recovery or exactly-once delivery.
+
+                For external transports, prefer isolated local test services or the supported Studio harnesses.
+                Check protocol, ports, directories, permissions and host-key requirements before delivery tests.
+                For bundled FTP harness demos, inspect its details and use the existing session root / for
+                both producer and consumer unless a custom subdirectory is actually provisioned. Verify listing,
+                write and rename access before starting either flow; a producer's create-directory option is not
+                a startup-order guarantee. A failed change-directory operation can mean a missing path, incorrect
+                session-root assumption or insufficient permissions, not an empty input queue.
+                For SFTP, ask which existing identity to use. Keys commonly live under the module user's home
+                .ssh directory, but filenames, formats and server authorization must be confirmed. Use resolved
+                paths, not an assumed project-local key or unexpanded ~. Never read private key contents into
+                the chat or copy them into the repository. Independently verify the server host fingerprint.
+                Distinguish configured, reachable and delivery-tested services. Do not invent credentials or
+                bypass SSH/TLS verification. Unavailable services should not block unrelated local verification.
+                Stop only test processes started by this task and clean up only its own temporary inputs/outputs.
+
+                Verify shutdown separately from delivery: stop started flows, close the application context and
+                wait a bounded time for owned workers and resources to terminate. Where relevant, test stop/start
+                on the same consumer instance and ensure no old worker continues delivering after stop returns.
+                Observe normal child-process exit from a supervising process. System.exit(0), forced termination
+                or an outer timeout is not evidence of clean shutdown. A delivery check may pass while shutdown
+                fails; report both results, preserve diagnostics and use a nonzero verification exit status for
+                failed assertions or cleanup. Do not hide leaked executors merely to print a successful result.
+
+                End with a compact per-path record: implemented behaviour, tests run, startup/delivery evidence,
+                external prerequisites and remaining blockers. Include unsupported catalogue types separately;
+                full coverage of proposal-supported types is not full catalogue coverage.
 
                 ## Live Studio workflow
 
@@ -255,9 +359,10 @@ public final class AiProjectContractGenerator {
                 - addFlow: type, flow (new name). May create an empty design placeholder; do not invent components.
                   Flows can be built incrementally across proposals. An incomplete flow is a design in progress,
                   not a rejection; it needs a consumer and producer before it can run.
-                - addComponent: type, flow, key (exact catalogue key), name, optional properties object.
+                - addComponent: type, flow, key (exact catalogue key), name, optional properties object and route path.
+                  route is an array of branch names, e.g. ["Accepted"] or ["Accepted", "Audit"]. Omit for root.
                 - deleteComponent: type, flow, component (current name). Removes only the design component;
-                  retains developer-owned source files. Remaining linear components stay connected in order.
+                  retains developer-owned source files. Remaining components stay connected within their route. Populated routers cannot be deleted/replaced.
                 - replaceComponent: type, flow, component (current name), key (new catalogue key), name,
                   optional properties object. Preserves position; consumers must be replaced with consumers.
                   Uses the new type's defaults plus the supplied properties, not the old type's configuration.
@@ -266,12 +371,35 @@ public final class AiProjectContractGenerator {
                   Protected user-supplied bean references such as endpointEventProvider may refer to existing
                   classes. Implementation regeneration remains a Studio operation.
                 - renameComponent: type, flow, component (current name), name (new name).
-                  Subsequent operations use the new name. Studio updates linear-flow transitions; it does not
+                  Subsequent operations use the new name. Studio updates route transitions; it does not
                   rename Java implementation classes or edit developer-owned source files.
-                - connect: type, flow, order (every component name exactly once, consumer first).
+                - connect: type, flow, optional route path, order (all executable components in that route exactly
+                  once; include consumer first only for root). Do not list associated endpoint decorations.
+                - configureRoutes: type, flow, component (router name), names (2 to 32 branch names).
+                  Names start with a letter and contain only letters/digits. Retain names of populated branches;
+                  empty branches may be changed. Add components to each branch using the route path.
+                - setExceptionResolution: type, flow, exception (fully qualified class, optional .class suffix),
+                  action (from exceptionActions in the catalogue), optional properties object. Adds or updates
+                  the rule for that exception, preserving other rules. Read exact action parameter names/defaults.
 
-                Existing edits and component renaming support linear flows only. Router editing, flow renaming,
-                and exception-resolver changes require Studio. Do not alter transitions on disk to work around this.
+                Linear and branched route trees are supported. A router terminates its parent route; each branch
+                should end in a producer or another router. Shared downstream merges are not supported.
+                Flow renaming and migration still require Studio. Do not alter transitions on disk.
+
+                For routing requests, identify an explicit predicate and named destinations. A Single Recipient
+                Router returns exactly one configured route name; a Multi Recipient Router returns a list of
+                configured names. Complete the generated user/ logic, preserve existing code, and test each branch,
+                fallback and fan-out. Treat shared mutable payloads carefully; do not assume fan-out copies them.
+                Configure branch names before implementing the router; later changes require checking its code.
+
+                Exception rules are flow-wide, not ordinary connected processors. Ask for the failure type and
+                intended action when business consequences are unclear. Do not silently ignore errors or choose
+                infinite retries. For a demonstration, propose an explicit narrowly scoped failure and policy,
+                e.g. TransformationException -> excludeEvent, and verify exclusion and later valid delivery.
+                Class-name syntax is validated, but compile and test against the selected version to establish
+                that the class is a Throwable, which exception the flow resolves, and the actual action taken.
+                Use catalogue action guidance: legacy retry property interval is a retry COUNT, not a delay.
+                Cron syntax receives a structural check; validate its runtime scheduling meaning in tests.
                 Preserve unknown fields; use catalogue keys and property validation rules. Names must be unique
                 within their scope, including their generated Java names. Complete flows require a consumer.
 
@@ -370,14 +498,35 @@ public final class AiProjectContractGenerator {
         result.put("implementationGuidance", meta.isGeneratesUserImplementedClass()
                 ? "Inspect the generated user/ implementation. A class may be only a stub; a recipe may supply behaviour. Complete and test it within the requested scope, preserving existing developer logic."
                 : "Configure the component using its property help. Check userSuppliedClass properties for required implementation or bean references.");
+        result.put("completionChecks", completionChecks(meta));
         boolean ordinaryComponent = !meta.isModule() && !meta.isFlow() && !meta.isEndpoint()
-                && !meta.isRouter() && !meta.isExceptionResolver();
-        result.put("proposalOperations", meta.isFlow() ? List.of("addFlow", "deleteFlow") : ordinaryComponent
+                && !meta.isExceptionResolver();
+        result.put("proposalOperations", meta.isExceptionResolver() ? List.of("setExceptionResolution") : meta.isRouter()
+                ? List.of("addComponent", "configureRoutes", "setProperty", "renameComponent", "deleteComponent", "replaceComponent", "connect") : meta.isFlow() ? List.of("addFlow", "deleteFlow") : ordinaryComponent
                 ? List.of("addComponent", "setProperty", "renameComponent", "deleteComponent", "replaceComponent", "connect") : List.of());
-        result.put("proposalSupport", ordinaryComponent ? "Supported in linear flows; branched flows require Studio."
+        result.put("proposalSupport", ordinaryComponent ? "Supported in root and named branch routes; routers terminate their parent route. Use route paths for addComponent/connect."
                 : meta.isFlow() ? "addFlow creates an empty flow; deleteFlow removes the entire flow and attached test harnesses, retaining developer-owned source files. Flow renaming requires Studio."
                 : meta.isEndpoint() ? "Associated endpoint; configure its owning component, do not add as a standalone processor."
-                : "Configure in Studio; the proposal API does not currently support this component role.");
+                : meta.isExceptionResolver() ? "Use setExceptionResolution to add or update a flow-wide exception rule."
+                : "Configure in Studio; this role is not a standalone processor.");
+        if (meta instanceof org.ikasan.studio.core.metapack.model.ExceptionResolverMeta resolver) {
+            result.put("exceptionsCaught", resolver.getExceptionsCaught());
+            result.put("exceptionActions", resolver.getActionList().stream().map(action -> {
+                Map<String, Object> entry = new LinkedHashMap<>();
+                entry.put("name", action.getActionName());
+                entry.put("properties", action.getActionProperties().entrySet().stream()
+                        .map(p -> property(p.getKey(), p.getValue())).toList());
+                entry.put("guidance", switch (action.getActionName()) {
+                    case "retry" -> "Bounded retry: delay is milliseconds between retries; legacy property interval is the maximum retry count (not a time interval).";
+                    case "retryIndefinitely" -> "Unbounded retry with delay in milliseconds; choose only with an explicit requirement.";
+                    case "scheduledCronRetry" -> "Retry on the cron schedule up to maxRetries; verify the expression with the target runtime.";
+                    case "excludeEvent" -> "Exclude the failed event; test the exclusion record and subsequent valid processing.";
+                    case "ignoreException" -> "Ignore the exception; do not select without an explicit decision about lost/failed work.";
+                    default -> "Check the selected version's exception action contract.";
+                });
+                return entry;
+            }).toList());
+        }
         if (meta.getAdditionalKey() != null) result.put("additionalKey", meta.getAdditionalKey());
         if (meta.getExpectedInputTypes() != null) result.put("acceptedInputTypes", meta.getExpectedInputTypes());
         if (meta.getProducedOutputType() != null) result.put("producedOutputType", meta.getProducedOutputType());
@@ -393,6 +542,31 @@ public final class AiProjectContractGenerator {
         return result;
     }
 
+    private static List<String> completionChecks(ComponentMeta meta) {
+        List<String> checks = new ArrayList<>();
+        if (meta.isModule() || meta.isFlow() || meta.isEndpoint()) {
+            checks.add("Verify the configured components and transport relationships; this container or endpoint is not an independent processor implementation.");
+            return checks;
+        }
+        checks.add("Trace a representative input through the component and test the expected output or side effect, including a relevant failure case.");
+        if (meta.isGeneratesUserImplementedClass()) {
+            checks.add("Locate the generated user/ class and inspect its method bodies. Complete throwing, empty or no-op scaffolds within the requested scope; preserve existing developer logic.");
+        }
+        String role = meta.getComponentTypeMeta() == null ? "" : meta.getComponentTypeMeta().getComponentShortType();
+        checks.add(switch (role) {
+            case "Consumer" -> "Verify emitted payload type, listener/event-factory wiring, required provider beans and start/stop lifecycle. A sample source must emit usable sample events. Verify owned workers terminate and stop/start does not duplicate delivery.";
+            case "Producer" -> "Verify the actual destination or observable output, payload compatibility and error handling. An empty invoke method is not a working producer. For file output, test interrupted publication and retry; idempotent filenames alone do not prevent partial files.";
+            case "Converter" -> "Implement the declared source-to-target transformation or verify the selected recipe. Test real output values and unsupported input; do not leave UnsupportedOperationException.";
+            case "Splitter" -> "Return meaningful records in the intended order. Test multiple records and empty/invalid input; returning an empty list for every input is not an implementation.";
+            case "Filter" -> "Implement an explicit acceptance rule and test accepted and rejected inputs. An unconditional pass-through does not demonstrate filtering.";
+            case "Translator" -> "Perform and test the intended in-place mutation of a mutable payload. Use a Converter for replacement values.";
+            case "Broker" -> "Implement and test the requested lookup, enrichment or request/response behavior; returning unchanged input is not evidence of enrichment.";
+            default -> "Check the selected version's interfaces and component help for its behavior and configuration contract.";
+        });
+        checks.add("Verify required beans and external resources independently of compilation. Report runtime delivery as unverified until exercised.");
+        return List.copyOf(checks);
+    }
+
     private static void putText(Map<String, Object> target, String key, String value) {
         if (value != null && !value.isBlank()) target.put(key, value);
     }
@@ -404,6 +578,9 @@ public final class AiProjectContractGenerator {
         putText(result, "displayLabel", meta.getDisplayLabel());
         putText(result, "helpText", meta.getHelpText());
         result.put("userSuppliedClass", meta.isUserSuppliedClass());
+        if (meta.isUserSuppliedClass()) result.put("beanRequirement", meta.isNoStubRequired()
+                ? "Locate the existing configured bean/provider, verify its required type and injection name/qualifier, and check dependency and scan configuration. No stub is generated or appropriate for this external reference."
+                : "Locate the implementation and Spring registration, verify the required interface and injection name/qualifier, and check component scanning. Do not assume a model reference generated a class. If missing, implement/register it in user/ within the requested scope after checking the selected version's API; preserve existing beans.");
         result.put("protectFromOverwrite", meta.isProtectFromOverwrite());
         result.put("noStubRequired", meta.isNoStubRequired());
         result.put("affectsUserImplementedClass", meta.isAffectsUserImplementedClass());

@@ -2,6 +2,22 @@
 
 This walkthrough creates a scheduled flow that writes to the application log. Allow extra time for the first Maven downloads and IntelliJ indexing; the five minutes starts with the plugin, project JDK and dependencies ready.
 
+## Where Studio fits
+
+Studio helps build the application inside IntelliJ; the running module connects to your integration endpoints. Console opens that module's Blue Console.
+
+```mermaid
+flowchart TB
+    D["Developer"] --> I["IntelliJ IDEA<br/>Studio visual editor and Java tools"]
+    I -->|"Generate and build"| P["Ikasan application project"]
+    P -->|"Run or Debug"| M["Running Ikasan module"]
+    M <-->|"Application messages and data"| E["Configured external systems<br/>JMS, files, email, databases"]
+    D -->|"Inspect and control flows"| B["Module-local Blue Console"]
+    B <-->|"Module administration"| M
+```
+
+The first example below uses only a timer and logging; it does not need those external systems.
+
 ## Before you start
 
 Install the candidate plugin ZIP using **Settings → Plugins → gear → Install Plugin from Disk**, then restart if prompted. Use [Supported versions](SupportedVersions.md) to choose an IDE and project JDK. These instructions describe the current candidate.

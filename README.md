@@ -70,6 +70,8 @@ Commit the model and your implementations together. Do not delete the whole `gen
 
 ### AI-assisted development
 
+Start with the [AI support overview](docs/AiSupportOverview.md) for architecture, connection routes and how project guidance helps the assistant.
+
 Choose **Tools → Connect AI to Ikasan Studio…** for supported IntelliJ MCP setup or a manual client configuration using the bundled Java adapter. An AI client can read the live model and catalogue and submit supported changes. File-based proposals are also available.
 
 Studio validates proposals and applies them according to its approval settings. **Always ask for approval** is off by default; **Confirm deletes** is on by default. Potential replacement of developer-owned code requires review. Consult [Studio AI bridge](docs/StudioAiBridge.md) for connection steps, supported operations, settings, status checks and undo behaviour.
@@ -89,6 +91,7 @@ Studio validates proposals and applies them according to its approval settings. 
 | [JMS object messages](docs/JmsObjectMessages.md) | ActiveMQ trusted packages and Java-object payloads |
 | [Flow copy/paste](docs/FlowCopyPaste.md) | Reuse flows and update shared references |
 | [Ikasan version migration](docs/IkasanVersionMigration.md) | Preview, apply and recover migrations between supported packs |
+| [AI support overview](docs/AiSupportOverview.md) | Architecture, onboarding and AI project context |
 | [Studio AI bridge](docs/StudioAiBridge.md) | Live MCP access and structured model proposals |
 | [AI-friendly projects](docs/AiFriendlyProjects.md) | Generated instructions, schemas and component catalogues |
 | [Generated-code warnings](docs/GeneratedCodeWarnings.md) | Template checks and application-specific warning limits |
@@ -124,7 +127,6 @@ Studio validates proposals and applies them according to its approval settings. 
 | [Marketplace manual checklist](docs/MarketplaceReleaseManualChecklist.md) | Lifecycle, multi-project and external-process release exercises |
 | [14 September 2026 release audit](docs/ReleaseAudit-2026-09-14.md) | Evidence and outstanding checks for that specific candidate |
 | [Product and technical roadmap](docs/IkasanStudioRoadmap.md) | Architectural direction and historical planning context |
-| [AI bridge handover](docs/AI_BRIDGE_HANDOVER.md) | Dated implementation history; use the feature guide for current behaviour |
 
 Roadmap status tables and dated audits describe their recorded checkout, not necessarily the current working tree. They do not replace the current feature guides or verification of a new candidate.
 

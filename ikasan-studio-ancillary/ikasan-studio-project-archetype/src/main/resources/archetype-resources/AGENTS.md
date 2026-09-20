@@ -32,6 +32,12 @@ under `user/`. When the requested task includes working behaviour, completing a 
 unmodified stub for that task is authorised; use focused edits and tests. Inspect the file and
 its diff first. Preserve existing developer logic and ask before replacing it or regenerating
 its implementation. If ownership or intent is unclear, ask rather than assume a file is a stub.
-A generated class or completed diagram is not proof of working behaviour. Follow the completion
+For functional flow, integration or demonstration requests, aim for working behaviour unless
+the user explicitly asks for a diagram or skeleton. Choose and state simple sample behaviour for
+underspecified demos; ask about material business or destination decisions. Complete unblocked
+implementation and tests even when external services are unavailable. Verify required Spring
+beans against real code/configuration, not just model references. Never claim an implementation
+exists without locating it. A generated class or completed diagram is not proof of working behaviour.
+Follow the completion
 checklist and demo guidance in generated/IKASAN_STUDIO.md; report unfinished implementations
 and unsupported components explicitly.

@@ -2,10 +2,7 @@
 
 Status: **automated gates passed; manual release sign-off remains open**.
 
-Audited checkout: `813f6499` plus the release-engineering changes in this working tree.
-Candidate: `build/distributions/ikasanstudio-1.0.0.zip`.
-SHA-256: `db427df85b6a17fdf5237b57c0a4bbc9febccf221f577489e3197133f25fa9e1`.
-Rebuilding may produce a different archive; retain the report matching the ZIP actually distributed.
+Audited checkout: `813f6499` plus the release-engineering changes in this working tree. Candidate: `build/distributions/ikasanstudio-1.0.0.zip`. SHA-256: `db427df85b6a17fdf5237b57c0a4bbc9febccf221f577489e3197133f25fa9e1`. Rebuilding may produce a different archive; retain the report matching the ZIP actually distributed.
 
 | Check | Result and evidence |
 | --- | --- |
@@ -21,10 +18,7 @@ Rebuilding may produce a different archive; retain the report matching the ZIP a
 | Open every item 2 golden project in boundary IDEs | NOT RUN in this session; the new golden-project suite was not located in this checkout |
 | Clean machine and cross-OS harness workflows | NOT RUN; the temporary IDE profile does not clear Maven caches or external tool installations |
 
-Verifier evidence is under `build/reports/pluginVerifier/<IDE build>/`. The installed Gradle plugin supplied
-the compilation target's JBR 21 to Plugin Verifier for all three binary checks; those checks must not be
-described as runtime execution on each IDE's bundled JBR. The isolated IDE smoke test did execute JBR 21.0.7.
-The standalone engine suites use the declared Java 17 toolchain.
+Verifier evidence is under `build/reports/pluginVerifier/<IDE build>/`. The installed Gradle plugin supplied the compilation target's JBR 21 to Plugin Verifier for all three binary checks; those checks must not be described as runtime execution on each IDE's bundled JBR. The isolated IDE smoke test did execute JBR 21.0.7. The standalone engine suites use the declared Java 17 toolchain.
 
 Isolated startup command:
 
@@ -32,8 +26,7 @@ Isolated startup command:
 ./gradlew buildSearchableOptions --rerun -PstudioSandboxDirectory=/tmp/ikasan-studio-release-smoke-20260914
 ```
 
-Its log is `/tmp/ikasan-studio-release-smoke-20260914/ikasanstudio/IC-2024.3.7/log/idea.log`.
-This exercises startup and settings, not user installation, project initialization, execution or uninstall.
+Its log is `/tmp/ikasan-studio-release-smoke-20260914/ikasanstudio/IC-2024.3.7/log/idea.log`. This exercises startup and settings, not user installation, project initialization, execution or uninstall.
 
 ## Gaps fixed
 
@@ -47,15 +40,8 @@ This exercises startup and settings, not user installation, project initializati
 
 ## Remaining release work
 
-Follow [ReleaseCandidateVerification.md](ReleaseCandidateVerification.md) for installation, upgrade, uninstall,
-every-pack project opening and clean-profile sign-off. Link the completed item 2 results from their actual
-branch/checkout. This audit did not recreate or claim those results.
+Follow [ReleaseCandidateVerification.md](ReleaseCandidateVerification.md) for installation, upgrade, uninstall, every-pack project opening and clean-profile sign-off. Link the completed item 2 results from their actual branch/checkout. This audit did not recreate or claim those results.
 
-`MigrationController` still calls `MavenProjectsManager.scheduleImportAndResolve()`, which the latest IDE
-marks for removal. Replace that migration/import integration before the API is removed, and retain the
-verifier boundary checks for future candidates. Ordinary deprecations are listed in the verifier reports.
+`MigrationController` still calls `MavenProjectsManager.scheduleImportAndResolve()`, which the latest IDE marks for removal. Replace that migration/import integration before the API is removed, and retain the verifier boundary checks for future candidates. Ordinary deprecations are listed in the verifier reports.
 
-The archive inventory retains third-party notices already embedded in libraries. The separately supplied
-`ikasan-spec-component-3.1.0.jar` and `ikasan-studio-ide-mediator-1.0.2.jar` have no embedded licence/notice
-entries; confirm their distribution notices before publication. Project-built Studio JARs and the generated
-searchable-options JAR are covered by the project licence included in the main plugin JAR.
+The archive inventory retains third-party notices already embedded in libraries. The separately supplied `ikasan-spec-component-3.1.0.jar` and `ikasan-studio-ide-mediator-1.0.2.jar` have no embedded licence/notice entries; confirm their distribution notices before publication. Project-built Studio JARs and the generated searchable-options JAR are covered by the project licence included in the main plugin JAR.

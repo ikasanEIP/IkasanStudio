@@ -119,7 +119,7 @@
         "password"
       ],
       "mandatorySectionHeading": "Provide key and hosts",
-      "helpText": "The location of the known_hosts file used to verify the remote SFTP server's host key. Conventionally ~/.ssh/known_hosts - the same file the OpenSSH client itself reads and writes to - though any accessible file path works. Required when using key-based authentication (i.e. when password is not set) - not read at all for password-based connections. The file itself must already contain an entry for the target host, or the connection will fail host-key verification even though this property is set correctly - e.g. run \"ssh-keyscan -t ed25519 &lt;host&gt; &gt;&gt; &lt;this file&gt;\" once beforehand, or connect manually first and accept the host key.",
+      "helpText": "Known-hosts file used for SFTP server identity verification with key-based authentication. A common location is ~/.ssh/known_hosts; select an existing readable file and use its resolved absolute path rather than assuming Java expands ~. Verify the host and port entry and fingerprint through a trusted source. ssh-keyscan can collect a key but does not authenticate it. Do not blindly trust a scanned key or disable verification to make a demonstration work. Password-based connections do not read this field in this connector.",
       "propertyConfigFileLabel": "__flow.sftp.producer.known-hosts-filename",
       "setterMethod": "setKnownHostsFilename",
       "setterProperty": true,
@@ -183,7 +183,7 @@
         "password"
       ],
       "mandatorySectionHeading": "Provide key and hosts",
-      "helpText": "Filename of the private key used for public-key authentication to the SFTP server. Optional — only needed if authenticating via key rather than password.",
+      "helpText": "Private key file for SFTP public-key authentication; optional when using password authentication. Existing keys commonly live in the operating-system user home under .ssh, for example ~/.ssh/id_rsa or ~/.ssh/id_ed25519. These are examples, not guaranteed files or supported key formats: confirm the chosen key exists, is readable by the module process, is supported by the selected connector, and its public key is authorized by the server. Use a resolved absolute path; do not assume Java expands ~. Ask which existing key to use rather than inventing a project-local demo/ssh path. Never copy private key contents into the model, chat or source repository.",
       "setterProperty": true,
       "propertyConfigFileLabel": "__flow.sftp.producer.private-key-filename"
     },

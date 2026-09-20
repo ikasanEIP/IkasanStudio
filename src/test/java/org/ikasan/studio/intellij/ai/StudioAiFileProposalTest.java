@@ -22,6 +22,17 @@ import static org.mockito.Mockito.*;
 class StudioAiFileProposalTest {
     @TempDir Path directory;
 
+    @Test void importWithoutProjectDirectoryReportsActionableFailure() {
+        var project = mock(Project.class);
+        var service = new StudioAiService(project);
+        try {
+            assertThatThrownBy(() -> service.importProposal("{\"operations\":[]}"))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("Open a project before importing an AI proposal.");
+            verify(project, never()).getService(UiContext.class);
+        } finally { service.dispose(); }
+    }
+
     @Test void importReviewCancelAndApplyWorkWithoutStartingBridge() throws Exception {
         var project = mock(Project.class);
         var context = mock(UiContext.class);
