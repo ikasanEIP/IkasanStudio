@@ -130,9 +130,15 @@ public class StudioBuildUtils {
     @SuppressWarnings("unused")
     public static String toUrlString(final String input) {
         if (input != null && !input.isEmpty()) {
-            return  input
+            // Fold accents and drop anything else non-ASCII: this is a servlet context path, which Spring Boot would
+            // misread (it reads .properties as ISO-8859-1) and Studio's own URLs cannot rely on.
+            String ascii = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD)
+                    .replaceAll("\\p{M}+", "")
+                    .replaceAll("[^\\x00-\\x7F]", "");
+            String path = ascii
                     .replaceAll("  +", " ")
                     .replaceAll("[ -]+", "-").toLowerCase(Locale.ROOT);
+            return path.isEmpty() ? "module" : path;
         } else {
             return input;
         }
@@ -375,7 +381,29 @@ public class StudioBuildUtils {
      */
     @SuppressWarnings("unused")
     public static String escapeSpringPropertiesMapKey(String value) {
-        return value == null ? "" : value.replace("\\", "\\\\").replace(" ", "\\ ");
+        return value == null ? "" : escapeNonAscii(value.replace("\\", "\\\\").replace(" ", "\\ "));
+    }
+
+    /**
+     * Spring Boot reads .properties files as ISO-8859-1, but Studio writes them as UTF-8. A raw non-ASCII character
+     * (an accented directory name, Japanese text) would therefore arrive at runtime as mojibake with no error, so
+     * write it as a \\uXXXX escape, which the properties loader decodes correctly in any charset. Printable ASCII is
+     * untouched, so ordinary values are unchanged.
+     */
+    private static String escapeNonAscii(String value) {
+        StringBuilder result = null;
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            boolean escape = c > 0x7e || (c < 0x20 && c != '\n' && c != '\r' && c != '\t');
+            if (escape && result == null) {
+                result = new StringBuilder(value.length() + 8).append(value, 0, i);
+            }
+            if (result != null) {
+                if (escape) result.append(String.format("\\u%04x", (int) c));
+                else result.append(c);
+            }
+        }
+        return result == null ? value : result.toString();
     }
 
     /**
@@ -392,11 +420,11 @@ public class StudioBuildUtils {
      */
     @SuppressWarnings("unused")
     public static String escapeSpringPropertiesValue(String value) {
-        return value == null ? "" : value
+        return value == null ? "" : escapeNonAscii(value
                 .replace("\\", "\\\\")
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
-                .replace("\t", "\\t");
+                .replace("\t", "\\t"));
     }
 
     /**

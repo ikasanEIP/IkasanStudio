@@ -186,4 +186,46 @@ public class StudioBuildUtilsTest {
                 is(List.of("zebra", "apple", "mango", "banana")));
         assertThat(StudioBuildUtils.stringToList("[c, b, a]"), is(List.of("c", "b", "a")));
     }
+
+    /**
+     * Spring Boot reads .properties files as ISO-8859-1 but Studio writes them as UTF-8, so a raw non-ASCII
+     * character (an accented directory, a Japanese name) arrives at runtime as mojibake. Escaping it as a
+     * \\uXXXX sequence is decoded correctly by both Properties and Spring Boot.
+     */
+    @Test
+    public void testEscapeSpringPropertiesValue_escapesNonAsciiSoItSurvivesAnIso88591Reader() throws IOException {
+        String original = "/donn\u00e9es/\u65e5\u672c\u8a9e/\u20ac \ud83d\ude00";
+        String escaped = StudioBuildUtils.escapeSpringPropertiesValue(original);
+
+        assertThat("only ASCII may remain, so the file reads the same in any charset",
+                escaped.chars().allMatch(c -> c < 0x7f), is(true));
+        java.util.Properties properties = new java.util.Properties();
+        properties.load(new java.io.StringReader("dir=" + escaped));
+        assertThat(properties.getProperty("dir"), is(original));
+        assertThat(StudioBuildUtils.escapeSpringPropertiesValue("plain /value with spaces"), is("plain /value with spaces"));
+    }
+
+    @Test
+    public void testEscapeSpringPropertiesMapKey_escapesNonAsciiAndSpaces() throws IOException {
+        String original = "Caf\u00e9 \u65e5\u672c Flow";
+        String escaped = StudioBuildUtils.escapeSpringPropertiesMapKey(original);
+
+        assertThat(escaped.chars().allMatch(c -> c < 0x7f), is(true));
+        java.util.Properties properties = new java.util.Properties();
+        properties.load(new java.io.StringReader(escaped + "=v"));
+        assertThat(properties.getProperty(original), is("v"));
+    }
+
+    /**
+     * The module's servlet context path is built from this by both the generated properties file and Studio's own
+     * runtime clients. A non-ASCII path is misread by Spring Boot and cannot be relied on in a URL, so fold to ASCII.
+     */
+    @Test
+    public void testToUrlString_isAsciiSoTheGeneratedAndClientPathsAgree() {
+        assertThat(StudioBuildUtils.toUrlString("My Module - One"), is("my-module-one"));
+        assertThat(StudioBuildUtils.toUrlString("Caf\u00e9 Orders"), is("cafe-orders"));
+        assertThat(StudioBuildUtils.toUrlString("\u65e5\u672c\u8a9e"), is("module"));
+        assertThat(StudioBuildUtils.toUrlString(""), is(""));
+        assertThat(StudioBuildUtils.toUrlString(null), org.hamcrest.CoreMatchers.nullValue());
+    }
 }

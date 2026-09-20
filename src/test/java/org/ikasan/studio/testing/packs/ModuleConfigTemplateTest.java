@@ -57,6 +57,46 @@ public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
     }
 
     /**
+     * A flow called Default or Import is plausible, but the generated variable and package must not be the Java
+     * keyword itself or the project does not compile.
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void flowsNamedAfterJavaKeywordsGenerateLegalVariablesAndPackages(String metaPackVersion) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion).build();
+        flow.setName("Import");
+        module.addFlow(flow);
+        FlowElement consumer = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(metaPackVersion,
+                org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Event Generating Consumer"),
+                flow, flow.getFlowRoute(), "Default");
+        consumer.defaultUnsetMandatoryProperties();
+        flow.setConsumer(consumer);
+
+        String moduleConfig = ModuleConfigTemplate.create(module);
+        assertTrue(moduleConfig.contains("flow.import_.Import import_;"), moduleConfig);
+        assertTrue(moduleConfig.contains(".addFlow(import_.getImport())"), moduleConfig);
+        String flowSource = FlowTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertTrue(flowSource.contains("Flow import_ = flowBuilder"), flowSource);
+        String factory = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        assertTrue(!factory.matches("(?s).*\\b(default|import)\\s*;.*"), factory);
+    }
+
+    /** A flow named entirely in non-Latin script must not generate an empty package segment ("flow..."). */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void flowNamedEntirelyInNonLatinScriptGeneratesALegalPackage(String metaPackVersion) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion).build();
+        flow.setName("\u65e5\u672c\u8a9e");
+        module.addFlow(flow);
+
+        String moduleConfig = ModuleConfigTemplate.create(module);
+        assertTrue(!moduleConfig.contains("flow.."), moduleConfig);
+        assertTrue(moduleConfig.matches("(?s).*flow\\._[0-9a-f]+\\.\\S+ \\S+;.*"), moduleConfig);
+    }
+
+    /**
      * Expected output: src/test/resources/studio/templates/org/ikasan/studio/generator/&lt;version&gt;/Module/ModuleConfigEmptyIkasanModel.java
      * @throws IOException if the template cant be generated
      */
