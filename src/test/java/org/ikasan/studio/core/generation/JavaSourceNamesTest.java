@@ -47,4 +47,16 @@ class JavaSourceNamesTest {
         assertThat(JavaSourceNames.toIdentifier("1st Step")).isEqualTo("stStep");
         assertThat(JavaSourceNames.toIdentifier("")).isEmpty();
     }
+
+    @Test
+    void aNameWithNoAsciiLettersStillGivesANonEmptyStablePackage() {
+        // Previously "" - which generates "package org.ikasan.studio.boot.flow.;".
+        String package1 = JavaSourceNames.toPackageName("\u65e5\u672c\u8a9e");
+        assertThat(package1).matches("_[0-9a-f]{1,8}");
+        assertThat(JavaSourceNames.toPackageName("\u65e5\u672c\u8a9e")).isEqualTo(package1);
+        assertThat(JavaSourceNames.toPackageName("\u4e2d\u6587")).isNotEqualTo(package1);
+        // Names with any ASCII letters keep exactly the package they had.
+        assertThat(JavaSourceNames.toPackageName("Caf\u00e9")).isEqualTo("caf");
+        assertThat(JavaSourceNames.toPackageName("My-Flow")).isEqualTo("myflow");
+    }
 }

@@ -20,7 +20,8 @@ public final class JavaSourceNames {
 
     /**
      * A package name segment. A Java keyword such as "import" or "default" is not a legal segment, so it is
-     * given a trailing underscore. Every other result is unchanged.
+     * given a trailing underscore, and a name with no ASCII letters or digits is given a stable hash-based name.
+     * Every other result is unchanged.
      */
     public static String toPackageName(String input) {
         if (input == null || input.isEmpty()) {
@@ -28,6 +29,11 @@ public final class JavaSourceNames {
         }
         String prefixed = Character.isDigit(input.charAt(0)) ? "_" + input : input;
         String name = prefixed.replaceAll("[^a-zA-Z0-9_]+", "").toLowerCase(Locale.ROOT);
+        if (name.isEmpty()) {
+            // Nothing ASCII survives (e.g. a name entirely in Japanese): an empty segment is not a legal package.
+            // String.hashCode is specified, so this is stable across runs and JVMs.
+            name = "_" + Integer.toHexString(input.hashCode());
+        }
         return SourceVersion.isKeyword(name) ? name + "_" : name;
     }
 

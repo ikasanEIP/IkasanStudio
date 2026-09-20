@@ -82,6 +82,20 @@ public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
         assertTrue(!factory.matches("(?s).*\\b(default|import)\\s*;.*"), factory);
     }
 
+    /** A flow named entirely in non-Latin script must not generate an empty package segment ("flow..."). */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void flowNamedEntirelyInNonLatinScriptGeneratesALegalPackage(String metaPackVersion) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion).build();
+        flow.setName("\u65e5\u672c\u8a9e");
+        module.addFlow(flow);
+
+        String moduleConfig = ModuleConfigTemplate.create(module);
+        assertTrue(!moduleConfig.contains("flow.."), moduleConfig);
+        assertTrue(moduleConfig.matches("(?s).*flow\\._[0-9a-f]+\\.\\S+ \\S+;.*"), moduleConfig);
+    }
+
     /**
      * Expected output: src/test/resources/studio/templates/org/ikasan/studio/generator/&lt;version&gt;/Module/ModuleConfigEmptyIkasanModel.java
      * @throws IOException if the template cant be generated
