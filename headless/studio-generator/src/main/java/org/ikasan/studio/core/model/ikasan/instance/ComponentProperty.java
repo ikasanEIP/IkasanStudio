@@ -31,7 +31,23 @@ public class ComponentProperty {
 
     public ComponentProperty(ComponentPropertyMeta meta, Object value) {
         this.meta = meta;
-        this.value = value;
+        this.value = asDeclaredType(meta, value);
+    }
+
+    public void setValue(Object value) {
+        this.value = asDeclaredType(meta, value);
+    }
+
+    /**
+     * A number or boolean written in JSON where the property is text (for example an unquoted "port": 8080 or
+     * "name": 2024) is stored as its text. Storing the raw number made later reads such as getIdentity() fail with a
+     * ClassCastException, and it re-saves as the quoted text Studio always writes.
+     */
+    private static Object asDeclaredType(ComponentPropertyMeta meta, Object value) {
+        if ((value instanceof Number || value instanceof Boolean) && meta != null && meta.getPropertyDataType() == String.class) {
+            return value.toString();
+        }
+        return value;
     }
 
     public ComponentProperty(ComponentPropertyMeta meta) {

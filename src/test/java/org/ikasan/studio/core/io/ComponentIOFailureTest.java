@@ -172,4 +172,20 @@ class ComponentIOFailureTest {
         org.junit.jupiter.api.Assertions.assertNotNull(failure.getCause(), "the original failure should be kept for diagnosis");
     }
 
+    /** Unquoted numbers are the natural way to hand-edit a port or a numeric name; they used to crash the loader. */
+    @Test
+    void aNumberWhereTextIsExpectedIsReadAsTextAndSavedAsText() throws Exception {
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        com.fasterxml.jackson.databind.node.ObjectNode edited = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(populatedModelJson());
+        edited.put("name", 12345);
+        edited.put("port", 8080);
+
+        Module module = ComponentIO.validatePersistedModuleJson(mapper.writeValueAsString(edited), "hand-edited model.json", false);
+
+        org.junit.jupiter.api.Assertions.assertEquals("12345", module.getIdentity());
+        org.junit.jupiter.api.Assertions.assertEquals("8080", module.getPort());
+        com.fasterxml.jackson.databind.JsonNode saved = mapper.readTree(ComponentIO.toValidatedModuleJson(module));
+        org.junit.jupiter.api.Assertions.assertTrue(saved.get("name").isTextual(), "saved as text: " + saved.get("name"));
+        org.junit.jupiter.api.Assertions.assertTrue(saved.get("port").isTextual(), "saved as text: " + saved.get("port"));
+    }
 }
