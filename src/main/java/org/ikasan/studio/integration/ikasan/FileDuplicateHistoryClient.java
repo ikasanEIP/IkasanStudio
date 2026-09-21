@@ -24,6 +24,9 @@ public final class FileDuplicateHistoryClient {
         String q = "pageNumber=" + page + "&pageSize=20";
         if (!clientId.isBlank()) q += "&clientId=" + URLEncoder.encode(clientId.strip(), StandardCharsets.UTF_8);
         if (!criteria.isBlank()) q += "&criteria=" + URLEncoder.encode(criteria.strip(), StandardCharsets.UTF_8);
+        // Both filters are optional in the module's API, but with neither it builds an empty WHERE clause and answers
+        // HTTP 500. The dialog promises that blank filters show everything, so ask for everything explicitly.
+        if (clientId.isBlank() && criteria.isBlank()) q += "&criteria=" + URLEncoder.encode("%", StandardCharsets.UTF_8);
         return URI.create(endpoint.toASCIIString() + "?" + q);
     }
 
