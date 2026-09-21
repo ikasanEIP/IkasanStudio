@@ -1,4 +1,4 @@
-# 1AI support in Ikasan Studio
+# AI support in Ikasan Studio
 
 *A quick overview for developers and managers · September 2026*
 

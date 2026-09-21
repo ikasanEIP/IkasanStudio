@@ -14,6 +14,19 @@ public final class LocalTestEnvironmentTemplate {
                 environment-variable references are optional. No separate configuration file is required.
                 Studio creates this file only if missing and preserves your edits.
 
+                ## Before running local demos
+
+                Studio's FTP and SMTP harnesses are started explicitly in the IDE; a closed port may mean the
+                harness is not running yet. For FTP, right-click a supported local FTP component and choose
+                **Start Test FTP Server**, then **Show Test FTP Server Details**. For mail, right-click an Email
+                Producer or its endpoint and choose **Start Test Mail Server**, then **Show Test Mail Server Details**.
+                Check the actual addresses and credentials there. FTP paths are relative to the server's visible
+                root `/`; a custom directory must exist inside the harness root. Start required harnesses before
+                **Run module**. The FTP harness does not provide SFTP; SFTP needs your configured SSH server.
+                The AI should ask for these startup steps when it cannot operate the IDE, keep flows AUTOMATIC,
+                and report verification pending until actual delivery is tested. Do not disable flows to hide an
+                unstarted harness, invent credentials, or replace supplied endpoints just because a port is closed.
+
                 ## My settings
 
                 Use `name=value`, one per line. Lines beginning with `#` are comments. Everything after the

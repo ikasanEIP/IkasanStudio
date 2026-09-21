@@ -115,10 +115,12 @@
       "propertyName": "messageProvider",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 280,
-      "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.consumer.QuartzMessageProvider, org.ikasan.component.endpoint.quartz.consumer.CallBackMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.CorrelatingFileMessageProvider, org.ikasan.component.endpoint.db.messageprovider.DbMessageProvider, org.ikasan.endpoint.sftp.consumer.SftpMessageProvider, org.ikasan.endpoint.ftp.consumer.FtpMessageProvider.",
+      "helpText": "Provide the classname that overrides and implements the default MessageProvider interface. The message provider is responsible for providing the message payload. Studio creates a protected implementation in user/ with invoke(JobExecutionContext); complete that method to return your payload. For simple periodic samples, leave messageProvider unset and use a Converter after the default timer signal. Pre-built implementations you can wire in instead of writing your own: org.ikasan.component.endpoint.quartz.consumer.QuartzMessageProvider, org.ikasan.component.endpoint.quartz.consumer.CallBackMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.FileMessageProvider, org.ikasan.component.endpoint.filesystem.messageprovider.CorrelatingFileMessageProvider, org.ikasan.component.endpoint.db.messageprovider.DbMessageProvider, org.ikasan.endpoint.sftp.consumer.SftpMessageProvider, org.ikasan.endpoint.ftp.consumer.FtpMessageProvider.",
       "setterProperty": true,
       "userSuppliedClass": true,
       "affectsUserImplementedClass": true,
+      "protectFromOverwrite": true,
+      "userImplementClassFtlTemplate": "scheduledMessageProviderTemplate_en.ftl",
       "usageDataType": "org.ikasan.component.endpoint.quartz.consumer.MessageProvider",
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Message Provider bean."

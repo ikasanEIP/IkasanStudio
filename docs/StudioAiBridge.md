@@ -158,11 +158,11 @@ Settings → Tools → Ikasan Studio → **Always ask for approval** defaults to
 ### Edit flow properties and startup behaviour
 
 `setFlowProperty {type, flow, property, value}` edits a metadata-defined scalar flow property.
-For example, leave an unfinished transport pair on MANUAL until its server and credentials
-are configured; apply the operation to both flows:
+Normal ESB flows should start automatically. For example, when restoring automatic startup
+for a flow that the developer wants enabled:
 
 ```json
-{"type":"setFlowProperty","flow":"Receive Files","property":"flowStartupType","value":"MANUAL"}
+{"type":"setFlowProperty","flow":"Receive Files","property":"flowStartupType","value":"AUTOMATIC"}
 ```
 
 Choices and property types are validated against the selected pack. Null clears an optional
@@ -170,7 +170,19 @@ value. Names, structural/internal fields and implementation properties are exclu
 operation follows the same approval, freshness, persistence and Undo/Redo path as component
 edits. Generated per-flow startup entries leave the module default unchanged. Persisted
 runtime startup controls can take precedence; inspect effective settings and use supported
-operator controls rather than forcing database overwrite. MANUAL does not bypass bean creation.
+operator controls rather than forcing database overwrite. Preserve existing operator choices.
+
+Missing external services or configuration are blockers to resolve, not reasons for the AI to
+set flows to MANUAL or DISABLED. Keep startup failures visible and report incomplete acceptance
+checks. Only disable a flow when explicitly requested by the developer. Bounded test isolation
+must not change the saved startup policy or replace verification of the normal launch path.
+
+**DEMO ACCEPTANCE RULE: DO NOT LEAVE DEMO FLOWS STOPPED.** While the module is running,
+every requested normal demo flow must run and remain ready for later input. A stopped flow does
+no work. Quietly disabling it hides missing setup and makes developers waste time finding why
+nothing happens; a visible startup error exposes the problem. Do not call the demo complete
+while any required flow is stopped or in error, even if that state is explained in a README.
+Resolve the cause or report the demo as BLOCKED/INCOMPLETE with the exact remaining action.
 
 ESB flows, including demonstrations, must remain running and available after sample delivery.
 Generated guidance requires an idle/readiness check and another batch in the same running

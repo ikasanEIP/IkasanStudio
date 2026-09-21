@@ -63,8 +63,16 @@ public final class AiProjectContractGenerator {
                 Verify the normal Studio Run module experience as well as test launchers. ESB flows, including demos,
                 must stay running and accept later work after sample input is exhausted; idle is not stopped.
                 Finite completion is allowed only for explicitly requested batch examples or bounded tests.
-                Set flows awaiting external setup to MANUAL through Studio; do not auto-start placeholders.
+                Keep normal ESB flows AUTOMATIC; report missing external setup without hiding startup failures.
+                **DEMO ACCEPTANCE RULE: DO NOT LEAVE DEMO FLOWS STOPPED.** While the module is running,
+                every requested normal demo flow must run and remain ready for later input. A stopped flow does
+                no work. Quietly disabling it hides missing setup and makes developers waste time finding why
+                nothing happens; a visible startup error exposes the problem. Do not call the demo complete
+                while any required flow is stopped or in error, even if that state is explained in a README.
+                Resolve the cause or report the demo as BLOCKED/INCOMPLETE with the exact remaining action.
                 Before every task needing test settings, reread LOCAL_TEST_ENVIRONMENT.md in the project root.
+                For local FTP/SMTP, read the Studio local test harnesses section in generated/IKASAN_STUDIO.md.
+                A closed port may mean the developer has not started the harness; ask for that startup step.
                 Accept a simple name=value block: supplied values override selected catalogue defaults. Blank
                 or omitted optional settings keep existing values on existing components, defaults on new ones,
                 or remain unset if no default exists. Ask only for missing required details, not every property.
@@ -122,6 +130,8 @@ public final class AiProjectContractGenerator {
                 ## Local test configuration
 
                 Before every task needing test settings, reread LOCAL_TEST_ENVIRONMENT.md in the project root.
+                For local FTP/SMTP, read the Studio local test harnesses section in generated/IKASAN_STUDIO.md.
+                A closed port may mean the developer has not started the harness; ask for that startup step.
                 Accept a simple name=value block: supplied values override selected catalogue defaults. Blank
                 or omitted optional settings keep existing values on existing components, defaults on new ones,
                 or remain unset if no default exists. Ask only for missing required details, not every property.
@@ -305,6 +315,12 @@ public final class AiProjectContractGenerator {
                 associated endpoints separately from executable components. Do not omit missing work silently.
 
                 ESB lifecycle requirement: flows are long-lived services, including demonstration flows.
+                **DEMO ACCEPTANCE RULE: DO NOT LEAVE DEMO FLOWS STOPPED.** While the module is running,
+                every requested normal demo flow must run and remain ready for later input. A stopped flow does
+                no work. Quietly disabling it hides missing setup and makes developers waste time finding why
+                nothing happens; a visible startup error exposes the problem. Do not call the demo complete
+                while any required flow is stopped or in error, even if that state is explained in a README.
+                Resolve the cause or report the demo as BLOCKED/INCOMPLETE with the exact remaining action.
                 After a sample batch, they must remain running and ready for later input. An unexplained Stopped
                 state is a failed acceptance check even if the first batch was delivered. Stop only for an explicit
                 operator action, application shutdown or a configured failure policy; an explicitly requested
@@ -332,10 +348,13 @@ public final class AiProjectContractGenerator {
                 inventory; do not silently narrow an every-component request to the currently convenient types.
                 Offer a clearly labelled incomplete design only if Studio's validation permits it; do not invent
                 credentials or claim unavailable transports are configured. Explain how to complete and test them.
-                Do not leave placeholders on automatically starting flows. Use setFlowProperty through Studio to
-                set flowStartupType=MANUAL for each unavailable path (including its sender and receiver). Keep
-                independent ready flows usable. Show the reason and prerequisites in the flow description and
-                handover; intentionally manual is awaiting setup, not verified delivery. Existing database startup
+                Keep normal ESB flows AUTOMATIC, including paths whose external services are unavailable.
+                Do not set MANUAL or DISABLED to suppress startup errors or make a partial demo appear healthy.
+                Resolve supplied configuration and service issues within the authorised scope; otherwise report
+                the exact blocker and ask for the missing setup. Do not invent credentials or destinations.
+                Startup/error states must remain visible and count as incomplete acceptance checks. Only change
+                a flow to MANUAL or DISABLED when the developer explicitly requests it; preserve existing
+                operator choices. Existing database startup
                 controls may override new properties: inspect the effective runtime setting and use supported
                 operator controls. Do not globally force allowDbOverwrite or erase runtime data to conceal this.
 
@@ -365,6 +384,28 @@ public final class AiProjectContractGenerator {
                    List incomplete classes, unsupported components and remaining setup explicitly. Continue
                    implementing unblocked parts rather than treating the list of gaps as task completion.
 
+                ## Efficient implementation and verification
+
+                Before constructing several related flows, read LOCAL_TEST_ENVIRONMENT.md once for this task
+                and check the supplied services needed by the brief. Identify unavailable services early; do
+                not repeatedly try the same unavailable endpoint. Keep working on independent requirements.
+                Check payload types, mandatory authentication and transaction requirements before submitting
+                a coherent proposal. For raw JMS object conversion, validate/narrow Message to ObjectMessage
+                before a converter that requires ObjectMessage; match the selected version's JMS namespace.
+                For JMS redelivery/exclusion examples, configure the required transactional consumer and verify
+                persisted exclusion plus subsequent valid delivery, not only a thrown exception in a unit test.
+                For periodic samples, a Scheduled Consumer plus a Converter is usually sufficient. A custom
+                messageProvider is also supported: complete its developer-owned invoke(JobExecutionContext)
+                method and check the registered bean name rather than replacing the consumer to avoid a stub.
+
+                Verify one representative implementation of each distinct pattern before repeating it. Batch
+                related corrections, wait for application/generation results, and rerun affected checks first.
+                Once those pass, run one final module-level verification covering all acceptance requirements.
+                Repeat broad testing only after changes or new failures justify it. Use bounded waits and stop
+                when acceptance evidence is complete; report remaining external setup separately. Do not add
+                compiler exclusions or reflection-based lifecycle workarounds just to hide a generator/framework
+                defect: identify the cause, prefer supported APIs, and report any necessary workaround explicitly.
+
                 ## Runtime verification of functional paths
 
                 Component tests and an isolated embedded transport test do not exercise the generated application.
@@ -379,10 +420,10 @@ public final class AiProjectContractGenerator {
                 transaction/configuration beans, flow startup state and startup errors. Do not work around wiring
                 failures with substitute production beans merely to make a test pass.
 
-                Before launch, inspect every automatically starting flow and its destinations. Isolate unavailable
-                external services with a supported test profile or Studio proposal, preserving the intended saved
-                configuration. Do not edit generated/ files or the open model directly to disable flows. Record
-                any model changes and restore temporary test settings through Studio when finished.
+                Before launch, inspect every automatically starting flow and its destinations. Report unavailable
+                external services and resolve authorised setup without disabling flows. Bounded tests may isolate
+                dependencies, but must not change the saved startup policy or substitute for normal-launch
+                verification. Never suppress normal startup failures with a profile that disables affected flows.
 
                 Verify the developer's normal launch path as a separate acceptance check: Studio Run module,
                 its generated Application entry point, actual profiles, working directory and persisted startup
@@ -414,6 +455,32 @@ public final class AiProjectContractGenerator {
                 completed output, conflicting output and abandoned temporary files are handled. Keep input eligible
                 for retry on failure and distinguish committed delivery from a later input-archiving failure.
                 Idempotent filenames alone do not establish crash recovery or exactly-once delivery.
+
+                ## Studio local test harnesses
+
+                Studio provides local FTP and SMTP test servers which the developer starts explicitly in the IDE.
+                A closed local port during implementation may simply mean the harness has not been started yet;
+                it does not prove the supplied settings are wrong or that infrastructure must be installed.
+                Check these settings and the intended harness before changing endpoints or proposing another server.
+
+                - FTP: right-click a supported local FTP Consumer or Producer and select **Start Test FTP Server**,
+                  then **Show Test FTP Server Details** for the actual address, credentials and test directory.
+                  Use **Show Test FTP Directory** to inspect files. The existing server-visible root is `/`;
+                  any different directory must exist inside that root. Do not infer credentials from port numbers.
+                - SMTP: right-click an Email Producer or its endpoint and select **Start Test Mail Server**,
+                  then **Show Test Mail Server Details** for the SMTP address and web inbox. Studio uses MailHog;
+                  the first start may require a download. Check Terminal output/notifications if startup fails.
+                - These controls start test servers, not the application. Start the required harnesses before
+                  **Run module**. Harness settings/details and supplied values determine ports; do not assume
+                  that a listener on a familiar port is the intended server.
+                - The FTP harness is plain FTP, not SFTP or FTPS. SFTP needs the configured external/local SSH
+                  server. A JMS test reader needs a functioning JMS provider; it does not start a broker.
+
+                If you cannot operate the IDE controls, ask the developer to start the named harness and confirm
+                its details. Continue independent implementation, then verify real delivery once it is available.
+                Keep demo flows AUTOMATIC: do not disable them because their harness is not running. Report the
+                specific harness startup step as pending; do not claim end-to-end verification or demo completion.
+                Synthetic message injection does not verify FTP/SFTP acquisition or remote service connectivity.
 
                 For external transports, prefer isolated local test services or the supported Studio harnesses.
                 Check protocol, ports, directories, permissions and host-key requirements before delivery tests.
@@ -516,8 +583,8 @@ public final class AiProjectContractGenerator {
                   rename Java implementation classes or edit developer-owned source files.
                 - connect: type, flow, optional route path, order (all executable components in that route exactly
                   once; include consumer first only for root). Do not list associated endpoint decorations.
-                - setFlowProperty: type, flow, property, value (scalar or null to clear). Use flowStartupType=MANUAL
-                  for a flow awaiting external setup. Names, structural fields and implementation properties are excluded.
+                - setFlowProperty: type, flow, property, value (scalar or null to clear). Keep flowStartupType=AUTOMATIC
+                  unless the developer explicitly requests another startup policy. Names, structural fields and implementation properties are excluded.
                 - configureRoutes: type, flow, component (router name), names (2 to 32 branch names).
                   Names start with a letter and contain only letters/digits. Retain names of populated branches;
                   empty branches may be changed. Add components to each branch using the route path.
@@ -718,7 +785,7 @@ public final class AiProjectContractGenerator {
         if (meta.isModule() || meta.isFlow() || meta.isEndpoint()) {
             checks.add("Verify the configured components and transport relationships; this container or endpoint is not an independent processor implementation.");
             if (meta.isModule() || meta.isFlow())
-                checks.add("Verify normal Studio Run module startup and effective per-flow startup controls, not only a custom test launcher. Set unavailable paths to MANUAL through setFlowProperty; record the reason and prerequisites. Check observed state and replay after sample delivery.");
+                checks.add("Verify normal Studio Run module startup and effective per-flow startup controls, not only a custom test launcher. Keep normal flows AUTOMATIC; report unavailable services as blockers without disabling flows. Use MANUAL or DISABLED only when explicitly requested by the developer. Check observed state and replay after sample delivery.");
             return checks;
         }
         checks.add("Trace a representative input through the component and test the expected output or side effect, including a relevant failure case.");

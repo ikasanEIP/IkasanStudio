@@ -432,13 +432,17 @@ public class GeneratedProjectSynchronizer {
                             // still needed for the @Resource bean-wiring in the generated factory, but no stub makes sense.
                             continue;
                         }
+                        if (property.valueNotSet()) continue;
                         boolean protectFromOverwrite = property.getMeta().isProtectFromOverwrite();
-                        if (protectFromOverwrite && !property.isOverwriteEnabled()) {
-                            // Bespoke, user-owned stub that has already been generated once - leave the user's code untouched.
-                            continue;
-                        }
                         String newPackageName = GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow);
                         String clazzName = StudioBuildUtils.toJavaClassName(property.getValueString());
+                        if (protectFromOverwrite) {
+                            StudioProjectFiles.checkLegacyPropertyStubLocation(project, newPackageName, clazzName);
+                        }
+                        if (protectFromOverwrite && !property.isOverwriteEnabled()
+                                && StudioProjectFiles.getUserImplementedClassFile(project, newPackageName, clazzName) != null) {
+                            continue;
+                        }
                         String prefix = GeneratorUtils.getUniquePrefix(module, ikasanFlow, component);
                         String templateString;
                         try {

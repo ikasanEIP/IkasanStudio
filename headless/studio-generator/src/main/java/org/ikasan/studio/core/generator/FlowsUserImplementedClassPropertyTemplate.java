@@ -14,7 +14,10 @@ public class FlowsUserImplementedClassPropertyTemplate extends Generator {
     protected static String generateContents(String metapackVersion, String packageName, String clazzName, ComponentProperty property, String prefix) throws StudioGeneratorException {
         String interfaceName = property.getMeta().getUsageDataType();
         String templateName;
-        if (ComponentPropertyMeta.CONFIGURATION.equals(property.getMeta().getPropertyName())) {
+        if (property.getMeta().getUserImplementClassFtlTemplate() != null
+                && !property.getMeta().getUserImplementClassFtlTemplate().isBlank()) {
+            templateName = property.getMeta().getUserImplementClassFtlTemplate();
+        } else if (ComponentPropertyMeta.CONFIGURATION.equals(property.getMeta().getPropertyName())) {
             templateName = "configurationTemplate_en.ftl";
         } else {
             templateName = "genericInterfaceTemplate_en.ftl";

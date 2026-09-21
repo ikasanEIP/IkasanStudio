@@ -18,6 +18,13 @@ release verification and outstanding checks are tracked separately in
 - Flow copy/paste, conversion recipes, and local FTP/SFTP, email and JMS testing tools.
 - AI-assisted model editing through MCP or imported proposal files, with approval settings and protection for developer-owned code.
 
+### Fixed
+
+- AI guidance keeps normal ESB flows on automatic startup and reports missing services as blockers instead of recommending manual startup to hide failures.
+
+- Preserve explicit zero-valued component settings and filename-regex character classes during generation.
+- Generate compilable, protected scheduled message providers in `user/` and support logging format configuration despite the framework builder's non-fluent setter.
+
 <!-- At publication, move these notes under a dated [1.0.0] heading and retain
 an [Unreleased] section for changes intended for the next release. Record useful
 user-facing changes here; keep implementation details and test evidence in the

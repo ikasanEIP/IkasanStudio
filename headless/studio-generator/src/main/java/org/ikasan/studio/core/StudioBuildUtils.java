@@ -322,7 +322,10 @@ public class StudioBuildUtils {
         List<String> returnList = new ArrayList<>();
 
         if (commaSeperatedList != null) {
-            commaSeperatedList = commaSeperatedList.replace("[", "").replace("]", "");
+            // Support a legacy List.toString wrapper, but never strip brackets inside entries.
+            if (commaSeperatedList.startsWith("[") && commaSeperatedList.endsWith("]")) {
+                commaSeperatedList = commaSeperatedList.substring(1, commaSeperatedList.length() - 1);
+            }
             List<String> rawList = Arrays.asList(commaSeperatedList.split("\\s*,\\s*"));
             // LinkedHashSet keeps first-seen order: the user's ordering must survive de-duplication.
             Set<String> deduplicate = new LinkedHashSet<>(rawList);

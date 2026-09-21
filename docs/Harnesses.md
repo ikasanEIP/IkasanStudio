@@ -2,6 +2,14 @@
 
 Harnesses support local development. Start with a disposable project and test endpoints, apply **Update Code**, and restart the module whenever generated configuration changes. Actions are shown only for components and states that support them. Toolbar harness start/stop controls manage the module's FTP and mail test harnesses; they do not start a JMS broker or the application.
 
+## AI-assisted demonstrations
+
+The generated `IKASAN_STUDIO.md` and new `LOCAL_TEST_ENVIRONMENT.md` templates explain
+that these servers are started explicitly in Studio. A closed port during implementation is not
+proof of missing infrastructure. Agents should ask the developer to start the appropriate harness,
+confirm its details, keep flows AUTOMATIC, and verify delivery afterwards. A demo awaiting a
+harness is incomplete; disabling its flows hides the outstanding setup.
+
 ## Email
 
 Right-click an Email Producer or its endpoint and choose **Start Test Mail Server**. Studio starts MailHog in a **Test Mail Server** Terminal tab and opens its web inbox. The SMTP address follows the supported local producer configuration; **Show Test Mail Server Details** shows the address and inbox. If prompted to align other producers with this address, review the proposed change and restart the module after regeneration.

@@ -28,6 +28,56 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
     }
 
     
+    public void testScheduledProviderIsCreatedInUserAndSurvivesRegeneration() throws Exception {
+        String pack = "V3.3.9";
+        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(pack, new java.util.ArrayList<>());
+        var flow = org.ikasan.studio.core.TestFixtures.getUnbuiltFlow(pack).build();
+        module.addFlow(flow);
+        var consumer = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(pack,
+                org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Scheduled Consumer"),
+                flow, flow.getFlowRoute(), "Clock");
+        consumer.setPropertyValue("messageProvider", "Samples");
+        flow.setConsumer(consumer);
+        String pkg = org.ikasan.studio.core.generator.GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
+        String userPath = "user/src/main/java/" + pkg.replace('.', '/') + "/Samples.java";
+        var method = GeneratedProjectSynchronizer.class.getDeclaredMethod("generateAndSaveUserImplementClassStubsForFlow",
+                com.intellij.openapi.project.Project.class,
+                org.ikasan.studio.core.model.ikasan.instance.Module.class,
+                org.ikasan.studio.core.model.ikasan.instance.Flow.class);
+        method.setAccessible(true);
+        var synchronizer = new GeneratedProjectSynchronizer(myProject);
+        GenerationTransactionManager.begin();
+        method.invoke(synchronizer, myProject, module, flow);
+        GenerationTransactionManager.commit(myProject);
+        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base.findFileByRelativePath(userPath));
+        assertNull(base.findFileByRelativePath(userPath.replace("user/", "generated/")));
+        assertTrue(read(base, userPath).contains("invoke("));
+        String custom = "package " + pkg + "; public class Samples { /* developer implementation */ }";
+        StudioProjectFiles.createFileWithDirectories(myProject, userPath, custom, null);
+        String persistedCustom = read(base, userPath); // IntelliJ formats Java on the first write.
+        GenerationTransactionManager.begin();
+        method.invoke(synchronizer, myProject, module, flow);
+        GenerationTransactionManager.commit(myProject);
+        assertEquals(persistedCustom, read(base, userPath));
+    }
+
+    public void testLegacyProviderIsPreservedInsteadOfCreatingADuplicate() throws Exception {
+        String path = "generated/src/main/java/example/Samples.java";
+        String source = "package example; public class Samples { /* existing implementation */ }";
+        StudioProjectFiles.createFileWithDirectories(myProject, path, source, null);
+        String persistedSource = read(StudioProjectFiles.getProjectBaseDir(myProject), path);
+        try {
+            StudioProjectFiles.checkLegacyPropertyStubLocation(myProject, "example", "Samples");
+            fail("Expected relocation guidance");
+        } catch (StudioRuntimeException expected) {
+            assertTrue(expected.getMessage().contains("Move it"));
+        }
+        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertEquals(persistedSource, read(base, path));
+        assertNull(base.findFileByRelativePath("user/src/main/java/example/Samples.java"));
+    }
+
     public void testStartupGuidanceExistsBeforeAnyGenerationAndPreservesCustomisations() throws Exception {
         VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);

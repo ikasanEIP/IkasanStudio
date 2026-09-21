@@ -894,6 +894,17 @@ public class StudioProjectFiles {
         }
     }
 
+    /** Prevent a second copy of a developer-owned class left in generated/ by older metadata. */
+    public static void checkLegacyPropertyStubLocation(Project project, String packageName, String className) {
+        String path = GENERATED_CONTENT_ROOT.substring(1) + "/" + SRC_MAIN_JAVA_CODE + "/"
+                + packageName.replace('.', '/') + "/" + className + ".java";
+        if (getVirtualFile(project, path) != null) {
+            throw new StudioRuntimeException("An older Studio version placed the developer-owned provider at " + path
+                    + ". Move it to the same package under user/src/main/java, preserving its implementation,"
+                    + " then regenerate. No duplicate provider will be created.");
+        }
+    }
+
     /**
      * Locate the on-disk java file for a user implemented class (e.g. a Debug or Converter stub), if it
      * has been generated. Mirrors the relative path construction used to write the file in

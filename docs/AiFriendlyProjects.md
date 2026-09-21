@@ -141,3 +141,22 @@ which paths were verified through the normal Run module configuration.” For a 
 say whether repairs are authorised. Structural validation, packaging tests and edit-preservation
 tests cover the shipped files; successful discovery and improved outcomes in a particular IDE
 client still need to be exercised with a real task. A skill is guidance, not an enforcement layer.
+
+## Efficient verification and generator recovery
+
+The generated guide and integration skill ask agents to check service availability, payload types and
+transaction needs before constructing dependent flows, prove one example per distinct pattern, batch
+related repairs, and finish with a single whole-module verification after focused checks pass.
+
+Scheduled Consumer `messageProvider` implementations now belong in `user/` and include a compilable
+`invoke(JobExecutionContext)` method. The default method returns the timer context; implement the
+business payload before claiming the flow complete. Regeneration preserves existing implementations.
+If an older project has the same provider under `generated/src/main/java`, move it to the same package
+under `user/src/main/java`, retaining any implementation, then regenerate. Studio reports this case
+rather than overwriting the old file or creating a duplicate. Obsolete providers from previously
+replaced components are not automatically deleted.
+
+Explicit numeric zero is a supplied value, not an unset field. Filename regular-expression brackets
+are preserved. Logging formatting uses separate builder calls for both bundled framework versions.
+These fixes remove the need to change zero to one, weaken filename matching, or replace logging
+producers with listeners merely to avoid those generation defects.

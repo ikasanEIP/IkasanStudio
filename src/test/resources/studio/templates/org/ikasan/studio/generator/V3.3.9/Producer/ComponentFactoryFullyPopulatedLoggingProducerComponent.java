@@ -18,10 +18,18 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
 
 public org.ikasan.spec.component.endpoint.Producer getMyLoggingProducer() {
-return builderFactory.getComponentBuilder().logProducer()
+org.ikasan.builder.component.endpoint.LogProducerBuilder logBuilder = builderFactory.getComponentBuilder().logProducer();
+logBuilder
 .setConfiguredResourceId("MyResourceID")
+;
+logBuilder
 .setLogEveryNth(2L)
+;
+logBuilder
 .setRegExpPattern("this")
+;
+logBuilder
 .setReplacementText("that")
-.build();
+;
+return logBuilder.build();
 }}

@@ -12,6 +12,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ComponentPropertyTest {
 
+    @Test
+    void explicitZeroAndFalseAreValuesButNullIsUnset() {
+        for (Object value : List.of(0, 0L, 0.0d, 0.0f, false)) {
+            assertFalse(new ComponentProperty(null, value).valueNotSet(), value.toString());
+        }
+        assertTrue(new ComponentProperty(null, null).valueNotSet());
+    }
+
+    @Test
+    void filenameRegexBracketsSurviveBothStringAndListRepresentations() {
+        var meta = ComponentPropertyMeta.builder().propertyName("filenames")
+                .usageDataType("java.util.List<String>").build();
+        for (String pattern : List.of("/tmp/Demo.*[.]txt", "[a-z]", "[^,]+[.]csv")) {
+            assertEquals(pattern, new ComponentProperty(meta, pattern).getValueString());
+            assertEquals(pattern, new ComponentProperty(meta, List.of(pattern)).getValueString());
+        }
+    }
+
     /**
      * Regression test for a real production bug: a List-valued property (e.g. Local File Consumer's
      * "filenames") previously rendered via Arrays.toString() - "[myFile\.txt, anotherFile\.txt]" - into

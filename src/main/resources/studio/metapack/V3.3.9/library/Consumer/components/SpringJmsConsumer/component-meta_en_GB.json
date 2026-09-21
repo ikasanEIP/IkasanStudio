@@ -252,7 +252,7 @@
       "propertyGroup": "Session",
       "propertyDisplayOrder": 400,
       "defaultValue": false,
-      "helpText": "Default: false. Sets whether the session should be part of a local JMS transaction - when true, the broker holds the message until the session commits/rolls back; when false, acknowledgement is governed by sessionAcknowledgeMode instead.",
+      "helpText": "Default: false. Sets whether the session should be part of a local JMS transaction - when true, the broker holds the message until the session commits/rolls back; when false, acknowledgement is governed by sessionAcknowledgeMode instead. For a local JMS redelivery/excludeEvent demonstration, enable sessionTransacted so a failed delivery can roll back and be redelivered for exclusion. Verify a persisted excluded event and later valid delivery; throwing an exception alone does not prove exclusion.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },

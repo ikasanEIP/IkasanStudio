@@ -63,7 +63,9 @@ public class ComponentProperty {
                 // List#toString() literal from the same older bug described above (e.g.
                 // "[myFile\.txt, anotherFile\.txt]"), it would otherwise pass straight through untouched here and
                 // crash FileMatcher's regex compile at Ikasan startup. Normalise the same way as the List branch.
-                returnValue = String.join(",", StudioBuildUtils.stringToList(value.toString()));
+                // Filename entries are regexes: brackets are syntax, never legacy list delimiters.
+                returnValue = "filenames".equals(meta.getPropertyName()) ? value.toString()
+                        : String.join(",", StudioBuildUtils.stringToList(value.toString()));
             } else
                 returnValue = value.toString();
         }
@@ -111,10 +113,6 @@ public class ComponentProperty {
     public boolean valueNotSet() {
         return (value == null) ||
                 (value instanceof String && ((String) value).isEmpty()) ||
-                (value instanceof Integer && ((Integer) value) == 0) ||
-                (value instanceof Long && ((Long) value) == 0) ||
-                (value instanceof Double && ((Double) value) == 0.0) ||
-                (value instanceof Float && ((Float) value) == 0.0) ||
                 (value instanceof List && ((List<?>) value).isEmpty()) ||
                 (value instanceof String && isStaleEmptyListLiteral((String) value));
     }

@@ -74,9 +74,19 @@ public final class StudioAiSkillTemplates {
                 
                 Inspect required beans and generated `user/` scaffolds. Complete authorised implementations;
                 preserve existing developer logic. Verify registration, injection names, scanning and payload
-                contracts against actual code. Unavailable external paths may be explicitly left MANUAL with
-                prerequisites explained through Studio; they remain incomplete, not successful demonstrations.
+                contracts against actual code. Keep normal flows AUTOMATIC even when external services are
+                unavailable; report and resolve blockers without hiding startup failures. Set MANUAL or DISABLED
+                only when explicitly requested by the developer, and preserve existing operator choices.
                 
+                ## Avoid unnecessary repair cycles
+
+                Check supplied service availability, payload compatibility and transaction needs before the
+                first dependent proposal. Verify one representative flow per distinct pattern before repeating
+                it. Batch related corrections and rerun affected checks first, then one final module-level
+                verification. Do not repeatedly retry an unavailable service or rerun the whole demo after a
+                documentation-only edit. Once the brief's acceptance checks pass, report the evidence and finish.
+                Follow the generated guide's efficient implementation section for provider and JMS prerequisites.
+
                 ## Verify the ESB behaviour
                 
                 Use evidence appropriate to the requested scope. For working integrations, progress from
@@ -89,6 +99,13 @@ public final class StudioAiSkillTemplates {
                 Check expected versus actual state for every affected flow. Respect existing operator startup
                 settings; do not erase persistence or force global overrides to make the test appear successful.
                 
+                **DEMO ACCEPTANCE RULE: DO NOT LEAVE DEMO FLOWS STOPPED.** While the module is running,
+                every requested normal demo flow must run and remain ready for later input. A stopped flow does
+                no work. Quietly disabling it hides missing setup and makes developers waste time finding why
+                nothing happens; a visible startup error exposes the problem. Do not call the demo complete
+                while any required flow is stopped or in error, even if that state is explained in a README.
+                Resolve the cause or report the demo as BLOCKED/INCOMPLETE with the exact remaining action.
+
                 Normal ESB flows, including demos, remain running and ready for later work. Verify first delivery,
                 an idle interval and later delivery in the same application without bean reset or flow/application
                 restart. For paced sources, observe separated batches and continued readiness. A finite provider

@@ -41,8 +41,16 @@ exists without locating it. A generated class or completed diagram is not proof 
 Verify the normal Studio Run module experience as well as test launchers. ESB flows, including demos,
 must stay running and accept later work after sample input is exhausted; idle is not stopped.
 Finite completion is allowed only for explicitly requested batch examples or bounded tests.
-Set flows awaiting external setup to MANUAL through Studio; do not auto-start placeholders.
+Keep normal ESB flows AUTOMATIC; report missing external setup without hiding startup failures.
+**DEMO ACCEPTANCE RULE: DO NOT LEAVE DEMO FLOWS STOPPED.** While the module is running,
+every requested normal demo flow must run and remain ready for later input. A stopped flow does
+no work. Quietly disabling it hides missing setup and makes developers waste time finding why
+nothing happens; a visible startup error exposes the problem. Do not call the demo complete
+while any required flow is stopped or in error, even if that state is explained in a README.
+Resolve the cause or report the demo as BLOCKED/INCOMPLETE with the exact remaining action.
 Before every task needing test settings, reread LOCAL_TEST_ENVIRONMENT.md in the project root.
+For local FTP/SMTP, read the Studio local test harnesses section in generated/IKASAN_STUDIO.md.
+A closed port may mean the developer has not started the harness; ask for that startup step.
 Accept a simple name=value block: supplied values override selected catalogue defaults. Blank
 or omitted optional settings keep existing values on existing components, defaults on new ones,
 or remain unset if no default exists. Ask only for missing required details, not every property.

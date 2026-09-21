@@ -83,10 +83,14 @@ org.ikasan.builder.BuilderFactory builderFactory;
         </#if>
         <#include "trustedObjectPackages_en.ftl">
     </#if>
+    <#-- Ikasan's logging setRegExpPattern returns null in these versions: do not chain setters. -->
+    <#assign nonFluentLog = flowElement.componentMeta.implementingClass == "org.ikasan.component.endpoint.util.producer.LogProducer">
     <#assign testDestination=TestJmsHarnessLinks.destinationOverride(module, flowElement)!"">
     public ${flowElement.componentMeta.componentType} get${flowElement.getJavaClassName()}() {
     <#if flowElement.componentMeta.usesBuilderInFactory>
-        <#if flowElement.componentMeta.ikasanComponentFactoryMethod??>
+        <#if nonFluentLog>
+            org.ikasan.builder.component.endpoint.LogProducerBuilder logBuilder = builderFactory.getComponentBuilder().logProducer();
+        <#elseif flowElement.componentMeta.ikasanComponentFactoryMethod??>
             return builderFactory.getComponentBuilder().${flowElement.componentMeta.ikasanComponentFactoryMethod}()
         <#else>
             return builderFactory.getComponentBuilder().${StudioBuildUtils.toJavaIdentifier(flowElement.componentMeta.name)}()
@@ -106,6 +110,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
 
     <#list flowElement.getStandardComponentProperties() as propKey, propValue>
         <#if !propValue.valueNotSet() && propValue.meta.isSetterProperty() >
+            <#if nonFluentLog>logBuilder</#if>
             <#if propValue.meta.getSetterMethod()?? && propValue.meta.getSetterMethod()!= "">
                 <#assign setter="${propValue.meta.getSetterMethod()}">
             <#else>
@@ -126,6 +131,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
                     </#if>
                 </#if>
             </#if>
+            <#if nonFluentLog>;</#if>
         </#if>
     </#list>
     <#if trustedPackages?has_content && !(flowElement.getPropertyValue("connectionFactory")!"")?has_content>
@@ -150,7 +156,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#elseif flowElement.componentMeta.generatesUserImplementedClass>
         return ${flowElement.getJavaVariableName()};
     <#else>
-        .build();
+        <#if nonFluentLog>return logBuilder</#if>.build();
     </#if>
     }
 </#list>
