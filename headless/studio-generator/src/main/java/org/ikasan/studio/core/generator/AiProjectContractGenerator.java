@@ -401,6 +401,35 @@ public final class AiProjectContractGenerator {
 
                 ## Efficient implementation and verification
 
+                For a small demonstration, keep the analyst's brief focused on behaviour; use this contract
+                for implementation discipline. Before proposing changes, confirm Studio has generated
+                IKASAN_STUDIO.md, component-catalogue.json and the saved model. If these are missing or Studio
+                reports not ready, ask the developer to finish module configuration/generation and wait for it
+                to complete. Do not invent a contract or repeatedly submit proposals against an unready project.
+
+                Read the catalogue selectively. First inspect its version, proposal operations and supported
+                keys, then extract only the selected components, relevant properties and recipeConfigurations
+                using a JSON query/script. Avoid dumping the entire catalogue or repeatedly fetching unchanged
+                content. MCP catalogue responses may be complete; filter locally before studying their details.
+                Broaden inspection only when the brief, a dependency or an error requires it. For small examples,
+                verify the completed paths together in one bounded application run where practical; rerun only
+                the relevant checks after changes. Do not replace actual component/delivery tests with helper tests.
+
+                Check version-specific behaviour before adding optional customisation:
+                - Ikasan 3.3.9 Logging Producer: configuring replacementText and regExpPattern through builder
+                  setters may leave the compiled pattern uninitialised. LogProducer compiles the regex inside
+                  setConfiguration(), while the builder's regex setter mutates getConfiguration() directly.
+                  Do not rely on replacement labels without observing actual output. Prefer plain payload
+                  logging with meaningful payload toString(), or a scoped user implementation using SLF4J when
+                  labels are required. Do not rewrite generated factories or add custom code solely for decoration.
+                - Ikasan 3.3.9 context-close verification has exposed waiting JMS listener workers and an
+                  event-consumer executor after Spring context closure. Treat this as a documented investigation
+                  lead, not a blanket exemption or a proven diagnosis for a different application/version.
+                  Distinguish context.close() checks from normal process shutdown; verify the shutdown path
+                  actually used. If reproduced, preserve evidence, record shutdown as failed separately from
+                  delivery, and avoid repeatedly investigating the same unchanged symptom. A forced exit is
+                  not a successful graceful shutdown. Keep real application failures visible.
+
                 Before constructing several related flows, read LOCAL_TEST_ENVIRONMENT.md once for this task
                 and check the supplied services needed by the brief. Identify unavailable services early; do
                 not repeatedly try the same unavailable endpoint. Keep working on independent requirements.
@@ -523,6 +552,19 @@ public final class AiProjectContractGenerator {
                 End with a compact per-path record: implemented behaviour, tests run, startup/delivery evidence,
                 external prerequisites and remaining blockers. Include unsupported catalogue types separately;
                 full coverage of proposal-supported types is not full catalogue coverage.
+
+                ## Implementation readiness is not runtime proof
+
+                Read implementationReadiness in studio_snapshot, or generated/implementation-readiness.json
+                after generation. Studio's module menu offers Check Implementation Readiness to refresh saved-source
+                findings and open affected files. Reports inspect primary user implementation files only; save
+                edits before refreshing. Reports can become stale after edits and do not cover helper/provider beans.
+                Resolve missing source and known throwing stubs. Review generated TODO warnings against actual
+                method bodies; a leftover comment alone is not proof of missing logic. Do not merely remove markers
+                to clear the report. No findings, applied status, compilation and running flow state are not proof
+                of working behaviour. Exercise the actual component methods with representative input and verify
+                delivery through every requested route, including error/exclusion paths. Tests of helpers alone
+                do not establish that the flow invokes them. Report untested paths as unverified, not complete.
 
                 ## Live Studio workflow
 

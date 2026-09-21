@@ -160,3 +160,22 @@ Explicit numeric zero is a supplied value, not an unset field. Filename regular-
 are preserved. Logging formatting uses separate builder calls for both bundled framework versions.
 These fixes remove the need to change zero to one, weaken filename matching, or replace logging
 producers with listeners merely to avoid those generation defects.
+
+## Efficient small demonstrations
+
+The generated AI contract asks agents to check that Studio has finished initial configuration
+and generated the model/catalogue before submitting proposals. Agents should inspect the selected
+component entries and relevant properties/recipes instead of dumping the entire catalogue, and
+verify small demonstrations together where practical without weakening per-path delivery checks.
+
+The V3.3.9 Logging Producer catalogue documents a replacement-pattern initialization limitation:
+`LogProducerBuilderImpl.setRegExpPattern()` mutates the configuration, while `LogProducer` compiles
+its pattern in `setConfiguration()`. Custom labels must be checked against actual output; plain
+payload logging is sufficient when labels are not required. This note is not applied to other
+versions without checking their implementation.
+
+The contract also records the observed Ikasan 3.3.9 context-close worker-retention issue as an
+investigation lead. Agents must distinguish application delivery from shutdown verification and
+context closure from the actual normal process-stop path. They should preserve reproducible
+shutdown failures without repeatedly investigating an unchanged symptom, or treating a forced
+exit as successful graceful shutdown. Framework observations do not excuse application failures.

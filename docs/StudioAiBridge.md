@@ -292,3 +292,27 @@ workflow through their regenerated IKASAN_STUDIO.md; add the receipt instruction
 AGENTS.md if necessary. A missing result is not success: use Review Latest AI Proposal or copy
 the dialog feedback. Result write failures are recorded in the IDE log. Receipts contain error
 messages and should be treated as project diagnostics rather than published automatically.
+
+## Implementation readiness
+
+Right-click the module and choose **Check Implementation Readiness...**. The advisory dialog
+lists affected flows/components, finding codes and source locations; select a finding to open
+its source. Save edits and use **Check again** to refresh. No user source is modified.
+
+The first check covers primary user implementation files referenced by the model. It reports
+missing source, the known generated converter exception (`Conversion has not been implemented`),
+and selected generated implementation TODO markers. TODO findings require human/agent review:
+comments can remain after implementation. An intentional UnsupportedOperationException with
+another message is not automatically treated as an unfinished generated converter.
+
+After successful generation Studio asynchronously publishes `generated/implementation-readiness.json`.
+`studio_snapshot` includes fresh `implementationReadiness` findings against the live model and saved
+source. Applied file-proposal receipts also include a fresh report. Inspect `checkedAt`; regenerate
+or run the menu check after changing source. Unsaved edits, helper/provider beans, arbitrary no-op
+implementations and runtime behaviour are outside this initial check. An empty report is not a
+success certificate: `runtimeVerified` remains false. No compiler, tests or application are launched.
+
+Before reporting a task complete, the AI must exercise actual component implementations and
+verify delivery along each requested route, including exclusion/error behaviour. Compilation,
+Spring registration, helper-only tests and a Running flow state are insufficient. Keep missing
+implementations and unverified paths visible; do not remove TODO markers merely to clear findings.

@@ -151,6 +151,9 @@ public class DesignCanvasContextMenu {
             addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
         }
         if (ikasanBasicElement instanceof Module module) {
+            JMenuItem readiness = new JMenuItem(StudioBundle.message("readiness.action"));
+            readiness.addActionListener(e -> org.ikasan.studio.intellij.ai.StudioImplementationReadiness.check(project, true));
+            menu.add(readiness);
             JMenuItem fileHistory = new JMenuItem(StudioBundle.message("fileHistory.action"));
             fileHistory.addActionListener(e -> FileDuplicateHistoryDialog.open(project));
             menu.add(fileHistory);

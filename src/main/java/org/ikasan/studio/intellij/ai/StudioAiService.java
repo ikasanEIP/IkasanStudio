@@ -161,6 +161,8 @@ public final class StudioAiService implements Disposable {
         if (!arguments.isObject()) throw new IllegalArgumentException("Tool arguments must be an object");
         return switch (name) {
             case "studio_snapshot" -> {
+                String projectPath = project.getBasePath();
+                if (projectPath == null) throw new IllegalStateException(StudioBundle.message("ai.NotReady"));
                 Snapshot snapshot = onEdt(this::capture);
                 String revision = UUID.randomUUID().toString();
                 synchronized (this) {
@@ -170,6 +172,7 @@ public final class StudioAiService implements Disposable {
                 JsonNode model = JSON.valueToTree(snapshot.model());
                 redact(model);
                 yield Map.of("revision", revision, "model", model, "project", project.getName(),
+                        "implementationReadiness", org.ikasan.studio.core.ai.ImplementationReadiness.scan(Path.of(projectPath), model),
                         "note", "Live model snapshot. Known credential fields are redacted; other model content is shared with your connected AI. Supported edits include linear and branched routes, routers and flow-wide exception rules. Read studio_catalogue for operations and action metadata.");
             }
             case "studio_catalogue" -> {
@@ -267,7 +270,7 @@ public final class StudioAiService implements Disposable {
     boolean tryAutoImport(String json, Path source) throws Exception { return importFileProposal(json, source, true); }
 
     private boolean importFileProposal(String json, Path source, boolean autoOnly) throws Exception {
-        var feedback = new StudioAiProposalFeedback(source, json);
+        var feedback = new StudioAiProposalFeedback(source, json, project.getBasePath() == null ? null : Path.of(project.getBasePath()));
         try { return importProposal(json, autoOnly, feedback); }
         catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) { throw cancelled; }
         catch (Exception failure) {

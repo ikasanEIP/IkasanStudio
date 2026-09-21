@@ -13,8 +13,11 @@ import java.util.concurrent.CompletableFuture;
 final class StudioAiProposalFeedback {
     private final Path source;
     private final String hash;
+    private final Path projectRoot;
     private CompletableFuture<Void> writes = CompletableFuture.completedFuture(null);
-    StudioAiProposalFeedback(Path source, String json) {
+    StudioAiProposalFeedback(Path source, String json) { this(source, json, null); }
+    StudioAiProposalFeedback(Path source, String json, Path projectRoot) {
+        this.projectRoot = projectRoot;
         this.source = source.toAbsolutePath().normalize();
         this.hash = sha256(json.getBytes(StandardCharsets.UTF_8));
     }
@@ -44,8 +47,14 @@ final class StudioAiProposalFeedback {
         data.put("status", status);
         data.put("updatedAt", java.time.Instant.now().toString());
         data.put("message", message == null ? "" : message);
+        data.put("implementationReadinessReport", "generated/implementation-readiness.json");
+        data.put("runtimeVerified", false);
+        if ("applied".equals(status) && projectRoot != null) {
+            try { data.put("implementationReadiness", org.ikasan.studio.core.ai.ImplementationReadiness.scanProject(projectRoot)); }
+            catch (Exception failure) { data.put("implementationReadinessError", "Could not inspect saved source. Run Check Implementation Readiness in Studio."); }
+        }
         data.put("nextStep", switch (status) {
-            case "applied" -> "Read the updated model and generated files, then compile and test. Do not replay this proposal.";
+            case "applied" -> "Read the updated model, generated files and generated/implementation-readiness.json. Resolve or explain findings, exercise actual component implementations and verify delivery through each requested path. Then compile and test. Applied does not mean implemented or runtime-verified. Do not replay this proposal.";
             case "awaiting_review" -> "Ask the developer to review in Studio; do not submit replacement proposals while review is pending.";
             case "generating" -> "Wait for a terminal result before compiling or submitting another proposal.";
             case "generation_failed" -> "The model may have changed. Read current model and generation diagnostics; do not blindly replay.";

@@ -202,6 +202,7 @@ public class GeneratedProjectSynchronizer {
                     StudioBundle.message("action.GenerateSourceFromFlowDiagram"),
                     "Undo group ID");
                 completion.complete(null);
+                org.ikasan.studio.intellij.ai.StudioImplementationReadiness.check(project, false);
                 } catch (Exception failure) {
                     completion.completeExceptionally(failure);
                 }

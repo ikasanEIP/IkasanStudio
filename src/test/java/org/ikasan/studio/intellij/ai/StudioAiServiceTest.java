@@ -114,6 +114,11 @@ class StudioAiServiceTest {
             assertThat(JSON.readTree(replies.get(1)).path("result").path("tools")).hasSize(4);
 
             assertThat(service.getLastAccessTransport()).isNull();
+            when(project.getBasePath()).thenReturn(null);
+            assertThatThrownBy(() -> service.call("studio_snapshot", JSON.createObjectNode()))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage(org.ikasan.studio.ui.StudioBundle.message("ai.NotReady"));
+            when(project.getBasePath()).thenReturn(directory.resolve("project").toString());
             StudioAiService.nativeCall(project, "studio_snapshot", "{}");
             assertThat(service.getLastAccessTransport()).isEqualTo("native");
             var snapshot = (Map<?, ?>) service.call("studio_snapshot", JSON.createObjectNode());
