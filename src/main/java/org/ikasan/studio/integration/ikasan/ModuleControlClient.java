@@ -121,8 +121,7 @@ public final class ModuleControlClient {
      */
     public static ErrorDetails fetchLatestErrorDetails(Module module, String flowName) {
         try {
-            String query = "pageNumber=0&pageSize=1&orderBy=timestamp&orderAscending=false&flow=" + flowName;
-            HttpResponse<String> response = get(module, "/rest/error/", query);
+            HttpResponse<String> response = get(module, "/rest/error/", latestErrorQuery(flowName));
             if (response.statusCode() != 200) {
                 return null;
             }
@@ -265,12 +264,31 @@ public final class ModuleControlClient {
         @Override public void onComplete() { if (!failed) delegate.onComplete(); }
     }
 
-    private static HttpResponse<String> get(Module module, String path, String query) throws Exception {
+    /**
+     * The flow name is a query value, so it must be percent-encoded: the multi-argument URI constructor leaves
+     * {@code & + = ;} alone because they are legal in a query, which split "Orders & Invoices" into two parameters and
+     * turned the plus signs of "C++ Import" into spaces.
+     */
+    static String latestErrorQuery(String flowName) {
+        return "pageNumber=0&pageSize=1&orderBy=timestamp&orderAscending=false&flow="
+                + java.net.URLEncoder.encode(flowName, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * @param rawQuery an already percent-encoded query, or null. It is appended after the path has been encoded
+     *                 by the multi-argument constructor, so the constructor never re-encodes (or fails to encode) it.
+     */
+    static URI endpointUri(Module module, String path, String rawQuery) throws Exception {
         String port = module.getPort() != null ? module.getPort() : "8080";
         // See StudioInjectClient's own comment - server.servlet.context-path is derived from the module's
         // identity the same way there, and must be reproduced identically here to reach the same running app.
         String contextPath = "/" + StudioBuildUtils.toUrlString(module.getIdentity());
-        URI uri = new URI("http", null, "localhost", Integer.parseInt(port), contextPath + path, query, null);
+        URI base = new URI("http", null, "localhost", Integer.parseInt(port), contextPath + path, null, null);
+        return rawQuery == null ? base : URI.create(base.toASCIIString() + "?" + rawQuery);
+    }
+
+    private static HttpResponse<String> get(Module module, String path, String query) throws Exception {
+        URI uri = endpointUri(module, path, query);
 
         String credentials = Base64.getEncoder().encodeToString(DEFAULT_CREDENTIALS.getBytes(StandardCharsets.UTF_8));
         HttpRequest request = HttpRequest.newBuilder()
