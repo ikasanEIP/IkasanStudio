@@ -123,4 +123,47 @@ class ModuleControlClientTest {
 
         assertThat(body).isEqualTo("{\"moduleName\":\"untitled104\",\"flowName\":\"f4\",\"action\":\"start\"}");
     }
+
+    private static org.ikasan.studio.core.model.ikasan.instance.Module moduleNamed(String name) throws Exception {
+        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(
+                org.ikasan.studio.core.TestFixtures.BASE_META_PACK, new java.util.ArrayList<>());
+        module.setName(name);
+        module.setPort("8391");
+        return module;
+    }
+
+    /**
+     * The flow name in the error lookup is a query value. The multi-argument URI constructor leaves & + = ; unencoded
+     * because they are legal in a query, so "Orders & Invoices" split into flow=Orders plus a stray parameter and
+     * "C++ Import" arrived with its plus signs read as spaces. The lookup is best-effort, so the failure was silent:
+     * the flow showed as in error but without its error detail.
+     */
+    @Test
+    void flowNamesAreEncodedAsQueryValuesInTheErrorLookup() throws Exception {
+        var module = moduleNamed("My Module");
+        String prefix = "http://localhost:8391/my-module/rest/error/?pageNumber=0&pageSize=1&orderBy=timestamp&orderAscending=false&flow=";
+        String[][] cases = {
+                {"Orders & Invoices", "Orders+%26+Invoices"},
+                {"C++ Import", "C%2B%2B+Import"},
+                {"a=b;c", "a%3Db%3Bc"},
+                {"100% Flow", "100%25+Flow"},
+                {"Caf\u00e9 Orders", "Caf%C3%A9+Orders"},
+                {"plain", "plain"}};
+        for (String[] c : cases) {
+            var uri = ModuleControlClient.endpointUri(module, "/rest/error/", ModuleControlClient.latestErrorQuery(c[0]));
+            assertThat(uri.toASCIIString()).as(c[0]).isEqualTo(prefix + c[1]);
+            // Whatever the name, the value must decode back to exactly the flow name and stay a single parameter.
+            String value = java.util.Arrays.stream(uri.getRawQuery().split("&"))
+                    .filter(p -> p.startsWith("flow=")).map(p -> p.substring(5)).findFirst().orElseThrow();
+            assertThat(java.net.URLDecoder.decode(value, java.nio.charset.StandardCharsets.UTF_8)).isEqualTo(c[0]);
+            assertThat(uri.getRawQuery().split("&")).hasSize(5);
+        }
+    }
+
+    @Test
+    void thePathPartOfModuleUrlsIsStillEncodedByTheUriConstructor() throws Exception {
+        var module = moduleNamed("A to B convert");
+        assertThat(ModuleControlClient.endpointUri(module, "/rest/moduleControl/" + module.getIdentity(), null).toASCIIString())
+                .isEqualTo("http://localhost:8391/a-to-b-convert/rest/moduleControl/A%20to%20B%20convert");
+    }
 }
