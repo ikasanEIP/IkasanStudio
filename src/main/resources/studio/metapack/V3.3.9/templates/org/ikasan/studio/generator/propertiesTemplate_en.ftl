@@ -35,11 +35,13 @@ datasource.password=sa
 datasource.driver-class-name=org.h2.Driver
 datasource.xadriver-class-name=org.h2.jdbcx.JdbcDataSource
 
+<#-- Ikasan parses this URL as a URI: keep the plain ${module.name} placeholder for any name that already works, and only inline a sanitised folder when the name would break it. -->
+<#assign dbFolder = StudioBuildUtils.toDatabaseFolderName(module.getIdentity())>
 # Use this version when running H2 separately (normal for production)
 <#if module.getPropertyValue('useEmbeddedH2')?? && module.getPropertyValue('useEmbeddedH2')!false==true>
-#datasource.url=jdbc:h2:tcp://localhost:${r"${h2.db.port}"}/~/${r"${module.name}"}-db/esb;DB_CLOSE_DELAY=-1
+#datasource.url=jdbc:h2:tcp://localhost:${r"${h2.db.port}"}/~/<#if dbFolder == module.getIdentity()>${r"${module.name}"}<#else>${StudioBuildUtils.escapeSpringPropertiesValue(dbFolder)}</#if>-db/esb;DB_CLOSE_DELAY=-1
 <#else>
-datasource.url=jdbc:h2:tcp://localhost:${r"${h2.db.port}"}/~/${r"${module.name}"}-db/esb;DB_CLOSE_DELAY=-1
+datasource.url=jdbc:h2:tcp://localhost:${r"${h2.db.port}"}/~/<#if dbFolder == module.getIdentity()>${r"${module.name}"}<#else>${StudioBuildUtils.escapeSpringPropertiesValue(dbFolder)}</#if>-db/esb;DB_CLOSE_DELAY=-1
 </#if>
 # Use this version if you don't want to start H2 separately
 <#if module.getPropertyValue('useEmbeddedH2')?? && module.getPropertyValue('useEmbeddedH2')!false==true>

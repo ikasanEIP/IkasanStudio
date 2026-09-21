@@ -75,6 +75,15 @@ public class StudioBuildUtils {
     }
 
     /**
+     * The module name as a database folder in the datasource URL. Ikasan's H2 backup service parses that URL as a URI, so
+     * a space (or any character that is illegal in a URI path, or that starts H2 settings) stopped the application
+     * starting. Only those characters are replaced, so a name that already works keeps exactly the same folder.
+     */
+    public static String toDatabaseFolderName(final String input) {
+        return input == null ? "" : input.replaceAll("[\\s\"<>\\\\^`{|}\\[\\]#%?;\\p{Cntrl}]+", "_");
+    }
+
+    /**
      * Used by FTL, don't assume unused.
      * Like camel case but starts with upper case letter
      * @param input to be changed

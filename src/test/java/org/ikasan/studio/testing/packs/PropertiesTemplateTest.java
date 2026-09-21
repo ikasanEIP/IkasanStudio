@@ -149,6 +149,27 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     }
 
     /**
+     * With embedded H2 switched off the datasource is a TCP URL containing the module name. Ikasan's H2 backup service
+     * parses it as a URI, so a space made the generated application fail to start ("Illegal character in path").
+     * Confirmed by running a generated application against a real H2 TCP server.
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void tcpDatasourceUrlHasNoCharactersThatBreakTheUri(String metaPackVersion)
+            throws StudioBuildException, StudioGeneratorException {
+        // A name that already works keeps the plain ${module.name} placeholder, so its generated file is unchanged.
+        for (String[] c : new String[][]{{"A to B convert", "A_to_B_convert"}, {"MyModule", "${module.name}"}, {"Caf\u00e9 Orders", "Caf\\u00e9_Orders"}}) {
+            Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+            module.setName(c[0]);
+            module.setPropertyValue("useEmbeddedH2", false);
+
+            String generated = generatePropertiesTemplateString(metaPackVersion, module, List.of());
+
+            assertTrue(generated.contains("\ndatasource.url=jdbc:h2:tcp://localhost:${h2.db.port}/~/" + c[1] + "-db/esb;DB_CLOSE_DELAY=-1"), c[0] + "\n" + generated);
+        }
+    }
+
+    /**
      * See also application_emptyFlow.properties
      * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
      */
