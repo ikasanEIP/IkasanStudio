@@ -287,6 +287,26 @@ public class ModelProposalTest {
                 .hasMessageNotContaining("nope");
     }
 
+    /** An AI is likely to write a sentence or a Unix cron; Quartz rejects both and the flow then cannot start. */
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void aCronExpressionQuartzWouldRejectIsExplainedToTheAi(String version) throws Exception {
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        var snapshot = LiveModelSnapshot.capture(live);
+        for (String bad : new String[]{"every 5 minutes", "*/5 * * * *"}) {
+            assertThatThrownBy(() -> ModelProposal.prepare(snapshot, JSON.readTree(
+                    "[{\"type\":\"addFlow\",\"flow\":\"T\"},{\"type\":\"addComponent\",\"flow\":\"T\",\"key\":\"Scheduled Consumer\","
+                            + "\"name\":\"Tick\",\"properties\":{\"cronExpression\":\"" + bad + "\"}}]")))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("cronExpression")
+                    .hasMessageContaining("Quartz cron expression")
+                    .hasMessageContaining("0 0/5 * * * ?");
+        }
+        // A valid expression is accepted.
+        ModelProposal.prepare(snapshot, JSON.readTree(
+                "[{\"type\":\"addFlow\",\"flow\":\"T\"},{\"type\":\"addComponent\",\"flow\":\"T\",\"key\":\"Scheduled Consumer\","
+                        + "\"name\":\"Tick\",\"properties\":{\"cronExpression\":\"0 0/5 * * * ?\"}}]"));
+    }
+
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void buildsFlowIncrementallyAcrossSeparateReviews(String version) throws Exception {
         Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
