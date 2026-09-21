@@ -228,4 +228,22 @@ public class StudioBuildUtilsTest {
         assertThat(StudioBuildUtils.toUrlString(""), is(""));
         assertThat(StudioBuildUtils.toUrlString(null), org.hamcrest.CoreMatchers.nullValue());
     }
+
+    /**
+     * The context path is registered by Tomcat as a JMX object name, where a quote, comma, equals, colon, asterisk or
+     * question mark is illegal: a module named with one generated an application that failed to start
+     * (MalformedObjectNameException). Other characters below break the URLs Studio builds to reach the module.
+     * Characters that are valid in both places are kept, so paths that work today do not change.
+     */
+    @Test
+    public void testToUrlString_replacesCharactersThatBreakStartupOrTheModuleUrl() {
+        assertThat(StudioBuildUtils.toUrlString("Payments: EU, phase=2"), is("payments-eu-phase-2"));
+        assertThat(StudioBuildUtils.toUrlString("Orders #2"), is("orders-2"));
+        assertThat(StudioBuildUtils.toUrlString("100% what?"), is("100-what-"));
+        assertThat(StudioBuildUtils.toUrlString("Caf\u00e9 \"Orders\" \\ \u65e5\u672c"), is("cafe-orders-"));
+        assertThat(StudioBuildUtils.toUrlString("a<b>|c"), is("a-b-c"));
+        // Valid in a URL path and in a JMX name, so unchanged.
+        assertThat(StudioBuildUtils.toUrlString("R&D (EU) Team's +1 @home"), is("r&d-(eu)-team's-+1-@home"));
+        assertThat(StudioBuildUtils.toUrlString("My Module - One"), is("my-module-one"));
+    }
 }
