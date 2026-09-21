@@ -245,6 +245,24 @@ public class ModelProposalTest {
                 .hasMessageContaining("Names must start with a letter");
     }
 
+    /** The AI reads this message to correct itself, so "Meta cant be null" (no key, no suggestion) is not enough. */
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void anUnknownComponentKeyNamesTheKeyAndHowToFixIt(String version) throws Exception {
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        var snapshot = LiveModelSnapshot.capture(live);
+        String add = "[{\"type\":\"addFlow\",\"flow\":\"T\"},{\"type\":\"addComponent\",\"flow\":\"T\",\"key\":\"%s\",\"name\":\"X\"}]";
+
+        assertThatThrownBy(() -> ModelProposal.prepare(snapshot, JSON.readTree(String.format(add, "ftp consumer"))))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unknown component key 'ftp consumer'")
+                .hasMessageContaining("Did you mean 'FTP Consumer'");
+        assertThatThrownBy(() -> ModelProposal.prepare(snapshot, JSON.readTree(String.format(add, "No Such Thing"))))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unknown component key 'No Such Thing'")
+                .hasMessageContaining("FTP Consumer")
+                .hasMessageContaining("Dev Null Producer");
+    }
+
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void buildsFlowIncrementallyAcrossSeparateReviews(String version) throws Exception {
         Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());

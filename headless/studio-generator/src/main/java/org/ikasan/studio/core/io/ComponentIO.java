@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildRuntimeException;
+import org.ikasan.studio.core.generator.Generator;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.metapack.model.ComponentTypeMeta;
 import org.ikasan.studio.core.metapack.model.IkasanMeta;
@@ -94,6 +96,12 @@ public class ComponentIO {
             throw new StudioBuildException("The serialised data in [" + source + "] could not be read due to " + e.getMessage() + " trace: " + Arrays.toString(e.getStackTrace()));
         } catch (StudioBuildRuntimeException e) {
             throw new StudioBuildException("The serialised data in [" + source + "] is not safe to load: " + e.getMessage(), e);
+        } catch (RuntimeException e) {
+            // A structure the deserializer did not expect (for example a missing component name or a number where
+            // text is required) escapes as a raw NullPointerException/ClassCastException. Callers only run their safe
+            // recovery (preserve the file, disable saves, tell the user) for a StudioBuildException.
+            throw new StudioBuildException("The serialised data in [" + source + "] is damaged or has an unexpected structure and could not be read ("
+                    + e.getClass().getSimpleName() + "). Correct the file and reload; nothing has been changed.", e);
         }
         return moduleInstance;
     }
@@ -136,6 +144,59 @@ public class ComponentIO {
             throw new StudioRuntimeException("The generated JSON failed validation. The existing model.json has not been changed.", e);
         }
     }
+    /**
+     * The deserializer tolerates and drops anything it does not recognise, so a container of the wrong JSON type (for
+     * example flows: "x") used to load as an empty design and the next save overwrote the file with the truncated
+     * result. Reject those instead. Absent, null and empty values are still accepted: they are what the deserializer
+     * has always read as "nothing here".
+     */
+    private static void requireWellShapedContainers(JsonNode root, String source) throws StudioBuildException {
+        requireType(root, Generator.FLOWS_TAG, "an array", JsonNode::isArray, "", source);
+        JsonNode flows = root.get(Generator.FLOWS_TAG);
+        if (flows == null || !flows.isArray()) return;
+        for (int flowIndex = 0; flowIndex < flows.size(); flowIndex++) {
+            JsonNode flow = flows.get(flowIndex);
+            String flowPath = "/" + Generator.FLOWS_TAG + "/" + flowIndex;
+            if (flow.isNull()) continue;
+            if (!flow.isObject()) throw shapeError(flowPath, "an object", source);
+            requireType(flow, Flow.CONSUMER_JSON_TAG, "an object", JsonNode::isObject, flowPath, source);
+            requireType(flow, Flow.EXCEPTION_RESOLVER_JSON_TAG, "an object", JsonNode::isObject, flowPath, source);
+            JsonNode resolver = flow.get(Flow.EXCEPTION_RESOLVER_JSON_TAG);
+            if (resolver != null && resolver.isObject()) {
+                // Each entry maps a caught exception to its resolution. One that is not a populated object loads but can
+                // never be saved again, which would leave the user unable to save anything.
+                for (java.util.Map.Entry<String, JsonNode> entry : resolver.properties()) {
+                    if (!entry.getValue().isObject() || entry.getValue().isEmpty()) {
+                        throw shapeError(flowPath + "/" + Flow.EXCEPTION_RESOLVER_JSON_TAG + "/" + entry.getKey(),
+                                "a populated object", source);
+                    }
+                }
+            }
+            for (String arrayTag : new String[]{Flow.FLOW_ELEMENTS_JSON_TAG, Flow.TRANSITIONS_JSON_TAG}) {
+                requireType(flow, arrayTag, "an array", JsonNode::isArray, flowPath, source);
+                JsonNode items = flow.get(arrayTag);
+                if (items == null || !items.isArray()) continue;
+                for (int i = 0; i < items.size(); i++) {
+                    if (!items.get(i).isObject()) throw shapeError(flowPath + "/" + arrayTag + "/" + i, "an object", source);
+                }
+            }
+        }
+    }
+
+    private static void requireType(JsonNode parent, String field, String expected,
+                                    java.util.function.Predicate<JsonNode> isExpected, String parentPath,
+                                    String source) throws StudioBuildException {
+        JsonNode value = parent.get(field);
+        if (value != null && !value.isNull() && !isExpected.test(value)) {
+            throw shapeError(parentPath + "/" + field, expected, source);
+        }
+    }
+
+    private static StudioBuildException shapeError(String path, String expected, String source) {
+        return new StudioBuildException("The serialised data in [" + source + "] is damaged: " + path + " must be "
+                + expected + ". Correct the file and reload; nothing has been changed.");
+    }
+
     /** Validates JSON shape and the minimum identity required for a configured Studio module. */
     public static Module validatePersistedModuleJson(String json, String source, boolean allowEmptyBootstrap)
             throws StudioBuildException {
@@ -157,6 +218,7 @@ public class ComponentIO {
             }
             throw new StudioBuildException("The serialised data in [" + source + "] is an empty bootstrap model, not a configured module");
         }
+        requireWellShapedContainers(root, source);
         Module module = deserializeModuleInstanceString(json, source);
         if (!module.isInitialised()) {
             // ModuleDeserializer itself already substitutes a dumb module whenever the persisted JSON has no

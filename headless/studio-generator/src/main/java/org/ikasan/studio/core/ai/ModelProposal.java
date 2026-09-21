@@ -81,7 +81,7 @@ public final class ModelProposal {
                     case "replaceComponent" -> {
                         fields(op, "type", "flow", "component", "key", "name", "properties");
                         FlowElement previous = findElement(flow, text(op, "component"));
-                        var replacementMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(draft.getVersion(), text(op, "key"));
+                        var replacementMeta = componentMeta(draft, text(op, "key"));
                         if (previous.getComponentMeta().isConsumer() != replacementMeta.isConsumer())
                             fail("Replace a consumer with another consumer; replace body components with body components.");
                         FlowRoute route = previous.getContainingFlowRoute();
@@ -205,6 +205,20 @@ public final class ModelProposal {
                 Collections.unmodifiableSet(originalFlows), deletesContent);
     }
 
+    /** Resolve a component key, or fail with a message the AI can act on (the raw library error names nothing). */
+    private static org.ikasan.studio.core.metapack.model.ComponentMeta componentMeta(Module draft, String key) throws Exception {
+        var meta = ComponentLibrary.getIkasanComponentByKey(draft.getVersion(), key);
+        if (meta != null) return meta;
+        var all = ComponentLibrary.getIkasanComponents(draft.getVersion());
+        String sameIgnoringCase = all.keySet().stream().filter(k -> k.equalsIgnoreCase(key)).findFirst().orElse(null);
+        String valid = all.entrySet().stream()
+                .filter(e -> !(e.getValue().isModule() || e.getValue().isFlow() || e.getValue().isEndpoint() || e.getValue().isExceptionResolver()))
+                .map(Map.Entry::getKey).sorted().collect(java.util.stream.Collectors.joining(", "));
+        throw new IllegalArgumentException("Unknown component key '" + key + "'. Keys are case-sensitive and exact."
+                + (sameIgnoringCase == null ? "" : " Did you mean '" + sameIgnoringCase + "'?")
+                + " Valid keys: " + valid + ". See studio_catalogue for details.");
+    }
+
     private static void removeComponent(Flow flow, FlowElement element) {
         if (flow.getConsumer() == element) flow.setConsumer(null);
         else {
@@ -220,7 +234,7 @@ public final class ModelProposal {
         String name = text(op, "name");
         checkName(name);
         if (elements(flow).stream().anyMatch(e -> sameGeneratedName(e.getIdentity(), name))) fail("Component already exists: " + name);
-        var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(draft.getVersion(), text(op, "key"));
+        var meta = componentMeta(draft, text(op, "key"));
         if (meta.isModule() || meta.isFlow() || meta.isEndpoint() || meta.isExceptionResolver())
             fail("Choose a consumer, processor or router. Use setExceptionResolution for exception policies; endpoints are not standalone components.");
         if (meta.isConsumer() && route != flow.getFlowRoute()) fail("A consumer belongs only in the root route.");
