@@ -32,7 +32,9 @@
       "propertyName": "applicationPackageName",
       "affectsUserImplementedClass": true,
       "helpText": "The java package name for the new module.",
-      "mandatory": true
+      "mandatory": true,
+      "validation": "^(?!(?:.*\\.)?(?:abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|default|do|double|else|enum|extends|final|finally|float|for|goto|if|implements|import|instanceof|int|interface|long|native|new|package|private|protected|public|return|short|static|strictfp|super|switch|synchronized|this|throw|throws|transient|try|void|volatile|while|true|false|null|_)(?:\\..*)?$)[\\p{L}_$][\\p{L}\\p{N}_$]*(?:\\.[\\p{L}_$][\\p{L}\\p{N}_$]*)*$",
+      "validationMessage": "Provide a valid Java package name, e.g. com.mycompany.myapp: dot-separated words made of letters, digits, _ or $, none starting with a digit or being a Java keyword. Hyphens and spaces are not allowed."
     },
     "h2DbPortNumber": {
       "propertyName": "h2DbPortNumber",

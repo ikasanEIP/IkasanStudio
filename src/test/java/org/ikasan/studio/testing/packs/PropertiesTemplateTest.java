@@ -132,6 +132,23 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     }
 
     /**
+     * Tomcat registers the context path as a JMX object name, where a quote, comma, colon, equals, asterisk or
+     * question mark is illegal: a module named with one produced an application that failed to start. Confirmed by
+     * running a generated application: MalformedObjectNameException at context=/cafe-"orders"--.
+     */
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    public void servletContextPathHasNoCharactersThatBreakStartup(String metaPackVersion)
+            throws StudioBuildException, StudioGeneratorException {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
+        module.setName("Payments: \"EU\", phase=2 \\ #1");
+
+        String generated = generatePropertiesTemplateString(metaPackVersion, module, List.of());
+
+        assertTrue(generated.contains("server.servlet.context-path=/payments-eu-phase-2-1"), generated);
+    }
+
+    /**
      * See also application_emptyFlow.properties
      * @throws IOException, StudioGeneratorException, StudioBuildException if the template cant be generated
      */

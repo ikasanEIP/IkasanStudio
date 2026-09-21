@@ -135,7 +135,10 @@ public class StudioBuildUtils {
             String ascii = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD)
                     .replaceAll("\\p{M}+", "")
                     .replaceAll("[^\\x00-\\x7F]", "");
+            // Tomcat registers the context path as a JMX object name (a quote, comma, equals, colon, asterisk or question
+            // mark there fails startup), and the rest of these break the URLs Studio builds. Treat them as separators.
             String path = ascii
+                    .replaceAll("[\"\\\\%?#<>|^`{}\\[\\];,=:*]+", " ")
                     .replaceAll("  +", " ")
                     .replaceAll("[ -]+", "-").toLowerCase(Locale.ROOT);
             return path.isEmpty() ? "module" : path;
