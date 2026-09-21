@@ -110,7 +110,7 @@ public class CreateTestJmsConsumerFlowAction implements ActionListener {
         }
     }
 
-    private static String uniqueFlowName(Module module, String requested) {
+    static String uniqueFlowName(Module module, String requested) {
         String candidate = requested;
         int suffix = 2;
         while (containsFlowNamed(module, candidate)) {
@@ -120,7 +120,8 @@ public class CreateTestJmsConsumerFlowAction implements ActionListener {
     }
 
     private static boolean containsFlowNamed(Module module, String name) {
-        return module.getFlows().stream().anyMatch(flow -> name.equals(flow.getIdentity()));
+        // Compare generated Java names too: "Test a.b" and "Test a b" are different text but the same class.
+        return !org.ikasan.studio.core.persistence.json.FlowClipboard.nameAvailable(module, name);
     }
 
     private static String stringValue(FlowElement element, String propertyName) {

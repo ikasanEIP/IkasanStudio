@@ -246,4 +246,14 @@ public class StudioBuildUtilsTest {
         assertThat(StudioBuildUtils.toUrlString("R&D (EU) Team's +1 @home"), is("r&d-(eu)-team's-+1-@home"));
         assertThat(StudioBuildUtils.toUrlString("My Module - One"), is("my-module-one"));
     }
+
+    /** Names that differ only by spaces or dots generate the same Java class, so they cannot both be used in one scope. */
+    @Test
+    public void testSameGeneratedName() {
+        assertThat(StudioBuildUtils.sameGeneratedName("Test a.b", "Test a b"), is(true));
+        assertThat(StudioBuildUtils.sameGeneratedName("Read Files", "ReadFiles"), is(true));
+        assertThat(StudioBuildUtils.sameGeneratedName("Read Files", "Write Files"), is(false));
+        assertThat(StudioBuildUtils.sameGeneratedName("a", null), is(false));
+        assertThat(StudioBuildUtils.sameGeneratedName(null, null), is(false));
+    }
 }

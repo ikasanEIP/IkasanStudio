@@ -1675,7 +1675,8 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
 
     private boolean isIdentityTakenByAnotherComponent(String candidateIdentity, FlowElement debugComponent, Flow containingFlow) {
         return containingFlow.ftlGetConsumerAndFlowElements().stream()
-                .anyMatch(sibling -> sibling != debugComponent && candidateIdentity.equals(sibling.getIdentity()));
+                .anyMatch(sibling -> sibling != debugComponent
+                        && org.ikasan.studio.core.StudioBuildUtils.sameGeneratedName(candidateIdentity, sibling.getIdentity()));
     }
 
     /**
