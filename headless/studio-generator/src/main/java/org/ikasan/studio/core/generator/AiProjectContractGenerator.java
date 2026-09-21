@@ -868,6 +868,7 @@ public final class AiProjectContractGenerator {
         if (meta.isHiddenProperty()) result.put("hidden", true);
         if (meta.isChoicesEditable()) result.put("choicesEditable", true);
         if (meta.getValidation() != null && !meta.getValidation().isBlank()) result.put("validation", meta.getValidation());
+        if (meta.getValidationMessage() != null && !meta.getValidationMessage().isBlank()) result.put("validationMessage", meta.getValidationMessage());
         if (meta.getMandatoryIfTrue() != null) result.put("mandatoryIfTrue", meta.getMandatoryIfTrue());
         if (meta.getMandatoryUnlessAnyOf() != null) result.put("mandatoryUnlessAnyOf", meta.getMandatoryUnlessAnyOf());
         return result;

@@ -12,6 +12,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @org.junit.jupiter.api.Tag("packs")
 class AiProjectContractGeneratorTest {
+    /** The metadata's human-written hint is what the UI shows a person; an AI needs the same explanation of a rule. */
+    @Test
+    void catalogueExplainsValidationRulesInWords() throws Exception {
+        for (String version : PackExpectations.metaPacksToTest().toList()) {
+            JsonNode catalogue = StudioJson.newObjectMapper().readTree(AiProjectContractGenerator.componentCatalogue(version));
+            JsonNode objectClass = null;
+            for (JsonNode component : catalogue.path("components")) {
+                if (!"Object To XML String Converter".equals(component.path("key").asText())) continue;
+                for (JsonNode property : component.path("properties")) {
+                    if ("objectClass".equals(property.path("name").asText())) objectClass = property;
+                }
+            }
+            assertThat(objectClass).as(version).isNotNull();
+            assertThat(objectClass.path("validation").asText()).isNotBlank();
+            assertThat(objectClass.path("validationMessage").asText()).contains("fully qualified Java class name");
+        }
+    }
+
     @Test
     void catalogueIsDerivedFromEveryShippedMetapack() throws Exception {
         for (String version : PackExpectations.metaPacksToTest().toList()) {

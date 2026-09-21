@@ -313,9 +313,13 @@ public final class ModelProposal {
                 }
             } catch (IllegalArgumentException failure) { throw new IllegalArgumentException("Invalid value for " + key + ": " + failure.getMessage()); }
             if (meta.getChoices() != null && !meta.getChoices().isEmpty() && !meta.isChoicesEditable()
-                    && !meta.getChoices().contains(String.valueOf(converted))) fail("Value is not an allowed choice for " + key);
-            if (meta.getValidationPattern() != null && !meta.getValidationPattern().matcher(String.valueOf(converted)).matches())
-                fail("Value does not match the validation rule for " + key);
+                    && !meta.getChoices().contains(String.valueOf(converted)))
+                fail("Value is not an allowed choice for " + key + ". Allowed: " + String.join(", ", meta.getChoices()));
+            // Say what the rule is, but never echo the rejected value: it may be a credential.
+            if (meta.getValidationPattern() != null && !meta.getValidationPattern().matcher(String.valueOf(converted)).matches()) {
+                String hint = meta.getValidationMessage() == null || meta.getValidationMessage().isBlank() ? "" : ": " + meta.getValidationMessage().strip();
+                fail("Value does not match the validation rule for " + key + hint + " (pattern " + meta.getValidationPattern().pattern() + ")");
+            }
         }
         return converted;
     }
