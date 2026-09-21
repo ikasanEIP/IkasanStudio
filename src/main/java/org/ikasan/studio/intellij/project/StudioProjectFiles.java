@@ -543,15 +543,42 @@ public class StudioProjectFiles {
         });
     }
 
-    /** Seeds developer-owned guidance before module configuration; call from a write-safe UI context. */
-    public static void createStartupGuidanceIfMissing(Project project) {
-        createFileWithDirectoriesIfMissing(project,
-                org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.FILE_NAME,
-                org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.content());
-        createFileWithDirectoriesIfMissing(project, "AGENTS.md",
-                org.ikasan.studio.core.generator.AiProjectContractGenerator.agentsGuide());
-        org.ikasan.studio.core.generator.StudioAiSkillTemplates.files().forEach((path, content) ->
-                createFileWithDirectoriesIfMissing(project, path, content));
+    /** Seed create-only guidance off the EDT, independently of the generated-code transaction. */
+    public static java.util.concurrent.CompletableFuture<Void> createStartupGuidanceIfMissing(Project project) {
+        String basePath = project.getBasePath();
+        if (basePath == null || project.isDisposed()) return java.util.concurrent.CompletableFuture.completedFuture(null);
+        return java.util.concurrent.CompletableFuture.runAsync(() -> {
+            if (project.isDisposed()) return;
+            // Plain developer-owned Markdown needs no PSI formatting. NIO avoids cold VFS traversal
+            // on the EDT; CREATE_NEW also prevents a concurrent editor/agent's file being overwritten.
+            if (ApplicationManager.getApplication().isDispatchThread()) {
+                throw new IllegalStateException("Startup guidance must be written off the EDT");
+            }
+            try {
+                java.util.Map<String, String> files = new java.util.LinkedHashMap<>();
+                files.put(org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.FILE_NAME,
+                        org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.content());
+                files.put("AGENTS.md", org.ikasan.studio.core.generator.AiProjectContractGenerator.agentsGuide());
+                files.putAll(org.ikasan.studio.core.generator.StudioAiSkillTemplates.files());
+                java.nio.file.Path root = java.nio.file.Path.of(basePath);
+                for (var entry : files.entrySet()) {
+                    if (project.isDisposed()) return;
+                    java.nio.file.Path target = root.resolve(entry.getKey());
+                    java.nio.file.Files.createDirectories(target.getParent());
+                    try {
+                        java.nio.file.Files.writeString(target, entry.getValue(), StandardCharsets.UTF_8,
+                                java.nio.file.StandardOpenOption.CREATE_NEW, java.nio.file.StandardOpenOption.WRITE);
+                    } catch (java.nio.file.FileAlreadyExistsException existing) {
+                        // Preserve developer content, including files with unsaved editor changes.
+                    }
+                }
+                if (!project.isDisposed()) com.intellij.openapi.vfs.LocalFileSystem.getInstance()
+                        .refreshIoFiles(java.util.List.of(root.toFile()), true, true, null);
+            } catch (IOException | RuntimeException failure) {
+                LOG.warn("STUDIO: Could not create project AI guidance; generation will retry", failure);
+                throw new java.util.concurrent.CompletionException(failure);
+            }
+        }, com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
     }
 
     /** Creates a project file only when it does not already exist, preserving developer-owned guidance. */

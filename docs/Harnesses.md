@@ -71,3 +71,63 @@ and errors before treating this as a startup failure. Starting the flow again do
 stateful provider automatically; document and test its replay mechanism. For an ongoing visual
 demonstration, a paced Scheduled Consumer may be more appropriate. Do not use an unbounded fast
 loop simply to keep a flow marked Running.
+
+## Inspect locally excluded events
+
+With the module running, right-click the module or a flow in Studio and choose **View Excluded
+Events...**. A flow action pre-fills its name; clear the filter to search all flows. Refresh,
+Previous and Next browse 20 records per page. Optional date filters use
+`yyyy-MM-dd'T'HH:mm:ss` in the module server's timezone.
+
+The read-only viewer queries the module's `/rest/exclusion/` API, not H2 directly or the
+Dashboard. It shows time, flow, event identifier and harvested status for records still retained
+locally. Selecting a row shows its error URI and stored event. Readable UTF-8 is previewed;
+binary/serialized events are shown as Base64 without deserializing application objects.
+Previews are limited to 32,768 characters and responses to 4 MiB. Narrow the search if a response
+is too large. The viewer does not replay, delete or mark events harvested.
+
+Like Studio's existing runtime controls, this uses localhost, the configured module HTTP port
+and generated context path, with the seeded `admin/admin` account. Changed credentials or
+missing `ALL`/`WebServiceAdmin` authority produce an access-denied message; custom credentials
+are not currently configurable in this viewer. Start the module and wait for startup before
+refreshing. Local retention/housekeeping determines what remains visible after harvesting.
+
+## Inspect file duplicate history
+
+Right-click the module and choose **View File Duplicate History...** while it is running.
+Alternatively, right-click an FTP or SFTP consumer to open the same viewer with its configured
+`clientID` already filled in. The filter remains editable: runtime configuration overrides can
+make the running value differ from the Studio model. The module action starts with all clients.
+The read-only viewer uses `/rest/filefilter/search`, available in the supported Ikasan 3/4
+sources, to show retained FTP/SFTP file-transfer filter records. Search by client ID or file
+path/criteria, with `%` for any text and `_` for one character; leave filters blank for all.
+Pagination displays 20 records at a time, with size, last-modified and record-created timestamps.
+Select a row for its ID, last-accessed value and an explanation of duplicate matching.
+
+When duplicate filtering is enabled, the connector checks client ID and size, plus path and
+last-modified time according to its configured matching flags. These are retained filter
+records, not failed-event exclusions, proof of final delivery, or an audit of every skipped scan.
+The API does not provide a flow-name mapping or a live explanation for a particular remote file;
+use the consumer configuration and stored values together. Filename patterns and minimum age
+can also prevent pickup. Local-file consumers may use different acquisition state and are not
+covered by this FTP/SFTP store viewer.
+
+Like the exclusion viewer, this uses the module-local runtime connection and seeded admin
+credentials, and is bounded to a 4 MiB response. It cannot delete records or reset duplicate
+protection. No direct H2 access or Dashboard is required. The framework owns retention and
+paging order, so refresh from the first page if records change while browsing.
+
+## Inspect wiretap captures
+
+Right-click the module, a flow or a component and choose **View Wiretap Events...**.
+Flow and component actions prefill the corresponding filters. Enable wiretap capture using
+Studio's wiretap controls and process events, then click **Refresh**. An empty page can mean
+capture was not enabled, filters do not match, or records have expired/been removed.
+
+The read-only viewer uses the module-local `/rest/wiretap/` API supported by Ikasan 3/4.
+It displays the newest captures first, 20 per page, with flow, component, event ID and harvested
+status. Select a row for its record ID, related event ID and stored text payload (up to 32,768
+characters). Payloads are displayed as plain text, never executed or deserialized.
+Optional date filters use the module server's timezone. Existing runtime-viewer credentials,
+timeouts and the 4 MiB response limit apply. The module must be running; Dashboard and direct
+H2 access are not required. The viewer does not create triggers, replay or delete events.

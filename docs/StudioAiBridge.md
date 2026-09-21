@@ -263,3 +263,32 @@ a multi-recipient router sending accepted orders to both `Audit` and `Fulfilment
 invalid-order example that throws `TransformationException` and uses `excludeEvent`. Request tests
 that prove every route receives the intended values, the invalid event is excluded and a subsequent
 valid event is processed. Ask the agent to report any external setup or unsupported work explicitly.
+
+## File proposal results and recovery
+
+For a file imported manually or checked by the inbox watcher, Studio writes an adjacent
+`<proposal-filename>.result.json` (for example `change.studio-proposal.json.result.json`).
+The result is not a proposal and is ignored by the inbox. It contains `formatVersion`,
+`proposalFile`, `proposalSha256`, `updatedAt`, `status`, `message` and `nextStep`.
+Check the proposal hash before using feedback; changing the submitted file invalidates its
+old receipt. Writes run off the EDT and replace the result atomically where supported.
+
+Statuses distinguish `awaiting_review`, `generating`, `applied`, `rejected`,
+`generation_failed`, `cancelled` and `undone`. Applied means model application and generation
+completed, not that compilation or runtime checks passed. A generation failure can leave model
+changes in place: reread the current model and inspect generation diagnostics before retrying.
+Awaiting review can precede validation when Always ask for approval is enabled.
+
+Rejection dialogs offer **Copy feedback for AI**. Operation validation reports the operation
+number and flow, with component/property details where available. Validation still stops at
+its first error; it does not apply a valid subset of a rejected proposal. Generated AGENTS.md
+and IKASAN_STUDIO.md instruct agents to read receipts, refresh their model/hash when correcting
+a proposal, try at most two corrections, and then explain the blocker and manual Studio path.
+Cancellation and undo must not trigger automatic resubmission. An idle chat does not resume
+itself when a receipt changes: the developer may still need to ask the agent to continue.
+
+Existing developer-owned AGENTS.md files are preserved. Existing projects can consult this
+workflow through their regenerated IKASAN_STUDIO.md; add the receipt instruction to an older
+AGENTS.md if necessary. A missing result is not success: use Review Latest AI Proposal or copy
+the dialog feedback. Result write failures are recorded in the IDE log. Receipts contain error
+messages and should be treated as project diagnostics rather than published automatically.

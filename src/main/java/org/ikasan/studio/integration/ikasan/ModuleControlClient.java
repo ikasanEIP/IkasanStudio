@@ -233,6 +233,38 @@ public final class ModuleControlClient {
         return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    // Reuse the runtime client's localhost connection/authentication convention. No redirects.
+    static HttpResponse<String> getRuntimeRecords(URI uri) throws Exception {
+        String credentials = Base64.getEncoder().encodeToString(DEFAULT_CREDENTIALS.getBytes(StandardCharsets.UTF_8));
+        HttpRequest request = HttpRequest.newBuilder(uri).timeout(RESPONSE_TIMEOUT)
+                .header("Authorization", "Basic " + credentials).GET().build();
+        return HTTP_CLIENT.send(request, info -> new BoundedRuntimeRecordsBody());
+    }
+
+    /** Bound memory while reading event payloads; cancellation also releases the HTTP subscription. */
+    private static final class BoundedRuntimeRecordsBody implements HttpResponse.BodySubscriber<String> {
+        private final HttpResponse.BodySubscriber<String> delegate = HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8);
+        private java.util.concurrent.Flow.Subscription subscription;
+        private long bytes;
+        private boolean failed;
+        @Override public java.util.concurrent.CompletionStage<String> getBody() { return delegate.getBody(); }
+        @Override public void onSubscribe(java.util.concurrent.Flow.Subscription subscription) {
+            this.subscription = subscription;
+            delegate.onSubscribe(subscription);
+        }
+        @Override public void onNext(List<java.nio.ByteBuffer> buffers) {
+            if (failed) return;
+            for (var buffer : buffers) bytes += buffer.remaining();
+            if (bytes > 4 * 1024 * 1024) {
+                failed = true;
+                subscription.cancel();
+                delegate.onError(new IOException("Runtime records response exceeds 4 MiB; narrow the search"));
+            } else delegate.onNext(buffers);
+        }
+        @Override public void onError(Throwable error) { if (!failed) delegate.onError(error); }
+        @Override public void onComplete() { if (!failed) delegate.onComplete(); }
+    }
+
     private static HttpResponse<String> get(Module module, String path, String query) throws Exception {
         String port = module.getPort() != null ? module.getPort() : "8080";
         // See StudioInjectClient's own comment - server.servlet.context-path is derived from the module's

@@ -459,6 +459,61 @@ public class ModelProposalTest {
         }
     }
 
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void explicitRecipeTypeMismatchExplainsTheRequiredConfiguration(String version) throws Exception {
+        Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree("""
+                [{"type":"addFlow","flow":"Delivery"},
+                 {"type":"addComponent","flow":"Delivery","key":"Converter","name":"Build Payload",
+                  "properties":{"conversionRecipeId":"string-to-file-transfer-payload","toType":"java.lang.String"}}]
+                """)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Delivery / Build Payload", "fromType=java.lang.String",
+                        "toType=org.ikasan.filetransfer.Payload", "recipeConfigurations");
+        assertThat(empty.getFlows()).isEmpty();
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void genericProducerAcceptsAndGeneratesParameterizedPayloadType(String version) throws Exception {
+        Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        var prepared = ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree("""
+                [{"type":"addFlow","flow":"Map Delivery"},
+                 {"type":"addComponent","flow":"Map Delivery","key":"Generic Producer","name":"Record Processed Line",
+                  "properties":{"fromType":"java.util.Map<java.lang.String,java.lang.String>"}}]
+                """));
+        var module = prepared.draft();
+        var flow = module.getFlows().get(0);
+        var producer = flow.getFlowRoute().getFlowElements().stream()
+                .filter(e -> "Record Processed Line".equals(e.getIdentity())).findFirst().orElseThrow();
+        String generated = org.ikasan.studio.core.generator.FlowsUserImplementedComponentTemplate.create(
+                TestFixtures.DEFAULT_PACKAGE, module, flow, producer);
+        assertThat(generated).contains("Producer<java.util.Map<java.lang.String,java.lang.String>>",
+                "invoke(java.util.Map<java.lang.String,java.lang.String> payload)");
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void newRecipeConvertersInferOnlyOmittedTypes(String version) throws Exception {
+        for (String extra : List.of("", ",\"fromType\":\"java.lang.String\"",
+                ",\"toType\":\"org.ikasan.filetransfer.Payload\"")) {
+            Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+            var prepared = ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree("""
+                    [{"type":"addFlow","flow":"Delivery"},
+                     {"type":"addComponent","flow":"Delivery","key":"Converter","name":"Encode",
+                      "properties":{"conversionRecipeId":"string-to-file-transfer-payload"%s}},
+                     {"type":"addComponent","flow":"Delivery","key":"Converter","name":"Decode",
+                      "properties":{"conversionRecipeId":"file-transfer-payload-to-string"}}]
+                    """.formatted(extra)));
+            var components = prepared.draft().getFlows().get(0).getFlowRoute().getFlowElements();
+            var encode = components.stream().filter(e -> "Encode".equals(e.getIdentity())).findFirst().orElseThrow();
+            var decode = components.stream().filter(e -> "Decode".equals(e.getIdentity())).findFirst().orElseThrow();
+            assertThat(encode.getPropertyValueAsString("fromType")).isEqualTo("java.lang.String");
+            assertThat(encode.getPropertyValueAsString("toType")).isEqualTo("org.ikasan.filetransfer.Payload");
+            assertThat(decode.getPropertyValueAsString("fromType")).isEqualTo("org.ikasan.filetransfer.Payload");
+            assertThat(decode.getPropertyValueAsString("toType")).isEqualTo("java.lang.String");
+            assertThat(empty.getFlows()).isEmpty();
+        }
+    }
+
     public static Module model() throws Exception {
         Module empty = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, List.of());
         return ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree(CREATE)).draft();

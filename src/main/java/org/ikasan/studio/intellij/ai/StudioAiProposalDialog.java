@@ -11,6 +11,8 @@ import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.StudioBundle;
 import javax.swing.*;
 
+// Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
+@SuppressWarnings("SplitModeApiUsage")
 final class StudioAiProposalDialog extends DialogWrapper {
     private final Project project;
     private final StudioAiService service;
@@ -81,7 +83,7 @@ final class StudioAiProposalDialog extends DialogWrapper {
                     com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater(() -> {
                         if (project.isDisposed()) return;
                         String message = StudioBundle.message(failure == null ? (proposal.fileBased ? "ai.FileApplyFinished" : "ai.ApplyFinished") : "ai.ApplyGenerationFailed");
-                        if (!com.intellij.openapi.util.Disposer.isDisposed(getDisposable())) {
+                        if (!isDisposed()) {
                             if (failure == null) {
                                 String[] paragraphs = message.split("\\n\\n", 2);
                                 completion.setText(paragraphs[0]);
@@ -101,6 +103,8 @@ final class StudioAiProposalDialog extends DialogWrapper {
                         }
                     }));
         } catch (RuntimeException failure) {
+            if (proposal.feedback != null) proposal.feedback.publish("rejected", failure.getMessage());
+            StudioAiImportProposalAction.showFailure(project, failure.getMessage());
             status.setVisible(false);
             feedback.setVisible(false);
             setOKActionEnabled(true);

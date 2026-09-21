@@ -79,21 +79,26 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
     }
 
     public void testStartupGuidanceExistsBeforeAnyGenerationAndPreservesCustomisations() throws Exception {
-        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
-        assertNotNull(base);
-        assertFalse(GenerationTransactionManager.isActive());
-        StudioProjectFiles.createStartupGuidanceIfMissing(myProject);
+        assertTrue(com.intellij.openapi.application.ApplicationManager.getApplication().isDispatchThread());
+        java.nio.file.Path root = java.nio.file.Path.of(myProject.getBasePath());
+        // The production worker asserts it is not on the EDT. Waiting here does not need EDT work
+        // because its VFS refresh is asynchronous, so this also catches accidental invokeAndWait.
+        StudioProjectFiles.createStartupGuidanceIfMissing(myProject).get(10, java.util.concurrent.TimeUnit.SECONDS);
         String path = org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.FILE_NAME;
-        assertEquals(org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.content(), read(base, path));
-        assertEquals(org.ikasan.studio.core.generator.AiProjectContractGenerator.agentsGuide(), read(base, "AGENTS.md"));
+        assertEquals(org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.content(),
+                java.nio.file.Files.readString(root.resolve(path)));
+        assertEquals(org.ikasan.studio.core.generator.AiProjectContractGenerator.agentsGuide(),
+                java.nio.file.Files.readString(root.resolve("AGENTS.md")));
         for (var entry : org.ikasan.studio.core.generator.StudioAiSkillTemplates.files().entrySet()) {
-            assertEquals(entry.getValue(), read(base, entry.getKey()));
+            assertEquals(entry.getValue(), java.nio.file.Files.readString(root.resolve(entry.getKey())));
         }
-        StudioProjectFiles.createFileWithDirectories(myProject, path, "My local settings", null);
-        StudioProjectFiles.createFileWithDirectories(myProject, "AGENTS.md", "Team instructions", null);
-        StudioProjectFiles.createStartupGuidanceIfMissing(myProject);
-        assertEquals("My local settings", read(base, path));
-        assertEquals("Team instructions", read(base, "AGENTS.md"));
+        java.nio.file.Files.writeString(root.resolve(path), "My local settings");
+        java.nio.file.Files.writeString(root.resolve("AGENTS.md"), "Team instructions");
+        var first = StudioProjectFiles.createStartupGuidanceIfMissing(myProject);
+        var second = StudioProjectFiles.createStartupGuidanceIfMissing(myProject);
+        java.util.concurrent.CompletableFuture.allOf(first, second).get(10, java.util.concurrent.TimeUnit.SECONDS);
+        assertEquals("My local settings", java.nio.file.Files.readString(root.resolve(path)));
+        assertEquals("Team instructions", java.nio.file.Files.readString(root.resolve("AGENTS.md")));
     }
 
     public void testLocalEnvironmentTemplateIsCreatedOnceAndPreservesDeveloperEdits() throws Exception {

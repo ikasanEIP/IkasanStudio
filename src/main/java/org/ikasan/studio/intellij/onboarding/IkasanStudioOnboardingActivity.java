@@ -62,16 +62,8 @@ public final class IkasanStudioOnboardingActivity implements ProjectActivity {
     }
 
     private void openAfterImport(Project project) {
-        try {
-            // Older archetypes lack these files. Seed them before module configuration, including
-            // when reopening a project, without replacing developer customisations.
-            StudioProjectFiles.createStartupGuidanceIfMissing(project);
-        } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
-            throw cancelled;
-        } catch (RuntimeException failure) {
-            com.intellij.openapi.diagnostic.Logger.getInstance(IkasanStudioOnboardingActivity.class)
-                    .warn("STUDIO: Could not create project AI guidance; generation will retry", failure);
-        }
+        // Background, create-only seeding: opening the editor never waits for filesystem traversal.
+        StudioProjectFiles.createStartupGuidanceIfMissing(project);
         IkasanStudioEditorService editorService = project.getService(IkasanStudioEditorService.class);
         if (!hasCompletedOnboarding(project)) {
             editorService.open();

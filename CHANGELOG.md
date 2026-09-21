@@ -11,6 +11,14 @@ release verification and outstanding checks are tracked separately in
 
 ### Added
 
+- File-based AI proposals publish correlated result files through validation, review, generation and cancellation; rejection dialogs offer Copy feedback for AI.
+
+- Added a read-only wiretap viewer with module/flow/component shortcuts, date filters, pagination and stored payload previews.
+
+- Added a read-only FTP/SFTP duplicate-history viewer with client/path filters, stored file attributes and an explanation of duplicate matching.
+
+- Added a read-only module/flow excluded-event viewer with pagination, flow/date filters, harvested status and safe text/binary payload previews through the local Ikasan REST API.
+
 - Visual Ikasan module and flow design in the IntelliJ editor, with component properties, onboarding and Undo/Redo.
 - Component libraries and code-generation templates for Ikasan 3.3.9 and 4.1.6.
 - Java, Maven and configuration generation with separate Studio-generated and developer-owned source trees.
@@ -19,6 +27,12 @@ release verification and outstanding checks are tracked separately in
 - AI-assisted model editing through MCP or imported proposal files, with approval settings and protection for developer-owned code.
 
 ### Fixed
+
+- New AI recipe converters inherit omitted input/output types from the selected recipe while rejecting explicit type mismatches.
+
+- Accept parameterized payload types for Generic Producers in both meta-packs; proposal property errors identify the affected component.
+
+- Moved startup AI-guidance discovery and create-only writes off the EDT, with asynchronous VFS refresh, to avoid slow-operation errors during IDE startup.
 
 - AI guidance keeps normal ESB flows on automatic startup and reports missing services as blockers instead of recommending manual startup to hide failures.
 

@@ -27,7 +27,10 @@ public final class ModelProposal {
         draft.getFlows().forEach(flow -> elements(flow).forEach(element -> originalNames.put(element, element.getIdentity())));
         Set<String> affected = new LinkedHashSet<>();
         List<String> summary = new ArrayList<>();
+        int operationIndex = 0;
         for (JsonNode op : operations) {
+            operationIndex++;
+            try {
             String type = text(op, "type");
             String flowName = text(op, "flow");
             deletesContent |= Set.of("deleteFlow", "deleteComponent", "replaceComponent").contains(type);
@@ -176,6 +179,10 @@ public final class ModelProposal {
                 }
             }
             affected.add(flowName);
+            } catch (IllegalArgumentException failure) {
+                throw new IllegalArgumentException("Operation " + operationIndex + " (" + op.path("type").asText("unknown")
+                        + ") in flow " + op.path("flow").asText("unknown") + ": " + failure.getMessage(), failure);
+            }
         }
         for (String name : affected) {
             Flow flow = draft.getFlows().stream().filter(f -> f.getIdentity().equals(name)).findFirst().orElse(null);
@@ -194,7 +201,11 @@ public final class ModelProposal {
                             .filter(r -> recipeId.equals(r.getId())).findFirst()
                             .orElseThrow(() -> new IllegalArgumentException("Unknown conversion recipe: " + recipeId));
                     if (!recipe.matches(element.getPropertyValueAsString("fromType"), element.getPropertyValueAsString("toType")))
-                        fail("Conversion recipe does not match fromType/toType: " + recipeId);
+                        fail(name + " / " + element.getIdentity() + ": conversion recipe " + recipeId
+                                + " requires fromType=" + recipe.getSourceType() + " and toType=" + recipe.getTargetType()
+                                + "; received fromType=" + element.getPropertyValueAsString("fromType")
+                                + " and toType=" + element.getPropertyValueAsString("toType")
+                                + ". Copy conversionRecipeId, fromType and toType together from catalogue recipeConfigurations.");
                 }
                 String warning = element.getUpstreamTypeMismatchWarning();
                 if (warning != null && !warning.isBlank()) fail(warning);
@@ -246,6 +257,17 @@ public final class ModelProposal {
             if (!op.get("properties").isObject()) fail("properties must be an object");
             for (var property : op.get("properties").properties()) setProperty(element, property.getKey(), property.getValue());
         }
+        // A recipe defines its input/output contract. For new components only, use it
+        // instead of generic String defaults when the proposal omitted a type.
+        String recipeId = element.getPropertyValueAsString("conversionRecipeId");
+        if (!recipeId.isBlank()) {
+            var recipe = meta.getConversionRecipes().stream().filter(r -> recipeId.equals(r.getId())).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(name + ": unknown conversion recipe: " + recipeId));
+            if (!op.path("properties").has("fromType"))
+                setProperty(element, "fromType", StudioJson.newObjectMapper().getNodeFactory().textNode(recipe.getSourceType()));
+            if (!op.path("properties").has("toType"))
+                setProperty(element, "toType", StudioJson.newObjectMapper().getNodeFactory().textNode(recipe.getTargetType()));
+        }
         element.defaultUnsetMandatoryProperties();
         StudioBuildUtils.substituteAllPlaceholderInPascalCase(draft, flow, element);
         if (meta.isConsumer()) flow.setConsumer(element);
@@ -263,7 +285,12 @@ public final class ModelProposal {
         var meta = element.getComponentMeta().getMetadata(key);
         if (meta == null || Set.of("componentName", "name", "version", "testHarnessOwner", "routeNames").contains(key)
                 || meta.isIgnoreProperty()) fail("Unknown or structural property: " + key);
-        element.setPropertyValue(key, propertyValue(meta, key, value));
+        try {
+            element.setPropertyValue(key, propertyValue(meta, key, value));
+        } catch (IllegalArgumentException failure) {
+            // Identify the component without echoing potentially sensitive property values.
+            throw new IllegalArgumentException(element.getIdentity() + ": " + failure.getMessage(), failure);
+        }
     }
 
     private static Object propertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta meta, String key, JsonNode value) {

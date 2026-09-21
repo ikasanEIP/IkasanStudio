@@ -37,7 +37,9 @@ public final class StudioAiProposalInboxService implements Disposable {
     private void poll() {
         if (disposed || project.isDisposed()) return;
         try {
-            Path root = Path.of(project.getBasePath());
+            String basePath = project.getBasePath();
+            if (basePath == null) return;
+            Path root = Path.of(basePath);
             if (!Files.isRegularFile(root.resolve("generated/src/main/model/model.json"))) return;
             var files = StudioAiProposalInbox.scan(root.resolve("ai-proposals"));
             inbox.observe(files).ifPresent(path -> {
@@ -52,12 +54,11 @@ public final class StudioAiProposalInboxService implements Disposable {
     }
 
     private boolean tryAutoApply(Path path) {
-        if (org.ikasan.studio.intellij.settings.IkasanStudioSettings.isAlwaysAskAiApproval()) return false;
         try (var input = Files.newInputStream(path)) {
             byte[] bytes = input.readNBytes(1_048_577);
             if (bytes.length > 1_048_576 || disposed || project.isDisposed()) return false;
             return project.getService(StudioAiService.class)
-                    .tryAutoImport(new String(bytes, java.nio.charset.StandardCharsets.UTF_8));
+                    .tryAutoImport(new String(bytes, java.nio.charset.StandardCharsets.UTF_8), path);
         } catch (Exception failure) {
             // Retain the review banner for stale, incomplete, or temporarily blocked proposals.
             Logger.getInstance(StudioAiProposalInboxService.class).debug("AI proposal needs manual review", failure);

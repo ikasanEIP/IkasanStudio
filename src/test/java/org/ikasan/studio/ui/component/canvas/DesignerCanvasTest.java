@@ -40,6 +40,10 @@ class DesignerCanvasTest {
                 StudioBundle.message("menu.SaveImage"), StudioBundle.message("label.Load"),
                 StudioBundle.message("action.IkasanStudio.MigrateVersion.text"));
 
+        assertThat(moduleLabels).contains(StudioBundle.message("exclusions.action"));
+        List<String> moduleOnlyLabels = moduleLabels.stream()
+                .filter(label -> !label.equals(StudioBundle.message("exclusions.action"))
+                        && !label.equals(StudioBundle.message("wiretapEvents.action"))).toList();
         Flow flow = mock(Flow.class);
         FlowElement component = mock(FlowElement.class);
         when(component.getComponentMeta()).thenReturn(mock(org.ikasan.studio.core.metapack.model.ComponentMeta.class));
@@ -47,13 +51,46 @@ class DesignerCanvasTest {
             var menu = DesignCanvasContextMenu.createCanvasMenu(project, null, element);
             List<String> labels = java.util.Arrays.stream(menu.getComponents())
                     .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast).map(JMenuItem::getText).toList();
-            assertThat(labels).contains(StudioBundle.message("menu.EditComponent"))
+            assertThat(labels).contains(StudioBundle.message("menu.EditComponent"), StudioBundle.message("wiretapEvents.action"))
                     .doesNotContain(StudioBundle.message("menu.JumpToCode"), StudioBundle.message("menu.JumpToProperties"))
-                    .doesNotContainAnyElementsOf(moduleLabels);
+                    .doesNotContainAnyElementsOf(moduleOnlyLabels);
+            if (element instanceof Flow) assertThat(labels).contains(StudioBundle.message("exclusions.action"));
+            else assertThat(labels).doesNotContain(StudioBundle.message("exclusions.action"));
             assertThat(menu.getComponent(menu.getComponentCount() - 1)).isInstanceOf(JMenuItem.class);
         }
     }
 
+
+    @Test
+    void fileHistoryIsAvailableOnlyForFileTransferConsumersAndUsesTheirClientId() {
+        Project project = mock(Project.class);
+        var context = mock(org.ikasan.studio.ui.UiContext.class);
+        when(project.getService(org.ikasan.studio.ui.UiContext.class)).thenReturn(context);
+        when(context.getViewHandlerFactory()).thenReturn(mock(org.ikasan.studio.ui.viewmodel.ViewHandlerCache.class));
+        FlowElement component = mock(FlowElement.class);
+        var meta = mock(org.ikasan.studio.core.metapack.model.ComponentMeta.class);
+        when(component.getComponentMeta()).thenReturn(meta);
+        when(component.getPropertyValueAsString("clientID")).thenReturn("orders-inbound");
+        try (var dialog = org.mockito.Mockito.mockStatic(org.ikasan.studio.ui.actions.FileDuplicateHistoryDialog.class)) {
+            for (String endpoint : List.of("FTP Endpoint", "SFTP Endpoint", "JMS Endpoint")) {
+                when(meta.getEndpointKey()).thenReturn(endpoint);
+                for (boolean consumer : List.of(true, false)) {
+                    when(meta.isConsumer()).thenReturn(consumer);
+                    var menu = DesignCanvasContextMenu.createCanvasMenu(project, null, component);
+                    var item = java.util.Arrays.stream(menu.getComponents())
+                            .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast)
+                            .filter(i -> StudioBundle.message("fileHistory.action").equals(i.getText())).findFirst();
+                    boolean supported = consumer && !endpoint.equals("JMS Endpoint");
+                    assertThat(item.isPresent()).isEqualTo(supported);
+                    if (supported) {
+                        item.orElseThrow().doClick();
+                        dialog.verify(() -> org.ikasan.studio.ui.actions.FileDuplicateHistoryDialog.open(project, "orders-inbound"));
+                        dialog.clearInvocations();
+                    }
+                }
+            }
+        }
+    }
 
     @Test
     void restartWarningIsVisibleInTheRenderedPayloadTooltip() throws Exception {

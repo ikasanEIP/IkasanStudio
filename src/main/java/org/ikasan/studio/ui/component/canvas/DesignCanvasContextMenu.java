@@ -47,6 +47,26 @@ public class DesignCanvasContextMenu {
             menu.addSeparator();
         }
 
+        if (ikasanBasicElement instanceof Module || ikasanBasicElement instanceof Flow
+                || ikasanBasicElement instanceof FlowElement) {
+            JMenuItem wiretaps = new JMenuItem(StudioBundle.message("wiretapEvents.action"));
+            wiretaps.addActionListener(e -> {
+                Flow owner = ikasanBasicElement instanceof FlowElement element ? element.getContainingFlow() : null;
+                WiretapEventsDialog.open(project,
+                        ikasanBasicElement instanceof Flow ? ikasanBasicElement.getIdentity()
+                                : owner == null ? null : owner.getIdentity(),
+                        ikasanBasicElement instanceof FlowElement ? ikasanBasicElement.getIdentity() : null);
+            });
+            menu.add(wiretaps);
+        }
+        if (ikasanBasicElement instanceof Module || ikasanBasicElement instanceof Flow) {
+            JMenuItem exclusions = new JMenuItem(StudioBundle.message("exclusions.action"));
+            exclusions.addActionListener(e -> ExcludedEventsDialog.open(project,
+                    ikasanBasicElement instanceof Flow ? ikasanBasicElement.getIdentity() : null));
+            menu.add(exclusions);
+            menu.addSeparator();
+        }
+
         if (ikasanBasicElement instanceof Flow flow) {
             menu.add(createDeleteComponentMenuItem(project, ikasanBasicElement));
             menu.add(createEditComponentMenuItem(project, ikasanBasicElement));
@@ -59,6 +79,14 @@ public class DesignCanvasContextMenu {
             }
             addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
         } else if (ikasanBasicElement instanceof FlowElement flowElement) {
+            var meta = flowElement.getComponentMeta();
+            if (meta.isConsumer() && ("FTP Endpoint".equals(meta.getEndpointKey())
+                    || "SFTP Endpoint".equals(meta.getEndpointKey()))) {
+                JMenuItem fileHistory = new JMenuItem(StudioBundle.message("fileHistory.action"));
+                fileHistory.addActionListener(e -> FileDuplicateHistoryDialog.open(project,
+                        flowElement.getPropertyValueAsString("clientID")));
+                menu.add(fileHistory);
+            }
             if (project.getService(UiContext.class).isRestartPending(UiContext.restartPendingKey(flowElement))) {
                 menu.add(createModuleRestartRequiredMenuItem(project));
                 menu.addSeparator();
@@ -123,6 +151,10 @@ public class DesignCanvasContextMenu {
             addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
         }
         if (ikasanBasicElement instanceof Module module) {
+            JMenuItem fileHistory = new JMenuItem(StudioBundle.message("fileHistory.action"));
+            fileHistory.addActionListener(e -> FileDuplicateHistoryDialog.open(project));
+            menu.add(fileHistory);
+            menu.addSeparator();
             JCheckBoxMenuItem keepCanvas = new JCheckBoxMenuItem(
                     StudioBundle.message("checkbox.KeepCanvasSelectedAtDebugBreakpoints"),
                     org.ikasan.studio.intellij.settings.IkasanStudioSettings.isKeepCanvasSelectedAtDebugBreakpoints());

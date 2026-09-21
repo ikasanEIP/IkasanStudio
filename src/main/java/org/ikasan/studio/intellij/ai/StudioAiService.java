@@ -66,6 +66,7 @@ public final class StudioAiService implements Disposable {
         final String details;
         volatile String status = "awaiting_review";
         boolean fileBased;
+        StudioAiProposalFeedback feedback;
         Proposal(Snapshot snapshot, ModelProposal.Prepared prepared, String details) { this.snapshot = snapshot; this.prepared = prepared; this.details = details; }
     }
     public StudioAiService(Project project) { this.project = project; }
@@ -213,10 +214,10 @@ public final class StudioAiService implements Disposable {
     }
 
     /** Runs off EDT. Import needs no MCP server and never writes the incoming model file. */
-    void importProposal(String json) throws Exception { importProposal(json, false); }
+    void importProposal(String json) throws Exception { importProposal(json, false, null); }
 
     /** Returns false without opening a dialog when a watched file requires manual review. */
-    boolean tryAutoImport(String json) throws Exception { return importProposal(json, true); }
+    boolean tryAutoImport(String json) throws Exception { return importProposal(json, true, null); }
 
     static boolean requiresUserCodeReview(Module... modules) {
         // Full generation can revisit unchanged flows. Transient overwrite flags in the live
@@ -244,6 +245,7 @@ public final class StudioAiService implements Disposable {
 
     private void reviewOrApply(Proposal proposal) {
         if (requiresApproval(proposal)) {
+            if (proposal.feedback != null) proposal.feedback.publish("awaiting_review", "Review is required in Studio.");
             new StudioAiProposalDialog(project, this, proposal).show();
             return;
         }
@@ -261,9 +263,25 @@ public final class StudioAiService implements Disposable {
         }
     }
 
-    private boolean importProposal(String json, boolean autoOnly) throws Exception {
+    void importProposal(String json, Path source) throws Exception { importFileProposal(json, source, false); }
+    boolean tryAutoImport(String json, Path source) throws Exception { return importFileProposal(json, source, true); }
+
+    private boolean importFileProposal(String json, Path source, boolean autoOnly) throws Exception {
+        var feedback = new StudioAiProposalFeedback(source, json);
+        try { return importProposal(json, autoOnly, feedback); }
+        catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) { throw cancelled; }
+        catch (Exception failure) {
+            feedback.publish("rejected", failure.getMessage());
+            throw failure;
+        }
+    }
+
+    private boolean importProposal(String json, boolean autoOnly, StudioAiProposalFeedback feedback) throws Exception {
         JsonNode operations = JSON.readTree(json).path("operations");
-        if (autoOnly && IkasanStudioSettings.isAlwaysAskAiApproval()) return false;
+        if (autoOnly && IkasanStudioSettings.isAlwaysAskAiApproval()) {
+            if (feedback != null) feedback.publish("awaiting_review", "Always ask for approval is enabled; validation will run on import.");
+            return false;
+        }
         String projectPath = project.getBasePath();
         if (projectPath == null) throw new IllegalStateException("Open a project before importing an AI proposal.");
         Snapshot snapshot = onEdt(this::capture);
@@ -275,9 +293,13 @@ public final class StudioAiService implements Disposable {
         Proposal proposal = new Proposal(snapshot, prepared,
                 JSON.writerWithDefaultPrettyPrinter().writeValueAsString(operations));
         proposal.fileBased = true;
+        proposal.feedback = feedback;
         return onEdt(() -> {
             // Settings may have changed while validation ran in the background.
-            if (autoOnly && requiresApproval(proposal)) return false;
+            if (autoOnly && requiresApproval(proposal)) {
+                if (feedback != null) feedback.publish("awaiting_review", "Review is required in Studio.");
+                return false;
+            }
             requireCurrent(snapshot);
             if (pending != null) throw new IllegalStateException("Review or cancel the pending proposal in Studio first.");
             pending = proposal;
@@ -337,14 +359,21 @@ public final class StudioAiService implements Disposable {
                         if (forward) changes.apply(); else changes.undo();
                         expected = new Snapshot(expected.source(), LiveModelSnapshot.capture(expected.source()));
                         refreshUi();
-                        proposal.status = forward ? "applied" : "undone";
+                        proposal.status = forward ? "generating" : "undone";
+                        if (proposal.feedback != null) proposal.feedback.publish(proposal.status,
+                                forward ? "Redo is generating project files." : "The developer undid this proposal.");
                         ApplicationManager.getApplication().invokeLater(() -> {
                             if (project.isDisposed() || context().getIkasanModule() != proposal.snapshot.source()) return;
                             try {
                                 StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.full()).whenComplete((ignored, failure) -> {
-                                    if (failure != null) proposal.status = "generation_failed";
+                                    proposal.status = failure == null ? (forward ? "applied" : "undone") : "generation_failed";
+                                    if (proposal.feedback != null) proposal.feedback.publish(proposal.status,
+                                            failure == null ? "Undo/redo generation completed." : "Undo/redo generation failed; inspect Studio diagnostics.");
                                 });
-                            } catch (RuntimeException failure) { proposal.status = "generation_failed"; }
+                            } catch (RuntimeException failure) {
+                                proposal.status = "generation_failed";
+                                if (proposal.feedback != null) proposal.feedback.publish(proposal.status, "Undo/redo generation failed; inspect Studio diagnostics.");
+                            }
                         });
                     } catch (RuntimeException stale) { throw new UnexpectedUndoException(stale.getMessage()); }
                 }
@@ -353,12 +382,20 @@ public final class StudioAiService implements Disposable {
         }, StudioBundle.message("ai.ApplyCommand"), null);
         pending = null;
         proposal.status = "generating";
-        generation.whenComplete((ignored, failure) -> proposal.status = failure == null ? "applied" : "generation_failed");
+        if (proposal.feedback != null) proposal.feedback.publish("generating", "Applying model changes and generating project files.");
+        generation.whenComplete((ignored, failure) -> {
+            proposal.status = failure == null ? "applied" : "generation_failed";
+            if (proposal.feedback != null) proposal.feedback.publish(proposal.status,
+                    failure == null ? "Changes applied and project files generated." : "Generation failed. Inspect Studio generation diagnostics.");
+        });
         return generation;
     }
 
     void cancel(Proposal proposal) {
-        if (pending == proposal) { pending = null; proposal.status = "cancelled"; }
+        if (pending == proposal) {
+            pending = null; proposal.status = "cancelled";
+            if (proposal.feedback != null) proposal.feedback.publish("cancelled", "The proposal was cancelled in Studio.");
+        }
     }
     private void refreshUi() {
         context().resetSelectionAfterDeletion();
@@ -395,7 +432,10 @@ public final class StudioAiService implements Disposable {
         if (executor != null) { executor.shutdownNow(); executor = null; }
         synchronized (snapshots) { snapshots.clear(); }
         synchronized (proposals) { proposals.clear(); }
-        if (pending != null && (!pending.fileBased || disposed)) { pending.status = "cancelled"; pending = null; }
+        if (pending != null && (!pending.fileBased || disposed)) {
+            if (pending.feedback != null) pending.feedback.publish("cancelled", "Studio closed before the proposal was applied.");
+            pending.status = "cancelled"; pending = null;
+        }
         lastAccessTransport = null;
         StudioAiConnectionFiles files = connectionFiles;
         connectionFiles = null;

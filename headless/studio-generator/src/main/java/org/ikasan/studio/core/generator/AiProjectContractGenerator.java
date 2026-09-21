@@ -43,6 +43,10 @@ public final class AiProjectContractGenerator {
                 lacks the import action, prepare the proposal and ask the developer to update Studio or make
                 the change in its properties UI; do not bypass this by editing the active model on disk.
 
+                For file proposals, always read `<proposal-filename>.result.json` beside the submitted file
+                and match its proposalSha256 before continuing. Follow the recovery/status instructions in
+                generated/IKASAN_STUDIO.md; never assume writing a proposal applied it.
+
                 This project is managed by Ikasan Studio. Before editing `generated/src/main/model/model.json`,
                 read `generated/IKASAN_STUDIO.md` and
                 `generated/src/main/model/component-catalogue.json`.
@@ -281,6 +285,10 @@ public final class AiProjectContractGenerator {
 
                 ## Payload examples and recipe selection
 
+                Copy all three properties from recipeConfigurations into the converter proposal:
+                conversionRecipeId, fromType and toType. For addComponent, omitted types are filled from the
+                selected recipe. Explicitly supplied types must match. Editing an existing component does not
+                silently change its types; supply all required property changes in the same proposal.
                 Use recipeConfigurations as ready-to-use property examples, and read the corresponding
                 conversionRecipes entry for preconditions and configuration. Match the entire source and
                 target type, including collection element types and the meta-pack's javax/jakarta namespace.
@@ -330,7 +338,9 @@ public final class AiProjectContractGenerator {
                 An Event Generating Consumer terminates when its provider returns null: null is not an idle signal.
                 Do not exhaust a short list and return null in a normal ESB demo. Prefer scheduled, polling or
                 listener-based input with correct idle behaviour. Where catalogue coverage needs an Event
-                Generating Consumer or custom consumer, implement a suitably paced, cancellable source using the
+                Generating Consumer, use its built-in provider unless the requested behaviour requires a custom
+                payload provider. Add a paced provider only when the developer explicitly requests one; catalogue
+                coverage alone does not require it. Custom consumers/providers must honour cancellation and the
                 selected framework version's lifecycle contract. Verify rollback, interruption, stop/start and
                 worker cleanup. Never fake isRunning, swallow failures, busy-spin or flood logs/messages just to
                 keep the display green. Give repeated events distinct IDs unless deliberately testing replay.
@@ -339,13 +349,18 @@ public final class AiProjectContractGenerator {
 
                 Acceptance check: observe successful delivery, allow an idle interval, assert that each ready
                 flow remains running, then send another batch through the same running application and verify
-                delivery without resetting a bean, restarting the flow or restarting the application. For a paced
-                generator, observe at least two separated batches and continued readiness. Verify that exclusion
+                delivery without resetting a bean, restarting the flow or restarting the application. If a paced
+                generator was explicitly requested, observe at least two separated batches and continued readiness.
+                Verify that exclusion
                 or another recoverable policy does not stop the flow and that subsequent valid input is processed.
 
                 When missing external configuration blocks part of the brief, finish independent paths and
                 ask a focused question listing the exact remaining settings. Maintain a requested-versus-delivered
                 inventory; do not silently narrow an every-component request to the currently convenient types.
+                Do not replace a requested transport with a scheduled reminder and logging producer just to
+                obtain a Running state. A reminder is not an SFTP/FTP implementation or component coverage.
+                Retain real requested transport components where validation permits; otherwise report the
+                blocked design explicitly and ask for the required settings before claiming completion.
                 Offer a clearly labelled incomplete design only if Studio's validation permits it; do not invent
                 credentials or claim unavailable transports are configured. Explain how to complete and test them.
                 Keep normal ESB flows AUTOMATIC, including paths whose external services are unavailable.
@@ -523,6 +538,17 @@ public final class AiProjectContractGenerator {
                 While Studio is open, do not edit model.json on disk.
 
                 ## Proposal file workflow (no MCP required)
+
+                After submitting a proposal file, read its adjacent `<proposal-filename>.result.json`.
+                Match proposalSha256 to the SHA-256 of the exact proposal bytes before trusting it.
+                Status awaiting_review means ask for developer review; generating means wait; applied means
+                generation completed and you must now verify the updated files. For rejected, read message,
+                current model and catalogue, correct the problem and submit a fresh uniquely named proposal
+                with an up-to-date baseModelSha256. Attempt at most two corrections per request, then explain
+                the blocker and the Studio UI fallback. For generation_failed, inspect generation diagnostics
+                and current model before proceeding: changes may already be present. Respect cancelled/undone;
+                do not automatically resubmit. Missing feedback is not success: use Review Latest AI Proposal
+                or ask the developer to copy the rejection feedback. Do not poll indefinitely or bypass Studio.
 
                 1. Keep Studio and IntelliJ open. Read the saved model and component catalogue.
                 2. Calculate SHA-256 of the exact bytes of generated/src/main/model/model.json, for example

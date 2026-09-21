@@ -21,6 +21,10 @@ and test. Do not treat writing a proposal file as applying the change. If the in
 lacks the import action, prepare the proposal and ask the developer to update Studio or make
 the change in its properties UI; do not bypass this by editing the active model on disk.
 
+For file proposals, always read `<proposal-filename>.result.json` beside the submitted file
+and match its proposalSha256 before continuing. Follow the recovery/status instructions in
+generated/IKASAN_STUDIO.md; never assume writing a proposal applied it.
+
 This project is managed by Ikasan Studio. Before editing `generated/src/main/model/model.json`,
 read `generated/IKASAN_STUDIO.md` and
 `generated/src/main/model/component-catalogue.json`.

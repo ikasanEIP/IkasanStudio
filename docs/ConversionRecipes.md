@@ -6,6 +6,15 @@ Use **Update Code** to apply changes. Existing implementation changes use Studio
 
 Recipes compose a content-extraction template with a payload-construction template into **one visible Converter and one user implementation class**. There is no runtime recipe engine, network lookup or implicit chain of extra canvas components.
 
+## AI proposals
+
+Copy the complete `recipeConfigurations` entry from the generated catalogue into the
+converter's proposal properties: `conversionRecipeId`, `fromType` and `toType` describe its
+contract. For `addComponent`, omitted types are filled from the selected recipe; explicitly
+supplied types must match. Existing-component edits do not silently change types: include all
+required property changes in the same proposal. A mismatch reports the flow/component and required
+types so the agent can correct its proposal without removing the recipe.
+
 ## MVP coverage
 
 Both V3.3.9 and V4.1.6 contain 29 explicit recipes, using the correct `javax.jms` or `jakarta.jms` namespace.
