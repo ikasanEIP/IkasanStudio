@@ -13,6 +13,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 @org.junit.jupiter.api.Tag("packs")
 class AiProjectContractGeneratorTest {
     @Test
+    void selectedCataloguePreservesDefinitionsAndSupportsDiscovery() throws Exception {
+        for (String version : PackExpectations.metaPacksToTest().toList()) {
+            var mapper = StudioJson.newObjectMapper();
+            var full = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version));
+            var selected = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version,
+                    java.util.List.of("Converter", "Converter")));
+            assertThat(selected.path("components")).hasSize(1);
+            assertThat(selected.path("components").get(0)).isEqualTo(component(full, "Converter"));
+            assertThat(selected.path("frameworkReference")).isEqualTo(full.path("frameworkReference"));
+            var discovery = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version, java.util.List.of()));
+            assertThat(discovery.path("components")).isEmpty();
+            assertThat(discovery.path("availableComponentKeys")).isEqualTo(full.path("availableComponentKeys"));
+            org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                    AiProjectContractGenerator.componentCatalogue(version, java.util.List.of("Not a component")))
+                    .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("availableComponentKeys");
+        }
+    }
+
+    @Test
     void catalogueIsDerivedFromEveryShippedMetapack() throws Exception {
         for (String version : PackExpectations.metaPacksToTest().toList()) {
             JsonNode catalogue = StudioJson.newObjectMapper()

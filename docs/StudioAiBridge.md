@@ -316,3 +316,17 @@ Before reporting a task complete, the AI must exercise actual component implemen
 verify delivery along each requested route, including exclusion/error behaviour. Compilation,
 Spring registration, helper-only tests and a Running flow state are insufficient. Keep missing
 implementations and unverified paths visible; do not remove TODO markers merely to clear findings.
+
+## Focused catalogue and reusable tests
+
+`studio_catalogue` accepts optional `componentKeys` on both MCP routes. For example,
+`{"componentKeys":["Converter","Spring JMS Producer"]}` returns only those complete
+component definitions. `{"componentKeys":[]}` returns version/source metadata and
+`availableComponentKeys` without component details. Omitting the argument retains the
+full catalogue. Keys are exact and case-sensitive; unknown keys produce an actionable
+error rather than silently omitting a requested component. File-based clients can filter
+`generated/component-catalogue.json` locally.
+
+See [Ikasan flow testing](IkasanFlowTesting.md) for version-pinned framework examples,
+real-payload assertions and test lifecycle guidance. The catalogue's
+`frameworkReference.flowTesting` also directs connected agents to these references.

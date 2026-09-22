@@ -7,6 +7,7 @@ import com.intellij.mcpserver.project
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -24,7 +25,12 @@ class StudioNativeMcpToolset : McpToolset {
 
     @McpTool
     @McpDescription("Read Ikasan Studio component keys, help, properties, payload contracts, recipe configuration examples, implementation/ownership flags and supported proposal operations for the selected version. Includes frameworkReference with version-specific Ikasan source navigation and offline research guidance. Generated stubs may still need implementation and tests. Use before proposing components.")
-    suspend fun studio_catalogue(): String = call("studio_catalogue", "{}")
+    suspend fun studio_catalogue(
+        @McpDescription("Exact component keys to include. Empty array returns availableComponentKeys and version metadata; omit for all components.")
+        componentKeys: List<String>? = null
+    ): String = call("studio_catalogue", buildJsonObject {
+        componentKeys?.let { put("componentKeys", JsonArray(it.map { key -> JsonPrimitive(key) })) }
+    }.toString())
 
     @McpTool
     @McpDescription("Validate flow, routing and exception-policy changes. Validated supported changes apply automatically unless Confirm deletes requires review (enabled by default for deletions and replacements) or Always ask for approval is enabled; potential developer-owned code replacement always requires review and Apply. Check the returned status and studio_proposal_status; ask for Apply only when awaiting_review. Use the revision from studio_snapshot. Operations: addFlow {type,flow}; deleteFlow {type,flow} removes the entire flow and attached test harnesses, retaining developer-owned source files; addComponent {type,flow,key,name,properties?}; setProperty {type,flow,component,property,value}; renameComponent {type,flow,component,name}; deleteComponent {type,flow,component}; replaceComponent {type,flow,component,key,name,properties?} preserves position, replaces consumers only with consumers, preserves developer-owned source files; connect {type,flow,order:[all component names,consumer first]}. New flow and component names must match [A-Za-z][A-Za-z0-9_ ]{0,79}: start with a letter, then letters, digits, spaces or underscores, maximum 80 characters. For numbered flows use Flow01 or Demo01, never a leading number. Existing flow/component references must use their exact saved names. Empty flows and incremental flow construction are supported; incomplete flows show review warnings and must be completed before running. Routers and branched routes are supported. addComponent and connect accept optional route:[branch names] (omit for root). connect lists every executable component in that route, consumer first only for root; endpoints are omitted. configureRoutes {type,flow,component,names:[branch names]} configures 2 to 32 alphanumeric names; populated branches cannot be removed or renamed. setExceptionResolution {type,flow,exception,action,properties?} adds or updates a flow-wide rule; read exceptionActions in studio_catalogue. setFlowProperty {type,flow,property,value} edits metadata-defined scalar flow properties, DEMO ACCEPTANCE RULE: do not leave required demo flows stopped while the module is running. Disabling flows hides failures and delays diagnosis; report BLOCKED/INCOMPLETE until delivery and continued readiness are verified. keep flowStartupType=AUTOMATIC for normal ESB flows and report unavailable services as blockers; use MANUAL or DISABLED only when explicitly requested by the developer; null clears a value. Names and structural fields cannot be changed. Flow renaming and version changes require Studio. Read studio_proposal_status afterwards.")

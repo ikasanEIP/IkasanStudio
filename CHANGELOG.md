@@ -11,6 +11,8 @@ release verification and outstanding checks are tracked separately in
 
 ### Added
 
+- MCP catalogue queries can select component keys or return compact discovery metadata; version-specific Ikasan flow-test guidance and reference examples cover both bundled releases.
+
 - Added an advisory implementation-readiness check with source navigation, generated reports, MCP snapshot findings and file-proposal feedback for missing source and known scaffolds.
 
 - File-based AI proposals publish correlated result files through validation, review, generation and cancellation; rejection dialogs offer Copy feedback for AI.

@@ -179,3 +179,17 @@ investigation lead. Agents must distinguish application delivery from shutdown v
 context closure from the actual normal process-stop path. They should preserve reproducible
 shutdown failures without repeatedly investigating an unchanged symptom, or treating a forced
 exit as successful graceful shutdown. Framework observations do not excuse application failures.
+
+## Focused catalogue and reusable tests
+
+`studio_catalogue` accepts optional `componentKeys` on both MCP routes. For example,
+`{"componentKeys":["Converter","Spring JMS Producer"]}` returns only those complete
+component definitions. `{"componentKeys":[]}` returns version/source metadata and
+`availableComponentKeys` without component details. Omitting the argument retains the
+full catalogue. Keys are exact and case-sensitive; unknown keys produce an actionable
+error rather than silently omitting a requested component. File-based clients can filter
+`generated/component-catalogue.json` locally.
+
+See [Ikasan flow testing](IkasanFlowTesting.md) for version-pinned framework examples,
+real-payload assertions and test lifecycle guidance. The catalogue's
+`frameworkReference.flowTesting` also directs connected agents to these references.

@@ -177,7 +177,17 @@ public final class StudioAiService implements Disposable {
             }
             case "studio_catalogue" -> {
                 String version = onEdt(() -> { requireReady(); return context().getIkasanModule().getVersion(); });
-                yield JSON.readTree(AiProjectContractGenerator.componentCatalogue(version));
+                java.util.List<String> keys = null;
+                if (arguments.has("componentKeys")) {
+                    JsonNode selection = arguments.get("componentKeys");
+                    if (!selection.isArray()) throw new IllegalArgumentException("componentKeys must be an array of strings");
+                    keys = new java.util.ArrayList<>();
+                    for (JsonNode key : selection) {
+                        if (!key.isTextual()) throw new IllegalArgumentException("componentKeys must contain only strings");
+                        keys.add(key.textValue());
+                    }
+                }
+                yield JSON.readTree(AiProjectContractGenerator.componentCatalogue(version, keys));
             }
             case "studio_propose" -> propose(arguments, session);
             case "studio_proposal_status" -> {

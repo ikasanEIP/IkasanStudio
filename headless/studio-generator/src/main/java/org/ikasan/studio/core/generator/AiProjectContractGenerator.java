@@ -410,10 +410,18 @@ public final class AiProjectContractGenerator {
                 Read the catalogue selectively. First inspect its version, proposal operations and supported
                 keys, then extract only the selected components, relevant properties and recipeConfigurations
                 using a JSON query/script. Avoid dumping the entire catalogue or repeatedly fetching unchanged
-                content. MCP catalogue responses may be complete; filter locally before studying their details.
+                content. With MCP, request studio_catalogue with componentKeys: [] for availableComponentKeys,
+                then componentKeys: [exact selected keys] for their complete definitions. Omit componentKeys
+                only when the full catalogue is needed. File-based clients should filter the local JSON.
                 Broaden inspection only when the brief, a dependency or an error requires it. For small examples,
                 verify the completed paths together in one bounded application run where practical; rerun only
                 the relevant checks after changes. Do not replace actual component/delivery tests with helper tests.
+
+                For reusable flow tests, consult catalogue frameworkReference.flowTesting. Prefer the matching
+                Ikasan test framework with actual application flows and payload assertions. Keep tests in user/;
+                confirm they execute, not merely compile. A test-only context may stop on teardown, but the
+                developer's running module must remain available. Reference examples are starting points,
+                not evidence that this application's requested behaviour has been verified.
 
                 Check version-specific behaviour before adding optional customisation:
                 - Ikasan 3.3.9 Logging Producer: configuring replacementText and regExpPattern through builder
@@ -751,8 +759,24 @@ public final class AiProjectContractGenerator {
 
     public static String componentCatalogue(String metapackVersion)
             throws StudioBuildException, JsonProcessingException {
+        return componentCatalogue(metapackVersion, null);
+    }
+
+    /** Null selects the full catalogue; an empty selection returns discovery metadata only. */
+    public static String componentCatalogue(String metapackVersion, java.util.Collection<String> componentKeys)
+            throws StudioBuildException, JsonProcessingException {
+        var library = ComponentLibrary.getIkasanComponents(metapackVersion);
+        if (componentKeys != null) {
+            for (String key : componentKeys) {
+                if (key == null || !library.containsKey(key)) {
+                    throw new IllegalArgumentException("Unknown component key: " + key
+                            + ". Request componentKeys: [] to discover availableComponentKeys.");
+                }
+            }
+        }
         List<Map<String, Object>> components = new ArrayList<>();
-        ComponentLibrary.getIkasanComponents(metapackVersion).entrySet().stream()
+        library.entrySet().stream()
+                .filter(entry -> componentKeys == null || componentKeys.contains(entry.getKey()))
                 .sorted(Map.Entry.comparingByKey())
                 .forEach(entry -> components.add(component(entry.getKey(), entry.getValue())));
         Map<String, Object> catalogue = new LinkedHashMap<>();
@@ -761,6 +785,7 @@ public final class AiProjectContractGenerator {
         String ikasanVersion = ComponentLibrary.getMetaPackManifest(metapackVersion).ikasanVersion();
         catalogue.put("ikasanVersion", ikasanVersion);
         catalogue.put("frameworkReference", frameworkReference(ikasanVersion));
+        catalogue.put("availableComponentKeys", library.keySet().stream().sorted().toList());
         catalogue.put("components", components);
         return StudioJson.newObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(catalogue) + "\n";
     }
@@ -785,6 +810,11 @@ public final class AiProjectContractGenerator {
                 "failures", List.of("ikasaneip/recovery-manager", "ikasaneip/exclusion", "ikasaneip/hospital", "ikasaneip/replay"),
                 "examples", List.of("ikasaneip/sample"),
                 "documentation", List.of("ikasaneip/documentation", "UpgradePath.md")));
+        reference.put("flowTesting", Map.of(
+                "dependency", "org.ikasan:ikasan-test:" + version,
+                "guidance", "https://github.com/ikasanEIP/IkasanStudio/blob/main/docs/IkasanFlowTesting.md",
+                "referenceExamples", "https://github.com/ikasanEIP/IkasanStudio/tree/main/examples/ikasan-flow-tests",
+                "policy", "Match the resolved application version. Bundled 3.3.9 and 4.1.6 use JUnit 4 IkasanFlowTestRule; enable Vintage when using JUnit Platform. Test actual final payloads, idle readiness and later delivery, not only invocation counts. Test isolated instances; do not stop the running developer module."));
         reference.put("researchWorkflow", "Follow the catalogue implementingClass to the matching source. Read its interface, implementation, nearby src/test tests and a sample. Check units, defaults, transaction and lifecycle behaviour; cite the release/path. Layout may vary by release. Keep reference source read-only.");
         reference.put("offlineFallback", "Use IntelliJ-attached or cached Maven sources for the resolved dependency version; inspect dependency overrides and class signatures when sources are unavailable. Source links do not grant network permissions. State uncertainty rather than guessing.");
         return reference;
