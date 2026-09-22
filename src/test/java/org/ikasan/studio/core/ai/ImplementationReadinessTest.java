@@ -40,4 +40,29 @@ class ImplementationReadinessTest {
         source("//@TODO implement your producer logic here\n");
         assertThat(ImplementationReadiness.scan(root, model()).findings().get(0).code()).isEqualTo("REVIEW_SCAFFOLD");
     }
+    /** The generated stubs use several TODO wordings; recognising only two let the Translator and Generic Consumer through. */
+    @Test void anyCommentOnlyTodoIsAReviewScaffold() throws Exception {
+        for (String todo : new String[]{"// TODO: Update the mutable payload in place.", "//@TODO replace this scheduling with your real logic",
+                "// TODO review the default body above", "    //   TODO something"}) {
+            source("class CreateAcceptedOrder {\n " + todo + "\n}\n");
+            var findings = ImplementationReadiness.scan(root, model()).findings();
+            assertThat(findings).as(todo).hasSize(1);
+            assertThat(findings.get(0).code()).isEqualTo("REVIEW_SCAFFOLD");
+            assertThat(findings.get(0).line()).isEqualTo(2);
+        }
+        // Javadoc and ordinary comments that merely mention the word are not markers.
+        source("/** Handles the TODO list. */\nclass CreateAcceptedOrder { // not a marker\n}\n");
+        assertThat(ImplementationReadiness.scan(root, model()).findings()).isEmpty();
+    }
+
+    /** The converter stub has a TODO directly above its throw, and should be reported once, as the stronger finding. */
+    @Test void aTodoDirectlyAboveAThrowingStubIsReportedOnce() throws Exception {
+        source("class CreateAcceptedOrder {\n Object convert(Object payload) {\n"
+                + "// TODO Implement the conversion. The target may be an interface.\n"
+                + "throw new UnsupportedOperationException(\"Conversion has not been implemented\");\n}}\n");
+        var findings = ImplementationReadiness.scan(root, model()).findings();
+        assertThat(findings).hasSize(1);
+        assertThat(findings.get(0).code()).isEqualTo("THROWING_STUB");
+        assertThat(findings.get(0).line()).isEqualTo(4);
+    }
 }

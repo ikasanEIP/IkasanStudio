@@ -256,4 +256,21 @@ public class StudioBuildUtilsTest {
         assertThat(StudioBuildUtils.sameGeneratedName("a", null), is(false));
         assertThat(StudioBuildUtils.sameGeneratedName(null, null), is(false));
     }
+
+    /**
+     * Ikasan's H2 backup service parses the datasource URL as a URI, so a space in the module name (which forms the
+     * database folder) stopped the application starting with the TCP datasource. Only characters that break the URL
+     * or the H2 settings syntax are replaced, so a name that already works gives exactly the same folder.
+     */
+    @Test
+    public void testToDatabaseFolderName_replacesOnlyCharactersThatBreakTheDatasourceUrl() {
+        assertThat(StudioBuildUtils.toDatabaseFolderName("A to B convert"), is("A_to_B_convert"));
+        assertThat(StudioBuildUtils.toDatabaseFolderName("Orders; v2 #1 \"x\" 50%?"), is("Orders_v2_1_x_50_"));
+        assertThat(StudioBuildUtils.toDatabaseFolderName("tab\tand\nnewline"), is("tab_and_newline"));
+        // Unchanged: these already work today, so the database folder must not move.
+        assertThat(StudioBuildUtils.toDatabaseFolderName("MyModule"), is("MyModule"));
+        assertThat(StudioBuildUtils.toDatabaseFolderName("demo1-db_v2.x"), is("demo1-db_v2.x"));
+        assertThat(StudioBuildUtils.toDatabaseFolderName("Caf\u00e9 R&D (EU)"), is("Caf\u00e9_R&D_(EU)"));
+        assertThat(StudioBuildUtils.toDatabaseFolderName(null), is(""));
+    }
 }

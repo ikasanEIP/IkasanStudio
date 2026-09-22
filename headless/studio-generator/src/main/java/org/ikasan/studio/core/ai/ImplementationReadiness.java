@@ -44,9 +44,19 @@ public final class ImplementationReadiness {
                         if (line.contains("*/")) block = false;
                         if (!comment && line.matches(".*throw\\s+new\\s+(?:java\\.lang\\.)?UnsupportedOperationException\\s*\\(\\s*\"Conversion has not been implemented\"\\s*\\).*")) {
                             findings.add(new Finding(flowName, name, path, i + 1, "THROWING_STUB", "Generated converter still throws: Conversion has not been implemented."));
-                        } else if (line.startsWith("//@TODO implement your") || line.startsWith("// TODO: Fetch or create the result")) {
-                            findings.add(new Finding(flowName, name, path, i + 1, "REVIEW_SCAFFOLD", "Generated implementation TODO remains. Inspect the method; this warning alone does not prove it is unfinished."));
+                        } else if (line.matches("//\\s*@?TODO\\b.*")) {
+                            // Any comment-only TODO, not a fixed wording: the generated stubs use several ("//@TODO implement your",
+                            // "// TODO: Update the mutable payload", "// TODO review the default body"), so matching one or two
+                            // phrases silently missed the Generic Consumer, Translator and Email Converter scaffolds.
+                            findings.add(new Finding(flowName, name, path, i + 1, "REVIEW_SCAFFOLD", "A TODO marker remains in the implementation. Inspect the method; this warning alone does not prove it is unfinished."));
                         }
+                    }
+                    // The converter stub has a TODO comment directly above its throwing stub: report the stronger finding once.
+                    for (int i = findings.size() - 1; i > 0; i--) {
+                        var stub = findings.get(i);
+                        var todo = findings.get(i - 1);
+                        if ("THROWING_STUB".equals(stub.code()) && "REVIEW_SCAFFOLD".equals(todo.code()) && todo.file().equals(stub.file())
+                                && todo.line() + 1 == stub.line()) findings.remove(i - 1);
                     }
                 } catch (Exception failure) {
                     findings.add(new Finding(flowName, name, path, 1, "NOT_CHECKED", "Could not read implementation source."));

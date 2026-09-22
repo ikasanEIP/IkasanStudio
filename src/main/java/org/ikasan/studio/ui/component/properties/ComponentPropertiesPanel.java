@@ -1506,7 +1506,33 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             }
         }
         result.addAll(validateComponentNameIsUniqueInFlow());
+        result.addAll(validateNameHasNoComma());
         return result;
+    }
+
+    /**
+     * Ikasan reads flow and component names from comma-separated settings with no quoting (flowStartupTypes is
+     * "flowName,startupType" split at the first comma, and the wiretap triggers likewise), so a name containing a
+     * comma made the generated application fail to start. A flow name also names a Spring relaxed-binding map key
+     * (ikasan.flow.configuration[name].isRecording): "[" broke that key's own bracket matching with no way to
+     * escape it (confirmed at runtime), so it is rejected too, even though "]" alone is harmless.
+     * @return a single ValidationInfo if the flow or component name being edited contains a comma or "[", otherwise empty.
+     */
+    private List<ValidationInfo> validateNameHasNoComma() {
+        Object selected = getSelectedComponent();
+        if (!(selected instanceof Flow) && !(selected instanceof FlowElement)) {
+            return List.of();
+        }
+        String identityKey = ((org.ikasan.studio.core.model.ikasan.instance.BasicElement) selected).getIdentityPropertyMetaKey();
+        ComponentPropertyEditRow nameRow = getComponentPropertyEditBoxList().stream()
+                .filter(row -> identityKey.equals(row.getPropertyKey()))
+                .findFirst().orElse(null);
+        if (nameRow == null || !(nameRow.getValue() instanceof String name)) {
+            return List.of();
+        }
+        if (name.contains(",")) return List.of(new ValidationInfo(StudioBundle.message("message.NameMustNotContainComma", name), nameRow.getOverridingInputField()));
+        if (name.contains("[")) return List.of(new ValidationInfo(StudioBundle.message("message.NameMustNotContainOpenBracket", name), nameRow.getOverridingInputField()));
+        return List.of();
     }
 
     /**
