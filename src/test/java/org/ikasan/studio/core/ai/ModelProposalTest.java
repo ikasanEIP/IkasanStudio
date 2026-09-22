@@ -263,6 +263,50 @@ public class ModelProposalTest {
                 .hasMessageContaining("Dev Null Producer");
     }
 
+    /** A rejected value should say what is acceptable, without echoing the value (it may be a credential). */
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void aRejectedValueExplainsTheRuleOrTheAllowedChoices(String version) throws Exception {
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        var snapshot = LiveModelSnapshot.capture(live);
+        String start = "{\"type\":\"addFlow\",\"flow\":\"T\"},{\"type\":\"addComponent\",\"flow\":\"T\",\"key\":\"Event Generating Consumer\",\"name\":\"Start\"},";
+
+        assertThatThrownBy(() -> ModelProposal.prepare(snapshot, JSON.readTree("[" + start
+                + "{\"type\":\"addComponent\",\"flow\":\"T\",\"key\":\"Object To XML String Converter\",\"name\":\"X\","
+                + "\"properties\":{\"objectClass\":\"not a class!\"}}]")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("objectClass")
+                .hasMessageContaining("Provide a fully qualified Java class name")
+                .hasMessageNotContaining("not a class!");
+
+        assertThatThrownBy(() -> ModelProposal.prepare(snapshot, JSON.readTree("[" + start
+                + "{\"type\":\"addComponent\",\"flow\":\"T\",\"key\":\"Converter\",\"name\":\"X\","
+                + "\"properties\":{\"conversionRecipeId\":\"nope\"}}]")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("conversionRecipeId")
+                .hasMessageContaining("string-to-bytes")
+                .hasMessageNotContaining("nope");
+    }
+
+    /** An AI is likely to write a sentence or a Unix cron; Quartz rejects both and the flow then cannot start. */
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void aCronExpressionQuartzWouldRejectIsExplainedToTheAi(String version) throws Exception {
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        var snapshot = LiveModelSnapshot.capture(live);
+        for (String bad : new String[]{"every 5 minutes", "*/5 * * * *"}) {
+            assertThatThrownBy(() -> ModelProposal.prepare(snapshot, JSON.readTree(
+                    "[{\"type\":\"addFlow\",\"flow\":\"T\"},{\"type\":\"addComponent\",\"flow\":\"T\",\"key\":\"Scheduled Consumer\","
+                            + "\"name\":\"Tick\",\"properties\":{\"cronExpression\":\"" + bad + "\"}}]")))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("cronExpression")
+                    .hasMessageContaining("Quartz cron expression")
+                    .hasMessageContaining("0 0/5 * * * ?");
+        }
+        // A valid expression is accepted.
+        ModelProposal.prepare(snapshot, JSON.readTree(
+                "[{\"type\":\"addFlow\",\"flow\":\"T\"},{\"type\":\"addComponent\",\"flow\":\"T\",\"key\":\"Scheduled Consumer\","
+                        + "\"name\":\"Tick\",\"properties\":{\"cronExpression\":\"0 0/5 * * * ?\"}}]"));
+    }
+
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void buildsFlowIncrementallyAcrossSeparateReviews(String version) throws Exception {
         Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());

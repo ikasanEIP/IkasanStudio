@@ -67,6 +67,14 @@ public class StudioBuildUtils {
     }
 
     /**
+     * True when two names generate the same Java class ("Test a.b", "Test a b" and "TestAB" all do), so they cannot
+     * both be used within one scope even though the text differs.
+     */
+    public static boolean sameGeneratedName(final String left, final String right) {
+        return left != null && right != null && toPascalCase(left).equals(toPascalCase(right));
+    }
+
+    /**
      * Used by FTL, don't assume unused.
      * Like camel case but starts with upper case letter
      * @param input to be changed

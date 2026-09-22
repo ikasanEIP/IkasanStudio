@@ -740,15 +740,29 @@ public final class AiProjectContractGenerator {
                       },
                       "additionalProperties": false
                     },
+                    "exceptionResolution": {
+                      "type": "object",
+                      "required": ["exceptionsCaught", "action"],
+                      "properties": {
+                        "exceptionsCaught": { "type": "string", "minLength": 1 },
+                        "action": { "type": "string", "minLength": 1 },
+                        "actionProperties": { "type": "object" }
+                      },
+                      "additionalProperties": true
+                    },
                     "flow": {
                       "type": "object",
-                      "required": ["name", "consumer", "transitions", "flowElements"],
+                      "required": ["name"],
                       "properties": {
                         "name": { "type": "string", "minLength": 1 },
                         "consumer": { "$ref": "#/$defs/component" },
                         "transitions": { "type": "array", "items": { "$ref": "#/$defs/transition" } },
                         "flowElements": { "type": "array", "items": { "$ref": "#/$defs/component" } },
-                        "exceptionResolver": { "$ref": "#/$defs/component" }
+                        "exceptionResolver": {
+                          "type": "object",
+                          "description": "Maps each caught exception class to its resolution.",
+                          "additionalProperties": { "$ref": "#/$defs/exceptionResolution" }
+                        }
                       },
                       "additionalProperties": true
                     }
@@ -940,6 +954,7 @@ public final class AiProjectContractGenerator {
         if (meta.isHiddenProperty()) result.put("hidden", true);
         if (meta.isChoicesEditable()) result.put("choicesEditable", true);
         if (meta.getValidation() != null && !meta.getValidation().isBlank()) result.put("validation", meta.getValidation());
+        if (meta.getValidationMessage() != null && !meta.getValidationMessage().isBlank()) result.put("validationMessage", meta.getValidationMessage());
         if (meta.getMandatoryIfTrue() != null) result.put("mandatoryIfTrue", meta.getMandatoryIfTrue());
         if (meta.getMandatoryUnlessAnyOf() != null) result.put("mandatoryUnlessAnyOf", meta.getMandatoryUnlessAnyOf());
         return result;

@@ -21,6 +21,8 @@
       "propertyName": "cronExpression",
       "propertyDisplayOrder": -70,
       "dataValidationType": "cronExpression",
+      "validation": "^\\s*(?:\\$\\{[^}]+\\}|[0-9A-Za-z*/,#\\-]+\\s+[0-9A-Za-z*/,#\\-]+\\s+[0-9A-Za-z*/,#\\-]+\\s+(?:\\?\\s+[0-9A-Za-z*/,#\\-]+\\s+[0-9A-Za-z*/,#\\-]+|[0-9A-Za-z*/,#\\-]+\\s+[0-9A-Za-z*/,#\\-]+\\s+\\?)(?:\\s+[0-9A-Za-z*/,#\\-]+)?)\\s*$",
+      "validationMessage": "Provide a Quartz cron expression: 6 or 7 space-separated fields (seconds minutes hours day-of-month month day-of-week [year]), with ? in exactly one of day-of-month and day-of-week, e.g. 0 0/5 * * * ? (every 5 minutes). Unix 5-field cron is not accepted.",
       "defaultValue": "0 * * * * ? *",
       "helpText": "Cron based expression dictating the invocation schedule for this component. Example, '*/5 * * * * ?' will fire every 5 seconds.",
       "setterProperty": true,
