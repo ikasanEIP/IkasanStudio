@@ -1,0 +1,108 @@
+{
+  "Scheduled Consumer": [
+    "Core Pipeline/Timer",
+    "Exclusion/Timer",
+    "JMS Sender/Timer",
+    "FTP Sender/Timer",
+    "SFTP Sender/Timer",
+    "Mail/Timer"
+  ],
+  "Converter": [
+    "Core Pipeline/Make Batch",
+    "Exclusion/Validate Order",
+    "JMS Sender/Make JMS Order",
+    "JMS Receiver/Require Object Message",
+    "JMS Receiver/Require Order",
+    "FTP Sender/Make Text",
+    "FTP Sender/Encode File",
+    "FTP Receiver/Decode File",
+    "SFTP Sender/Make Text",
+    "SFTP Sender/Encode File",
+    "SFTP Receiver/Decode File",
+    "Local Files/Read File Contents",
+    "Mail/Make Text"
+  ],
+  "Default List Splitter": [
+    "Core Pipeline/Unpack Batch"
+  ],
+  "Splitter": [
+    "Core Pipeline/Split Orders"
+  ],
+  "Message Filter": [
+    "Core Pipeline/Accept Named Orders"
+  ],
+  "Default Message Filter": [
+    "Core Pipeline/Accept Known Quantities"
+  ],
+  "Translator": [
+    "Core Pipeline/Mark Translated"
+  ],
+  "Broker": [
+    "Core Pipeline/Enrich Order"
+  ],
+  "Single Recipient Router": [
+    "Core Pipeline/Choose Route"
+  ],
+  "Logging Producer": [
+    "Core Pipeline/Log Priority",
+    "Core Pipeline/Log Standard",
+    "Core Pipeline/Log Rejected",
+    "Exclusion/Accepted Order",
+    "JMS Receiver/Log XML",
+    "FTP Receiver/Log File",
+    "SFTP Receiver/Log File",
+    "Local Files/Log Line"
+  ],
+  "Generic Consumer": [
+    "Fanout/Controlled Input"
+  ],
+  "Multi Recipient Router": [
+    "Fanout/Copy To Both"
+  ],
+  "Generic Producer": [
+    "Fanout/Audit Order"
+  ],
+  "Dev Null Producer": [
+    "Fanout/Fulfil Order",
+    "Event Source/Discard Sample"
+  ],
+  "Exception Resolver": [
+    "Exclusion"
+  ],
+  "Event Generating Consumer": [
+    "Event Source/Paced Events"
+  ],
+  "Spring JMS Producer": [
+    "JMS Sender/Send Order"
+  ],
+  "Spring JMS Consumer": [
+    "JMS Receiver/Receive Order"
+  ],
+  "JMS Object Message To Object Converter": [
+    "JMS Receiver/Decode Object"
+  ],
+  "Object To XML String Converter": [
+    "JMS Receiver/Encode XML"
+  ],
+  "FTP Producer": [
+    "FTP Sender/Send File"
+  ],
+  "FTP Consumer": [
+    "FTP Receiver/Receive File"
+  ],
+  "SFTP Producer": [
+    "SFTP Sender/Send File"
+  ],
+  "SFTP Consumer": [
+    "SFTP Receiver/Receive File"
+  ],
+  "Local File Consumer": [
+    "Local Files/Read Lines"
+  ],
+  "Email Converter": [
+    "Mail/Build Mail"
+  ],
+  "Email Producer": [
+    "Mail/Send Mail"
+  ]
+}

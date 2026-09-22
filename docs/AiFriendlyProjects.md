@@ -32,6 +32,12 @@ flowchart TB
     C --> A
 ```
 
+The generated guide requires a short purpose/success statement before each test, immediate
+updates about failures, stalls or approval restrictions, and meaningful updates at least
+every 60 seconds during extended investigation. These are informational updates, not
+additional approval gates; application failures must be distinguished from tooling or
+access problems.
+
 The files guide the chosen client; generating them does not contact or train an AI model. Existing root instructions need to include the discovery guidance for that route to work.
 
 ## Maintenance

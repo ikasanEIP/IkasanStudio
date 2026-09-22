@@ -86,3 +86,17 @@ mvn -B -f build/migration-compile/V3.3.9/pom.xml -DskipTests compile
 ```
 
 Before release, exercise the dialog in light and dark themes: cancel a preview, apply each direction, inspect build results, restore a snapshot, and repeat with custom code and unsaved edits. Check that deliberate editor closure and other open projects remain unaffected.
+
+## Reusable runtime migration fixture
+
+The [migration regression module](../examples/migration-regression/README.md) supplies
+an importable model, complete developer-owned implementations, 12 compact flows and
+isolated FTP/SFTP/SMTP services. Its acceptance suite exercises every bundled executable
+component type, both routers and persisted exception exclusion, then checks idle readiness
+and later delivery. It produces Markdown/JSON reports and compares user-source hashes
+and model structure before and after migration.
+
+Use the same generated workspace for the interactive upgrade; retain the before report
+and run the unchanged tests after generation. The headless fixture builder also supports
+an engine-driven target build, but it does not replace migration-dialog and recovery UX
+checks. See the fixture's coverage notes for visual-only entries and shutdown limits.

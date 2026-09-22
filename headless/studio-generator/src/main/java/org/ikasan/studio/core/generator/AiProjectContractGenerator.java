@@ -399,6 +399,21 @@ public final class AiProjectContractGenerator {
                    List incomplete classes, unsupported components and remaining setup explicitly. Continue
                    implementing unblocked parts rather than treating the list of gaps as task completion.
 
+                ## Communicate testing progress and blockers
+
+                Before each test or verification step, send a short message stating what you are testing
+                and what result will count as success.
+
+                If that step fails, stalls, encounters an approval restriction, or requires unexpected
+                investigation, communicate this immediately—before starting further diagnosis or retries.
+                Explain what happened, its impact on completion, and your next action.
+
+                During extended investigation, provide a meaningful update at least every 60 seconds.
+                Distinguish problems in the application from problems with testing tools, access, or permissions.
+
+                These updates are informational and do not require user confirmation.
+                Continue authorized work autonomously.
+
                 ## Efficient implementation and verification
 
                 For a small demonstration, keep the analyst's brief focused on behaviour; use this contract

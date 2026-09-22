@@ -1,0 +1,627 @@
+[
+  [
+    {
+      "type": "addFlow",
+      "flow": "Core Pipeline"
+    },
+    {
+      "type": "addComponent",
+      "flow": "Core Pipeline",
+      "key": "Scheduled Consumer",
+      "name": "Timer",
+      "properties": {
+        "cronExpression": "0/5 * * * * ?",
+        "eager": false
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Core Pipeline",
+      "key": "Converter",
+      "name": "Make Batch",
+      "properties": {
+        "userImplementedClassName": "MakeBatch",
+        "fromType": "org.quartz.JobExecutionContext",
+        "toType": "java.util.List"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Core Pipeline",
+      "key": "Default List Splitter",
+      "name": "Unpack Batch"
+    },
+    {
+      "type": "addComponent",
+      "flow": "Core Pipeline",
+      "key": "Splitter",
+      "name": "Split Orders",
+      "properties": {
+        "userImplementedClassName": "SplitOrders",
+        "fromType": "java.util.List",
+        "toType": "fixture.Order"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Core Pipeline",
+      "key": "Message Filter",
+      "name": "Accept Named Orders",
+      "properties": {
+        "userImplementedClassName": "AcceptNamedOrders",
+        "fromType": "fixture.Order"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Core Pipeline",
+      "key": "Default Message Filter",
+      "name": "Accept Known Quantities",
+      "properties": {
+        "userImplementedClassName": "AcceptKnownQuantities",
+        "fromType": "fixture.Order"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Core Pipeline",
+      "key": "Translator",
+      "name": "Mark Translated",
+      "properties": {
+        "userImplementedClassName": "MarkTranslated",
+        "type": "fixture.Order"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Core Pipeline",
+      "key": "Broker",
+      "name": "Enrich Order",
+      "properties": {
+        "userImplementedClassName": "EnrichOrder",
+        "fromType": "fixture.Order",
+        "toType": "fixture.Order"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Core Pipeline",
+      "key": "Single Recipient Router",
+      "name": "Choose Route",
+      "properties": {
+        "userImplementedClassName": "ChooseRoute",
+        "fromType": "fixture.Order",
+        "toType": "java.lang.String"
+      }
+    },
+    {
+      "type": "configureRoutes",
+      "flow": "Core Pipeline",
+      "component": "Choose Route",
+      "names": [
+        "Priority",
+        "Standard",
+        "Rejected"
+      ]
+    },
+    {
+      "type": "addComponent",
+      "flow": "Core Pipeline",
+      "key": "Logging Producer",
+      "name": "Log Priority",
+      "route": [
+        "Priority"
+      ]
+    },
+    {
+      "type": "addComponent",
+      "flow": "Core Pipeline",
+      "key": "Logging Producer",
+      "name": "Log Standard",
+      "route": [
+        "Standard"
+      ]
+    },
+    {
+      "type": "addComponent",
+      "flow": "Core Pipeline",
+      "key": "Logging Producer",
+      "name": "Log Rejected",
+      "route": [
+        "Rejected"
+      ]
+    }
+  ],
+  [
+    {
+      "type": "addFlow",
+      "flow": "Fanout"
+    },
+    {
+      "type": "addComponent",
+      "flow": "Fanout",
+      "key": "Generic Consumer",
+      "name": "Controlled Input",
+      "properties": {
+        "userImplementedClassName": "ControlledInput"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Fanout",
+      "key": "Multi Recipient Router",
+      "name": "Copy To Both",
+      "properties": {
+        "userImplementedClassName": "CopyToBoth",
+        "fromType": "fixture.Order",
+        "toType": "java.util.List<String>"
+      }
+    },
+    {
+      "type": "configureRoutes",
+      "flow": "Fanout",
+      "component": "Copy To Both",
+      "names": [
+        "Audit",
+        "Fulfilment"
+      ]
+    },
+    {
+      "type": "addComponent",
+      "flow": "Fanout",
+      "key": "Generic Producer",
+      "name": "Audit Order",
+      "properties": {
+        "userImplementedClassName": "AuditOrder",
+        "fromType": "fixture.Order"
+      },
+      "route": [
+        "Audit"
+      ]
+    },
+    {
+      "type": "addComponent",
+      "flow": "Fanout",
+      "key": "Dev Null Producer",
+      "name": "Fulfil Order",
+      "route": [
+        "Fulfilment"
+      ]
+    }
+  ],
+  [
+    {
+      "type": "addFlow",
+      "flow": "Exclusion"
+    },
+    {
+      "type": "addComponent",
+      "flow": "Exclusion",
+      "key": "Scheduled Consumer",
+      "name": "Timer",
+      "properties": {
+        "cronExpression": "0/5 * * * * ?",
+        "eager": false,
+        "messageProvider": "OrderProvider"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Exclusion",
+      "key": "Converter",
+      "name": "Validate Order",
+      "properties": {
+        "userImplementedClassName": "ValidateOrder",
+        "fromType": "fixture.Order",
+        "toType": "fixture.Order"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Exclusion",
+      "key": "Logging Producer",
+      "name": "Accepted Order"
+    },
+    {
+      "type": "setExceptionResolution",
+      "flow": "Exclusion",
+      "exception": "org.ikasan.spec.component.transformation.TransformationException",
+      "action": "excludeEvent"
+    }
+  ],
+  [
+    {
+      "type": "addFlow",
+      "flow": "Event Source"
+    },
+    {
+      "type": "addComponent",
+      "flow": "Event Source",
+      "key": "Event Generating Consumer",
+      "name": "Paced Events",
+      "properties": {
+        "endpointEventProvider": "PacedEvents"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Event Source",
+      "key": "Dev Null Producer",
+      "name": "Discard Sample"
+    }
+  ],
+  [
+    {
+      "type": "addFlow",
+      "flow": "JMS Sender"
+    },
+    {
+      "type": "addComponent",
+      "flow": "JMS Sender",
+      "key": "Scheduled Consumer",
+      "name": "Timer",
+      "properties": {
+        "cronExpression": "0/5 * * * * ?",
+        "eager": false
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "JMS Sender",
+      "key": "Converter",
+      "name": "Make JMS Order",
+      "properties": {
+        "userImplementedClassName": "MakeJMSOrder",
+        "fromType": "org.quartz.JobExecutionContext",
+        "toType": "fixture.Order"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "JMS Sender",
+      "key": "Spring JMS Producer",
+      "name": "Send Order",
+      "properties": {
+        "destinationJndiName": "migration.orders",
+        "connectionFactoryName": "ConnectionFactory",
+        "connectionFactoryJndiPropertyFactoryInitial": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+        "connectionFactoryJndiPropertyProviderUrl": "vm://migration-fixture?create=true&broker.persistent=false&broker.useJmx=false",
+        "sessionTransacted": true
+      }
+    }
+  ],
+  [
+    {
+      "type": "addFlow",
+      "flow": "JMS Receiver"
+    },
+    {
+      "type": "addComponent",
+      "flow": "JMS Receiver",
+      "key": "Spring JMS Consumer",
+      "name": "Receive Order",
+      "properties": {
+        "destinationJndiName": "migration.orders",
+        "connectionFactoryName": "ConnectionFactory",
+        "connectionFactoryJndiPropertyFactoryInitial": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+        "connectionFactoryJndiPropertyProviderUrl": "vm://migration-fixture?create=true&broker.persistent=false&broker.useJmx=false",
+        "sessionTransacted": true,
+        "autoContentConversion": false,
+        "trustedObjectPackages": "fixture,java.lang,java.util"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "JMS Receiver",
+      "key": "Converter",
+      "name": "Require Object Message",
+      "properties": {
+        "userImplementedClassName": "RequireObjectMessage",
+        "fromType": "org.ikasan.spec.flow.FlowEvent",
+        "toType": "javax.jms.ObjectMessage"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "JMS Receiver",
+      "key": "JMS Object Message To Object Converter",
+      "name": "Decode Object"
+    },
+    {
+      "type": "addComponent",
+      "flow": "JMS Receiver",
+      "key": "Converter",
+      "name": "Require Order",
+      "properties": {
+        "userImplementedClassName": "RequireOrder",
+        "fromType": "org.ikasan.spec.flow.FlowEvent",
+        "toType": "fixture.Order"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "JMS Receiver",
+      "key": "Object To XML String Converter",
+      "name": "Encode XML",
+      "properties": {
+        "objectClass": "fixture.Order",
+        "rootName": "order",
+        "rootClassName": "fixture.Order"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "JMS Receiver",
+      "key": "Logging Producer",
+      "name": "Log XML"
+    }
+  ],
+  [
+    {
+      "type": "addFlow",
+      "flow": "FTP Sender"
+    },
+    {
+      "type": "addComponent",
+      "flow": "FTP Sender",
+      "key": "Scheduled Consumer",
+      "name": "Timer",
+      "properties": {
+        "cronExpression": "0/5 * * * * ?",
+        "eager": false
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "FTP Sender",
+      "key": "Converter",
+      "name": "Make Text",
+      "properties": {
+        "userImplementedClassName": "MakeText",
+        "fromType": "org.quartz.JobExecutionContext",
+        "toType": "java.lang.String"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "FTP Sender",
+      "key": "Converter",
+      "name": "Encode File",
+      "properties": {
+        "conversionRecipeId": "string-to-file-transfer-payload"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "FTP Sender",
+      "key": "FTP Producer",
+      "name": "Send File",
+      "properties": {
+        "remoteHost": "127.0.0.1",
+        "remotePort": 2121,
+        "username": "fixture",
+        "password": "fixture",
+        "outputDirectory": "/upload",
+        "overwrite": true,
+        "createParentDirectory": false
+      }
+    }
+  ],
+  [
+    {
+      "type": "addFlow",
+      "flow": "FTP Receiver"
+    },
+    {
+      "type": "addComponent",
+      "flow": "FTP Receiver",
+      "key": "FTP Consumer",
+      "name": "Receive File",
+      "properties": {
+        "remoteHost": "127.0.0.1",
+        "remotePort": 2121,
+        "username": "fixture",
+        "password": "fixture",
+        "sourceDirectory": "/upload",
+        "cronExpression": "0/2 * * * * ?",
+        "minAge": 0,
+        "destructive": false,
+        "filenamePattern": ".*[.]dat",
+        "clientID": "migration-ftp"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "FTP Receiver",
+      "key": "Converter",
+      "name": "Decode File",
+      "properties": {
+        "conversionRecipeId": "file-transfer-payload-to-string"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "FTP Receiver",
+      "key": "Logging Producer",
+      "name": "Log File"
+    }
+  ],
+  [
+    {
+      "type": "addFlow",
+      "flow": "SFTP Sender"
+    },
+    {
+      "type": "addComponent",
+      "flow": "SFTP Sender",
+      "key": "Scheduled Consumer",
+      "name": "Timer",
+      "properties": {
+        "cronExpression": "0/5 * * * * ?",
+        "eager": false
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "SFTP Sender",
+      "key": "Converter",
+      "name": "Make Text",
+      "properties": {
+        "userImplementedClassName": "MakeText",
+        "fromType": "org.quartz.JobExecutionContext",
+        "toType": "java.lang.String"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "SFTP Sender",
+      "key": "Converter",
+      "name": "Encode File",
+      "properties": {
+        "conversionRecipeId": "string-to-file-transfer-payload"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "SFTP Sender",
+      "key": "SFTP Producer",
+      "name": "Send File",
+      "properties": {
+        "remoteHost": "127.0.0.1",
+        "remotePort": 2222,
+        "username": "fixture",
+        "password": "fixture",
+        "privateKeyFilename": "${fixture.sftp.key:./services/id_rsa}",
+        "knownHostFilename": "${fixture.sftp.knownHosts:./services/known_hosts}",
+        "outputDirectory": "/upload",
+        "overwrite": true,
+        "createParentDirectory": false
+      }
+    }
+  ],
+  [
+    {
+      "type": "addFlow",
+      "flow": "SFTP Receiver"
+    },
+    {
+      "type": "addComponent",
+      "flow": "SFTP Receiver",
+      "key": "SFTP Consumer",
+      "name": "Receive File",
+      "properties": {
+        "remoteHost": "127.0.0.1",
+        "remotePort": 2222,
+        "username": "fixture",
+        "password": "fixture",
+        "privateKeyFilename": "${fixture.sftp.key:./services/id_rsa}",
+        "knownHostFilename": "${fixture.sftp.knownHosts:./services/known_hosts}",
+        "sourceDirectory": "/upload",
+        "cronExpression": "0/2 * * * * ?",
+        "minAge": 0,
+        "destructive": false,
+        "filenamePattern": ".*[.]dat",
+        "clientID": "migration-sftp"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "SFTP Receiver",
+      "key": "Converter",
+      "name": "Decode File",
+      "properties": {
+        "conversionRecipeId": "file-transfer-payload-to-string"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "SFTP Receiver",
+      "key": "Logging Producer",
+      "name": "Log File"
+    }
+  ],
+  [
+    {
+      "type": "addFlow",
+      "flow": "Local Files"
+    },
+    {
+      "type": "addComponent",
+      "flow": "Local Files",
+      "key": "Local File Consumer",
+      "name": "Read Lines",
+      "properties": {
+        "filenames": "./inputs/.*[.]txt",
+        "cronExpression": "0/2 * * * * ?"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Local Files",
+      "key": "Converter",
+      "name": "Read File Contents",
+      "properties": {
+        "userImplementedClassName": "ReadFileContents",
+        "fromType": "java.util.List",
+        "toType": "java.lang.String"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Local Files",
+      "key": "Logging Producer",
+      "name": "Log Line"
+    }
+  ],
+  [
+    {
+      "type": "addFlow",
+      "flow": "Mail"
+    },
+    {
+      "type": "addComponent",
+      "flow": "Mail",
+      "key": "Scheduled Consumer",
+      "name": "Timer",
+      "properties": {
+        "cronExpression": "0/5 * * * * ?",
+        "eager": false
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Mail",
+      "key": "Converter",
+      "name": "Make Text",
+      "properties": {
+        "userImplementedClassName": "MakeText",
+        "fromType": "org.quartz.JobExecutionContext",
+        "toType": "java.lang.String"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Mail",
+      "key": "Email Converter",
+      "name": "Build Mail",
+      "properties": {
+        "userImplementedClassName": "BuildMail",
+        "fromType": "java.lang.String"
+      }
+    },
+    {
+      "type": "addComponent",
+      "flow": "Mail",
+      "key": "Email Producer",
+      "name": "Send Mail",
+      "properties": {
+        "toRecipient": "recipient@example.test",
+        "from": "fixture@example.test",
+        "mailSubject": "Migration fixture",
+        "mailhost": "127.0.0.1",
+        "mailSmtpHost": "127.0.0.1",
+        "mailSmtpPort": 2525
+      }
+    }
+  ]
+]

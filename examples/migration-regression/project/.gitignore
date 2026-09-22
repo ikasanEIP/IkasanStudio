@@ -1,0 +1,8 @@
+**/target/
+acceptance-reports/
+services/
+inputs/
+transaction-logs/
+scheduler-recovery/
+.idea/
+*.iml

@@ -1,0 +1,11 @@
+{
+  "applicationPackageName": "fixture",
+  "name": "MigrationRegression",
+  "version": "V3.3.9",
+  "flowStartupType": "AUTOMATIC",
+  "port": "18580",
+  "h2DbPortNumber": "18581",
+  "h2WebPortNumber": "18582",
+  "useEmbeddedH2": true,
+  "flows": []
+}
