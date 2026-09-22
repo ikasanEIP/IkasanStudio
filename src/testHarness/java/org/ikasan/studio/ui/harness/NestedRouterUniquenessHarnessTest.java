@@ -210,4 +210,59 @@ public class NestedRouterUniquenessHarnessTest extends ComponentTestHarness {
         panel.updateTargetComponent(spaced);
         assertThat((List<?>) validateMethod.invoke(panel)).isEmpty();
     }
+
+    /**
+     * Ikasan reads "flowName,startupType" and the wiretap triggers as comma-separated values with no quoting, splitting at
+     * the first comma, so a flow or component named "Orders, EU" made the generated application fail to start
+     * ("No enum constant StartupType. EU"). A flow name containing "[" broke the per-flow configuration map key
+     * (ikasan.flow.configuration[name].isRecording) the same way - Spring's relaxed binding cannot escape a "["
+     * inside the key at all (ConverterNotFoundException, confirmed with backslash-escaping still failing). Both
+     * confirmed by starting a generated application.
+     */
+    @Test
+    void flowAndComponentNamesContainingACommaOrOpenBracketAreRejected() throws Exception {
+        String metapackVersion = TestFixtures.BASE_META_PACK;
+        Flow flow = buildFlowWithRouterNestedInsideAnotherRoutersRoute1(metapackVersion);
+        FlowRoute routeA2 = flow.getFlowRoute().getChildRoutes().stream()
+                .filter(r -> "route2".equals(r.getRouteName())).findFirst().orElseThrow();
+        FlowElement producer = TestFixtures.getDevNullProducer(metapackVersion);
+        producer.setComponentName("Sink");
+        producer.setContainingFlowRoute(routeA2);
+        routeA2.getFlowElements().add(producer);
+
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(metapackVersion, new ArrayList<>(List.of(flow)));
+        Project project = getProject();
+        UiContext uiContext = project.getService(UiContext.class);
+        uiContext.setViewHandlerFactory(new ViewHandlerCache(project));
+        uiContext.setIkasanModule(module);
+
+        ComponentPropertiesPanel panel = new ComponentPropertiesPanel(project, false);
+        Method validateMethod = ComponentPropertiesPanel.class.getDeclaredMethod("validateNameHasNoComma");
+        validateMethod.setAccessible(true);
+
+        producer.setComponentName("Sink, EU");
+        panel.updateTargetComponent(producer);
+        assertThat((List<?>) validateMethod.invoke(panel)).as("component name with a comma").isNotEmpty();
+
+        producer.setComponentName("Sink [EU]");
+        panel.updateTargetComponent(producer);
+        assertThat((List<?>) validateMethod.invoke(panel)).as("component name with an open bracket").isNotEmpty();
+
+        producer.setComponentName("Sink EU");
+        panel.updateTargetComponent(producer);
+        assertThat((List<?>) validateMethod.invoke(panel)).as("component name without a comma").isEmpty();
+
+        String originalFlowName = flow.getIdentity();
+        flow.setName("Orders, EU");
+        panel.updateTargetComponent(flow);
+        assertThat((List<?>) validateMethod.invoke(panel)).as("flow name with a comma").isNotEmpty();
+
+        flow.setName("Orders [EU]");
+        panel.updateTargetComponent(flow);
+        assertThat((List<?>) validateMethod.invoke(panel)).as("flow name with an open bracket").isNotEmpty();
+
+        flow.setName(originalFlowName);
+        panel.updateTargetComponent(flow);
+        assertThat((List<?>) validateMethod.invoke(panel)).as("flow name without a comma").isEmpty();
+    }
 }
