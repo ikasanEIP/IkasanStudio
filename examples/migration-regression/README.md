@@ -12,7 +12,10 @@ existing projects or the local Ikasan reference repositories.
 ## Create and open the baseline
 
 Requirements: JDK 17, Maven, Python 3 and the repository's Gradle wrapper. Initial setup
-may download Maven/Gradle dependencies. From the Studio repository:
+may download Maven/Gradle dependencies. `create` first publishes the current headless
+generator and bundled packs to the local Maven repository (`./gradlew -p headless
+publishToMavenLocal`), so the fixture always builds against this checkout, not a stale
+one left over from an earlier run. From the Studio repository:
 
 ```sh
 python3 examples/migration-regression/fixture.py create --name my-baseline

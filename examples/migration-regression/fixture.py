@@ -26,6 +26,10 @@ def create(args):
  if not (ROOT/'builder').is_dir():raise ValueError('Create requires the Studio repository; use verify, serve or compare in a generated workspace')
  name=args.name or datetime.datetime.now().strftime('%Y%m%d-%H%M%S')+'-'+args.version
  if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*',name): raise ValueError('Use a simple workspace name containing letters, digits, dots, underscores or hyphens')
+ # builder/build.gradle.kts resolves the headless generator/packs from the local Maven repo (mavenLocal()), not a
+ # public repository - they are never released there. Publish the current source so create() has no undocumented
+ # manual prerequisite and never runs a stale generator left over from an earlier checkout.
+ subprocess.run([str(REPO/'gradlew'),'-p',str(REPO/'headless'),'publishToMavenLocal','--console=plain'],check=True)
  subprocess.run([str(REPO/'gradlew'),'-p',str(ROOT/'builder'),'run','--args',f'"{ROOT}" {args.version} {name}','--console=plain'],check=True)
  project=ROOT/'build'/name
  print('Open this Maven project in IntelliJ:',project)

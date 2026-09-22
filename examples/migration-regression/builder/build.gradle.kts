@@ -1,5 +1,5 @@
 plugins { application }
-repositories { mavenCentral() }
+repositories { mavenLocal(); mavenCentral() }
 java { toolchain.languageVersion.set(JavaLanguageVersion.of(17)) }
 dependencies {
     implementation("org.ikasan.studio:studio-generator:0.1.0-SNAPSHOT")
