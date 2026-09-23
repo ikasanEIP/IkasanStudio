@@ -9,7 +9,17 @@ Initial 1.0.0 release in preparation. These notes describe the planned release s
 release verification and outstanding checks are tracked separately in
 [Release-candidate verification](docs/ReleaseCandidateVerification.md).
 
+### Fixed
+
+- In-place migrations now remove unmodified, unversioned source-component dependencies retired by the target pack, avoiding unmanaged legacy JAXB dependencies after upgrading to 4.1.6 while preserving explicit overrides.
+
 ### Added
+
+- Added **Generate Flow Test…** to Tools → Ikasan Studio and flow context menus. Creates developer-owned, version-aware Ikasan test scaffolds in `user-flow-tests`, preserving existing tests during generation and migration. Scenarios require test inputs, settings and assertions before they can pass.
+
+- Bundled offline migration/verification tools with the plugin, with Tools → Ikasan Studio → Export Offline Migration Tools for local extraction without another download.
+
+- Added standalone migration preview/apply with recovery snapshots and a reusable Maven before/after verifier for developers’ Studio projects; reports distinguish missing test coverage from passing checks.
 
 - Added a reusable all-executable-component migration fixture with real-flow acceptance tests, isolated transport services and before/after reports checking behaviour, model structure and developer-source preservation.
 

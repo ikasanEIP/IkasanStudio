@@ -148,6 +148,17 @@ tasks.named<ProcessResources>("processResources") {
     from(mcpAdapterJar) { into("studio/ai") }
 }
 
+// Ship the standalone tools as data, not on IntelliJ's plugin classpath.
+val offlineToolsArchive = layout.projectDirectory.file("headless/studio-cli/build/plugin-tools/studio-offline-tools.zip")
+tasks.named<ProcessResources>("processResources") {
+    dependsOn(gradle.includedBuild("studio-headless").task(":studio-cli:preparePluginTools"))
+    from(offlineToolsArchive) {
+        into("studio/offline")
+        rename { "studio-offline-tools.zip" }
+    }
+}
+
+
 // Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
     providers.gradleProperty("studioSandboxDirectory").orNull?.let {
@@ -280,7 +291,8 @@ tasks {
             gradle.includedBuild("studio-headless").task(":studio-test-kit:check"),
             gradle.includedBuild("studio-headless").task(":studio-bundled-packs:check"),
             gradle.includedBuild("studio-headless").task(":studio-pack-v3:check"),
-            gradle.includedBuild("studio-headless").task(":studio-pack-v4:check"))
+            gradle.includedBuild("studio-headless").task(":studio-pack-v4:check"),
+            gradle.includedBuild("studio-headless").task(":studio-cli:check"))
         dependsOn(validateMetaPacks)
     }
     wrapper {

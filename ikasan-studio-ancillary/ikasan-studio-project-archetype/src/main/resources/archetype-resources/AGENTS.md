@@ -15,7 +15,7 @@ the project-root ai-proposals/ folder. Write to a temporary file first, then ren
 place when complete. New proposal files can apply automatically under the same setting and user-code protection;
 confirm the saved model reflects the change before continuing. For proposals awaiting review,
 ask the developer to click Review on the AI proposal ready notification,
-or Tools -> Review Latest AI Proposal, then Apply. Keep IntelliJ and Studio open; no MCP connection or direct model edit is needed.
+or Tools -> Ikasan Studio -> Review Latest AI Proposal, then Apply. Keep IntelliJ and Studio open; no MCP connection or direct model edit is needed.
 After Studio confirms application, read the updated model and generated files, then compile
 and test. Do not treat writing a proposal file as applying the change. If the installed Studio
 lacks the import action, prepare the proposal and ask the developer to update Studio or make

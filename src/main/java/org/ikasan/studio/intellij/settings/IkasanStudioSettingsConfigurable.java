@@ -6,15 +6,15 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.ui.panel.ComponentPanelBuilder;
+import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JButton;
@@ -28,6 +28,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 /** Provides the Ikasan Studio settings page under Settings → Tools → Ikasan Studio. */
+// Local-IDE settings UI; remote Split Mode requires a frontend UI and RPC service boundary.
+@SuppressWarnings("SplitModeApiUsage")
 public class IkasanStudioSettingsConfigurable implements Configurable {
 
     private JCheckBox gettingStartedHintsCheckBox;
@@ -53,11 +55,10 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
     }
 
     @Override
-    public JComponent createComponent() {
+    public @NotNull JComponent createComponent() {
         gettingStartedHintsCheckBox = new JBCheckBox(StudioBundle.message("checkbox.ShowGettingStartedHints"));
 
         JPanel hintsPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
-        hintsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.Onboarding")));
         hintsPanel.add(gettingStartedHintsCheckBox, BorderLayout.NORTH);
 
         JLabel hintsNote = wrappingNote("label.HintsNote");
@@ -84,14 +85,12 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         showSharedEndpointsCheckBox = new JBCheckBox(StudioBundle.message("label.ShowSharedEndpoints"));
         showSharedEndpointsCheckBox.setToolTipText(StudioBundle.message("tooltip.ShowSharedEndpoints"));
         JPanel sharedEndpointsPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
-        sharedEndpointsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.SharedEndpoints")));
         sharedEndpointsPanel.add(showSharedEndpointsCheckBox, BorderLayout.NORTH);
         sharedEndpointsPanel.add(wrappingNote("tooltip.ShowSharedEndpoints"), BorderLayout.CENTER);
 
         showJmsConnectorsCheckBox = new JBCheckBox(StudioBundle.message("checkbox.ShowJmsConnectors"));
 
         JPanel jmsConnectorsPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
-        jmsConnectorsPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.JmsConnectors")));
         jmsConnectorsPanel.add(showJmsConnectorsCheckBox, BorderLayout.NORTH);
 
         JLabel jmsConnectorsNote = wrappingNote("label.JmsConnectorsNote");
@@ -100,7 +99,6 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         testMailServerLivePollingCheckBox = new JBCheckBox(StudioBundle.message("checkbox.TestMailServerLivePolling"));
 
         JPanel testMailServerPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
-        testMailServerPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.TestMailServerLivePolling")));
         testMailServerPanel.add(testMailServerLivePollingCheckBox, BorderLayout.NORTH);
 
         JLabel testMailServerNote = wrappingNote("label.TestMailServerLivePollingNote");
@@ -109,7 +107,6 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         flowErrorMonitoringCheckBox = new JBCheckBox(StudioBundle.message("checkbox.FlowErrorMonitoring"));
 
         JPanel flowErrorMonitoringPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
-        flowErrorMonitoringPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.FlowErrorMonitoring")));
         flowErrorMonitoringPanel.add(flowErrorMonitoringCheckBox, BorderLayout.NORTH);
 
         JLabel flowErrorMonitoringNote = wrappingNote("label.FlowErrorMonitoringNote");
@@ -123,7 +120,6 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         autoSaveModuleDiagramCheckBox = new JBCheckBox(StudioBundle.message("checkbox.ModuleDiagramAutoSave"));
 
         JPanel autoSaveModuleDiagramPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
-        autoSaveModuleDiagramPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.ModuleDiagramAutoSave")));
         autoSaveModuleDiagramPanel.add(autoSaveModuleDiagramCheckBox, BorderLayout.NORTH);
 
         JLabel autoSaveModuleDiagramNote = wrappingNote("label.ModuleDiagramAutoSaveNote");
@@ -169,17 +165,15 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         resetButtonConstraints.insets = JBUI.insetsTop(4);
         canvasLayoutFields.add(resetCanvasDistancesButton, resetButtonConstraints);
 
-        JPanel canvasLayoutPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
-        canvasLayoutPanel.setBorder(BorderFactory.createTitledBorder(
-                StudioBundle.message("label.CanvasLayout")));
-        canvasLayoutPanel.add(canvasLayoutFields, BorderLayout.NORTH);
+        JPanel canvasLayoutPanel = new JPanel(new VerticalLayout(JBUI.scale(4), VerticalLayout.FILL));
+        canvasLayoutPanel.add(new JBLabel(StudioBundle.message("label.CanvasLayout")));
+        canvasLayoutPanel.add(canvasLayoutFields);
         JLabel canvasLayoutNote = wrappingNote("label.CanvasLayoutNote");
-        canvasLayoutPanel.add(canvasLayoutNote, BorderLayout.CENTER);
+        canvasLayoutPanel.add(canvasLayoutNote);
 
         alwaysAskAiApprovalCheckBox = new JBCheckBox(StudioBundle.message("ai.AlwaysAskApproval"));
         confirmAiDeletesCheckBox = new JBCheckBox(StudioBundle.message("ai.ConfirmDeletes"));
-        JPanel aiPanel = new JPanel();
-        aiPanel.setLayout(new BoxLayout(aiPanel, BoxLayout.Y_AXIS));
+        JPanel aiPanel = new JPanel(new VerticalLayout(0, VerticalLayout.FILL));
         aiPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("ai.SettingsHeading")));
         aiPanel.add(alwaysAskAiApprovalCheckBox);
         aiPanel.add(wrappingNote("ai.ApprovalNote"));
@@ -187,25 +181,23 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         aiPanel.add(confirmAiDeletesCheckBox);
         aiPanel.add(wrappingNote("ai.ConfirmDeletesNote"));
 
-        JPanel northPanel = new JPanel();
-        northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
-        northPanel.add(hintsPanel);
+        JPanel viewPanel = settingsGroup("label.View", hintsPanel, jmsConnectorsPanel,
+                sharedEndpointsPanel, canvasLayoutPanel, autoSaveModuleDiagramPanel);
+        JPanel testingPanel = settingsGroup("label.TestingSupport", debugCanvasPanel,
+                testMailServerPanel, flowErrorMonitoringPanel);
+
+        JPanel northPanel = new JPanel(new VerticalLayout(0, VerticalLayout.FILL));
         northPanel.add(aiPanel);
         northPanel.add(userCodePanel);
+        northPanel.add(viewPanel);
+        northPanel.add(testingPanel);
         northPanel.add(advancedControlsPanel);
-        northPanel.add(jmsConnectorsPanel);
-        northPanel.add(sharedEndpointsPanel);
-        northPanel.add(canvasLayoutPanel);
-        northPanel.add(testMailServerPanel);
-        northPanel.add(flowErrorMonitoringPanel);
-        northPanel.add(autoSaveModuleDiagramPanel);
-        northPanel.add(debugCanvasPanel);
         JPanel reportingPanel = new JPanel(new BorderLayout());
         reportingPanel.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("label.ErrorReporting")));
         reportingPanel.add(wrappingNote("label.ErrorReportingNote"), BorderLayout.CENTER);
         northPanel.add(reportingPanel);
 
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new SettingsContent();
         panel.setBorder(JBUI.Borders.empty(10));
         panel.add(northPanel, BorderLayout.NORTH);
 
@@ -297,6 +289,13 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         }
     }
 
+    private static JPanel settingsGroup(String titleKey, JComponent... options) {
+        JPanel group = new JPanel(new VerticalLayout(JBUI.scale(12), VerticalLayout.FILL));
+        group.setBorder(BorderFactory.createTitledBorder(StudioBundle.message(titleKey)));
+        for (JComponent option : options) group.add(option);
+        return group;
+    }
+
     private static JSpinner canvasDistanceSpinner(int defaultValue) {
         return pixelSpinner(defaultValue, IkasanStudioSettings.MINIMUM_CANVAS_DISTANCE,
                 IkasanStudioSettings.MAXIMUM_CANVAS_DISTANCE);
@@ -333,17 +332,49 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         return ((Number) spinner.getValue()).intValue();
     }
 
-    // ComponentPanelBuilder is deprecated at the class level (bare @Deprecated, no forRemoval=true - confirmed
-    // from the platform jar's bytecode, not assumed) in favour of JetBrains' newer Kotlin UI DSL
-    // (com.intellij.ui.dsl.builder). This whole settings panel is plain Java Swing, not built on that DSL, and
-    // it's not scheduled for imminent removal - rewriting the entire panel to adopt the DSL is a disproportionate
-    // fix for one static-analysis nag, so this narrowly suppresses it at the one call site instead.
-    @SuppressWarnings("deprecation")
+    /** Wrap help text to its section's actual width, without a fixed HTML column width. */
     private static JLabel wrappingNote(String messageKey) {
-        JLabel note = ComponentPanelBuilder.createCommentComponent(
-                StudioBundle.message(messageKey), true);
+        JLabel note = new JBLabel("<html>" + com.intellij.openapi.util.text.StringUtil.escapeXmlEntities(
+                StudioBundle.message(messageKey)).replace("\n", "<br>") + "</html>") {
+            @Override public java.awt.Dimension getPreferredSize() {
+                var parent = getParent();
+                int width = JBUI.scale(500);
+                if (parent != null && parent.getWidth() > 0) {
+                    var padding = parent.getInsets();
+                    width = Math.max(1, parent.getWidth() - padding.left - padding.right);
+                }
+                var view = (javax.swing.text.View) getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
+                if (view == null) return super.getPreferredSize();
+                var padding = getInsets();
+                view.setSize(Math.max(1, width - padding.left - padding.right), 0);
+                return new java.awt.Dimension(width,
+                        (int) Math.ceil(view.getPreferredSpan(javax.swing.text.View.Y_AXIS)) + padding.top + padding.bottom);
+            }
+            @Override public java.awt.Dimension getMinimumSize() {
+                return new java.awt.Dimension(0, getFontMetrics(getFont()).getHeight());
+            }
+        };
+        note.setFont(JBUI.Fonts.smallFont());
+        note.setForeground(com.intellij.util.ui.UIUtil.getContextHelpForeground());
         note.setBorder(JBUI.Borders.emptyLeft(24));
+        note.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override public void componentResized(java.awt.event.ComponentEvent event) { note.revalidate(); }
+        });
         return note;
+    }
+
+    /** Settings should wrap to the viewport instead of requesting a horizontal scrolling canvas. */
+    private static final class SettingsContent extends JPanel implements javax.swing.Scrollable {
+        SettingsContent() { super(new BorderLayout()); }
+        @Override public java.awt.Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        @Override public boolean getScrollableTracksViewportWidth() { return true; }
+        @Override public boolean getScrollableTracksViewportHeight() { return false; }
+        @Override public int getScrollableUnitIncrement(java.awt.Rectangle visible, int orientation, int direction) {
+            return JBUI.scale(16);
+        }
+        @Override public int getScrollableBlockIncrement(java.awt.Rectangle visible, int orientation, int direction) {
+            return Math.max(JBUI.scale(16), visible.height - JBUI.scale(16));
+        }
     }
 
     void resetCanvasDistancesToDefaults() {

@@ -26,7 +26,7 @@ Install the candidate plugin ZIP using **Settings → Plugins → gear → Insta
 
 Choose **File → New → Project → Maven Archetype**. Select Maven Central and search for `org.ikasan.studio:ikasan-studio-project-archetype`. Give the project a name and choose the JDK for your intended Ikasan version. If the catalogue cannot resolve the archetype, see [Troubleshooting](Troubleshooting.md); do not substitute an unrelated archetype.
 
-Wait for Maven import and indexing. Studio opens in an editor tab. To reopen it, click the squid icon on the far-right stripe, use **Tools → Open Ikasan Studio**, or search for that action using Find Action.
+Wait for Maven import and indexing. Studio opens in an editor tab. To reopen it, click the squid icon on the far-right stripe, use **Tools → Ikasan Studio → Open Ikasan Studio**, or search for that action using Find Action.
 
 ## 2. Configure the module
 

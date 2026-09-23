@@ -1,9 +1,48 @@
 # Testing flows with the Ikasan test framework
 
-Use Ikasan's `ikasan-test` framework to leave reusable tests in the application's
-`user/src/test/java`, alongside tests of custom component behaviour. This complements
-runtime verification through Studio; compilation and component invocation counts alone
-do not establish successful delivery.
+Use **Tools → Ikasan Studio → Generate Flow Test…**, or right-click a flow and choose
+**Generate Flow Test…**, to create a reusable Ikasan test scaffold. Custom component unit
+tests can still live in `user/src/test/java`. Application-level flow tests live in a separate,
+developer-owned `user-flow-tests` Maven module: `generated` already depends on `user`, so putting
+a test dependency on `generated` inside `user` would create a Maven dependency cycle.
+
+## Generate and complete a test
+
+1. Save the module and open files, and wait for generation to finish. Select a saved flow
+   that has a consumer.
+2. Generate the scaffold. Studio adds `user-flow-tests` to the root POM, creates the test module
+   POM and README if missing, and opens the new Java test. Existing files are preserved;
+   generating the same test again reports that it already exists. Commit the new files.
+3. Read `user-flow-tests/README.md`. Fill in isolated test settings, the output producer name,
+   input batches and expected payloads. Consult `LOCAL_TEST_ENVIRONMENT.md` for local services.
+   Review application startup beans and connection settings before enabling the test.
+4. Set `CONFIGURED=true` only after completing the scenario. Run from the project root:
+   `mvn -pl user-flow-tests -am test`. Until configured, the test deliberately fails **before**
+   starting Spring or any external services; it does not silently skip or report success.
+
+The version-specific FreeMarker templates use `IkasanFlowTestRule` to start the real flow,
+attach an output listener, and check first delivery, idle readiness and later delivery without
+restarting. Scheduled consumers receive explicit triggers. Other consumers need a transport-
+specific input implementation. Teardown stops the isolated test flow and closes its context;
+the saved model and normal module startup settings are unchanged.
+
+This initial generator does not infer business expectations, provision test services or automatically
+complete router/exclusion scenarios. It lists producer names to help extend assertions for every
+branch. Observing a producer's flow payload does not prove external delivery; add receiver-side
+assertions. The scaffold uses a separate in-memory H2 database and test-only MANUAL startup,
+including per-flow overrides. It still requires review of connection settings and startup beans.
+Existing module POMs are preserved: if you already have `user-flow-tests`, check its dependencies and
+JUnit 4 test provider. New module POMs explicitly select Surefire's JUnit 4 provider.
+
+## Migration and ownership
+
+The test dependency inherits `${version.ikasan}` from the root POM. Migration between 3.3.9 and
+4.1.6 updates that property and retains the `user-flow-tests` module; it does not rewrite developer
+assertions or test source. Both templates use their shared rule API. Run the same completed tests
+before and after migration. Future framework interface changes or application type changes may
+still require deliberate test edits. Normal Studio generation never owns `user-flow-tests/`.
+
+Compilation and component invocation counts alone do not establish successful delivery.
 
 ## Choose the matching release
 

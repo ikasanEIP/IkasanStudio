@@ -45,13 +45,13 @@ flowchart LR
 | `studio_propose`         | Submit structured operations for validation and application/review.  |
 | `studio_proposal_status` | Check review, generation, completion, failure or undo status.        |
 
-**Without MCP.** The assistant reads the saved model and generated guidance, then writes a `*.studio-proposal.json` file under `ai-proposals/`. Studio discovers it and applies the same validation and approval policy. A saved-model hash guards against stale proposals. A persistent review banner appears when attention is needed; **Tools → Review Latest AI Proposal** and **Import AI Proposal into Ikasan Studio…** provide explicit access. The assistant must reread the saved result before claiming success; a proposal file alone is not an applied change.
+**Without MCP.** The assistant reads the saved model and generated guidance, then writes a `*.studio-proposal.json` file under `ai-proposals/`. Studio discovers it and applies the same validation and approval policy. A saved-model hash guards against stale proposals. A persistent review banner appears when attention is needed; **Tools → Ikasan Studio → Review Latest AI Proposal** and **Import AI Proposal into Ikasan Studio…** provide explicit access. The assistant must reread the saved result before claiming success; a proposal file alone is not an applied change.
 
 ## 2. Getting connected and making changes
 
 Choose ![**Connect AI to Ikasan Studio**](images/ConfiguringAIIntegration1.png) on the **Create your Ikasan module** page, or later via
 
-**Tools → Connect AI to Ikasan Studio…** / IntelliJ **Find Action**.
+**Tools → Ikasan Studio → Connect AI to Ikasan Studio…** / IntelliJ **Find Action**.
 
 Access can be enabled before module configuration; model tools explain when Studio is not yet ready.
 

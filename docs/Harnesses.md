@@ -38,7 +38,7 @@ Messages are consumed, not copied, forwarded or replayed. Messages already on th
 
 Start **Debug module**, wait for startup, then use **Send Test Message** on a supported Consumer. This sends a chosen payload into downstream processing through the running module's local Studio endpoint. Selected FTP/SFTP payloads bypass remote scanning and duplicate detection. Selected local files bypass scheduled discovery, filename matching and post-processing, and must be readable by the module process.
 
-Use **Trigger scan now** to exercise the real scheduled consumer acquisition path. For local files, **Show scan directory** identifies the running configuration. Normal minimum file age, filename patterns and duplicate detection still apply; FTP/SFTP defaults can ignore files younger than 120 seconds. Confirmation means the asynchronous scan was requested, not that a file was delivered. Default and custom Scheduled Consumer message providers still determine the event produced by a real trigger.
+Use **Check for files** to exercise the real scheduled consumer acquisition path. For local files, **Show scan directory** identifies the running configuration. Normal minimum file age, filename patterns and duplicate detection still apply; FTP/SFTP defaults can ignore files younger than 120 seconds. Confirmation means the asynchronous scan was requested, not that a file was delivered. Default and custom Scheduled Consumer message providers still determine the event produced by a real trigger.
 
 Harness success checks the exercised path only. Test error handling, retries, credentials, TLS, transport semantics and business transformations against representative external systems before deployment. Debug copy helpers do not guarantee isolation of mutable payloads.
 
@@ -48,7 +48,7 @@ For supported file consumers, a real scan exercises acquisition rules. Synthetic
 
 ```mermaid
 flowchart TB
-    S["Trigger scan now"] --> C["Consumer acquisition<br/>Configured scanning rules"]
+    S["Check for files"] --> C["Consumer acquisition<br/>Configured scanning rules"]
     F["Configured source<br/>Local files or FTP/SFTP server"] --> C
     C -->|"Accepted event"| D["Downstream flow components"]
     I["Send Test Message"] --> E["Module's local test endpoint"]

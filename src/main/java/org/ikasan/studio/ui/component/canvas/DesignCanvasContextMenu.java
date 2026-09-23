@@ -41,61 +41,55 @@ public class DesignCanvasContextMenu {
     static JPopupMenu createCanvasMenu(Project project, MouseEvent mouseEvent, BasicElement ikasanBasicElement) {
         JPopupMenu menu = new JPopupMenu();
         DesignerCanvas canvas = project.getService(UiContext.class).getDesignerCanvas();
-        if (canvas != null && (ikasanBasicElement instanceof Flow || ikasanBasicElement instanceof Module)) {
-            if (ikasanBasicElement instanceof Flow flow) menu.add(canvas.getFlowClipboardActions().copyItem(flow));
-            menu.add(canvas.getFlowClipboardActions().pasteItem());
-            menu.addSeparator();
-        }
-
-        if (ikasanBasicElement instanceof Module || ikasanBasicElement instanceof Flow
-                || ikasanBasicElement instanceof FlowElement) {
-            JMenuItem wiretaps = new JMenuItem(StudioBundle.message("wiretapEvents.action"));
-            wiretaps.addActionListener(e -> {
-                Flow owner = ikasanBasicElement instanceof FlowElement element ? element.getContainingFlow() : null;
-                WiretapEventsDialog.open(project,
-                        ikasanBasicElement instanceof Flow ? ikasanBasicElement.getIdentity()
-                                : owner == null ? null : owner.getIdentity(),
-                        ikasanBasicElement instanceof FlowElement ? ikasanBasicElement.getIdentity() : null);
-            });
-            menu.add(wiretaps);
-        }
-        if (ikasanBasicElement instanceof Module || ikasanBasicElement instanceof Flow) {
-            JMenuItem exclusions = new JMenuItem(StudioBundle.message("exclusions.action"));
-            exclusions.addActionListener(e -> ExcludedEventsDialog.open(project,
-                    ikasanBasicElement instanceof Flow ? ikasanBasicElement.getIdentity() : null));
-            menu.add(exclusions);
-            menu.addSeparator();
-        }
-
         if (ikasanBasicElement instanceof Flow flow) {
             menu.add(createDeleteComponentMenuItem(project, ikasanBasicElement));
             menu.add(createEditComponentMenuItem(project, ikasanBasicElement));
             menu.addSeparator();
             addMoveFlowMenuItemsIfApplicable(menu, project, flow);
-            menu.add(createHelpTextItem(project, ikasanBasicElement, mouseEvent));
-            menu.add(createWebHelpTextItem(project, ikasanBasicElement, mouseEvent));
+            if (canvas != null) {
+                menu.add(canvas.getFlowClipboardActions().copyItem(flow));
+                menu.add(canvas.getFlowClipboardActions().pasteItem());
+            }
+            JMenuItem flowTest = new JMenuItem(StudioBundle.message("flowTest.title"));
+            flowTest.addActionListener(e -> org.ikasan.studio.intellij.testing.GenerateFlowTestAction.open(project, flow.getIdentity()));
+            menu.add(flowTest);
+            menu.addSeparator();
+
+            JMenuItem wiretaps = new JMenuItem(StudioBundle.message("wiretapEvents.action"));
+            wiretaps.addActionListener(e -> WiretapEventsDialog.open(project, flow.getIdentity(), null));
+            menu.add(wiretaps);
+            JMenuItem exclusions = new JMenuItem(StudioBundle.message("exclusions.action"));
+            exclusions.addActionListener(e -> ExcludedEventsDialog.open(project, flow.getIdentity()));
+            menu.add(exclusions);
+            menu.addSeparator();
+
             if (ComponentNavigationAvailability.forComponent(project, ikasanBasicElement).code()) {
                 menu.add(createNavigateToCode(project, ikasanBasicElement, false));
             }
             addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
+
         } else if (ikasanBasicElement instanceof FlowElement flowElement) {
-            var meta = flowElement.getComponentMeta();
-            if (meta.isConsumer() && ("FTP Endpoint".equals(meta.getEndpointKey())
-                    || "SFTP Endpoint".equals(meta.getEndpointKey()))) {
-                JMenuItem fileHistory = new JMenuItem(StudioBundle.message("fileHistory.action"));
-                fileHistory.addActionListener(e -> FileDuplicateHistoryDialog.open(project,
-                        flowElement.getPropertyValueAsString("clientID")));
-                menu.add(fileHistory);
-            }
             if (project.getService(UiContext.class).isRestartPending(UiContext.restartPendingKey(flowElement))) {
                 menu.add(createModuleRestartRequiredMenuItem(project));
                 menu.addSeparator();
             }
             menu.add(createDeleteComponentMenuItem(project, ikasanBasicElement));
             menu.add(createEditComponentMenuItem(project, ikasanBasicElement));
+            menu.addSeparator();
             if (!flowElement.getComponentMeta().isProducer() && !flowElement.getComponentMeta().isDebug()) {
                 menu.add(createDebugComponentMenuItem(project, ikasanBasicElement));
             }
+            addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.Wiretap,
+                    DECORATOR_POSITION.BEFORE, "menu.AddWiretapBefore", "menu.DeleteWiretapBefore");
+            addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.Wiretap,
+                    DECORATOR_POSITION.AFTER, "menu.AddWiretapAfter", "menu.DeleteWiretapAfter");
+            addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.LogWiretap,
+                    DECORATOR_POSITION.BEFORE, "menu.AddLoggingBefore", "menu.DeleteLoggingBefore");
+            addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.LogWiretap,
+                    DECORATOR_POSITION.AFTER, "menu.AddLoggingAfter", "menu.DeleteLoggingAfter");
+
+            menu.addSeparator();
+            int checksStart = menu.getComponentCount();
             if (flowElement.getComponentMeta().supportsSendTestMessage()
                     && project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
                 menu.add(IkasanFlowRouteViewHandler.usesTriggerBadge(flowElement)
@@ -116,6 +110,22 @@ public class DesignCanvasContextMenu {
                 directory.addActionListener(new ShowLocalFileScanDirectoryAction(project, flowElement));
                 menu.add(directory);
             }
+            if (menu.getComponentCount() > checksStart) menu.addSeparator();
+
+            JMenuItem wiretaps = new JMenuItem(StudioBundle.message("wiretapEvents.action"));
+            wiretaps.addActionListener(e -> {
+                Flow owner = flowElement.getContainingFlow();
+                WiretapEventsDialog.open(project, owner == null ? null : owner.getIdentity(), flowElement.getIdentity());
+            });
+            menu.add(wiretaps);
+            var meta = flowElement.getComponentMeta();
+            if (meta.isConsumer() && ("FTP Endpoint".equals(meta.getEndpointKey())
+                    || "SFTP Endpoint".equals(meta.getEndpointKey()))) {
+                JMenuItem fileHistory = new JMenuItem(StudioBundle.message("fileHistory.action"));
+                fileHistory.addActionListener(e -> FileDuplicateHistoryDialog.open(project,
+                        flowElement.getPropertyValueAsString("clientID")));
+                menu.add(fileHistory);
+            }
             if (JmsFlowConnections.isJmsProducer(flowElement)
                     && CreateTestJmsConsumerFlowAction.supports(flowElement)) {
                 menu.addSeparator();
@@ -132,19 +142,8 @@ public class DesignCanvasContextMenu {
                 menu.add(createStopTestFtpServerMenuItem(project, ikasanBasicElement));
                 menu.add(createShowTestFtpOverwriteLimitationMenuItem(project));
             }
-            menu.addSeparator();
-            addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.Wiretap,
-                    DECORATOR_POSITION.BEFORE, "menu.AddWiretapBefore", "menu.DeleteWiretapBefore");
-            addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.Wiretap,
-                    DECORATOR_POSITION.AFTER, "menu.AddWiretapAfter", "menu.DeleteWiretapAfter");
-            addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.LogWiretap,
-                    DECORATOR_POSITION.BEFORE, "menu.AddLoggingBefore", "menu.DeleteLoggingBefore");
-            addDecoratorMenuItem(menu, project, flowElement, DECORATOR_TYPE.LogWiretap,
-                    DECORATOR_POSITION.AFTER, "menu.AddLoggingAfter", "menu.DeleteLoggingAfter");
 
             menu.addSeparator();
-            menu.add(createHelpTextItem(project, ikasanBasicElement, mouseEvent));
-            menu.add(createWebHelpTextItem(project, ikasanBasicElement, mouseEvent));
             if (ComponentNavigationAvailability.forComponent(project, ikasanBasicElement).code()) {
                 menu.add(createNavigateToCode(project, ikasanBasicElement, true));
             }
@@ -154,10 +153,7 @@ public class DesignCanvasContextMenu {
             JMenuItem readiness = new JMenuItem(StudioBundle.message("readiness.action"));
             readiness.addActionListener(e -> org.ikasan.studio.intellij.ai.StudioImplementationReadiness.check(project, true));
             menu.add(readiness);
-            JMenuItem fileHistory = new JMenuItem(StudioBundle.message("fileHistory.action"));
-            fileHistory.addActionListener(e -> FileDuplicateHistoryDialog.open(project));
-            menu.add(fileHistory);
-            menu.addSeparator();
+
             JCheckBoxMenuItem keepCanvas = new JCheckBoxMenuItem(
                     StudioBundle.message("checkbox.KeepCanvasSelectedAtDebugBreakpoints"),
                     org.ikasan.studio.intellij.settings.IkasanStudioSettings.isKeepCanvasSelectedAtDebugBreakpoints());
@@ -166,26 +162,52 @@ public class DesignCanvasContextMenu {
                     .setKeepCanvasSelectedAtDebugBreakpoints(keepCanvas.isSelected()));
             menu.add(keepCanvas);
             menu.addSeparator();
+
+            JMenuItem wiretaps = new JMenuItem(StudioBundle.message("wiretapEvents.action"));
+            wiretaps.addActionListener(e -> WiretapEventsDialog.open(project, null, null));
+            menu.add(wiretaps);
+            JMenuItem exclusions = new JMenuItem(StudioBundle.message("exclusions.action"));
+            exclusions.addActionListener(e -> ExcludedEventsDialog.open(project, null));
+            menu.add(exclusions);
+            JMenuItem fileHistory = new JMenuItem(StudioBundle.message("fileHistory.action"));
+            fileHistory.addActionListener(e -> FileDuplicateHistoryDialog.open(project));
+            menu.add(fileHistory);
+            menu.addSeparator();
+
+            JMenuItem importModel = new JMenuItem(StudioBundle.message("button.ImportModelJson"));
+            importModel.setToolTipText(StudioBundle.message("tooltip.ImportModelJson"));
+            importModel.addActionListener(event ->
+                    org.ikasan.studio.intellij.project.ModelImporter.openImportDialog(project));
+            menu.add(importModel);
             JMenuItem migrate = new JMenuItem(StudioBundle.message("action.IkasanStudio.MigrateVersion.text"));
             migrate.setToolTipText(StudioBundle.message("action.IkasanStudio.MigrateVersion.description"));
             migrate.setEnabled(module.isInitialised());
             migrate.addActionListener(event -> MigrationController.open(project, false));
             menu.add(migrate);
             menu.addSeparator();
+
+            menu.add(createLaunchDashboardMenuItem(project));
+            menu.add(createLaunchH2MenuItem(project));
+            menu.add(createDebugMenuItem(project));
+            menu.addSeparator();
+
+            menu.add(createSaveAsMenuItem(project));
+            menu.add(createLoadMenuItem(project));
             JMenuItem replaceReferences = new JMenuItem(StudioBundle.message("action.IkasanStudio.ReplaceReferences.text"));
             replaceReferences.setEnabled(module.isInitialised());
             replaceReferences.addActionListener(event -> org.ikasan.studio.ui.actions.ReplaceReferencesAction.open(project));
             menu.add(replaceReferences);
-            JMenuItem importModel = new JMenuItem(StudioBundle.message("button.ImportModelJson"));
-            importModel.setToolTipText(StudioBundle.message("tooltip.ImportModelJson"));
-            importModel.addActionListener(event ->
-                    org.ikasan.studio.intellij.project.ModelImporter.openImportDialog(project));
-            menu.add(importModel);
-            menu.add(createSaveAsMenuItem(project));
-            menu.add(createLoadMenuItem(project));
-            menu.add(createLaunchDashboardMenuItem(project));
-            menu.add(createLaunchH2MenuItem(project));
-            menu.add(createDebugMenuItem(project));
+            if (canvas != null) menu.add(canvas.getFlowClipboardActions().pasteItem());
+        }
+        // Keep help last for all model elements, including module-level canvas actions.
+        if (ikasanBasicElement instanceof Module || ikasanBasicElement instanceof Flow
+                || ikasanBasicElement instanceof FlowElement) {
+            if (menu.getComponentCount() > 0
+                    && !(menu.getComponent(menu.getComponentCount() - 1) instanceof JSeparator)) {
+                menu.addSeparator();
+            }
+            menu.add(createHelpTextItem(project, ikasanBasicElement, mouseEvent));
+            menu.add(createWebHelpTextItem(project, ikasanBasicElement, mouseEvent));
         }
         return menu;
     }
@@ -444,9 +466,9 @@ public class DesignCanvasContextMenu {
     }
 
     /**
-     * Explains, from the context menu itself, why a Trigger scan now click can deliver nothing: the real scan is
+     * Explains, from the context menu itself, why a Check for files click can deliver nothing: the real scan is
      * still subject to the consumer's own acquisition rules (minimum file age, duplicate detection on name +
-     * last-modified, and the filename pattern). Shown directly under Trigger scan now, mirroring the FTP overwrite
+     * last-modified, and the filename pattern). Shown directly under Check for files, mirroring the FTP overwrite
      * limitation item's attention-coloured menu entry.
      */
     private static JMenuItem createTriggerNowLimitationsMenuItem(Project project) {

@@ -3,6 +3,9 @@ package org.ikasan.studio.intellij.ai;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.util.ui.JBUI;
+import java.awt.Dimension;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import org.ikasan.studio.core.ai.ImplementationReadiness;
@@ -49,8 +52,15 @@ public final class StudioImplementationReadiness {
         private final Path root;
         private final ImplementationReadiness.Report report;
         private final JBTable table;
+        private final int contentWidth;
+        private final int heightLimit;
         Results(Project project, Path root, ImplementationReadiness.Report report) {
             super(project, false); this.project = project; this.root = root; this.report = report;
+            var frame = WindowManager.getInstance().getFrame(project);
+            var available = frame == null ? java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment()
+                    .getMaximumWindowBounds().getSize() : frame.getSize();
+            contentWidth = Math.min(JBUI.scale(900), Math.max(1, available.width - JBUI.scale(100)));
+            heightLimit = Math.max(1, available.height / 2);
             var model = new DefaultTableModel(new String[]{StudioBundle.message("readiness.flow"), StudioBundle.message("readiness.component"), StudioBundle.message("readiness.finding"), StudioBundle.message("readiness.file")}, 0) {
                 @Override public boolean isCellEditable(int row, int column) { return false; }
             };
@@ -58,13 +68,25 @@ public final class StudioImplementationReadiness {
             table = new JBTable(model); table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             table.getEmptyText().setText(StudioBundle.message("readiness.empty"));
             setTitle(StudioBundle.message("readiness.title")); setModal(false); setCancelButtonText(StudioBundle.message("readiness.close")); init();
+            pack();
+            // Include the title, description and action buttons in the half-window limit.
+            var size = getSize();
+            setSize(size.width, Math.min(size.height, heightLimit));
         }
         @Override protected JComponent createCenterPanel() {
-            JPanel panel = new JPanel(new java.awt.BorderLayout(0, 8));
-            var description = new com.intellij.ui.components.JBTextArea(StudioBundle.message("readiness.scope"));
+            JPanel panel = new JPanel(new java.awt.BorderLayout(0, JBUI.scale(8)));
+            var description = new StudioAiConnectionText(StudioBundle.message("readiness.scope"));
             description.setEditable(false); description.setLineWrap(true); description.setWrapStyleWord(true);
-            panel.add(description, java.awt.BorderLayout.NORTH); panel.add(new JBScrollPane(table), java.awt.BorderLayout.CENTER);
-            panel.setPreferredSize(com.intellij.util.ui.JBUI.size(900, 380)); return panel;
+            description.setOpaque(false);
+            description.setFont(UIManager.getFont("Label.font"));
+            description.setSize(contentWidth, 1);
+            // Fit the actual rows, leaving enough space for the empty-state message.
+            int rowsHeight = (int) Math.min((long) Math.max(2, table.getRowCount()) * table.getRowHeight(), heightLimit);
+            table.setPreferredScrollableViewportSize(new Dimension(contentWidth, rowsHeight));
+            panel.add(description, java.awt.BorderLayout.NORTH);
+            panel.add(new JBScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED), java.awt.BorderLayout.CENTER);
+            return panel;
         }
         @Override protected Action @org.jetbrains.annotations.NotNull [] createActions() {
             return new Action[]{new AbstractAction(StudioBundle.message("readiness.open")) {

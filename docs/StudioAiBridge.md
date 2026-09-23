@@ -76,7 +76,7 @@ open; instructions do not enforce operating-system permissions.
 
 ## Connect
 
-1. Choose **Connect AI to Ikasan Studio** on the module-creation page, or select **Tools → Connect AI to Ikasan Studio…** at any time (also in Find Action).
+1. Choose **Connect AI to Ikasan Studio** on the module-creation page, or select **Tools → Ikasan Studio → Connect AI to Ikasan Studio…** at any time (also in Find Action).
 2. On supported IDEs (2026.2 onward with the bundled MCP Server plugin), use the **IntelliJ MCP (recommended)** tab. Open MCP settings and check **Enable MCP Server**; this reveals the client configuration controls. For everyday use across projects, find your client under **Clients Auto-Configuration** (recommended). This reuses the client connection setup across projects. Choose **Project Clients Auto-Configuration** instead for setup specific to this project, or if your client is listed only there. Open the **Auto-Configure** dropdown and select **Configure with Streamable HTTP transport** if offered; otherwise, use the available Auto-Configure option. General client configuration does not enable Studio access automatically in every project: use **Connect AI to Ikasan Studio** in each project. A different IDE installation or changed server address may require reconfiguring the client. Click **Apply** or **OK**. In IntelliJ AI chat, click **+ New Chat** and select **Codex**. Paste the Studio test prompt into that new chat; this sequence was confirmed with the IntelliJ 2026.2.2 Codex integration. Other clients may need their own reconnect action. Specify the project when several projects are open.
 3. Otherwise, use **Manual setup**, copy the configuration and merge its server entry into your AI client's MCP settings. The bundled Java adapter uses the IDE runtime; no Python, separate JDK or `JAVA_HOME` setup is needed for a client on the same machine.
 4. Open and configure Studio, finishing any pending property edits and generation. Select **Copy test prompt** and paste it into your AI chat. The connection checklist shows whether Studio access is enabled, the model is ready, the selected route has tools available, and a client has successfully read the model or catalogue. Opening MCP settings alone does not verify the connection. A successful read records the last client check; it does not continuously monitor the client connection.
@@ -137,7 +137,7 @@ For external model edits, follow the project AGENTS.md guidance on overwrite pro
 
 ## Proposal files without MCP
 
-Use **Tools → Import AI Proposal into Ikasan Studio…** to review a JSON proposal without starting the bridge. The connection dialog also has a **Proposal file (no MCP)** tab. Agents read `generated/IKASAN_STUDIO.md` for the versioned file format and examples. A proposal contains `formatVersion: 1`, `baseModelSha256` (SHA-256 of the exact saved `generated/src/main/model/model.json` bytes), and the usual `operations` array. Store it outside `generated/`, for example under `ai-proposals/`.
+Use **Tools → Ikasan Studio → Import AI Proposal into Ikasan Studio…** to review a JSON proposal without starting the bridge. The connection dialog also has a **Proposal file (no MCP)** tab. Agents read `generated/IKASAN_STUDIO.md` for the versioned file format and examples. A proposal contains `formatVersion: 1`, `baseModelSha256` (SHA-256 of the exact saved `generated/src/main/model/model.json` bytes), and the usual `operations` array. Store it outside `generated/`, for example under `ai-proposals/`.
 
 Import checks the saved model digest and its agreement with the live design. Validation and review do not modify the model. Apply uses the existing undoable model change and generation pipeline; the developer returns to the AI chat after completion. Regenerate an existing project through Studio to refresh its generated agent guide after installing this feature.
 
@@ -145,7 +145,7 @@ Import checks the saved model digest and its agreement with the live design. Val
 
 ### Automatic proposal discovery
 
-Without MCP, agents write a uniquely named `*.studio-proposal.json` directly into the project's `ai-proposals/` folder. Write a temporary file first and rename it into place once complete. Studio checks that folder in the background every three seconds and waits for stable file metadata before processing the proposal. Validated changes may apply automatically; deletion/replacement confirmation, user-code overwrite risks or the approval preference require review. No review dialog opens automatically from background discovery; proposals needing attention appear in the banner. **Tools → Review Latest AI Proposal** opens the most recently modified proposal without a chooser. Existing files are not announced again on IDE startup. The import action still accepts other files. All file-import routes retain saved-model hash, live-model and operation checks; explicit Apply is required when the approval policy calls for review. The inbox is project-scoped and its monitoring stops when the project closes.
+Without MCP, agents write a uniquely named `*.studio-proposal.json` directly into the project's `ai-proposals/` folder. Write a temporary file first and rename it into place once complete. Studio checks that folder in the background every three seconds and waits for stable file metadata before processing the proposal. Validated changes may apply automatically; deletion/replacement confirmation, user-code overwrite risks or the approval preference require review. No review dialog opens automatically from background discovery; proposals needing attention appear in the banner. **Tools → Ikasan Studio → Review Latest AI Proposal** opens the most recently modified proposal without a chooser. Existing files are not announced again on IDE startup. The import action still accepts other files. All file-import routes retain saved-model hash, live-model and operation checks; explicit Apply is required when the approval policy calls for review. The inbox is project-scoped and its monitoring stops when the project closes.
 
 The Studio editor also shows a persistent proposal banner with **Review changes** and **Dismiss**. The pending filename is saved in project workspace state, so closing the editor or restarting IntelliJ preserves the banner. Opening a review successfully or explicitly dismissing it clears the banner; load/validation errors leave it available for retry. Dismiss does not delete the proposal file. A newer proposal replaces the banner's pending proposal; the import action can still open older files.
 
@@ -293,9 +293,9 @@ AGENTS.md if necessary. A missing result is not success: use Review Latest AI Pr
 the dialog feedback. Result write failures are recorded in the IDE log. Receipts contain error
 messages and should be treated as project diagnostics rather than published automatically.
 
-## Implementation readiness
+## Module completeness check
 
-Right-click the module and choose **Check Implementation Readiness...**. The advisory dialog
+Right-click the module and choose **Check Module Completeness...**. The advisory dialog
 lists affected flows/components, finding codes and source locations; select a finding to open
 its source. Save edits and use **Check again** to refresh. No user source is modified.
 

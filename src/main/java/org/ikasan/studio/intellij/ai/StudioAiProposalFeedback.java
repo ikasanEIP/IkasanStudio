@@ -51,7 +51,7 @@ final class StudioAiProposalFeedback {
         data.put("runtimeVerified", false);
         if ("applied".equals(status) && projectRoot != null) {
             try { data.put("implementationReadiness", org.ikasan.studio.core.ai.ImplementationReadiness.scanProject(projectRoot)); }
-            catch (Exception failure) { data.put("implementationReadinessError", "Could not inspect saved source. Run Check Implementation Readiness in Studio."); }
+            catch (Exception failure) { data.put("implementationReadinessError", "Could not inspect saved source. Run Check Module Completeness in Studio."); }
         }
         data.put("nextStep", switch (status) {
             case "applied" -> "Read the updated model, generated files and generated/implementation-readiness.json. Resolve or explain findings, exercise actual component implementations and verify delivery through each requested path. Then compile and test. Applied does not mean implemented or runtime-verified. Do not replay this proposal.";

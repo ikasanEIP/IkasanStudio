@@ -12,6 +12,9 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import java.io.StringReader;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /** Renders the actual target artifacts before any project state is changed. */
 public final class MigrationArtifacts {
@@ -23,7 +26,24 @@ public final class MigrationArtifacts {
         Module module = ComponentIO.validatePersistedModuleJson(plan.targetJson(), "migration preview", false);
         Map<String, String> files = new LinkedHashMap<>();
         files.put(MODEL, plan.targetJson());
-        IkasanPomModel pom = new IkasanPomModel(new MavenXpp3Reader().read(new StringReader(rootPom)));
+        var mavenModel = new MavenXpp3Reader().read(new StringReader(rootPom));
+        Module sourceModule = ComponentIO.validatePersistedModuleJson(plan.sourceJson(), "migration source dependencies", false);
+        Set<String> targetDependencies = module.getAllUniqueSortedJarDependencies().stream()
+                .map(MigrationArtifacts::coordinate).collect(Collectors.toSet());
+        // Unversioned dependencies contributed by a source component can disappear from
+        // the target BOM (e.g. javax JAXB -> Jakarta). Keep explicit overrides and custom
+        // declarations; remove only an unchanged source-pack declaration no longer needed.
+        mavenModel.getDependencies().removeIf(existing -> existing.getVersion() == null
+                && !targetDependencies.contains(coordinate(existing))
+                && sourceModule.getAllUniqueSortedJarDependencies().stream().anyMatch(source ->
+                coordinate(existing).equals(coordinate(source))
+                        && (source.getVersion() == null || "org.ikasan".equals(source.getGroupId()))
+                        && Objects.equals(existing.getType(), source.getType())
+                        && Objects.equals(existing.getClassifier(), source.getClassifier())
+                        && Objects.equals(scope(existing), scope(source))
+                        && existing.getSystemPath() == null && !existing.isOptional()
+                        && existing.getExclusions().isEmpty()));
+        IkasanPomModel pom = new IkasanPomModel(mavenModel);
         MetaPackManifest manifest = ComponentLibrary.getMetaPackManifest(plan.targetVersion());
         pom.addProperty("version.ikasan", manifest.ikasanVersion());
         pom.addProperty("maven.compiler.source", manifest.javaVersion());
@@ -60,6 +80,13 @@ public final class MigrationArtifacts {
         files.put("generated/src/main/model/component-catalogue.json", AiProjectContractGenerator.componentCatalogue(module.getMetaVersion()));
         if (files.values().stream().anyMatch(value -> value == null || value.isBlank())) throw new IllegalStateException("A migration artifact is empty.");
         return files;
+    }
+
+    private static String coordinate(Dependency dependency) {
+        return dependency.getGroupId() + ":" + dependency.getArtifactId();
+    }
+    private static String scope(Dependency dependency) {
+        return dependency.getScope() == null ? "compile" : dependency.getScope();
     }
 
     private static void java(Map<String, String> files, String pkg, String name, String content) {

@@ -1345,7 +1345,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             var choice = componentPropertyEditRow.getInputField().getPropertyChoiceValueField();
             if (choice != null) {
                 choice.setEnabled(false);
-                choice.setToolTipText("Use Migrate… on the canvas or Tools → Migrate Ikasan Version… to review a version change.");
+                choice.setToolTipText("Use Migrate… on the canvas or Tools → Ikasan Studio → Migrate Ikasan Version… to review a version change.");
             }
             if (componentPropertyEditRow.getDefaultValueButton() != null) componentPropertyEditRow.getDefaultValueButton().setEnabled(false);
         }
@@ -1519,11 +1519,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * @return a single ValidationInfo if the flow or component name being edited contains a comma or "[", otherwise empty.
      */
     private List<ValidationInfo> validateNameHasNoComma() {
-        Object selected = getSelectedComponent();
+        BasicElement selected = getSelectedComponent();
         if (!(selected instanceof Flow) && !(selected instanceof FlowElement)) {
             return List.of();
         }
-        String identityKey = ((org.ikasan.studio.core.model.ikasan.instance.BasicElement) selected).getIdentityPropertyMetaKey();
+        String identityKey = selected.getIdentityPropertyMetaKey();
         ComponentPropertyEditRow nameRow = getComponentPropertyEditBoxList().stream()
                 .filter(row -> identityKey.equals(row.getPropertyKey()))
                 .findFirst().orElse(null);

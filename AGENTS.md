@@ -64,7 +64,7 @@ implementing the requested functionality.
 
 Ikasan Studio is hosted in IntelliJ's main editor area, alongside Java and configuration files. A newly generated Ikasan project opens the Studio editor automatically on first use. On later project launches, the editor is restored only when the developer left it open; deliberately closing the tab is respected.
 
-The Ikasan squid icon remains on the far-right tool-window stripe as a discoverable one-click launcher. It opens or focuses the single project-scoped Studio editor and immediately hides the empty launcher tool window. **Tools → Open Ikasan Studio** and IntelliJ Find Action provide fallback access.
+The Ikasan squid icon remains on the far-right tool-window stripe as a discoverable one-click launcher. It opens or focuses the single project-scoped Studio editor and immediately hides the empty launcher tool window. **Tools → Ikasan Studio → Open Ikasan Studio** and IntelliJ Find Action provide fallback access.
 
 `IkasanStudioFileEditor` is the exclusive owner of `DesignerUI`. Closing the tab disposes editor-owned canvas, palette, properties, and view-handler references while preserving the project model for a clean reopen. Project initialization starts through `StudioProjectInitialisationService` and presents Maven import, indexing, model, meta-pack, and recoverable failure states inside the editor.
 

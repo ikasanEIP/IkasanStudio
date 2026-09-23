@@ -37,7 +37,7 @@ public final class AiProjectContractGenerator {
                 place when complete. New proposal files can apply automatically under the same setting and user-code protection;
                 confirm the saved model reflects the change before continuing. For proposals awaiting review,
                 ask the developer to click Review on the AI proposal ready notification,
-                or Tools -> Review Latest AI Proposal, then Apply. Keep IntelliJ and Studio open; no MCP connection or direct model edit is needed.
+                or Tools -> Ikasan Studio -> Review Latest AI Proposal, then Apply. Keep IntelliJ and Studio open; no MCP connection or direct model edit is needed.
                 After Studio confirms application, read the updated model and generated files, then compile
                 and test. Do not treat writing a proposal file as applying the change. If the installed Studio
                 lacks the import action, prepare the proposal and ask the developer to update Studio or make
@@ -576,10 +576,10 @@ public final class AiProjectContractGenerator {
                 external prerequisites and remaining blockers. Include unsupported catalogue types separately;
                 full coverage of proposal-supported types is not full catalogue coverage.
 
-                ## Implementation readiness is not runtime proof
+                ## Module completeness checks are not runtime proof
 
                 Read implementationReadiness in studio_snapshot, or generated/implementation-readiness.json
-                after generation. Studio's module menu offers Check Implementation Readiness to refresh saved-source
+                after generation. Studio's module menu offers Check Module Completeness to refresh saved-source
                 findings and open affected files. Reports inspect primary user implementation files only; save
                 edits before refreshing. Reports can become stale after edits and do not cover helper/provider beans.
                 Resolve missing source and known throwing stubs. Review generated TODO warnings against actual
@@ -591,7 +591,7 @@ public final class AiProjectContractGenerator {
 
                 ## Live Studio workflow
 
-                Use Tools -> Connect AI to Ikasan Studio for IntelliJ MCP or the bundled Java adapter.
+                Use Tools -> Ikasan Studio -> Connect AI to Ikasan Studio for IntelliJ MCP or the bundled Java adapter.
                 Read studio_snapshot and studio_catalogue, then submit studio_propose with the returned revision
                 and structured operations. Studio validates every proposal. Validated supported changes apply automatically
                 unless Settings -> Tools -> Ikasan Studio -> Always ask for approval is enabled (default: off),
@@ -639,10 +639,10 @@ public final class AiProjectContractGenerator {
                    apply automatically unless Confirm deletes requires review (enabled by default for deletions and replacements) or Always ask for approval is enabled or developer-owned code could be replaced. Confirm the saved model has
                    changed before continuing; writing a proposal is never proof of application.
                    Other proposals show AI proposal ready.
-                   Ask the developer to click Review on that notification, or Tools -> Review Latest AI Proposal,
+                   Ask the developer to click Review on that notification, or Tools -> Ikasan Studio -> Review Latest AI Proposal,
                    then review the operations and click Apply. The menu selects the most recently modified file.
                    Existing files do not trigger notifications on IDE restart; use the menu to review them.
-                   Tools -> Import AI Proposal into Ikasan Studio remains available for selecting any proposal.
+                   Tools -> Ikasan Studio -> Import AI Proposal into Ikasan Studio remains available for selecting any proposal.
                    Importing does not enable an MCP server or give the AI live access.
                 5. Studio checks the digest, compares the saved model with its live design, validates operations,
                    and rejects stale proposals. If rejected, save any intended changes through Studio and prepare

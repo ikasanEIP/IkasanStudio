@@ -6,6 +6,7 @@ This standalone Gradle build uses Java 17 and Maven libraries only. Running it d
 
 | Artifact | Responsibility | Production dependencies |
 | --- | --- | --- |
+| `studio-cli` | Standalone migration preview/apply distribution, with project verification script | Generator and bundled packs |
 | `org.ikasan.studio:studio-generator:0.1.0-SNAPSHOT` | Core model, JSON IO, metadata validation, migration and FreeMarker generators; shared schema resources | Jackson, Maven model, FreeMarker, Commons IO, SLF4J |
 | `org.ikasan.studio:studio-test-kit:0.1.0-SNAPSHOT` | Pack validation/rendering helpers and a reusable JUnit Jupiter contract | Generator and JUnit Jupiter API |
 | `org.ikasan.studio:studio-pack-v3:0.1.0-SNAPSHOT` | V3.3.9 descriptors, templates and images | None |
@@ -117,7 +118,9 @@ Imports for the example are `org.ikasan.studio.testkit.MetaPackContract` and `or
 
 ## Limits and next steps
 
-The current contract applies to complete packs that supply module and flow templates. Component-extension composition, downloadable pack installation and a CLI are not introduced here. The kit validates/renders using the same engine as the plugin; it does not compile or start the resulting Ikasan application. Add generated-project compilation against exact BOMs and startup/integration checks before treating a pack as certified.
+The current contract applies to complete packs that supply module and flow templates. Component-extension composition and downloadable pack installation are not introduced here.
+The [command-line migration utility](../docs/CommandLineMigration.md) provides preview/apply
+and reusable before/after project verification; build it with `:studio-cli:distZip`. The kit validates/renders using the same engine as the plugin; it does not compile or start the resulting Ikasan application. Add generated-project compilation against exact BOMs and startup/integration checks before treating a pack as certified.
 
 The generator and metadata remain compatible with their existing public Java packages. The root build still requires IntelliJ and the ancillary mediator for IDE functionality. To package while another sandbox IDE is running, select an isolated sandbox without closing the user's IDE:
 

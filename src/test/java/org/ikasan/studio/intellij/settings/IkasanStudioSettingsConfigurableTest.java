@@ -111,6 +111,37 @@ class IkasanStudioSettingsConfigurableTest {
         }
     }
 
+    @Test
+    void aiSectionFillsWidthAndDescriptionsRewrapWhenSettingsResize() throws Exception {
+        javax.swing.SwingUtilities.invokeAndWait(() -> {
+            var configurable = new IkasanStudioSettingsConfigurable();
+            var scroll = (javax.swing.JScrollPane) configurable.createComponent();
+            var sections = descendantsOfType(scroll, javax.swing.JPanel.class).stream()
+                    .filter(panel -> panel.getBorder() instanceof javax.swing.border.TitledBorder).toList();
+            var ai = sections.stream().filter(panel -> ((javax.swing.border.TitledBorder) panel.getBorder())
+                    .getTitle().equals(org.ikasan.studio.ui.StudioBundle.message("ai.SettingsHeading"))).findFirst().orElseThrow();
+            var note = descendantsOfType(ai, javax.swing.JLabel.class).stream()
+                    .filter(label -> label.getText().startsWith("<html>")).findFirst().orElseThrow();
+            int narrowHeight = 0;
+            for (int width : new int[] {520, 1100, 520}) {
+                scroll.setSize(width, 600);
+                // Settle parent widths and wrapped preferred heights, as successive Swing layouts do.
+                for (int pass = 0; pass < 4; pass++) layoutUsingAssignedSizes(scroll);
+                assertThat(sections).allSatisfy(section -> {
+                    assertThat(section.getX()).isEqualTo(0);
+                    assertThat(section.getWidth()).isEqualTo(section.getParent().getWidth());
+                });
+                assertThat(scroll.getHorizontalScrollBar().isVisible()).isFalse();
+                assertThat(note.getWidth()).isGreaterThan(width - 100);
+                assertThat(note.getHeight()).isGreaterThanOrEqualTo(note.getPreferredSize().height);
+                if (narrowHeight == 0) narrowHeight = note.getPreferredSize().height;
+                else if (width == 1100) assertThat(note.getPreferredSize().height).isLessThan(narrowHeight);
+                else assertThat(note.getPreferredSize().height).isEqualTo(narrowHeight);
+            }
+            configurable.disposeUIResources();
+        });
+    }
+
     private static void layoutUsingAssignedSizes(Container container) {
         container.doLayout();
         for (Component child : container.getComponents()) {

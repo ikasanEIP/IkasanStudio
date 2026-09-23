@@ -42,7 +42,7 @@ See [JetBrains Exception Analyzer](https://plugins.jetbrains.com/docs/marketplac
 
 ## Collecting diagnostics
 
-Use **Tools → Collect Ikasan Studio Diagnostics…**, or search for the same action in IntelliJ Find Action. It remains available during indexing and does not require the designer tab to be open. Choose a local `.zip` destination; collection runs in the background. Nothing is uploaded or sent to another application.
+Use **Tools → Ikasan Studio → Collect Ikasan Studio Diagnostics…**, or search for the same action in IntelliJ Find Action. It remains available during indexing and does not require the designer tab to be open. Choose a local `.zip` destination; collection runs in the background. Nothing is uploaded or sent to another application.
 
 The archive contains exactly:
 

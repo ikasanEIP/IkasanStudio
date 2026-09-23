@@ -52,7 +52,7 @@ See [Supported versions](docs/SupportedVersions.md) and [Known limitations](docs
 
 Follow [Your first module in five minutes](docs/GettingStarted.md) for a Scheduled Consumer → Logging Producer example requiring no external broker, FTP server or email account.
 
-Reopen Studio with the squid icon on the far-right stripe, **Tools → Open Ikasan Studio**, or Find Action. Closing its editor tab is respected on later project launches.
+Reopen Studio with the squid icon on the far-right stripe, **Tools → Ikasan Studio → Open Ikasan Studio**, or Find Action. Closing its editor tab is respected on later project launches.
 
 **Console** opens the module-local **Blue Console**, which provides flow control and module administration. It is distinct from the central **Ikasan Dashboard**, which manages multiple modules. The walkthrough's local example uses `admin` / `admin`.
 
@@ -72,7 +72,7 @@ Commit the model and your implementations together. Do not delete the whole `gen
 
 Start with the [AI support overview](docs/AiSupportOverview.md) for architecture, connection routes and how project guidance helps the assistant.
 
-Choose **Tools → Connect AI to Ikasan Studio…** for supported IntelliJ MCP setup or a manual client configuration using the bundled Java adapter. An AI client can read the live model and catalogue and submit supported changes. File-based proposals are also available.
+Choose **Tools → Ikasan Studio → Connect AI to Ikasan Studio…** for supported IntelliJ MCP setup or a manual client configuration using the bundled Java adapter. An AI client can read the live model and catalogue and submit supported changes. File-based proposals are also available.
 
 Studio validates proposals and applies them according to its approval settings. **Always ask for approval** is off by default; **Confirm deletes** is on by default. Potential replacement of developer-owned code requires review. Consult [Studio AI bridge](docs/StudioAiBridge.md) for connection steps, supported operations, settings, status checks and undo behaviour.
 
@@ -88,8 +88,10 @@ Studio validates proposals and applies them according to its approval settings. 
 | [Type guidance](docs/TypeGuidance.md) | Payload type warnings and converter suggestions |
 | [Converter recipes](docs/ConversionRecipes.md) | Reusable payload extraction and construction |
 | [Harnesses](docs/Harnesses.md) | Local mail/FTP testing, JMS readers, message injection and real scans |
+| [Generate Flow Test](docs/IkasanFlowTesting.md) | Developer-owned Ikasan flow-test scaffolds, completion steps and migration |
 | [JMS object messages](docs/JmsObjectMessages.md) | ActiveMQ trusted packages and Java-object payloads |
 | [Flow copy/paste](docs/FlowCopyPaste.md) | Reuse flows and update shared references |
+| [Command-line migration and verification](docs/CommandLineMigration.md) | Verify your own project before/after upgrades; preview and apply migrations without IntelliJ |
 | [Ikasan version migration](docs/IkasanVersionMigration.md) | Preview, apply and recover migrations between supported packs |
 | [AI support overview](docs/AiSupportOverview.md) | Architecture, onboarding and AI project context |
 | [Studio AI bridge](docs/StudioAiBridge.md) | Live MCP access and structured model proposals |
@@ -194,7 +196,7 @@ On Windows shells that split Maven property arguments, quote each complete `-Dna
 
 Use the repository's [bug report](https://github.com/ikasanEIP/IkasanStudio/issues/new?template=bug_report.yml) or [feature request](https://github.com/ikasanEIP/IkasanStudio/issues/new?template=feature_request.yml) template. Include the plugin version/commit, full IDE build, operating system, selected pack and reproduction steps.
 
-**Tools → Collect Ikasan Studio Diagnostics…** creates a local ZIP; it does not upload it. Review its contents and remove sensitive information before attaching anything. See [Diagnostics and privacy](docs/DiagnosticsAndPrivacy.md) for collection and error-reporting behaviour.
+**Tools → Ikasan Studio → Collect Ikasan Studio Diagnostics…** creates a local ZIP; it does not upload it. Review its contents and remove sensitive information before attaching anything. See [Diagnostics and privacy](docs/DiagnosticsAndPrivacy.md) for collection and error-reporting behaviour.
 
 Report suspected vulnerabilities privately using [SECURITY.md](SECURITY.md). Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
 

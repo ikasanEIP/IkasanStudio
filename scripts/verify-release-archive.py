@@ -13,6 +13,7 @@ import zipfile
 def audit(archive, root):
     errors, resources, jars, descriptors = [], {}, [], []
     bytecode_count = 0
+    offline_archives = []
     with zipfile.ZipFile(archive) as distribution:
         for name in distribution.namelist():
             if not name.endswith(".jar"):
@@ -28,12 +29,39 @@ def audit(archive, root):
                         continue
                     data = jar.read(entry)
                     resources.setdefault(entry, []).append(hashlib.sha256(data).hexdigest())
+                    if entry == "studio/offline/studio-offline-tools.zip":
+                        offline_archives.append(data)
                     if entry == "META-INF/plugin.xml":
                         descriptors.append(ET.fromstring(data))
                     if entry.startswith("org/ikasan/studio/") and entry.endswith(".class"):
                         bytecode_count += 1
                         if data[:4] != b"\xca\xfe\xba\xbe" or int.from_bytes(data[6:8], "big") > 61:
                             errors.append("Studio bytecode requires newer than Java 17: " + entry)
+
+    if len(offline_archives) != 1:
+        errors.append("Expected one bundled offline tools archive")
+    else:
+        with zipfile.ZipFile(io.BytesIO(offline_archives[0])) as tools:
+            entries = tools.namelist()
+            for required in ("bin/studio-cli", "bin/studio-cli.bat", "bin/studio_upgrade.py", "README.md", "CommandLineMigration.md", "LICENSE.txt"):
+                if not any(name.endswith("/" + required) for name in entries):
+                    errors.append("Missing offline tool: " + required)
+            for artifact in ("studio-cli-", "studio-generator-", "studio-pack-v3-", "studio-pack-v4-"):
+                if not any("/lib/" + artifact in name and name.endswith(".jar") for name in entries):
+                    errors.append("Missing offline runtime artifact: " + artifact)
+            script = next((n for n in entries if n.endswith("/bin/studio_upgrade.py")), None)
+            if script and tools.read(script) != (root / "tools/migration/studio_upgrade.py").read_bytes():
+                errors.append("Bundled project verifier differs from source")
+            for name in entries:
+                if "/lib/studio-generator-" in name or "/lib/studio-pack-" in name:
+                    with zipfile.ZipFile(io.BytesIO(tools.read(name))) as runtime:
+                        for entry in runtime.namelist():
+                            if entry.endswith("/") or not entry.startswith(("org/ikasan/studio/core/", "studio/metapack/")):
+                                continue
+                            if hashlib.sha256(runtime.read(entry)).hexdigest() not in resources.get(entry, []):
+                                errors.append("Offline engine/pack differs from installed plugin: " + entry)
+                if name.endswith(".jar") and any(token in Path(name).name for token in ("junit", "mockito", "assertj", "byte-buddy")):
+                    errors.append("Test dependency in offline tools: " + name)
 
     properties = {}
     for line in (root / "gradle.properties").read_text().splitlines():

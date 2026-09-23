@@ -1,6 +1,6 @@
 # Migrating Ikasan versions
 
-Studio can migrate a saved project between **V3.3.9 and V4.1.6 in either direction**. Use **Migrate…** on the canvas, or **Tools → Migrate Ikasan Version…** (also available through Find Action). You can also right-click the module in the designer and choose **Migrate Ikasan Version…**. Configured modules show their version as read-only in Properties.
+Studio can migrate a saved project between **V3.3.9 and V4.1.6 in either direction**. Use **Migrate…** on the canvas, or **Tools → Ikasan Studio → Migrate Ikasan Version…** (also available through Find Action). You can also right-click the module in the designer and choose **Migrate Ikasan Version…**. Configured modules show their version as read-only in Properties.
 
 ## Workflow
 
@@ -36,7 +36,7 @@ A compilation failure after the commit leaves the migration applied. Correct the
 - The model's selected version and supported component identities are mapped through explicit directional rules supplied with the target meta-pack.
 - JMS, JAXB and resource exception type references move between `javax` and `jakarta` in recognised type fields. Resolver keys and caught exception types change together. Arbitrary descriptions and opaque extension values are not subjected to text replacement.
 - Shared properties retain their values. Changed defaults are made explicit where a source value can be preserved; unsupported type/property changes require a separate rule or source-model correction.
-- Studio regenerates its application, module configuration, flows, factories, generated property classes, properties, H2 POM and offline AI contract. The root POM adopts the target Ikasan BOM, dependencies and Java compiler settings. Other dependencies remain available for developer code; review their compatibility in the POM diff.
+- Studio regenerates its application, module configuration, flows, factories, generated property classes, properties, H2 POM and offline AI contract. The root POM adopts the target Ikasan BOM, dependencies and Java compiler settings. Unversioned dependencies contributed by source-pack components and no longer required by the target pack are removed when their declarations are otherwise unmodified (for example the old JAXB API/runtime). Explicit versions, customised declarations and unrelated dependencies are preserved; review their compatibility in the POM diff.
 - Existing root `AGENTS.md` and files under `user/` are preserved. Migration does not rewrite custom implementations or regenerate existing user stubs. Review custom classes, injected beans, JMS/JAXB/resource imports and Debug support for target API compatibility.
 - Opaque module, flow and component JSON fields survive loading and subsequent saving. If another model structure cannot survive Studio's round trip, migration is blocked.
 
@@ -44,7 +44,7 @@ A model conversion does not prove equivalent runtime behaviour. Unsupported vers
 
 ## Restore versus migrate back
 
-**Tools → Restore Previous Ikasan Migration…** previews restoration of the latest completed snapshot. It restores exact original file contents, removes files introduced by the migration, and leaves unrelated files alone. Team instructions added to `AGENTS.md` after migration are retained. Review carefully: subsequent edits to the affected generated files and root POM are replaced. A new snapshot preserves the state before restoration, so the restoration itself can be reversed. All snapshots remain in the history directory. IDE SDK settings are not stored in these file snapshots; the restore review asks for a JDK matching the restored version and applies it using the same process.
+**Tools → Ikasan Studio → Restore Previous Ikasan Migration…** previews restoration of the latest completed snapshot. It restores exact original file contents, removes files introduced by the migration, and leaves unrelated files alone. Team instructions added to `AGENTS.md` after migration are retained. Review carefully: subsequent edits to the affected generated files and root POM are replaced. A new snapshot preserves the state before restoration, so the restoration itself can be reversed. All snapshots remain in the history directory. IDE SDK settings are not stored in these file snapshots; the restore review asks for a JDK matching the restored version and applies it using the same process.
 
 To keep new flows and other subsequent model edits while returning to the previous Ikasan version, use **Migrate…** again and choose that version. This runs reverse conversion rules against the current model; it does not restore an old copy.
 
@@ -100,3 +100,18 @@ Use the same generated workspace for the interactive upgrade; retain the before 
 and run the unchanged tests after generation. The headless fixture builder also supports
 an engine-driven target build, but it does not replace migration-dialog and recovery UX
 checks. See the fixture's coverage notes for visual-only entries and shutdown limits.
+
+## Verify your own project or migrate without IntelliJ
+
+The [command-line migration and verification tools](CommandLineMigration.md) run your
+project's Maven tests before and after an upgrade and compare model/source preservation.
+They are independent of the all-components fixture. A standalone Java 17 utility also
+provides saved migration previews and explicit apply with recovery snapshots, using the
+same engine as Studio. Close the project in IntelliJ before applying CLI changes.
+
+### Reusable flow tests
+
+**Tools → Ikasan Studio → Generate Flow Test…** creates developer-owned tests in a separate
+`user-flow-tests` module. Complete the scenarios before migration and run them again afterwards.
+Their Ikasan framework dependency inherits `version.ikasan`; migration preserves the source
+and module entry. See [flow testing](IkasanFlowTesting.md) for setup and limitations.

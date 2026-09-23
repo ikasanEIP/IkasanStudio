@@ -23,7 +23,7 @@ code stubs into the 'user' submodule but it will only do so if permitted by the 
 Getting Started
 ===============
 
-1. Open the Ikasan Studio editor (Tools > Open Ikasan Studio if it is not already open).
+1. Open the Ikasan Studio editor (Tools > Ikasan Studio > Open Ikasan Studio if it is not already open).
 2. Select an Ikasan version and create your module.
 3. Review and update LOCAL_TEST_ENVIRONMENT.md in the project root. Fill in the services
    you need as name=value pairs. Literal local-test passwords are accepted; environment references are optional.
