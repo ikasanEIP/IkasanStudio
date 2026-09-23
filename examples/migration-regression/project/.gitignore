@@ -1,5 +1,8 @@
 **/target/
 acceptance-reports/
+migration-before/
+migration-after/
+migration-comparison/
 services/
 inputs/
 transaction-logs/

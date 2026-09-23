@@ -20,6 +20,28 @@ public class MigrationAcceptanceTest {
     private org.ikasan.spec.module.Module<Flow> module;
     private ConfigurableApplicationContext context;
     private LocalServices services;
+    private final List<String> wiretapLogs = new CopyOnWriteArrayList<>();
+    private final List<String> storedWiretaps = new ArrayList<>();
+    private ch.qos.logback.classic.Logger wiretapLogger;
+    private ch.qos.logback.core.AppenderBase<ch.qos.logback.classic.spi.ILoggingEvent> wiretapAppender;
+
+    private List<org.ikasan.spec.wiretap.WiretapEvent> wiretaps() {
+        var service = context.getBean(org.ikasan.spec.wiretap.WiretapService.class);
+        var page = (org.ikasan.spec.search.PagedSearchResult<org.ikasan.spec.wiretap.WiretapEvent>)
+                service.findWiretapEvents(0, 100, "timestamp", true, Set.of("MigrationRegression"),
+                        "Core Pipeline", (String)null, null, null, null, null, null);
+        return page.getPagedResults();
+    }
+    private void assertCapturedPayloads(List<String> captures) {
+        assertEquals("Exactly two snapshots for each of six orders", 12, captures.size());
+        for (int batch = 1; batch <= 2; batch++) for (String suffix : List.of("P|2|true|", "S|1|false|", "R|0|false|")) {
+            String payload = "B" + batch + suffix + "translated";
+            assertEquals("Before enrichment: " + payload, 1, captures.stream()
+                    .filter(s -> s.contains("before Enrich Order") && s.contains(payload) && !s.contains(payload + " enriched")).count());
+            assertEquals("After enrichment: " + payload, 1, captures.stream()
+                    .filter(s -> s.contains("after Enrich Order") && s.contains(payload + " enriched")).count());
+        }
+    }
     private void check(String name, Checked action) {
         try { action.run(); checks.add(Map.of("name",name,"status","PASS")); }
         catch (Throwable failure) { checks.add(Map.of("name",name,"status","FAIL","detail",failure.toString())); }
@@ -41,8 +63,16 @@ public class MigrationAcceptanceTest {
         try {
             services=new LocalServices();
             var args=new ArrayList<>(services.arguments);args.add("--server.port=0");
+            args.add("--spring.profiles.active=debug");
             args.add("--ikasan.module.activator.startup.type.defaultStartupType=MANUAL");
             context=SpringApplication.run(Class.forName("org.ikasan.studio.boot.Application"),args.toArray(new String[0]));
+            wiretapLogger=(ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger("org.ikasan.trigger.service.LoggingEventJob");
+            wiretapAppender=new ch.qos.logback.core.AppenderBase<>() {
+                protected void append(ch.qos.logback.classic.spi.ILoggingEvent event) {
+                    wiretapLogs.add(event.getFormattedMessage());
+                }
+            };
+            wiretapAppender.start(); wiretapLogger.addAppender(wiretapAppender);
             module=context.getBean(org.ikasan.spec.module.Module.class);
             for(Flow flow:module.getFlows()) flow.addFlowListener(new FlowEventListener(){
                 public void beforeFlowElement(String m,String f,FlowElement e,FlowEvent event){}
@@ -60,6 +90,26 @@ public class MigrationAcceptanceTest {
                     Thread.sleep(250); assertTrue(module.getFlow("Core Pipeline").isRunning());
                 }
                 assertEquals(6, deliveries.stream().filter(s->s.startsWith("Core Pipeline/Log ")).count());
+            });
+            check("persisted wiretap before and after enrichment",()->{
+                await("Twelve stored wiretap snapshots",()->wiretaps().size()==12);
+                for(var event:wiretaps()) {
+                    assertEquals("MigrationRegression",event.getModuleName());
+                    assertEquals("Core Pipeline",event.getFlowName());
+                    assertTrue(event.getComponentName().contains("Enrich Order"));
+                    assertNotNull(event.getEventId()); assertTrue(event.getExpiry()>event.getTimestamp());
+                    storedWiretaps.add(event.getComponentName()+"="+event.getEvent());
+                }
+                assertCapturedPayloads(storedWiretaps);
+            });
+            check("logging wiretap before and after enrichment",()->{
+                await("Twelve logging wiretap snapshots",()->wiretapLogs.size()==12);
+                assertCapturedPayloads(wiretapLogs);
+                for(String line:wiretapLogs) {
+                    assertTrue(line.contains("module=[MigrationRegression]"));
+                    assertTrue(line.contains("flow=[Core Pipeline]"));
+                    assertTrue(line.contains("Enrich Order"));
+                }
             });
             check("fanout isolation and later delivery",()->{
                 Flow flow=module.getFlow("Fanout"); flow.start();
@@ -145,12 +195,16 @@ public class MigrationAcceptanceTest {
             writeReport();
             if(context!=null) { context.close(); checks.add(Map.of("name","Spring context close returned","status","PASS","detail","Does not prove all JVM workers terminated")); }
             if(services!=null)services.close();
+            if(wiretapLogger!=null && wiretapAppender!=null) {
+                wiretapLogger.detachAppender(wiretapAppender); wiretapAppender.stop();
+            }
             writeReport();
         }
         assertFalse("See acceptance.json",checks.stream().anyMatch(c->"FAIL".equals(c.get("status"))));
     }
     private void writeReport() throws Exception {
         var report=new LinkedHashMap<String,Object>();report.put("checks",checks);report.put("deliveries",deliveries);
+        report.put("storedWiretaps",storedWiretaps); report.put("loggingWiretaps",wiretapLogs);
         report.put("verifiedAt",java.time.Instant.now().toString());report.put("javaVersion",System.getProperty("java.version"));
         new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(Path.of(System.getProperty("fixture.reportFile","../acceptance.json")).toFile(),report);
     }

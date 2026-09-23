@@ -2,3 +2,6 @@ build/
 builder/.gradle/
 builder/build/
 __pycache__/
+
+# Legacy generated model location; the model now lives inside build/<name>/.
+/model.json

@@ -19,6 +19,18 @@ public class BuildFixture {
                 snapshot = json.readValue(source, Map.class);
             }
         }
+        // Exercise both decorator types through the same persisted model and migration engine.
+        var decorated = ComponentIO.validatePersistedModuleJson(source, "fixture", false);
+        var enrichment = decorated.getFlows().stream().filter(f -> "Core Pipeline".equals(f.getIdentity()))
+                .flatMap(f -> f.getFlowElementsNoExternalEndPoints().stream())
+                .filter(c -> "Enrich Order".equals(c.getComponentName())).findFirst().orElseThrow();
+        var decorators = new ArrayList<org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator>();
+        for (String type : List.of("Wiretap", "LogWiretap")) for (String position : List.of("BEFORE", "AFTER"))
+            decorators.add(org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator.decoratorBuilder()
+                    .type(type).name(position + " Enrich Order").configurationId("0").configurable(false)
+                    .timeToLive(type.equals("Wiretap") ? "300" : null).build());
+        enrichment.setDecorators(decorators);
+        source = ComponentIO.toJson(decorated);
         var plan = version.equals("V3.3.9")
                 ? new ModelMigration.Plan(version, version, source, source, List.of())
                 : ModelMigration.analyse(source, version);
@@ -53,7 +65,6 @@ public class BuildFixture {
         Files.copy(root.resolve("coverage.json"), output.resolve("coverage.json"));
         Files.writeString(output.resolve("AGENTS.md"), AiProjectContractGenerator.agentsGuide());
         Files.writeString(output.resolve("migration-plan.txt"), plan.report());
-        Files.writeString(root.resolve("model.json"), source);
         System.out.println("Fixture generated: " + output);
     }
 }

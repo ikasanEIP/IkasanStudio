@@ -28,6 +28,17 @@ class ComparisonTest(unittest.TestCase):
  def test_does_not_hide_non_type_property_changes(self):
   before=self.baseline();after=copy.deepcopy(before);after['model']['flows'][0]['description']='keep jakarta.jms.Message text'
   self.assertEqual(1,self.compare(before,after)[0])
+ def test_rejects_lost_or_changed_wiretap_decorators(self):
+  before=self.baseline()
+  before['model']['flows'][0]['decorators']=[{'type':'Wiretap','name':'BEFORE Enrich Order','timeToLive':'300'}, {'type':'LogWiretap','name':'AFTER Enrich Order'}]
+  for change in ['remove','ttl','position']:
+   with self.subTest(change=change):
+    after=copy.deepcopy(before)
+    decorators=after['model']['flows'][0]['decorators']
+    if change=='remove': decorators.pop()
+    elif change=='ttl': decorators[0]['timeToLive']='1'
+    else: decorators[1]['name']='BEFORE Enrich Order'
+    self.assertEqual(1,self.compare(before,after)[0])
  def test_fails_missing_acceptance_check_and_failed_runtime(self):
   before=self.baseline();after=copy.deepcopy(before);after['checks']=[];after['status']='FAIL'
   code,report=self.compare(before,after)

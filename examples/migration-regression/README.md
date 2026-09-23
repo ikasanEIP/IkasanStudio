@@ -16,13 +16,18 @@ may download Maven/Gradle dependencies. From the Studio repository:
 
 ```sh
 python3 examples/migration-regression/fixture.py create --name my-baseline
+
+# Or specify the version and workspace name:
+
+python3 examples/migration-regression/fixture.py create --version V3.3.9 --name MigrationRegression
 ```
 
 Open `examples/migration-regression/build/my-baseline/pom.xml` as a Maven project in
 IntelliJ with Studio installed. The model is already in
 `generated/src/main/model/model.json`; its baseline version is V3.3.9.
-The checked-in [model.json](model.json) can also be imported, but **copy the complete
-project when testing behaviour**: importing the model alone cannot provide custom code.
+The `create` command generates that model automatically from the checked-in fixture
+inputs; no preparation step is needed. **Copy the complete project when testing
+behaviour**: importing the model alone cannot provide custom code.
 The generated workspace contains all required `user/` implementations, including recipe
 converters. No throwing or unfinished implementations are intended.
 
@@ -49,7 +54,7 @@ choices belong to this regression fixture, not general AI generation policy.
 ## Capture before and after evidence
 
 ```sh
-python3 examples/migration-regression/fixture.py verify examples/migration-regression/build/my-baseline --report /tmp/ikasan-before
+python3 examples/migration-regression/fixture.py verify examples/migration-regression/build/my-baseline --report examples/migration-regression/build/my-baseline/migration-before
 ```
 
 This compiles the actual generated application and runs the reusable JUnit acceptance
@@ -64,8 +69,8 @@ Now use **Migrate Ikasan Version** in Studio to upgrade the same workspace to 4.
 Wait for generation to complete, then run:
 
 ```sh
-python3 examples/migration-regression/fixture.py verify examples/migration-regression/build/my-baseline --report /tmp/ikasan-after
-python3 examples/migration-regression/fixture.py compare /tmp/ikasan-before/report.json /tmp/ikasan-after/report.json --report /tmp/ikasan-comparison
+python3 examples/migration-regression/fixture.py verify examples/migration-regression/build/my-baseline --report examples/migration-regression/build/my-baseline/migration-after
+python3 examples/migration-regression/fixture.py compare examples/migration-regression/build/my-baseline/migration-before/report.json examples/migration-regression/build/my-baseline/migration-after/report.json --report examples/migration-regression/build/my-baseline/migration-comparison
 ```
 
 Each evidence directory contains `report.md`, machine-readable `report.json`, runtime
@@ -79,11 +84,22 @@ For unattended baseline/target checks, `create --version V4.1.6 --name my-target
 Studio's migration engine before rendering. This checks the engine, not IntelliJ's
 migration dialogs or Undo/Restore UX. Keep the interactive migration check for releases.
 
+The named `migration-before`, `migration-after` and `migration-comparison` directories
+are inside the module root so their Markdown reports are visible in IntelliJ. For a ZIP
+workspace, run the shorter commands in its README from that project directory.
+
+Wiretap verification enables Spring's `debug` profile, which activates Studio's generated
+logging-wiretap triggers. For interactive inspection, add `--spring.profiles.active=debug`
+to the Application run configuration's program arguments. **Core Pipeline → Enrich Order**
+has both persisted and logging wiretaps before and after enrichment. Persisted captures
+can be inspected in Studio's wiretap viewer; logging captures appear in the module log.
+
 ## What the report proves
 
 | Flows | Assertions |
 | --- | --- |
 | Core Pipeline | Nested batch unpacking, custom splitting, two filters rejecting unwanted samples, translation, broker enrichment, exact Priority/Standard/Rejected outputs across two batches |
+| Core Pipeline wiretaps | Twelve persisted H2 snapshots and twelve messages from the actual logging-wiretap job; all six orders captured before and after enrichment across two batches |
 | Fanout | Generic Consumer and Generic Producer, both recipients, Audit mutation cannot alter Fulfilment's payload, two inputs |
 | Exclusion | Actual `TransformationException` → `excludeEvent`, record and payload persisted in H2, invalid event never reaches output, subsequent valid delivery |
 | Event Source | Event Generating Consumer emits later events and remains running; Dev Null output observed through a flow listener |
@@ -114,7 +130,10 @@ TLS option, failure policy or external vendor implementation.
   fixture; it writes those checked-in fixture files, never an existing generated workspace.
 - `builder/` consumes the headless generator. It refuses to overwrite an existing workspace.
 - `project/verification/` contains reusable actual-flow tests and isolated test services.
-- `model.json` is refreshed by the builder and provides the importable baseline.
+- The builder generates `build/<name>/generated/src/main/model/model.json` as part of
+  `create`. There is no separately maintained or checked-in model output.
+- Running `define_fixture.py` is only needed when changing the fixture specification,
+  not before creating a normal test project.
 - When adding a pack, add a supported migration path and version choice, then run the same
   assertions. Review new catalogue keys and intentional interface changes explicitly.
 - Reports are timestamped by default; explicit report directories must be new. Keep before
