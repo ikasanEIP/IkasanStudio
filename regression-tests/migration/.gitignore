@@ -5,3 +5,6 @@ __pycache__/
 
 # Legacy generated model location; the model now lives inside build/<name>/.
 /model.json
+
+# Required to build this standalone fixture from a clean checkout.
+!builder/settings.gradle.kts

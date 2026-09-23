@@ -66,6 +66,43 @@ class DesignerCanvasTest {
 
 
     @Test
+    void sftpEndpointBrowserUsesItsOwningConsumerOrProducer() {
+        Project project = mock(Project.class);
+        FlowElement component = mock(FlowElement.class);
+        var meta = mock(org.ikasan.studio.core.metapack.model.ComponentMeta.class);
+        when(component.getComponentMeta()).thenReturn(meta);
+        try (var dialog = org.mockito.Mockito.mockStatic(org.ikasan.studio.ui.actions.SftpFilesDialog.class)) {
+            for (String endpoint : List.of("SFTP Endpoint", "FTP Endpoint", "JMS Endpoint")) {
+                when(meta.getEndpointKey()).thenReturn(endpoint);
+                for (boolean consumer : List.of(true, false)) {
+                    when(meta.isConsumer()).thenReturn(consumer);
+                    when(meta.isProducer()).thenReturn(!consumer);
+                    when(meta.isTimeEventConsumer()).thenReturn(consumer);
+                    when(meta.getTestPayloadAdapter()).thenReturn(
+                            org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER);
+                    var menu = DesignCanvasContextMenu.createEndpointMenu(project, component);
+                    var item = java.util.Arrays.stream(menu.getComponents())
+                            .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast)
+                            .filter(i -> StudioBundle.message("sftpBrowser.action").equals(i.getText())).findFirst();
+                    assertThat(item.isPresent()).isEqualTo(endpoint.equals("SFTP Endpoint"));
+                    if (item.isPresent()) {
+                        item.get().doClick();
+                        dialog.verify(() -> org.ikasan.studio.ui.actions.SftpFilesDialog.open(project, component));
+                        dialog.clearInvocations();
+                        if (consumer) {
+                            assertThat(menu.getComponent(0)).isInstanceOf(JMenuItem.class);
+                            assertThat(((JMenuItem) menu.getComponent(0)).getText())
+                                    .isEqualTo(StudioBundle.message("menu.TriggerLocalFileScan"));
+                            assertThat(menu.getComponent(menu.getComponentCount() - 2))
+                                    .isInstanceOf(javax.swing.JSeparator.class);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     void fileHistoryIsAvailableOnlyForFileTransferConsumersAndUsesTheirClientId() {
         Project project = mock(Project.class);
         var context = mock(org.ikasan.studio.ui.UiContext.class);

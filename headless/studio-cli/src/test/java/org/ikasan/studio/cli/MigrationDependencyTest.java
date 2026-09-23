@@ -23,7 +23,7 @@ class MigrationDependencyTest {
     }
     private String baseline(String source) throws Exception {
         return MigrationArtifacts.render(new ModelMigration.Plan("V3.3.9","V3.3.9",source,source,java.util.List.of()),
-                Files.readString(Path.of("examples/migration-regression/project/pom.xml"))).get("pom.xml");
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml"))).get("pom.xml");
     }
     @Test void removesRetiredBomDependenciesOnUpgradeAndDowngrade() throws Exception {
         String source=source(), before=baseline(source);

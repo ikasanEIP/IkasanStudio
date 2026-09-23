@@ -1,6 +1,6 @@
-# Repeatable Ikasan migration fixture
+# Ikasan migration regression tests
 
-A complete Studio module for checking upgrades with real flows, developer-owned
+A maintained regression fixture, separate from the distributed plugin. It provides a complete Studio module for checking upgrades with real flows, developer-owned
 implementations and one acceptance report. It covers all **26 executable component
 keys plus the Exception Resolver** in the bundled 3.3.9 and 4.1.6 catalogues. Twelve
 flows share transformations and transport pairs to keep the number of outputs small.
@@ -15,14 +15,14 @@ Requirements: JDK 17, Maven, Python 3 and the repository's Gradle wrapper. Initi
 may download Maven/Gradle dependencies. From the Studio repository:
 
 ```sh
-python3 examples/migration-regression/fixture.py create --name my-baseline
+python3 regression-tests/migration/fixture.py create --name my-baseline
 
 # Or specify the version and workspace name:
 
-python3 examples/migration-regression/fixture.py create --version V3.3.9 --name MigrationRegression
+python3 regression-tests/migration/fixture.py create --version V3.3.9 --name MigrationRegression
 ```
 
-Open `examples/migration-regression/build/my-baseline/pom.xml` as a Maven project in
+Open `regression-tests/migration/build/my-baseline/pom.xml` as a Maven project in
 IntelliJ with Studio installed. The model is already in
 `generated/src/main/model/model.json`; its baseline version is V3.3.9.
 The `create` command generates that model automatically from the checked-in fixture
@@ -34,7 +34,7 @@ converters. No throwing or unfinished implementations are intended.
 For interactive use, start disposable services in another terminal before Run module:
 
 ```sh
-python3 examples/migration-regression/fixture.py serve examples/migration-regression/build/my-baseline
+python3 regression-tests/migration/fixture.py serve regression-tests/migration/build/my-baseline
 ```
 
 Keep that command running. It binds only to loopback: FTP 2121, SFTP 2222 and SMTP 2525,
@@ -54,7 +54,7 @@ choices belong to this regression fixture, not general AI generation policy.
 ## Capture before and after evidence
 
 ```sh
-python3 examples/migration-regression/fixture.py verify examples/migration-regression/build/my-baseline --report examples/migration-regression/build/my-baseline/migration-before
+python3 regression-tests/migration/fixture.py verify regression-tests/migration/build/my-baseline --report regression-tests/migration/build/my-baseline/migration-before
 ```
 
 This compiles the actual generated application and runs the reusable JUnit acceptance
@@ -69,8 +69,8 @@ Now use **Migrate Ikasan Version** in Studio to upgrade the same workspace to 4.
 Wait for generation to complete, then run:
 
 ```sh
-python3 examples/migration-regression/fixture.py verify examples/migration-regression/build/my-baseline --report examples/migration-regression/build/my-baseline/migration-after
-python3 examples/migration-regression/fixture.py compare examples/migration-regression/build/my-baseline/migration-before/report.json examples/migration-regression/build/my-baseline/migration-after/report.json --report examples/migration-regression/build/my-baseline/migration-comparison
+python3 regression-tests/migration/fixture.py verify regression-tests/migration/build/my-baseline --report regression-tests/migration/build/my-baseline/migration-after
+python3 regression-tests/migration/fixture.py compare regression-tests/migration/build/my-baseline/migration-before/report.json regression-tests/migration/build/my-baseline/migration-after/report.json --report regression-tests/migration/build/my-baseline/migration-comparison
 ```
 
 Each evidence directory contains `report.md`, machine-readable `report.json`, runtime

@@ -11,9 +11,15 @@ release verification and outstanding checks are tracked separately in
 
 ### Fixed
 
+- Filename lists now stay comma-separated when saving the model or copying flows, preventing literal list brackets from reappearing after reload. Regex character classes are preserved.
+
 - In-place migrations now remove unmodified, unversioned source-component dependencies retired by the target pack, avoiding unmanaged legacy JAXB dependencies after upgrading to 4.1.6 while preserving explicit overrides.
 
 ### Added
+
+- Flow-test scaffolds now generate explicit Ikasan component-path checks for simple linear flows, isolated local-file inputs and a revised five-step setup guide. Complex scenarios remain explicitly unfinished until their expectations are supplied.
+
+- Added module-level **Generate Flow Tests…** with per-flow checkboxes, Select All/None, and batch generation that preserves existing tests.
 
 - Added **Browse remote files…** on SFTP producers and consumers, with directory navigation, downloads, confirmed file deletion, and host-key verification.
 

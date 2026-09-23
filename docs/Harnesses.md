@@ -65,7 +65,7 @@ Existing private keys commonly live under the user home in `.ssh` (for example `
 
 ### Browse SFTP directories
 
-Right-click an SFTP Producer or Consumer and choose **Browse remote files…**.
+Right-click an SFTP Producer or Consumer, or its external endpoint icon, and choose **Browse remote files…**.
 The browser starts with the producer's `outputDirectory` or consumer's `sourceDirectory`,
 using that component's host, port, username and authentication settings. It connects directly
 from the IDE; the module does not need to be running, and directories can be outside the project

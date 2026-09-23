@@ -89,7 +89,7 @@ Before release, exercise the dialog in light and dark themes: cancel a preview, 
 
 ## Reusable runtime migration fixture
 
-The [migration regression module](../examples/migration-regression/README.md) supplies
+The [migration regression module](../regression-tests/migration/README.md) supplies
 an importable model, complete developer-owned implementations, 12 compact flows and
 isolated FTP/SFTP/SMTP services. Its acceptance suite exercises every bundled executable
 component type, both routers and persisted exception exclusion, then checks idle readiness

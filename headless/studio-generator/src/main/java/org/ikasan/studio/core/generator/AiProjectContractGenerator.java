@@ -842,7 +842,7 @@ public final class AiProjectContractGenerator {
         reference.put("flowTesting", Map.of(
                 "dependency", "org.ikasan:ikasan-test:" + version,
                 "guidance", "https://github.com/ikasanEIP/IkasanStudio/blob/main/docs/IkasanFlowTesting.md",
-                "referenceExamples", "https://github.com/ikasanEIP/IkasanStudio/tree/main/examples/ikasan-flow-tests",
+                "testGeneration", "Use Studio Generate Flow Test to create a version-appropriate scaffold for the selected flow, then complete its numbered tasks and verify actual delivery.",
                 "policy", "Match the resolved application version. Bundled 3.3.9 and 4.1.6 use JUnit 4 IkasanFlowTestRule; enable Vintage when using JUnit Platform. Test actual final payloads, idle readiness and later delivery, not only invocation counts. Test isolated instances; do not stop the running developer module."));
         reference.put("researchWorkflow", "Follow the catalogue implementingClass to the matching source. Read its interface, implementation, nearby src/test tests and a sample. Check units, defaults, transaction and lifecycle behaviour; cite the release/path. Layout may vary by release. Keep reference source read-only.");
         reference.put("offlineFallback", "Use IntelliJ-attached or cached Maven sources for the resolved dependency version; inspect dependency overrides and class signatures when sources are unavailable. Source links do not grant network permissions. State uncertainty rather than guessing.");

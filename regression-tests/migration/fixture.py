@@ -89,7 +89,7 @@ def compare(args):
  checks.append(dict(name='model structure and settings preserved',status='PASS' if normalized(before['model'])==normalized(after['model']) else 'FAIL',detail='Allows only version and JMS/JAXB namespace changes; inspect other changes explicitly'))
  checks.append(dict(name='same acceptance checks executed',status='PASS' if {c['name'] for c in before['checks']}=={c['name'] for c in after['checks']} else 'FAIL'))
  result=dict(status='PASS' if all(c['status']=='PASS' for c in checks) else 'FAIL',checks=checks,before=str(args.before),after=str(args.after))
- directory=Path(args.report); 
+ directory=Path(args.report)
  if directory.exists():raise ValueError('Choose a new comparison report directory')
  save_report(directory,result);print(directory/'report.md');return 0 if result['status']=='PASS' else 1
 

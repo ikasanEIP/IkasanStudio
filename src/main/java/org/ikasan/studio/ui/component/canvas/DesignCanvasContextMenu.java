@@ -119,11 +119,7 @@ public class DesignCanvasContextMenu {
             });
             menu.add(wiretaps);
             var meta = flowElement.getComponentMeta();
-            if ("SFTP Endpoint".equals(meta.getEndpointKey()) && (meta.isConsumer() || meta.isProducer())) {
-                JMenuItem remoteFiles = new JMenuItem(StudioBundle.message("sftpBrowser.action"));
-                remoteFiles.addActionListener(e -> SftpFilesDialog.open(project, flowElement));
-                menu.add(remoteFiles);
-            }
+            addRemoteFilesMenuItem(menu, project, flowElement, false);
             if (meta.isConsumer() && ("FTP Endpoint".equals(meta.getEndpointKey())
                     || "SFTP Endpoint".equals(meta.getEndpointKey()))) {
                 JMenuItem fileHistory = new JMenuItem(StudioBundle.message("fileHistory.action"));
@@ -158,6 +154,10 @@ public class DesignCanvasContextMenu {
             JMenuItem readiness = new JMenuItem(StudioBundle.message("readiness.action"));
             readiness.addActionListener(e -> org.ikasan.studio.intellij.ai.StudioImplementationReadiness.check(project, true));
             menu.add(readiness);
+            JMenuItem flowTests = new JMenuItem(StudioBundle.message("flowTest.batchTitle"));
+            flowTests.setEnabled(module.isInitialised());
+            flowTests.addActionListener(e -> org.ikasan.studio.intellij.testing.GenerateFlowTestAction.openAll(project));
+            menu.add(flowTests);
 
             JCheckBoxMenuItem keepCanvas = new JCheckBoxMenuItem(
                     StudioBundle.message("checkbox.KeepCanvasSelectedAtDebugBreakpoints"),
@@ -326,6 +326,13 @@ public class DesignCanvasContextMenu {
      * (rather than an empty popup) when none of those conditions apply, e.g. a Generic Producer's endpoint.
      */
     public static void showEndpointMenu(Project project, DesignerCanvas designerCanvas, MouseEvent mouseEvent, FlowElement flowElement) {
+        JPopupMenu menu = createEndpointMenu(project, flowElement);
+        if (menu.getComponentCount() > 0) {
+            menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
+        }
+    }
+
+    static JPopupMenu createEndpointMenu(Project project, FlowElement flowElement) {
         JPopupMenu menu = new JPopupMenu();
         if (flowElement.getComponentMeta().supportsSendTestMessage()
                 && project.getService(IkasanDebugSessionService.class).isDebugModuleRunning()) {
@@ -347,6 +354,7 @@ public class DesignCanvasContextMenu {
             directory.addActionListener(new ShowLocalFileScanDirectoryAction(project, flowElement));
             menu.add(directory);
         }
+        addRemoteFilesMenuItem(menu, project, flowElement, true);
         if (JmsFlowConnections.isJmsProducer(flowElement)
                 && CreateTestJmsConsumerFlowAction.supports(flowElement)) {
             addSeparatorIfNotEmpty(menu);
@@ -363,8 +371,16 @@ public class DesignCanvasContextMenu {
             menu.add(createStopTestFtpServerMenuItem(project, flowElement));
             menu.add(createShowTestFtpOverwriteLimitationMenuItem(project));
         }
-        if (menu.getComponentCount() > 0) {
-            menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
+        return menu;
+    }
+
+    private static void addRemoteFilesMenuItem(JPopupMenu menu, Project project, FlowElement element, boolean separateGroup) {
+        var meta = element.getComponentMeta();
+        if ("SFTP Endpoint".equals(meta.getEndpointKey()) && (meta.isConsumer() || meta.isProducer())) {
+            if (separateGroup) addSeparatorIfNotEmpty(menu);
+            JMenuItem remoteFiles = new JMenuItem(StudioBundle.message("sftpBrowser.action"));
+            remoteFiles.addActionListener(e -> SftpFilesDialog.open(project, element));
+            menu.add(remoteFiles);
         }
     }
 

@@ -71,7 +71,8 @@ public class BasicElementSerializer extends StdSerializer<BasicElement> {
                         } else {
                             jsonGenerator.writeStringField(
                                     componentProperty.getMeta().getPropertyName(),
-                                    componentProperty.getValue().toString());
+                                    componentProperty.getValue() instanceof java.util.List<?>
+                                            ? componentProperty.getValueString() : componentProperty.getValue().toString());
                         }
                     }
                 }

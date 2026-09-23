@@ -18,6 +18,26 @@ class FlowClipboardTest {
         return FlowClipboard.decode(FlowClipboard.encode(FlowClipboard.capture(flow, BASE_META_PACK)), BASE_META_PACK);
     }
 
+    @Test void filenameListsSurviveSavingReloadingAndCopyingWithoutDisplayBrackets() throws Exception {
+        Flow source = TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerWithWiretapsFlow(BASE_META_PACK);
+        var consumer = TestFixtures.getLocalFileConsumer(BASE_META_PACK);
+        consumer.setComponentName(source.getConsumer().getIdentity());
+        source.setConsumer(consumer);
+        String expected = "myFile\\.txt,anotherFile\\.txt,[a-z]+[.]csv";
+        consumer.setPropertyValue("filenames", List.of("myFile\\.txt", "anotherFile\\.txt", "[a-z]+[.]csv"));
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, new ArrayList<>(List.of(source)));
+        for (int i = 0; i < 3; i++) {
+            String json = org.ikasan.studio.core.io.ComponentIO.toJson(module);
+            var tree = StudioJson.newObjectMapper().readTree(json);
+            assertEquals(expected, tree.get("flows").get(0).get("consumer").get("filenames").asText());
+            module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(json, "filename round trip", false);
+            assertEquals(expected, module.getFlows().get(0).getConsumer().getPropertyValueAsString("filenames"));
+        }
+        Flow pasted = copy(source);
+        assertEquals(expected, pasted.getConsumer().getPropertyValueAsString("filenames"));
+        assertEquals(FlowClipboard.capture(source, BASE_META_PACK), FlowClipboard.capture(pasted, BASE_META_PACK));
+    }
+
     @Test void preservesBranchesAndRebindsEveryParent() throws Exception {
         Flow source = TestFixtures.getEventGeneratingConsumerRouterFlow(BASE_META_PACK);
         source.setExceptionResolver(TestFixtures.getExceptionResolver(BASE_META_PACK));

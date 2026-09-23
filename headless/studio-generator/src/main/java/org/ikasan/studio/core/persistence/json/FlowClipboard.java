@@ -157,6 +157,7 @@ public final class FlowClipboard {
         element.getUnknownJsonProperties().forEach((key, value) -> values.put(key, value.deepCopy()));
         if (element.getComponentProperties() != null) element.getComponentProperties().forEach((key, property) -> {
             Object value = property.getValue();
+            if (value instanceof List<?>) value = property.getValueString();
             if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long) value = ((Number) value).longValue();
             if (value != null) values.put(key, value instanceof Boolean || value instanceof Number ? value : value.toString());
         });

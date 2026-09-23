@@ -151,7 +151,7 @@ The packaged tools completed a real in-place V3.3.9 → V4.1.6 migration of a di
 copy of the 12-flow regression module. Before and after Maven verification passed; the
 same aggregate acceptance test executed, and all 29 protected developer/test/project
 files were unchanged. The exact-preview comparison passed all seven checks. Reports
-are under `examples/migration-regression/build/end-user-cli-verified/migration-before`,
+are under `regression-tests/migration/build/end-user-cli-verified/migration-before`,
 `migration-after` and `migration-comparison` in the Studio development checkout.
 
 Focused tests cover stale/tampered previews, JSON ordering across JVM runs, developer

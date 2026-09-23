@@ -14,8 +14,8 @@ class StudioMigrationCliTest {
         Files.createDirectories(project.resolve("generated/src/main/model"));
         Files.createDirectories(project.resolve("user/src"));
         Files.writeString(project.resolve("user/src/Keep.java"), "// developer implementation\n");
-        Files.copy(Path.of("examples/migration-regression/baseline.json"), project.resolve("generated/src/main/model/model.json"));
-        Files.copy(Path.of("examples/migration-regression/project/pom.xml"), project.resolve("pom.xml"));
+        Files.copy(Path.of("regression-tests/migration/baseline.json"), project.resolve("generated/src/main/model/model.json"));
+        Files.copy(Path.of("regression-tests/migration/project/pom.xml"), project.resolve("pom.xml"));
         return project.resolve("preview.json");
     }
     private int preview(Path plan, String target) {
