@@ -481,7 +481,10 @@ public class ComponentPropertyEditRow {
     private String getListAsText(String bracketedCommList) {
         String returnValue = "";
         if (bracketedCommList != null) {
-            returnValue = bracketedCommList.replace("[", "").replace("]", "");
+            // Filename entries are regexes. Brackets may be valid character classes, or an invalid
+            // legacy list wrapper the user must be able to see and correct. Never silently hide them.
+            returnValue = "filenames".equals(meta.getPropertyName()) ? bracketedCommList
+                    : bracketedCommList.replace("[", "").replace("]", "");
         }
         return returnValue;
     }
@@ -963,8 +966,9 @@ public class ComponentPropertyEditRow {
      */
     public boolean propertyValueHasChanged() {
         Object enteredValue = getValue();
-        // Legacy model files store string lists as bracketed text, while the editor returns a List.
-        // Compare their contents so simply selecting a component does not count as an edit.
+        // Compare list contents so selecting a component alone does not count as an edit.
+        // Filename regexes retain their brackets in getListAsText, so removing a legacy wrapper
+        // is detected as a real correction rather than mistaken for the unchanged displayed value.
         if (isList && initialValue instanceof String text) {
             String displayed = getListAsText(text);
             Object initialList = displayed.isBlank() ? null : Arrays.asList(displayed.split("\\s*,\\s*"));

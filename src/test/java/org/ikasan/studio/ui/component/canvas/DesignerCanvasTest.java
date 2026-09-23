@@ -43,7 +43,9 @@ class DesignerCanvasTest {
         assertThat(moduleLabels).contains(StudioBundle.message("exclusions.action"));
         List<String> moduleOnlyLabels = moduleLabels.stream()
                 .filter(label -> !label.equals(StudioBundle.message("exclusions.action"))
-                        && !label.equals(StudioBundle.message("wiretapEvents.action"))).toList();
+                        && !label.equals(StudioBundle.message("wiretapEvents.action"))
+                        && !label.equals(StudioBundle.message("menu.DescribeComponent"))
+                        && !label.equals(StudioBundle.message("menu.ComponentWebHelp"))).toList();
         Flow flow = mock(Flow.class);
         FlowElement component = mock(FlowElement.class);
         when(component.getComponentMeta()).thenReturn(mock(org.ikasan.studio.core.metapack.model.ComponentMeta.class));
@@ -56,7 +58,9 @@ class DesignerCanvasTest {
                     .doesNotContainAnyElementsOf(moduleOnlyLabels);
             if (element instanceof Flow) assertThat(labels).contains(StudioBundle.message("exclusions.action"));
             else assertThat(labels).doesNotContain(StudioBundle.message("exclusions.action"));
-            assertThat(menu.getComponent(menu.getComponentCount() - 1)).isInstanceOf(JMenuItem.class);
+            assertThat(labels).endsWith(StudioBundle.message("menu.DescribeComponent"),
+                    StudioBundle.message("menu.ComponentWebHelp"));
+            assertThat(menu.getComponent(menu.getComponentCount() - 3)).isInstanceOf(javax.swing.JSeparator.class);
         }
     }
 

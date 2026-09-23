@@ -119,6 +119,11 @@ public class DesignCanvasContextMenu {
             });
             menu.add(wiretaps);
             var meta = flowElement.getComponentMeta();
+            if ("SFTP Endpoint".equals(meta.getEndpointKey()) && (meta.isConsumer() || meta.isProducer())) {
+                JMenuItem remoteFiles = new JMenuItem(StudioBundle.message("sftpBrowser.action"));
+                remoteFiles.addActionListener(e -> SftpFilesDialog.open(project, flowElement));
+                menu.add(remoteFiles);
+            }
             if (meta.isConsumer() && ("FTP Endpoint".equals(meta.getEndpointKey())
                     || "SFTP Endpoint".equals(meta.getEndpointKey()))) {
                 JMenuItem fileHistory = new JMenuItem(StudioBundle.message("fileHistory.action"));

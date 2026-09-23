@@ -63,6 +63,41 @@ A successful injected message does not verify source connectivity, filename filt
 
 Existing private keys commonly live under the user home in `.ssh` (for example `id_rsa` or `id_ed25519`), and trusted host entries in `.ssh/known_hosts`. Confirm the actual identity, connector format support and server authorization; filenames are not guarantees. Use resolved absolute paths readable by the module process, not an unexpanded `~` or an invented project-local key. Keep private keys out of source control and AI messages. Verify server fingerprints through a trusted source; collecting a key with `ssh-keyscan` alone does not authenticate it.
 
+### Browse SFTP directories
+
+Right-click an SFTP Producer or Consumer and choose **Browse remote files…**.
+The browser starts with the producer's `outputDirectory` or consumer's `sourceDirectory`,
+using that component's host, port, username and authentication settings. It connects directly
+from the IDE; the module does not need to be running, and directories can be outside the project
+or on another machine.
+
+Review the connection dialog before connecting. Overrides apply only to that browser and are
+not saved to the model. Replace `${…}` placeholders with actual values: the browser does not
+load the module's runtime environment, Spring profiles, or custom directory URL factories.
+A password takes precedence over a private key; clear it to use the key, and enter its
+passphrase if necessary. Local key and known-host paths accept `~/` and project-relative paths.
+The server must already have a trusted entry in the selected `known_hosts` file (default
+`~/.ssh/known_hosts`). Unknown or changed host keys are rejected; verify fingerprints through
+a trusted channel before updating that file. SSH agent and jump-host configuration are not
+imported from OpenSSH configuration.
+
+- Double-click a directory, enter a path and choose **Go**, or use **Up** and **Refresh**.
+- Select a regular file and choose **Download…**, then a local folder. Existing local files
+  are never overwritten.
+- Select regular files and choose **Delete Files…**. Confirm the server, directory and filenames
+  before deletion. This is permanent and cannot be undone. Directories and symbolic links
+  cannot be downloaded or deleted through this browser.
+
+Network operations run in the background; closing the browser cancels its current request.
+Listings are limited to 10,000 entries, with a visible message when truncated. Refresh after
+external changes or a failed operation. A batch deletion can partially succeed; review its
+reported count and refresh the listing before retrying. Files may also be consumed, moved or
+recreated by a running flow while the browser is open.
+
+Deleting remote files does **not** clear persisted duplicate-detection records. Use
+**View File Duplicate History…** separately when investigating why a consumer ignores a file.
+Browsing verifies access with the browser's settings; it does not prove delivery by the module.
+
 ### Finite sample sources
 
 An Event Generating Consumer stops producing when its provider returns `null`. A finite sample

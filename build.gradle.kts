@@ -73,6 +73,9 @@ dependencies {
     implementation("org.ikasan.studio:ikasan-studio-ide-mediator:1.0.2")
     testImplementation("org.freemarker:freemarker:2.3.35")
     testImplementation("org.mockito:mockito-core:5.23.0")
+    implementation("org.apache.sshd:sshd-sftp:2.19.0") {
+        exclude(group = "org.slf4j", module = "slf4j-api")
+    }
     implementation("org.apache.ftpserver:ftpserver-core:1.2.1") {
         exclude(group = "org.slf4j", module = "slf4j-api")
     }

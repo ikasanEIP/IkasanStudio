@@ -41,7 +41,7 @@ class StudioBundleLocalisationTest {
         Properties english = load(ENGLISH);
         Properties japanese = load(JAPANESE);
 
-        assertEquals("Trigger scan now limitations...", english.getProperty("menu.TriggerNowLimitations"));
+        assertEquals("Check for files limitations...", english.getProperty("menu.TriggerNowLimitations"));
         assertTrue(english.getProperty("message.TriggerNowLimitations").contains("Duplicate detection"));
         assertTrue(english.getProperty("message.ScheduledConsumerTriggeredWithCriteria").contains("{1}"));
 

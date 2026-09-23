@@ -67,6 +67,15 @@ public final class StudioImplementationReadiness {
             for (var f : report.findings()) model.addRow(new Object[]{f.flow(), f.component(), f.code() + ": " + f.message(), f.file() + ":" + f.line()});
             table = new JBTable(model); table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             table.getEmptyText().setText(StudioBundle.message("readiness.empty"));
+            table.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override public void mouseClicked(java.awt.event.MouseEvent event) {
+                    if (event.getClickCount() != 2 || !SwingUtilities.isLeftMouseButton(event)) return;
+                    int row = table.rowAtPoint(event.getPoint());
+                    if (row < 0) return;
+                    table.setRowSelectionInterval(row, row);
+                    openSelectedSource();
+                }
+            });
             setTitle(StudioBundle.message("readiness.title")); setModal(false); setCancelButtonText(StudioBundle.message("readiness.close")); init();
             pack();
             // Include the title, description and action buttons in the half-window limit.
@@ -88,12 +97,17 @@ public final class StudioImplementationReadiness {
                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED), java.awt.BorderLayout.CENTER);
             return panel;
         }
+        private void openSelectedSource() {
+            int row = table.getSelectedRow();
+            if (row < 0 || project.isDisposed()) return;
+            Path file = root.resolve(report.findings().get(table.convertRowIndexToModel(row)).file());
+            ApplicationManager.getApplication().executeOnPooledThread(() -> StudioNavigator.openFileByNioPath(project, file));
+        }
+
         @Override protected Action @org.jetbrains.annotations.NotNull [] createActions() {
             return new Action[]{new AbstractAction(StudioBundle.message("readiness.open")) {
                 @Override public void actionPerformed(java.awt.event.ActionEvent event) {
-                    int row = table.getSelectedRow(); if (row < 0) return;
-                    Path file = root.resolve(report.findings().get(table.convertRowIndexToModel(row)).file());
-                    ApplicationManager.getApplication().executeOnPooledThread(() -> StudioNavigator.openFileByNioPath(project, file));
+                    openSelectedSource();
                 }
             }, new AbstractAction(StudioBundle.message("readiness.refresh")) {
                 @Override public void actionPerformed(java.awt.event.ActionEvent event) { close(CANCEL_EXIT_CODE); check(project, true); }

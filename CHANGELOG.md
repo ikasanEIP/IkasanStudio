@@ -15,6 +15,8 @@ release verification and outstanding checks are tracked separately in
 
 ### Added
 
+- Added **Browse remote files…** on SFTP producers and consumers, with directory navigation, downloads, confirmed file deletion, and host-key verification.
+
 - Added **Generate Flow Test…** to Tools → Ikasan Studio and flow context menus. Creates developer-owned, version-aware Ikasan test scaffolds in `user-flow-tests`, preserving existing tests during generation and migration. Scenarios require test inputs, settings and assertions before they can pass.
 
 - Bundled offline migration/verification tools with the plugin, with Tools → Ikasan Studio → Export Offline Migration Tools for local extraction without another download.
