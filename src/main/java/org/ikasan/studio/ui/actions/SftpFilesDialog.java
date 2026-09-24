@@ -2,7 +2,6 @@ package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -10,9 +9,12 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.*;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.integration.sftp.RemoteFilesClient;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -107,7 +109,7 @@ public final class SftpFilesDialog extends DialogWrapper {
         panel.add(bottom, BorderLayout.SOUTH);
         return panel;
     }
-    @Override protected Action[] createActions() { return new Action[]{getCancelAction()}; }
+    @Override protected Action @NotNull [] createActions() { return new Action[]{getCancelAction()}; }
     private List<RemoteFilesClient.Entry> selected() {
         return Arrays.stream(table.getSelectedRows()).map(table::convertRowIndexToModel).mapToObj(entries::get).toList();
     }
@@ -127,12 +129,13 @@ public final class SftpFilesDialog extends DialogWrapper {
         var selection = selected();
         if (selection.size() != 1 || busy) return;
         String remote = listedDirectory;
-        var folder = FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFolderDescriptor(), project, null);
-        if (folder == null) return;
-        Path destination = Path.of(folder.getPath());
-        run(client -> {
-            client.download(remote, selection.get(0), destination);
-            return new Result(client.list(remote), StudioBundle.message("sftpBrowser.downloaded"));
+        StudioProjectFiles.chooseFilePaths(project, FileChooserDescriptorFactory.createSingleFolderDescriptor(), paths -> {
+            if (closed || project.isDisposed() || busy || paths == null || paths.isEmpty()) return;
+            Path destination = Path.of(paths.get(0));
+            run(client -> {
+                client.download(remote, selection.get(0), destination);
+                return new Result(client.list(remote), StudioBundle.message("sftpBrowser.downloaded"));
+            });
         });
     }
     private void delete() {
@@ -250,7 +253,7 @@ public final class SftpFilesDialog extends DialogWrapper {
                     StudioBundle.message("sftpBrowser.hosts"), StudioBundle.message("sftpBrowser.directory")};
             JComponent[] fields = {host, port, username, password, key, passphrase, hosts, remote};
             for (int row = 0; row < fields.length; row++) {
-                GridBagConstraints c = new GridBagConstraints(); c.gridy = row; c.insets = new Insets(4, 4, 4, 4); c.anchor = GridBagConstraints.WEST;
+                GridBagConstraints c = new GridBagConstraints(); c.gridy = row; c.insets = JBUI.insets(4); c.anchor = GridBagConstraints.WEST;
                 JBLabel label = new JBLabel(labels[row]); label.setLabelFor(fields[row]); panel.add(label, c);
                 c.gridx = 1; c.weightx = 1; c.fill = GridBagConstraints.HORIZONTAL; fields[row].setPreferredSize(new Dimension(390, 28)); panel.add(fields[row], c);
             }
