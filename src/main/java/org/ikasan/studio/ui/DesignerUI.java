@@ -88,6 +88,7 @@ public class DesignerUI implements Disposable {
         Disposer.register(this, canvasPanel);
         uiContext.setCanvasPanel(canvasPanel);
         propertiesAndCanvasSplitPane = createContentSplitter(canvasPanel, paletteAndProperties);
+        canvasPanel.setSidebarToggle(new SidebarVisibilityToggle(propertiesAndCanvasSplitPane, paletteAndProperties).button());
         panelWidthToggle = new PanelWidthToggle(propertiesAndCanvasSplitPane, paletteAndProperties, restore -> {
             componentPropertiesPanel.setRestoreWidthAvailable(restore);
             PaletteTabPanel palette = uiContext.getPalettePanel();
@@ -97,7 +98,7 @@ public class DesignerUI implements Disposable {
         // Remember whatever width the user leaves the panel at (whether from a manual drag or from the
         // programmatic sizing below), so it doesn't need re-dragging on every project open.
         propertiesAndCanvasSplitPane.addPropertyChangeListener(Splitter.PROP_PROPORTION, evt -> {
-            if (restoringDividerLocation) {
+            if (restoringDividerLocation || !paletteAndProperties.isVisible()) {
                 return;
             }
             int rightPanelWidth = getRightPanelWidth();
@@ -212,7 +213,7 @@ public class DesignerUI implements Disposable {
      * the divider-location listener, corrupting the user's saved width. Only ever runs on the EDT.
      */
     private void applyRightPanelWidth(UiContext uiContext, PaletteTabPanel finalPaletteTabPanel, int attempt) {
-        if (disposed || project.isDisposed()) {
+        if (disposed || project.isDisposed() || !paletteAndProperties.isVisible()) {
             return;
         }
         int persistedWidth = PropertiesComponent.getInstance(project)

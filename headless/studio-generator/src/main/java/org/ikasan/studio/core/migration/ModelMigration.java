@@ -33,7 +33,7 @@ public final class ModelMigration {
         public boolean canApply() { return findings.stream().noneMatch(Finding::blocking); }
         public String report() {
             StringBuilder text = new StringBuilder("Ikasan migration: " + sourceVersion + " → " + targetVersion + "\n\n");
-            findings.forEach(f -> text.append(f.blocking() ? "BLOCKED: " : "REVIEW: ")
+            findings.stream().sorted(Comparator.comparing(Finding::blocking).reversed()).forEach(f -> text.append(f.blocking() ? "BLOCKED: " : "REVIEW: ")
                     .append(f.path()).append(" — ").append(f.message()).append('\n'));
             return text.append("\nExisting user/ files are preserved. Compile and test the application after migration.\n")
                     .append("Restoring a snapshot restores the files touched by that migration; migrating back converts the current model.\n").toString();
@@ -152,6 +152,19 @@ public final class ModelMigration {
             } else if (old == null) {
                 findings.add(new Finding(false, path + "/" + name, "Unrecognised JSON field retained unchanged."));
             } else {
+                // Older serializers wrote route-name lists using List.toString(). Use the same
+                // parsing as Studio, preserving names and order while updating only their encoding.
+                if ("routeNames".equals(name) && object.path(name).isTextual()
+                        && ComponentPropertyMeta.STRING_LIST.equals(old.getUsageDataType())
+                        && ComponentPropertyMeta.STRING_LIST.equals(next.getUsageDataType())) {
+                    String original = object.path(name).asText();
+                    String canonical = String.join(",", org.ikasan.studio.core.StudioBuildUtils.stringToList(original));
+                    if (!original.equals(canonical)) {
+                        object.put(name, canonical);
+                        findings.add(new Finding(false, path + "/" + name,
+                                "Update legacy route-name list formatting; route names and order are unchanged."));
+                    }
+                }
                 if (!Objects.equals(old.getPropertyDataType(), next.getPropertyDataType())) {
                     findings.add(new Finding(true, path + "/" + name, "Property type changed; an explicit conversion rule is required."));
                 }

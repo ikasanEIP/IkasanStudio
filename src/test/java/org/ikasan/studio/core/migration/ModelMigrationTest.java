@@ -68,6 +68,32 @@ class ModelMigrationTest {
         }
     }
 
+    @Test void migratesLegacyRouterListEncodingWithoutChangingRoutes() throws Exception {
+        var json = StudioJson.newObjectMapper();
+        String saved = ComponentIO.toJson(ComponentIO.deserializeModuleInstanceString(
+                Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module_with_router.json")), "router"));
+        ObjectNode legacy = (ObjectNode) json.readTree(saved);
+        for (var flow : legacy.path("flows")) for (var component : flow.path("flowElements")) {
+            if (component.has("routeNames")) {
+                var names = org.ikasan.studio.core.StudioBuildUtils.stringToList(component.path("routeNames").asText());
+                ((ObjectNode) component).put("routeNames", names.toString());
+            }
+        }
+        assertThat(legacy.toString()).isNotEqualTo(json.readTree(saved).toString());
+        var plan = ModelMigration.analyse(legacy.toString(), "V4.1.6");
+        assertThat(plan.canApply()).as(plan.report()).isTrue();
+        var back = ModelMigration.analyse(plan.targetJson(), "V3.3.9");
+        assertThat(back.canApply()).as(back.report()).isTrue();
+        assertThat(json.readTree(back.targetJson())).isEqualTo(json.readTree(saved));
+    }
+
+    @Test void reportsBlockersBeforeReviewNotes() {
+        var plan = new ModelMigration.Plan("V3.3.9", "V4.1.6", "", "", java.util.List.of(
+                new ModelMigration.Finding(false, "/review", "Review implementation"),
+                new ModelMigration.Finding(true, "/blocked", "Cannot migrate")));
+        assertThat(plan.report().indexOf("BLOCKED:")).isLessThan(plan.report().indexOf("REVIEW:"));
+    }
+
     @Test void writesRepresentativeProjectsForMavenSmokeCompilation() throws Exception {
         var json = StudioJson.newObjectMapper();
         ObjectNode source = (ObjectNode) json.readTree(fixture());

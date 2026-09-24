@@ -152,7 +152,8 @@ public class CanvasPanel extends JBPanel implements Disposable {
         add(canvasTextArea, BorderLayout.SOUTH);
 
         setLayout(new BorderLayout());
-        add(canvasHeaderButtonPanel, BorderLayout.NORTH);
+        headerPanel.add(canvasHeaderButtonPanel, BorderLayout.CENTER);
+        add(headerPanel, BorderLayout.NORTH);
 
         JBScrollPane canvasScrollPane = new JBScrollPane();
         canvasScrollPane.setBorder(JBUI.Borders.empty());
@@ -177,6 +178,14 @@ public class CanvasPanel extends JBPanel implements Disposable {
                         designerCanvas.notifyApplicationReactivated();
                     }
                 });
+    }
+
+    private final JPanel headerPanel = new JPanel(new BorderLayout());
+
+    public void setSidebarToggle(JButton button) {
+        JPanel controls = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+        controls.add(button);
+        headerPanel.add(controls, BorderLayout.EAST);
     }
 
     @SuppressWarnings("rawtypes")

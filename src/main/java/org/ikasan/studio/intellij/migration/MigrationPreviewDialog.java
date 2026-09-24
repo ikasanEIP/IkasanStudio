@@ -99,6 +99,11 @@ final class MigrationPreviewDialog extends DialogWrapper {
             paths.setSelectedIndex(0);
         }
         panel.add(tabs, BorderLayout.CENTER);
+        if (!canApply) {
+            panel.add(new JBLabel(StudioBundle.message("migration.preview.blocked")), BorderLayout.NORTH);
+        } else if (jdks.getItemCount() == 0) {
+            panel.add(new JBLabel(StudioBundle.message("message.ConfigureJdkInProjectStructure", requiredJava)), BorderLayout.NORTH);
+        }
         JPanel preparation = new JPanel();
         preparation.setLayout(new BoxLayout(preparation, BoxLayout.Y_AXIS));
         JBLabel label = new JBLabel(StudioBundle.message("label.TargetJdkJava", requiredJava));

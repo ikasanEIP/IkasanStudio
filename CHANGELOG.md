@@ -17,6 +17,8 @@ release verification and outstanding checks are tracked separately in
 
 ### Added
 
+- Added Hide panels / Show panels on the designer to quickly collapse and restore Properties and Palette, preserving their width, selected tab and pending edits.
+
 - Flow-test scaffolds now generate explicit Ikasan component-path checks for simple linear flows, isolated local-file inputs and a revised five-step setup guide. Complex scenarios remain explicitly unfinished until their expectations are supplied.
 
 - Added module-level **Generate Flow Tests…** with per-flow checkboxes, Select All/None, and batch generation that preserves existing tests.
