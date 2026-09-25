@@ -5,6 +5,9 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Simplify direct self-generating-source/discard-sink flow tests using meta-pack capabilities, with bounded observation and readable `test...` method names.
+
+
 Initial 1.0.0 release in preparation. These notes describe the planned release scope;
 release verification and outstanding checks are tracked separately in
 [Release-candidate verification](docs/ReleaseCandidateVerification.md).
@@ -16,6 +19,12 @@ release verification and outstanding checks are tracked separately in
 - In-place migrations now remove unmodified, unversioned source-component dependencies retired by the target pack, avoiding unmanaged legacy JAXB dependencies after upgrading to 4.1.6 while preserving explicit overrides.
 
 ### Added
+
+- Flow-test scaffolds now share lifecycle/assertion helpers, support explicit filtering/routing scenarios and generate JMS queue input helpers with receiver-side text checks for simple queue-to-queue flows.
+
+- Generated flow tests load shared settings from a preserved, developer-owned `module-test.properties` file, with module property keys and environment-variable guidance.
+
+- Flow tests now share a developer-owned `ModuleFlowTestSupport` class, with explicit backup-and-regenerate support for common test setup and fresh application contexts per scenario.
 
 - Added Hide panels / Show panels on the designer to quickly collapse and restore Properties and Palette, preserving their width, selected tab and pending edits.
 

@@ -1,36 +1,26 @@
 package org.ikasan.studio.flowtests;
 
-import org.ikasan.spec.flow.Flow;
-import org.ikasan.spec.flow.FlowElement;
-import org.ikasan.spec.flow.FlowEvent;
-import org.ikasan.spec.flow.FlowEventListener;
-import org.ikasan.spec.module.Module;
 import org.ikasan.testharness.flow.rule.IkasanFlowTestRule;
 import org.junit.Test;
-import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import static org.junit.Assert.*;
 
 /**
  * Developer-owned scenario for ${flowName?j_string}.
  * Complete the numbered tasks below in order (IntelliJ's TODO view can locate them):
- * 1. Review test connections in openTestApplication().
- * 2. Supply first and later input in sendInput().
+ * 1. Review test connections in module-test.properties.
+ * 2. Supply first and later input in the scenario or sendInput().
  * 3. Choose the output producer and a stable payload representation.
  * 4. Review the expected component path and any branch/delivery assertions.
  * 5. Enable the completed scenario and run it.
  * See user-flow-tests/README.md for details. Generated scaffolds are not completed tests.
  */
-public class ${className} {
+public class ${className} extends ModuleFlowTestSupport {
     // TODO 5: After completing tasks 1–4, set CONFIGURED=true and run from the project root:
     // mvn -pl user-flow-tests -am -Dtest=${className} -Dsurefire.failIfNoSpecifiedTests=false test
     // Success requires first delivery, idle readiness and later delivery without restarting.
     private static final boolean CONFIGURED = false;
-    private static final String FLOW = "${flowName?j_string}";
-    // TODO 3: Review OUTPUT, describeOutput(), and set the two expected output values below.
+    @Override protected String getFlowName() { return "${flowName?j_string}"; }
+    // TODO 3: Review OUTPUT and set the two expected output values below.
     // A single producer is selected for you; otherwise choose one of the names listed here.
     // Compare meaningful data (for example file contents or order IDs), not object identity strings.
     // Available producer names (cover additional router outputs in task 4):
@@ -39,7 +29,8 @@ public class ${className} {
 </#list>
     private static final String OUTPUT = <#if producers?size == 1>"${producers[0]?j_string}"<#else>"REPLACE: producer name"</#if>;
 
-    // These expected values must match describeOutput() for the two inputs in task 2.
+    // These expected values must match outputText() for the two inputs in task 2.
+    // The shared default uses String.valueOf(payload); override for custom objects or byte arrays.
     private static final String FIRST_EXPECTED = "REPLACE: first expected payload";
     private static final String SECOND_EXPECTED = "REPLACE: second expected payload";
 
@@ -48,62 +39,46 @@ public class ${className} {
     public org.junit.rules.TemporaryFolder inputDirectory = new org.junit.rules.TemporaryFolder();
 </#if>
 
+    // TODO 1: Review shared connections in src/test/resources/module-test.properties.
+    // Shared setup supplies a fresh context and isolated H2; all flows initially start MANUAL.
     @Test(timeout = 60000)
-    public void deliversFirstAndLaterInputWithoutRestart() throws Exception {
-        assertTrue("Complete TODO 1–4, then set CONFIGURED=true in TODO 5. See user-flow-tests/README.md", CONFIGURED);
-        try (ConfigurableApplicationContext context = openTestApplication()) {
-            Module<Flow> module = context.getBean(Module.class);
-            Flow flow = module.getFlow(FLOW);
-            assertNotNull("Flow must exist: " + FLOW, flow);
-            BlockingQueue<String> outputs = new LinkedBlockingQueue<>();
-            FlowEventListener listener = new FlowEventListener() {
-                public void beforeFlowElement(String m, String f, FlowElement e, FlowEvent event) { }
-                public void afterFlowElement(String m, String f, FlowElement e, FlowEvent event) {
-                    if (OUTPUT.equals(e.getComponentName())) outputs.add(describeOutput(event.getPayload()));
-                }
-            };
-            IkasanFlowTestRule harness = new IkasanFlowTestRule().withFlow(flow);
-            configureExpectedPath(harness);
-            flow.addFlowListener(listener);
-            try {
-                harness.startFlow();
-                sendInput(context, harness, 1);
-                assertEquals("First output", FIRST_EXPECTED, outputs.poll(10, TimeUnit.SECONDS));
-                assertEquals("Ready after first delivery", Flow.RUNNING, flow.getState());
-                assertNull("No unexpected output while idle", outputs.poll(1, TimeUnit.SECONDS));
-                assertEquals("Ready while idle", Flow.RUNNING, flow.getState());
-                sendInput(context, harness, 2);
-                assertEquals("Later output", SECOND_EXPECTED, outputs.poll(10, TimeUnit.SECONDS));
-                assertEquals("Ready after later delivery", Flow.RUNNING, flow.getState());
-                assertNull("No unexpected output after later delivery", outputs.poll(1, TimeUnit.SECONDS));
-                harness.assertIsSatisfied(); // Checks actual component invocations against task 4.
-                assertEquals("Ready after verification", Flow.RUNNING, flow.getState());
-            } finally {
-                try { harness.stopFlow(); } finally { flow.removeFlowListener(listener); }
+    public void testFirstAndLaterDeliveryWithoutRestart() throws Exception {
+<#if jmsConsumer>
+        runTest(CONFIGURED, context -> {
+            // TODO 2: Supply both input messages below.
+            // ModuleJmsTestConfig supplies the test connection. Configure test.jms.broker-url
+            // and this flow's broker/destination overrides in module-test.properties.
+            try (JmsFlowTestSupport jms = JmsFlowTestSupport.from(context)) {
+                verifyFlow(context, getFlowName(), OUTPUT, this::outputText, this::defineExpectedPath,
+                        (harness, batch) -> jms.sendText(context.getEnvironment().getRequiredProperty("${jmsInputKey?j_string}"),
+                                batch == 1 ? "REPLACE: first input" : "REPLACE: second input"),
+                        FIRST_EXPECTED, SECOND_EXPECTED<#if jmsOutputKey?has_content>,
+                        // Read the actual isolated output queue; keep input and output queues distinct.
+                        batch -> jms.assertText(context.getEnvironment().getRequiredProperty("${jmsOutputKey?j_string}"),
+                                batch == 1 ? FIRST_EXPECTED : SECOND_EXPECTED)</#if>);
             }
-        }
-    }
-
-    private String describeOutput(Object payload) {
-        // Task 3: Review how your output is compared. Text is compared directly.
-<#if localFile>
-        // For an unchanged local-file payload, compare UTF-8 file contents instead of temporary paths.
-        if (payload instanceof java.util.List<?>) {
-            java.util.List<?> files = (java.util.List<?>) payload;
-            if (files.stream().allMatch(item -> item instanceof java.io.File)) {
-                StringBuilder contents = new StringBuilder();
-                try {
-                    for (Object file : files) contents.append(java.nio.file.Files.readString(((java.io.File) file).toPath()));
-                    return contents.toString();
-                } catch (java.io.IOException failure) { throw new java.io.UncheckedIOException(failure); }
-            }
-        }
+        });
+<#else>
+        runTest(CONFIGURED, OUTPUT, this::sendInput, FIRST_EXPECTED, SECOND_EXPECTED);
 </#if>
-        // For byte arrays or custom objects, replace this with meaningful decoding/field extraction.
-        return String.valueOf(payload);
     }
 
-    private void configureExpectedPath(IkasanFlowTestRule harness) {
+<#if jmsConsumer>
+    @Override protected Class<?>[] testConfigurationClasses() {
+        return new Class<?>[]{ModuleJmsTestConfig.class};
+    }
+</#if>
+
+<#if localFile>
+    @Override protected String outputText(Object payload) {
+        // Task 3: For unchanged local-file payloads, compare UTF-8 contents, not temporary paths.
+        // Adapt this if your flow converts files to another payload type.
+        return describeFileOutput(payload);
+    }
+</#if>
+
+    @Override
+    protected void defineExpectedPath(IkasanFlowTestRule harness) {
         // TODO 4: Review the expected journey through the flow. This is separate from payload checks.
 <#if automaticPath>
         // Generated for ONE event per batch, following the same path twice (two batches).
@@ -130,34 +105,25 @@ public class ${className} {
         // For external producers also assert the received file/message. Invocation alone is not delivery.
     }
 
-    private ConfigurableApplicationContext openTestApplication() throws Exception {
-        // TODO 1: Review test isolation.
+<#if localFile>
+    @Override
+    protected java.util.Map<String, String> flowTestProperties() {
+        java.util.Map<String, String> properties = super.flowTestProperties();
 <#if isolatedFiles>
-        // This test uses a temporary input directory and an in-memory database.
+        // JUnit creates and cleans this temporary input directory. No changes are needed here.
+        properties.put("${filenameKey?j_string}",
+                inputDirectory.getRoot().getAbsolutePath().replace('\\', '/') + "/batch-.*[.]txt");
 <#elseif localFile>
-        // Set this consumer's filenames in Studio and regenerate the module/test so its filename
-        // property can be overridden for an isolated temporary directory. Do not scan real input.
-<#else>
-        // Add test-only connection overrides here for this flow's transports (JMS, FTP/SFTP, mail etc.).
-        // Consult LOCAL_TEST_ENVIRONMENT.md and generated application.properties for values and keys.
-        // Arrange cleanup for any test services you start, including when assertions fail.
+        // Set this consumer's filenames in Studio and regenerate so a temporary directory can be supplied.
+        throw new UnsupportedOperationException("Configure isolated filenames before running this test");
 </#if>
-        // All flows start in MANUAL mode; the test starts only this flow.
-        // The whole module's Spring context is loaded, so check whether other
-        // components connect to external services during application startup.
-<#if isolatedFiles>
-        // If none do, no changes are needed here.
+<#if !localFile || isolatedFiles>
+        return properties;
 </#if>
-        return SpringApplication.run(Class.forName("org.ikasan.studio.boot.Application"),
-<#if isolatedFiles>
-                "--${filenameKey?j_string}=" + inputDirectory.getRoot().getAbsolutePath().replace('\\', '/') + "/batch-.*[.]txt",
-</#if>
-                "--server.port=0",
-                "--datasource.url=jdbc:h2:mem:flowtest_" + java.util.UUID.randomUUID() + ";DB_CLOSE_DELAY=-1",
-                "--ikasan.module.activator.startup.type.defaultStartupType=MANUAL"<#list flowNames as name>,
-                "--ikasan.module.activator.startup.type.flowStartupTypes[${name?index}]=${name?j_string},MANUAL"</#list>);
     }
+</#if>
 
+<#if !jmsConsumer>
     private void sendInput(ConfigurableApplicationContext context, IkasanFlowTestRule harness, int batch) throws Exception {
         // TODO 2: Supply the data for batch 1 and batch 2. Keep the same flow running between them.
 <#if isolatedFiles>
@@ -181,6 +147,7 @@ public class ${className} {
         throw new UnsupportedOperationException("Supply input batch " + batch + " for ${consumerName?j_string}");
 </#if>
     }
+</#if>
 <#if scheduled && !isolatedFiles>
 
     private void prepareInputBatch(ConfigurableApplicationContext context, int batch) throws Exception {

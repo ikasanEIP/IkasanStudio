@@ -54,16 +54,20 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             String[] flows = live.getFlows().stream().map(Flow::getIdentity).toArray(String[]::new);
             if (flows.length == 0) throw new IllegalStateException(StudioBundle.message("flowTest.noFlows"));
             List<String> choices;
+            boolean regenerateSupport;
             if (multiple) {
                 FlowTestsDialog dialog = new FlowTestsDialog(project, flows);
                 if (!dialog.showAndGet()) return;
                 choices = dialog.selectedFlows();
+                regenerateSupport = dialog.regenerateSupport();
             } else {
                 FlowTestDialog dialog = new FlowTestDialog(project, flows, selectedFlow);
                 if (!dialog.showAndGet()) return;
                 choices = List.of(dialog.selectedFlow());
+                regenerateSupport = dialog.regenerateSupport();
             }
             if (choices.isEmpty()) return;
+            boolean batchWrite = multiple || regenerateSupport;
             // Block canvas generation/migration while modal background work snapshots the saved model and writes files.
             if (!context.tryBeginMigration()) throw new IllegalStateException(StudioBundle.message("message.WaitForTheCurrentGenerationOrMigrationToFinish"));
             acquired = true;
@@ -99,11 +103,17 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                             try { scaffolds.add(FlowTestScaffold.render(module, flow, pom, applicationPom)); }
                             catch (Exception ex) { throw new IllegalArgumentException(choice + ": " + ex.getMessage(), ex); }
                         }
+                        if (regenerateSupport) {
+                            var first = scaffolds.get(0);
+                            scaffolds.add(new FlowTestScaffold.Scaffold(first.rootPom(), FlowTestScaffold.SUPPORT_PATH,
+                                    java.util.Map.of(FlowTestScaffold.SUPPORT_PATH, first.files().get(FlowTestScaffold.SUPPORT_PATH),
+                                            FlowTestScaffold.TEST_PROPERTIES_PATH, first.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH))));
+                        }
                         if (!Files.readString(root.resolve(MigrationArtifacts.MODEL)).equals(source)) {
                             throw new IllegalStateException(StudioBundle.message("message.TheModelChangedWhilePreparingMigration"));
                         }
-                        if (multiple && !batchReviewed.get()) FlowTestFiles.checkExisting(root, scaffolds);
-                        List<Path> tests = multiple ? (batchApproval.get() == null
+                        if (batchWrite && !batchReviewed.get()) FlowTestFiles.checkExisting(root, scaffolds);
+                        List<Path> tests = batchWrite ? (batchApproval.get() == null
                                 ? FlowTestFiles.writeAll(root, pom, scaffolds)
                                 : FlowTestFiles.archiveAndWriteAll(root, pom, scaffolds, batchApproval.get()))
                                 : List.of(archiveApproval.get() == null
@@ -117,7 +127,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                         result.set(LocalFileSystem.getInstance().refreshAndFindFileByNioFile(tests.get(0)));
                     } catch (Exception ex) { failure.set(ex); }
                 }, title, false, project);
-                if (multiple && failure.get() instanceof FlowTestFiles.ExistingTestsException existing) {
+                if (batchWrite && failure.get() instanceof FlowTestFiles.ExistingTestsException existing) {
                     String names = String.join("\n", existing.tests().stream().map(t -> t.path().getFileName().toString()).toList());
                     int choice = Messages.showDialog(project, StudioBundle.message("flowTest.batchArchiveQuestion", names), title,
                             new String[]{StudioBundle.message("flowTest.skipExisting"), StudioBundle.message("flowTest.archiveGenerate"),
@@ -125,7 +135,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                     if (choice != 0 && choice != 1) return;
                     batchReviewed.set(true);
                     if (choice == 1) batchApproval.set(existing.tests());
-                } else if (!multiple && failure.get() instanceof FlowTestFiles.ExistingTestException existing) {
+                } else if (!batchWrite && failure.get() instanceof FlowTestFiles.ExistingTestException existing) {
                     if (Messages.showYesNoDialog(project,
                             StudioBundle.message("flowTest.archiveQuestion", existing.path().getFileName()), title,
                             StudioBundle.message("flowTest.archiveGenerate"), StudioBundle.message("flowTest.keepExisting"),
@@ -138,9 +148,9 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             if (project.isDisposed()) return;
             if (!created.get().isEmpty()) MavenProjectsManager.getInstance(project).forceUpdateAllProjectsOrFindAllAvailablePomFiles();
             if (result.get() != null) FileEditorManager.getInstance(project).openFile(result.get(), true);
-            Messages.showInfoMessage(project, multiple
+            Messages.showInfoMessage(project, batchWrite
                     ? (batchApproval.get() == null ? "" : StudioBundle.message("flowTest.batchArchived", batchApproval.get().size()) + "\n\n")
-                            + StudioBundle.message("flowTest.batchCreated", created.get().size(), choices.size() - created.get().size())
+                            + StudioBundle.message("flowTest.batchCreated", created.get().stream().filter(p -> !p.getFileName().toString().equals("ModuleFlowTestSupport.java")).count(), choices.size() - created.get().stream().filter(p -> !p.getFileName().toString().equals("ModuleFlowTestSupport.java")).count())
                     : (archiveApproval.get() == null ? "" : StudioBundle.message("flowTest.archived") + "\n\n")
                             + StudioBundle.message("flowTest.created"), title);
         } catch (Exception ex) {

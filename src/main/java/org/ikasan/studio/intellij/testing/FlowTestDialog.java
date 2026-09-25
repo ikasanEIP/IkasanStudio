@@ -15,6 +15,10 @@ import java.awt.BorderLayout;
 @SuppressWarnings("SplitModeApiUsage")
 final class FlowTestDialog extends DialogWrapper {
     private final ComboBox<String> flows;
+    private final com.intellij.ui.components.JBCheckBox regenerateSupport = new com.intellij.ui.components.JBCheckBox(
+            StudioBundle.message("flowTest.regenerateSupport"), false);
+    boolean regenerateSupport() { return regenerateSupport.isSelected(); }
+
     FlowTestDialog(Project project, String[] names, String selected) {
         super(project);
         flows = new ComboBox<>(names);
@@ -33,6 +37,7 @@ final class FlowTestDialog extends DialogWrapper {
         choice.add(label, BorderLayout.WEST);
         choice.add(flows, BorderLayout.CENTER);
         panel.add(choice, BorderLayout.CENTER);
+        panel.add(regenerateSupport, BorderLayout.SOUTH);
         return panel;
     }
     @Override public JComponent getPreferredFocusedComponent() { return flows; }

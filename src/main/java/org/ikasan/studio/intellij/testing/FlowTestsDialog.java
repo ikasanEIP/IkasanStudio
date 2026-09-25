@@ -16,6 +16,10 @@ import java.util.List;
 @SuppressWarnings("SplitModeApiUsage")
 final class FlowTestsDialog extends DialogWrapper {
     private final List<JBCheckBox> choices = new ArrayList<>();
+    private final com.intellij.ui.components.JBCheckBox regenerateSupport = new com.intellij.ui.components.JBCheckBox(
+            StudioBundle.message("flowTest.regenerateSupport"), false);
+    boolean regenerateSupport() { return regenerateSupport.isSelected(); }
+
     FlowTestsDialog(Project project, String[] names) {
         super(project);
         for (String name : names) {
@@ -46,7 +50,10 @@ final class FlowTestsDialog extends DialogWrapper {
         all.addActionListener(e -> { choices.forEach(c -> c.setSelected(true)); updateSelection(); });
         none.addActionListener(e -> { choices.forEach(c -> c.setSelected(false)); updateSelection(); });
         selection.add(all); selection.add(none);
-        panel.add(selection, BorderLayout.SOUTH);
+        JPanel footer = new JPanel(new BorderLayout());
+        footer.add(selection, BorderLayout.NORTH);
+        footer.add(regenerateSupport, BorderLayout.SOUTH);
+        panel.add(footer, BorderLayout.SOUTH);
         return panel;
     }
     List<String> selectedFlows() { return choices.stream().filter(AbstractButton::isSelected).map(AbstractButton::getText).toList(); }

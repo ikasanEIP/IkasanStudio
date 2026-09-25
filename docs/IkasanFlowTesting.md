@@ -15,9 +15,13 @@ opens in the editor. If a selected flow has no consumer, deselect it or add its 
 
 ## Numbered tasks in each generated test
 
-Each Java scaffold has a checklist and **TODO 1–5** beside the relevant code:
+Scenario scaffolds have a checklist and **TODO 1–5** beside the relevant code.
+The compact self-generating-source/discard-sink observation scaffold described below needs only
+two tasks: review settings, then enable the test.
 
-1. **Connections:** review isolated settings in `openTestApplication()`. For a local-file
+For scenario scaffolds:
+
+1. **Connections:** review common settings in `src/test/resources/module-test.properties` and any scenario overrides in `flowTestProperties()`. For a local-file
    consumer whose filename property is generated, Studio supplies a JUnit temporary directory
    and the exact filename-property override. JUnit cleans up that directory. Other endpoints
    and startup beans still need their own test settings.
@@ -76,6 +80,77 @@ assertions. The scaffold uses a separate in-memory H2 database and test-only MAN
 including per-flow overrides. It still requires review of connection settings and startup beans.
 Existing module POMs are preserved: if you already have `user-flow-tests`, check its dependencies and
 JUnit 4 test provider. New module POMs explicitly select Surefire's JUnit 4 provider.
+
+## Shared module test setup
+
+Generated tests extend the developer-owned abstract `ModuleFlowTestSupport` in the same
+package. It loads module-wide connection overrides from `src/test/resources/module-test.properties`,
+enforces isolated H2 and test-only MANUAL startup, and opens a fresh
+Spring context for each scenario. Each test closes its context with try-with-resources.
+Local-file temporary directories, input batches and assertions stay in the individual tests.
+
+The UTF-8 properties file is created with commented property keys, without copying live values
+or credentials. Uncomment the settings you need using values from `LOCAL_TEST_ENVIRONMENT.md`.
+Use standard Java properties escaping (forward slashes are easiest for file paths). Spring can
+resolve environment placeholders such as `${TEST_PASSWORD}` in values. Missing/commented keys
+retain the application's configuration; they do not become isolated test defaults.
+
+Settings apply in order: application configuration, shared test properties, flow-specific Java
+overrides, then enforced random server port, fresh in-memory H2 and MANUAL startup. The loader
+fails clearly before starting Spring if the file is missing. Regenerating Java support preserves
+the properties file; consult generated application.properties for newly introduced keys.
+
+Review the common connection settings once using `LOCAL_TEST_ENVIRONMENT.md`. The whole
+module context still loads: MANUAL flow startup cannot prevent other beans connecting during
+initialisation. If you start isolated services, add JUnit setup/teardown with cleanup even
+when startup fails. No external service is automatically provisioned or stopped by the base class.
+
+The support class is created when missing and otherwise preserved. Both single-flow and
+module-level generation offer **Archive and regenerate shared module setup** (off by default).
+Select it after adding/renaming flows or changing connections. The confirmation lists existing
+selected test/support files: archive them to regenerate, skip them to preserve, or cancel.
+Backups retain exact original contents with timestamped `.bak` names. Merge custom connection
+settings from the backup; regeneration deliberately does not guess how to merge Java edits.
+Existing independent tests still work; explicitly regenerate them to adopt shared setup.
+
+## Short scenarios and JMS tests
+
+`ModuleFlowTestSupport.verifyFlow(...)` owns listener attachment, the Ikasan rule, two deliveries,
+bounded output waits, idle/running checks and cleanup. Individual tests supply their expected path,
+inputs, payload representation and expected values. `verifyScenario(...)` exposes the same lifecycle
+for scenarios where an input is deliberately filtered or rejected; it does not demand two outputs.
+Declare every expected invocation, assert delivered values or bounded absence explicitly, and include
+later valid input when checking recovery. The helper waits for framework expectations and requires
+RUNNING before teardown. A missing output alone does not prove exclusion: also inspect stored exclusions.
+
+For a configured Spring JMS **queue** consumer, generation adds `JmsFlowTestSupport` and
+`ModuleJmsTestConfig`. The scenario sends text messages through a real connection. If the sole producer
+is also a configured Spring JMS queue producer, it additionally receives/asserts the actual output
+text for each batch. Otherwise, add external receiver checks where needed.
+
+Set `test.jms.broker-url` (and optional username/password) in `module-test.properties`, and point the
+flow's connection/destination overrides at the same isolated broker and dedicated queues. Input and
+output queues must be distinct. The helper uses physical queue names; adapt JNDI aliases explicitly.
+The supplied configuration uses ActiveMQ; other vendors, topics, object/binary messages, selectors,
+custom factories and routes require deliberate adaptation. Existing properties files are preserved:
+add the new `test.jms.*` keys yourself if needed. No broker-wide purge is performed.
+
+Use `testConfigurationClasses()` to add test-only Spring configurations, including shared sample-data
+beans. Retrieve those beans from the opened context, e.g. `context.getBean("sampleOrder", String.class)`.
+These generated tests use explicit contexts, not SpringRunner: fields annotated `@Autowired` in the
+JUnit test are not automatically injected. Each test method must open and close its own context.
+
+For a duplicate-filter scenario, call `verifyScenario` with an expectation sequence covering the
+first complete path followed by only the second consumer/filter invocation. In the scenario callback,
+send the first input and assert its output; resend it and assert no second output within a bounded
+interval. `JmsFlowTestSupport.assertNoMessage(queue)` supports isolated queue absence checks. Add a
+later distinct input if the test must prove continued delivery, extending the expected path accordingly.
+
+Shared Java helpers are developer-owned and preserved. When updating older generated tests to this
+API, select **Archive and regenerate shared module setup** so the base class contains the new helpers.
+Review changes to JMS helper/configuration files manually if they already exist. The JMS helper uses
+the selected pack's `javax.jms` or `jakarta.jms` API; a major-version migration may require updating
+those developer-owned imports before rerunning the same assertions.
 
 ## Migration and ownership
 
@@ -140,3 +215,31 @@ For migration, retain the same application-level assertions and samples, resolve
 release's test dependency, then run the tests against regenerated target-version code.
 Do not weaken assertions to accommodate changed behaviour. Automatic generation of test
 classes on canvas edits is not part of this initial implementation.
+The shared base class supplies a fresh, empty `flowTestProperties()` map on every invocation.
+Ordinary flow tests inherit it without boilerplate. Local-file tests override it to supply their
+JUnit temporary directory; other tests need an override only for dynamic or scenario-specific settings.
+Shared properties are reloaded for every application context. Existing base classes must be explicitly
+archived and regenerated when adopting this default method.
+
+New flow tests override `getFlowName()` and `defineExpectedPath()` and delegate their standard
+scenario to `runTest(...)`. The base class checks the setup guard before opening a fresh context,
+then closes it on success or failure. Override `outputText(Object)` only when the default text
+representation is unsuitable. Local-file tests use the shared file-content decoder.
+For complex scenarios, `runTest(CONFIGURED, context -> { ... })` supplies the same context lifecycle
+while leaving input and assertions explicit. Existing direct `verifyFlow`/`verifyScenario` callers
+remain supported. Regenerate shared module setup when generating tests that use these new helpers.
+
+### Self-generating source and discard sink
+
+For a direct Event Generating Consumer → Dev Null Producer using the built-in provider,
+the meta-pack selects a compact observation test. It has no `sendInput()` or expected-payload
+placeholders: review shared settings, then enable it. The test checks initial producer invocation,
+continued running and a fresh later invocation without restarting, keeping only an event count.
+It stops the isolated test flow during teardown. This is a processing/readiness check, not proof
+of payload correctness, idle behaviour or external delivery. Custom providers, intermediate
+components, branches and exception resolvers retain the more explicit scenario scaffold.
+
+Generated JUnit methods start with `test`, for example
+`testGeneratedEventsReachProducerAndFlowKeepsRunning`. JUnit discovers them through `@Test`;
+the name is for readability. Existing developer-owned tests are preserved. To adopt the new
+scaffold, archive/regenerate the selected flow test and shared module setup.

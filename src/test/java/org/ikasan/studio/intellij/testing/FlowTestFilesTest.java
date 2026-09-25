@@ -14,6 +14,37 @@ class FlowTestFilesTest {
         return new FlowTestScaffold.Scaffold("updated", "user-flow-tests/src/test/java/ExampleTest.java",
                 Map.of("user-flow-tests/src/test/java/ExampleTest.java", "test", "user-flow-tests/pom.xml", "generated pom"));
     }
+    @Test void sharedSetupIsPreservedUnlessExplicitlySelectedAndArchived() throws Exception {
+        Files.writeString(root.resolve("pom.xml"), "original");
+        var first = scaffold();
+        var files = new java.util.LinkedHashMap<>(first.files());
+        files.put(FlowTestScaffold.SUPPORT_PATH, "fresh support");
+        files.put(FlowTestScaffold.TEST_PROPERTIES_PATH, "# connection keys");
+        var withSupport = new FlowTestScaffold.Scaffold(first.rootPom(), first.testPath(), files);
+        FlowTestFiles.write(root, "original", withSupport);
+        Path support = root.resolve(FlowTestScaffold.SUPPORT_PATH);
+        Files.writeString(support, "developer connections");
+        Path properties = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
+        Files.writeString(properties, "test.host=localhost\n");
+        var secondFiles = new java.util.LinkedHashMap<>(files);
+        secondFiles.put("user-flow-tests/SecondTest.java", "second");
+        var second = new FlowTestScaffold.Scaffold("updated", "user-flow-tests/SecondTest.java", secondFiles);
+        FlowTestFiles.write(root, "updated", second);
+        assertEquals("developer connections", Files.readString(support));
+        var supportScaffold = new FlowTestScaffold.Scaffold("updated", FlowTestScaffold.SUPPORT_PATH,
+                Map.of(FlowTestScaffold.SUPPORT_PATH, "fresh support", FlowTestScaffold.TEST_PROPERTIES_PATH, "# updated keys"));
+        var selected = java.util.List.of(supportScaffold);
+        var approval = assertThrows(FlowTestFiles.ExistingTestsException.class,
+                () -> FlowTestFiles.checkExisting(root, selected));
+        FlowTestFiles.archiveAndWriteAll(root, "updated", selected, approval.tests());
+        assertEquals("fresh support", Files.readString(support));
+        assertEquals("test.host=localhost\n", Files.readString(properties));
+        try (var backups = Files.list(support.getParent())) {
+            Path backup = backups.filter(p -> p.getFileName().toString().startsWith("ModuleFlowTestSupport.java.bak")).findFirst().orElseThrow();
+            assertEquals("developer connections", Files.readString(backup));
+        }
+    }
+
     @Test void createsTestButPreservesExistingModulePomAndRefusesRegeneration() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
         Files.createDirectory(root.resolve("user-flow-tests"));
