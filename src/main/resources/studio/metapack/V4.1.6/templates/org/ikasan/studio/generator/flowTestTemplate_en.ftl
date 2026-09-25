@@ -3,12 +3,23 @@ package org.ikasan.studio.flowtests;
 import org.ikasan.testharness.flow.rule.IkasanFlowTestRule;
 import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
+<#if localFile>
+import java.util.Map;
+</#if>
+<#if isolatedFiles>
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+</#if>
 
 /**
  * Developer-owned scenario for ${flowName?j_string}.
  * Complete the numbered tasks below in order (IntelliJ's TODO view can locate them):
  * 1. Review test connections in module-test.properties.
- * 2. Supply first and later input in the scenario or sendInput().
+ * 2. Supply first and later input in supplyInput().
  * 3. Choose the output producer and a stable payload representation.
  * 4. Review the expected component path and any branch/delivery assertions.
  * 5. Enable the completed scenario and run it.
@@ -35,32 +46,15 @@ public class ${className} extends ModuleFlowTestSupport {
     private static final String SECOND_EXPECTED = "REPLACE: second expected payload";
 
 <#if isolatedFiles>
-    @org.junit.Rule
-    public org.junit.rules.TemporaryFolder inputDirectory = new org.junit.rules.TemporaryFolder();
+    @Rule
+    public TemporaryFolder inputDirectory = new TemporaryFolder();
 </#if>
 
     // TODO 1: Review shared connections in src/test/resources/module-test.properties.
     // Shared setup supplies a fresh context and isolated H2; all flows initially start MANUAL.
     @Test(timeout = 60000)
     public void testFirstAndLaterDeliveryWithoutRestart() throws Exception {
-<#if jmsConsumer>
-        runTest(CONFIGURED, context -> {
-            // TODO 2: Supply both input messages below.
-            // ModuleJmsTestConfig supplies the test connection. Configure test.jms.broker-url
-            // and this flow's broker/destination overrides in module-test.properties.
-            try (JmsFlowTestSupport jms = JmsFlowTestSupport.from(context)) {
-                verifyFlow(context, getFlowName(), OUTPUT, this::outputText, this::defineExpectedPath,
-                        (harness, batch) -> jms.sendText(context.getEnvironment().getRequiredProperty("${jmsInputKey?j_string}"),
-                                batch == 1 ? "REPLACE: first input" : "REPLACE: second input"),
-                        FIRST_EXPECTED, SECOND_EXPECTED<#if jmsOutputKey?has_content>,
-                        // Read the actual isolated output queue; keep input and output queues distinct.
-                        batch -> jms.assertText(context.getEnvironment().getRequiredProperty("${jmsOutputKey?j_string}"),
-                                batch == 1 ? FIRST_EXPECTED : SECOND_EXPECTED)</#if>);
-            }
-        });
-<#else>
-        runTest(CONFIGURED, OUTPUT, this::sendInput, FIRST_EXPECTED, SECOND_EXPECTED);
-</#if>
+        runTest(CONFIGURED, OUTPUT, FIRST_EXPECTED, SECOND_EXPECTED);
     }
 
 <#if jmsConsumer>
@@ -107,8 +101,8 @@ public class ${className} extends ModuleFlowTestSupport {
 
 <#if localFile>
     @Override
-    protected java.util.Map<String, String> flowTestProperties() {
-        java.util.Map<String, String> properties = super.flowTestProperties();
+    protected Map<String, String> flowTestProperties() {
+        Map<String, String> properties = super.flowTestProperties();
 <#if isolatedFiles>
         // JUnit creates and cleans this temporary input directory. No changes are needed here.
         properties.put("${filenameKey?j_string}",
@@ -123,18 +117,25 @@ public class ${className} extends ModuleFlowTestSupport {
     }
 </#if>
 
-<#if !jmsConsumer>
-    private void sendInput(ConfigurableApplicationContext context, IkasanFlowTestRule harness, int batch) throws Exception {
+    @Override
+    protected void supplyInput(ConfigurableApplicationContext context, IkasanFlowTestRule harness, int batch) throws Exception {
         // TODO 2: Supply the data for batch 1 and batch 2. Keep the same flow running between them.
-<#if isolatedFiles>
+<#if jmsConsumer>
+        // ModuleJmsTestConfig supplies the test connection. Configure test.jms.broker-url
+        // and matching isolated flow broker/destinations in module-test.properties.
+        try (JmsFlowTestSupport jms = JmsFlowTestSupport.from(context)) {
+            jms.sendText(context.getEnvironment().getRequiredProperty("${jmsInputKey?j_string}"),
+                    batch == 1 ? "REPLACE: first input" : "REPLACE: second input");
+        }
+<#elseif isolatedFiles>
         // File creation and scanning are supplied for you. Replace these sample contents with your input.
         // Each scan should see only this batch's file; earlier test files are removed before batch 2.
-        try (java.nio.file.DirectoryStream<java.nio.file.Path> previous =
-                     java.nio.file.Files.newDirectoryStream(inputDirectory.getRoot().toPath(), "batch-*.txt")) {
-            for (java.nio.file.Path file : previous) java.nio.file.Files.delete(file);
+        try (DirectoryStream<Path> previous =
+                     Files.newDirectoryStream(inputDirectory.getRoot().toPath(), "batch-*.txt")) {
+            for (Path file : previous) Files.delete(file);
         }
         String contents = batch == 1 ? "REPLACE: first input" : "REPLACE: second input";
-        java.nio.file.Files.writeString(inputDirectory.getRoot().toPath().resolve("batch-" + batch + ".txt"), contents);
+        Files.writeString(inputDirectory.getRoot().toPath().resolve("batch-" + batch + ".txt"), contents);
         harness.fireScheduledConsumer();
 <#elseif scheduled>
         // Create the files/provider data here BEFORE firing. Scanning does not create input.
@@ -146,6 +147,15 @@ public class ${className} extends ModuleFlowTestSupport {
         // Self-generating sources must supply deterministic batches without busy loops or restarting.
         throw new UnsupportedOperationException("Supply input batch " + batch + " for ${consumerName?j_string}");
 </#if>
+    }
+<#if jmsConsumer && jmsOutputKey?has_content>
+
+    @Override
+    protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch, String expected) throws Exception {
+        // Read the actual isolated output queue; keep input and output queues distinct.
+        try (JmsFlowTestSupport jms = JmsFlowTestSupport.from(context)) {
+            jms.assertText(context.getEnvironment().getRequiredProperty("${jmsOutputKey?j_string}"), expected);
+        }
     }
 </#if>
 <#if scheduled && !isolatedFiles>

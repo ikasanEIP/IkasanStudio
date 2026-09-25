@@ -232,14 +232,27 @@ remain supported. Regenerate shared module setup when generating tests that use 
 ### Self-generating source and discard sink
 
 For a direct Event Generating Consumer → Dev Null Producer using the built-in provider,
-the meta-pack selects a compact observation test. It has no `sendInput()` or expected-payload
-placeholders: review shared settings, then enable it. The test checks initial producer invocation,
-continued running and a fresh later invocation without restarting, keeping only an event count.
-It stops the isolated test flow during teardown. This is a processing/readiness check, not proof
-of payload correctness, idle behaviour or external delivery. Custom providers, intermediate
+the meta-pack selects a compact observation test. It has no `supplyInput()` or expected-payload
+placeholders: review shared settings, then enable it. The test checks the initial payload sequence declared by the meta-pack (`Test Message 1`,
+`Test Message 2`, `Test Message 3` for the bundled built-in providers), continued running and a
+fresh later invocation without restarting. Only the initial samples are retained; later events
+are counted. It verifies that the isolated test flow stops during teardown. This checks initial
+content/order and continued processing, not idle behaviour or external delivery.
+
+Keep the generated expected values unchanged for before/after migration tests: they are literals
+in developer-owned source, not read from the new pack. Regenerating a test deliberately takes a
+new snapshot and therefore should not be done between baseline and upgrade verification. Custom providers, intermediate
 components, branches and exception resolvers retain the more explicit scenario scaffold.
 
 Generated JUnit methods start with `test`, for example
 `testGeneratedEventsReachProducerAndFlowKeepsRunning`. JUnit discovers them through `@Test`;
 the name is for readability. Existing developer-owned tests are preserved. To adopt the new
 scaffold, archive/regenerate the selected flow test and shared module setup.
+
+Standard generated scenarios call `runTest(CONFIGURED, OUTPUT, FIRST_EXPECTED, SECOND_EXPECTED)`.
+Override `supplyInput(context, harness, batch)` to provide each batch, and optionally
+`verifyReceivedOutput(context, batch, expected)` for external delivery checks. The support class
+calls these methods directly through its standard scenario wiring; no method references or lambdas
+are needed in the concrete test. JMS scaffolds supply both overrides when a single output queue
+is known, opening and closing a helper connection for each operation. Advanced callback overloads
+remain available, and older callback-based tests still work with regenerated shared support.

@@ -158,3 +158,27 @@ from another major version.
 The normative rules and release checklist are defined in
 [`METAPACK_COMPLIANCE.md`](METAPACK_COMPLIANCE.md). A pack that fails those rules should not be made available
 to users or included in a Marketplace release.
+
+## Flow-test observation capabilities
+
+A consumer can declare `flowTestInputMode: "self-generating"` when starting the flow supplies
+continuous input without a test sender. List properties that change this contract in
+`flowTestInputModeInvalidatedByProperties` (for example a custom event provider).
+A discard producer can declare `flowTestObservationOnly: true`: reaching it is observable,
+but it has no business output or external delivery contract. Do not set this flag for external
+producers or use it to skip content, log-format or persistence assertions.
+
+Only a direct consumer-to-producer flow with these capabilities, no invalidating property,
+no branches and no exception resolver receives the compact observation scaffold. Other flows
+retain explicit input, path and payload assertions. The version-specific
+`flowObservationTestTemplate_en.ftl` and shared support template own the generated test code.
+Consumers may also declare `flowTestExpectedInitialOutputs`, an ordered array of up to 100
+text samples from their default provider. The scaffold snapshots these literals into developer-owned
+test source; it never loads target-pack expectations at runtime or updates assertions on migration.
+Omit the array for sources with no deterministic initial payload contract. Invalidating properties
+also invalidate these expectations, causing fallback to the explicit scenario scaffold.
+
+The observation retains only the declared initial samples, verifies their content and order,
+requires first and later producer invocation while the same flow is running, and verifies stopped
+state during bounded test teardown. Without samples it checks invocation/state only. It does not
+claim to verify idle behaviour, subsequent payload content or external delivery.

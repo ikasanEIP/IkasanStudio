@@ -6,6 +6,7 @@ version's notes, or the Unreleased notes while that version is being prepared.
 ## [Unreleased]
 
 - Simplify direct self-generating-source/discard-sink flow tests using meta-pack capabilities, with bounded observation and readable `test...` method names.
+- Snapshot meta-pack initial event sequences into observation tests; verify ordered payloads, later delivery and stopped state during teardown for repeatable upgrade checks.
 
 
 Initial 1.0.0 release in preparation. These notes describe the planned release scope;

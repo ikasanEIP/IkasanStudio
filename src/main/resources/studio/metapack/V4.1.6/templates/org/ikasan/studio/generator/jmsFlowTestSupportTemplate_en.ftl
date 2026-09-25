@@ -1,7 +1,18 @@
 package org.ikasan.studio.flowtests;
 
-import jakarta.jms.*;
+import jakarta.jms.Connection;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageConsumer;
+import jakarta.jms.MessageProducer;
+import jakarta.jms.Session;
+import jakarta.jms.TextMessage;
 import org.springframework.context.ConfigurableApplicationContext;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /** Queue/text-message helper. Use isolated test destinations, not production queues or topics. */
 public final class JmsFlowTestSupport implements AutoCloseable {
@@ -34,15 +45,15 @@ public final class JmsFlowTestSupport implements AutoCloseable {
         MessageConsumer consumer = session.createConsumer(session.createQueue(queue));
         try {
             Message message = consumer.receive(10000);
-            org.junit.Assert.assertTrue("Expected a text message from " + queue, message instanceof TextMessage);
-            org.junit.Assert.assertEquals(expected, ((TextMessage) message).getText());
+            assertTrue("Expected a text message from " + queue, message instanceof TextMessage);
+            assertEquals(expected, ((TextMessage) message).getText());
         } finally { consumer.close(); }
     }
 
     /** Bounded observation for a deliberately filtered/rejected input on an isolated queue. */
     public void assertNoMessage(String queue) throws JMSException {
         MessageConsumer consumer = session.createConsumer(session.createQueue(queue));
-        try { org.junit.Assert.assertNull("Unexpected delivery to " + queue, consumer.receive(1000)); }
+        try { assertNull("Unexpected delivery to " + queue, consumer.receive(1000)); }
         finally { consumer.close(); }
     }
 

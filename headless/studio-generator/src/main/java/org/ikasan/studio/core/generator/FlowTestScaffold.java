@@ -67,6 +67,7 @@ public final class FlowTestScaffold {
                 && inputMeta.getFlowTestInputModeInvalidatedByProperties().stream().allMatch(name ->
                     flow.getConsumer().getProperty(name) == null || flow.getConsumer().getProperty(name).valueNotSet())
                 && flow.getFlowRoute().getFlowElements().get(0).getComponentMeta().isFlowTestObservationOnly();
+        values.put("expectedInitialOutputs", inputMeta.getFlowTestExpectedInitialOutputs());
         values.put("automaticPath", automaticPath);
         values.put("expectedPath", executionPath);
         values.put("componentNames", flow.getFlowElementsNoExternalEndPoints().stream().map(FlowElement::getIdentity).toList());
@@ -119,7 +120,7 @@ public final class FlowTestScaffold {
                 Scenario tests use IkasanFlowTestRule; continuous-source observation tests use a bounded counting listener.
                 They deliberately FAIL before starting services until you complete the test scenario.
                 Direct self-generating-source/discard-sink observation tests have only TODO 1–2: review settings, then enable.
-                They count first and later events without storing payloads, and stop the test flow only during teardown.
+                They check any meta-pack initial payload sequence, count later events, and stop the test flow only during teardown.
                 Other scenarios follow TODO 1–5 in the Java test: isolate settings, supply two input batches, select output and expected results,
                 review component-path expectations, then enable and run. Set CONFIGURED only after completing the first four tasks.
                 Configure shared test connections in src/test/resources/module-test.properties (UTF-8).
@@ -127,6 +128,7 @@ public final class FlowTestScaffold {
                 The properties file is created once and preserved even when the support class is regenerated.
                 Absent settings retain application defaults; review them before starting the whole module context.
                 Each scenario opens and closes a fresh context; contexts and service state are not shared across tests.
+                Standard tests use runTest with named supplyInput and optional verifyReceivedOutput overrides.
                 verifyFlow supplies the common lifecycle and two-delivery checks; verifyScenario supports
                 deliberate rejection/branch scenarios with explicit expectations and output/absence assertions.
                 For JMS queue scaffolds configure test.jms.broker-url and the flow's matching isolated broker/destinations

@@ -1,4 +1,7 @@
 {
+  "flowTestExpectedInitialOutputs": ["Test Message 1", "Test Message 2", "Test Message 3"],
+  "flowTestInputMode": "self-generating",
+  "flowTestInputModeInvalidatedByProperties": ["endpointEventProvider", "managedEventIdentifierService"],
   "name": "Event Generating Consumer",
   "helpText": "<p>The endpointEventProvider supplies payloads; Studio cannot infer their type. Returning null from getEvent() terminates this consumer; it is not an idle signal. A short finite list is unsuitable for a normal ESB demonstration.</p><p>ESB flows, including demos, must remain running and ready for later input after the initial sample batch. Prefer correctly scheduled, polling or listener-based input. Use the Event Generating Consumer built-in provider unless the requested payload behaviour requires a custom provider. Add a paced provider only when the developer explicitly requests one; component coverage alone does not require it. Custom sources must honour cancellation, rollback and stop/start against the selected framework version. Do not fake isRunning, busy-spin, suppress failures or flood output.</p><p>Verify first delivery, continued readiness during idle time, and a later batch in the same running application without bean reset or flow/application restart. Finite completion is only appropriate for explicitly requested batch examples or bounded tests; a README or completion message does not excuse an unexpectedly Stopped ESB flow.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-4.1.6/ikasaneip/component/Readme.md",

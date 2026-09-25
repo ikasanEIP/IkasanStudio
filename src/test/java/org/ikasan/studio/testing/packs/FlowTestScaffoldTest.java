@@ -27,12 +27,16 @@ class FlowTestScaffoldTest {
         assertTrue(new MavenXpp3Reader().read(new StringReader(migrated.get("pom.xml"))).getModules().contains("user-flow-tests"));
         assertTrue(migrated.keySet().stream().noneMatch(p -> p.startsWith("user-flow-tests/")));
         String test = scaffold.files().get(scaffold.testPath());
+
         String support = scaffold.files().get(FlowTestScaffold.SUPPORT_PATH);
         assertTrue(test.contains("extends ModuleFlowTestSupport"));
         assertTrue(support.indexOf("assertTrue(\"Complete") < support.indexOf("try (ConfigurableApplicationContext"));
         assertTrue(test.contains("protected String getFlowName()"));
         assertFalse(test.contains("try (ConfigurableApplicationContext"));
-        assertTrue(test.contains("runTest(CONFIGURED"));
+        assertTrue(test.contains("runTest(CONFIGURED, OUTPUT, FIRST_EXPECTED, SECOND_EXPECTED)"));
+        assertTrue(test.contains("protected void supplyInput("));
+        assertFalse(test.contains("this::"));
+        assertFalse(test.contains(" -> "));
         String properties = scaffold.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH);
         assertTrue(properties.contains("${TEST_PASSWORD}"));
         assertTrue(properties.lines().allMatch(line -> line.isBlank() || line.startsWith("#")));
@@ -49,10 +53,10 @@ class FlowTestScaffoldTest {
         module.getFlows().get(0).setConsumer(local);
         var localScaffold = FlowTestScaffold.render(module, module.getFlows().get(0), parent, app);
         String localTest = localScaffold.files().get(localScaffold.testPath());
-        assertTrue(localTest.contains("new org.junit.rules.TemporaryFolder()"));
-        assertTrue(localTest.contains("protected java.util.Map<String, String> flowTestProperties()"));
+        assertTrue(localTest.contains("new TemporaryFolder()"));
+        assertTrue(localTest.contains("protected Map<String, String> flowTestProperties()"));
         assertTrue(localTest.contains("super.flowTestProperties()"));
-        assertTrue(localTest.contains("java.nio.file.Files.writeString"));
+        assertTrue(localTest.contains("Files.writeString"));
         assertTrue(support.contains("harness.assertIsSatisfied()"));
         assertTrue(localTest.contains(".repeat(2)"));
         assertTrue(localTest.contains(".scheduledConsumer(\"" + local.getIdentity() + "\")"));
@@ -67,7 +71,7 @@ class FlowTestScaffoldTest {
         assertTrue(localTest.contains("int batch) throws Exception"));
         assertTrue(localTest.contains("harness.fireScheduledConsumer()"));
         assertTrue(localTest.contains("FIRST_EXPECTED, SECOND_EXPECTED"));
-        assertTrue(support.contains("outputs.poll(10, java.util.concurrent.TimeUnit.SECONDS)"));
+        assertTrue(support.contains("outputs.poll(10, TimeUnit.SECONDS)"));
         assertTrue(localTest.contains("CONFIGURED = false"));
         for (int task = 1; task <= 5; task++) assertTrue(localTest.contains("// TODO " + task + ":"));
     }
@@ -93,12 +97,17 @@ class FlowTestScaffoldTest {
         String app = Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml"));
         var scaffold = FlowTestScaffold.render(module, flow, parent, app);
         String test = scaffold.files().get(scaffold.testPath());
+
         assertTrue(test.contains("jms.sendText"));
         assertTrue(test.contains("jms.assertText"));
+        assertTrue(test.contains("protected void verifyReceivedOutput("));
+        assertTrue(test.contains("runTest(CONFIGURED, OUTPUT, FIRST_EXPECTED, SECOND_EXPECTED)"));
+        assertFalse(test.contains("this::"));
+        assertFalse(test.contains(" -> "));
         assertTrue(test.contains("ModuleJmsTestConfig.class"));
         assertFalse(test.contains("removeAllMessages"));
         String helper = scaffold.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/JmsFlowTestSupport.java");
-        assertTrue(helper.contains((version.equals("V3.3.9") ? "javax" : "jakarta") + ".jms.*"));
+        assertTrue(helper.contains((version.equals("V3.3.9") ? "javax" : "jakarta") + ".jms.Connection;"));
         assertTrue(helper.contains("consumer.receive(10000)"));
         consumer.setPropertyValue("pubSubDomain", true);
         var topic = FlowTestScaffold.render(module, flow, parent, app);
@@ -116,18 +125,29 @@ class FlowTestScaffoldTest {
         String test = result.files().get(result.testPath());
         assertTrue(test.contains("testGeneratedEventsReachProducerAndFlowKeepsRunning"));
         assertTrue(test.contains("runObservationTest(CONFIGURED"));
+        assertTrue(test.contains("List.of(\"Test Message 1\", \"Test Message 2\", \"Test Message 3\")"));
         assertFalse(test.contains("sendInput"));
         assertFalse(test.contains("FIRST_EXPECTED"));
         assertFalse(test.contains("repeat(2)"));
         String support = result.files().get(FlowTestScaffold.SUPPORT_PATH);
         assertTrue(support.contains("awaitObservedEvent(flow, delivered, delivered.get())"));
-        assertTrue(support.contains("try { flow.stop(); } finally { flow.removeFlowListener(listener); }"));
+        assertTrue(support.contains("finally { flow.removeFlowListener(listener); }"));
+        assertTrue(support.contains("if (index <= expected.size())"));
+        assertTrue(support.contains("Initial producer payload"));
+        assertTrue(support.contains("Stopped during test teardown"));
 
         // Names and implementation classes do not select the test strategy.
         var meta = flow.getConsumer().getComponentMeta();
         flow.getConsumer().setComponentMeta(meta.toBuilder().implementingClass("example.OtherSource").build());
         var renamed = FlowTestScaffold.render(module, flow, parent, app);
         assertTrue(renamed.files().get(renamed.testPath()).contains("runObservationTest"));
+        flow.getConsumer().setComponentMeta(meta.toBuilder().flowTestExpectedInitialOutputs(java.util.List.of("custom\"sample", "next")).build());
+        var changedSamples = FlowTestScaffold.render(module, flow, parent, app);
+        assertTrue(changedSamples.files().get(changedSamples.testPath()).contains("custom\\\"sample"));
+        assertFalse(changedSamples.files().get(changedSamples.testPath()).contains("Test Message 1"));
+        flow.getConsumer().setComponentMeta(meta.toBuilder().flowTestExpectedInitialOutputs(java.util.List.of()).build());
+        var noSamples = FlowTestScaffold.render(module, flow, parent, app);
+        assertFalse(noSamples.files().get(noSamples.testPath()).contains("List.of("));
         flow.getConsumer().setComponentMeta(meta.toBuilder().flowTestInputMode(null).build());
         var noHint = FlowTestScaffold.render(module, flow, parent, app);
         assertFalse(noHint.files().get(noHint.testPath()).contains("runObservationTest"));
@@ -147,5 +167,7 @@ class FlowTestScaffoldTest {
         var external = FlowTestScaffold.render(module, flow, parent, app);
         assertFalse(external.files().get(external.testPath()).contains("runObservationTest"));
     }
+
+
 
 }

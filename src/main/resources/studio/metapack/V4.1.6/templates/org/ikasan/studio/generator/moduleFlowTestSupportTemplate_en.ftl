@@ -1,14 +1,47 @@
 package org.ikasan.studio.flowtests;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import org.ikasan.spec.flow.Flow;
+import org.ikasan.spec.flow.FlowElement;
+import org.ikasan.spec.flow.FlowEvent;
+import org.ikasan.spec.flow.FlowEventListener;
+import org.ikasan.spec.module.Module;
+import org.ikasan.testharness.flow.rule.IkasanFlowTestRule;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /** Developer-owned shared setup. Each call creates a NEW application, never a cached/static context. */
 public abstract class ModuleFlowTestSupport {
     /**
+     * Reloads shared test settings from the UTF-8 properties file into a fresh map.
+     * Fails if the file is missing rather than silently using application connection defaults.
+     *
      * TODO: Review module-wide connections in src/test/resources/module-test.properties.
      * Consult LOCAL_TEST_ENVIRONMENT.md for test values.
      * The whole module's Spring context is loaded. Other components may connect to external
@@ -19,12 +52,12 @@ public abstract class ModuleFlowTestSupport {
      * If no other components connect during startup, no connection changes are needed.
      * Regenerating this class archives it first and preserves module-test.properties.
      */
-    protected Map<String, String> moduleTestProperties() throws java.io.IOException {
-        java.util.Properties loaded = new java.util.Properties();
-        try (java.io.InputStream input = ModuleFlowTestSupport.class.getResourceAsStream("/module-test.properties")) {
-            if (input == null) throw new java.io.IOException(
+    protected Map<String, String> moduleTestProperties() throws IOException {
+        Properties loaded = new Properties();
+        try (InputStream input = ModuleFlowTestSupport.class.getResourceAsStream("/module-test.properties")) {
+            if (input == null) throw new IOException(
                     "Missing src/test/resources/module-test.properties in user-flow-tests; generate or restore it before testing.");
-            loaded.load(new java.io.InputStreamReader(input, java.nio.charset.StandardCharsets.UTF_8));
+            loaded.load(new InputStreamReader(input, StandardCharsets.UTF_8));
         }
         Map<String, String> properties = new LinkedHashMap<>();
         for (String key : loaded.stringPropertyNames()) properties.put(key, loaded.getProperty(key));
@@ -36,7 +69,11 @@ public abstract class ModuleFlowTestSupport {
         return new LinkedHashMap<>();
     }
 
-    // The caller owns this context: use try-with-resources so it closes on success or failure.
+    /**
+     * Starts a fresh application with shared settings followed by scenario overrides.
+     * Enforces a random HTTP port, unique in-memory H2 database and MANUAL flow startup.
+     * The caller owns the returned context and must close it with try-with-resources.
+     */
     protected final ConfigurableApplicationContext openTestApplication(Map<String, String> flowProperties) throws Exception {
         Map<String, String> properties = new LinkedHashMap<>(moduleTestProperties());
         properties.putAll(flowProperties); // Flow-specific settings override shared connections.
@@ -49,9 +86,9 @@ public abstract class ModuleFlowTestSupport {
 </#list>
         String[] arguments = properties.entrySet().stream()
                 .map(entry -> "--" + entry.getKey() + "=" + entry.getValue()).toArray(String[]::new);
-        java.util.List<Class<?>> sources = new java.util.ArrayList<>();
+        List<Class<?>> sources = new ArrayList<>();
         sources.add(Class.forName("org.ikasan.studio.boot.Application"));
-        java.util.Collections.addAll(sources, testConfigurationClasses());
+        Collections.addAll(sources, testConfigurationClasses());
         return new SpringApplication(sources.toArray(new Class<?>[0])).run(arguments);
     }
     protected Class<?>[] testConfigurationClasses() { return new Class<?>[0]; }
@@ -60,7 +97,7 @@ public abstract class ModuleFlowTestSupport {
     protected String getFlowName() {
         throw new UnsupportedOperationException("Override getFlowName() before using runTest()");
     }
-    protected void defineExpectedPath(org.ikasan.testharness.flow.rule.IkasanFlowTestRule harness) {
+    protected void defineExpectedPath(IkasanFlowTestRule harness) {
         throw new UnsupportedOperationException("Define the expected component path");
     }
     protected String outputText(Object payload) { return String.valueOf(payload); }
@@ -72,15 +109,39 @@ public abstract class ModuleFlowTestSupport {
     @FunctionalInterface
     protected interface ContextBatchInput {
         void send(ConfigurableApplicationContext context,
-                  org.ikasan.testharness.flow.rule.IkasanFlowTestRule harness, int batch) throws Exception;
+                  IkasanFlowTestRule harness, int batch) throws Exception;
     }
 
     /** Fresh context per scenario, closed even if setup, delivery or assertions fail. */
     protected final void runTest(boolean configured, TestScenario scenario) throws Exception {
-        org.junit.Assert.assertTrue("Complete TODO 1–4, then set CONFIGURED=true in TODO 5. See user-flow-tests/README.md", configured);
+        assertTrue("Complete TODO 1–4, then set CONFIGURED=true in TODO 5. See user-flow-tests/README.md", configured);
         try (ConfigurableApplicationContext context = openTestApplication(flowTestProperties())) {
             scenario.run(context);
         }
+    }
+
+    /** Supplies batch 1 or 2 through the real consumer; override in the concrete test. */
+    protected void supplyInput(ConfigurableApplicationContext context, IkasanFlowTestRule harness,
+                               int batch) throws Exception {
+        throw new UnsupportedOperationException("Override supplyInput() to provide test data");
+    }
+
+    /** Optional receiver-side assertion, called after the producer sees each expected payload. */
+    protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch,
+                                        String expected) throws Exception { }
+
+    /**
+     * Runs the standard scenario using the concrete test's named overrides.
+     * Calls getFlowName() and defineExpectedPath(), then supplyInput() for batch 1 and batch 2.
+     * For each batch, compares outputText(payload) and calls verifyReceivedOutput().
+     * The shared lifecycle checks continued readiness and closes the isolated application.
+     */
+    protected final void runTest(boolean configured, String output,
+                                 String firstExpected, String secondExpected) throws Exception {
+        runTest(configured, context -> verifyFlow(context, getFlowName(), output,
+                this::outputText, this::defineExpectedPath,
+                (harness, batch) -> supplyInput(context, harness, batch), firstExpected, secondExpected,
+                batch -> verifyReceivedOutput(context, batch, batch == 1 ? firstExpected : secondExpected)));
     }
 
     /** Standard two-batch scenario; custom routing/rejection tests can use the scenario overload. */
@@ -91,73 +152,106 @@ public abstract class ModuleFlowTestSupport {
                 (harness, batch) -> input.send(context, harness, batch), firstExpected, secondExpected));
     }
 
-    /** Decode unchanged local-file consumer payloads; converted payloads use describeOutput instead. */
+    /**
+     * Concatenates UTF-8 contents when the payload is a list of files, avoiding temporary paths
+     * in assertions. Other payloads use their string representation; override outputText for
+     * custom conversions. File read failures fail the test rather than hiding missing content.
+     */
     protected final String describeFileOutput(Object payload) {
-        if (payload instanceof java.util.List<?>) {
-            java.util.List<?> files = (java.util.List<?>) payload;
-            if (files.stream().allMatch(item -> item instanceof java.io.File)) {
+        if (payload instanceof List<?>) {
+            List<?> files = (List<?>) payload;
+            if (files.stream().allMatch(item -> item instanceof File)) {
                 StringBuilder contents = new StringBuilder();
                 try {
-                    for (Object file : files) contents.append(java.nio.file.Files.readString(((java.io.File) file).toPath()));
+                    for (Object file : files) contents.append(Files.readString(((File) file).toPath()));
                     return contents.toString();
-                } catch (java.io.IOException failure) { throw new java.io.UncheckedIOException(failure); }
+                } catch (IOException failure) { throw new UncheckedIOException(failure); }
             }
         }
         return String.valueOf(payload);
     }
 
-    /** Bounded observation for a self-generating source and discard sink; no payloads are retained. */
+    /** Compatibility overload for observation tests generated without payload expectations. */
     protected final void runObservationTest(boolean configured, String output) throws Exception {
-        org.junit.Assert.assertTrue("Review TODO 1–2, then set CONFIGURED=true", configured);
+        runObservationTest(configured, output, List.of());
+    }
+
+    /**
+     * Starts the selected self-generating flow and checks its initial payload sequence at the sink.
+     * Checks RUNNING state for one second, then requires a fresh later event without restarting.
+     * Retains only the expected initial samples; subsequent events are counted without storing payloads.
+     * Finally stops the test flow, checks its stopped state, removes the listener and closes the context.
+     */
+    protected final void runObservationTest(boolean configured, String output,
+            List<String> expectedInitialOutputs) throws Exception {
+        List<String> expected = List.copyOf(expectedInitialOutputs);
+        assertTrue("Review TODO 1–2, then set CONFIGURED=true", configured);
         try (ConfigurableApplicationContext context = openTestApplication(flowTestProperties())) {
-            org.ikasan.spec.module.Module<org.ikasan.spec.flow.Flow> module = context.getBean(org.ikasan.spec.module.Module.class);
-            org.ikasan.spec.flow.Flow flow = module.getFlow(getFlowName());
-            org.junit.Assert.assertNotNull("Flow must exist: " + getFlowName(), flow);
-            java.util.concurrent.atomic.AtomicLong delivered = new java.util.concurrent.atomic.AtomicLong();
-            org.ikasan.spec.flow.FlowEventListener listener = new org.ikasan.spec.flow.FlowEventListener() {
-                public void beforeFlowElement(String m, String f, org.ikasan.spec.flow.FlowElement e, org.ikasan.spec.flow.FlowEvent event) { }
-                public void afterFlowElement(String m, String f, org.ikasan.spec.flow.FlowElement e, org.ikasan.spec.flow.FlowEvent event) {
-                    if (output.equals(e.getComponentName())) delivered.incrementAndGet();
+            Module<Flow> module = context.getBean(Module.class);
+            Flow flow = module.getFlow(getFlowName());
+            assertNotNull("Flow must exist: " + getFlowName(), flow);
+            AtomicLong delivered = new AtomicLong();
+            BlockingQueue<String> initialOutputs =
+                    new ArrayBlockingQueue<>(Math.max(1, expected.size()));
+            FlowEventListener listener = new FlowEventListener() {
+                public void beforeFlowElement(String m, String f, FlowElement e, FlowEvent event) { }
+                /** Counts sink invocations and captures only the bounded initial payload sequence. */
+                public void afterFlowElement(String m, String f, FlowElement e, FlowEvent event) {
+                    if (output.equals(e.getComponentName())) {
+                        long index = delivered.incrementAndGet();
+                        if (index <= expected.size()) initialOutputs.offer(outputText(event.getPayload()));
+                    }
                 }
             };
             flow.addFlowListener(listener);
             try {
                 flow.start();
                 awaitObservedEvent(flow, delivered, 0);
+                for (int index = 0; index < expected.size(); index++) {
+                    assertEquals("Initial producer payload " + (index + 1), expected.get(index),
+                            initialOutputs.poll(10, TimeUnit.SECONDS));
+                }
                 // Keep the SAME flow running during the observation window, then require a NEW event.
-                long until = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(1);
+                long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(1);
                 while (System.nanoTime() < until) {
-                    org.junit.Assert.assertEquals("Continued running", org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
+                    assertEquals("Continued running", Flow.RUNNING, flow.getState());
                     Thread.sleep(20);
                 }
                 awaitObservedEvent(flow, delivered, delivered.get());
             } finally {
                 // Stopping here is bounded test teardown, never a change to module startup settings.
-                try { flow.stop(); } finally { flow.removeFlowListener(listener); }
+                try {
+                    flow.stop();
+                    assertEquals("Stopped during test teardown", Flow.STOPPED, flow.getState());
+                } finally { flow.removeFlowListener(listener); }
             }
         }
     }
 
-    private void awaitObservedEvent(org.ikasan.spec.flow.Flow flow,
-            java.util.concurrent.atomic.AtomicLong delivered, long previous) throws InterruptedException {
-        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(10);
+    /**
+     * Waits up to ten seconds for the delivery count to exceed the supplied snapshot.
+     * Fails if the flow is no longer RUNNING or no new event arrives before the deadline.
+     */
+    private void awaitObservedEvent(Flow flow,
+            AtomicLong delivered, long previous) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
         while (delivered.get() <= previous) {
-            org.junit.Assert.assertEquals("Ready for generated events", org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
-            if (System.nanoTime() >= deadline) org.junit.Assert.fail("No new event reached the selected producer within 10 seconds");
+            assertEquals("Ready for generated events", Flow.RUNNING, flow.getState());
+            if (System.nanoTime() >= deadline) fail("No new event reached the selected producer within 10 seconds");
             Thread.sleep(20);
         }
-        org.junit.Assert.assertEquals("Running after delivery", org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
+        assertEquals("Running after delivery", Flow.RUNNING, flow.getState());
     }
 
     @FunctionalInterface
     protected interface BatchInput {
-        void send(org.ikasan.testharness.flow.rule.IkasanFlowTestRule harness, int batch) throws Exception;
+        void send(IkasanFlowTestRule harness, int batch) throws Exception;
     }
 
     /** Common lifecycle; individual tests supply the path, inputs and meaningful expected payloads. */
     protected final void verifyFlow(ConfigurableApplicationContext context, String flowName, String output,
-            java.util.function.Function<Object, String> describeOutput,
-            java.util.function.Consumer<org.ikasan.testharness.flow.rule.IkasanFlowTestRule> expectations,
+            Function<Object, String> describeOutput,
+            Consumer<IkasanFlowTestRule> expectations,
             BatchInput input, String firstExpected, String secondExpected) throws Exception {
         verifyFlow(context, flowName, output, describeOutput, expectations, input, firstExpected, secondExpected, batch -> { });
     }
@@ -165,54 +259,66 @@ public abstract class ModuleFlowTestSupport {
     @FunctionalInterface
     protected interface BatchVerification { void verify(int batch) throws Exception; }
 
+    /**
+     * Sends two batches through the same running flow, checking each observed payload and
+     * the caller's receiver-side assertions. Between batches, checks that the flow stays
+     * RUNNING and produces no unexpected output during a one-second idle window.
+     * Delegates component-path verification and flow cleanup to verifyScenario.
+     */
     protected final void verifyFlow(ConfigurableApplicationContext context, String flowName, String output,
-            java.util.function.Function<Object, String> describeOutput,
-            java.util.function.Consumer<org.ikasan.testharness.flow.rule.IkasanFlowTestRule> expectations,
+            Function<Object, String> describeOutput,
+            Consumer<IkasanFlowTestRule> expectations,
             BatchInput input, String firstExpected, String secondExpected, BatchVerification receiverCheck) throws Exception {
         verifyScenario(context, flowName, output, describeOutput, expectations, (harness, flow, outputs) -> {
             for (int batch = 1; batch <= 2; batch++) {
                 input.send(harness, batch);
-                org.junit.Assert.assertEquals("Output for batch " + batch,
+                assertEquals("Output for batch " + batch,
                         batch == 1 ? firstExpected : secondExpected,
-                        outputs.poll(10, java.util.concurrent.TimeUnit.SECONDS));
+                        outputs.poll(10, TimeUnit.SECONDS));
                 receiverCheck.verify(batch);
-                org.junit.Assert.assertEquals("Ready after delivery", org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
-                org.junit.Assert.assertNull("No unexpected output while idle", outputs.poll(1, java.util.concurrent.TimeUnit.SECONDS));
-                org.junit.Assert.assertEquals("Ready while idle", org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
+                assertEquals("Ready after delivery", Flow.RUNNING, flow.getState());
+                assertNull("No unexpected output while idle", outputs.poll(1, TimeUnit.SECONDS));
+                assertEquals("Ready while idle", Flow.RUNNING, flow.getState());
             }
         });
     }
 
     @FunctionalInterface
     protected interface FlowScenario {
-        void verify(org.ikasan.testharness.flow.rule.IkasanFlowTestRule harness,
-                    org.ikasan.spec.flow.Flow flow,
-                    java.util.concurrent.BlockingQueue<String> outputs) throws Exception;
+        void verify(IkasanFlowTestRule harness,
+                    Flow flow,
+                    BlockingQueue<String> outputs) throws Exception;
     }
 
-    /** For routing/rejection scenarios: send inputs and assert deliveries OR deliberate absence explicitly. */
+    /**
+     * Attaches the test rule and output listener, starts the flow and runs the supplied scenario.
+     * The scenario supplies input and asserts deliveries, branches or deliberate absence.
+     * Allows up to ten seconds afterward for component-path expectations to finish, then checks
+     * that the flow remains RUNNING. Always stops the test flow and removes the output listener;
+     * the caller retains ownership of the application context.
+     */
     protected final void verifyScenario(ConfigurableApplicationContext context, String flowName, String output,
-            java.util.function.Function<Object, String> describeOutput,
-            java.util.function.Consumer<org.ikasan.testharness.flow.rule.IkasanFlowTestRule> expectations,
+            Function<Object, String> describeOutput,
+            Consumer<IkasanFlowTestRule> expectations,
             FlowScenario scenario) throws Exception {
-        org.ikasan.spec.module.Module<org.ikasan.spec.flow.Flow> module = context.getBean(org.ikasan.spec.module.Module.class);
-        org.ikasan.spec.flow.Flow flow = module.getFlow(flowName);
-        org.junit.Assert.assertNotNull("Flow must exist: " + flowName, flow);
-        java.util.concurrent.BlockingQueue<String> outputs = new java.util.concurrent.LinkedBlockingQueue<>();
-        org.ikasan.spec.flow.FlowEventListener listener = new org.ikasan.spec.flow.FlowEventListener() {
-            public void beforeFlowElement(String m, String f, org.ikasan.spec.flow.FlowElement e, org.ikasan.spec.flow.FlowEvent event) { }
-            public void afterFlowElement(String m, String f, org.ikasan.spec.flow.FlowElement e, org.ikasan.spec.flow.FlowEvent event) {
+        Module<Flow> module = context.getBean(Module.class);
+        Flow flow = module.getFlow(flowName);
+        assertNotNull("Flow must exist: " + flowName, flow);
+        BlockingQueue<String> outputs = new LinkedBlockingQueue<>();
+        FlowEventListener listener = new FlowEventListener() {
+            public void beforeFlowElement(String m, String f, FlowElement e, FlowEvent event) { }
+            public void afterFlowElement(String m, String f, FlowElement e, FlowEvent event) {
                 if (output.equals(e.getComponentName())) outputs.add(describeOutput.apply(event.getPayload()));
             }
         };
-        var harness = new org.ikasan.testharness.flow.rule.IkasanFlowTestRule().withFlow(flow);
+        var harness = new IkasanFlowTestRule().withFlow(flow);
         expectations.accept(harness);
         flow.addFlowListener(listener);
         try {
             harness.startFlow();
             scenario.verify(harness, flow, outputs);
             // A rejected/filtered event can finish asynchronously without reaching the output listener.
-            long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(10);
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
             while (true) {
                 try { harness.assertIsSatisfied(); break; }
                 catch (AssertionError pending) {
@@ -220,7 +326,7 @@ public abstract class ModuleFlowTestSupport {
                     Thread.sleep(50);
                 }
             }
-            org.junit.Assert.assertEquals("Ready after scenario", org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
+            assertEquals("Ready after scenario", Flow.RUNNING, flow.getState());
         } finally {
             try { harness.stopFlow(); } finally { flow.removeFlowListener(listener); }
         }

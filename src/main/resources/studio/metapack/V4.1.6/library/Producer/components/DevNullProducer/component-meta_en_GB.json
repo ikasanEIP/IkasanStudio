@@ -1,4 +1,5 @@
 {
+  "flowTestObservationOnly": true,
   "name": "Dev Null Producer",
   "helpText": "<p>Discards every payload without further processing.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-4.1.6/ikasaneip/component/Readme.md",
