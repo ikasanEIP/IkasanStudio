@@ -1,9 +1,12 @@
 package org.ikasan.studio.verification;
 
 import org.junit.Test;
-import org.junit.Assume;
 
-/** Generated baseline for ${flow.identity?j_string}. Refresh explicitly; no developer completion is required. */
+/**
+ * Generated structural and interface checks for ${flow.identity?j_string}.
+ * Refresh explicitly; no developer completion is required.
+ * Add runtime and business scenarios in user-flow-tests; these checks do not establish that coverage.
+ */
 public class ${flow.javaClassName}VerificationTest extends GeneratedVerificationSupport {
     @Test
     public void testFlowFactoryContract() throws Exception {
@@ -25,8 +28,4 @@ public class ${flow.javaClassName}VerificationTest extends GeneratedVerification
 </#list>
     }
 
-    @Test
-    public void testRuntimeBehaviourNotVerified() {
-        Assume.assumeTrue("NOT VERIFIED: automatic runtime scenario unavailable; delivery, routing, exclusions and business behaviour require functional tests", false);
-    }
 }

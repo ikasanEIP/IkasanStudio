@@ -37,7 +37,7 @@ class TestFtpServerServiceTest {
 
         try {
             Path root = service.start(configuration);
-            assertThat(root).isEqualTo(projectDirectory.resolve("test-data/ftp"));
+            assertThat(root).isEqualTo(projectDirectory.resolve("temporary-files/test-data/ftp"));
             assertThat(service.isRunningAt(configuration)).isTrue();
             assertThat(service.start(configuration)).isEqualTo(root);
             assertThat(Files.readString(root.resolve("test-file.txt"))).contains("Ikasan Studio");
@@ -90,8 +90,8 @@ class TestFtpServerServiceTest {
         when(first.getBasePath()).thenReturn(parent.resolve("before").toString());
         when(relocated.getBasePath()).thenReturn(parent.resolve("after").toString());
 
-        assertThat(TestFtpServerService.testRoot(first)).isEqualTo(parent.resolve("before/test-data/ftp"));
-        assertThat(TestFtpServerService.testRoot(relocated)).isEqualTo(parent.resolve("after/test-data/ftp"));
+        assertThat(TestFtpServerService.testRoot(first)).isEqualTo(parent.resolve("before/temporary-files/test-data/ftp"));
+        assertThat(TestFtpServerService.testRoot(relocated)).isEqualTo(parent.resolve("after/temporary-files/test-data/ftp"));
     }
 
     private static void command(BufferedWriter writer, String command) throws Exception {

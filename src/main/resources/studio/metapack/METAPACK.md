@@ -209,3 +209,17 @@ Surefire configuration to the existing application POM. `usesBuilderInFactory` d
 `verificationImplementationContract` optionally names the user implementation's raw interface
 when different from `componentType` (for example `FilterRule`). These checks never infer custom
 business input or start external endpoints. Runtime coverage remains explicitly not verified.
+
+### Developer import migration rules
+
+Directional migration JSON may declare `userImportPrefixes`, separately from model `typePrefixes`.
+Keys and values must be Java package prefixes ending in a dot. These trusted rules are used
+only when the developer opts in during preview. The shared engine edits import declarations
+under `user/src/main/java`, preserving tests, literals, comments and other code. Do not use this
+mechanism for behavioural API changes; add only mappings verified for the version pair.
+
+`userImportApplicability` is required when import mappings are present, for example
+`{"sourceMajor": 3, "targetMajor": 4}` for 3.x → 4.x. The loader rejects a rule whose
+major-version direction does not match its source/target identities. Reverse mappings
+use their own 4.x → 3.x declaration. This describes rule applicability; it does not widen
+the set of tested/supported migration version pairs.

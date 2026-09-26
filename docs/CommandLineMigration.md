@@ -70,7 +70,7 @@ under the project root, even when called from elsewhere. Without it, reports go 
 `migration-reports/<timestamp>/` in the project. `compare --report` is relative to the
 current directory; the default is `migration-comparison` next to the after-report directory.
 
-The tool runs `mvn -B clean verify` to compile and execute the configured Surefire and
+The tool runs `mvn -B -V clean verify` to compile and execute the configured Surefire and
 Failsafe tests. Old reports from inactive modules are not counted. Default timeout is
 900 seconds; adjust with `--timeout 1800`. On POSIX systems timeout stops the test process
 group; on Windows it stops the Maven process, so check for child processes after timeout.
@@ -136,7 +136,7 @@ apply rejects stale files, altered developer files or a changed renderer. Keep t
 private: it includes original/proposed generated configuration and POM contents.
 
 Apply is explicit authorization to write the previewed generated files and root POM.
-It preserves `user/` and `AGENTS.md`. In the POM it removes unchanged, unversioned
+It preserves `AGENTS.md` and developer code except explicitly selected, reviewed user import updates. In the POM it removes unchanged, unversioned
 source-component dependencies retired by the target pack, while retaining explicit
 overrides and unrelated dependencies. It stores a recovery snapshot under
 `.ikasan-studio/migrations/`, and uses the same optimistic checks and rollback-capable
@@ -176,3 +176,42 @@ retired requirements, with upgrade/downgrade and explicit-override regression co
 This evidence covers the Linux CLI workflow. Windows launchers are packaged by Gradle
 but have not been exercised interactively. It does not replace the IDE migration/recovery
 release checks or tests for each developer's integrations.
+
+### Resolving failed verification
+
+Reports include a **How to resolve the findings** section for each failed or incomplete check.
+Maven's `-V` banner records the Java version used by the build. Comparisons show the target
+minimum JDK (11 for V3.3.9, 17 for V4.1.6) and the recorded Maven Java version. Older logs
+without that banner are labelled **not recorded**; the comparison does not infer a past JVM
+from your current environment. Maven toolchains may select a different compiler.
+
+For a JDK mismatch, set `JAVA_HOME` to the target JDK, update `PATH`, and confirm using the
+same Maven executable or wrapper with `-version`. Then collect a fresh after report and
+compare again. Compilation failures can also explain missing test cases; fix those first.
+Recognised JAXB import failures include guidance on adapting developer-owned code, while
+source changes remain visible for review. Reports never silently turn those changes into a pass.
+
+### Optional developer import updates
+
+The IDE and offline CLI share the same Java migration engine; Python collects and compares
+test evidence. On Windows, Linux and macOS, opt in during preview:
+
+```sh
+studio-cli preview --project . --to V4.1.6 --plan migration-plan.json --update-user-imports true
+studio-cli apply --plan migration-plan.json
+```
+
+Use the distribution's `.bat` launcher on Windows. The selection is stored in the plan; apply
+recomputes the edits and rejects stale files or altered proposals. The `.diff` includes every
+changed source file. Review before applying. Recovery snapshots include the original files.
+
+Only Java import declarations under `user/src/main/java` are eligible. Directional target-pack
+`userImportPrefixes` rules cover JMS, JAXB and resource API namespaces. Comments, strings,
+method bodies, fully qualified references and test sources are preserved. Files containing
+Unicode escapes are left unchanged. Review remaining references and dependency compatibility
+manually, then compile and run the unchanged functional tests.
+
+Supply `--plan migration-plan.json` when comparing. Source changes pass the preservation check
+only when both before/after hashes match the exact planned bytes; extra edits still fail. Without
+the plan, import changes remain reported as source changes requiring review. An IDE recovery
+snapshot can also supply those exact changes through `--plan`.

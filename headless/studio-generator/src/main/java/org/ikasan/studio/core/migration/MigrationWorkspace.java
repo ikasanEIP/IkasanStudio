@@ -114,7 +114,7 @@ public final class MigrationWorkspace {
     }
 
     private static Path safe(Path root, String relative) throws IOException {
-        if (!(relative.equals("pom.xml") || relative.equals("AGENTS.md") || relative.startsWith("generated/"))) {
+        if (!(relative.equals("pom.xml") || relative.equals("AGENTS.md") || relative.startsWith("generated/") || UserImportMigration.permittedPath(relative))) {
             throw new IOException("Migration cannot write developer-owned path: " + relative);
         }
         return resolve(root, relative);
@@ -123,7 +123,7 @@ public final class MigrationWorkspace {
     private static Path resolve(Path root, String relative) throws IOException {
         Path base = root.toAbsolutePath().normalize();
         Path candidate = base.resolve(relative).normalize();
-        if (!candidate.startsWith(base) || Path.of(relative).isAbsolute() || !Path.of(relative).normalize().toString().equals(relative)) {
+        if (!candidate.startsWith(base) || Path.of(relative).isAbsolute() || !Path.of(relative).normalize().toString().replace('\\', '/').equals(relative)) {
             throw new IOException("Invalid migration path: " + relative);
         }
         for (Path part = candidate; part != null && part.startsWith(base); part = part.getParent()) {

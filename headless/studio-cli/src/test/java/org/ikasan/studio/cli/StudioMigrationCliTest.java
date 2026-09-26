@@ -32,6 +32,34 @@ class StudioMigrationCliTest {
         assertTrue(MigrationWorkspace.latest(project).committed());
         assertEquals(1, run("apply", "--plan", plan.toString()));
     }
+    @Test void optInImportsAreReviewedAppliedAndRestorable() throws Exception {
+        Path plan = setup();
+        Path source = project.resolve("user/src/main/java/example/Converter.java");
+        Files.createDirectories(source.getParent());
+        String original = "import javax.jms.Message;\r\nclass Converter {}\r\n";
+        Files.writeString(source, original);
+        Path test = project.resolve("user/src/test/java/ExampleTest.java");
+        Files.createDirectories(test.getParent()); Files.writeString(test, original);
+        assertEquals(0, run("preview", "--project", project.toString(), "--to", "V4.1.6", "--plan", plan.toString(), "--update-user-imports", "true"));
+        assertEquals(original, Files.readString(source));
+        assertTrue(Files.readString(Path.of(plan+".diff")).contains("+import jakarta.jms.Message;"));
+        assertEquals(0, run("apply", "--plan", plan.toString()));
+        assertEquals(original.replace("javax.jms", "jakarta.jms"), Files.readString(source));
+        assertEquals(original, Files.readString(test));
+        var snapshot = MigrationWorkspace.latest(project);
+        MigrationWorkspace.commit(project, MigrationWorkspace.prepareRestore(project, snapshot), "restore");
+        assertEquals(original, Files.readString(source));
+    }
+
+    @Test void importsRemainUnchangedWithoutOptIn() throws Exception {
+        Path plan = setup();
+        Path source = project.resolve("user/src/main/java/Converter.java");
+        Files.createDirectories(source.getParent()); Files.writeString(source, "import javax.jms.Message;\n");
+        assertEquals(0, preview(plan, "V4.1.6"));
+        assertEquals(0, run("apply", "--plan", plan.toString()));
+        assertEquals("import javax.jms.Message;\n", Files.readString(source));
+    }
+
     @Test void rejectsStalePomAndLeavesModelUnchanged() throws Exception {
         Path plan=setup(); assertEquals(0, preview(plan,"V4.1.6"));
         Files.writeString(project.resolve("pom.xml"), "<!-- edited -->\n", StandardOpenOption.APPEND);

@@ -9,3 +9,9 @@ transaction-logs/
 scheduler-recovery/
 .idea/
 *.iml
+
+# Studio verification-test backups
+/generated/src/test.bak*/
+
+# Local runtime and test data
+/temporary-files/

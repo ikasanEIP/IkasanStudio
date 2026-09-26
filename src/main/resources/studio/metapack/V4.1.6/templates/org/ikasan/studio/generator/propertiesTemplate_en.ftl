@@ -9,6 +9,9 @@ module.package=${module.getPropertyValue('applicationPackageName')}
 logging.level.com.arjuna=INFO
 logging.level.org.springframework=INFO
 
+# Runtime recovery data (retain across restarts; do not delete pending transactions)
+narayana.log-dir=./temporary-files/transaction-logs
+
 # Blue console servlet settings (optional)
 server.error.whitelabel.enabled=false
 

@@ -30,6 +30,7 @@ under the License.
       <directory></directory>
       <includes>
         <include>.ikasan-studio-project</include>
+        <include>.gitignore</include>
         <include>AGENTS.md</include>
         <include>LOCAL_TEST_ENVIRONMENT.md</include>
       </includes>

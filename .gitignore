@@ -126,3 +126,9 @@ settings.gradle.kts
 
 # The standalone headless build settings are shared build configuration.
 !headless/settings.gradle.kts
+
+# Studio verification-test backups
+/generated/src/test.bak*/
+
+# Local runtime and test data
+/temporary-files/

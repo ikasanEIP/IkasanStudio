@@ -47,5 +47,14 @@
     "javax.jms.": "jakarta.jms.",
     "javax.xml.bind.": "jakarta.xml.bind.",
     "javax.resource.": "jakarta.resource."
+  },
+  "userImportPrefixes": {
+    "javax.jms.": "jakarta.jms.",
+    "javax.xml.bind.": "jakarta.xml.bind.",
+    "javax.resource.": "jakarta.resource."
+  },
+  "userImportApplicability": {
+    "sourceMajor": 3,
+    "targetMajor": 4
   }
 }

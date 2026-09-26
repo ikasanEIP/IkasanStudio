@@ -21,6 +21,7 @@ import org.ikasan.studio.ui.UiContext;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -48,6 +49,7 @@ public final class MigrationController {
             acquired = true;
             Path root = Path.of(project.getBasePath());
             String target = null;
+            boolean updateImports = false;
             if (!restore) {
                 Module live = context.getIkasanModule();
                 if (live == null || !live.isInitialised()) throw new IllegalStateException(StudioBundle.message("message.ConfigureAndSaveTheModuleFirst"));
@@ -57,8 +59,10 @@ public final class MigrationController {
                 var chooser = new MigrationTargetDialog(project, current, choices);
                 if (!chooser.showAndGet()) return;
                 target = chooser.targetVersion();
+                updateImports = chooser.updateUserImports();
             }
             String selectedTarget = target;
+            boolean selectedUpdateImports = updateImports;
             Preview preview = background(project, "Preparing migration preview", () -> {
                 if (restore) {
                     var snapshot = MigrationWorkspace.latest(root);
@@ -78,7 +82,9 @@ public final class MigrationController {
                 String sourcePom = Files.readString(root.resolve("pom.xml"));
                 var artifacts = MigrationArtifacts.render(plan, sourcePom);
                 if (!Files.exists(root.resolve("AGENTS.md"))) artifacts.put("AGENTS.md", AiProjectContractGenerator.agentsGuide());
-                var changes = MigrationWorkspace.prepare(root, artifacts);
+                var changes = new java.util.ArrayList<>(MigrationWorkspace.prepare(root, artifacts));
+                var importChanges = selectedUpdateImports ? UserImportMigration.prepare(root, plan) : List.<MigrationWorkspace.Change>of();
+                changes.addAll(importChanges);
                 if (changes.stream().anyMatch(c -> c.path().equals("AGENTS.md") && c.before() != null)) {
                     throw new IllegalStateException(StudioBundle.message("message.ProjectInstructionsWereAddedWhilePreparingMigration"));
                 }
@@ -89,7 +95,7 @@ public final class MigrationController {
                 if (!changes.stream().filter(c -> c.path().equals("pom.xml")).findFirst().orElseThrow().beforeText().equals(sourcePom)) {
                     throw new IllegalStateException(StudioBundle.message("message.ThePomChangedWhilePreparingMigration"));
                 }
-                return new Preview(plan.report(), changes, ComponentIO.validatePersistedModuleJson(plan.targetJson(), "target", false), true);
+                return new Preview(selectedUpdateImports ? UserImportMigration.report(plan.report(), importChanges) : plan.report(), changes, ComponentIO.validatePersistedModuleJson(plan.targetJson(), "target", false), true);
             });
             if (project.isDisposed()) return;
             int requiredJava = preview.module() == null ? 0 : background(project, "Checking target Java version", () ->
@@ -98,6 +104,7 @@ public final class MigrationController {
             var dialog = new MigrationPreviewDialog(project, title, preview.report(), preview.changes(), preview.canApply(), requiredJava);
             if (!dialog.showAndGet()) return;
             if (project.isDisposed()) return;
+            Module migratedModule = Objects.requireNonNull(preview.module(), "Applicable migration must have a target module");
             checkUnsaved(project);
             var selectedJdk = dialog.selectedJdk();
             Path snapshot = background(project, "Applying Ikasan migration", () -> {
@@ -109,7 +116,7 @@ public final class MigrationController {
             });
             appliedSnapshot = snapshot;
             MigrationJdk.apply(project, dialog.selectedJdk(), requiredJava);
-            context.setIkasanModule(preview.module());
+            context.setIkasanModule(migratedModule);
             background(project, "Refreshing migrated project", () -> {
                 var base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root);
                 if (base != null) base.refresh(false, true);
@@ -125,21 +132,20 @@ public final class MigrationController {
                 context.getDesignerCanvas().setInitialiseAllDimensions(true);
                 context.getDesignerCanvas().repaint();
             }
-            if (context.getCanvasPanel() != null) context.getCanvasPanel().disableH2Button(preview.module().getUseEmbeddedH2());
+            if (context.getCanvasPanel() != null) context.getCanvasPanel().disableH2Button(migratedModule.getUseEmbeddedH2());
             com.intellij.openapi.application.ApplicationManager.getApplication().executeOnPooledThread(() -> {
-                if (!project.isDisposed() && context.getIkasanModule() == preview.module()) {
+                if (!project.isDisposed() && context.getIkasanModule() == migratedModule) {
                     try { new GeneratedProjectSynchronizer(project).initialisePsiFileHandles(); }
                     catch (RuntimeException ex) { LOG.warn("Could not refresh migration navigation targets", ex); }
                 }
             });
             var maven = MavenProjectsManager.getInstance(project);
             if (maven != null && dialog.shouldCompile()) {
-                maven.forceUpdateProjects(maven.getProjects()).onSuccess(ignored ->
-                    maven.scheduleImportAndResolve().onSuccess(modules ->
+                importBeforeCompile(maven, project, snapshot, () ->
                         com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater(() -> {
                             if (project.isDisposed()) return;
                             DumbService.getInstance(project).smartInvokeLater(() -> {
-                                if (context.getIkasanModule() != preview.module()) return;
+                                if (context.getIkasanModule() != migratedModule) return;
                                 CompilerManager.getInstance(project).make((aborted, errors, warnings, compileContext) -> {
                                     String result = aborted ? StudioBundle.message("message.BuildCancelled")
                                             : errors == 0 ? StudioBundle.message("message.BuildPassed")
@@ -151,8 +157,7 @@ public final class MigrationController {
                                             .notify(project);
                                 });
                             });
-                        })).onError(error -> notifyImportFailure(project, snapshot))
-                ).onError(error -> notifyImportFailure(project, snapshot));
+                        }));
             } else if (maven != null) maven.forceUpdateAllProjectsOrFindAllAvailablePomFiles();
             Messages.showInfoMessage(project, StudioBundle.message("message.MigrationApplied", snapshot)
                     + (dialog.shouldCompile() ? StudioBundle.message("message.ABuildWillRunAfterMavenImport") : ""), title);
@@ -168,6 +173,18 @@ public final class MigrationController {
         } finally {
             if (acquired) context.endMigration();
         }
+    }
+
+    // The Java scheduling APIs in IDEA 2024.2/2024.3 return void. Keep the promise-based
+    // bridge so compilation waits for import/resolve and retains import-failure reporting.
+    // Revisit when the minimum IDE version or this controller's coroutine integration changes.
+    @SuppressWarnings({"deprecation", "removal"})
+    private static void importBeforeCompile(MavenProjectsManager maven, Project project, Path snapshot,
+                                            Runnable onImported) {
+        maven.forceUpdateProjects(maven.getProjects()).onSuccess(ignored ->
+                maven.scheduleImportAndResolve().onSuccess(modules -> onImported.run())
+                        .onError(error -> notifyImportFailure(project, snapshot))
+        ).onError(error -> notifyImportFailure(project, snapshot));
     }
 
     private static void notifyImportFailure(Project project, Path snapshot) {

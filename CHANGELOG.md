@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Offer reviewed, meta-pack-driven migrations rules in IDE and offline migration, with recovery and exact-plan source comparison.
+
 - Read generation rollback snapshots and post-format fingerprints off the UI thread, rejecting stale files before commit.
 
 - Add on-demand generated verification baselines under `generated/src/test`, using the existing application Maven module: model-derived structural contracts, documented runtime coverage boundaries, Maven execution and archive-on-refresh ownership.

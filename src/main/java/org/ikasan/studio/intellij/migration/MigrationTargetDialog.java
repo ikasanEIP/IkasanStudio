@@ -10,6 +10,7 @@ import javax.swing.*;
 import java.awt.*;
 
 final class MigrationTargetDialog extends DialogWrapper {
+    private final JCheckBox updateImports = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("migration.updateUserImports"), false);
     private final String current;
     private final ComboBox<String> versions;
 
@@ -21,6 +22,7 @@ final class MigrationTargetDialog extends DialogWrapper {
         setOKButtonText(StudioBundle.message("button.PreviewMigration"));
         init();
     }
+    boolean updateUserImports() { return updateImports.isSelected(); }
     String targetVersion() { return (String) versions.getSelectedItem(); }
     @Override public JComponent getPreferredFocusedComponent() { return versions; }
     @Override protected JComponent createCenterPanel() {
@@ -30,6 +32,7 @@ final class MigrationTargetDialog extends DialogWrapper {
         target.setLabelFor(versions);
         panel.add(target, BorderLayout.WEST);
         panel.add(versions, BorderLayout.CENTER);
+        panel.add(updateImports, BorderLayout.SOUTH);
         return panel;
     }
 }

@@ -10,18 +10,19 @@ import java.util.*;
 /** Standalone entry point sharing the IDE's migration renderer and recovery transaction. */
 public final class StudioMigrationCli {
     public record Preview(int formatVersion, String project, String targetVersion, String report,
-                          List<MigrationWorkspace.Change> changes, Map<String,String> userHashes) {}
+                          List<MigrationWorkspace.Change> changes, Map<String,String> userHashes, boolean updateUserImports) {}
     public static void main(String[] args) { System.exit(run(args, System.out, System.err)); }
     static int run(String[] args, PrintStream out, PrintStream err) {
         try {
             if (args.length == 0 || args[0].equals("--help")) {
                 out.println("""
                         Studio migration CLI (Java 17+)
-                        preview --project PATH --to V4.1.6 --plan NEW_FILE.json
+                        preview --project PATH --to V4.1.6 --plan NEW_FILE.json [--update-user-imports true]
                         apply --plan FILE.json
                         Close the project in IntelliJ and stop the module before apply.
                         Preview is read-only for the project. Apply uses the saved preview,
-                        rejects stale files, preserves user/, and writes a recovery snapshot.
+                        rejects stale files and writes a recovery snapshot. User code stays unchanged
+                        unless import updates are explicitly selected and reviewed.
                         It does not change IDE SDK settings or run application tests.
                         """);
                 return 0;
@@ -29,6 +30,10 @@ public final class StudioMigrationCli {
             Map<String,String> options = options(args);
             var json = strictJson();
             if (args[0].equals("preview")) {
+                String importsOption = options.remove("--update-user-imports");
+                if (importsOption != null && !Set.of("true", "false").contains(importsOption))
+                    throw new IllegalArgumentException("--update-user-imports requires true or false");
+                boolean updateImports = "true".equals(importsOption);
                 requireKeys(options, Set.of("--project", "--to", "--plan"));
                 Path root = Path.of(options.get("--project")).toRealPath();
                 String source = Files.readString(root.resolve(MigrationArtifacts.MODEL));
@@ -36,11 +41,15 @@ public final class StudioMigrationCli {
                 var plan = ModelMigration.analyse(source, options.get("--to"));
                 out.println(plan.report());
                 if (!plan.canApply()) return 2;
-                var changes = MigrationWorkspace.prepare(root, MigrationArtifacts.render(plan, pom));
+                var changes = new ArrayList<>(MigrationWorkspace.prepare(root, MigrationArtifacts.render(plan, pom)));
+                var importChanges = updateImports ? UserImportMigration.prepare(root, plan) : List.<MigrationWorkspace.Change>of();
+                changes.addAll(importChanges);
+                String report = updateImports ? UserImportMigration.report(plan.report(), importChanges) : plan.report();
+                if (updateImports) out.println(report);
                 // Detect source/POM edits during rendering as well as after the preview.
                 requireOriginal(changes, MigrationArtifacts.MODEL, source);
                 requireOriginal(changes, "pom.xml", pom);
-                var preview = new Preview(1, root.toString(), plan.targetVersion(), plan.report(), changes, userHashes(root));
+                var preview = new Preview(1, root.toString(), plan.targetVersion(), report, changes, userHashes(root), updateImports);
                 Path file = Path.of(options.get("--plan")).toAbsolutePath().normalize();
                 if (file.startsWith(root.resolve("generated")) || file.startsWith(root.resolve("user")))
                     throw new IllegalArgumentException("Store the preview outside generated/ and user/.");
@@ -60,10 +69,12 @@ public final class StudioMigrationCli {
                 if (!userHashes(root).equals(preview.userHashes())) throw new IllegalStateException("Developer files changed after preview; preview again.");
                 var plan = ModelMigration.analyse(Files.readString(root.resolve(MigrationArtifacts.MODEL)), preview.targetVersion());
                 if (!plan.canApply()) throw new IllegalStateException(plan.report());
-                var current = MigrationWorkspace.prepare(root, MigrationArtifacts.render(plan, Files.readString(root.resolve("pom.xml"))));
+                var current = new ArrayList<>(MigrationWorkspace.prepare(root, MigrationArtifacts.render(plan, Files.readString(root.resolve("pom.xml")))));
+                var importChanges = preview.updateUserImports() ? UserImportMigration.prepare(root, plan) : List.<MigrationWorkspace.Change>of();
+                current.addAll(importChanges);
                 if (!sameChanges(current, preview.changes())) throw new IllegalStateException("Project or renderer changed after preview; preview again.");
                 // Commit enforces permitted paths, rejects symlinks/concurrent edits and rolls back write failures.
-                Path recovery = MigrationWorkspace.commit(root, preview.changes(), plan.report());
+                Path recovery = MigrationWorkspace.commit(root, preview.changes(), preview.updateUserImports() ? UserImportMigration.report(plan.report(), importChanges) : plan.report());
                 out.println("Migration applied. Recovery snapshot: " + recovery);
                 out.println("Select the target JDK for Maven/IntelliJ, reimport, then run after-upgrade verification.");
                 return 0;

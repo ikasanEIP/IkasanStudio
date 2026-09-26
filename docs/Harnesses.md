@@ -166,3 +166,23 @@ characters). Payloads are displayed as plain text, never executed or deserialize
 Optional date filters use the module server's timezone. Existing runtime-viewer credentials,
 timeouts and the 4 MiB response limit apply. The module must be running; Dashboard and direct
 H2 access are not required. The viewer does not create triggers, replay or delete events.
+
+### Local working files
+
+The default FTP harness root is `temporary-files/test-data/ftp` beneath the project.
+Generated application properties set `narayana.log-dir=./temporary-files/transaction-logs`
+(relative to the application's working directory). Override it in external configuration
+when a deployment requires another location. New projects ignore `/temporary-files/` in Git;
+add that rule to existing projects too.
+
+For an existing project, stop the module and harness before relocating data. Preserve the
+old transaction-log directory and move its entire contents to the configured new directory
+before restarting; do not merge two transaction stores or delete unresolved recovery records.
+Move wanted FTP fixture files from `test-data/ftp` to `temporary-files/test-data/ftp` and update
+any endpoints explicitly configured with the old path. Studio does not move existing data.
+
+Despite the name, `temporary-files` is not automatically disposable: transaction logs contain
+recovery state. Ikasan 3.3.9 and 4.1.6 currently hard-code `./scheduler-recovery` in their
+scheduled-consumer factory. That directory remains in the working directory until Ikasan
+provides a configurable factory/builder option; Studio does not change the process working
+directory and thereby alter all relative application paths.

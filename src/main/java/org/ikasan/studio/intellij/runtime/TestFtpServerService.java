@@ -120,7 +120,7 @@ public final class TestFtpServerService implements Disposable {
     static Path testRoot(Project project) {
         String basePath = project.getBasePath();
         if (basePath != null && !basePath.isBlank()) {
-            return Path.of(basePath, "test-data", "ftp");
+            return Path.of(basePath, "temporary-files", "test-data", "ftp");
         }
         String projectName = project.getName().replaceAll("[^A-Za-z0-9._-]", "_");
         return Path.of(PathManager.getSystemPath(), "ikasan-studio", "ftp", projectName, "root");
