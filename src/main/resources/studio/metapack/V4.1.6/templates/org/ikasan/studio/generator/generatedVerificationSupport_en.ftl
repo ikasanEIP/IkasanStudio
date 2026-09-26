@@ -17,7 +17,7 @@ public abstract class GeneratedVerificationSupport {
 
     @BeforeClass
     public static void reportBaselineStatus() throws Exception {
-        Path model = Path.of("../generated/src/main/model/model.json");
+        Path model = Path.of("src/main/model/model.json");
         if (!Files.isRegularFile(model)) {
             System.out.println("NOT VERIFIED: current model fingerprint unavailable from this working directory");
             return;

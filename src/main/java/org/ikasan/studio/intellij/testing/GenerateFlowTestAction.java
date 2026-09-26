@@ -71,7 +71,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                     if (!mapper.readTree(ComponentIO.toJson(saved)).equals(mapper.readTree(ComponentIO.toJson(live))))
                         throw new IllegalStateException(StudioBundle.message("message.TheCanvasAndSavedModelDiffer"));
                     parent.set(Files.readString(root.resolve("pom.xml")));
-                    snapshot.set(GeneratedVerificationFiles.snapshot(root.resolve("generated-verification")));
+                    snapshot.set(GeneratedVerificationFiles.snapshot(root.resolve(org.ikasan.studio.core.generator.GeneratedVerification.DIRECTORY)));
                     bundle.set(org.ikasan.studio.core.generator.GeneratedVerification.render(saved, model.get(), parent.get(),
                             Files.readString(root.resolve("generated/pom.xml"))));
                 } catch (Exception ex) { failure.set(ex); }

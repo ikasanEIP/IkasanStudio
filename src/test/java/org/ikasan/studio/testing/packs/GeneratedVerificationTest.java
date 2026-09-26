@@ -16,24 +16,30 @@ class GeneratedVerificationTest {
         String parent = Files.readString(Path.of("regression-tests/migration/project/pom.xml"));
         String application = Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml"));
         var bundle = GeneratedVerification.render(module, model, parent, application);
-        assertTrue(bundle.rootPom().contains("<module>generated-verification</module>"));
+        assertEquals(parent, bundle.rootPom());
         assertEquals(bundle.rootPom(), GeneratedVerification.render(module, model, bundle.rootPom(), application).rootPom());
-        assertEquals(model, bundle.files().get("baseline-model.json"));
+        assertEquals(model, bundle.files().get("resources/studio-verification/baseline-model.json"));
         String modelHash = java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
                 .digest(model.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-        String support = bundle.files().get("src/test/java/org/ikasan/studio/verification/GeneratedVerificationSupport.java");
+        String support = bundle.files().get("java/org/ikasan/studio/verification/GeneratedVerificationSupport.java");
         assertTrue(support.contains("BASELINE_MODEL_SHA256 = \"" + modelHash + "\";"));
         assertTrue(support.contains("!BASELINE_MODEL_SHA256.equals(hash.toString())"));
-        assertTrue(bundle.files().get("baseline.properties").contains("model.sha256=" + modelHash));
+        assertTrue(bundle.files().get("resources/studio-verification/baseline.properties").contains("model.sha256=" + modelHash));
         String code = bundle.files().entrySet().stream().filter(e -> e.getKey().endsWith("VerificationTest.java")).findFirst().orElseThrow().getValue();
         assertFalse(code.contains("TODO"));
         assertFalse(code.contains("CONFIGURED"));
-        assertTrue(code.contains("NOT VERIFIED"));
+        assertFalse(code.contains("testRuntimeBehaviourNotVerified"));
+        assertFalse(code.contains("Assume"));
+        assertTrue(code.contains("runtime and business scenarios in user-flow-tests"));
         assertTrue(code.contains("assertFactory"));
-        assertTrue(bundle.files().get("pom.xml").contains("<scope>test</scope>"));
+        assertTrue(bundle.applicationPom().contains("<scope>test</scope>"));
+        assertEquals(bundle.applicationPom(), GeneratedVerification.render(module, model, bundle.rootPom(), bundle.applicationPom()).applicationPom());
+        var legacy = GeneratedVerification.render(module, model,
+                parent.replace("</modules>", "<module>generated-verification</module></modules>"), application);
+        assertFalse(legacy.rootPom().contains("<module>generated-verification</module>"));
         var migrated = MigrationArtifacts.render(ModelMigration.analyse(model, version.equals("V3.3.9") ? "V4.1.6" : "V3.3.9"), bundle.rootPom());
-        assertTrue(migrated.get("pom.xml").contains("<module>generated-verification</module>"));
-        assertTrue(migrated.keySet().stream().noneMatch(p -> p.startsWith("generated-verification/")));
+        assertFalse(migrated.containsKey("generated/pom.xml"));
+        assertTrue(migrated.keySet().stream().noneMatch(p -> p.startsWith("generated/src/test/")));
     }
 
 }

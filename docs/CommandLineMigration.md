@@ -101,15 +101,14 @@ as described below. Such differences are reported for review rather than ignored
 ### Including generated verification tests
 
 Before collecting the before report, optionally use Studio's **Generate/Refresh Verification
-Tests…** action and commit the resulting `generated-verification` module. The Maven reactor
+Tests…** action and commit the resulting tests under `generated/src/test`. The Maven reactor
 runs these structural checks alongside your configured business tests. Keep the tests unchanged
-through both verification runs and comparison; CLI apply preserves this module. Refresh it
+through both verification runs and comparison; CLI apply preserves these tests. Refresh it
 only after reviewing the comparison, to establish a new baseline.
 
 The model-hash warning in `GeneratedVerificationSupport` is expected after migration. Its
-`BASELINE_MODEL_SHA256` identifies the saved model at generation, not Java sources. Runtime
-checks are explicitly skipped in this first version; a passing report with only structural
-checks is not proof of working flows. Review skipped checks and retain business/runtime tests.
+`BASELINE_MODEL_SHA256` identifies the saved model at generation, not Java sources. These tests cover structure and interface compatibility only; a passing report does not
+prove working flows. Add and maintain runtime and business scenarios in `user-flow-tests`.
 See [generated verification baselines](GeneratedVerification.md).
 
 ## Perform the upgrade from the command line

@@ -31,11 +31,12 @@ public class CanvasPanel extends JBPanel implements Disposable {
     private static final Icon H2_ICON = IconLoader.getIcon("/studio/icons/h2.svg", CanvasPanel.class);
     private static final Icon CONSOLE_ICON = IconLoader.getIcon("/studio/icons/console.svg", CanvasPanel.class);
     private static final Icon LOAD_ICON = IconLoader.getIcon("/studio/icons/load.svg", CanvasPanel.class);
-    private static final Icon SAVE_ICON = IconLoader.getIcon("/studio/icons/save.svg", CanvasPanel.class);
+    private static final Icon REGENERATE_ICON = IconLoader.getIcon("/studio/icons/regenerate-code.svg", CanvasPanel.class);
 
     JButton h2Button = new JButton(StudioBundle.message("button.H2Start"), H2_ICON);
     JButton runModuleButton = new JButton(AllIcons.Actions.Execute);
     JButton debugModuleButton = new JButton(AllIcons.Actions.StartDebugger);
+    JButton regenerateCodeButton = new JButton(REGENERATE_ICON);
     JButton stopModuleButton = new JButton(AllIcons.Actions.Suspend);
     // The icon the Run/Debug buttons swap to once that mode is already running - see setRunModuleState/
     // setDebugModuleState, which replicate IntelliJ's own toolbar "Restart" affordance here. Deliberately a
@@ -134,12 +135,15 @@ public class CanvasPanel extends JBPanel implements Disposable {
         addButtonsToPanel(moduleGroupPanel, runModuleButton, new LaunchApplicationAction(project), StudioBundle.message("tooltip.RunThisModuleUsingTheSelectedRunConfiguration"));
         addButtonsToPanel(moduleGroupPanel, debugModuleButton, new LaunchApplicationAction(project, true), StudioBundle.message("tooltip.DebugThisModuleUsingTheSelectedRunConfiguration"));
         addButtonsToPanel(moduleGroupPanel, stopModuleButton, new StopApplicationAction(project), StudioBundle.message("tooltip.StopModule"));
+        regenerateCodeButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.RegenerateCode"));
+        regenerateCodeButton.setDisabledIcon(IconLoader.getDisabledIcon(REGENERATE_ICON));
+        addButtonsToPanel(moduleGroupPanel, regenerateCodeButton, new ModelRebuildAction(project),
+                StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
         canvasHeaderButtonPanel.add(moduleGroupPanel);
 
         addButtonsToPanel(canvasHeaderButtonPanel, consoleButton, new LaunchBlueAction(project), StudioBundle.message("tooltip.AfterModuleStartupCompletesOpenBlueConsole"));
         addButtonsToPanel(canvasHeaderButtonPanel, loadModuleButton, new ModelLoadAction(project), StudioBundle.message("tooltip.LoadTheModuleFromDisk"));
         refreshAdvancedControlsVisibility();
-        addButtonsToPanel(canvasHeaderButtonPanel, new JButton(StudioBundle.message("button.RegenerateCode"), SAVE_ICON), new ModelRebuildAction(project), StudioBundle.message("tooltip.RegenerateTheCodeFromTheInMemoryModuleDefinition"));
 
         // This may be redundant now we have Intellij Messaging
         canvasTextArea = new JBTextArea();

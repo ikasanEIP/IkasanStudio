@@ -203,8 +203,9 @@ the test JVM; they do not implement remote FTP/SFTP access or binary comparison.
 ### Automatic verification contracts
 
 `generatedVerificationTest_en.ftl`, `generatedVerificationSupport_en.ftl` and
-`generatedVerificationPom_en.ftl` produce the explicitly refreshed, Studio-owned structural
-baseline. `usesBuilderInFactory` determines whether a component getter can be asserted.
+`generatedVerificationMaven_en.ftl` produce the explicitly refreshed, Studio-owned structural
+baseline under `generated/src/test`. The Maven template contributes test dependencies and
+Surefire configuration to the existing application POM. `usesBuilderInFactory` determines whether a component getter can be asserted.
 `verificationImplementationContract` optionally names the user implementation's raw interface
 when different from `componentType` (for example `FilterRule`). These checks never infer custom
 business input or start external endpoints. Runtime coverage remains explicitly not verified.

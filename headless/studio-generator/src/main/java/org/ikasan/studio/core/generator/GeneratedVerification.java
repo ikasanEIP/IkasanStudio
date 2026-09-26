@@ -11,8 +11,8 @@ import java.util.*;
 
 /** Explicitly generated, frozen verification; ordinary application generation never calls this renderer. */
 public final class GeneratedVerification {
-    public static final String DIRECTORY = "generated-verification";
-    public record Bundle(String rootPom, Map<String, String> files) { }
+    public static final String DIRECTORY = "generated/src/test";
+    public record Bundle(String rootPom, String originalApplicationPom, String applicationPom, Map<String, String> files) { }
     private GeneratedVerification() { }
 
     public static Bundle render(Module module, String modelJson, String parentXml, String applicationXml) throws Exception {
@@ -32,7 +32,7 @@ public final class GeneratedVerification {
         String fingerprint = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(modelJson.getBytes(StandardCharsets.UTF_8)));
         values.put("fingerprint", fingerprint);
         Map<String, String> files = new LinkedHashMap<>();
-        String javaRoot = "src/test/java/org/ikasan/studio/verification/";
+        String javaRoot = "java/org/ikasan/studio/verification/";
         for (var flow : module.getFlows()) {
             if (flow.getConsumer() == null) throw new IllegalArgumentException("Add a consumer to " + flow.getIdentity() + " before generating verification");
             values.put("flow", flow);
@@ -58,23 +58,40 @@ public final class GeneratedVerification {
         }
         files.put(javaRoot + "GeneratedVerificationSupport.java", FreemarkerUtils.generateFromTemplate(module.getMetaVersion(),
                 "generatedVerificationSupport_en.ftl", values));
-        files.put("pom.xml", FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "generatedVerificationPom_en.ftl", values));
-        files.put("baseline-model.json", modelJson);
-        files.put("baseline.properties", "format=1\nmodel.sha256=" + fingerprint + "\nmeta.pack=" + module.getMetaVersion() + "\n");
-        files.put("README.md", """
+        var testConfiguration = reader.read(new StringReader(FreemarkerUtils.generateFromTemplate(module.getMetaVersion(),
+                "generatedVerificationMaven_en.ftl", values)));
+        for (var dependency : testConfiguration.getDependencies()) {
+            if (application.getDependencies().stream().noneMatch(d -> d.getGroupId().equals(dependency.getGroupId())
+                    && d.getArtifactId().equals(dependency.getArtifactId()))) application.addDependency(dependency);
+        }
+        if (application.getBuild() == null) application.setBuild(new org.apache.maven.model.Build());
+        for (var plugin : testConfiguration.getBuild().getPlugins()) {
+            var existing = application.getBuild().getPlugins().stream().filter(p -> p.getKey().equals(plugin.getKey())).findFirst();
+            if (existing.isEmpty()) application.getBuild().addPlugin(plugin);
+            else for (var dependency : plugin.getDependencies()) {
+                if (existing.get().getDependencies().stream().noneMatch(d -> d.getManagementKey().equals(dependency.getManagementKey())))
+                    existing.get().addDependency(dependency);
+            }
+        }
+        StringWriter applicationWriter = new StringWriter();
+        new MavenXpp3Writer().write(applicationWriter, application);
+        files.put("resources/studio-verification/baseline-model.json", modelJson);
+        files.put("resources/studio-verification/baseline.properties", "format=1\nmodel.sha256=" + fingerprint + "\nmeta.pack=" + module.getMetaVersion() + "\n");
+        files.put("resources/studio-verification/README.md", """
                 # Generated verification baseline
 
-                Studio owns this directory. Generate/refresh explicitly; running tests never regenerates them.
-                Commit these files. Refresh archives the previous directory, including temporary developer corrections.
+                Studio owns the verification package and resources/studio-verification under generated/src/test. Generate/refresh explicitly; running tests never regenerates them.
+                Commit these files. Refresh archives the previous test tree, including temporary developer corrections.
                 There are no TODOs or developer enablement flags.
 
                 This first version verifies flow/component factory signatures and declared user implementation interfaces.
                 Classes are loaded without initialisation; Spring and external services are not started.
-                Runtime delivery, routing decisions, exclusions and custom business behaviour are NOT VERIFIED.
-                Each flow reports a skipped runtime test with that reason. A passed structural test is not runtime success.
+                These checks cover structure and interface compatibility only.
+                Add delivery, routing, exclusion and business scenarios in developer-maintained user-flow-tests.
+                Their coverage depends on the scenarios implemented; passing structural checks does not establish it.
                 Maven Surefire reports passed/failed/skipped checks in target/surefire-reports.
 
-                Run from the project root: mvn -pl generated-verification -am test
+                Run from the project root: mvn -pl generated -am test
                 BASELINE_MODEL_SHA256 in GeneratedVerificationSupport identifies the saved model.json at generation.
                 It hashes UTF-8 model bytes, not Java sources or compiled classes; baseline.properties stores the same hash.
                 Formatting-only model changes also change the hash. A mismatch warns; assertions still run unchanged.
@@ -87,12 +104,11 @@ public final class GeneratedVerification {
                 Ordinary generation and migration preserve this directory. Business tests remain in user-flow-tests.
                 """);
         String root = parentXml;
-        if (!parent.getModules().contains(DIRECTORY)) {
-            parent.addModule(DIRECTORY);
+        if (parent.getModules().remove("generated-verification")) {
             StringWriter writer = new StringWriter();
             new MavenXpp3Writer().write(writer, parent);
             root = writer.toString();
         }
-        return new Bundle(root, Collections.unmodifiableMap(files));
+        return new Bundle(root, applicationXml, applicationWriter.toString(), Collections.unmodifiableMap(files));
     }
 }

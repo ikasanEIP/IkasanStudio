@@ -77,28 +77,31 @@ final class GenerationTransactionManager {
 
         VirtualFile baseDir = StudioProjectFiles.getProjectBaseDir(project);
         if (baseDir == null) throw new StudioRuntimeException("Project base directory is unavailable; no generated files were changed");
-        for (GenerationBatch.Artifact artifact : artifacts) {
-            VirtualFile existing = baseDir.findFileByRelativePath(artifact.relativePath());
+        List<Snapshot> snapshots = prepareSnapshots(project, baseDir, artifacts);
+        // Preparation pumps modal events; reject edits before writing any member of the batch.
+        for (Snapshot snapshot : snapshots) snapshot.verifyUnchanged(baseDir);
+        for (int index = 0; index < artifacts.size(); index++) {
+            GenerationBatch.Artifact artifact = artifacts.get(index);
+            VirtualFile existing = snapshots.get(index).file();
             if (existing != null && artifact.relativePath().startsWith("user/")
                     && !batch.isUserReplacementAuthorised(artifact.relativePath())) {
-                try {
-                    byte[] oldBytes = readBytes(existing);
-                    String oldContent = new String(oldBytes, StandardCharsets.UTF_8);
-                    if (!oldContent.equals(preserveLineEndings(oldBytes, artifact.content()))) {
-                        throw new StudioRuntimeException("Refusing to replace developer-owned file without explicit confirmation: "
-                                + artifact.relativePath());
-                    }
-                } catch (IOException error) {
-                    throw new StudioRuntimeException("Could not verify developer-owned file " + artifact.relativePath(), error);
+                byte[] oldBytes = snapshots.get(index).bytes();
+                String oldContent = new String(oldBytes, StandardCharsets.UTF_8);
+                if (!oldContent.equals(preserveLineEndings(oldBytes, artifact.content()))) {
+                    throw new StudioRuntimeException("Refusing to replace developer-owned file without explicit confirmation: "
+                            + artifact.relativePath());
                 }
             }
         }
         List<Original> originals = new ArrayList<>();
         int created = 0, updated = 0, unchanged = 0;
         try {
-            for (GenerationBatch.Artifact artifact : artifacts) {
-                VirtualFile existing = baseDir.findFileByRelativePath(artifact.relativePath());
-                byte[] oldBytes = existing == null ? null : readBytes(existing);
+            for (int index = 0; index < artifacts.size(); index++) {
+                GenerationBatch.Artifact artifact = artifacts.get(index);
+                Snapshot snapshot = snapshots.get(index);
+                snapshot.verifyUnchanged(baseDir);
+                VirtualFile existing = snapshot.file();
+                byte[] oldBytes = snapshot.bytes();
                 originals.add(new Original(artifact.relativePath(), oldBytes));
                 String committedContent = preserveLineEndings(oldBytes, artifact.content());
                 if (oldBytes == null) created++;
@@ -155,18 +158,55 @@ final class GenerationTransactionManager {
         }
     }
 
-    /**
-     * Reads a VirtualFile's raw bytes via its input stream rather than {@link VirtualFile#contentsToByteArray()},
-     * which - for XML-like file types such as pom.xml - can trigger charset/BOM detection
-     * (LoadTextUtil.detectCharsetAndSetBOM) that needs a project lookup through the workspace file index. That
-     * lookup is disallowed synchronously on the EDT (see SlowOperations.assertSlowOperationsAreAllowed), and
-     * commit() runs inside a CommandProcessor.executeCommand block on the EDT - the read here only ever needs
-     * raw bytes for byte-level diffing/rollback, never decoded text, so getInputStream() avoids that machinery
-     * while still going through the VirtualFile API (unlike java.nio.file, this keeps working under IntelliJ's
-     * Eel abstraction for a remote/WSL/Docker project - see StudioProjectFiles#chooseFileAndReadText's own
-     * comment on the same tradeoff).
-     */
+    record Snapshot(String path, VirtualFile file, byte[] bytes, long stamp,
+                            com.intellij.openapi.editor.Document document, long documentStamp) {
+        void verifyUnchanged(VirtualFile baseDir) {
+            VirtualFile current = baseDir.findFileByRelativePath(path);
+            var manager = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
+            var currentDocument = current == null ? null : manager.getCachedDocument(current);
+            if (!java.util.Objects.equals(current, file) || (file != null && (!file.isValid() || file.getModificationStamp() != stamp))
+                    || (document != null && (currentDocument != document || document.getModificationStamp() != documentStamp))
+                    || (document == null && currentDocument != null && manager.isDocumentUnsaved(currentDocument)))
+                throw new StudioRuntimeException("File changed while preparing generation; regenerate: " + path);
+        }
+    }
+
+    /** Read rollback bytes once off the EDT, before entering any file write action. */
+    static List<Snapshot> prepareSnapshots(Project project, VirtualFile baseDir,
+                                                   List<GenerationBatch.Artifact> artifacts) {
+        List<Snapshot> snapshots = new ArrayList<>();
+        java.util.concurrent.atomic.AtomicReference<RuntimeException> failure = new java.util.concurrent.atomic.AtomicReference<>();
+        Runnable prepare = () -> {
+            try {
+                com.intellij.openapi.application.ReadAction.run(() -> {
+                    for (var artifact : artifacts) {
+                        VirtualFile file = baseDir.findFileByRelativePath(artifact.relativePath());
+                        try {
+                            byte[] bytes = file == null ? null : readBytes(file);
+                            var document = file == null ? null : com.intellij.openapi.fileEditor.FileDocumentManager.getInstance().getCachedDocument(file);
+                            Snapshot snapshot = new Snapshot(artifact.relativePath(), file, bytes, file == null ? -1 : file.getModificationStamp(),
+                                    document, document == null ? -1 : document.getModificationStamp());
+                            snapshot.verifyUnchanged(baseDir);
+                            snapshots.add(snapshot);
+                        } catch (IOException error) {
+                            throw new StudioRuntimeException("Could not snapshot generated file " + artifact.relativePath(), error);
+                        }
+                    }
+                });
+            } catch (RuntimeException error) { failure.set(error); }
+        };
+        if (com.intellij.openapi.application.ApplicationManager.getApplication().isDispatchThread()) {
+            com.intellij.openapi.progress.ProgressManager.getInstance().runProcessWithProgressSynchronously(
+                    prepare, org.ikasan.studio.ui.StudioBundle.message("generation.preparingFiles"), false, project);
+        } else prepare.run();
+        if (failure.get() != null) throw failure.get();
+        return snapshots;
+    }
+
+    /** Raw VFS access retains support for remote projects; callers run in background preparation. */
     private static byte[] readBytes(VirtualFile file) throws IOException {
+        if (com.intellij.openapi.application.ApplicationManager.getApplication().isDispatchThread())
+            throw new IllegalStateException("Generation snapshots must be read off the EDT");
         try (java.io.InputStream in = file.getInputStream()) {
             return in.readAllBytes();
         }

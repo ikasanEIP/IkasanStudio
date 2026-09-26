@@ -698,7 +698,7 @@ public class StudioProjectFiles {
                                 if (file.getName().endsWith(".java") && document != null) {
                                     formatGeneratedJavaFile(project, psiFile, document, documentManager);
                                 }
-                                updateGeneratedContentFingerprint(file, fingerprint);
+                                updateGeneratedContentFingerprint(project, file, fingerprint);
                                 if (componentViewHandler != null) {
                                     setCodeNavigationTargetAsync(componentViewHandler, psiFile);
                                 }
@@ -782,16 +782,24 @@ public class StudioProjectFiles {
                 .submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
     }
 
-    private static void updateGeneratedContentFingerprint(VirtualFile file, GeneratedContentFingerprint fingerprint) {
-        if (file.getUserData(GENERATED_CONTENT) == fingerprint) {
+    /** Refresh the post-format fingerprint without reading persisted bytes on the EDT. */
+    private static void updateGeneratedContentFingerprint(Project project, VirtualFile file, GeneratedContentFingerprint fingerprint) {
+        if (file.getUserData(GENERATED_CONTENT) != fingerprint) return;
+        ReadAction.nonBlocking(() -> {
             try {
-                file.putUserData(GENERATED_CONTENT, new GeneratedContentFingerprint(
-                        fingerprint.rendered(), contentHash(readBytes(file))));
+                String hash = contentHash(readBytes(file));
+                return new java.util.AbstractMap.SimpleImmutableEntry<>(file.getModificationStamp(), hash);
             } catch (IOException failure) {
-                file.putUserData(GENERATED_CONTENT, null);
-                throw new StudioRuntimeException("Could not verify generated file " + file.getPath(), failure);
+                LOG.warn("STUDIO: Could not verify generated file " + file.getPath(), failure);
+                return null;
             }
-        }
+        }).expireWith(project.getService(StudioProjectInitialisationService.class))
+                .expireWhen(() -> !file.isValid() || file.getUserData(GENERATED_CONTENT) != fingerprint)
+                .finishOnUiThread(ModalityState.nonModal(), result -> {
+                    if (!file.isValid() || file.getUserData(GENERATED_CONTENT) != fingerprint) return;
+                    file.putUserData(GENERATED_CONTENT, result != null && file.getModificationStamp() == result.getKey()
+                            ? new GeneratedContentFingerprint(fingerprint.rendered(), result.getValue()) : null);
+                }).submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
     }
 
     /**

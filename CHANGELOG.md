@@ -5,7 +5,9 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
-- Add on-demand generated verification baselines: model-derived structural contracts, explicit unverified runtime checks, Maven execution and archive-on-refresh ownership.
+- Read generation rollback snapshots and post-format fingerprints off the UI thread, rejecting stale files before commit.
+
+- Add on-demand generated verification baselines under `generated/src/test`, using the existing application Maven module: model-derived structural contracts, documented runtime coverage boundaries, Maven execution and archive-on-refresh ownership.
 
 - Make sample-consumer fixture input and isolated FTP delivery checks executable by default; add missing fixture settings with backups while preserving explicit opt-outs.
 

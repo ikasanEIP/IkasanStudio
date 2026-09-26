@@ -50,6 +50,7 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         method.invoke(synchronizer, myProject, module, flow);
         GenerationTransactionManager.commit(myProject);
         var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull("Test project must have a base directory", base);
         assertNotNull(base.findFileByRelativePath(userPath));
         assertNull(base.findFileByRelativePath(userPath.replace("user/", "generated/")));
         assertTrue(read(base, userPath).contains("invoke("));
@@ -66,21 +67,24 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         String path = "generated/src/main/java/example/Samples.java";
         String source = "package example; public class Samples { /* existing implementation */ }";
         StudioProjectFiles.createFileWithDirectories(myProject, path, source, null);
-        String persistedSource = read(StudioProjectFiles.getProjectBaseDir(myProject), path);
+        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull("Test project must have a base directory", base);
+        String persistedSource = read(base, path);
         try {
             StudioProjectFiles.checkLegacyPropertyStubLocation(myProject, "example", "Samples");
             fail("Expected relocation guidance");
         } catch (StudioRuntimeException expected) {
             assertTrue(expected.getMessage().contains("Move it"));
         }
-        var base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertEquals(persistedSource, read(base, path));
         assertNull(base.findFileByRelativePath("user/src/main/java/example/Samples.java"));
     }
 
     public void testStartupGuidanceExistsBeforeAnyGenerationAndPreservesCustomisations() throws Exception {
         assertTrue(com.intellij.openapi.application.ApplicationManager.getApplication().isDispatchThread());
-        java.nio.file.Path root = java.nio.file.Path.of(myProject.getBasePath());
+        String basePath = myProject.getBasePath();
+        assertNotNull("Test project must have a base path", basePath);
+        java.nio.file.Path root = java.nio.file.Path.of(basePath);
         // The production worker asserts it is not on the EDT. Waiting here does not need EDT work
         // because its VFS refresh is asynchronous, so this also catches accidental invokeAndWait.
         StudioProjectFiles.createStartupGuidanceIfMissing(myProject).get(10, java.util.concurrent.TimeUnit.SECONDS);
@@ -113,6 +117,7 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         assertEquals(template, read(base, path));
         StudioProjectFiles.createFileWithDirectories(myProject, path, "Developer test settings", null);
         var file = base.findFileByRelativePath(path);
+        assertNotNull(path, file);
         var documents = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
         var document = documents.getDocument(file);
         assertNotNull(document);
@@ -289,6 +294,25 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         assertFalse(read(base, path).contains("external generated-file edit"));
         StudioProjectFiles.createFileWithDirectories(myProject, path, source.replace("return 1", "return 2"), null);
         assertTrue(read(base, path).contains("return 2"));
+    }
+
+    public void testPreparedSnapshotRejectsFileChangedBeforeCommit() throws Exception {
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull("Test project must have a base directory", base);
+        String path = "generated/snapshot.txt";
+        StudioProjectFiles.createFileWithDirectories(myProject, path, "original", null);
+        var snapshots = GenerationTransactionManager.prepareSnapshots(myProject, base,
+                java.util.List.of(new GenerationBatch.Artifact(path, "replacement", null)));
+        assertEquals("original", new String(snapshots.get(0).bytes(), StandardCharsets.UTF_8));
+        snapshots.get(0).verifyUnchanged(base);
+        VirtualFile file = base.findFileByRelativePath(path);
+        assertNotNull(path, file);
+        com.intellij.openapi.application.WriteAction.run(() -> {
+            try { file.setBinaryContent("external edit".getBytes(StandardCharsets.UTF_8)); }
+            catch (java.io.IOException e) { throw new RuntimeException(e); }
+        });
+        assertTrue(expectGenerationFailure(() -> snapshots.get(0).verifyUnchanged(base)).getMessage().contains("File changed"));
+        assertEquals("external edit", read(base, path));
     }
 
     private static StudioRuntimeException expectGenerationFailure(Runnable action) {
