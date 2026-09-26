@@ -154,6 +154,10 @@ public class DesignCanvasContextMenu {
             JMenuItem readiness = new JMenuItem(StudioBundle.message("readiness.action"));
             readiness.addActionListener(e -> org.ikasan.studio.intellij.ai.StudioImplementationReadiness.check(project, true));
             menu.add(readiness);
+            JMenuItem verification = new JMenuItem(StudioBundle.message("verification.title"));
+            verification.setEnabled(module.isInitialised());
+            verification.addActionListener(e -> org.ikasan.studio.intellij.testing.GenerateFlowTestAction.openVerification(project));
+            menu.add(verification);
             JMenuItem flowTests = new JMenuItem(StudioBundle.message("flowTest.batchTitle"));
             flowTests.setEnabled(module.isInitialised());
             flowTests.addActionListener(e -> org.ikasan.studio.intellij.testing.GenerateFlowTestAction.openAll(project));

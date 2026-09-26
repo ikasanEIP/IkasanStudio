@@ -51,6 +51,7 @@
     <actions>
         <group id="IkasanStudio.Tools" popup="true" icon="/studio/icons/squid13x13.svg">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <action id="IkasanStudio.GenerateVerification" class="org.ikasan.studio.intellij.testing.GenerateVerificationAction"/>
             <action id="IkasanStudio.GenerateFlowTest" class="org.ikasan.studio.intellij.testing.GenerateFlowTestAction"/>
             <separator/>
             <action id="IkasanStudio.MigrateVersion"

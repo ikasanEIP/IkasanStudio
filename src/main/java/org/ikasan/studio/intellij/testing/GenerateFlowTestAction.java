@@ -39,6 +39,67 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
         open(project, selectedFlow, false);
     }
     public static void openAll(Project project) { open(project, null, true); }
+    /** Generates a frozen module-wide baseline; running Maven tests is a separate explicit action. */
+    public static void openVerification(Project project) {
+        String title = StudioBundle.message("verification.title");
+        UiContext context = project.getService(UiContext.class);
+        boolean acquired = false;
+        try {
+            var live = context.getIkasanModule();
+            if (project.getBasePath() == null || live == null || !live.isInitialised() || context.isModelPersistenceBlocked())
+                throw new IllegalStateException(StudioBundle.message("message.ConfigureAndSaveTheModuleFirst"));
+            if (context.getPropertiesPanel() != null && context.getPropertiesPanel().dataHasChangedAndOKToProcess())
+                throw new IllegalStateException(StudioBundle.message("message.ApplyOrDiscardThePendingPropertyEditsBeforeMigrating"));
+            for (var document : FileDocumentManager.getInstance().getUnsavedDocuments()) {
+                var file = FileDocumentManager.getInstance().getFile(document);
+                if (file != null && file.getPath().startsWith(project.getBasePath() + "/"))
+                    throw new IllegalStateException(StudioBundle.message("flowTest.saveFiles"));
+            }
+            if (!context.tryBeginMigration()) throw new IllegalStateException(StudioBundle.message("message.WaitForTheCurrentGenerationOrMigrationToFinish"));
+            acquired = true;
+            Path root = Path.of(project.getBasePath());
+            AtomicReference<Exception> failure = new AtomicReference<>();
+            AtomicReference<org.ikasan.studio.core.generator.GeneratedVerification.Bundle> bundle = new AtomicReference<>();
+            AtomicReference<String> snapshot = new AtomicReference<>();
+            AtomicReference<String> parent = new AtomicReference<>();
+            AtomicReference<String> model = new AtomicReference<>();
+            ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
+                try {
+                    model.set(Files.readString(root.resolve(MigrationArtifacts.MODEL)));
+                    var saved = ComponentIO.validatePersistedModuleJson(model.get(), "generated verification", false);
+                    var mapper = StudioJson.newObjectMapper();
+                    if (!mapper.readTree(ComponentIO.toJson(saved)).equals(mapper.readTree(ComponentIO.toJson(live))))
+                        throw new IllegalStateException(StudioBundle.message("message.TheCanvasAndSavedModelDiffer"));
+                    parent.set(Files.readString(root.resolve("pom.xml")));
+                    snapshot.set(GeneratedVerificationFiles.snapshot(root.resolve("generated-verification")));
+                    bundle.set(org.ikasan.studio.core.generator.GeneratedVerification.render(saved, model.get(), parent.get(),
+                            Files.readString(root.resolve("generated/pom.xml"))));
+                } catch (Exception ex) { failure.set(ex); }
+            }, title, false, project);
+            if (failure.get() != null) throw failure.get();
+            String prompt = StudioBundle.message(snapshot.get().equals("missing") ? "verification.create" : "verification.replace");
+            if (Messages.showYesNoDialog(project, prompt, title, Messages.getQuestionIcon()) != Messages.YES) return;
+            ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
+                try {
+                    if (!Files.readString(root.resolve(MigrationArtifacts.MODEL)).equals(model.get()))
+                        throw new IllegalStateException(StudioBundle.message("message.TheModelChangedWhilePreparingMigration"));
+                    GeneratedVerificationFiles.write(root, parent.get(), snapshot.get(), bundle.get());
+                    var base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root);
+                    if (base != null) base.refresh(false, true);
+                } catch (Exception ex) { failure.set(ex); }
+            }, title, false, project);
+            if (failure.get() != null) throw failure.get();
+            context.setIkasanPomModel(null);
+            if (!project.isDisposed()) {
+                MavenProjectsManager.getInstance(project).forceUpdateAllProjectsOrFindAllAvailablePomFiles();
+                Messages.showInfoMessage(project, StudioBundle.message("verification.created"), title);
+            }
+        } catch (Exception failure) {
+            LOG.warn("Could not generate verification baseline", failure);
+            if (!project.isDisposed()) Messages.showWarningDialog(project, String.valueOf(failure.getMessage()), title);
+        } finally { if (acquired) context.endMigration(); }
+    }
+
     private static void open(Project project, String selectedFlow, boolean multiple) {
         String title = StudioBundle.message(multiple ? "flowTest.batchTitle" : "flowTest.title");
         UiContext context = project.getService(UiContext.class);
@@ -117,7 +178,11 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                                             FlowTestScaffold.TEST_PROPERTIES_PATH, first.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH),
                                             "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java",
                                             first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java"),
-                                            "user-flow-tests/pom.xml", first.files().get("user-flow-tests/pom.xml"))));
+                                            "user-flow-tests/pom.xml", first.files().get("user-flow-tests/pom.xml"),
+                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/FileDeliveryAssertions.java",
+                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/FileDeliveryAssertions.java"),
+                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/OutputTextSupport.java",
+                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/OutputTextSupport.java"))));
                         }
                         if (!Files.readString(root.resolve(MigrationArtifacts.MODEL)).equals(source)) {
                             throw new IllegalStateException(StudioBundle.message("message.TheModelChangedWhilePreparingMigration"));

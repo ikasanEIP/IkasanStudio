@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -38,6 +40,7 @@ import static org.junit.Assert.fail;
 
 /** Developer-owned shared setup. Each call creates a NEW application, never a cached/static context. */
 public abstract class ModuleFlowTestSupport {
+    private volatile RuntimeException outputTextFailure;
     /**
      * Reloads shared test settings from the UTF-8 properties file into a fresh map.
      * Fails if the file is missing rather than silently using application connection defaults.
@@ -75,6 +78,7 @@ public abstract class ModuleFlowTestSupport {
      * The caller owns the returned context and must close it with try-with-resources.
      */
     protected final ConfigurableApplicationContext openTestApplication(Map<String, String> flowProperties) throws Exception {
+        outputTextFailure = null;
         Map<String, String> properties = new LinkedHashMap<>(moduleTestProperties());
         properties.putAll(flowProperties); // Flow-specific settings override shared connections.
         // Enforced isolation is scoped to this test application, never the saved Studio model.
@@ -123,6 +127,16 @@ public abstract class ModuleFlowTestSupport {
         throw new UnsupportedOperationException("Define the expected component path");
     }
     protected String outputText(Object payload) { return String.valueOf(payload); }
+
+    /** Explicit content conversion; false retains the original String.valueOf behaviour. */
+    protected final String outputText(Object payload, boolean stringifyActualOutput) {
+        try {
+            return stringifyActualOutput ? OutputTextSupport.stringify(payload) : String.valueOf(payload);
+        } catch (RuntimeException failure) {
+            outputTextFailure = failure;
+            throw failure;
+        }
+    }
 
     @FunctionalInterface
     protected interface TestScenario {
@@ -193,6 +207,24 @@ public abstract class ModuleFlowTestSupport {
         return String.valueOf(payload);
     }
 
+    /** Returns the actual isolated FTP home created for this context, never a guessed remote directory. */
+    protected final Path localFtpDirectory(ConfigurableApplicationContext context) {
+        if (context.getBeansOfType(LocalFtpTestServer.class).isEmpty()) {
+            throw new IllegalStateException("Enable test.ftp.enabled=true in module-test.properties, or adapt verifyReceivedOutput for your external FTP server");
+        }
+        return context.getBean(LocalFtpTestServer.class).root();
+    }
+
+    /** Waits for an exact final file and UTF-8 contents; suitable for local or locally accessible server output. */
+    protected final void assertFileContents(Path file, String expected) throws Exception {
+        FileDeliveryAssertions.assertFileContents(file, expected, Duration.ofSeconds(10));
+    }
+
+    /** Checks exact file count and contents (including duplicates) for a final-filename glob, irrespective of order. */
+    protected final void assertDeliveredFileContents(Path directory, String glob, String... expected) throws Exception {
+        FileDeliveryAssertions.assertDeliveredFileContents(directory, glob, List.of(expected), Duration.ofSeconds(10));
+    }
+
     /** Compatibility overload for observation tests generated without payload expectations. */
     protected final void runObservationTest(boolean configured, String output) throws Exception {
         runObservationTest(configured, output, List.of());
@@ -234,7 +266,7 @@ public abstract class ModuleFlowTestSupport {
                 awaitObservedEvent(flow, delivered, 0);
                 for (int index = 0; index < expected.size(); index++) {
                     assertEquals("Initial producer payload " + (index + 1), expected.get(index),
-                            initialOutputs.poll(10, TimeUnit.SECONDS));
+                            awaitOutputText(initialOutputs, 10));
                 }
                 // Keep the SAME flow running during the observation window, then require a NEW event.
                 long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(1);
@@ -245,6 +277,18 @@ public abstract class ModuleFlowTestSupport {
                 awaitObservedEvent(flow, delivered, delivered.get());
             }
         }
+    }
+
+    /** Surfaces asynchronous content-decoding failures on the test thread instead of reporting a missing output. */
+    private String awaitOutputText(BlockingQueue<String> outputs, int seconds) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(seconds);
+        do {
+            if (outputTextFailure != null) throw outputTextFailure;
+            String output = outputs.poll(25, TimeUnit.MILLISECONDS);
+            if (outputTextFailure != null) throw outputTextFailure;
+            if (output != null) return output;
+        } while (System.nanoTime() < deadline);
+        return null;
     }
 
     /**
@@ -293,10 +337,10 @@ public abstract class ModuleFlowTestSupport {
                 input.send(harness, batch);
                 assertEquals("Output for batch " + batch,
                         batch == 1 ? firstExpected : secondExpected,
-                        outputs.poll(10, TimeUnit.SECONDS));
+                        awaitOutputText(outputs, 10));
                 receiverCheck.verify(batch);
                 assertEquals("Ready after delivery", Flow.RUNNING, flow.getState());
-                assertNull("No unexpected output while idle", outputs.poll(1, TimeUnit.SECONDS));
+                assertNull("No unexpected output while idle", awaitOutputText(outputs, 1));
                 assertEquals("Ready while idle", Flow.RUNNING, flow.getState());
             }
         });

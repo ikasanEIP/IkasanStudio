@@ -40,6 +40,17 @@ public final class FlowTestScaffold {
                 }
             }
         }
+        java.util.Set<String> sampleConsumerClasses = new java.util.TreeSet<>();
+        for (var moduleFlow : module.getFlows()) {
+            var consumer = moduleFlow.getConsumer();
+            if (consumer == null || !"sample-submission".equals(consumer.getComponentMeta().getFlowTestInputMode())) continue;
+            String implementationClass = consumer.getPropertyValueAsString("userImplementedClassName");
+            if (implementationClass != null && !implementationClass.isBlank()) {
+                sampleConsumerClasses.add(implementationClass.contains(".") ? implementationClass
+                        : GeneratorUtils.getUserImplementedClassesPackageName(module, moduleFlow) + "." + implementationClass);
+            }
+        }
+        values.put("sampleConsumerClasses", sampleConsumerClasses);
         // The capability flag defines the connection contract; labels remain pack-owned.
         java.util.List<Map<String, String>> ftpEndpoints = new java.util.ArrayList<>();
         for (var moduleFlow : module.getFlows()) for (var component : moduleFlow.getFlowElementsNoExternalEndPoints()) {
@@ -101,6 +112,8 @@ public final class FlowTestScaffold {
                 && destination != null && !destination.valueNotSet()
                 && destination.getMeta().getPropertyConfigFileLabel() != null;
         var jmsOutputs = flow.getFlowElementsNoExternalEndPoints().stream().filter(e -> e.getComponentMeta().isProducer()).toList();
+        values.put("fileDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().isFlowTestFileDelivery());
+        values.put("ftpFileDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().supportsTestFtpServer());
         String jmsOutputKey = "";
         if (jmsOutputs.size() == 1) {
             var output = jmsOutputs.get(0);
@@ -135,6 +148,10 @@ public final class FlowTestScaffold {
         files.put(TEST_PROPERTIES_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestPropertiesTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localFtpTestServerTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/FileDeliveryAssertions.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "fileDeliveryAssertionsTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/OutputTextSupport.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "outputTextSupportTemplate_en.ftl", values));
         files.put(SUPPORT_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestSupportTemplate_en.ftl", values));
         files.put(path, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), observationOnly ? "flowObservationTestTemplate_en.ftl" : "flowTestTemplate_en.ftl", values));
         files.put("user-flow-tests/pom.xml", FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestPomTemplate_en.ftl", values));
@@ -156,7 +173,8 @@ public final class FlowTestScaffold {
                 Unchecked leaves settings unchanged. Selecting FTP preserves unrelated properties and custom credentials.
                 Missing FTP/MINA dependencies are added to an existing test POM with a backup; other contents are preserved.
                 ModuleFlowTestSupport.java loads that file and enforces isolated H2 and test-only startup settings.
-                The properties file is preserved during shared-setup regeneration unless you explicitly choose local FTP enablement.
+                Missing sample-consumer fixture-input defaults are added with a backup; explicit values are preserved.
+                Set a fixture-input flag false to retain polling across regeneration; adapt the input scenario accordingly.
                 Absent settings retain application defaults; review them before starting the whole module context.
                 Each scenario opens and closes a fresh context; contexts and service state are not shared across tests.
                 Standard tests use runTest with named supplyInput and optional verifyReceivedOutput overrides.
@@ -174,6 +192,14 @@ public final class FlowTestScaffold {
 
                 Run from the project root: `mvn -pl user-flow-tests -am test`.
                 For one test: `mvn -pl user-flow-tests -am -Dtest=YourFlowTest -Dsurefire.failIfNoSpecifiedTests=false test`.
+                STRINGIFY_ACTUAL_OUTPUT enables content comparison for Ikasan Payload, bytes, files/paths/file lists and JMS TextMessage.
+                It uses UTF-8, rejects unsupported types and never acknowledges/consumes JMS messages; override outputText for other formats.
+                Set it false to retain String.valueOf. Receiver delivery assertions remain separate.
+                FIRST_BATCH_INPUT and SECOND_BATCH_INPUT define scenario data independently of expected outputs.
+                Shared assertFileContents / assertDeliveredFileContents wait for exact UTF-8 file delivery and contents.
+                Isolated FTP tests check all accumulated output files using localFtpDirectory(context): one new file per batch.
+                Adapt assertions for overwrites/checksums; unknown remote receiver locations retain explicit guards.
+                For SFTP/remote FTP, inspect the test server filesystem or download files first; these helpers do not access remote paths.
                 Assert actual delivery at external receivers as well as observed flow payloads. For routers, assert
                 every expected branch and absence of unwanted deliveries. For exclusions, assert stored exclusions
                 and delivery of subsequent valid input. Component invocation alone proves none of these.

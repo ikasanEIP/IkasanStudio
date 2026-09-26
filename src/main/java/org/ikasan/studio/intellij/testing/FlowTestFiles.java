@@ -164,6 +164,7 @@ public final class FlowTestFiles {
                     Files.move(temp, testPom, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
                 } finally { Files.deleteIfExists(temp); }
             }
+            addMissingFixtureInputDefaults(root, scaffold.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH));
             return test;
         } catch (IOException failure) {
             for (Path path : created) {
@@ -174,6 +175,34 @@ public final class FlowTestFiles {
             throw failure;
         }
     }
+    /** Adds missing sample-input defaults only; explicit developer values (including false) win. */
+    static void addMissingFixtureInputDefaults(Path root, String generated) throws IOException {
+        if (generated == null) return;
+        java.util.Properties defaults = new java.util.Properties();
+        defaults.load(new java.io.StringReader(generated));
+        Path file = safe(root.toAbsolutePath().normalize(), FlowTestScaffold.TEST_PROPERTIES_PATH);
+        String original = Files.readString(file);
+        java.util.Properties current = new java.util.Properties();
+        current.load(new java.io.StringReader(original));
+        StringBuilder added = new StringBuilder();
+        for (String key : new java.util.TreeSet<>(defaults.stringPropertyNames())) {
+            if (key.startsWith("studio.sample-consumer.") && key.endsWith(".fixture-input-enabled")
+                    && "true".equals(defaults.getProperty(key)) && !current.containsKey(key)) {
+                added.append(key).append("=true\n");
+            }
+        }
+        if (added.isEmpty()) return;
+        Path backup = file.resolveSibling(file.getFileName() + ".bak" + java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")) + "-" + UUID.randomUUID());
+        Path temporary = Files.createTempFile(file.getParent(), ".fixture-input-", ".tmp");
+        try {
+            Files.writeString(temporary, original + "\n\n# Deterministic sample input: remove if unused; set false to retain polling across regeneration.\n" + added);
+            if (!Files.readString(file).equals(original)) throw new IOException("Test properties changed; retry generation.");
+            Files.copy(file, backup);
+            Files.move(temporary, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } finally { Files.deleteIfExists(temporary); }
+    }
+
     /** Explicit dialog choice: preserve existing settings and archive the file before enabling the fixture. */
     static void enableLocalFtp(Path projectRoot) throws IOException {
         Path properties = safe(projectRoot.toAbsolutePath().normalize(), FlowTestScaffold.TEST_PROPERTIES_PATH);

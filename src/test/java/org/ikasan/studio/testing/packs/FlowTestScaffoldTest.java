@@ -12,6 +12,34 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FlowTestScaffoldTest {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void fileProducersOfferPhysicalDeliveryChecksAndNamedInputs(String version) throws Exception {
+        var module = ComponentIO.validatePersistedModuleJson(ModelMigration.analyse(
+                Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module.json")), version).targetJson(), "test", false);
+        var flow = module.getFlows().get(0);
+        flow.getFlowRoute().getFlowElements().clear();
+        flow.getFlowRoute().getFlowElements().add(org.ikasan.studio.core.TestFixtures.getFtpProducer(version));
+        var scaffold = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        String test = scaffold.files().get(scaffold.testPath());
+        assertTrue(test.contains("private static final String FIRST_BATCH_INPUT"));
+        assertTrue(test.contains("private static final boolean STRINGIFY_ACTUAL_OUTPUT = true"));
+        assertTrue(test.contains("return outputText(payload, STRINGIFY_ACTUAL_OUTPUT)"));
+        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/OutputTextSupport.java"));
+        assertTrue(test.contains("private static final String SECOND_BATCH_INPUT"));
+        assertTrue(test.contains("batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT"));
+        assertTrue(test.contains("assertDeliveredFileContents(localFtpDirectory(context)"));
+        assertTrue(scaffold.files().get(FlowTestScaffold.SUPPORT_PATH).contains("context.getBean(LocalFtpTestServer.class).root()"));
+        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/FileDeliveryAssertions.java"));
+        flow.getFlowRoute().getFlowElements().clear();
+        flow.getFlowRoute().getFlowElements().add(org.ikasan.studio.core.TestFixtures.getSftpProducer(version));
+        var sftp = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        assertTrue(sftp.files().get(sftp.testPath()).contains("A remote SFTP path is not a local filesystem path"));
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void ftpFixtureUsesPackPropertyLabels(String version) throws Exception {
         var module = ComponentIO.validatePersistedModuleJson(ModelMigration.analyse(
                 Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module.json")), version).targetJson(), "test", false);
@@ -89,7 +117,7 @@ class FlowTestScaffoldTest {
         assertTrue(localTest.contains("int batch) throws Exception"));
         assertTrue(localTest.contains("harness.fireScheduledConsumer()"));
         assertTrue(localTest.contains("FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT"));
-        assertTrue(support.contains("outputs.poll(10, TimeUnit.SECONDS)"));
+        assertTrue(support.contains("awaitOutputText(outputs, 10)"));
         assertTrue(localTest.contains("CONFIGURED = false"));
         for (int task = 1; task <= 5; task++) assertTrue(localTest.contains("// TODO " + task + ":"));
     }
@@ -189,7 +217,7 @@ class FlowTestScaffoldTest {
 
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
-    void sampleSubmissionGuidanceIsOptInAndDoesNotAssumeExistingCodeHasTheApi(String version) throws Exception {
+    void sampleSubmissionDefaultsAreDrivenByMetadata(String version) throws Exception {
         var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
         flow.setConsumer(org.ikasan.studio.core.TestFixtures.getGenericConsumer(version));
         var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
@@ -198,8 +226,9 @@ class FlowTestScaffoldTest {
         var result = FlowTestScaffold.render(module, flow, parent, app);
         String test = result.files().get(result.testPath());
         assertTrue(test.contains("fixture-input-enabled=true"));
-        assertTrue(test.contains("//        .submitNow("));
-        assertTrue(test.contains("throw new UnsupportedOperationException(\"Configure fixture input"));
+        assertTrue(test.contains("                .submitNow(batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT)"));
+        assertFalse(test.contains("throw new UnsupportedOperationException(\"Configure fixture input"));
+        assertTrue(result.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH).lines().anyMatch(line -> line.startsWith("studio.sample-consumer.") && line.endsWith(".fixture-input-enabled=true")));
         flow.getConsumer().setComponentMeta(flow.getConsumer().getComponentMeta().toBuilder().flowTestInputMode(null).build());
         var ordinary = FlowTestScaffold.render(module, flow, parent, app);
         assertFalse(ordinary.files().get(ordinary.testPath()).contains("submitNow"));

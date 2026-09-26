@@ -14,6 +14,31 @@ class FlowTestFilesTest {
         return new FlowTestScaffold.Scaffold("updated", "user-flow-tests/src/test/java/ExampleTest.java",
                 Map.of("user-flow-tests/src/test/java/ExampleTest.java", "test", "user-flow-tests/pom.xml", "generated pom"));
     }
+    @Test void missingSampleInputDefaultsAreBackedUpAndExplicitFalseIsPreserved() throws Exception {
+        Path file = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
+        Files.createDirectories(file.getParent());
+        String original = "custom=keep\nstudio.sample-consumer.example.A.fixture-input-enabled=false\n";
+        Files.writeString(file, original);
+        String generated = """
+                studio.sample-consumer.example.A.fixture-input-enabled=true
+                studio.sample-consumer.example.B.fixture-input-enabled=true
+                other=ignored
+                """;
+        FlowTestFiles.addMissingFixtureInputDefaults(root, generated);
+        String updated = Files.readString(file);
+        assertTrue(updated.startsWith(original));
+        assertTrue(updated.contains("studio.sample-consumer.example.B.fixture-input-enabled=true"));
+        assertFalse(updated.contains("other=ignored"));
+        assertFalse(updated.contains("example.A.fixture-input-enabled=true"));
+        FlowTestFiles.addMissingFixtureInputDefaults(root, generated);
+        assertEquals(updated, Files.readString(file));
+        try (var paths = Files.list(file.getParent())) {
+            var backups = paths.filter(p -> p.getFileName().toString().contains(".bak")).toList();
+            assertEquals(1, backups.size());
+            assertEquals(original, Files.readString(backups.get(0)));
+        }
+    }
+
     @Test void localFtpChoicePreservesPropertiesAndArchivesOriginal() throws Exception {
         Path properties = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
         Files.createDirectories(properties.getParent());

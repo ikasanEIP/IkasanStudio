@@ -149,6 +149,7 @@ public class ComponentMeta implements IkasanMeta {
     @Builder.Default
     @JsonSetter(nulls = Nulls.SKIP)
     private List<String> flowTestExpectedInitialOutputs = List.of(); // Ordered text samples for the default self-generating provider.
+    private boolean flowTestFileDelivery;            // Producer delivers files: offer receiver-side filesystem assertions.
     private boolean flowTestObservationOnly;          // Discard sinks only: invocation has no external delivery/content contract.
     private String testPayloadAdapter;               // Optional metadata-driven adapter used by Send Test Message to construct an interface-based payload.
     private boolean isFileBasedConsumer;             // Consumer only: true if the payload it deals in is file content/a file path rather
@@ -168,6 +169,7 @@ public class ComponentMeta implements IkasanMeta {
                                                       // builder method needs on the Spring context, added to the generated ModuleConfig's @Import if
                                                       // this component is dragged into the flow. Newer Ikasan versions favour these Java auto-configuration
                                                       // classes over the older Spring XML resources (see importResources above).
+    private String verificationImplementationContract; // Optional user-class contract when different from the component interface.
     private boolean usesBuilderInFactory;           // used by ftl to generate the correct builder code
     private boolean useImplementingClassInFactory;  // When true, 'implementingClass' is used in the factory method to create a new instance of the component.
     @Getter(AccessLevel.NONE)

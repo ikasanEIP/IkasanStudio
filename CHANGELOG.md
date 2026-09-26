@@ -5,6 +5,14 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Add on-demand generated verification baselines: model-derived structural contracts, explicit unverified runtime checks, Maven execution and archive-on-refresh ownership.
+
+- Make sample-consumer fixture input and isolated FTP delivery checks executable by default; add missing fixture settings with backups while preserving explicit opt-outs.
+
+- Add selectable actual-output text conversion in generated flow tests for Ikasan payloads, files, bytes and JMS text messages, with explicit decoding failures.
+
+- Generate named input-batch constants and reusable physical-file delivery assertions, with metadata-driven FTP/SFTP receiver-check guidance.
+
 - Fix flow-test generation with Maven plugin/profile dependencies or dependency management; add FTP fixture dependencies only to the project dependency section while preserving existing XML.
 
 - Offer isolated local FTP setup in flow-test generation dialogs, configuring test properties with backups while preserving custom settings.

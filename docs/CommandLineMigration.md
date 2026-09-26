@@ -98,6 +98,20 @@ and JMS/JAXB substitutions in recognised type fields. Other legitimate engine ma
 such as exception-resolver changes or materialised defaults, may need an exact preview
 as described below. Such differences are reported for review rather than ignored.
 
+### Including generated verification tests
+
+Before collecting the before report, optionally use Studio's **Generate/Refresh Verification
+Tests…** action and commit the resulting `generated-verification` module. The Maven reactor
+runs these structural checks alongside your configured business tests. Keep the tests unchanged
+through both verification runs and comparison; CLI apply preserves this module. Refresh it
+only after reviewing the comparison, to establish a new baseline.
+
+The model-hash warning in `GeneratedVerificationSupport` is expected after migration. Its
+`BASELINE_MODEL_SHA256` identifies the saved model at generation, not Java sources. Runtime
+checks are explicitly skipped in this first version; a passing report with only structural
+checks is not proof of working flows. Review skipped checks and retain business/runtime tests.
+See [generated verification baselines](GeneratedVerification.md).
+
 ## Perform the upgrade from the command line
 
 Supported paths are **V3.3.9 ↔ V4.1.6**. Stop the module, save changes and **close the project

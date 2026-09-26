@@ -186,5 +186,25 @@ claim to verify idle behaviour, subsequent payload content or external delivery.
 `flowTestInputMode: "sample-submission"` supplies fixture guidance for generated sample consumers
 that implement `submitNow(String)` while running and a per-class `fixture-input-enabled` property
 which disables automatic polling for deterministic tests. Submission itself requires no opt-in. It does not
-assert that existing developer code still has that API: generated tests contain a commented example
-and an explicit guard. This mode never selects the automatic observation-only scaffold.
+inspect existing developer code: generated tests call the declared submitNow API directly.
+Shared properties default those consumers to fixture-input-enabled=true; explicit false settings are preserved. This mode never selects the automatic observation-only scaffold.
+
+### File-delivery flow-test guidance
+
+A producer may declare `flowTestFileDelivery: true` when its observable outcome is delivered
+files. For a single such producer, the scenario template emits a receiver-check outline using
+shared `assertFileContents` / `assertDeliveredFileContents` helpers. FTP and SFTP declare this
+capability; the generator does not select it by component name or implementing class. The
+existing `supportsTestFtpServer` capability selects the isolated FTP directory example.
+The developer must supply the final filename/pattern, receiver directory and expected text;
+local-file consumers alone do not imply file output. These checks read UTF-8 files visible to
+the test JVM; they do not implement remote FTP/SFTP access or binary comparison.
+
+### Automatic verification contracts
+
+`generatedVerificationTest_en.ftl`, `generatedVerificationSupport_en.ftl` and
+`generatedVerificationPom_en.ftl` produce the explicitly refreshed, Studio-owned structural
+baseline. `usesBuilderInFactory` determines whether a component getter can be asserted.
+`verificationImplementationContract` optionally names the user implementation's raw interface
+when different from `componentType` (for example `FilterRule`). These checks never infer custom
+business input or start external endpoints. Runtime coverage remains explicitly not verified.

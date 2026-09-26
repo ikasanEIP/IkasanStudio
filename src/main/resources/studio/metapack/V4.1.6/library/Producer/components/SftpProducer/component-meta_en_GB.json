@@ -1,4 +1,5 @@
 {
+  "flowTestFileDelivery": true,
   "name": "SFTP Producer",
   "helpText": "<p>Delivers files to a remote FTP or SFTP server. A persistent store records metadata about delivered files.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-4.1.6/ikasaneip/component/Readme.md",

@@ -36,11 +36,12 @@
 # Keep the repeat delay longer than the standard test's one-second idle check, or use a custom scenario.
 # Existing developer-owned consumers must be updated manually before these settings take effect.
 
-# Prefer deterministic submissions over a faster poller for new sample Generic Consumers:
-# studio.sample-consumer.example.MyConsumer.fixture-input-enabled=true
-# Replace example.MyConsumer with its fully qualified class; call submitNow(String) in supplyInput().
-# This setting disables automatic polling only; submitNow is available in either mode while running.
-# Existing/custom implementations must explicitly provide this API before using the fixture example.
+# Deterministic input for sample Generic Consumers: submitNow supplies each test batch directly.
+# Remove a setting if not needed, or set false to test automatic polling (and adapt supplyInput).
+# Regeneration adds missing defaults; an explicit false is preserved across regeneration.
+<#list sampleConsumerClasses as implementation>
+studio.sample-consumer.${implementation}.fixture-input-enabled=true
+</#list>
 
 <#if ftpEndpoints?has_content>
 # Optional real, isolated FTP server (plain FTP only, not SFTP/FTPS).

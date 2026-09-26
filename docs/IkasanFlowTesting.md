@@ -1,5 +1,8 @@
 # Testing flows with the Ikasan test framework
 
+For Studio-owned tests requiring no completion, see [Generated verification baselines](GeneratedVerification.md).
+These provide automatic structural checks; the business tests below remain developer-owned.
+
 Use **Tools → Ikasan Studio → Generate Flow Test…**, or right-click a flow and choose
 **Generate Flow Test…**, to create a reusable Ikasan test scaffold. Custom component unit
 tests can still live in `user/src/test/java`. Application-level flow tests live in a separate,
@@ -60,6 +63,85 @@ helpers are preserved. Shared support must be regenerated after adding or changi
 
 Test teardown preserves the original startup/assertion failure; cleanup failures appear as
 suppressed exceptions rather than replacing the useful diagnosis.
+
+## Comparing actual output as text
+
+New scenario tests include:
+
+```java
+private static final boolean STRINGIFY_ACTUAL_OUTPUT = true;
+
+@Override
+protected String outputText(Object payload) {
+    return outputText(payload, STRINGIFY_ACTUAL_OUTPUT);
+}
+```
+
+With the flag enabled, `FIRST_EXPECTED_OUTPUT` and `SECOND_EXPECTED_OUTPUT` are compared with
+content rather than a payload object's identity string:
+
+| Actual value | Compared text |
+| --- | --- |
+| Ikasan `Payload` | `getContent()` decoded as UTF-8 |
+| `byte[]` | UTF-8 text |
+| `File` or `Path` | File's UTF-8 contents |
+| `List<File>` | Contents concatenated in list order, without added separators |
+| JMS `TextMessage` | Message body from `getText()` |
+| Text, numbers, booleans, characters | Their text representation |
+| `null` | The literal string `null` |
+
+The helper uses the pack's JMS namespace (`javax.jms` or `jakarta.jms`) and needs no additional
+endpoint dependencies for modules that do not use those types. It does not acknowledge messages,
+read streams, deserialize JMS object messages or advance binary-message cursors. Other types,
+unreadable files and malformed UTF-8 fail explicitly; override `outputText(Object)` for binary
+formats, another encoding, selected object fields or other JMS bodies. Asynchronous decoding
+failures are surfaced on the test thread rather than appearing only as an output timeout.
+
+Set the flag to `false` for the original `String.valueOf` comparison. Existing developer-owned
+tests retain their behaviour; regenerate the test and shared setup, or adopt the override manually
+after regenerating shared setup. Physical file/JMS delivery remains a separate receiver assertion;
+reading a Payload's bytes alone does not prove successful transport delivery.
+
+## Batch inputs and physical file checks
+
+Scenario tests declare `FIRST_BATCH_INPUT` and `SECOND_BATCH_INPUT` beside the expected output
+constants. `supplyInput()` uses them directly for JMS and local-file input, or references them
+in the sample-provider guidance. Expected outputs remain independent: changing an input must
+not silently change the assertion to match it.
+
+Shared support provides two receiver-side checks:
+
+```java
+assertFileContents(directory.resolve("result.txt"), expected);
+
+assertDeliveredFileContents(directory, "*.dat", batch == 1
+        ? new String[]{FIRST_EXPECTED_OUTPUT}
+        : new String[]{FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT});
+```
+
+Both wait up to ten seconds and compare exact UTF-8 contents, including whitespace. The second
+checks the exact count and contents of matching direct regular files, irrespective of their
+order or names. It preserves duplicate counts, so two identical expected payloads still require
+two files. Use the first check for a known filename or intentional overwrite; use the second
+for one new file per batch. Choose a final-filename glob; unmatched files are ignored. Include
+all relevant files if temporary-file leftovers must also fail the test. These helpers never
+create, remove or alter files and do not follow symbolic links.
+
+Producers declaring `flowTestFileDelivery` in their meta-pack (currently FTP and SFTP) receive a
+receiver-side checks. For isolated FTP, the generated code calls
+`assertDeliveredFileContents(localFtpDirectory(context), "*", ...)` and checks accumulated contents:
+one file after batch one, two after batch two. The shared `localFtpDirectory(context)` exposes
+the actual server home and gives an actionable error if the server is disabled. Adapt the assertion
+for checksums, multiple outputs or overwrites. SFTP keeps a guard because the receiver directory
+is not known. For external FTP/SFTP, use a locally accessible
+test-server directory or download the final files to an isolated directory first: a remote path
+is not a local filesystem path. Binary contents need byte-level assertions instead of these text checks.
+The same helpers are available for custom components writing local files. Merely consuming local
+files does not imply that the flow produces an output file.
+
+Regenerate shared setup to obtain the helper and wrappers in existing projects. Existing tests
+are developer-owned; regenerate them with a backup or copy the relevant input constants and
+assertions manually.
 
 ## Numbered tasks in each generated test
 
@@ -332,19 +414,20 @@ them; port the timing fields/setters and scheduling change into the consumer bef
 ### Deterministic input for the sample Generic Consumer
 
 `submitNow(String)` is available by default whenever a new sample consumer is running.
-For deterministic tests, disable automatic polling rather than shortening the poll interval:
+Generated tests enable deterministic fixture input in `module-test.properties` by default,
+using the implementation class declared by the metadata. For example:
 
 ```properties
 studio.sample-consumer.org.example.acap.flow3.MyGenericConsumer.fixture-input-enabled=true
 ```
 
-Then complete the concrete test's input override, importing your consumer class:
+The generated input override is executable by default:
 
 ```java
 @Override
 protected void supplyInput(ConfigurableApplicationContext context, IkasanFlowTestRule harness, int batch) {
     context.getBean(MyGenericConsumer.class)
-            .submitNow(batch == 1 ? "First test message" : "Second test message");
+            .submitNow(batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT);
 }
 ```
 
@@ -357,5 +440,8 @@ the consumer directly can call `setSampleInputEnabled(true)` before starting it.
 The `submitNow` operation supplies input directly; it does not queue or automatically
 retry failed submissions. Normal mode remains the default and retains its configured polling delays.
 Existing developer-owned classes are never rewritten to add the API. The metadata-driven scaffold
-therefore supplies a commented example and retains its guard until you confirm the consumer supports
-submission, enable fixture mode and complete meaningful payload and receiver-side assertions.
+calls `submitNow` directly; older/custom implementations declaring this capability must provide it.
+Generation adds missing fixture-input settings with a backup and preserves explicit values.
+Remove a setting if not needed; set it to `false` to retain automatic polling across subsequent
+regeneration, and adapt the scenario to account for automatic events. Meaningful inputs, expected
+outputs and appropriate receiver-side assertions still need developer review.

@@ -31,6 +31,11 @@ public class ${className} extends ModuleFlowTestSupport {
     // Success requires first delivery, idle readiness and later delivery without restarting.
     private static final boolean CONFIGURED = false;
     @Override protected String getFlowName() { return "${flowName?j_string}"; }
+
+    // TODO 2: Set the data supplied for each batch; expected outputs below are independent assertions.
+    private static final String FIRST_BATCH_INPUT = "REPLACE: first input";
+    private static final String SECOND_BATCH_INPUT = "REPLACE: second input";
+
     // TODO 3: Confirm this is the producer to observe, then set the expected payloads below.
 <#if producers?size != 1>
     // Choose one of these producer names; cover other router outputs in task 4:
@@ -40,8 +45,12 @@ public class ${className} extends ModuleFlowTestSupport {
 </#if>
     private static final String PRODUCER_NAME = <#if producers?size == 1>"${producers[0]?j_string}"<#else>"REPLACE: producer name"</#if>;
 
+    // Decode actual Payload/byte[]/File/Path/file-list/JMS TextMessage content for comparisons.
+    // UTF-8 is used for bytes/files; false retains String.valueOf. Override outputText for other formats.
+    private static final boolean STRINGIFY_ACTUAL_OUTPUT = true;
+
     // Set the expected text outputs for the first and second test. The test compares these values with outputText(actualPayload).
-    // if you need, you can override outputText(Payload payload) so that the producer generates text for comparing
+    // Override outputText(Object payload) to decode the actual payload, for example UTF-8 file content.
     private static final String FIRST_EXPECTED_OUTPUT = "REPLACE: first expected payload";
     private static final String SECOND_EXPECTED_OUTPUT = "REPLACE: second expected payload";
 
@@ -63,13 +72,10 @@ public class ${className} extends ModuleFlowTestSupport {
     }
 </#if>
 
-<#if localFile>
     @Override protected String outputText(Object payload) {
-        // Task 3: For unchanged local-file payloads, compare UTF-8 contents, not temporary paths.
-        // Adapt this if your flow converts files to another payload type.
-        return describeFileOutput(payload);
+        return outputText(payload, STRINGIFY_ACTUAL_OUTPUT);
     }
-</#if>
+
 
     @Override
     protected void defineExpectedPath(IkasanFlowTestRule harness) {
@@ -119,21 +125,20 @@ public class ${className} extends ModuleFlowTestSupport {
 
     @Override
     protected void supplyInput(ConfigurableApplicationContext context, IkasanFlowTestRule harness, int batch) throws Exception {
-        // TODO 2: Supply the data for batch 1 and batch 2. Keep the same flow running between them.
+        // TODO 2: Supply the data for batch 1 and batch 2.
 <#if jmsConsumer>
         // ModuleJmsTestConfig supplies the test connection. Configure test.jms.broker-url
         // and matching isolated flow broker/destinations in module-test.properties.
         try (JmsFlowTestSupport jms = JmsFlowTestSupport.from(context)) {
             jms.sendText(context.getEnvironment().getRequiredProperty("${jmsInputKey?j_string}"),
-                    batch == 1 ? "REPLACE: first input" : "REPLACE: second input");
+                    batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT);
         }
 <#elseif sampleSubmission>
-        // To prevent automatic events during this deterministic test, set in module-test.properties:
+        // module-test.properties enables fixture input by default, disabling automatic polling:
         // studio.sample-consumer.${sampleConsumerClass}.fixture-input-enabled=true
-        // Then replace this guard with (and choose meaningful input for your converter):
-        // context.getBean(${sampleConsumerClass}.class)
-        //        .submitNow(batch == 1 ? "First test message" : "Second test message");
-        throw new UnsupportedOperationException("Configure fixture input for ${consumerName?j_string}, then replace this guard");
+        // Remove that setting (or set false) only when testing automatic polling; adapt this input accordingly.
+        context.getBean(${sampleConsumerClass}.class)
+                .submitNow(batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT);
 <#elseif isolatedFiles>
         // File creation and scanning are supplied for you. Replace these sample contents with your input.
         // Each scan should see only this batch's file; earlier test files are removed before batch 2.
@@ -141,7 +146,7 @@ public class ${className} extends ModuleFlowTestSupport {
                      Files.newDirectoryStream(inputDirectory.getRoot().toPath(), "batch-*.txt")) {
             for (Path file : previous) Files.delete(file);
         }
-        String contents = batch == 1 ? "REPLACE: first input" : "REPLACE: second input";
+        String contents = batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT;
         Files.writeString(inputDirectory.getRoot().toPath().resolve("batch-" + batch + ".txt"), contents);
         harness.fireScheduledConsumer();
 <#elseif scheduled>
@@ -150,6 +155,7 @@ public class ${className} extends ModuleFlowTestSupport {
         prepareInputBatch(context, batch);
         harness.fireScheduledConsumer();
 <#else>
+        // Use batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT as the batch content.
         // Send through the real consumer API (for example JMS), or supply a controllable test provider.
         // Self-generating sources must supply deterministic batches without busy loops or restarting.
         throw new UnsupportedOperationException("Supply input batch " + batch + " for ${consumerName?j_string}");
@@ -165,9 +171,34 @@ public class ${className} extends ModuleFlowTestSupport {
         }
     }
 </#if>
+<#if fileDelivery && !(jmsConsumer && jmsOutputKey?has_content)>
+
+    @Override
+    protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch, String expected) throws Exception {
+        // Task 4: Check the physical files, separately from the payload observed at the producer.
+<#if ftpFileDelivery>
+        // The isolated FTP server exposes the directory it created; enable test.ftp.enabled in test properties.
+        // Default: one new file per batch, preserving the first file. Check ALL files, including temporary leftovers.
+        // Adapt the glob/expected values for checksums, multiple files or intentional overwrites.
+        assertDeliveredFileContents(localFtpDirectory(context), "*", batch == 1
+                ? new String[]{FIRST_EXPECTED_OUTPUT}
+                : new String[]{FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT});
+        // For a known filename/overwrite instead: assertFileContents(localFtpDirectory(context).resolve("result.txt"), expected);
+<#else>
+        // Use the test server's LOCAL output directory, or download remote files to a temporary directory.
+        // A remote SFTP path is not a local filesystem path. These helpers do not connect to SFTP.
+        // var directory = Path.of("REPLACE: local test output directory");
+        // assertDeliveredFileContents(directory, "*", batch == 1
+        //         ? new String[]{FIRST_EXPECTED_OUTPUT}
+        //         : new String[]{FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT});
+        throw new UnsupportedOperationException("Configure physical file delivery assertions in task 4");
+</#if>
+    }
+</#if>
 <#if scheduled && !isolatedFiles>
 
     private void prepareInputBatch(ConfigurableApplicationContext context, int batch) throws Exception {
+        // Use batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT as the file/provider content.
         // Task 2: Replace this guard with real input preparation for the scheduled consumer.
         throw new UnsupportedOperationException("Prepare input batch " + batch + " before scanning");
     }

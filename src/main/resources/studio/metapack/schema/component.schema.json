@@ -23,6 +23,8 @@
     "flowTestInputMode": { "type": "string", "enum": ["self-generating", "sample-submission"] },
     "flowTestInputModeInvalidatedByProperties": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
     "flowTestExpectedInitialOutputs": { "type": "array", "maxItems": 100, "items": { "type": "string" } },
+    "verificationImplementationContract": { "type": "string", "minLength": 1 },
+    "flowTestFileDelivery": { "type": "boolean" },
     "flowTestObservationOnly": { "type": "boolean" },
     "testPayloadAdapter": { "type": "string", "enum": ["ikasan-file-transfer-payload"] },
     "outputTypeInvalidatedByProperties": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },

@@ -1,4 +1,5 @@
 {
+  "verificationImplementationContract": "org.ikasan.spec.component.filter.FilterRule",
   "name": "Default Message Filter",
   "helpText": "<p>Implement a small <b>FilterRule</b> (<code>accept(message): boolean</code>), which Ikasan's <b>DefaultMessageFilter</b> wraps for you.</p><p>Prefer this over plain <b>Message Filter</b> if you already have a reusable FilterRule to plug in, or you'd rather return a boolean than remember whether to hand back the message or null yourself.</p>",
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/Readme.md",

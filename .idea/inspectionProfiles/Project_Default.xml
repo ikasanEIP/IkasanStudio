@@ -8,5 +8,12 @@
     -->
     <inspection_tool class="LombokGetterMayBeUsed" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="LombokSetterMayBeUsed" enabled="false" level="WARNING" enabled_by_default="false" />
+    <!--
+      Standard Java I/O is intentional in standalone core code and local tests. Replacing it
+      project-wide with Eel APIs would couple that code to IntelliJ and requires checking our
+      2024.2 minimum IDE compatibility. Disable only this remote-I/O performance suggestion;
+      revisit Eel optimisations in IntelliJ integration code when validating remote workflows.
+    -->
+    <inspection_tool class="UseOptimizedEelFunctions" enabled="false" level="WARNING" enabled_by_default="false" />
   </profile>
 </component>

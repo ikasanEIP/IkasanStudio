@@ -1,6 +1,6 @@
 # Migrating Ikasan versions
 
-Studio can migrate a saved project between **V3.3.9 and V4.1.6 in either direction**. Use **Migrate…** on the canvas, or **Tools → Ikasan Studio → Migrate Ikasan Version…** (also available through Find Action). You can also right-click the module in the designer and choose **Migrate Ikasan Version…**. Configured modules show their version as read-only in Properties.
+Studio can migrate a saved project between **V3.3.9 and V4.1.6 in either direction**. Use **Tools → Ikasan Studio → Migrate Ikasan Version…** (also available through Find Action). You can also right-click the module in the designer and choose **Migrate Ikasan Version…**. Configured modules show their version as read-only in Properties.
 
 ## Workflow
 
@@ -115,3 +115,29 @@ same engine as Studio. Close the project in IntelliJ before applying CLI changes
 `user-flow-tests` module. Complete the scenarios before migration and run them again afterwards.
 Their Ikasan framework dependency inherits `version.ikasan`; migration preserves the source
 and module entry. See [flow testing](IkasanFlowTesting.md) for setup and limitations.
+
+### Generated verification baseline
+
+For automatic structural checks, use **Generate/Refresh Verification Tests…** from Tools →
+Ikasan Studio or the module context menu before migration. This creates `generated-verification`;
+it complements the business scenarios in `user-flow-tests`.
+
+1. Generate and commit the baseline with the original application. Run
+   `mvn -pl generated-verification -am test` from the project root, plus your business tests.
+2. Save `generated-verification/target/surefire-reports` outside `target/` as before evidence.
+3. Migrate the application using the workflow above. Leave both sets of test sources unchanged.
+4. Run the same tests with the target JDK, save the after reports separately, and compare
+   passed, failed and skipped checks. Investigate any compilation or contract failures.
+5. After reviewing the comparison, optionally refresh the generated verification tests to
+   establish the next baseline. Studio archives the previous directory before replacing it.
+
+`BASELINE_MODEL_SHA256` in `GeneratedVerificationSupport` identifies the saved model at test
+generation, not the Java sources. A model-hash warning is expected following migration; it
+does not change the assertions or mean they failed. These tests currently check signatures
+and interfaces only; runtime behaviour is explicitly skipped. Passing them does not prove
+delivery or business equivalence.
+
+If an interface change prevents the original tests compiling or running, preserve that failure
+evidence before adapting or refreshing them. Record the changed expectations: results from
+changed tests do not constitute an unchanged before/after comparison. See
+[generated verification](GeneratedVerification.md) for coverage and ownership details.
