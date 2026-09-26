@@ -20,7 +20,7 @@
     "expectedInputTypes": { "type": "string" },
     "expectedInputTypeProperty": { "type": "string" },
     "producedOutputType": { "type": "string" },
-    "flowTestInputMode": { "type": "string", "enum": ["self-generating"] },
+    "flowTestInputMode": { "type": "string", "enum": ["self-generating", "sample-submission"] },
     "flowTestInputModeInvalidatedByProperties": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
     "flowTestExpectedInitialOutputs": { "type": "array", "maxItems": 100, "items": { "type": "string" } },
     "flowTestObservationOnly": { "type": "boolean" },

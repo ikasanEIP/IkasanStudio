@@ -1345,7 +1345,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             var choice = componentPropertyEditRow.getInputField().getPropertyChoiceValueField();
             if (choice != null) {
                 choice.setEnabled(false);
-                choice.setToolTipText("Use Migrate… on the canvas or Tools → Ikasan Studio → Migrate Ikasan Version… to review a version change.");
+                choice.setToolTipText("Use Tools → Ikasan Studio → Migrate Ikasan Version… to review a version change.");
             }
             if (componentPropertyEditRow.getDefaultValueButton() != null) componentPropertyEditRow.getDefaultValueButton().setEnabled(false);
         }

@@ -18,10 +18,21 @@ final class FlowTestsDialog extends DialogWrapper {
     private final List<JBCheckBox> choices = new ArrayList<>();
     private final com.intellij.ui.components.JBCheckBox regenerateSupport = new com.intellij.ui.components.JBCheckBox(
             StudioBundle.message("flowTest.regenerateSupport"), false);
-    boolean regenerateSupport() { return regenerateSupport.isSelected(); }
+    private final java.util.Set<String> ftpFlows;
+    private final com.intellij.ui.components.JBCheckBox localFtp = new com.intellij.ui.components.JBCheckBox(
+            StudioBundle.message("flowTest.localFtp"), false);
+    boolean useLocalFtp() { return localFtp.isEnabled() && localFtp.isSelected(); }
+    boolean regenerateSupport() { return regenerateSupport.isSelected() || useLocalFtp(); }
 
-    FlowTestsDialog(Project project, String[] names) {
+
+    FlowTestsDialog(Project project, String[] names, java.util.Set<String> ftpFlows) {
         super(project);
+        this.ftpFlows = java.util.Set.copyOf(ftpFlows);
+        localFtp.setToolTipText(StudioBundle.message("flowTest.localFtp.help"));
+        localFtp.addActionListener(e -> {
+            if (useLocalFtp()) regenerateSupport.setSelected(true);
+            regenerateSupport.setEnabled(!useLocalFtp());
+        });
         for (String name : names) {
             var choice = new JBCheckBox(name, true);
             choice.addActionListener(e -> updateSelection());
@@ -32,7 +43,11 @@ final class FlowTestsDialog extends DialogWrapper {
         init();
         updateSelection();
     }
-    private void updateSelection() { setOKActionEnabled(choices.stream().anyMatch(AbstractButton::isSelected)); }
+    private void updateSelection() {
+        setOKActionEnabled(choices.stream().anyMatch(AbstractButton::isSelected));
+        localFtp.setEnabled(selectedFlows().stream().anyMatch(ftpFlows::contains));
+        regenerateSupport.setEnabled(!useLocalFtp());
+    }
     @Override protected JComponent createCenterPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(12)));
         panel.add(new JBLabel("<html><body style='width: 420px'>"
@@ -52,7 +67,11 @@ final class FlowTestsDialog extends DialogWrapper {
         selection.add(all); selection.add(none);
         JPanel footer = new JPanel(new BorderLayout());
         footer.add(selection, BorderLayout.NORTH);
-        footer.add(regenerateSupport, BorderLayout.SOUTH);
+        JPanel options = new JPanel();
+        options.setLayout(new BoxLayout(options, BoxLayout.Y_AXIS));
+        if (!ftpFlows.isEmpty()) options.add(localFtp);
+        options.add(regenerateSupport);
+        footer.add(options, BorderLayout.SOUTH);
         panel.add(footer, BorderLayout.SOUTH);
         return panel;
     }

@@ -142,7 +142,7 @@ public class ComponentMeta implements IkasanMeta {
                                                       // invocation and so needs a List<String> return type (e.g. Multi Recipient Router) -
                                                       // false (the default) for routers whose route() returns a single String (e.g. Single
                                                       // Recipient Router). Drives routerTemplate_en.ftl's generated method shape - see there.
-    private String flowTestInputMode;                // Optional: self-generating permits bounded observation without injected input.
+    private String flowTestInputMode;                // Optional input strategy: self-generating observation or sample-submission fixture guidance.
     @Builder.Default
     @JsonSetter(nulls = Nulls.SKIP)
     private List<String> flowTestInputModeInvalidatedByProperties = List.of();

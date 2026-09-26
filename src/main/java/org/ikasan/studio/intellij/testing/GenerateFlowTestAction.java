@@ -53,18 +53,25 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             }
             String[] flows = live.getFlows().stream().map(Flow::getIdentity).toArray(String[]::new);
             if (flows.length == 0) throw new IllegalStateException(StudioBundle.message("flowTest.noFlows"));
+            java.util.Set<String> ftpFlows = live.getFlows().stream()
+                    .filter(flow -> flow.getFlowElementsNoExternalEndPoints().stream()
+                            .anyMatch(element -> element.getComponentMeta().supportsTestFtpServer()))
+                    .map(Flow::getIdentity).collect(java.util.stream.Collectors.toSet());
             List<String> choices;
+            boolean useLocalFtp;
             boolean regenerateSupport;
             if (multiple) {
-                FlowTestsDialog dialog = new FlowTestsDialog(project, flows);
+                FlowTestsDialog dialog = new FlowTestsDialog(project, flows, ftpFlows);
                 if (!dialog.showAndGet()) return;
                 choices = dialog.selectedFlows();
                 regenerateSupport = dialog.regenerateSupport();
+                useLocalFtp = dialog.useLocalFtp();
             } else {
-                FlowTestDialog dialog = new FlowTestDialog(project, flows, selectedFlow);
+                FlowTestDialog dialog = new FlowTestDialog(project, flows, selectedFlow, ftpFlows);
                 if (!dialog.showAndGet()) return;
                 choices = List.of(dialog.selectedFlow());
                 regenerateSupport = dialog.regenerateSupport();
+                useLocalFtp = dialog.useLocalFtp();
             }
             if (choices.isEmpty()) return;
             boolean batchWrite = multiple || regenerateSupport;
@@ -107,12 +114,20 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                             var first = scaffolds.get(0);
                             scaffolds.add(new FlowTestScaffold.Scaffold(first.rootPom(), FlowTestScaffold.SUPPORT_PATH,
                                     java.util.Map.of(FlowTestScaffold.SUPPORT_PATH, first.files().get(FlowTestScaffold.SUPPORT_PATH),
-                                            FlowTestScaffold.TEST_PROPERTIES_PATH, first.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH))));
+                                            FlowTestScaffold.TEST_PROPERTIES_PATH, first.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH),
+                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java",
+                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java"),
+                                            "user-flow-tests/pom.xml", first.files().get("user-flow-tests/pom.xml"))));
                         }
                         if (!Files.readString(root.resolve(MigrationArtifacts.MODEL)).equals(source)) {
                             throw new IllegalStateException(StudioBundle.message("message.TheModelChangedWhilePreparingMigration"));
                         }
                         if (batchWrite && !batchReviewed.get()) FlowTestFiles.checkExisting(root, scaffolds);
+                        if (useLocalFtp && Files.exists(root.resolve(FlowTestScaffold.SUPPORT_PATH))
+                                && (batchApproval.get() == null || batchApproval.get().stream().noneMatch(
+                                        approved -> approved.path().equals(root.resolve(FlowTestScaffold.SUPPORT_PATH))))) {
+                            throw new IllegalStateException(StudioBundle.message("flowTest.localFtp.regenerateRequired"));
+                        }
                         List<Path> tests = batchWrite ? (batchApproval.get() == null
                                 ? FlowTestFiles.writeAll(root, pom, scaffolds)
                                 : FlowTestFiles.archiveAndWriteAll(root, pom, scaffolds, batchApproval.get()))
@@ -121,6 +136,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                                         : FlowTestFiles.archiveAndWrite(root, pom, scaffolds.get(0), archiveApproval.get()));
                         created.set(tests);
                         if (tests.isEmpty()) return;
+                        if (useLocalFtp) FlowTestFiles.enableLocalFtp(root);
                         context.setIkasanPomModel(null);
                         var base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root);
                         if (base != null) base.refresh(false, true);

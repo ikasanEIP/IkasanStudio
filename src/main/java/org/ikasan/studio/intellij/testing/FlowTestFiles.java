@@ -135,6 +135,9 @@ public final class FlowTestFiles {
             if (Files.exists(path) && !Files.isRegularFile(path)) throw new IOException("Expected a file: " + path);
             if (requiredTests.contains(path) || !Files.exists(path)) pending.put(path, entry.getValue());
         }
+        Path testPom = safe(root, "user-flow-tests/pom.xml");
+        String oldTestPom = Files.isRegularFile(testPom) ? Files.readString(testPom) : null;
+        String newTestPom = oldTestPom == null ? null : withFtpTestDependencies(oldTestPom, scaffold.files());
         List<Path> created = new ArrayList<>();
         try {
             for (var entry : pending.entrySet()) {
@@ -150,6 +153,17 @@ public final class FlowTestFiles {
                     Files.move(temp, pom, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
                 } finally { Files.deleteIfExists(temp); }
             }
+            if (newTestPom != null && !newTestPom.equals(oldTestPom)) {
+                if (!Files.readString(testPom).equals(oldTestPom)) throw new IOException("Flow-test pom.xml changed; retry generation.");
+                Path backup = testPom.resolveSibling("pom.xml.bak" + java.time.LocalDateTime.now()
+                        .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")) + "-" + UUID.randomUUID());
+                Files.copy(testPom, backup);
+                Path temp = Files.createTempFile(testPom.getParent(), ".test-pom-", ".tmp");
+                try {
+                    Files.writeString(temp, newTestPom);
+                    Files.move(temp, testPom, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                } finally { Files.deleteIfExists(temp); }
+            }
             return test;
         } catch (IOException failure) {
             for (Path path : created) {
@@ -160,6 +174,102 @@ public final class FlowTestFiles {
             throw failure;
         }
     }
+    /** Explicit dialog choice: preserve existing settings and archive the file before enabling the fixture. */
+    static void enableLocalFtp(Path projectRoot) throws IOException {
+        Path properties = safe(projectRoot.toAbsolutePath().normalize(), FlowTestScaffold.TEST_PROPERTIES_PATH);
+        String original = Files.readString(properties);
+        String updated = localFtpProperties(original);
+        if (updated.equals(original)) return;
+        Path backup = properties.resolveSibling(properties.getFileName() + ".bak"
+                + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS"))
+                + "-" + UUID.randomUUID());
+        Path temporary = Files.createTempFile(properties.getParent(), ".test-properties-", ".tmp");
+        try {
+            Files.writeString(temporary, updated);
+            if (!Files.readString(properties).equals(original)) throw new IOException("Test properties changed; retry generation.");
+            Files.copy(properties, backup);
+            Files.move(temporary, properties, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } finally { Files.deleteIfExists(temporary); }
+    }
+
+    /** Last-key precedence preserves comments and unrelated settings, including escaped/multiline values. */
+    static String localFtpProperties(String original) throws IOException {
+        java.util.Properties properties = new java.util.Properties();
+        properties.load(new java.io.StringReader(original));
+        if ("true".equalsIgnoreCase(properties.getProperty("test.ftp.enabled"))) return original;
+        StringBuilder result = new StringBuilder(original).append("\n\n# Enabled by Generate Flow Test: disposable loopback FTP, allocated port, temporary home.\n")
+                .append("# Applies to all FTP endpoints in this test application; original settings above are retained.\n")
+                .append("test.ftp.enabled=true\n");
+        if (!properties.containsKey("test.ftp.username")) result.append("test.ftp.username=ikasan\n");
+        if (!properties.containsKey("test.ftp.password")) {
+            result.append(properties.containsKey("test.ftp.username")
+                    ? "# test.ftp.password defaults to test.ftp.username when absent.\n"
+                    : "test.ftp.password=ikasan\n");
+        }
+        return result.toString();
+    }
+
+    /** Adds only missing fixture dependencies; preserves developer XML and archives changes at the write boundary. */
+    static String withFtpTestDependencies(String existing, Map<String, String> generated) throws IOException {
+        if (!generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java")) return existing;
+        try {
+            var reader = new org.apache.maven.model.io.xpp3.MavenXpp3Reader();
+            var model = reader.read(new java.io.StringReader(existing));
+            StringBuilder additions = new StringBuilder();
+            for (String[] dependency : List.of(new String[]{"org.apache.ftpserver", "ftpserver-core", "1.2.1"},
+                    new String[]{"org.apache.mina", "mina-core", "2.2.9"})) {
+                if (model.getDependencies().stream().noneMatch(d -> dependency[0].equals(d.getGroupId()) && dependency[1].equals(d.getArtifactId()))) {
+                    additions.append("\n    <dependency><groupId>").append(dependency[0]).append("</groupId><artifactId>")
+                            .append(dependency[1]).append("</artifactId><version>").append(dependency[2])
+                            .append("</version><scope>test</scope></dependency>\n");
+                }
+            }
+            if (additions.isEmpty()) return existing;
+            return insertProjectDependencies(existing, additions.toString());
+        } catch (org.codehaus.plexus.util.xml.pull.XmlPullParserException failure) {
+            throw new IOException("Cannot update user-flow-tests/pom.xml", failure);
+        }
+    }
+
+    /**
+     * Finds direct project children in already validated XML. Only inserts text at that boundary;
+     * profiles, plugin dependencies, dependency management, comments and formatting remain untouched.
+     */
+    private static String insertProjectDependencies(String xml, String additions) throws IOException {
+        var tokens = java.util.regex.Pattern.compile(
+                "<!--.*?-->|<!\\[CDATA\\[.*?]]>|<\\?.*?\\?>|<(?:\"[^\"]*\"|'[^']*'|[^'\">])*>",
+                java.util.regex.Pattern.DOTALL).matcher(xml);
+        int depth = 0;
+        String projectPrefix = "";
+        while (tokens.find()) {
+            String token = tokens.group();
+            if (token.startsWith("<!--") || token.startsWith("<![CDATA[") || token.startsWith("<?")) continue;
+            if (token.startsWith("<!")) throw new IOException("DOCTYPE declarations are not supported when updating the flow-test POM.");
+            boolean closing = token.startsWith("</");
+            boolean empty = token.endsWith("/>");
+            String name = token.substring(closing ? 2 : 1).split("[\\s/>]", 2)[0];
+            String localName = name.substring(name.indexOf(':') + 1);
+            String prefix = name.contains(":") ? name.substring(0, name.indexOf(':') + 1) : "";
+            if (!closing && depth == 0) projectPrefix = prefix;
+            if (localName.equals("dependencies") && ((closing && depth == 2) || (!closing && empty && depth == 1))) {
+                String entries = additions.replaceAll("<(/?)([A-Za-z])", "<$1" + prefix + "$2");
+                if (empty) {
+                    String expanded = token.substring(0, token.length() - 2) + ">" + entries + "  </" + name + ">";
+                    return xml.substring(0, tokens.start()) + expanded + xml.substring(tokens.end());
+                }
+                return xml.substring(0, tokens.start()) + entries + "  " + xml.substring(tokens.start());
+            }
+            if (closing && depth == 1 && localName.equals("project")) {
+                String entries = additions.replaceAll("<(/?)([A-Za-z])", "<$1" + projectPrefix + "$2");
+                return xml.substring(0, tokens.start()) + "  <" + projectPrefix + "dependencies>" + entries
+                        + "  </" + projectPrefix + "dependencies>\n" + xml.substring(tokens.start());
+            }
+            if (closing) depth--;
+            else if (!empty) depth++;
+        }
+        throw new IOException("Cannot locate the project element in the flow-test POM.");
+    }
+
     private static Path safe(Path root, String relative) throws IOException {
         Path path = root.resolve(relative).normalize();
         if (!path.startsWith(root) || Path.of(relative).isAbsolute()

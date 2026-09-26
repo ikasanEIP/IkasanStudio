@@ -13,6 +13,54 @@ offers **Skip Existing**, **Archive and Regenerate**, or **Cancel** when selecte
 and reports how many tests were created or preserved. Only selected tests can be archived. The first new test
 opens in the editor. If a selected flow has no consumer, deselect it or add its consumer first.
 
+## Optional local FTP server
+
+When the module contains components marked `supportsTestFtpServer` in its meta-pack,
+the generation dialog offers **Use an isolated local FTP server for tests** when an FTP
+flow is selected. Selecting it regenerates shared setup (with the usual archive confirmation)
+and enables the server in `module-test.properties`. Existing properties are backed up before
+changing the enablement flag; custom credentials and unrelated settings are preserved.
+Leaving the box unchecked preserves current settings; it does not disable an existing fixture.
+You can also enable it manually:
+
+```properties
+test.ftp.enabled=true
+# Optional disposable-server credentials:
+# test.ftp.username=ikasan
+# test.ftp.password=ikasan
+```
+
+This starts a real Apache FTP server before the Spring application, bound to loopback on
+an allocated port. Each test gets a unique temporary home. Shared support overrides the
+module's FTP host, port, credentials and source/output directories using the meta-pack's
+property labels; all those directories become `/` inside that temporary home. Other settings,
+such as filename filters, remain unchanged. The option covers **all plain FTP endpoints in
+that test context**, not SFTP or FTPS. Unsupported or missing connection mappings fail before
+the application starts. Leave the option off to use your separately configured test server.
+
+In a test's `supplyInput`, seed consumer files using:
+
+```java
+Path home = context.getBean(LocalFtpTestServer.class).root();
+Files.writeString(home.resolve("input.txt"), "test content");
+```
+
+Choose filenames and content that match your consumer. Scheduled consumers still need their
+normal test trigger. In `verifyReceivedOutput`, inspect that same directory and assert the
+producer's final filename and contents. Observing a payload at the producer alone does not
+prove the correct file was delivered. The server stops and its temporary files are removed
+when the application context closes, including failed tests. No existing IDE server is stopped.
+
+For existing tests, the FTP choice also selects **Archive and regenerate shared module setup**
+to refresh `ModuleFlowTestSupport`. Accept the archive/regenerate confirmation for that file.
+Without the FTP choice, shared-setup regeneration leaves `module-test.properties` unchanged. Generation adds missing FTP/MINA test dependencies to an
+existing test POM, preserving its XML and saving a timestamped backup. Existing dependency
+versions remain developer-owned. Review any custom server helper before regenerating; existing
+helpers are preserved. Shared support must be regenerated after adding or changing FTP endpoints.
+
+Test teardown preserves the original startup/assertion failure; cleanup failures appear as
+suppressed exceptions rather than replacing the useful diagnosis.
+
 ## Numbered tasks in each generated test
 
 Scenario scaffolds have a checklist and **TODO 1–5** beside the relevant code.
@@ -249,10 +297,65 @@ Generated JUnit methods start with `test`, for example
 the name is for readability. Existing developer-owned tests are preserved. To adopt the new
 scaffold, archive/regenerate the selected flow test and shared module setup.
 
-Standard generated scenarios call `runTest(CONFIGURED, OUTPUT, FIRST_EXPECTED, SECOND_EXPECTED)`.
+Standard generated scenarios call `runTest(CONFIGURED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT)`.
 Override `supplyInput(context, harness, batch)` to provide each batch, and optionally
 `verifyReceivedOutput(context, batch, expected)` for external delivery checks. The support class
 calls these methods directly through its standard scenario wiring; no method references or lambdas
 are needed in the concrete test. JMS scaffolds supply both overrides when a single output queue
 is known, opening and closing a helper connection for each operation. Advanced callback overloads
 remain available, and older callback-based tests still work with regenerated shared support.
+
+### Generic Consumer sample timing
+
+New Generic Consumer implementations retain a one-minute default for both the initial wait and
+the delay after each sample poll. Override their class-specific properties in `module-test.properties`:
+
+```properties
+studio.sample-consumer.org.example.acap.flow3.MyGenericConsumer.initial-delay-ms=500
+studio.sample-consumer.org.example.acap.flow3.MyGenericConsumer.poll-delay-ms=2000
+```
+
+Use the exact implementation class from the generated consumer's `@Value` annotations.
+A fixture constructing the consumer directly can instead call `setSampleInitialDelayMillis(500)`
+and `setSamplePollDelayMillis(2000)` before starting it. Initial delay may be zero; repeat delay
+must be positive. Changes take effect on the next start, not during an active poller.
+
+This only changes the sample source's timing. A test using that autonomous poller can deliberately
+leave `supplyInput` empty, but must still configure its expected payloads and external delivery checks.
+Keep the repeat delay longer than the standard test's one-second idle assertion and account for
+processing time, or use a custom scenario for continuous input. For strictly controlled batches,
+implement a controllable source instead of relying on wall-clock scheduling.
+
+Existing developer-owned consumer classes are preserved. Regenerating a flow test does not update
+them; port the timing fields/setters and scheduling change into the consumer before using these keys.
+
+### Deterministic input for the sample Generic Consumer
+
+`submitNow(String)` is available by default whenever a new sample consumer is running.
+For deterministic tests, disable automatic polling rather than shortening the poll interval:
+
+```properties
+studio.sample-consumer.org.example.acap.flow3.MyGenericConsumer.fixture-input-enabled=true
+```
+
+Then complete the concrete test's input override, importing your consumer class:
+
+```java
+@Override
+protected void supplyInput(ConfigurableApplicationContext context, IkasanFlowTestRule harness, int batch) {
+    context.getBean(MyGenericConsumer.class)
+            .submitNow(batch == 1 ? "First test message" : "Second test message");
+}
+```
+
+Fixture mode emits nothing automatically and starts no polling worker. The running consumer
+accepts each submission synchronously through its real event factory and transactional dispatch;
+dispatch exceptions propagate to the fixture. It remains ready between submissions. Calls before
+start, after stop, or with null content fail explicitly. Normal polling mode also accepts submissions. A fixture that constructs
+the consumer directly can call `setSampleInputEnabled(true)` before starting it.
+
+The `submitNow` operation supplies input directly; it does not queue or automatically
+retry failed submissions. Normal mode remains the default and retains its configured polling delays.
+Existing developer-owned classes are never rewritten to add the API. The metadata-driven scaffold
+therefore supplies a commented example and retains its guard until you confirm the consumer supports
+submission, enable fixture mode and complete meaningful payload and receiver-side assertions.

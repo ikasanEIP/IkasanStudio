@@ -17,12 +17,28 @@ final class FlowTestDialog extends DialogWrapper {
     private final ComboBox<String> flows;
     private final com.intellij.ui.components.JBCheckBox regenerateSupport = new com.intellij.ui.components.JBCheckBox(
             StudioBundle.message("flowTest.regenerateSupport"), false);
-    boolean regenerateSupport() { return regenerateSupport.isSelected(); }
+    private final java.util.Set<String> ftpFlows;
+    private final com.intellij.ui.components.JBCheckBox localFtp = new com.intellij.ui.components.JBCheckBox(
+            StudioBundle.message("flowTest.localFtp"), false);
+    boolean useLocalFtp() { return localFtp.isEnabled() && localFtp.isSelected(); }
+    boolean regenerateSupport() { return regenerateSupport.isSelected() || useLocalFtp(); }
 
-    FlowTestDialog(Project project, String[] names, String selected) {
+
+    FlowTestDialog(Project project, String[] names, String selected, java.util.Set<String> ftpFlows) {
         super(project);
+        this.ftpFlows = java.util.Set.copyOf(ftpFlows);
+        localFtp.setToolTipText(StudioBundle.message("flowTest.localFtp.help"));
+        localFtp.addActionListener(e -> {
+            if (useLocalFtp()) regenerateSupport.setSelected(true);
+            regenerateSupport.setEnabled(!useLocalFtp());
+        });
         flows = new ComboBox<>(names);
         if (selected != null) flows.setSelectedItem(selected);
+        localFtp.setEnabled(ftpFlows.contains(selectedFlow()));
+        flows.addActionListener(e -> {
+            localFtp.setEnabled(ftpFlows.contains(selectedFlow()));
+            regenerateSupport.setEnabled(!useLocalFtp());
+        });
         setTitle(StudioBundle.message("flowTest.title"));
         setOKButtonText(StudioBundle.message("flowTest.generate"));
         init();
@@ -37,7 +53,11 @@ final class FlowTestDialog extends DialogWrapper {
         choice.add(label, BorderLayout.WEST);
         choice.add(flows, BorderLayout.CENTER);
         panel.add(choice, BorderLayout.CENTER);
-        panel.add(regenerateSupport, BorderLayout.SOUTH);
+        JPanel options = new JPanel();
+        options.setLayout(new BoxLayout(options, BoxLayout.Y_AXIS));
+        if (!ftpFlows.isEmpty()) options.add(localFtp);
+        options.add(regenerateSupport);
+        panel.add(options, BorderLayout.SOUTH);
         return panel;
     }
     @Override public JComponent getPreferredFocusedComponent() { return flows; }

@@ -14,6 +14,94 @@ class FlowTestFilesTest {
         return new FlowTestScaffold.Scaffold("updated", "user-flow-tests/src/test/java/ExampleTest.java",
                 Map.of("user-flow-tests/src/test/java/ExampleTest.java", "test", "user-flow-tests/pom.xml", "generated pom"));
     }
+    @Test void localFtpChoicePreservesPropertiesAndArchivesOriginal() throws Exception {
+        Path properties = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
+        Files.createDirectories(properties.getParent());
+        String original = "# developer settings\nmail.host=localhost\ntest.ftp.enabled=false\ntest.ftp.username=custom\ntest.ftp.password=secret\n";
+        Files.writeString(properties, original);
+        FlowTestFiles.enableLocalFtp(root);
+        String updated = Files.readString(properties);
+        assertTrue(updated.startsWith(original));
+        java.util.Properties loaded = new java.util.Properties();
+        loaded.load(new java.io.StringReader(updated));
+        assertEquals("true", loaded.getProperty("test.ftp.enabled"));
+        assertEquals("custom", loaded.getProperty("test.ftp.username"));
+        assertEquals("secret", loaded.getProperty("test.ftp.password"));
+        assertEquals("localhost", loaded.getProperty("mail.host"));
+        FlowTestFiles.enableLocalFtp(root);
+        assertEquals(updated, Files.readString(properties));
+        try (var paths = Files.list(properties.getParent())) {
+            var backups = paths.filter(p -> p.getFileName().toString().contains(".bak")).toList();
+            assertEquals(1, backups.size());
+            assertEquals(original, Files.readString(backups.get(0)));
+        }
+    }
+
+    @Test void localFtpChoiceSuppliesDefaultsWithoutChangingOtherValues() throws Exception {
+        String updated = FlowTestFiles.localFtpProperties("# original\nother=value\n");
+        java.util.Properties loaded = new java.util.Properties();
+        loaded.load(new java.io.StringReader(updated));
+        assertEquals("true", loaded.getProperty("test.ftp.enabled"));
+        assertEquals("ikasan", loaded.getProperty("test.ftp.username"));
+        assertEquals("ikasan", loaded.getProperty("test.ftp.password"));
+        assertEquals("value", loaded.getProperty("other"));
+        assertEquals(updated, FlowTestFiles.localFtpProperties(updated));
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"", "<dependencies/>", "<dependencies><!-- keep direct dependencies --></dependencies>"})
+    void createsTestWithNestedPomDependencies(String direct) throws Exception {
+        String nested = """
+                <dependencyManagement><dependencies><dependency><groupId>example</groupId><artifactId>managed</artifactId><version>1</version></dependency></dependencies></dependencyManagement>
+                <build><plugins><plugin><groupId>example</groupId><artifactId>plugin</artifactId><dependencies><dependency><groupId>example</groupId><artifactId>plugin-dependency</artifactId><version>1</version></dependency></dependencies></plugin></plugins></build>
+                <profiles><profile><id>custom</id><dependencies><dependency><groupId>example</groupId><artifactId>profile-dependency</artifactId><version>1</version></dependency></dependencies></profile></profiles>
+                <!-- preserve literal </dependencies> and <dependencies/> in comments -->
+                <properties><example><![CDATA[<dependencies>not XML</dependencies>]]></example></properties>
+                """;
+        String original = "<?xml version=\"1.0\"?><project xmlns=\"http://maven.apache.org/POM/4.0.0\"><modelVersion>4.0.0</modelVersion>"
+                + nested + direct + "</project>";
+        Files.writeString(root.resolve("pom.xml"), "original");
+        Path pom = root.resolve("user-flow-tests/pom.xml");
+        Files.createDirectories(pom.getParent());
+        Files.writeString(pom, original);
+        var files = new java.util.LinkedHashMap<>(scaffold().files());
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java", "helper");
+        var plan = new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files);
+        Path test = FlowTestFiles.write(root, "original", plan);
+        assertEquals("test", Files.readString(test));
+        String updated = Files.readString(pom);
+        assertTrue(updated.contains(nested));
+        var reader = new org.apache.maven.model.io.xpp3.MavenXpp3Reader();
+        var model = reader.read(new java.io.StringReader(updated));
+        assertEquals(java.util.List.of("ftpserver-core", "mina-core"), model.getDependencies().stream().map(org.apache.maven.model.Dependency::getArtifactId).toList());
+        assertEquals(updated, FlowTestFiles.withFtpTestDependencies(updated, files));
+        try (var paths = Files.list(pom.getParent())) {
+            Path backup = paths.filter(p -> p.getFileName().toString().startsWith("pom.xml.bak")).findFirst().orElseThrow();
+            assertEquals(original, Files.readString(backup));
+        }
+    }
+
+    @Test void ftpDependencyUpgradePreservesSettingsAndBacksUpPom() throws Exception {
+        Files.writeString(root.resolve("pom.xml"), "original");
+        Path testPom = root.resolve("user-flow-tests/pom.xml");
+        Files.createDirectories(testPom.getParent());
+        String original = "<project><modelVersion>4.0.0</modelVersion><!-- my settings --><properties><custom>keep</custom></properties></project>";
+        Files.writeString(testPom, original);
+        var files = new java.util.LinkedHashMap<>(scaffold().files());
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java", "helper");
+        FlowTestFiles.write(root, "original", new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files));
+        String updated = Files.readString(testPom);
+        assertTrue(updated.contains("<!-- my settings -->"));
+        assertTrue(updated.contains("<custom>keep</custom>"));
+        assertTrue(updated.contains("ftpserver-core"));
+        assertTrue(updated.contains("mina-core"));
+        assertEquals(updated, FlowTestFiles.withFtpTestDependencies(updated, files));
+        try (var paths = Files.list(testPom.getParent())) {
+            Path backup = paths.filter(p -> p.getFileName().toString().startsWith("pom.xml.bak")).findFirst().orElseThrow();
+            assertEquals(original, Files.readString(backup));
+        }
+    }
+
     @Test void sharedSetupIsPreservedUnlessExplicitlySelectedAndArchived() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
         var first = scaffold();

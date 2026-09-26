@@ -84,12 +84,34 @@ public abstract class ModuleFlowTestSupport {
 <#list flowNames as name>
         properties.put("ikasan.module.activator.startup.type.flowStartupTypes[${name?index}]", "${name?j_string},MANUAL");
 </#list>
-        String[] arguments = properties.entrySet().stream()
-                .map(entry -> "--" + entry.getKey() + "=" + entry.getValue()).toArray(String[]::new);
         List<Class<?>> sources = new ArrayList<>();
         sources.add(Class.forName("org.ikasan.studio.boot.Application"));
         Collections.addAll(sources, testConfigurationClasses());
-        return new SpringApplication(sources.toArray(new Class<?>[0])).run(arguments);
+        LocalFtpTestServer ftp = null;
+        try {
+            if (Boolean.parseBoolean(properties.getOrDefault("test.ftp.enabled", "false"))) {
+                ftp = LocalFtpTestServer.start(properties);
+<#list ftpEndpoints as endpoint>
+                ftp.configure(properties, "${endpoint.name?j_string}", ${((endpoint.secure!"")?lower_case == "true")?c},
+                        "${endpoint.remoteHost?j_string}", "${endpoint.remotePort?j_string}",
+                        "${endpoint.username?j_string}", "${endpoint.password?j_string}", "${endpoint.directory?j_string}");
+</#list>
+            }
+            SpringApplication application = new SpringApplication(sources.toArray(new Class<?>[0]));
+            LocalFtpTestServer ownedFtp = ftp;
+            if (ownedFtp != null) application.addInitializers(context -> {
+                context.getBeanFactory().registerSingleton("studioLocalFtpTestServer", ownedFtp);
+                // Register before application beans so the server is destroyed after the flows.
+                ((org.springframework.beans.factory.support.DefaultListableBeanFactory) context.getBeanFactory())
+                        .registerDisposableBean("studioLocalFtpTestServer", ownedFtp::close);
+            });
+            String[] arguments = properties.entrySet().stream()
+                    .map(entry -> "--" + entry.getKey() + "=" + entry.getValue()).toArray(String[]::new);
+            return application.run(arguments);
+        } catch (Exception | Error failure) {
+            if (ftp != null) try { ftp.close(); } catch (Exception cleanup) { failure.addSuppressed(cleanup); }
+            throw failure;
+        }
     }
     protected Class<?>[] testConfigurationClasses() { return new Class<?>[0]; }
 
@@ -204,7 +226,10 @@ public abstract class ModuleFlowTestSupport {
                 }
             };
             flow.addFlowListener(listener);
-            try {
+            try (AutoCloseable cleanup = flowCleanup(flow, listener, () -> {
+                flow.stop();
+                assertEquals("Stopped during test teardown", Flow.STOPPED, flow.getState());
+            })) {
                 flow.start();
                 awaitObservedEvent(flow, delivered, 0);
                 for (int index = 0; index < expected.size(); index++) {
@@ -218,12 +243,6 @@ public abstract class ModuleFlowTestSupport {
                     Thread.sleep(20);
                 }
                 awaitObservedEvent(flow, delivered, delivered.get());
-            } finally {
-                // Stopping here is bounded test teardown, never a change to module startup settings.
-                try {
-                    flow.stop();
-                    assertEquals("Stopped during test teardown", Flow.STOPPED, flow.getState());
-                } finally { flow.removeFlowListener(listener); }
             }
         }
     }
@@ -314,7 +333,7 @@ public abstract class ModuleFlowTestSupport {
         var harness = new IkasanFlowTestRule().withFlow(flow);
         expectations.accept(harness);
         flow.addFlowListener(listener);
-        try {
+        try (AutoCloseable cleanup = flowCleanup(flow, listener, harness::stopFlow)) {
             harness.startFlow();
             scenario.verify(harness, flow, outputs);
             // A rejected/filtered event can finish asynchronously without reaching the output listener.
@@ -327,9 +346,16 @@ public abstract class ModuleFlowTestSupport {
                 }
             }
             assertEquals("Ready after scenario", Flow.RUNNING, flow.getState());
-        } finally {
-            try { harness.stopFlow(); } finally { flow.removeFlowListener(listener); }
         }
+    }
+
+    /** Teardown failures are suppressed onto any original startup/assertion failure by try-with-resources. */
+    private AutoCloseable flowCleanup(Flow flow, FlowEventListener listener, Runnable stop) {
+        return () -> {
+            try (AutoCloseable removal = () -> flow.removeFlowListener(listener)) {
+                stop.run();
+            }
+        };
     }
 
 }

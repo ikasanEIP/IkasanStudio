@@ -31,19 +31,19 @@ public class ${className} extends ModuleFlowTestSupport {
     // Success requires first delivery, idle readiness and later delivery without restarting.
     private static final boolean CONFIGURED = false;
     @Override protected String getFlowName() { return "${flowName?j_string}"; }
-    // TODO 3: Review OUTPUT and set the two expected output values below.
-    // A single producer is selected for you; otherwise choose one of the names listed here.
-    // Compare meaningful data (for example file contents or order IDs), not object identity strings.
-    // Available producer names (cover additional router outputs in task 4):
+    // TODO 3: Confirm this is the producer to observe, then set the expected payloads below.
+<#if producers?size != 1>
+    // Choose one of these producer names; cover other router outputs in task 4:
 <#list producers as producer>
     // "${producer?j_string}"
 </#list>
-    private static final String OUTPUT = <#if producers?size == 1>"${producers[0]?j_string}"<#else>"REPLACE: producer name"</#if>;
+</#if>
+    private static final String PRODUCER_NAME = <#if producers?size == 1>"${producers[0]?j_string}"<#else>"REPLACE: producer name"</#if>;
 
-    // These expected values must match outputText() for the two inputs in task 2.
-    // The shared default uses String.valueOf(payload); override for custom objects or byte arrays.
-    private static final String FIRST_EXPECTED = "REPLACE: first expected payload";
-    private static final String SECOND_EXPECTED = "REPLACE: second expected payload";
+    // Set the expected text outputs for the first and second test. The test compares these values with outputText(actualPayload).
+    // if you need, you can override outputText(Payload payload) so that the producer generates text for comparing
+    private static final String FIRST_EXPECTED_OUTPUT = "REPLACE: first expected payload";
+    private static final String SECOND_EXPECTED_OUTPUT = "REPLACE: second expected payload";
 
 <#if isolatedFiles>
     @Rule
@@ -54,7 +54,7 @@ public class ${className} extends ModuleFlowTestSupport {
     // Shared setup supplies a fresh context and isolated H2; all flows initially start MANUAL.
     @Test(timeout = 60000)
     public void testFirstAndLaterDeliveryWithoutRestart() throws Exception {
-        runTest(CONFIGURED, OUTPUT, FIRST_EXPECTED, SECOND_EXPECTED);
+        runTest(CONFIGURED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT);
     }
 
 <#if jmsConsumer>
@@ -127,6 +127,13 @@ public class ${className} extends ModuleFlowTestSupport {
             jms.sendText(context.getEnvironment().getRequiredProperty("${jmsInputKey?j_string}"),
                     batch == 1 ? "REPLACE: first input" : "REPLACE: second input");
         }
+<#elseif sampleSubmission>
+        // To prevent automatic events during this deterministic test, set in module-test.properties:
+        // studio.sample-consumer.${sampleConsumerClass}.fixture-input-enabled=true
+        // Then replace this guard with (and choose meaningful input for your converter):
+        // context.getBean(${sampleConsumerClass}.class)
+        //        .submitNow(batch == 1 ? "First test message" : "Second test message");
+        throw new UnsupportedOperationException("Configure fixture input for ${consumerName?j_string}, then replace this guard");
 <#elseif isolatedFiles>
         // File creation and scanning are supplied for you. Replace these sample contents with your input.
         // Each scan should see only this batch's file; earlier test files are removed before batch 2.

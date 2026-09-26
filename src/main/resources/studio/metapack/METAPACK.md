@@ -182,3 +182,9 @@ The observation retains only the declared initial samples, verifies their conten
 requires first and later producer invocation while the same flow is running, and verifies stopped
 state during bounded test teardown. Without samples it checks invocation/state only. It does not
 claim to verify idle behaviour, subsequent payload content or external delivery.
+
+`flowTestInputMode: "sample-submission"` supplies fixture guidance for generated sample consumers
+that implement `submitNow(String)` while running and a per-class `fixture-input-enabled` property
+which disables automatic polling for deterministic tests. Submission itself requires no opt-in. It does not
+assert that existing developer code still has that API: generated tests contain a commented example
+and an explicit guard. This mode never selects the automatic observation-only scaffold.

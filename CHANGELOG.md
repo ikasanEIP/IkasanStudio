@@ -5,6 +5,18 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Fix flow-test generation with Maven plugin/profile dependencies or dependency management; add FTP fixture dependencies only to the project dependency section while preserving existing XML.
+
+- Offer isolated local FTP setup in flow-test generation dialogs, configuring test properties with backups while preserving custom settings.
+
+- Add an optional per-test local FTP server, metadata-derived connection overrides and temporary delivery directories to generated flow tests; preserve primary failures during teardown.
+
+- Add opt-in deterministic fixture submission to new Generic Consumer samples, using real event creation and transactional dispatch while preserving automatic polling by default.
+
+
+- Make Generic Consumer sample initial/repeat delays configurable per implementation class, retaining one-minute defaults and allowing shorter fixture delays.
+
+
 - Simplify direct self-generating-source/discard-sink flow tests using meta-pack capabilities, with bounded observation and readable `test...` method names.
 - Snapshot meta-pack initial event sequences into observation tests; verify ordered payloads, later delivery and stopped state during teardown for repeatable upgrade checks.
 

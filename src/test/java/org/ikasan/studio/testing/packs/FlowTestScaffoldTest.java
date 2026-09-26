@@ -12,6 +12,24 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FlowTestScaffoldTest {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void ftpFixtureUsesPackPropertyLabels(String version) throws Exception {
+        var module = ComponentIO.validatePersistedModuleJson(ModelMigration.analyse(
+                Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module.json")), version).targetJson(), "test", false);
+        var flow = module.getFlows().get(0);
+        flow.setConsumer(org.ikasan.studio.core.TestFixtures.getFtpConsumer(version));
+        flow.getConsumer().setPropertyValue("ftps", false);
+        var scaffold = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        String support = scaffold.files().get(FlowTestScaffold.SUPPORT_PATH);
+        assertTrue(support.contains("ftp.configure(properties"));
+        assertTrue(support.contains("myflow1.ftp.consumer.remote-host"));
+        assertTrue(scaffold.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH).contains("# test.ftp.enabled=true"));
+        assertFalse(scaffold.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH).contains("secret"));
+        assertTrue(scaffold.files().get("user-flow-tests/pom.xml").contains("ftpserver-core"));
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void scaffoldInheritsVersionAndMigrationPreservesModule(String version) throws Exception {
         String source = Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module.json"));
         var plan = ModelMigration.analyse(source, version);
@@ -33,7 +51,7 @@ class FlowTestScaffoldTest {
         assertTrue(support.indexOf("assertTrue(\"Complete") < support.indexOf("try (ConfigurableApplicationContext"));
         assertTrue(test.contains("protected String getFlowName()"));
         assertFalse(test.contains("try (ConfigurableApplicationContext"));
-        assertTrue(test.contains("runTest(CONFIGURED, OUTPUT, FIRST_EXPECTED, SECOND_EXPECTED)"));
+        assertTrue(test.contains("runTest(CONFIGURED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT)"));
         assertTrue(test.contains("protected void supplyInput("));
         assertFalse(test.contains("this::"));
         assertFalse(test.contains(" -> "));
@@ -70,7 +88,7 @@ class FlowTestScaffoldTest {
         assertTrue(branchedTest.contains("Define the expected component path for both input batches"));
         assertTrue(localTest.contains("int batch) throws Exception"));
         assertTrue(localTest.contains("harness.fireScheduledConsumer()"));
-        assertTrue(localTest.contains("FIRST_EXPECTED, SECOND_EXPECTED"));
+        assertTrue(localTest.contains("FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT"));
         assertTrue(support.contains("outputs.poll(10, TimeUnit.SECONDS)"));
         assertTrue(localTest.contains("CONFIGURED = false"));
         for (int task = 1; task <= 5; task++) assertTrue(localTest.contains("// TODO " + task + ":"));
@@ -101,7 +119,7 @@ class FlowTestScaffoldTest {
         assertTrue(test.contains("jms.sendText"));
         assertTrue(test.contains("jms.assertText"));
         assertTrue(test.contains("protected void verifyReceivedOutput("));
-        assertTrue(test.contains("runTest(CONFIGURED, OUTPUT, FIRST_EXPECTED, SECOND_EXPECTED)"));
+        assertTrue(test.contains("runTest(CONFIGURED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT)"));
         assertFalse(test.contains("this::"));
         assertFalse(test.contains(" -> "));
         assertTrue(test.contains("ModuleJmsTestConfig.class"));
@@ -127,11 +145,11 @@ class FlowTestScaffoldTest {
         assertTrue(test.contains("runObservationTest(CONFIGURED"));
         assertTrue(test.contains("List.of(\"Test Message 1\", \"Test Message 2\", \"Test Message 3\")"));
         assertFalse(test.contains("sendInput"));
-        assertFalse(test.contains("FIRST_EXPECTED"));
+        assertFalse(test.contains("FIRST_EXPECTED_OUTPUT"));
         assertFalse(test.contains("repeat(2)"));
         String support = result.files().get(FlowTestScaffold.SUPPORT_PATH);
         assertTrue(support.contains("awaitObservedEvent(flow, delivered, delivered.get())"));
-        assertTrue(support.contains("finally { flow.removeFlowListener(listener); }"));
+        assertTrue(support.contains("AutoCloseable removal = () -> flow.removeFlowListener(listener)"));
         assertTrue(support.contains("if (index <= expected.size())"));
         assertTrue(support.contains("Initial producer payload"));
         assertTrue(support.contains("Stopped during test teardown"));
@@ -159,7 +177,7 @@ class FlowTestScaffoldTest {
         flow.setConsumer(org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumer(version));
         flow.getFlowRoute().getFlowElements().add(0, converter);
         var transformed = FlowTestScaffold.render(module, flow, parent, app);
-        assertTrue(transformed.files().get(transformed.testPath()).contains("FIRST_EXPECTED"));
+        assertTrue(transformed.files().get(transformed.testPath()).contains("FIRST_EXPECTED_OUTPUT"));
         assertTrue(transformed.files().get(transformed.testPath()).contains("testFirstAndLaterDeliveryWithoutRestart"));
         flow.getFlowRoute().getFlowElements().remove(0);
         var sink = flow.getFlowRoute().getFlowElements().get(0);
@@ -169,5 +187,22 @@ class FlowTestScaffoldTest {
     }
 
 
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void sampleSubmissionGuidanceIsOptInAndDoesNotAssumeExistingCodeHasTheApi(String version) throws Exception {
+        var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
+        flow.setConsumer(org.ikasan.studio.core.TestFixtures.getGenericConsumer(version));
+        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
+        String parent = Files.readString(Path.of("regression-tests/migration/project/pom.xml"));
+        String app = Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml"));
+        var result = FlowTestScaffold.render(module, flow, parent, app);
+        String test = result.files().get(result.testPath());
+        assertTrue(test.contains("fixture-input-enabled=true"));
+        assertTrue(test.contains("//        .submitNow("));
+        assertTrue(test.contains("throw new UnsupportedOperationException(\"Configure fixture input"));
+        flow.getConsumer().setComponentMeta(flow.getConsumer().getComponentMeta().toBuilder().flowTestInputMode(null).build());
+        var ordinary = FlowTestScaffold.render(module, flow, parent, app);
+        assertFalse(ordinary.files().get(ordinary.testPath()).contains("submitNow"));
+    }
 
 }

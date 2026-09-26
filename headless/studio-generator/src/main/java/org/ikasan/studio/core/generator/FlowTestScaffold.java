@@ -40,6 +40,24 @@ public final class FlowTestScaffold {
                 }
             }
         }
+        // The capability flag defines the connection contract; labels remain pack-owned.
+        java.util.List<Map<String, String>> ftpEndpoints = new java.util.ArrayList<>();
+        for (var moduleFlow : module.getFlows()) for (var component : moduleFlow.getFlowElementsNoExternalEndPoints()) {
+            if (!component.getComponentMeta().supportsTestFtpServer()) continue;
+            Map<String, String> endpoint = new LinkedHashMap<>();
+            endpoint.put("name", moduleFlow.getIdentity() + " / " + component.getIdentity());
+            endpoint.put("secure", component.getPropertyValueAsString("ftps"));
+            for (String name : java.util.List.of("remoteHost", "remotePort", "username", "password",
+                    component.getComponentMeta().isProducer() ? "outputDirectory" : "sourceDirectory")) {
+                var property = component.getProperty(name);
+                String label = property == null ? null : property.getMeta().getPropertyConfigFileLabel();
+                endpoint.put(name.endsWith("Directory") ? "directory" : name,
+                        label == null || label.isBlank() || property.valueNotSet() ? "" :
+                        org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(module, moduleFlow, component, label));
+            }
+            ftpEndpoints.add(endpoint);
+        }
+        values.put("ftpEndpoints", ftpEndpoints);
         values.put("modulePropertyKeys", propertyKeys);
         values.put("flowNames", module.getFlows().stream().map(Flow::getIdentity).toList());
         values.put("consumerName", flow.getConsumer().getIdentity());
@@ -67,6 +85,11 @@ public final class FlowTestScaffold {
                 && inputMeta.getFlowTestInputModeInvalidatedByProperties().stream().allMatch(name ->
                     flow.getConsumer().getProperty(name) == null || flow.getConsumer().getProperty(name).valueNotSet())
                 && flow.getFlowRoute().getFlowElements().get(0).getComponentMeta().isFlowTestObservationOnly();
+        String implementation = flow.getConsumer().getPropertyValueAsString("userImplementedClassName");
+        values.put("sampleSubmission", "sample-submission".equals(inputMeta.getFlowTestInputMode())
+                && implementation != null && !implementation.isBlank());
+        values.put("sampleConsumerClass", implementation == null ? "" :
+                (implementation.contains(".") ? implementation : GeneratorUtils.getUserImplementedClassesPackageName(module, flow) + "." + implementation));
         values.put("expectedInitialOutputs", inputMeta.getFlowTestExpectedInitialOutputs());
         values.put("automaticPath", automaticPath);
         values.put("expectedPath", executionPath);
@@ -110,6 +133,8 @@ public final class FlowTestScaffold {
         if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/JmsFlowTestSupport.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "jmsFlowTestSupportTemplate_en.ftl", values));
         files.put(TEST_PROPERTIES_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestPropertiesTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localFtpTestServerTemplate_en.ftl", values));
         files.put(SUPPORT_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestSupportTemplate_en.ftl", values));
         files.put(path, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), observationOnly ? "flowObservationTestTemplate_en.ftl" : "flowTestTemplate_en.ftl", values));
         files.put("user-flow-tests/pom.xml", FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestPomTemplate_en.ftl", values));
@@ -124,8 +149,14 @@ public final class FlowTestScaffold {
                 Other scenarios follow TODO 1–5 in the Java test: isolate settings, supply two input batches, select output and expected results,
                 review component-path expectations, then enable and run. Set CONFIGURED only after completing the first four tasks.
                 Configure shared test connections in src/test/resources/module-test.properties (UTF-8).
+                For plain FTP endpoints, set test.ftp.enabled=true to start a disposable loopback FTP server per test.
+                This overrides all module FTP connections and directories; inspect/seed context.getBean(LocalFtpTestServer.class).root().
+                The server and temporary files are cleaned up with the context. SFTP/FTPS require separate services.
+                The Generate Flow Test dialog can enable local FTP and regenerate shared setup, archiving existing files.
+                Unchecked leaves settings unchanged. Selecting FTP preserves unrelated properties and custom credentials.
+                Missing FTP/MINA dependencies are added to an existing test POM with a backup; other contents are preserved.
                 ModuleFlowTestSupport.java loads that file and enforces isolated H2 and test-only startup settings.
-                The properties file is created once and preserved even when the support class is regenerated.
+                The properties file is preserved during shared-setup regeneration unless you explicitly choose local FTP enablement.
                 Absent settings retain application defaults; review them before starting the whole module context.
                 Each scenario opens and closes a fresh context; contexts and service state are not shared across tests.
                 Standard tests use runTest with named supplyInput and optional verifyReceivedOutput overrides.
