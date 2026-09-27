@@ -12,6 +12,39 @@ import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(SharedResourceExtension.class)
 class ModelMigrationTest {
+    @Test void reportShowsReadableNamesWithPointersOnlyAsFallback() {
+        String source = """
+                {"flows":[{"name":"Orders","consumer":{"componentName":"Receive orders"},
+                "flowElements":[{"componentName":"Convert order"}]}]}
+                """;
+        var findings = java.util.List.of(
+                new ModelMigration.Finding(false, "/flows/0/consumer", "Review consumer"),
+                new ModelMigration.Finding(false, "/flows/0/flowElements/0/toType", "Review type"),
+                new ModelMigration.Finding(false, "/flows/0/exceptionResolver", "Review resolver"),
+                new ModelMigration.Finding(true, "/flows/5/consumer", "Missing flow"),
+                new ModelMigration.Finding(false, "/version", "Review version"));
+        var plan = new ModelMigration.Plan("V3.3.9", "V4.1.6", source, "{}", findings);
+        assertThat(plan.report())
+                .contains("REVIEW: Orders → Receive orders — Review consumer")
+                .contains("REVIEW: Orders → Convert order → toType — Review type")
+                .contains("REVIEW: Orders → Exception Resolver")
+                .contains("BLOCKED: /flows/5/consumer — Missing flow")
+                .contains("Review version")
+                .contains("You are advised to review the following after the upgrade completes:")
+                .doesNotContain("REVIEW: /version")
+                .doesNotContain("(/flows/");
+        assertThat(plan.findings()).isEqualTo(findings);
+    }
+
+    @Test void reviewIdentifiesTheActualUserClass() throws Exception {
+        var plan = ModelMigration.analyse(fixture(), "V4.1.6");
+        assertThat(plan.report()).contains("co.uk.test.myflow1.myConverter: user-implemented class is preserved except for selected recommended replacements")
+                .doesNotContain("review the existing implementation against the target API");
+        String qualified = fixture().replace("\"myConverter\"", "\"example.custom.OrderConverter\"");
+        assertThat(ModelMigration.analyse(qualified, "V4.1.6").report())
+                .contains("example.custom.OrderConverter: user-implemented class");
+    }
+
     private String fixture() throws Exception {
         return Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module.json"));
     }
@@ -20,6 +53,9 @@ class ModelMigrationTest {
         String source = fixture();
         var forward = ModelMigration.analyse(source, "V4.1.6");
         assertThat(forward.canApply()).as(forward.report()).isTrue();
+        assertThat(forward.report()).contains("Migration will update the Ikasan BOM and set the Java build baseline to 17.")
+                .contains("Migration recommended replacements apply only when selected.")
+                .doesNotContain("please review it after the upgrade");
         assertThat(forward.sourceJson()).isEqualTo(source);
         var back = ModelMigration.analyse(forward.targetJson(), "V3.3.9");
         assertThat(back.canApply()).as(back.report()).isTrue();
@@ -35,6 +71,7 @@ class ModelMigrationTest {
         component.set("futureField", json.readTree("[1,2.25,null]"));
         var plan = ModelMigration.analyse(source.toString(), "V4.1.6");
         assertThat(plan.canApply()).as(plan.report()).isTrue();
+        assertThat(plan.report()).contains("javax.jms.Message → jakarta.jms.Message (recommended replacement)");
         var target = json.readTree(plan.targetJson());
         assertThat(target.path("teamSettings")).isEqualTo(source.path("teamSettings"));
         assertThat(target.path("flows").get(0).path("flowElements").get(0).path("fromType").asText()).isEqualTo("jakarta.jms.Message");

@@ -24,6 +24,9 @@ public final class ModelMigration {
     private static final Set<String> STRUCTURAL = Set.of("flows", "consumer", "flowElements", "transitions",
             "exceptionResolver", "decorators", "componentType", "implementingClass", "additionalKey", "wiretapManagementEnabled");
 
+    static final String RESTORE_NOTE = "To revert this migration, use Tools → Ikasan Studio → Restore Previous Ikasan Migration…\n";
+    static final String REPORT_NOTES = "\nNOTE:\n" + RESTORE_NOTE;
+
     private ModelMigration() { }
 
     public record Finding(boolean blocking, String path, String message) { }
@@ -33,11 +36,50 @@ public final class ModelMigration {
         public boolean canApply() { return findings.stream().noneMatch(Finding::blocking); }
         public String report() {
             StringBuilder text = new StringBuilder("Ikasan migration: " + sourceVersion + " → " + targetVersion + "\n\n");
-            findings.stream().sorted(Comparator.comparing(Finding::blocking).reversed()).forEach(f -> text.append(f.blocking() ? "BLOCKED: " : "REVIEW: ")
-                    .append(f.path()).append(" — ").append(f.message()).append('\n'));
-            return text.append("\nExisting user/ files are preserved. Compile and test the application after migration.\n")
-                    .append("Restoring a snapshot restores the files touched by that migration; migrating back converts the current model.\n").toString();
+            JsonNode source;
+            try { source = JSON.readTree(sourceJson); }
+            catch (java.io.IOException ex) { source = JSON.missingNode(); }
+            JsonNode reportSource = source;
+            findings.stream().filter(Finding::blocking).forEach(f -> text.append("BLOCKED: ")
+                    .append(reportLocation(reportSource, f.path())).append(" — ").append(f.message()).append('\n'));
+            findings.stream().filter(f -> !f.blocking() && "/version".equals(f.path()))
+                    .forEach(f -> text.append(f.message()).append('\n'));
+            var reviews = findings.stream().filter(f -> !f.blocking() && !"/version".equals(f.path())).toList();
+            if (!reviews.isEmpty()) {
+                text.append("\nYou are advised to review the following after the upgrade completes:\n\n");
+                reviews.forEach(f -> text.append("REVIEW: ").append(reportLocation(reportSource, f.path()))
+                        .append(" — ").append(f.message()).append('\n'));
+            }
+            return text.append(REPORT_NOTES).toString();
         }
+    }
+
+    /** Resolve readable names; retain the pointer only when the location cannot be identified. */
+    private static String reportLocation(JsonNode source, String path) {
+        if (source == null || !path.startsWith("/flows/")) return path;
+        String[] parts = path.split("/", -1);
+        if (parts.length < 3 || !parts[2].matches("[0-9]+")) return path;
+        JsonNode flow = source.at("/flows/" + parts[2]);
+        String flowName = flow.path("name").asText();
+        if (flowName.isBlank()) return path;
+        String label = flowName;
+        if (parts.length >= 4) {
+            JsonNode component = JSON.missingNode();
+            if ("consumer".equals(parts[3])) component = flow.path("consumer");
+            else if ("flowElements".equals(parts[3]) && parts.length >= 5 && parts[4].matches("[0-9]+")) {
+                component = source.at("/flows/" + parts[2] + "/flowElements/" + parts[4]);
+            }
+            String componentName = component.path("componentName").asText();
+            if (!componentName.isBlank()) {
+                label += " → " + componentName;
+                int propertyStart = "consumer".equals(parts[3]) ? 4 : 5;
+                if (parts.length > propertyStart) label += " → " + String.join(" → ", Arrays.copyOfRange(parts, propertyStart, parts.length));
+            }
+            else if ("exceptionResolver".equals(parts[3])) label += " → Exception Resolver";
+            else if ("consumer".equals(parts[3]) || "flowElements".equals(parts[3])) return path;
+            else label += " → " + String.join(" → ", Arrays.copyOfRange(parts, 3, parts.length));
+        }
+        return label.replace('\n', ' ').replace('\r', ' ');
     }
 
     public static Plan analyse(String sourceJson, String targetVersion) throws Exception {
@@ -54,7 +96,7 @@ public final class ModelMigration {
         MigrationRules rules = MigrationRules.load(sourceVersion, targetVersion);
         validateTopology(source, findings);
         if (findings.stream().anyMatch(Finding::blocking)) return plan(sourceVersion, targetVersion, sourceJson, target, findings);
-        ComponentIO.validatePersistedModuleJson(sourceJson, "migration source", false);
+        Module sourceModule = ComponentIO.validatePersistedModuleJson(sourceJson, "migration source", false);
         Map<String, ComponentMeta> from = ComponentLibrary.getIkasanComponents(sourceVersion);
         Map<String, ComponentMeta> to = ComponentLibrary.getIkasanComponents(targetVersion);
         migrateObject(target, from.get("Module"), to.get("Module"), "", rules, findings);
@@ -63,10 +105,10 @@ public final class ModelMigration {
             ObjectNode flow = (ObjectNode) node;
             String path = "/flows/" + i++;
             migrateObject(flow, from.get("Flow"), to.get("Flow"), path, rules, findings);
-            migrateComponent(flow.get("consumer"), path + "/consumer", from, to, rules, findings);
+            migrateComponent(flow.get("consumer"), path + "/consumer", from, to, rules, findings, sourceModule, flow.path("name").asText());
             int j = 0;
             for (JsonNode component : flow.path("flowElements")) {
-                migrateComponent(component, path + "/flowElements/" + j++, from, to, rules, findings);
+                migrateComponent(component, path + "/flowElements/" + j++, from, to, rules, findings, sourceModule, flow.path("name").asText());
             }
             // Resolver keys and caught exception types carry the same identity and must move together.
             if (flow.path("exceptionResolver") instanceof ObjectNode resolver) {
@@ -86,8 +128,9 @@ public final class ModelMigration {
             }
         }
         target.put("version", targetVersion);
-        findings.add(new Finding(false, "/version", "Update the Ikasan BOM and Java baseline to "
-                + ComponentLibrary.getMetaPackManifest(targetVersion).javaVersion() + ". Review custom Java, JMS/JAXB imports and runtime behaviour."));
+        findings.add(new Finding(false, "/version", "Migration will update the Ikasan BOM and set the Java build baseline to "
+                + ComponentLibrary.getMetaPackManifest(targetVersion).javaVersion() + ". Compatible model type references are updated automatically; Migration recommended replacements apply only when selected. "
+                + "Use a compatible JDK to build and run the migrated module."));
         Plan result = plan(sourceVersion, targetVersion, sourceJson, target, findings);
         if (result.canApply()) {
             try {
@@ -108,7 +151,7 @@ public final class ModelMigration {
 
     private static void migrateComponent(JsonNode node, String path, Map<String, ComponentMeta> from,
                                          Map<String, ComponentMeta> to, MigrationRules rules,
-                                         List<Finding> findings) {
+                                         List<Finding> findings, Module sourceModule, String flowName) {
         if (node == null || node.isNull() || node.isEmpty()) return;
         if (!(node instanceof ObjectNode component)) {
             findings.add(new Finding(true, path, "Component must be an object.")); return;
@@ -137,8 +180,24 @@ public final class ModelMigration {
         if (targetMeta.getAdditionalKey() == null) component.remove("additionalKey");
         else component.put("additionalKey", targetMeta.getAdditionalKey());
         if (sourceMeta.isGeneratesUserImplementedClass() || sourceMeta.isGeneric()) {
-            findings.add(new Finding(false, path, key + ": review the existing implementation against the target API; Studio will preserve it."));
+            String className = implementationClass(sourceModule, flowName, component.path("componentName").asText());
+            findings.add(new Finding(false, path, (className == null ? key + " user implementation" : className)
+                    + ": user-implemented class is preserved except for selected recommended replacements."));
         }
+    }
+
+    private static String implementationClass(Module module, String flowName, String componentName) {
+        for (var flow : module.getFlows()) {
+            if (!flowName.equals(flow.getIdentity())) continue;
+            for (var component : flow.getFlowElementsNoExternalEndPoints()) {
+                if (!componentName.equals(component.getIdentity())) continue;
+                String name = component.getPropertyValueAsString("userImplementedClassName");
+                if (name == null || name.isBlank() || name.startsWith("__")) return null;
+                return name.contains(".") ? name
+                        : org.ikasan.studio.core.generator.GeneratorUtils.getUserImplementedClassesPackageName(module, flow) + "." + name;
+            }
+        }
+        return null;
     }
 
     private static void migrateObject(ObjectNode object, ComponentMeta from, ComponentMeta to, String path,
@@ -208,7 +267,7 @@ public final class ModelMigration {
         }
         if (!old.equals(value)) {
             node.put(field, value);
-            findings.add(new Finding(false, path + "/" + field, old + " → " + value));
+            findings.add(new Finding(false, path + "/" + field, old + " → " + value + " (recommended replacement)"));
         }
     }
 

@@ -5,7 +5,7 @@ Studio can migrate a saved project between **V3.3.9 and V4.1.6 in either directi
 ## Workflow
 
 1. Commit or back up the project and stop the running module. Save open project files and apply or discard pending Studio property edits. Wait for source generation and indexing to finish. The canvas must agree with the saved model.
-2. Select the target version. Optionally select **Update compatible imports in user code** to include narrowly scoped Java import changes in the preview. Studio analyses an isolated copy of `model.json` and renders the proposed generated files and root Maven POM without writing them.
+2. Select the target version. **Apply recommended migration search and replace (review changes before applying)** is selected by default. It includes narrowly scoped Java import changes in the preview; clear it to preserve all developer imports. Studio analyses an isolated copy of `model.json` and renders the proposed generated files and root Maven POM without writing them.
 3. Review the migration report and the **File changes** tab. Unsupported components, missing required properties, incompatible choices, and structures that would lose data block Apply. Correct those issues in the source model and preview again. Select the target JDK in the review dialog: **Java 11 for V3.3.9** or **Java 17 for V4.1.6**. If none is listed, cancel, install/register the JDK in **File → Project Structure → SDKs**, then reopen migration. Preparing the JDK does not require changing the project SDK first. Apply is unavailable without a matching JDK.
 4. Apply. Studio saves a recovery snapshot under `.ikasan-studio/migrations/`, checks that the reviewed files have not changed, and writes the reviewed contents. A write failure triggers restoration of previously written files. After the file commit, Studio switches the project SDK, Maven module SDKs, Maven importer/runner and existing Studio Application Run/Debug configurations to the selected JDK.
 5. By default Studio requests Maven import and an IntelliJ build, reporting build success, errors or cancellation through a notification. Review developer-owned code for API changes. Run application tests and check runtime behaviour before deploying.
@@ -37,7 +37,7 @@ A compilation failure after the commit leaves the migration applied. Correct the
 - JMS, JAXB and resource exception type references move between `javax` and `jakarta` in recognised type fields. Resolver keys and caught exception types change together. Arbitrary descriptions and opaque extension values are not subjected to text replacement.
 - Shared properties retain their values. Changed defaults are made explicit where a source value can be preserved; unsupported type/property changes require a separate rule or source-model correction.
 - Studio regenerates its application, module configuration, flows, factories, generated property classes, properties, H2 POM and offline AI contract. The root POM adopts the target Ikasan BOM, dependencies and Java compiler settings. Unversioned dependencies contributed by source-pack components and no longer required by the target pack are removed when their declarations are otherwise unmodified (for example the old JAXB API/runtime). Explicit versions, customised declarations and unrelated dependencies are preserved; review their compatibility in the POM diff.
-- Existing root `AGENTS.md` and files under `user/` are preserved, except reviewed import declarations when **Update compatible imports in user code** is selected. Migration does not rewrite business logic or regenerate existing user stubs. Import edits are limited to `user/src/main/java`; test sources stay unchanged. Review custom classes, injected beans, JMS/JAXB/resource imports and Debug support for target API compatibility.
+- Existing root `AGENTS.md` and files under `user/` are preserved, except reviewed import declarations when **Apply recommended migration search and replace** is selected. Migration does not rewrite business logic or regenerate existing user stubs. Import edits are limited to `user/src/main/java`; test sources stay unchanged. Review custom classes, injected beans, JMS/JAXB/resource imports and Debug support for target API compatibility.
 - Opaque module, flow and component JSON fields survive loading and subsequent saving. If another model structure cannot survive Studio's round trip, migration is blocked.
 
 A model conversion does not prove equivalent runtime behaviour. Unsupported version pairs and unrecognised component identities are blocked rather than guessed.
@@ -143,8 +143,27 @@ evidence before adapting or refreshing them. Record the changed expectations: re
 changed tests do not constitute an unchanged before/after comparison. See
 [generated verification](GeneratedVerification.md) for coverage and ownership details.
 
-Optional import changes use the target meta-pack's `userImportPrefixes`, in both directions.
+The recommended search and replace currently updates Java import declarations only. These changes use the target meta-pack's `userImportPrefixes`, in both directions.
 They appear in **File changes** and are included in recovery snapshots. Restore recovers the
 original source bytes. Comments and literals are preserved; fully qualified code references,
 configuration strings, dependencies and files containing Unicode escapes need manual review.
-The offline tool supports the same option; see [CLI import updates](CommandLineMigration.md#optional-developer-import-updates).
+The offline tool supports the same option; see [CLI import updates](CommandLineMigration.md#developer-import-updates).
+
+### Keeping the migration review
+
+The report states what migration will change, followed by a shared heading for post-upgrade
+review. The Java build baseline changes automatically; use a compatible JDK when building
+and running the module. Migration recommended replacements apply only when selected.
+
+Review reminders identify the flow, component and configured user implementation class where
+available. They are general compatibility reminders, not detected incompatibilities. The
+implementation is preserved except for selected recommended replacements. A `fromType` or
+`toType` replacement describes a model change; consult **File changes** for Java source edits.
+
+The IDE preview shows the exact recovery snapshot filename beneath the report heading.
+It is written only when you apply; cancelling does not create a report file.
+
+After applying a migration, the review text is retained in the `report` field of the recovery
+snapshot at `.ikasan-studio/migrations/<snapshot-id>.json`. CLI preview also saves it in the
+plan JSON's `report` field. An IDE preview that is cancelled is not persisted; copy its text
+before closing if you need to retain an unapplied review.

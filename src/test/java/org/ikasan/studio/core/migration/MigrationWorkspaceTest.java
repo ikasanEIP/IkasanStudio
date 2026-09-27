@@ -11,6 +11,20 @@ import static org.assertj.core.api.Assertions.*;
 class MigrationWorkspaceTest {
     @TempDir Path root;
 
+    @Test void previewFilenameMatchesSavedReportWithoutCreatingFilesEarly() throws Exception {
+        String id = MigrationWorkspace.newSnapshotId();
+        Path expected = root.resolve(MigrationWorkspace.HISTORY).resolve(id + ".json");
+        String report = MigrationWorkspace.reportWithSaveLocation("Ikasan migration: V3.3.9 → V4.1.6\n\nREVIEW: example", expected);
+        assertThat(report).contains("On apply, this report will be saved in " + expected);
+        assertThat(expected).doesNotExist();
+        assertThat(MigrationWorkspace.commit(root, java.util.List.of(), report, id)).isEqualTo(expected);
+        assertThat(MigrationWorkspace.latest(root).report()).isEqualTo(report);
+        assertThatThrownBy(() -> MigrationWorkspace.commit(root, java.util.List.of(), report, id))
+                .isInstanceOf(java.io.IOException.class).hasMessageContaining("already exists");
+        assertThatThrownBy(() -> MigrationWorkspace.commit(root, java.util.List.of(), report, "../escape"))
+                .isInstanceOf(java.io.IOException.class).hasMessageContaining("Invalid");
+    }
+
     @Test void snapshotRestoresExactBytesAndRemovesNewFilesWhilePreservingUserCode() throws Exception {
         byte[] original = "<project>café</project>\r\n".getBytes(java.nio.charset.StandardCharsets.UTF_8);
         Files.write(root.resolve("pom.xml"), original);

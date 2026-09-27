@@ -5,7 +5,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
-/** Conservative, opt-in import edits only; never searches/replaces arbitrary source text. */
+/** Conservative, selectable import edits only; never searches/replaces arbitrary source text. */
 public final class UserImportMigration {
     private UserImportMigration() { }
     private static final Pattern IMPORT = Pattern.compile("(?m)^[\\t ]*import[\\t ]+(?:static[\\t ]+)?([\\w.$]+(?:\\.\\*)?)[\\t ]*;");
@@ -81,10 +81,13 @@ public final class UserImportMigration {
     }
 
     public static String report(String report, List<MigrationWorkspace.Change> changes) {
-        StringBuilder text = new StringBuilder(report.replace("Existing user/ files are preserved.",
-                "Only reviewed Java import edits in user/src/main/java are permitted; other developer code and tests are preserved."));
-        text.append("\nUser import migration: ").append(changes.size()).append(" file(s).\n");
-        changes.forEach(c -> text.append("IMPORT UPDATE: ").append(c.path()).append('\n'));
-        return text.append("Review remaining fully qualified types, configuration strings and dependencies manually. Files with Unicode escapes are left unchanged.\n").toString();
+        String body = report.endsWith(ModelMigration.REPORT_NOTES)
+                ? report.substring(0, report.length() - ModelMigration.REPORT_NOTES.length()) : report;
+        StringBuilder text = new StringBuilder(body);
+        text.append("\nUser classes affected by recommended migration search and replace\n");
+        if (changes.isEmpty()) text.append("None.\n");
+        changes.forEach(c -> text.append(c.path()).append('\n'));
+        return text.append("\nNOTE:\nFiles with Unicode escapes are left unchanged.\n")
+                .append(ModelMigration.RESTORE_NOTE).toString();
     }
 }

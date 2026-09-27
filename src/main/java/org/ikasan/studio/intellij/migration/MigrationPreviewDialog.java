@@ -18,6 +18,8 @@ import java.awt.*;
 import java.util.List;
 import java.util.Objects;
 
+// Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
+@SuppressWarnings("SplitModeApiUsage")
 final class MigrationPreviewDialog extends DialogWrapper {
     private final com.intellij.openapi.ui.ComboBox<com.intellij.openapi.projectRoots.Sdk> jdks =
             new com.intellij.openapi.ui.ComboBox<>();
@@ -104,14 +106,21 @@ final class MigrationPreviewDialog extends DialogWrapper {
         } else if (jdks.getItemCount() == 0) {
             panel.add(new JBLabel(StudioBundle.message("message.ConfigureJdkInProjectStructure", requiredJava)), BorderLayout.NORTH);
         }
-        JPanel preparation = new JPanel();
-        preparation.setLayout(new BoxLayout(preparation, BoxLayout.Y_AXIS));
+        JPanel preparation = new JPanel(new GridBagLayout());
+        GridBagConstraints row = new GridBagConstraints();
+        row.gridx = 0;
+        row.gridy = GridBagConstraints.RELATIVE;
+        row.weightx = 1;
+        row.fill = GridBagConstraints.HORIZONTAL;
+        row.anchor = GridBagConstraints.NORTHWEST;
+        row.insets = JBUI.insetsBottom(4);
         JBLabel label = new JBLabel(StudioBundle.message("label.TargetJdkJava", requiredJava));
         label.setLabelFor(jdks);
-        preparation.add(label);
-        preparation.add(jdks);
-        preparation.add(new JBLabel(StudioBundle.message("label.MigrationPreparationNotice", requiredJava)));
-        preparation.add(compile);
+        preparation.add(label, row);
+        preparation.add(jdks, row);
+        preparation.add(new JBLabel(StudioBundle.message("label.MigrationPreparationNotice", requiredJava)), row);
+        row.insets = JBUI.emptyInsets();
+        preparation.add(compile, row);
         if (canApply) panel.add(preparation, BorderLayout.SOUTH);
         return panel;
     }

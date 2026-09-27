@@ -30,6 +30,22 @@ class UpgradeTest(unittest.TestCase):
         self.assertIn('updateUserImports=false', diagnostics[0]['fix'])
         self.assertEqual([], tool.build_diagnostics('package javax.jms does not exist', 'V3.3.9'))
 
+    def test_same_version_comparison_explains_unapplied_target(self):
+        import base64
+        before = self.report(); after = copy.deepcopy(before)
+        target = dict(before['model'], version='V4.1.6')
+        plan = {'changes': [{'path': tool.MODEL.as_posix(),
+            'before': base64.b64encode(json.dumps(before['model']).encode()).decode(),
+            'after': base64.b64encode(json.dumps(target).encode()).decode()}]}
+        report = tool.comparison(before, after, plan)
+        failures = {c['name']: c for c in report['checks'] if c['status'] == 'FAIL'}
+        self.assertEqual(2, len(failures))
+        self.assertIn('Recorded before: V3.3.9; recorded after: V3.3.9', failures['Supported version change']['detail'])
+        mismatch = failures['Model structure and settings preserved']
+        self.assertIn('After model does not match', mismatch['detail'])
+        self.assertIn('expected V4.1.6', mismatch['detail'])
+        self.assertIn('Confirm apply completed', mismatch['guidance'])
+
     def report(self):
         return dict(format=tool.FORMAT, status='PASS', version='V3.3.9', model={'version':'V3.3.9','flows':[]},
                     userSourceHashes={'user/src/Order.java':'abc'}, command=['mvn','-B','clean','verify'],

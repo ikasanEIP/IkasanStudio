@@ -59,7 +59,24 @@ public final class MigrationWorkspace {
         throw new IOException("This project has no completed migration snapshots.");
     }
 
+    public static String newSnapshotId() {
+        return Instant.now().toString().replace(':', '-') + "-" + UUID.randomUUID();
+    }
+
+    public static String reportWithSaveLocation(String report, Path snapshotPath) {
+        int headingEnd = report.indexOf('\n');
+        if (headingEnd < 0) headingEnd = report.length();
+        return report.substring(0, headingEnd) + "\nOn apply, this report will be saved in "
+                + snapshotPath + "\n"
+                + report.substring(headingEnd);
+    }
+
     public static Path commit(Path root, List<Change> changes, String report) throws IOException {
+        return commit(root, changes, report, newSnapshotId());
+    }
+
+    public static Path commit(Path root, List<Change> changes, String report, String id) throws IOException {
+        if (id == null || !id.matches("[A-Za-z0-9.-]+")) throw new IOException("Invalid migration snapshot ID.");
         Set<String> paths = new HashSet<>();
         for (Change change : changes) {
             if (!paths.add(change.path())) throw new IOException("Duplicate migration path: " + change.path());
@@ -69,8 +86,8 @@ public final class MigrationWorkspace {
         }
         Path history = safeHistory(root);
         Files.createDirectories(history);
-        String id = Instant.now().toString().replace(':', '-') + "-" + UUID.randomUUID();
         Path snapshotPath = history.resolve(id + ".json");
+        if (Files.exists(snapshotPath)) throw new IOException("Migration snapshot already exists: " + snapshotPath);
         Snapshot pending = new Snapshot(1, id, false, report, changes);
         write(snapshotPath, encode(JSON.writerWithDefaultPrettyPrinter().writeValueAsBytes(pending)));
         List<Change> applied = new ArrayList<>();

@@ -17,6 +17,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generation.GenerationRequest;
@@ -1770,8 +1771,8 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         try {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g.setColor(new JBColor(new Color(126, 92, 153), new Color(183, 151, 210)));
-            g.setStroke(new BasicStroke(JBUI.scale(1.5f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
-                    0, new float[]{JBUI.scale(4f), JBUI.scale(5f)}, 0));
+            g.setStroke(new BasicStroke(JBUIScale.scale(1.5f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                    0, new float[]{JBUIScale.scale(4f), JBUIScale.scale(5f)}, 0));
             int index = 0;
             for (var link : FtpFlowConnections.findMatchingLinks(module)) {
                 if (!link.isVisible(selection, showSharedEndpoints)) continue;
@@ -1790,7 +1791,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
                 for (int i = 1; i < route.size(); i++) path.lineTo(route.get(i).x, route.get(i).y);
                 g.draw(path);
                 paintArrowhead(g, consumer.getLeftConnectorPoint());
-                sharedEndpointLines.add(new SharedEndpointLine(new BasicStroke(JBUI.scale(10f)).createStrokedShape(path), link));
+                sharedEndpointLines.add(new SharedEndpointLine(new BasicStroke(JBUIScale.scale(10f)).createStrokedShape(path), link));
                 index++;
             }
         } finally {
@@ -2912,7 +2913,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             case EMPTY_FLOW -> StudioBundle.message("label.AddAConsumer");
             case ADD_COMPONENTS -> StudioBundle.message("label.AddAProducer");
             case READY_TO_RUN -> StudioBundle.message("label.AddAComponent");
-            case OPEN_CONSOLE -> StudioBundle.message("label.ModuleStarting");
+            case OPEN_CONSOLE -> StudioBundle.message("label.ModuleControls");
             default -> "";
         };
     }
@@ -2923,7 +2924,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             case EMPTY_FLOW -> StudioBundle.message("message.DragAConsumerFromThePaletteOntoThisFlow");
             case ADD_COMPONENTS -> StudioBundle.message("message.DragAProducerFromThePaletteOntoThisFlow");
             case READY_TO_RUN -> StudioBundle.message("message.SelectRunModuleOrUseIntellijRunOrDebug");
-            case OPEN_CONSOLE -> StudioBundle.message("message.WaitForModuleStartupToComplete");
+            case OPEN_CONSOLE -> StudioBundle.message("message.UseCanvasModuleControls");
             default -> "";
         };
     }
@@ -3133,6 +3134,8 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         }
     }
 
+    // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
+    @SuppressWarnings("SplitModeApiUsage")
     private static final class ErrorDetailsDialog extends DialogWrapper {
         private final String report;
         private final JBTextArea detailsArea;

@@ -12,7 +12,7 @@ From your Studio project's directory (replace `/path/to/tools` with this folder)
 
 ```sh
 python3 /path/to/tools/bin/studio_upgrade.py verify . --report migration-before
-/path/to/tools/bin/studio-cli preview --project . --to V4.1.6 --plan migration-plan.json
+/path/to/tools/bin/studio-cli preview --project . --to V4.1.6 --plan migration-plan.json --update-user-imports true
 # Review the findings and migration-plan.json.diff. Save and close the project in IntelliJ.
 /path/to/tools/bin/studio-cli apply --plan migration-plan.json
 python3 /path/to/tools/bin/studio_upgrade.py verify . --report migration-after
@@ -21,9 +21,12 @@ python3 /path/to/tools/bin/studio_upgrade.py compare migration-before/report.jso
 
 Use `studio-cli.bat` on Windows. Set `JAVA_HOME` appropriately for each Maven build.
 You can also migrate through Studio's UI and use only the Python before/after verifier.
+The **Apply recommended migration search and replace (review changes before applying)**
+option is selected by default in Studio; it currently updates compatible Java imports only.
 Projects with no successful executed tests are reported as **INCOMPLETE**.
 
 Read [CommandLineMigration.md](CommandLineMigration.md) for profiles, report locations,
-recovery snapshots, limitations and the IDE-based workflow. Migration does not overwrite
-`user/` code; after migration, review API compatibility, reload Maven and select the target
-JDK in IntelliJ. Existing report directories and export destinations are never replaced.
+recovery snapshots, limitations and the IDE-based workflow. The standard command above
+includes compatible Java import updates in `user/src/main/java`; review them in the preview
+diff before applying. Other developer code and tests are preserved. After migration, review
+remaining API compatibility, reload Maven and select the target JDK in IntelliJ. Existing report directories and export destinations are never replaced.

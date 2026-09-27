@@ -101,7 +101,10 @@ public final class MigrationController {
             int requiredJava = preview.module() == null ? 0 : background(project, "Checking target Java version", () ->
                     Integer.parseInt(org.ikasan.studio.core.metapack.ComponentLibrary
                             .getMetaPackManifest(preview.module().getMetaVersion()).javaVersion()));
-            var dialog = new MigrationPreviewDialog(project, title, preview.report(), preview.changes(), preview.canApply(), requiredJava);
+            String snapshotId = MigrationWorkspace.newSnapshotId();
+            String savedReport = MigrationWorkspace.reportWithSaveLocation(preview.report(),
+                    root.resolve(MigrationWorkspace.HISTORY).resolve(snapshotId + ".json"));
+            var dialog = new MigrationPreviewDialog(project, title, savedReport, preview.changes(), preview.canApply(), requiredJava);
             if (!dialog.showAndGet()) return;
             if (project.isDisposed()) return;
             Module migratedModule = Objects.requireNonNull(preview.module(), "Applicable migration must have a target module");
@@ -112,7 +115,7 @@ public final class MigrationController {
                         || !com.intellij.openapi.projectRoots.JavaSdk.getInstance().isValidSdkHome(selectedJdk.getHomePath())) {
                     throw new IllegalStateException(StudioBundle.message("message.TheSelectedJdkIsUnavailable", requiredJava));
                 }
-                return MigrationWorkspace.commit(root, preview.changes(), preview.report());
+                return MigrationWorkspace.commit(root, preview.changes(), savedReport, snapshotId);
             });
             appliedSnapshot = snapshot;
             MigrationJdk.apply(project, dialog.selectedJdk(), requiredJava);

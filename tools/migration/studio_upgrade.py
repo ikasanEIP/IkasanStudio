@@ -75,7 +75,7 @@ def build_diagnostics(log, version):
         result.append(dict(problem='Developer code still imports javax.jms; compilation failed before tests could run.',
             fix='Ikasan 4 uses jakarta.jms. Review the affected imports in build.log. For automatic import migration, '
                 'restore the pre-migration project using the migration snapshot, then create a NEW preview with '
-                '--update-user-imports true (or select Update compatible imports in user code in Studio), review and apply it. '
+                '--update-user-imports true (or keep Apply recommended migration search and replace selected in Studio), review and apply it. '
                 'An existing plan with updateUserImports=false preserves these imports. Do not edit the saved plan. '
                 'Rerun after verification and compare using the new plan. Fully qualified references and other API changes require manual review.'))
     return result
@@ -289,7 +289,8 @@ def comparison(before, after, plan=None):
     unexpected = [path for path in changed if path not in approved]
     checks = [check('Before verification passed', before['status'] == 'PASS', '' if before['status'] == 'PASS' else failed_evidence(before)),
               check('After verification passed', after['status'] == 'PASS', '' if after['status'] == 'PASS' else failed_evidence(after)),
-              check('Supported version change', versions == {'V3.3.9', 'V4.1.6'}),
+              check('Supported version change', versions == {'V3.3.9', 'V4.1.6'},
+                    f"Recorded before: {before['version']}; recorded after: {after['version']}."),
               check('Developer source and test files preserved', not unexpected,
                     ('Approved plan changes: '+', '.join(approved)+'. ' if approved else '') +
                     ('Unexpected changes: '+', '.join(unexpected) if unexpected else 'All other protected files unchanged.')),
@@ -305,13 +306,29 @@ def comparison(before, after, plan=None):
     if plan is not None:
         import base64
         change = next(c for c in plan['changes'] if c['path'] == MODEL.as_posix())
-        matches = (before['model'] == json.loads(base64.b64decode(change['before'])) and
-                   after['model'] == json.loads(base64.b64decode(change['after'])))
-        detail = 'Matches the exact source and target model in the saved engine preview.'
+        expected_before = json.loads(base64.b64decode(change['before']))
+        expected_after = json.loads(base64.b64decode(change['after']))
+        mismatches = []
+        for phase, actual, expected in [('Before', before['model'], expected_before), ('After', after['model'], expected_after)]:
+            if actual != expected:
+                mismatches.append(f"{phase} model does not match the plan: recorded version {actual.get('version')}, "
+                                  f"expected {expected.get('version')}." +
+                                  (' Model content differs despite matching versions.' if actual.get('version') == expected.get('version') else ''))
+        matches = not mismatches
+        detail = ' '.join(mismatches) if mismatches else 'Matches the exact source and target model in the saved engine preview.'
     else:
         matches = normalized(before['model']) == normalized(after['model'])
         detail = 'Allows only root version and JMS/JAXB type-field substitutions. Other differences require review; use --plan for exact engine mapping.'
     checks.append(check('Model structure and settings preserved', matches, detail))
+    if before['version'] == after['version']:
+        checks[2]['guidance'] = ('Both reports recorded the same Ikasan version; they do not demonstrate an upgrade. '
+            'Confirm that the migration was applied successfully and generation finished. Check generated/src/main/model/model.json '
+            'and the generated Maven configuration, then run after verification into a fresh directory and compare that report. '
+            'If the project has since been restored, these reports still describe their original runs; do not edit their version fields.')
+    if plan is not None and not matches:
+        checks[-1]['guidance'] = (detail + ' Use the plan that was actually applied to this project and reports collected '
+            'immediately before and after that migration. Confirm apply completed before rerunning after verification. '
+            'Do not edit report/model evidence to force a match.')
     diagnostics = [dict(d, phase=phase) for phase, report in [('Before', before), ('After', after)] for d in report.get('diagnostics', [])]
     return dict(format=FORMAT, status=status(checks), checks=checks, diagnostics=diagnostics,
                 verificationTimes={'Before': before.get('verifiedAt'), 'After': after.get('verifiedAt')},

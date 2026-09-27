@@ -121,7 +121,7 @@ From the project root (replace `/path/to/tools` with the extracted distribution)
 
 ```sh
 python3 /path/to/tools/bin/studio_upgrade.py verify . --report migration-before
-/path/to/tools/bin/studio-cli preview --project . --to V4.1.6 --plan migration-plan.json
+/path/to/tools/bin/studio-cli preview --project . --to V4.1.6 --plan migration-plan.json --update-user-imports true
 # Read the findings in the terminal and review migration-plan.json.diff.
 /path/to/tools/bin/studio-cli apply --plan migration-plan.json
 # Set JAVA_HOME for the target, then:
@@ -191,17 +191,22 @@ compare again. Compilation failures can also explain missing test cases; fix tho
 Recognised JAXB import failures include guidance on adapting developer-owned code, while
 source changes remain visible for review. Reports never silently turn those changes into a pass.
 
-### Optional developer import updates
+### Developer import updates
+
+In Studio, **Apply recommended migration search and replace (review changes before applying)**
+is selected by default. This currently updates compatible Java import declarations only.
 
 The IDE and offline CLI share the same Java migration engine; Python collects and compares
-test evidence. On Windows, Linux and macOS, opt in during preview:
+test evidence. The standard workflow on Windows, Linux and macOS includes compatible
+developer import updates during preview:
 
 ```sh
 studio-cli preview --project . --to V4.1.6 --plan migration-plan.json --update-user-imports true
 studio-cli apply --plan migration-plan.json
 ```
 
-Use the distribution's `.bat` launcher on Windows. The selection is stored in the plan; apply
+Use the distribution's `.bat` launcher on Windows. To preserve all developer imports instead,
+pass `--update-user-imports false` or omit the option. The selection is stored in the plan; apply
 recomputes the edits and rejects stale files or altered proposals. The `.diff` includes every
 changed source file. Review before applying. Recovery snapshots include the original files.
 

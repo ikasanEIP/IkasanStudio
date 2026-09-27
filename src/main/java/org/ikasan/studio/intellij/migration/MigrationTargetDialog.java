@@ -9,8 +9,10 @@ import org.ikasan.studio.ui.StudioBundle;
 import javax.swing.*;
 import java.awt.*;
 
+// Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
+@SuppressWarnings("SplitModeApiUsage")
 final class MigrationTargetDialog extends DialogWrapper {
-    private final JCheckBox updateImports = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("migration.updateUserImports"), false);
+    private final JCheckBox updateImports = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("migration.updateUserImports"), true);
     private final String current;
     private final ComboBox<String> versions;
 
