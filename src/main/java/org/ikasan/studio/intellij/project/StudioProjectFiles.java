@@ -55,8 +55,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 
-import static org.ikasan.studio.core.maven.IkasanPomModel.MAVEN_COMPILER_SOURCE;
-import static org.ikasan.studio.core.maven.IkasanPomModel.MAVEN_COMPILER_TARGET;
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.APPLICATION_PACKAGE_NAME;
 import static org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
 
@@ -209,12 +207,7 @@ public class StudioProjectFiles {
     private static void applyMetaPackBuildContract(IkasanPomModel pom, String metaVersion) {
         try {
             MetaPackManifest manifest = ComponentLibrary.getMetaPackManifest(metaVersion);
-            pom.addProperty("version.ikasan", manifest.ikasanVersion());
-            pom.addProperty(MAVEN_COMPILER_TARGET, manifest.javaVersion());
-            pom.addProperty(MAVEN_COMPILER_SOURCE, manifest.javaVersion());
-            for (MetaPackManifest.BomImport bom : manifest.dependencyManagement()) {
-                pom.addOrUpdateBomImport(bom.groupId(), bom.artifactId(), bom.version());
-            }
+            pom.applyBuildContract(manifest);
         } catch (StudioBuildException e) {
             throw new StudioRuntimeException("Cannot update pom.xml because meta-pack " + metaVersion
                     + " failed its build contract", e);

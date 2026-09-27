@@ -35,6 +35,26 @@ public class IkasanPomModel {
         resetKeys(model.getDependencies());
     }
 
+    /** Align only Studio-managed build settings, preserving unrelated Maven configuration. */
+    public void applyBuildContract(org.ikasan.studio.core.metapack.model.MetaPackManifest manifest) {
+        addProperty("version.ikasan", manifest.ikasanVersion());
+        addProperty(MAVEN_COMPILER_SOURCE, manifest.javaVersion());
+        addProperty(MAVEN_COMPILER_TARGET, manifest.javaVersion());
+        if (model.getProperties().containsKey("maven.compiler.release")) {
+            addProperty("maven.compiler.release", manifest.javaVersion());
+        }
+        for (var bom : manifest.dependencyManagement()) {
+            addOrUpdateBomImport(bom.groupId(), bom.artifactId(), bom.version());
+        }
+    }
+
+    /** Check a detached copy so previewing generation does not dirty the cached POM. */
+    public boolean needsBuildContractUpdate(org.ikasan.studio.core.metapack.model.MetaPackManifest manifest) {
+        IkasanPomModel candidate = new IkasanPomModel(model.clone());
+        candidate.applyBuildContract(manifest);
+        return candidate.isDirty();
+    }
+
     /**
      * Typically when we are about to persist this model and discard it
      *

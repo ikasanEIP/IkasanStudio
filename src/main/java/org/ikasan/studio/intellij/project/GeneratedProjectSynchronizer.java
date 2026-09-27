@@ -71,7 +71,7 @@ public class GeneratedProjectSynchronizer {
             return completion;
         }
         if (project.isDisposed()) return CompletableFuture.failedFuture(new java.util.concurrent.CancellationException("Project closed"));
-        AtomicReference<Boolean> pomDependenciesHaveChanged = new AtomicReference<>();
+        AtomicReference<Boolean> pomNeedsUpdate = new AtomicReference<>();
         UiContext uiContext = project.getService(UiContext.class);
         long revision = uiContext.beginGenerationRequest(completion, request);
         if (revision < 0) {
@@ -117,10 +117,12 @@ public class GeneratedProjectSynchronizer {
                 // never-warmed project would fail before a single source file could be generated.
                 ikasanPomModel = StudioProjectFiles.pomLoadFromVirtualDisk(project);
             }
-            if (ikasanPomModel != null && ikasanPomModel.isNewDependency(module.getAllUniqueSortedJarDependencies())) {
-                pomDependenciesHaveChanged.set(true);
+            if (ikasanPomModel != null && (ikasanPomModel.isNewDependency(module.getAllUniqueSortedJarDependencies())
+                    || ikasanPomModel.needsBuildContractUpdate(
+                            org.ikasan.studio.core.metapack.ComponentLibrary.getMetaPackManifest(module.getMetaVersion())))) {
+                pomNeedsUpdate.set(true);
             } else {
-                pomDependenciesHaveChanged.set(false);
+                pomNeedsUpdate.set(false);
             }
 
             LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - source from model");
@@ -138,7 +140,7 @@ public class GeneratedProjectSynchronizer {
                     () -> {
                         GenerationTransactionManager.begin();
                         try {
-                        if (pomDependenciesHaveChanged.get()) {
+                        if (pomNeedsUpdate.get()) {
                             // We have checked the in-memory model, below will also verify from the on-disk model.
                             StudioProjectFiles.checkForDependencyChangesAndSaveIfChanged(project, module.getAllUniqueSortedJarDependencies(), module.getMetaVersion());
                         }
@@ -182,7 +184,7 @@ public class GeneratedProjectSynchronizer {
                                 + summary.updated() + " updated, " + summary.unchanged() + " unchanged";
                         LOG.info(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_COMPLETED, null, uiContext.getIkasanModule().getIdentity(), null, null));
                         StatusBar.Info.set(summaryMessage, project);
-                        if (pomDependenciesHaveChanged.get()) {
+                        if (pomNeedsUpdate.get()) {
                             MavenProjectsManager manager = MavenProjectsManager.getInstance(project);
                             if (manager != null) manager.forceUpdateAllProjectsOrFindAllAvailablePomFiles();
                         }

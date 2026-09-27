@@ -66,3 +66,12 @@ You now have a saved visual model and generated application. Keep `generated/src
 Use **Hide panels** at the top-right of the designer to hide Properties and Palette.
 The same button becomes **Show panels**, restoring their previous width and selected tab.
 Pending property edits are preserved; hiding the panels does not apply them.
+
+### Importing an existing model
+
+Importing `model.json` from **Create your Ikasan module** regenerates Studio-owned files
+and aligns the root Maven POM with the imported meta-pack: Java 11 for V3.3.9 or Java 17
+for V4.1.6, the Ikasan BOM and required component dependencies. Unrelated Maven settings
+are retained. Existing compiler source/target settings (including legacy Java 7 values)
+and an existing `maven.compiler.release` property are updated even when no dependency
+changes are needed. Configure a matching installed JDK if Studio cannot select one.
