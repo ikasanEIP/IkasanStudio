@@ -1,41 +1,44 @@
 # Ikasan Studio 1.0 Marketplace release plan
 
-Prepared 24 September 2026. This is a proposed four-week plan, with dates driven by
-readiness rather than a fixed launch promise. It complements the existing
-[release-candidate verification](ReleaseCandidateVerification.md) and
-[manual checklist](MarketplaceReleaseManualChecklist.md). No publication is authorised
-by this document. Working assumption: a free, open-source release under the repository's
-BSD 3-Clause licence; the product owner must confirm this and the publishing organisation.
+This is a proposed four-week plan, with dates driven by readiness. It complements the existing
+[release-candidate verification](ReleaseCandidateVerification.md) and manual checklist](MarketplaceReleaseManualChecklist.md).
 
 ## Recommended route
 
-Internal ZIP testing → hidden Marketplace submission → review and final acceptance →
-public 1.0 launch. Prepare the account and listing now; submit only a release-quality candidate.
+* Carry our internal developer review using the zip file to install locally.
+* Deply a hidden release in the Marketplace submissions area for wider testing.
+* Conduct final acceptance (senior Ikasan team).
+* Public 1.0 launch.
+* Post release support until community becomes self-maintaining.
+
+The account and listing preparation work can start without delay, only release-quality candidate
+will be submitted.
 
 The first Marketplace upload must be manual; later updates can use Gradle publishing.
-Use unique candidate versions such as `1.0.0-beta.1`, retaining `1.0.0` for the final artifact.
-A non-default channel requires testers to add a repository in IntelliJ.
+Release candidtes will use unique candidate versions such as `1.0.0-beta.1`, retaining `1.0.0` for the
+final artifact. A non-default channel requires testers to add a repository in IntelliJ.
 [JetBrains publishing instructions](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html).
 
-For the initial upload, select **Hidden** to prepare the listing and obtain approval before
-launch. Hidden plugins remain accessible by direct link: this is not confidential distribution.
+For the initial upload, we will use **Hidden** to prepare the listing and obtain approval before
+launch. Hidden plugins remain accessible by direct link: this is not a confidential distribution.
 A plugin can only be hidden initially, and making the plugin public is irreversible; individual
-versions can subsequently be hidden. If a listing already exists, check its status before
+versions can subsequently be hidden. If a listing already exists, we must check its status before
 choosing this route. [Hidden release](https://plugins.jetbrains.com/docs/marketplace/hidden-plugin.html).
 
 ## What we already have, and what remains
 
-| Area | Repository evidence | Work before release |
-| --- | --- | --- |
-| Packaging | `buildPlugin`, `verifyReleaseArchive`, bundled offline migration tools | Audit the actual candidate, including third-party licences and ZIP contents |
-| Compatibility | Plugin Verifier boundaries and both Ikasan packs | Refresh newest stable IDE target; record installation and workflow evidence on supported IDEs/OSes |
-| Regression | Plugin/headless tests; `regression-tests/migration/` | Run fresh migration baseline/target reports, including wiretaps and preserved user code |
-| Distribution | Gradle signing and publishing configured | Confirm account ownership, signing material, secrets and protected publication process |
-| Documentation | Getting started, migration, AI, testing, recovery and diagnostics guides | Clean-machine walkthrough; remove stale wording and publish accurate limitations |
-| Listing | Stable ID `com.github.ikasaneip.ikasanstudio`, vendor metadata, icon, README description | Confirm public contact/URLs, screenshots, licence, privacy statement and listing status |
 
-This is a source/configuration review, not release sign-off. Account state, repository secrets,
-branch protection, signing credentials and Marketplace ownership have not been inspected.
+| Area          | Repository evidence                                                                     | Work before release                                                                                |
+| ------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Packaging     | `buildPlugin`, `verifyReleaseArchive`, bundled offline migration tools                  | Audit the actual candidate, including third-party licences and ZIP contents                        |
+| Compatibility | Plugin Verifier boundaries and both Ikasan packs                                        | Refresh newest stable IDE target; record installation and workflow evidence on supported IDEs/OSes |
+| Regression    | Plugin/headless tests;`regression-tests/migration/`                                     | Run fresh migration baseline/target reports, including wiretaps and preserved user code            |
+| Distribution  | Gradle signing and publishing configured                                                | Confirm account ownership, signing material, secrets and protected publication process             |
+| Documentation | Getting started, migration, AI, testing, recovery and diagnostics guides                | Clean-machine walkthrough; remove stale wording and publish accurate limitations                   |
+| Listing       | Stable ID`com.github.ikasaneip.ikasanstudio`, vendor metadata, icon, README description | Confirm public contact/URLs, screenshots, licence, privacy statement and listing status            |
+
+Account state, repository secrets, branch protection, signing credentials and Marketplace ownership have
+not been inspected.
 
 ## Week 1 — ownership, scope and publishing controls
 

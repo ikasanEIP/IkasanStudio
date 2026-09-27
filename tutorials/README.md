@@ -22,3 +22,6 @@ Start with the videos below, or jump to the topic you need. Durations are shown 
 
 6. **Use AI to generate and test a module** — 6:37  
    [Watch: Use AI to generate and test a module](Demo-AIAgentImplemenStatementOfWork.mp4)
+
+7. **Deep dive into setting up AI in MCP and non-MCP modes** — 6:12
+   [Watch: Use AI to generate and test a module](HowItWorks-AIAgentOverviewAndConfiguration.mp4)
