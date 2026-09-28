@@ -4,6 +4,17 @@ dependencies {
     api(project(":studio-pack-v4"))
     testImplementation(project(":studio-test-kit"))
     testImplementation("commons-io:commons-io:2.22.0")
+    // The shared local FTP/SMTP flow-test fixture tests compile against the same libraries as the plugin's test suite.
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("com.icegreen:greenmail:1.6.15")
+    testImplementation("org.apache.ftpserver:ftpserver-core:1.2.1") {
+        exclude(group = "org.slf4j", module = "slf4j-api")
+    }
+    constraints {
+        testImplementation("org.apache.mina:mina-core:2.2.9") {
+            because("CVE-2026-41635 / CVE-2026-41409 - fixes deserialization RCE in mina-core < 2.2.9")
+        }
+    }
 }
 // Give this module its own source root. Sharing the plugin's entire test root with
 // include filters makes IntelliJ assign unrelated plugin tests to this module.
