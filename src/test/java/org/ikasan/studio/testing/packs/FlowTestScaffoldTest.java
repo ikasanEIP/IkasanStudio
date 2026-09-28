@@ -47,6 +47,9 @@ class FlowTestScaffoldTest {
         var scaffold = FlowTestScaffold.render(module, flow, rootPom, generatedPom);
         String code = scaffold.files().get(scaffold.testPath());
         assertTrue(code.contains(".scheduledConsumer("));
+        assertTrue(scaffold.files().get(FlowTestScaffold.SUPPORT_PATH).contains("ftp.configureConsumer(module.getFlow("));
+        assertTrue(scaffold.files().get(FlowTestScaffold.SUPPORT_PATH).contains("No output observed after producer"));
+        assertTrue(scaffold.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH).contains("test.ftp.consumer.min-age-seconds=0"));
         assertTrue(code.contains("FtpInputFixture.copyResource(localFtpDirectory(context)"));
         assertTrue(code.contains("batch == 1 ? FIRST_BATCH_INPUT_FILENAME : SECOND_BATCH_INPUT_FILENAME"));
         assertFalse(code.contains("test.ftp.input.filename.batch"));
@@ -147,7 +150,7 @@ class FlowTestScaffoldTest {
         assertTrue(properties.contains("${TEST_PASSWORD}"));
         assertTrue(properties.contains("test.delivery.timeout-seconds=10"));
         assertTrue(properties.lines().allMatch(line -> line.isBlank() || line.startsWith("#")
-                || line.equals("test.delivery.timeout-seconds=10") || line.equals("test.smtp.enabled=false")));
+                || line.equals("test.delivery.timeout-seconds=10") || line.equals("test.smtp.enabled=false") || line.equals("test.ftp.consumer.min-age-seconds=0")));
         assertTrue(support.contains("getResourceAsStream(\"/module-test.properties\")"));
         assertTrue(support.contains("StandardCharsets.UTF_8"));
         assertTrue(support.contains("if (input == null) throw"));
@@ -161,10 +164,18 @@ class FlowTestScaffoldTest {
         module.getFlows().get(0).setConsumer(local);
         var localScaffold = FlowTestScaffold.render(module, module.getFlows().get(0), parent, app);
         String localTest = localScaffold.files().get(localScaffold.testPath());
-        assertTrue(localTest.contains("new TemporaryFolder()"));
+        String fixtureDirectory = "user-flow-tests/src/test/resources/"
+                + module.getFlows().get(0).getIdentity().replace(' ', '_') + "/" + local.getIdentity().replace(' ', '_') + "/";
+        assertEquals("first expected payload", localScaffold.files().get(fixtureDirectory + "first.txt"));
+        assertEquals("second expected payload", localScaffold.files().get(fixtureDirectory + "second.txt"));
+        assertTrue(localTest.contains("TemporaryFolder.builder().assureDeletion().build()"));
         assertTrue(localTest.contains("protected Map<String, String> flowTestProperties()"));
         assertTrue(localTest.contains("super.flowTestProperties()"));
-        assertTrue(localTest.contains("Files.writeString"));
+        assertTrue(localTest.contains("FileInputFixture.prepareLocalBatch("));
+        assertTrue(localTest.contains("FileInputFixture.localFilenames("));
+        assertTrue(localTest.contains("noSpaces(CONSUMER_NAME)"));
+        assertFalse(localTest.contains("FIRST_BATCH_INPUT ="));
+        assertTrue(localScaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileInputFixture.java"));
         assertTrue(support.contains("harness.assertIsSatisfied()"));
         assertTrue(localTest.contains(".repeat(2)"));
         assertTrue(localTest.contains(".scheduledConsumer(\"" + local.getIdentity() + "\")"));

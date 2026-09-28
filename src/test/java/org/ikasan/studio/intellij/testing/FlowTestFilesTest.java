@@ -14,6 +14,28 @@ class FlowTestFilesTest {
         return new FlowTestScaffold.Scaffold("updated", "user-flow-tests/src/test/java/ExampleTest.java",
                 Map.of("user-flow-tests/src/test/java/ExampleTest.java", "test", "user-flow-tests/pom.xml", "generated pom"));
     }
+    @Test void fixtureResourcesAreCreatedOnlyWhenMissingIncludingOnRegeneration() throws Exception {
+        Files.writeString(root.resolve("pom.xml"), "original");
+        String directory = "user-flow-tests/src/test/resources/flow4/my_local_consumer/";
+        Path first = root.resolve(directory + "first.txt");
+        Files.createDirectories(first.getParent());
+        Files.writeString(first, "developer fixture");
+        var files = new java.util.LinkedHashMap<>(scaffold().files());
+        files.put(directory + "first.txt", "first expected payload");
+        files.put(directory + "second.txt", "second expected payload");
+        var plan = new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files);
+        FlowTestFiles.write(root, "original", plan);
+        assertEquals("developer fixture", Files.readString(first));
+        Path second = root.resolve(directory + "second.txt");
+        assertEquals("second expected payload", Files.readString(second));
+        Files.writeString(second, "custom second fixture");
+        var existing = assertThrows(FlowTestFiles.ExistingTestException.class,
+                () -> FlowTestFiles.write(root, "updated", plan));
+        FlowTestFiles.archiveAndWrite(root, "updated", plan, existing);
+        assertEquals("developer fixture", Files.readString(first));
+        assertEquals("custom second fixture", Files.readString(second));
+    }
+
     @Test void missingSampleInputDefaultsAreBackedUpAndExplicitFalseIsPreserved() throws Exception {
         Path file = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
         Files.createDirectories(file.getParent());

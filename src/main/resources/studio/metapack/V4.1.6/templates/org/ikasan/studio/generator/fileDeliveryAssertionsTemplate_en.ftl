@@ -16,7 +16,16 @@ import java.util.List;
 public final class FileDeliveryAssertions {
     private FileDeliveryAssertions() { }
 
-    /** Waits for a regular final file containing exactly the expected UTF-8 text, including whitespace. */
+    /**
+     * Waits for a regular final file with exactly the expected UTF-8 contents, including whitespace.
+     * No timestamp comparison is used. To avoid accepting a stale matching file, use a fresh
+     * directory or unique filename per scenario. Does not follow symbolic links or fetch remote files.
+     * @param file local destination file, or a previously downloaded remote delivery
+     * @param expected complete expected text
+     * @param timeout positive maximum wait; successful comparison returns immediately
+     * @throws AssertionError if the file is missing or differs at the deadline
+     * @throws Exception on interruption, decoding failure or other filesystem errors
+     */
     public static void assertFileContents(Path file, String expected, Duration timeout) throws Exception {
         long started = System.nanoTime();
         long limit = timeoutNanos(timeout);
@@ -38,6 +47,12 @@ public final class FileDeliveryAssertions {
      * Order and filenames may vary; count and duplicate contents must match. No recursion or symlink following.
      * Use an isolated directory and a final-filename pattern. Unmatched files are deliberately ignored.
      * For two unique deliveries pass both expected contents after batch two; for overwrites use assertFileContents.
+     * @param directory local output directory owned by this scenario
+     * @param glob final-file glob such as {@code *.xml}; unmatched files are ignored
+     * @param expected cumulative file contents, including duplicate entries when expected
+     * @param timeout positive maximum wait
+     * @throws AssertionError when file count or contents do not match at the deadline
+     * @throws Exception on interruption or filesystem/decoding errors
      */
     public static void assertDeliveredFileContents(Path directory, String glob, List<String> expected, Duration timeout) throws Exception {
         List<String> wanted = new ArrayList<>(expected);

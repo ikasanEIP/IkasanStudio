@@ -30,6 +30,14 @@ public final class LocalFtpTestServer implements AutoCloseable {
     }
 
     /** Binds directly to port zero; no free-port probe/race. Cleans partial startup failures. */
+    /**
+     * Starts a loopback-only FTP server on an allocated port using a caller-owned home directory.
+     * @param properties settings containing optional {@code test.ftp.username/password}; defaults
+     *                   are {@code ikasan}, with password defaulting to the username
+     * @param directory existing JUnit temporary directory; this fixture never deletes it
+     * @return the running fixture; close it before the owning JUnit rule deletes the directory
+     * @throws Exception if settings, directory validation or server startup fail
+     */
     public static LocalFtpTestServer start(Map<String, String> properties, Path directory) throws Exception {
         LocalFtpTestServer fixture = new LocalFtpTestServer(properties, directory);
         try {
@@ -55,7 +63,20 @@ public final class LocalFtpTestServer implements AutoCloseable {
         }
     }
 
-    /** Applies pack-derived property keys; refuses incomplete mappings instead of contacting a real endpoint. */
+    /**
+     * Overrides one endpoint's Spring properties with this fixture's address and credentials.
+     * Invoke before creating the application context. Keys come from the selected meta-pack.
+     * Remote directory becomes {@code /}, mapped to {@link #root()} on this server.
+     * @param properties mutable test-only Spring property overrides
+     * @param name flow/component description used in diagnostics
+     * @param secure true for FTPS, which this plain FTP fixture deliberately rejects
+     * @param hostKey externalised host property key
+     * @param portKey externalised port property key
+     * @param userKey externalised username property key
+     * @param passwordKey externalised password property key
+     * @param directoryKey consumer source or producer output directory property key
+     * @throws IllegalStateException if FTPS is requested or any mapping is missing
+     */
     public void configure(Map<String, String> properties, String name, boolean secure,
                           String hostKey, String portKey, String userKey, String passwordKey, String directoryKey) {
         if (secure || List.of(hostKey, portKey, userKey, passwordKey, directoryKey).contains("")) {
@@ -69,8 +90,33 @@ public final class LocalFtpTestServer implements AutoCloseable {
         properties.put(directoryKey, "/");
     }
 
-    /** Seed consumer input here or inspect producer delivery before the context closes. */
+    /**
+     * Configures a local test FTP consumer to discover newly published, complete fixture files.
+     * Call before flow startup. The default zero bypasses the endpoint's production minimum age;
+     * duplicate detection and filename filtering remain unchanged. To test age filtering itself,
+     * set {@code test.ftp.consumer.min-age-seconds} explicitly and prepare suitably aged fixtures.
+     * @param consumer pack-compatible consumer exposing {@code getConfiguration().setMinAge(Long)}
+     * @param properties test settings; the minimum age must be a non-negative whole number of seconds
+     * @throws Exception if the setting is invalid or the consumer lacks the expected configuration API
+     */
+    public void configureConsumer(Object consumer, Map<String, String> properties) throws Exception {
+        String value = properties.getOrDefault("test.ftp.consumer.min-age-seconds", "0");
+        long seconds;
+        try { seconds = Long.parseLong(value); }
+        catch (NumberFormatException failure) {
+            throw new IllegalArgumentException("test.ftp.consumer.min-age-seconds must be a non-negative whole number", failure);
+        }
+        if (seconds < 0) throw new IllegalArgumentException("test.ftp.consumer.min-age-seconds must be non-negative");
+        Object configuration = consumer.getClass().getMethod("getConfiguration").invoke(consumer);
+        configuration.getClass().getMethod("setMinAge", Long.class).invoke(configuration, seconds);
+    }
+
+    /**
+     * @return the server's local home for seeding consumer input or checking producer delivery;
+     *         retained across batches and removed by the owning JUnit temporary-folder rule
+     */
     public Path root() { return root; }
+    /** @return the allocated FTP control port, valid while the fixture is running */
     public int port() { return port; }
 
     /** Stops this test server; the enclosing JUnit TemporaryFolder owns file cleanup. Safe to call twice. */

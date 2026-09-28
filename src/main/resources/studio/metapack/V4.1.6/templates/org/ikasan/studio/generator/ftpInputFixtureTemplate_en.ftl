@@ -1,7 +1,5 @@
 package org.ikasan.studio.flowtests.support;
 
-import java.io.InputStream;
-import java.nio.file.StandardCopyOption;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,30 +9,34 @@ import java.util.regex.Pattern;
 public final class FtpInputFixture {
     private FtpInputFixture() { }
 
-    /** Streams a classpath resource unchanged, publishing only the complete file under its basename. */
+    /**
+     * Copies a classpath fixture to a test FTP home without decoding or altering its bytes.
+     * The resource basename becomes the remote filename. A staging file outside the scanned home
+     * prevents consumers from seeing a partial copy. Existing destinations are never overwritten.
+     *
+     * @param directory existing test FTP home, normally {@code localFtpDirectory(context)}
+     * @param regex consumer's runtime filename regular expression (a full-name match)
+     * @param resourcePath path relative to {@code src/test/resources}; a leading slash is optional
+     * @return the published local file, for additional business assertions
+     * @throws IllegalArgumentException if the resource is missing or its basename does not match
+     * @throws IllegalStateException if the destination already exists
+     * @throws Exception if opening, copying or publishing the fixture fails
+     */
     public static Path copyResource(Path directory, String regex, String resourcePath) throws Exception {
-        String path = resourcePath.startsWith("/") ? resourcePath : "/" + resourcePath;
-        String filename = path.substring(path.lastIndexOf('/') + 1);
-        if (filename.isBlank() || filename.equals(".") || filename.equals("..") || filename.contains("\\")
-                || !Pattern.compile(regex).matcher(filename).matches()) {
-            throw new IllegalArgumentException("Input resource " + resourcePath
-                    + " must have a filename matching the consumer pattern: " + regex);
-        }
-        Path destination = directory.resolve(filename);
-        if (Files.exists(destination)) throw new IllegalStateException("Input fixture already exists: " + destination);
-        try (InputStream input = FtpInputFixture.class.getResourceAsStream(path)) {
-            if (input == null) throw new IllegalArgumentException("Missing test resource " + path
-                    + "; add it under user-flow-tests/src/test/resources");
-            // Stage outside the scanned home so consumers cannot read a partial copy.
-            Path staging = Files.createTempFile(directory.getParent(), "ftp-input-", ".tmp");
-            try {
-                Files.copy(input, staging, StandardCopyOption.REPLACE_EXISTING);
-                Files.move(staging, destination);
-            } finally { Files.deleteIfExists(staging); }
-        }
-        return destination;
+        return FileInputFixture.copyResource(directory, regex, resourcePath);
     }
 
+    /**
+     * Publishes inline UTF-8 text using an explicit filename or a matching batch-name default.
+     * Like {@link #copyResource}, stages outside the scanned home and refuses overwrite.
+     * @param directory existing test FTP home
+     * @param regex full-name consumer filename pattern
+     * @param filename plain filename, or null/blank to try common {@code batch-N} extensions
+     * @param batch batch number used only when choosing a default filename
+     * @param text exact fixture contents; whitespace is retained
+     * @return the published file
+     * @throws Exception if the filename is invalid, already exists or cannot be written
+     */
     public static Path write(Path directory, String regex, String filename, int batch, String text) throws Exception {
         Pattern pattern = Pattern.compile(regex);
         if (filename == null || filename.isBlank()) {

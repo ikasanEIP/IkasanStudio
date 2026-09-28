@@ -10,6 +10,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Compiles the shipped helper and exercises real FTP, without launching an IntelliJ project. */
 class LocalFtpFlowTestFixtureTest {
+    public static class Consumer {
+        private final Configuration config = new Configuration();
+        public Configuration getConfiguration() { return config; }
+    }
+    public static class Configuration {
+        public Long minAge = 120L;
+        // Invoked reflectively by the compiled LocalFtpTestServer template's configureConsumer method.
+        @SuppressWarnings("unused")
+        public void setMinAge(Long value) { minAge = value; }
+    }
+
     @TempDir Path temporary;
 
     private static String jarPath(Class<?> type) {
@@ -45,6 +56,15 @@ class LocalFtpFlowTestFixtureTest {
                         int port;
             try (AutoCloseable server = (AutoCloseable) type.getMethod("start", Map.class, Path.class).invoke(null, Map.of(), folder.newFolder().toPath());
                  AutoCloseable second = (AutoCloseable) type.getMethod("start", Map.class, Path.class).invoke(null, Map.of(), folder.newFolder().toPath())) {
+                Consumer consumer = new Consumer();
+                var configureConsumer = type.getMethod("configureConsumer", Object.class, Map.class);
+                configureConsumer.invoke(server, consumer, Map.of());
+                assertEquals(0L, consumer.config.minAge);
+                configureConsumer.invoke(server, consumer, Map.of("test.ftp.consumer.min-age-seconds", "5"));
+                assertEquals(5L, consumer.config.minAge);
+                assertThrows(java.lang.reflect.InvocationTargetException.class,
+                        () -> configureConsumer.invoke(server, consumer, Map.of("test.ftp.consumer.min-age-seconds", "-1")));
+                assertEquals(5L, consumer.config.minAge);
                 home = (Path) type.getMethod("root").invoke(server);
                 port = (Integer) type.getMethod("port").invoke(server);
                 assertNotEquals(port, type.getMethod("port").invoke(second));

@@ -15,9 +15,13 @@ public final class OutputTextSupport {
     private OutputTextSupport() { }
 
     /**
-     * Decodes UTF-8 bytes, Ikasan Payload content, local files/paths, file lists and JMS TextMessage bodies.
+     * Decodes UTF-8 bytes, Ikasan Payload content, local files/paths, file lists,
+     * EmailPayload bodies and JMS TextMessage bodies.
      * File lists retain their existing order and concatenate contents without adding separators.
      * Unsupported/binary objects require an explicit test override, never an identity-string comparison.
+     * @param value observed payload; null becomes the literal string {@code "null"}
+     * @return stable textual content with whitespace preserved
+     * @throws IllegalArgumentException if the type is unsupported or its content cannot be decoded
      */
     public static String stringify(Object value) {
         try {

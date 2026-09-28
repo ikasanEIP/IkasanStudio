@@ -195,9 +195,10 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                                             "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java",
                                             first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java"))));
                         }
-                        if (useLocalSmtp) {
+                        if (regenerateSupport) {
                             var first = scaffolds.get(0);
-                            for (String helper : List.of("OutputTextSupport", "LocalSmtpTestServer")) {
+                            for (String helper : List.of("OutputTextSupport", "LocalSmtpTestServer", "LocalFtpTestServer",
+                                    "FtpInputFixture", "FileInputFixture", "FileDeliveryAssertions")) {
                                 String helperPath = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/" + helper + ".java";
                                 scaffolds.add(new FlowTestScaffold.Scaffold(first.rootPom(), helperPath,
                                         java.util.Map.of(helperPath, first.files().get(helperPath))));
@@ -207,10 +208,13 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                             throw new IllegalStateException(StudioBundle.message("message.TheModelChangedWhilePreparingMigration"));
                         }
                         if (batchWrite && !batchReviewed.get()) FlowTestFiles.checkExisting(root, scaffolds);
-                        List<String> requiredHelpers = useLocalSmtp ? List.of(FlowTestScaffold.SUPPORT_PATH,
-                                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java",
-                                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java")
-                                : useLocalFtp ? List.of(FlowTestScaffold.SUPPORT_PATH) : List.of();
+                        List<String> requiredHelpers = new ArrayList<>();
+                        if (useLocalFtp || useLocalSmtp) requiredHelpers.add(FlowTestScaffold.SUPPORT_PATH);
+                        if (useLocalFtp) requiredHelpers.add("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java");
+                        if (useLocalSmtp) {
+                            requiredHelpers.add("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java");
+                            requiredHelpers.add("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java");
+                        }
                         for (String helper : requiredHelpers) {
                             if (Files.exists(root.resolve(helper)) && (batchApproval.get() == null
                                     || batchApproval.get().stream().noneMatch(approved -> approved.path().equals(root.resolve(helper))))) {

@@ -22,6 +22,12 @@ public final class LocalSmtpTestServer implements AutoCloseable {
         server.withConfiguration(GreenMailConfiguration.aConfig().withDisabledAuthentication());
     }
 
+    /**
+     * Starts a fresh non-forwarding SMTP inbox on an allocated loopback port.
+     * Use try-with-resources when called directly; shared test support closes it with Spring.
+     * @return a running server with an empty inbox
+     * @throws RuntimeException if binding or startup fails; partial startup is cleaned up
+     */
     public static LocalSmtpTestServer start() {
         LocalSmtpTestServer fixture = new LocalSmtpTestServer();
         try { fixture.server.start(); return fixture; }
@@ -31,10 +37,23 @@ public final class LocalSmtpTestServer implements AutoCloseable {
         }
     }
 
+    /** @return the allocated SMTP port; valid while this fixture is running */
     public int port() { return server.getSmtp().getPort(); }
+    /**
+     * Returns currently captured mailbox messages for subject, recipient and attachment checks.
+     * This method does not wait. Multiple recipients can produce multiple mailbox copies.
+     * @return captured messages; inspect after waiting for the expected delivery
+     */
     public MimeMessage[] receivedMessages() { return server.getReceivedMessages(); }
 
-    /** Configures the pack's email producer before flow startup, including hard-coded application settings. */
+    /**
+     * Redirects an Ikasan email producer to this inbox before its managed resource starts.
+     * Replaces host, port, transport, authentication and extended mail-session settings with
+     * plain local SMTP settings. Preserves recipients, subject, format and payload mapping.
+     * Changes only this in-memory test producer, never the model or application source.
+     * @param producer component exposing the pack's email {@code getConfiguration()} contract
+     * @throws Exception if the producer does not support that configuration contract
+     */
     public void configure(Object producer) throws Exception {
         Object config = producer.getClass().getMethod("getConfiguration").invoke(producer);
         Class<?> type = config.getClass();
@@ -55,7 +74,17 @@ public final class LocalSmtpTestServer implements AutoCloseable {
         type.getMethod("setExtendedMailSessionProperties", Map.class).invoke(config, properties);
     }
 
-    /** Waits for a cumulative mailbox-delivery count, then checks the latest message body. */
+    /**
+     * Waits for a cumulative mailbox-delivery count and compares the latest decoded text body.
+     * For a single-recipient scenario use counts 1 and 2 across two batches on the same server.
+     * Attachments are skipped; the first non-attachment text MIME part is compared exactly.
+     * Custom multipart or multiple-recipient scenarios should inspect {@link #receivedMessages()}.
+     * @param deliveryCount total mailbox copies expected since server startup, not this batch's size
+     * @param expected expected decoded body, including whitespace
+     * @param timeout positive maximum wait; returns as soon as the expected count is available
+     * @throws AssertionError on timeout, unexpected count or different body
+     * @throws Exception if captured MIME content cannot be decoded
+     */
     public void assertBody(int deliveryCount, String expected, Duration timeout) throws Exception {
         if (deliveryCount < 1 || timeout.isNegative() || timeout.isZero())
             throw new IllegalArgumentException("Delivery count and timeout must be positive");
@@ -81,6 +110,7 @@ public final class LocalSmtpTestServer implements AutoCloseable {
         return null;
     }
 
+    /** Stops the owned server and releases its port. Repeated calls have no effect. */
     @Override public void close() {
         if (!closed) { closed = true; server.stop(); }
     }

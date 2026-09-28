@@ -14,10 +14,14 @@ class FtpInputFixtureTemplateTest {
     @Test void createsMatchingCompleteBatchFilesAndRejectsUnsafeOrStaleInputs() throws Exception {
         String template = Files.readString(Path.of("src/main/resources/studio/metapack/V3.3.9/templates/org/ikasan/studio/generator/ftpInputFixtureTemplate_en.ftl"));
         assertEquals(template, Files.readString(Path.of("src/main/resources/studio/metapack/V4.1.6/templates/org/ikasan/studio/generator/ftpInputFixtureTemplate_en.ftl")));
+        Path shared = root.resolve("FileInputFixture.java");
+        String sharedTemplate = Files.readString(Path.of("src/main/resources/studio/metapack/V3.3.9/templates/org/ikasan/studio/generator/fileInputFixtureTemplate_en.ftl"));
+        assertEquals(sharedTemplate, Files.readString(Path.of("src/main/resources/studio/metapack/V4.1.6/templates/org/ikasan/studio/generator/fileInputFixtureTemplate_en.ftl")));
+        Files.writeString(shared, sharedTemplate);
         Path source = root.resolve("FtpInputFixture.java");
         Files.writeString(source, template);
         Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
-                "--release", "11", "-d", root.toString(), source.toString()).redirectErrorStream(true).start();
+                "--release", "11", "-d", root.toString(), source.toString(), shared.toString()).redirectErrorStream(true).start();
         String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
         try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
@@ -55,9 +59,30 @@ class FtpInputFixtureTemplateTest {
                     () -> copy.invoke(null, home, "only.txt", "input/orders-2.csv"));
             assertTrue(mismatch.getCause().getMessage().contains("consumer pattern"));
             try (var paths = Files.list(root)) {
-                assertFalse(paths.anyMatch(path -> path.getFileName().toString().startsWith("ftp-input-")));
+                assertFalse(paths.anyMatch(path -> path.getFileName().toString().startsWith("file-input-")));
             }
             try (var files = Files.list(home)) { assertEquals(4, files.count()); }
+            Class<?> sharedType = loader.loadClass("org.ikasan.studio.flowtests.support.FileInputFixture");
+            var pattern = sharedType.getMethod("localFilenames", Path.class, String[].class);
+            var prepare = sharedType.getMethod("prepareLocalBatch", Path.class, int.class, String[].class);
+            Path localHome = Files.createDirectory(root.resolve("local"));
+            Files.writeString(resources.resolve("first[1].xml"), "first XML");
+            Files.writeString(resources.resolve("second.xml"), "second XML");
+            String[] paths = {"/input/first[1].xml", "/input/second.xml"};
+            String expression = (String) pattern.invoke(null, localHome, paths);
+            String filenameRegex = expression.substring(expression.lastIndexOf('/') + 1);
+            assertTrue(java.util.regex.Pattern.matches(filenameRegex, "first[1].xml"));
+            assertFalse(java.util.regex.Pattern.matches(filenameRegex, "first1.xml"));
+            Files.writeString(localHome.resolve("keep.txt"), "unrelated");
+            prepare.invoke(null, localHome, 1, paths);
+            assertEquals("first XML", Files.readString(localHome.resolve("first[1].xml")));
+            prepare.invoke(null, localHome, 2, paths);
+            assertFalse(Files.exists(localHome.resolve("first[1].xml")));
+            assertEquals("second XML", Files.readString(localHome.resolve("second.xml")));
+            assertTrue(Files.exists(localHome.resolve("keep.txt")));
+            assertThrows(InvocationTargetException.class, () -> prepare.invoke(null, localHome, 3, paths));
+            assertThrows(InvocationTargetException.class, () -> pattern.invoke(null, localHome,
+                    new String[]{"/one/same.txt", "/two/same.txt"}));
         }
     }
 }

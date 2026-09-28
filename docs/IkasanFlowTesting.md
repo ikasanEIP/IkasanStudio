@@ -502,11 +502,15 @@ including duplicates, without depending on delivery order. Comparisons preserve 
 failures show bounded context around a text difference rather than dumping large XML files.
 SFTP output must first be downloaded or made locally accessible; these helpers do not fetch it.
 
-For non-FTP inputs, inline text remains the default, with a commented alternative using
+For inputs other than FTP and local files, inline text remains the default, with a commented alternative using
 `readTestResource("/input/first.txt")`. This helper also lets custom assertions read an FTP
 input fixture as UTF-8 text. Classpath access works in IntelliJ, Maven and CI without absolute
-paths. Missing resources produce an actionable error. No placeholder data files are generated:
-choose meaningful input and expected output fixtures before setting `TEST_REVIEWED=true`.
+paths. Generation creates missing resource directories and `first.txt` / `second.txt` fixtures
+for resource-based inputs and file/email expected outputs. Their initial contents are
+`first expected payload` and `second expected payload`, without trailing newlines.
+Existing directories and files are preserved, including when regenerating a test.
+Replace sample contents with meaningful input and independent expected output fixtures before
+setting `TEST_REVIEWED=true`. Missing resources after changing paths produce an actionable error.
 Regenerate the affected tests, `ModuleFlowTestSupport`, `FtpInputFixture` and
 `FileDeliveryAssertions` together using archive-and-replace to adopt these defaults.
 
@@ -570,3 +574,46 @@ SMTP options selected, approve backups, supply the expected email-body resources
 `TEST_REVIEWED=true`. Choosing not to use the SMTP option preserves current settings; to disable
 an existing fixture, explicitly set `test.smtp.enabled=false` and provide external-server
 configuration and receiver assertions.
+
+### FTP input age and missing-output diagnostics
+
+Ikasan's bundled FTP consumer configurations default to a 120-second minimum file age.
+A test that copies a new file and fires one scan can therefore receive no output even when
+FTP and SMTP connections are healthy. The local test FTP fixture now configures consumers
+before flow startup using `test.ftp.consumer.min-age-seconds=0`. The generated properties file
+includes that setting and a comment. Existing properties files can omit it (zero is the helper's
+default); add it explicitly when changing the age for a deliberate age-filtering scenario.
+This affects only local test FTP consumers. Production configuration, filename matching and
+duplicate filtering remain unchanged. Complete inputs are staged outside the scanned directory
+before publication, so this does not expose partially copied fixture data.
+
+When no producer output arrives, the assertion reports the flow, producer, batch, timeout and
+flow state, with pointers to consumer filters and earlier endpoint errors. It no longer presents
+a missing observation as an actual null payload comparison.
+
+Reusable support APIs document ownership, input/output semantics, cumulative counts, timeout
+behaviour and failure cases in Javadoc. Business tests can use these helpers directly; callers
+starting fixtures themselves own their cleanup. Archive and regenerate shared support and
+`LocalFtpTestServer` together to adopt the minimum-age fix; regeneration now offers the shared
+helper files for backup as well. Existing business scenario edits and resources need not change.
+
+### Local-file consumer resources
+
+Local-file consumers now default to the same resource-based input convention as FTP consumers:
+`FIRST_BATCH_INPUT_FILENAME` and `SECOND_BATCH_INPUT_FILENAME` resolve to
+`/<flow name>/<consumer name>/first.txt` and `second.txt`, with spaces replaced by underscores.
+For Flow4 these are `/flow4/my_local_consumer/first.txt` and `second.txt`, relative to
+`user-flow-tests/src/test/resources`. Change the paths for XML or other fixture formats.
+
+`FileInputFixture.localFilenames` overrides the test consumer's filenames to select exactly
+those two basenames in its JUnit temporary directory. It quotes regex characters in filenames.
+`prepareLocalBatch` copies the chosen classpath file without converting its bytes to text,
+stages outside the scanned directory, and removes only named batch fixtures before the next scan.
+It rejects duplicate basenames; unrelated files are left alone. The application/model filename
+configuration remains unchanged. JUnit reports a failure if temporary-directory cleanup fails.
+The same streaming implementation backs FTP resource copying; FTP's configured filename pattern
+is still validated. Inline text helpers remain available for custom tests.
+
+Regenerate the affected tests and shared helpers, including `FileInputFixture` and
+`FtpInputFixture`, to adopt these defaults. Existing business test sources and resource files
+are not silently overwritten.

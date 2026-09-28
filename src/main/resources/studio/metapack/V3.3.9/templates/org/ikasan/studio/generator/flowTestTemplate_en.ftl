@@ -19,12 +19,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 import java.util.Map;
 </#if>
 <#if isolatedFiles>
+import org.ikasan.studio.flowtests.support.FileInputFixture;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 </#if>
 
 /**
@@ -45,10 +43,13 @@ public class ${className} extends ModuleFlowTestSupport {
     private static final String FLOW_NAME = "${flowName?j_string}";
     @Override protected String getFlowName() { return FLOW_NAME; }
 
+<#if ftpInput || isolatedFiles>
+    // TODO 2: Review the sample input files under user-flow-tests/src/test/resources (or change the paths).
+    // Each resource is copied unchanged to the JUnit test input directory using only its filename.
+    // Use distinct filenames; the test directory is configured automatically.
 <#if ftpInput>
-    // TODO 2: Add these files under user-flow-tests/src/test/resources (or change the paths).
-    // Each resource is copied unchanged to the test FTP directory using only its filename.
-    // Use distinct filenames matching the consumer's filenamePattern; no filename properties are needed.
+    // Filenames must match the FTP consumer's filenamePattern.
+</#if>
     private static final String CONSUMER_NAME = "${consumerName?j_string}";
     // Resource directory names replace spaces with underscores; runtime names remain unchanged.
     private static final String FIRST_BATCH_INPUT_FILENAME = "/" + noSpaces(FLOW_NAME)
@@ -66,8 +67,6 @@ public class ${className} extends ModuleFlowTestSupport {
     // private static final String FIRST_BATCH_INPUT = readTestResource("/input/first.txt");
     // private static final String SECOND_BATCH_INPUT = readTestResource("/input/second.txt");
     // Paths are relative to src/test/resources, not your working directory. Whitespace is preserved.
-
-
 </#if>
 
     // TODO 3: Confirm this is the producer to observe, then set the expected payloads below.
@@ -84,7 +83,7 @@ public class ${className} extends ModuleFlowTestSupport {
     private static final boolean STRINGIFY_ACTUAL_OUTPUT = true;
 
 <#if fileDelivery || smtpDelivery>
-    // Add independent expected UTF-8 output files under src/test/resources/<flow>/<producer>/.
+    // Review the sample expected UTF-8 output files under src/test/resources/<flow>/<producer>/.
     // Replace spaces in the directory names with underscores, as for input resources.
     // These resource names do not dictate the producer's delivered filenames.
     private static final String FIRST_EXPECTED_OUTPUT_RESOURCE = "/" + noSpaces(FLOW_NAME)
@@ -101,7 +100,7 @@ public class ${className} extends ModuleFlowTestSupport {
 
 <#if isolatedFiles>
     @Rule
-    public TemporaryFolder inputDirectory = new TemporaryFolder();
+    public TemporaryFolder inputDirectory = TemporaryFolder.builder().assureDeletion().build();
 </#if>
 
     // TODO 1: Review shared connections in src/test/resources/module-test.properties.
@@ -161,7 +160,8 @@ public class ${className} extends ModuleFlowTestSupport {
 <#if isolatedFiles>
         // JUnit creates and cleans this temporary input directory. No changes are needed here.
         properties.put("${filenameKey?j_string}",
-                inputDirectory.getRoot().getAbsolutePath().replace('\\', '/') + "/batch-.*[.]txt");
+                FileInputFixture.localFilenames(inputDirectory.getRoot().toPath(),
+                        FIRST_BATCH_INPUT_FILENAME, SECOND_BATCH_INPUT_FILENAME));
 <#elseif localFile>
         // Set this consumer's filenames in Studio and regenerate so a temporary directory can be supplied.
         throw new UnsupportedOperationException("Configure isolated filenames before running this test");
@@ -190,14 +190,9 @@ public class ${className} extends ModuleFlowTestSupport {
         context.getBean(${sampleConsumerClass}.class)
                 .submitNow(batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT);
 <#elseif isolatedFiles>
-        // File creation and scanning are supplied for you. Replace these sample contents with your input.
-        // Each scan should see only this batch's file; earlier test files are removed before batch 2.
-        try (DirectoryStream<Path> previous =
-                     Files.newDirectoryStream(inputDirectory.getRoot().toPath(), "batch-*.txt")) {
-            for (Path file : previous) Files.delete(file);
-        }
-        String contents = batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT;
-        Files.writeString(inputDirectory.getRoot().toPath().resolve("batch-" + batch + ".txt"), contents);
+        // Copy the resource's original bytes using its basename; remove only earlier batch fixtures.
+        FileInputFixture.prepareLocalBatch(inputDirectory.getRoot().toPath(), batch,
+                FIRST_BATCH_INPUT_FILENAME, SECOND_BATCH_INPUT_FILENAME);
         harness.fireScheduledConsumer();
 <#elseif scheduled>
         // Create the files/provider data here BEFORE firing. Scanning does not create input.

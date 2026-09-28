@@ -95,12 +95,23 @@ public abstract class ModuleFlowTestSupport {
         return properties;
     }
 
-    /** Replaces spaces with underscores for resource paths, without changing runtime component names. */
+    /**
+     * Replaces literal spaces with underscores in a resource-directory segment.
+     * Does not change runtime names, trim text or sanitise other filesystem characters.
+     * @param name non-null flow/component name
+     * @return the name with spaces replaced
+     */
     protected static String noSpaces(String name) {
         return name.replace(' ', '_');
     }
 
-    /** Loads exact UTF-8 fixture text from src/test/resources, independent of the working directory. */
+    /**
+     * Reads a classpath fixture as UTF-8 text, preserving whitespace and line endings.
+     * @param resourcePath path relative to {@code src/test/resources}; leading slash optional
+     * @return the complete fixture text, suitable for expected business payloads
+     * @throws IllegalArgumentException if the resource does not exist
+     * @throws UncheckedIOException if reading fails
+     */
     protected static String readTestResource(String resourcePath) {
         String path = resourcePath.startsWith("/") ? resourcePath : "/" + resourcePath;
         try (InputStream input = ModuleFlowTestSupport.class.getResourceAsStream(path)) {
@@ -169,6 +180,15 @@ public abstract class ModuleFlowTestSupport {
             String[] arguments = properties.entrySet().stream()
                     .map(entry -> "--" + entry.getKey() + "=" + entry.getValue()).toArray(String[]::new);
             startedContext = application.run(arguments);
+            if (ftp != null) {
+                Module<Flow> module = startedContext.getBean(Module.class);
+<#list ftpEndpoints as endpoint>
+<#if endpoint.consumer == "true">
+                ftp.configureConsumer(module.getFlow("${endpoint.flow?j_string}")
+                        .getFlowElement("${endpoint.component?j_string}").getFlowComponent(), properties);
+</#if>
+</#list>
+            }
             if (smtp != null) {
                 Module<Flow> module = startedContext.getBean(Module.class);
 <#list smtpEndpoints as endpoint>
@@ -184,15 +204,22 @@ public abstract class ModuleFlowTestSupport {
             throw failure;
         }
     }
+    /** Override to add scenario-specific Spring configuration classes to each fresh application. */
     protected Class<?>[] testConfigurationClasses() { return new Class<?>[0]; }
 
     // Defaults preserve older developer-owned tests that use verifyFlow/verifyScenario directly.
+    /** Returns the exact model flow name, including spaces; resource-path normalisation does not apply here. */
     protected String getFlowName() {
         throw new UnsupportedOperationException("Override getFlowName() before using runTest()");
     }
+    /**
+     * Defines component invocation expectations before flow startup, including both input batches.
+     * This checks the journey only; use {@link #verifyReceivedOutput} for actual receiver delivery.
+     */
     protected void defineExpectedPath(IkasanFlowTestRule harness) {
         throw new UnsupportedOperationException("Define the expected component path");
     }
+    /** Override to extract stable business content from the observed producer payload. */
     protected String outputText(Object payload) { return String.valueOf(payload); }
 
     /** Explicit content conversion; false retains the original String.valueOf behaviour. */
@@ -205,10 +232,12 @@ public abstract class ModuleFlowTestSupport {
         }
     }
 
+    /** Business scenario executed within one owned application context; exceptions fail the test. */
     @FunctionalInterface
     protected interface TestScenario {
         void run(ConfigurableApplicationContext context) throws Exception;
     }
+    /** Supplies batch 1 or 2 through the real consumer using the same context and test rule. */
     @FunctionalInterface
     protected interface ContextBatchInput {
         void send(ConfigurableApplicationContext context,
@@ -223,13 +252,29 @@ public abstract class ModuleFlowTestSupport {
         }
     }
 
-    /** Supplies batch 1 or 2 through the real consumer; override in the concrete test. */
+    /**
+     * Supplies batch 1 or 2 through the real consumer; override in the concrete test.
+     * Called after startup on the same flow for both batches. Scheduled inputs must be fully
+     * prepared before firing the consumer; do not restart the flow or reset application beans.
+     * @param context current scenario's application context
+     * @param harness rule attached to the already-running flow
+     * @param batch one-based batch number (1 or 2)
+     * @throws Exception if fixture preparation or sending fails
+     */
     protected void supplyInput(ConfigurableApplicationContext context, IkasanFlowTestRule harness,
                                int batch) throws Exception {
         throw new UnsupportedOperationException("Override supplyInput() to provide test data");
     }
 
-    /** Optional receiver-side assertion, called after the producer sees each expected payload. */
+    /**
+     * Optional business delivery assertion after the selected producer completes and its payload matches.
+     * Override to inspect physical files, captured mail, broker messages or downstream state.
+     * The default does nothing: component invocation alone does not prove receiver delivery.
+     * @param context current scenario's application context
+     * @param batch completed batch number (1 or 2)
+     * @param expected expected text for this batch, not cumulative previous batches
+     * @throws Exception if receiver access or verification fails
+     */
     protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch,
                                         String expected) throws Exception { }
 
@@ -289,6 +334,7 @@ public abstract class ModuleFlowTestSupport {
         return context.getBean(LocalSmtpTestServer.class);
     }
 
+    /** Returns the context's positive {@code test.delivery.timeout-seconds}, defaulting to ten seconds. */
     protected final Duration deliveryTimeout(ConfigurableApplicationContext context) {
         return Duration.ofSeconds(deliveryTimeoutSeconds(context.getEnvironment()
                 .getProperty("test.delivery.timeout-seconds", "10")));
@@ -304,7 +350,13 @@ public abstract class ModuleFlowTestSupport {
         FileDeliveryAssertions.assertDeliveredFileContents(directory, glob, List.of(expected), Duration.ofSeconds(deliveryTimeoutSeconds));
     }
 
-    /** Compares a delivered file with an independent UTF-8 classpath fixture, preserving whitespace. */
+    /**
+     * Compares a physical file with an independent UTF-8 classpath fixture using the shared timeout.
+     * @param file local delivered file; resource basenames do not dictate this filename
+     * @param resource expected-content path relative to {@code src/test/resources}
+     * @throws Exception if the resource cannot be read or delivery cannot be inspected
+     * @throws AssertionError if the delivered file does not match before the deadline
+     */
     protected final void assertFileMatchesResource(Path file, String resource) throws Exception {
         String expected = readTestResource(resource);
         try { assertFileContents(file, expected); }
@@ -313,7 +365,15 @@ public abstract class ModuleFlowTestSupport {
         }
     }
 
-    /** Checks delivered contents against resource fixtures; resource basenames do not constrain output names. */
+    /**
+     * Checks cumulative file count and contents against independent classpath fixtures.
+     * Resource basenames do not constrain delivered filenames; the glob selects final output files.
+     * @param directory fresh local output directory, or downloaded remote output
+     * @param glob final-file glob, for example {@code *.xml}
+     * @param resources expected UTF-8 resource paths; repeat entries for expected duplicate contents
+     * @throws Exception on resource or filesystem errors
+     * @throws AssertionError if count/contents differ after the shared timeout
+     */
     protected final void assertDeliveredFileResources(Path directory, String glob, String... resources) throws Exception {
         String[] expected = new String[resources.length];
         for (int i = 0; i < resources.length; i++) expected[i] = readTestResource(resources[i]);
@@ -405,6 +465,7 @@ public abstract class ModuleFlowTestSupport {
         assertEquals("Running after delivery", Flow.RUNNING, flow.getState());
     }
 
+    /** Sends one numbered batch using the running flow; must not restart or reset its consumer. */
     @FunctionalInterface
     protected interface BatchInput {
         void send(IkasanFlowTestRule harness, int batch) throws Exception;
@@ -418,6 +479,7 @@ public abstract class ModuleFlowTestSupport {
         verifyFlow(context, flowName, output, describeOutput, expectations, input, firstExpected, secondExpected, batch -> { });
     }
 
+    /** Receiver-side checks after each observed batch; throw an assertion failure on missing delivery. */
     @FunctionalInterface
     protected interface BatchVerification { void verify(int batch) throws Exception; }
 
@@ -434,9 +496,11 @@ public abstract class ModuleFlowTestSupport {
         verifyScenario(context, flowName, output, describeOutput, expectations, (harness, flow, outputs) -> {
             for (int batch = 1; batch <= 2; batch++) {
                 input.send(harness, batch);
-                assertEquals("Output for batch " + batch,
-                        batch == 1 ? firstExpected : secondExpected,
-                        awaitOutputText(outputs, deliveryTimeoutSeconds));
+                String actual = awaitOutputText(outputs, deliveryTimeoutSeconds);
+                assertNotNull("No output observed after producer '" + output + "' in flow '" + flowName
+                        + "' for batch " + batch + " within " + deliveryTimeoutSeconds + " seconds. Flow state: "
+                        + flow.getState() + ". Check earlier flow errors, consumer filename/minimum-age filters and endpoint connections.", actual);
+                assertEquals("Output for batch " + batch, batch == 1 ? firstExpected : secondExpected, actual);
                 receiverCheck.verify(batch);
                 assertEquals("Ready after delivery", Flow.RUNNING, flow.getState());
                 assertNull("No unexpected output while idle", awaitOutputText(outputs, 1));
@@ -445,6 +509,7 @@ public abstract class ModuleFlowTestSupport {
         });
     }
 
+    /** Custom scenario with a started flow and a queue of text observations after the selected producer. */
     @FunctionalInterface
     protected interface FlowScenario {
         void verify(IkasanFlowTestRule harness,

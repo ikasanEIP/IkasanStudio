@@ -71,3 +71,7 @@ studio.sample-consumer.${implementation}.fixture-input-enabled=true
 # Overrides mail endpoint connections in this test application; no email is forwarded.
 # Enable through Generate Flow Test or set true here. Uses test.delivery.timeout-seconds.
 test.smtp.enabled=false
+
+# Local test FTP consumer: accept complete fixture files immediately (production default is 120 seconds).
+# Non-negative seconds; use a positive value only when deliberately testing file-age filtering.
+test.ftp.consumer.min-age-seconds=0

@@ -57,6 +57,9 @@ public final class FlowTestScaffold {
             if (!component.getComponentMeta().supportsTestFtpServer()) continue;
             Map<String, String> endpoint = new LinkedHashMap<>();
             endpoint.put("name", moduleFlow.getIdentity() + " / " + component.getIdentity());
+            endpoint.put("flow", moduleFlow.getIdentity());
+            endpoint.put("component", component.getIdentity());
+            endpoint.put("consumer", Boolean.toString(component.getComponentMeta().isConsumer()));
             endpoint.put("secure", component.getPropertyValueAsString("ftps"));
             for (String name : java.util.List.of("remoteHost", "remotePort", "username", "password",
                     component.getComponentMeta().isProducer() ? "outputDirectory" : "sourceDirectory")) {
@@ -158,10 +161,19 @@ public final class FlowTestScaffold {
         values.put("applicationVersion", application.getVersion() == null ? parent.getVersion() : application.getVersion());
         String path = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/" + className + ".java";
         Map<String, String> files = new LinkedHashMap<>();
+        if (!observationOnly) {
+            if (ftpInput || isolatedFiles) addSampleResources(files, flow.getIdentity(), flow.getConsumer().getIdentity());
+            if (jmsOutputs.size() == 1 && (jmsOutputs.get(0).getComponentMeta().isFlowTestFileDelivery()
+                    || jmsOutputs.get(0).getComponentMeta().supportsTestMailServer())) {
+                addSampleResources(files, flow.getIdentity(), jmsOutputs.get(0).getIdentity());
+            }
+        }
         if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/ModuleJmsTestConfig.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleJmsTestConfigTemplate_en.ftl", values));
         if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/JmsFlowTestSupport.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "jmsFlowTestSupportTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileInputFixture.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "fileInputFixtureTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FtpInputFixture.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "ftpInputFixtureTemplate_en.ftl", values));
         files.put(TEST_PROPERTIES_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestPropertiesTemplate_en.ftl", values));
@@ -190,6 +202,7 @@ public final class FlowTestScaffold {
                 review component-path expectations, then enable and run. Set TEST_REVIEWED only after completing the first four tasks.
                 Configure shared test connections in src/test/resources/module-test.properties (UTF-8).
                 For plain FTP endpoints, set test.ftp.enabled=true to start a disposable loopback FTP server per test.
+                Local FTP consumers use test.ftp.consumer.min-age-seconds=0 so complete fixtures are immediately discoverable.
                 This overrides all module FTP connections and directories; inspect/seed context.getBean(LocalFtpTestServer.class).root().
                 Closing the context stops the server; JUnit then removes its temporary files after the test. SFTP/FTPS require separate services.
                 The Generate Flow Test dialog can enable local FTP and regenerate shared setup, archiving existing files.
@@ -224,6 +237,9 @@ public final class FlowTestScaffold {
                 It uses UTF-8, rejects unsupported types and never acknowledges/consumes JMS messages; override outputText for other formats.
                 Set it false to retain String.valueOf. Receiver delivery assertions remain separate.
                 FIRST_BATCH_INPUT and SECOND_BATCH_INPUT define scenario data independently of expected outputs.
+                Resource-based scenarios create missing first.txt and second.txt sample fixtures under src/test/resources/<flow>/<component>/.
+                Spaces in directory names become underscores. Existing files are preserved, including when regenerating tests.
+                Replace sample contents with meaningful input and independent expected outputs before enabling the test.
                 Shared assertFileContents / assertDeliveredFileContents wait for exact UTF-8 file delivery and contents.
                 Isolated FTP tests check all accumulated output files using localFtpDirectory(context): one new file per batch.
                 Adapt assertions for overwrites/checksums; unknown remote receiver locations retain explicit guards.
@@ -248,4 +264,17 @@ public final class FlowTestScaffold {
         }
         return new Scaffold(updated, path, java.util.Collections.unmodifiableMap(files));
     }
+    private static void addSampleResources(Map<String, String> files, String flowName, String componentName) {
+        // Match noSpaces() in the generated test without allowing names to escape their resource directory.
+        for (String name : java.util.List.of(flowName, componentName)) {
+            if (name.isBlank() || name.equals(".") || name.equals("..") || name.contains("/") || name.contains("\\")) {
+                throw new IllegalArgumentException("Test resource directory requires a flow/component name without path separators: " + name);
+            }
+        }
+        String directory = "user-flow-tests/src/test/resources/" + flowName.replace(' ', '_')
+                + "/" + componentName.replace(' ', '_') + "/";
+        files.put(directory + "first.txt", "first expected payload");
+        files.put(directory + "second.txt", "second expected payload");
+    }
+
 }
