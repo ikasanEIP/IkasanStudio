@@ -77,13 +77,14 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                 } catch (Exception ex) { failure.set(ex); }
             }, title, false, project);
             if (failure.get() != null) throw failure.get();
-            String prompt = StudioBundle.message(snapshot.get().equals("missing") ? "verification.create" : "verification.replace");
-            if (Messages.showYesNoDialog(project, prompt, title, Messages.getQuestionIcon()) != Messages.YES) return;
+            var dialog = new GeneratedVerificationDialog(project, !snapshot.get().equals("missing"));
+            if (!dialog.showAndGet()) return;
+            boolean archivePrevious = dialog.archivePrevious();
             ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
                 try {
                     if (!Files.readString(root.resolve(MigrationArtifacts.MODEL)).equals(model.get()))
                         throw new IllegalStateException(StudioBundle.message("message.TheModelChangedWhilePreparingMigration"));
-                    GeneratedVerificationFiles.write(root, parent.get(), snapshot.get(), bundle.get());
+                    GeneratedVerificationFiles.write(root, parent.get(), snapshot.get(), bundle.get(), archivePrevious);
                     var base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root);
                     if (base != null) base.refresh(false, true);
                 } catch (Exception ex) { failure.set(ex); }

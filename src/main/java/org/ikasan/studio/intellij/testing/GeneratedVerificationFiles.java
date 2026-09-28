@@ -6,7 +6,7 @@ import java.nio.file.*;
 import java.security.MessageDigest;
 import java.util.*;
 
-/** On-demand baseline writer. A refresh archives the entire previous bundle, never merges tests. */
+/** On-demand baseline writer. A refresh optionally archives the previous bundle and never merges Studio tests. */
 public final class GeneratedVerificationFiles {
     private GeneratedVerificationFiles() { }
 
@@ -29,6 +29,12 @@ public final class GeneratedVerificationFiles {
 
     public static Path write(Path project, String expectedPom, String expectedSnapshot,
                              GeneratedVerification.Bundle bundle) throws Exception {
+        return write(project, expectedPom, expectedSnapshot, bundle, true);
+    }
+
+    /** Archive is optional; a temporary rollback copy protects failed updates in either mode. */
+    public static Path write(Path project, String expectedPom, String expectedSnapshot,
+                             GeneratedVerification.Bundle bundle, boolean archivePrevious) throws Exception {
         Path directory = project.resolve(GeneratedVerification.DIRECTORY);
         Path pom = project.resolve("pom.xml");
         Path applicationPom = project.resolve("generated/pom.xml");
@@ -39,6 +45,7 @@ public final class GeneratedVerificationFiles {
         Path stage = Files.createTempDirectory(project, ".verification-");
         Path backup = null;
         boolean installed = false;
+        boolean completed = false;
         try {
             // Preserve unrelated tests. The archive retains corrections in Studio's own package too.
             if (Files.exists(directory)) {
@@ -62,10 +69,11 @@ public final class GeneratedVerificationFiles {
             if (!Files.readString(pom).equals(expectedPom) || !Files.readString(applicationPom).equals(bundle.originalApplicationPom())
                     || !snapshot(directory).equals(expectedSnapshot))
                 throw new IOException("Project or verification files changed; generate again");
-            ensureBackupIgnoreRule(project);
+            if (archivePrevious) ensureBackupIgnoreRule(project);
             if (Files.exists(directory)) {
-                backup = directory.resolveSibling("test.bak"
-                        + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")) + "-" + UUID.randomUUID());
+                backup = directory.resolveSibling(archivePrevious
+                        ? "test.bak" + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")) + "-" + UUID.randomUUID()
+                        : ".verification-previous-" + UUID.randomUUID());
                 Files.move(directory, backup, StandardCopyOption.ATOMIC_MOVE);
             }
             Files.createDirectories(directory.getParent());
@@ -77,7 +85,8 @@ public final class GeneratedVerificationFiles {
                 Files.writeString(newPom, bundle.rootPom());
                 Files.move(newPom, pom, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             } finally { Files.deleteIfExists(newPom); }
-            return backup;
+            completed = true;
+            return archivePrevious ? backup : null;
         } catch (Exception failure) {
             try {
                 if (installed) {
@@ -89,11 +98,15 @@ public final class GeneratedVerificationFiles {
             } catch (Exception restore) { failure.addSuppressed(restore); }
             throw failure;
         } finally {
-            if (Files.exists(stage)) {
-                try (var paths = Files.walk(stage)) {
-                    for (Path file : paths.sorted(Comparator.reverseOrder()).toList()) Files.deleteIfExists(file);
-                }
-            }
+            deleteTree(stage);
+            if (completed && !archivePrevious && backup != null) deleteTree(backup);
+        }
+    }
+
+    private static void deleteTree(Path directory) throws IOException {
+        if (!Files.exists(directory)) return;
+        try (var paths = Files.walk(directory)) {
+            for (Path file : paths.sorted(Comparator.reverseOrder()).toList()) Files.deleteIfExists(file);
         }
     }
 

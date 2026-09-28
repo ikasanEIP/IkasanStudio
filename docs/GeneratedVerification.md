@@ -46,9 +46,12 @@ Running tests or migrating does not update it; explicit test regeneration does. 
 but assertions stay unchanged. Formatting-only model changes also affect this fingerprint.
 There is no editor stale-status indicator in this first increment.
 
-Refreshing requires explicit confirmation and archives the entire previous `generated/src/test` tree to
+Refreshing opens a confirmation dialog with **Archive existing tests** unchecked by default.
+Select it to archive the entire previous `generated/src/test` tree to
 `generated/src/test.bak<timestamp>-<unique-id>` before replacing Studio’s verification package and metadata. Unrelated tests remain in place. Temporary developer
-corrections are preserved in that archive. Generation adds `/generated/src/test.bak*/` to the
+corrections are preserved in that archive. Leave the checkbox unchecked to regenerate without retaining a backup;
+corrections in Studio’s verification package are then replaced. Unrelated tests remain in either mode,
+and a failed update restores the previous files. When archiving, generation adds `/generated/src/test.bak*/` to the
 project root `.gitignore` so these backups and their contents stay out of version control. No checksum-based merging is attempted. Generation
 refuses to replace sources changed after the confirmation snapshot.
 
