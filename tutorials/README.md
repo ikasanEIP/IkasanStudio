@@ -4,6 +4,8 @@
 
 Start with the videos below, or jump to the topic you need. Durations are shown as minutes:seconds.
 
+### Ikasan Module Developer Focused
+
 1. **Setting up a project** — 1:02  
    Included for completeness; skip this if you already have an Ikasan Studio project.  
    [Watch: Setting up a project](shorts-creatingNewProject.mp4)
@@ -23,5 +25,13 @@ Start with the videos below, or jump to the topic you need. Durations are shown 
 6. **Use AI to generate and test a module** — 6:37  
    [Watch: Use AI to generate and test a module](Demo-AIAgentImplemenStatementOfWork.mp4)
 
-7. **Deep dive into setting up AI in MCP and non-MCP modes** — 6:12
-   [Watch: Use AI to generate and test a module](HowItWorks-AIAgentOverviewAndConfiguration.mp4)
+7. **Bug hunting, using event generators, debug components and fow control** — 5:55
+   [Watch: Bug hunting, using event generators, debug components and fow control](TrackingBugs-HarnessesEventGeneratorDebugFlowControl.mp4)
+
+### Ikasan Studio Contributor Focused
+
+1. **Migration testing for Meta-Pack developers** — 6:12
+   [Watch: Migration testing for Meta-Pack developers](StudioDeveloperMigrationTesting.mp4)
+
+2. **Deep dive into setting up AI in MCP and non-MCP modes** — 6:12
+   [Watch: Deep dive into setting up AI in MCP and non-MCP modes](HowItWorks-AIAgentOverviewAndConfiguration.mp4)
