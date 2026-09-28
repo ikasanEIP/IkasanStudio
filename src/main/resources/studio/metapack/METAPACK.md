@@ -195,8 +195,8 @@ A producer may declare `flowTestFileDelivery: true` when its observable outcome 
 files. For a single such producer, the scenario template emits a receiver-check outline using
 shared `assertFileContents` / `assertDeliveredFileContents` helpers. FTP and SFTP declare this
 capability; the generator does not select it by component name or implementing class. The
-existing `supportsTestFtpServer` capability selects the isolated FTP directory example.
-The developer must supply the final filename/pattern, receiver directory and expected text;
+`supportsTestFtpServer` and `supportsTestSftpServer` capabilities select local server directory assertions.
+The developer reviews expected text and filename patterns; custom external servers also need a receiver directory;
 local-file consumers alone do not imply file output. These checks read UTF-8 files visible to
 the test JVM; they do not implement remote FTP/SFTP access or binary comparison.
 
@@ -242,3 +242,16 @@ Keep the GreenMail dependency in `flowTestPomTemplate_en.ftl` aligned with the e
 API, independently of JMS namespace changes. Both currently bundled email endpoints use Javax
 Mail. The fixture must bind loopback, allocate its port, never forward messages, and close with
 the test application or after startup failure.
+
+
+#### SFTP flow-test fixtures
+
+`supportsTestSftpServer` opts consumers/producers into the local SFTP generation choice.
+The pack's helper configures the actual endpoint before flow startup; Ikasan builder proxies and producers
+expose the SFTP configuration through `getConfiguration()`.
+The configuration contract includes remote host/port, credentials, private key/passphrase,
+known-hosts filename, preferred key exchange and source/output directory setters. Consumer
+configuration also exposes `setMinAge(Long)`. `filenamePattern` and its externalised property
+label supply input filtering. The core generator selects these behaviours by capability,
+not component class name. Each endpoint gets a separate JUnit-owned server directory.
+Keep helper APIs and SSHD dependencies aligned with the pack's Java/Ikasan baseline.

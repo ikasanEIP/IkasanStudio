@@ -17,6 +17,10 @@ final class FlowTestDialog extends DialogWrapper {
     private final ComboBox<String> flows;
     private final com.intellij.ui.components.JBCheckBox regenerateSupport = new com.intellij.ui.components.JBCheckBox(
             StudioBundle.message("flowTest.regenerateSupport"), false);
+    private final java.util.Set<String> sftpFlows;
+    private final com.intellij.ui.components.JBCheckBox localSftp = new com.intellij.ui.components.JBCheckBox(
+            StudioBundle.message("flowTest.localSftp"), true);
+    boolean useLocalSftp() { return localSftp.isEnabled() && localSftp.isSelected(); }
     private final java.util.Set<String> ftpFlows;
     private final com.intellij.ui.components.JBCheckBox localFtp = new com.intellij.ui.components.JBCheckBox(
             StudioBundle.message("flowTest.localFtp"), true);
@@ -25,22 +29,28 @@ final class FlowTestDialog extends DialogWrapper {
             StudioBundle.message("flowTest.localSmtp"), true);
     boolean useLocalSmtp() { return localSmtp.isEnabled() && localSmtp.isSelected(); }
     boolean useLocalFtp() { return localFtp.isEnabled() && localFtp.isSelected(); }
-    boolean regenerateSupport() { return regenerateSupport.isSelected() || useLocalFtp() || useLocalSmtp(); }
+    boolean regenerateSupport() { return regenerateSupport.isSelected() || useLocalFtp() || useLocalSmtp() || useLocalSftp(); }
 
 
-    FlowTestDialog(Project project, String[] names, String selected, java.util.Set<String> ftpFlows, java.util.Set<String> smtpFlows) {
+    FlowTestDialog(Project project, String[] names, String selected, java.util.Set<String> ftpFlows, java.util.Set<String> smtpFlows, java.util.Set<String> sftpFlows) {
         super(project);
+        this.sftpFlows = java.util.Set.copyOf(sftpFlows);
+        localSftp.setToolTipText(StudioBundle.message("flowTest.localSftp.help"));
+        localSftp.addActionListener(e -> {
+            if (useLocalFtp() || useLocalSmtp() || useLocalSftp()) regenerateSupport.setSelected(true);
+            regenerateSupport.setEnabled(!(useLocalFtp() || useLocalSmtp() || useLocalSftp()));
+        });
         this.smtpFlows = java.util.Set.copyOf(smtpFlows);
         this.ftpFlows = java.util.Set.copyOf(ftpFlows);
         localSmtp.setToolTipText(StudioBundle.message("flowTest.localSmtp.help"));
         localSmtp.addActionListener(e -> {
-            if (useLocalFtp() || useLocalSmtp()) regenerateSupport.setSelected(true);
-            regenerateSupport.setEnabled(!(useLocalFtp() || useLocalSmtp()));
+            if (useLocalFtp() || useLocalSmtp() || useLocalSftp()) regenerateSupport.setSelected(true);
+            regenerateSupport.setEnabled(!(useLocalFtp() || useLocalSmtp() || useLocalSftp()));
         });
         localFtp.setToolTipText(StudioBundle.message("flowTest.localFtp.help"));
         localFtp.addActionListener(e -> {
-            if (useLocalFtp() || useLocalSmtp()) regenerateSupport.setSelected(true);
-            regenerateSupport.setEnabled(!(useLocalFtp() || useLocalSmtp()));
+            if (useLocalFtp() || useLocalSmtp() || useLocalSftp()) regenerateSupport.setSelected(true);
+            regenerateSupport.setEnabled(!(useLocalFtp() || useLocalSmtp() || useLocalSftp()));
         });
         flows = new ComboBox<>(names);
         if (selected != null) flows.setSelectedItem(selected);
@@ -52,9 +62,10 @@ final class FlowTestDialog extends DialogWrapper {
     }
     private void updateFixtureSelection() {
         localSmtp.setEnabled(smtpFlows.contains(selectedFlow()));
+        localSftp.setEnabled(sftpFlows.contains(selectedFlow()));
         localFtp.setEnabled(ftpFlows.contains(selectedFlow()));
-        if (useLocalFtp() || useLocalSmtp()) regenerateSupport.setSelected(true);
-        regenerateSupport.setEnabled(!(useLocalFtp() || useLocalSmtp()));
+        if (useLocalFtp() || useLocalSmtp() || useLocalSftp()) regenerateSupport.setSelected(true);
+        regenerateSupport.setEnabled(!(useLocalFtp() || useLocalSmtp() || useLocalSftp()));
     }
     @Override protected JComponent createCenterPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(12)));
@@ -68,6 +79,7 @@ final class FlowTestDialog extends DialogWrapper {
         panel.add(choice, BorderLayout.CENTER);
         JPanel options = new JPanel();
         options.setLayout(new BoxLayout(options, BoxLayout.Y_AXIS));
+        if (!sftpFlows.isEmpty()) options.add(localSftp);
         if (!ftpFlows.isEmpty()) options.add(localFtp);
         if (!smtpFlows.isEmpty()) options.add(localSmtp);
         options.add(regenerateSupport);

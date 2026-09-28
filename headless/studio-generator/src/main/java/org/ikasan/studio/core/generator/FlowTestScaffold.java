@@ -79,6 +79,14 @@ public final class FlowTestScaffold {
             }
         }
         values.put("smtpEndpoints", smtpEndpoints);
+        java.util.List<Map<String, String>> sftpEndpoints = new java.util.ArrayList<>();
+        for (var moduleFlow : module.getFlows()) for (var component : moduleFlow.getFlowElementsNoExternalEndPoints()) {
+            if (component.getComponentMeta().supportsTestSftpServer()) {
+                sftpEndpoints.add(Map.of("flow", moduleFlow.getIdentity(), "component", component.getIdentity(),
+                        "consumer", Boolean.toString(component.getComponentMeta().isConsumer())));
+            }
+        }
+        values.put("sftpEndpoints", sftpEndpoints);
         values.put("modulePropertyKeys", propertyKeys);
         values.put("flowNames", module.getFlows().stream().map(Flow::getIdentity).toList());
         values.put("consumerName", flow.getConsumer().getIdentity());
@@ -126,6 +134,7 @@ public final class FlowTestScaffold {
         var jmsOutputs = flow.getFlowElementsNoExternalEndPoints().stream().filter(e -> e.getComponentMeta().isProducer()).toList();
         values.put("fileDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().isFlowTestFileDelivery());
         values.put("smtpDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().supportsTestMailServer());
+        values.put("sftpFileDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().supportsTestSftpServer());
         values.put("ftpFileDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().supportsTestFtpServer());
         String jmsOutputKey = "";
         if (jmsOutputs.size() == 1) {
@@ -147,6 +156,12 @@ public final class FlowTestScaffold {
         boolean ftpInput = flow.getConsumer().getComponentMeta().supportsTestFtpServer()
                 && patternProperty != null && !patternProperty.valueNotSet()
                 && patternProperty.getMeta().getPropertyConfigFileLabel() != null;
+        boolean sftpInput = flow.getConsumer().getComponentMeta().supportsTestSftpServer()
+                && patternProperty != null && !patternProperty.valueNotSet()
+                && patternProperty.getMeta().getPropertyConfigFileLabel() != null;
+        values.put("sftpInput", sftpInput);
+        values.put("sftpInputPatternKey", sftpInput ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
+                module, flow, flow.getConsumer(), patternProperty.getMeta().getPropertyConfigFileLabel()) : "");
         values.put("ftpInput", ftpInput);
         values.put("ftpInputPatternKey", ftpInput ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
                 module, flow, flow.getConsumer(), patternProperty.getMeta().getPropertyConfigFileLabel()) : "");
@@ -162,7 +177,7 @@ public final class FlowTestScaffold {
         String path = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/" + className + ".java";
         Map<String, String> files = new LinkedHashMap<>();
         if (!observationOnly) {
-            if (ftpInput || isolatedFiles) addSampleResources(files, flow.getIdentity(), flow.getConsumer().getIdentity());
+            if (ftpInput || sftpInput || isolatedFiles) addSampleResources(files, flow.getIdentity(), flow.getConsumer().getIdentity());
             if (jmsOutputs.size() == 1 && (jmsOutputs.get(0).getComponentMeta().isFlowTestFileDelivery()
                     || jmsOutputs.get(0).getComponentMeta().supportsTestMailServer())) {
                 addSampleResources(files, flow.getIdentity(), jmsOutputs.get(0).getIdentity());
@@ -176,6 +191,8 @@ public final class FlowTestScaffold {
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "fileInputFixtureTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FtpInputFixture.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "ftpInputFixtureTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSftpTestServer.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localSftpTestServerTemplate_en.ftl", values));
         files.put(TEST_PROPERTIES_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestPropertiesTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localFtpTestServerTemplate_en.ftl", values));
@@ -204,14 +221,19 @@ public final class FlowTestScaffold {
                 For plain FTP endpoints, set test.ftp.enabled=true to start a disposable loopback FTP server per test.
                 Local FTP consumers use test.ftp.consumer.min-age-seconds=0 so complete fixtures are immediately discoverable.
                 This overrides all module FTP connections and directories; inspect/seed context.getBean(LocalFtpTestServer.class).root().
-                Closing the context stops the server; JUnit then removes its temporary files after the test. SFTP/FTPS require separate services.
+                Closing the context stops the server; JUnit then removes its temporary files after the test. FTPS requires a separate service.
                 The Generate Flow Test dialog can enable local FTP and regenerate shared setup, archiving existing files.
                 Unchecked leaves settings unchanged. Selecting FTP preserves unrelated properties and custom credentials.
+                For SFTP endpoints, select the local test SFTP option or set test.sftp.enabled=true.
+                This starts an embedded SSH server with a generated trusted host key and separate temporary endpoint directories.
+                No installed SSH service or Docker is needed. test.sftp.consumer.min-age-seconds defaults to zero.
+                localSftpDirectory(context, flowName, componentName) exposes each endpoint directory for input/delivery assertions.
                 For email endpoints, the local SMTP option enables test.smtp.enabled=true and a fresh embedded inbox.
                 verifyReceivedOutput checks real SMTP delivery against expected email-body resources.
                 Review multiple-recipient/attachment assertions using localSmtpServer(context).receivedMessages().
                 SMTP configuration overrides affect only the test application's mail producers; mail is never forwarded.
-                Existing shared setup and email helpers require archive-and-regenerate when enabling this option.
+                Skip Existing preserves existing support and still creates missing flow tests and resources.
+                Archive and regenerate shared setup/helpers when adopting APIs or endpoint mappings they do not yet contain.
                 Missing GreenMail and FTP/MINA dependencies are added to an existing test POM with a backup; other contents are preserved.
                 ModuleFlowTestSupport.java loads that file and enforces isolated H2 and test-only startup settings.
                 Missing sample-consumer fixture-input defaults are added with a backup; explicit values are preserved.

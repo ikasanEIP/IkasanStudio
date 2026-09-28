@@ -9,6 +9,9 @@
     <dependency><groupId>org.apache.ftpserver</groupId><artifactId>ftpserver-core</artifactId><version>1.2.1</version><scope>test</scope></dependency>
     <dependency><groupId>org.apache.mina</groupId><artifactId>mina-core</artifactId><version>2.2.9</version><scope>test</scope></dependency>
     <dependency><groupId>com.icegreen</groupId><artifactId>greenmail</artifactId><version>1.6.15</version><scope>test</scope></dependency>
+    <dependency><groupId>org.apache.sshd</groupId><artifactId>sshd-sftp</artifactId><version>2.19.0</version><scope>test</scope></dependency>
+    <dependency><groupId>org.apache.sshd</groupId><artifactId>sshd-core</artifactId><version>2.19.0</version><scope>test</scope></dependency>
+    <dependency><groupId>org.apache.sshd</groupId><artifactId>sshd-common</artifactId><version>2.19.0</version><scope>test</scope></dependency>
   </dependencies>
   <build><plugins><plugin>
     <groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.2.5</version>

@@ -122,24 +122,31 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                     .filter(flow -> flow.getFlowElementsNoExternalEndPoints().stream()
                             .anyMatch(element -> element.getComponentMeta().supportsTestMailServer()))
                     .map(Flow::getIdentity).collect(java.util.stream.Collectors.toSet());
+            java.util.Set<String> sftpFlows = live.getFlows().stream()
+                    .filter(flow -> flow.getFlowElementsNoExternalEndPoints().stream()
+                            .anyMatch(element -> element.getComponentMeta().supportsTestSftpServer()))
+                    .map(Flow::getIdentity).collect(java.util.stream.Collectors.toSet());
+            boolean useLocalSftp;
             List<String> choices;
             boolean useLocalSmtp;
             boolean useLocalFtp;
             boolean regenerateSupport;
             if (multiple) {
-                FlowTestsDialog dialog = new FlowTestsDialog(project, flows, ftpFlows, smtpFlows);
+                FlowTestsDialog dialog = new FlowTestsDialog(project, flows, ftpFlows, smtpFlows, sftpFlows);
                 if (!dialog.showAndGet()) return;
                 choices = dialog.selectedFlows();
                 regenerateSupport = dialog.regenerateSupport();
                 useLocalFtp = dialog.useLocalFtp();
                 useLocalSmtp = dialog.useLocalSmtp();
+                useLocalSftp = dialog.useLocalSftp();
             } else {
-                FlowTestDialog dialog = new FlowTestDialog(project, flows, selectedFlow, ftpFlows, smtpFlows);
+                FlowTestDialog dialog = new FlowTestDialog(project, flows, selectedFlow, ftpFlows, smtpFlows, sftpFlows);
                 if (!dialog.showAndGet()) return;
                 choices = List.of(dialog.selectedFlow());
                 regenerateSupport = dialog.regenerateSupport();
                 useLocalFtp = dialog.useLocalFtp();
                 useLocalSmtp = dialog.useLocalSmtp();
+                useLocalSftp = dialog.useLocalSftp();
             }
             if (choices.isEmpty()) return;
             boolean batchWrite = multiple || regenerateSupport;
@@ -197,7 +204,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                         }
                         if (regenerateSupport) {
                             var first = scaffolds.get(0);
-                            for (String helper : List.of("OutputTextSupport", "LocalSmtpTestServer", "LocalFtpTestServer",
+                            for (String helper : List.of("OutputTextSupport", "LocalSmtpTestServer", "LocalFtpTestServer", "LocalSftpTestServer",
                                     "FtpInputFixture", "FileInputFixture", "FileDeliveryAssertions")) {
                                 String helperPath = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/" + helper + ".java";
                                 scaffolds.add(new FlowTestScaffold.Scaffold(first.rootPom(), helperPath,
@@ -208,20 +215,8 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                             throw new IllegalStateException(StudioBundle.message("message.TheModelChangedWhilePreparingMigration"));
                         }
                         if (batchWrite && !batchReviewed.get()) FlowTestFiles.checkExisting(root, scaffolds);
-                        List<String> requiredHelpers = new ArrayList<>();
-                        if (useLocalFtp || useLocalSmtp) requiredHelpers.add(FlowTestScaffold.SUPPORT_PATH);
-                        if (useLocalFtp) requiredHelpers.add("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java");
-                        if (useLocalSmtp) {
-                            requiredHelpers.add("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java");
-                            requiredHelpers.add("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java");
-                        }
-                        for (String helper : requiredHelpers) {
-                            if (Files.exists(root.resolve(helper)) && (batchApproval.get() == null
-                                    || batchApproval.get().stream().noneMatch(approved -> approved.path().equals(root.resolve(helper))))) {
-                                throw new IllegalStateException(StudioBundle.message(useLocalSmtp
-                                        ? "flowTest.localSmtp.regenerateRequired" : "flowTest.localFtp.regenerateRequired"));
-                            }
-                        }
+                        // Skip Existing is an explicit decision to retain developer-owned support.
+                        // The writer still creates missing scenarios, helpers and resources.
                         List<Path> tests = batchWrite ? (batchApproval.get() == null
                                 ? FlowTestFiles.writeAll(root, pom, scaffolds)
                                 : FlowTestFiles.archiveAndWriteAll(root, pom, scaffolds, batchApproval.get()))
@@ -230,6 +225,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                                         : FlowTestFiles.archiveAndWrite(root, pom, scaffolds.get(0), archiveApproval.get()));
                         created.set(tests);
                         if (tests.isEmpty()) return;
+                        if (useLocalSftp) FlowTestFiles.enableLocalSftp(root);
                         if (useLocalFtp) FlowTestFiles.enableLocalFtp(root);
                         if (useLocalSmtp) FlowTestFiles.enableLocalSmtp(root);
                         context.setIkasanPomModel(null);
@@ -259,9 +255,12 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             if (project.isDisposed()) return;
             if (!created.get().isEmpty()) MavenProjectsManager.getInstance(project).forceUpdateAllProjectsOrFindAllAvailablePomFiles();
             if (result.get() != null) FileEditorManager.getInstance(project).openFile(result.get(), true);
+            long scenarioCount = created.get().stream()
+                    .filter(path -> path.getParent().equals(root.resolve("user-flow-tests/src/test/java/org/ikasan/studio/flowtests")))
+                    .count();
             Messages.showInfoMessage(project, batchWrite
                     ? (batchApproval.get() == null ? "" : StudioBundle.message("flowTest.batchArchived", batchApproval.get().size()) + "\n\n")
-                            + StudioBundle.message("flowTest.batchCreated", created.get().stream().filter(p -> !p.getFileName().toString().equals("ModuleFlowTestSupport.java")).count(), choices.size() - created.get().stream().filter(p -> !p.getFileName().toString().equals("ModuleFlowTestSupport.java")).count())
+                            + StudioBundle.message("flowTest.batchCreated", scenarioCount, choices.size() - scenarioCount)
                     : (archiveApproval.get() == null ? "" : StudioBundle.message("flowTest.archived") + "\n\n")
                             + StudioBundle.message("flowTest.created"), title);
         } catch (Exception ex) {

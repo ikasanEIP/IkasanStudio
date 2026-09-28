@@ -75,3 +75,12 @@ test.smtp.enabled=false
 # Local test FTP consumer: accept complete fixture files immediately (production default is 120 seconds).
 # Non-negative seconds; use a positive value only when deliberately testing file-age filtering.
 test.ftp.consumer.min-age-seconds=0
+
+# Local test SFTP server: loopback, allocated port, trusted temporary host key; no installed server needed.
+# Generate Flow Test enables this when the local test SFTP option is selected.
+test.sftp.enabled=false
+# Test-only credentials; no personal SSH keys are used.
+test.sftp.username=ikasan
+test.sftp.password=ikasan
+# Accept complete fixture files immediately; set a non-negative age only to test age filtering.
+test.sftp.consumer.min-age-seconds=0

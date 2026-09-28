@@ -128,13 +128,12 @@ for one new file per batch. Choose a final-filename glob; unmatched files are ig
 all relevant files if temporary-file leftovers must also fail the test. These helpers never
 create, remove or alter files and do not follow symbolic links.
 
-Producers declaring `flowTestFileDelivery` in their meta-pack (currently FTP and SFTP) receive a
+Producers declaring `flowTestFileDelivery` in their meta-pack (currently FTP and SFTP) receive
 receiver-side checks. For isolated FTP, the generated code calls
 `assertDeliveredFileContents(localFtpDirectory(context), "*", ...)` and checks accumulated contents:
 one file after batch one, two after batch two. The shared `localFtpDirectory(context)` exposes
 the actual server home and gives an actionable error if the server is disabled. Adapt the assertion
-for checksums, multiple outputs or overwrites. SFTP keeps a guard because the receiver directory
-is not known. For external FTP/SFTP, use a locally accessible
+for checksums, multiple outputs or overwrites. Local SFTP tests use a separate temporary directory for the selected producer. For external FTP/SFTP, use a locally accessible
 test-server directory or download the final files to an isolated directory first: a remote path
 is not a local filesystem path. Binary contents need byte-level assertions instead of these text checks.
 The same helpers are available for custom components writing local files. Merely consuming local
@@ -500,7 +499,8 @@ constrain producer filenames. Review the delivered-file glob or use
 `assertDeliveredFileResources(directory, glob, resources...)` checks count and contents,
 including duplicates, without depending on delivery order. Comparisons preserve whitespace;
 failures show bounded context around a text difference rather than dumping large XML files.
-SFTP output must first be downloaded or made locally accessible; these helpers do not fetch it.
+External SFTP output must first be downloaded or made locally accessible; these helpers do not fetch it.
+The local test SFTP server exposes its endpoint directory directly.
 
 For inputs other than FTP and local files, inline text remains the default, with a commented alternative using
 `readTestResource("/input/first.txt")`. This helper also lets custom assertions read an FTP
@@ -617,3 +617,40 @@ is still validated. Inline text helpers remain available for custom tests.
 Regenerate the affected tests and shared helpers, including `FileInputFixture` and
 `FtpInputFixture`, to adopt these defaults. Existing business test sources and resource files
 are not silently overwritten.
+
+
+### Local test SFTP server
+
+For flows with SFTP consumers or producers, **Use a local test SFTP server** is selected by
+default in the Generate Flow Test dialogs. It enables `test.sftp.enabled=true` in
+`module-test.properties`, adds test-scoped Apache MINA SSHD dependencies and regenerates
+shared support after the normal archive confirmation. Existing properties and fixture files
+are preserved. When adopting this in an existing test suite, regenerate `ModuleFlowTestSupport`
+and `LocalSftpTestServer` together and regenerate the affected scenario to get file input defaults.
+
+Each test application starts an embedded loopback listener on an allocated port. No installed
+SFTP service, Docker container, fixed port or personal SSH key is required in Bamboo.
+A fresh host key and matching `known_hosts` file retain SSH host verification. The server and
+sessions stop when the context closes; JUnit removes its temporary files and keys afterwards.
+Password authentication uses `test.sftp.username` / `test.sftp.password` (default `ikasan`).
+`test.sftp.consumer.min-age-seconds=0` permits immediate consumption of complete fixtures;
+set a positive value only when deliberately testing age filtering.
+
+SFTP inputs use `/flow_name/consumer_name/first.txt` and `second.txt` resources, with missing
+samples created during generation. Each resource is copied into the endpoint's temporary
+server directory before the consumer is triggered. Filenames must match the model's
+`filenamePattern`. The same flow processes both batches without restarting.
+
+`localSftpDirectory(context, FLOW_NAME, componentName)` exposes a separate directory for each
+endpoint. Generated producer tests use it with `assertDeliveredFileResources` to verify real
+delivery. Input and output directories cannot accidentally share files. Common delivery
+waits use `test.delivery.timeout-seconds` (default 10). Test-only endpoint configuration is
+applied before flow startup; production configuration is unchanged. Other transports in the
+same flow, such as JMS, still need their own test connection settings.
+
+
+When the existing-file dialog appears, **Skip Existing** keeps existing scenario and support
+classes unchanged while creating missing tests, helpers and resource files. This also applies
+when a local FTP, SFTP or SMTP server is selected. Choose archive and regenerate when you want
+to update existing shared support; otherwise ensure your retained support provides the APIs
+used by the new test. Skipping support does not cancel creation of a missing flow test.

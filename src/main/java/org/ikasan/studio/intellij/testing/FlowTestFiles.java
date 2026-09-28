@@ -205,17 +205,22 @@ public final class FlowTestFiles {
 
     /** Explicit dialog choice: preserve existing settings and archive the file before enabling the fixture. */
     static void enableLocalFtp(Path projectRoot) throws IOException {
-        enableLocalFixture(projectRoot, false);
+        enableLocalFixture(projectRoot, "ftp");
     }
 
     static void enableLocalSmtp(Path projectRoot) throws IOException {
-        enableLocalFixture(projectRoot, true);
+        enableLocalFixture(projectRoot, "smtp");
     }
 
-    private static void enableLocalFixture(Path projectRoot, boolean smtp) throws IOException {
+    static void enableLocalSftp(Path projectRoot) throws IOException {
+        enableLocalFixture(projectRoot, "sftp");
+    }
+
+    private static void enableLocalFixture(Path projectRoot, String protocol) throws IOException {
         Path properties = safe(projectRoot.toAbsolutePath().normalize(), FlowTestScaffold.TEST_PROPERTIES_PATH);
         String original = Files.readString(properties);
-        String updated = smtp ? localSmtpProperties(original) : localFtpProperties(original);
+        String updated = "sftp".equals(protocol) ? localSftpProperties(original)
+                : "smtp".equals(protocol) ? localSmtpProperties(original) : localFtpProperties(original);
         if (updated.equals(original)) return;
         Path backup = properties.resolveSibling(properties.getFileName() + ".bak"
                 + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS"))
@@ -246,6 +251,14 @@ public final class FlowTestFiles {
         return result.toString();
     }
 
+    static String localSftpProperties(String original) throws IOException {
+        Properties properties = new Properties();
+        properties.load(new java.io.StringReader(original));
+        if ("true".equalsIgnoreCase(properties.getProperty("test.sftp.enabled"))) return original;
+        return original + "\n\n# Local test SFTP: loopback, allocated port, trusted temporary key and endpoint directories.\n"
+                + "test.sftp.enabled=true\n";
+    }
+
     static String localSmtpProperties(String original) throws IOException {
         Properties properties = new Properties();
         properties.load(new java.io.StringReader(original));
@@ -270,6 +283,15 @@ public final class FlowTestFiles {
                         .filter(d -> "com.icegreen".equals(d.getGroupId()) && "greenmail".equals(d.getArtifactId()))
                         .findFirst().orElseThrow(() -> new IOException("Missing GreenMail dependency in generated test POM"));
                 dependencies.add(new String[]{smtp.getGroupId(), smtp.getArtifactId(), smtp.getVersion()});
+            }
+            if (generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSftpTestServer.java")) {
+                var templatePom = reader.read(new java.io.StringReader(generated.get("user-flow-tests/pom.xml")));
+                for (String artifact : List.of("sshd-sftp", "sshd-core", "sshd-common")) {
+                    var dependency = templatePom.getDependencies().stream()
+                            .filter(d -> "org.apache.sshd".equals(d.getGroupId()) && artifact.equals(d.getArtifactId()))
+                            .findFirst().orElseThrow(() -> new IOException("Missing SFTP fixture dependency: " + artifact));
+                    dependencies.add(new String[]{dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion()});
+                }
             }
             for (String[] dependency : dependencies) {
                 if (model.getDependencies().stream().noneMatch(d -> dependency[0].equals(d.getGroupId()) && dependency[1].equals(d.getArtifactId()))) {

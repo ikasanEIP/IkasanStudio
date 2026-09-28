@@ -18,8 +18,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 <#if localFile>
 import java.util.Map;
 </#if>
-<#if isolatedFiles>
+<#if isolatedFiles || sftpInput>
 import org.ikasan.studio.flowtests.support.FileInputFixture;
+</#if>
+<#if isolatedFiles>
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
@@ -43,12 +45,12 @@ public class ${className} extends ModuleFlowTestSupport {
     private static final String FLOW_NAME = "${flowName?j_string}";
     @Override protected String getFlowName() { return FLOW_NAME; }
 
-<#if ftpInput || isolatedFiles>
+<#if ftpInput || sftpInput || isolatedFiles>
     // TODO 2: Review the sample input files under user-flow-tests/src/test/resources (or change the paths).
     // Each resource is copied unchanged to the JUnit test input directory using only its filename.
     // Use distinct filenames; the test directory is configured automatically.
-<#if ftpInput>
-    // Filenames must match the FTP consumer's filenamePattern.
+<#if ftpInput || sftpInput>
+    // Filenames must match the FTP/SFTP consumer's filenamePattern.
 </#if>
     private static final String CONSUMER_NAME = "${consumerName?j_string}";
     // Resource directory names replace spaces with underscores; runtime names remain unchanged.
@@ -229,7 +231,12 @@ public class ${className} extends ModuleFlowTestSupport {
     @Override
     protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch, String expected) throws Exception {
         // Task 4: Check the output of the producer.
-<#if ftpFileDelivery>
+<#if sftpFileDelivery>
+        // The local test SFTP server owns a separate directory for this producer.
+        assertDeliveredFileResources(localSftpDirectory(context, FLOW_NAME, PRODUCER_NAME), "*", batch == 1
+                ? new String[]{FIRST_EXPECTED_OUTPUT_RESOURCE}
+                : new String[]{FIRST_EXPECTED_OUTPUT_RESOURCE, SECOND_EXPECTED_OUTPUT_RESOURCE});
+<#elseif ftpFileDelivery>
         // The FTP unit test server is enabled by test.ftp.enabled in test properties. The property
         // test.delivery.timeout-seconds allows timeout configuration.
         // Refine the "*" glob to resemble the expected filename(s)
@@ -253,7 +260,13 @@ public class ${className} extends ModuleFlowTestSupport {
 <#if scheduled && !isolatedFiles>
 
     private void prepareInputBatch(ConfigurableApplicationContext context, int batch) throws Exception {
-<#if ftpInput>
+<#if sftpInput>
+        // Copy the fixture into this consumer's directory on the local test SFTP server.
+        // Enable test.sftp.enabled in module-test.properties; JUnit owns directory cleanup.
+        FileInputFixture.copyResource(localSftpDirectory(context, FLOW_NAME, CONSUMER_NAME),
+                context.getEnvironment().getRequiredProperty("${sftpInputPatternKey?j_string}"),
+                batch == 1 ? FIRST_BATCH_INPUT_FILENAME : SECOND_BATCH_INPUT_FILENAME);
+<#elseif ftpInput>
         // Enable test.ftp.enabled in module-test.properties.
         // Files are created in the test FTP server's JUnit temporary directory.
         // The classpath resource is streamed unchanged; only its basename is used at the destination.

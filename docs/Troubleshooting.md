@@ -32,3 +32,17 @@ Screen shot for changing catalog as described above
 For custom component failures, inspect developer-owned implementations under `user/`; generated stubs still need business logic. After changing Maven dependencies or generated code, allow import/build to finish and restart the running module.
 
 If the problem remains, use **Tools → Ikasan Studio → Collect Ikasan Studio Diagnostics…**. Review the local ZIP and include the candidate version, IDE build, selected pack, reproduction steps and expected/actual behaviour in your support report. Model or application-log attachments require separate review; they are not automatically included. See [diagnostics and privacy](DiagnosticsAndPrivacy.md).
+
+
+### Plugin development: IntelliJ SDK imports unresolved
+
+If Studio sources cannot resolve `com.intellij.openapi.project.Project` or other platform
+classes, check the Gradle sync output before editing imports or adding SDK JARs manually.
+Use the repository's Gradle wrapper in IntelliJ's Gradle settings, then reload all Gradle projects.
+
+The wrapper is pinned to Gradle 9.7.1. With the current IntelliJ Platform Gradle plugin 2.19.0,
+local verification on 28 September 2026 reproduced bundled SDK dependency resolution failures
+under Gradle 9.8.0 (`file:/maven-model`, `file:/jps-builders` and similar invalid paths), while
+9.7.1 compiled both the main plugin and native MCP module successfully. Refreshing dependencies
+and starting a fresh Gradle process did not resolve the 9.8.0 failure. Recheck this combination
+before upgrading the wrapper. After changing versions, reload Gradle and allow indexing to finish.

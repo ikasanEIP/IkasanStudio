@@ -61,6 +61,69 @@ class FlowTestFilesTest {
         }
     }
 
+    @Test void sftpDependenciesUsePackVersionsAndPreserveExistingDeclarations() throws Exception {
+        String existing = "<project><modelVersion>4.0.0</modelVersion><dependencies>"
+                + "<dependency><groupId>org.apache.sshd</groupId><artifactId>sshd-core</artifactId><version>custom</version></dependency>"
+                + "</dependencies></project>";
+        StringBuilder template = new StringBuilder("<project><modelVersion>4.0.0</modelVersion><dependencies>");
+        for (String artifact : java.util.List.of("sshd-sftp", "sshd-core", "sshd-common"))
+            template.append("<dependency><groupId>org.apache.sshd</groupId><artifactId>").append(artifact)
+                    .append("</artifactId><version>2.19.0</version><scope>test</scope></dependency>");
+        template.append("</dependencies></project>");
+        var files = Map.of(
+                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java", "ftp",
+                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSftpTestServer.java", "sftp",
+                "user-flow-tests/pom.xml", template.toString());
+        String updated = FlowTestFiles.withFtpTestDependencies(existing, files);
+        assertTrue(updated.contains("<artifactId>sshd-core</artifactId><version>custom</version>"));
+        assertTrue(updated.contains("<artifactId>sshd-sftp</artifactId><version>2.19.0</version><scope>test</scope>"));
+        assertTrue(updated.contains("<artifactId>sshd-common</artifactId><version>2.19.0</version><scope>test</scope>"));
+        assertEquals(updated, FlowTestFiles.withFtpTestDependencies(updated, files));
+    }
+
+    @Test void skippingExistingSupportStillCreatesMissingFlowAndFixtures() throws Exception {
+        Files.writeString(root.resolve("pom.xml"), "original");
+        String supportPath = FlowTestScaffold.SUPPORT_PATH;
+        String helperPath = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSftpTestServer.java";
+        String testPath = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/Flow7FlowTest.java";
+        String fixturePath = "user-flow-tests/src/test/resources/flow7/my_sftp_producer/first.txt";
+        for (String path : java.util.List.of(supportPath, helperPath)) {
+            Files.createDirectories(root.resolve(path).getParent());
+            Files.writeString(root.resolve(path), "custom " + path);
+        }
+        var scenario = new FlowTestScaffold.Scaffold("updated", testPath,
+                Map.of(testPath, "new scenario", supportPath, "new support", helperPath, "new helper",
+                        fixturePath, "first expected payload"));
+        var plans = java.util.List.of(scenario,
+                new FlowTestScaffold.Scaffold("updated", supportPath, Map.of(supportPath, "new support")),
+                new FlowTestScaffold.Scaffold("updated", helperPath, Map.of(helperPath, "new helper")));
+        assertThrows(FlowTestFiles.ExistingTestsException.class, () -> FlowTestFiles.checkExisting(root, plans));
+        assertEquals(java.util.List.of(root.resolve(testPath)), FlowTestFiles.writeAll(root, "original", plans));
+        assertEquals("new scenario", Files.readString(root.resolve(testPath)));
+        assertEquals("first expected payload", Files.readString(root.resolve(fixturePath)));
+        assertEquals("custom " + supportPath, Files.readString(root.resolve(supportPath)));
+        assertEquals("custom " + helperPath, Files.readString(root.resolve(helperPath)));
+        try (var files = Files.walk(root)) {
+            assertFalse(files.anyMatch(path -> path.getFileName().toString().contains(".bak")));
+        }
+    }
+
+    @Test void sftpChoicePreservesPropertiesAndIsIdempotent() throws Exception {
+        Path properties = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
+        Files.createDirectories(properties.getParent());
+        String original = "test.sftp.enabled=false\ntest.sftp.username=custom\nother=keep\n";
+        Files.writeString(properties, original);
+        FlowTestFiles.enableLocalSftp(root);
+        String updated = Files.readString(properties);
+        assertTrue(updated.startsWith(original));
+        assertTrue(updated.endsWith("test.sftp.enabled=true\n"));
+        FlowTestFiles.enableLocalSftp(root);
+        assertEquals(updated, Files.readString(properties));
+        try (var paths = Files.list(properties.getParent())) {
+            assertEquals(1, paths.filter(p -> p.getFileName().toString().contains(".bak")).count());
+        }
+    }
+
     @Test void smtpChoiceArchivesPropertiesAndAddsPackDependency() throws Exception {
         Path properties = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
         Files.createDirectories(properties.getParent());

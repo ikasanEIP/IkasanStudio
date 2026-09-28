@@ -94,7 +94,28 @@ class FlowTestScaffoldTest {
         var sftp = FlowTestScaffold.render(module, flow,
                 Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
                 Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
-        assertTrue(sftp.files().get(sftp.testPath()).contains("A remote SFTP path is not a local filesystem path"));
+        assertTrue(sftp.files().get(sftp.testPath()).contains("assertDeliveredFileResources(localSftpDirectory(context, FLOW_NAME, PRODUCER_NAME)"));
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void sftpConsumerUsesResourcesAndOwnedServer(String version) throws Exception {
+        var module = ComponentIO.validatePersistedModuleJson(ModelMigration.analyse(
+                Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module.json")), version).targetJson(), "test", false);
+        var flow = module.getFlows().get(0);
+        flow.setConsumer(org.ikasan.studio.core.TestFixtures.getSftpConsumer(version));
+        var scaffold = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        String code = scaffold.files().get(scaffold.testPath());
+        assertTrue(code.contains("FIRST_BATCH_INPUT_FILENAME"));
+        assertTrue(code.contains("FileInputFixture.copyResource(localSftpDirectory(context, FLOW_NAME, CONSUMER_NAME)"));
+        assertFalse(code.contains("throw new UnsupportedOperationException(\"Prepare input batch"));
+        String support = scaffold.files().get(FlowTestScaffold.SUPPORT_PATH);
+        assertTrue(support.contains("sftp.configure(module.getFlow("));
+        assertTrue(support.contains("registerDisposableBean(\"studioLocalSftpTestServer\", ownedSftp::close)"));
+        assertTrue(scaffold.files().get("user-flow-tests/pom.xml").contains("sshd-sftp"));
+        assertEquals("first expected payload", scaffold.files().get("user-flow-tests/src/test/resources/"
+                + flow.getIdentity().replace(' ', '_') + "/" + flow.getConsumer().getIdentity().replace(' ', '_') + "/first.txt"));
     }
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
@@ -150,7 +171,7 @@ class FlowTestScaffoldTest {
         assertTrue(properties.contains("${TEST_PASSWORD}"));
         assertTrue(properties.contains("test.delivery.timeout-seconds=10"));
         assertTrue(properties.lines().allMatch(line -> line.isBlank() || line.startsWith("#")
-                || line.equals("test.delivery.timeout-seconds=10") || line.equals("test.smtp.enabled=false") || line.equals("test.ftp.consumer.min-age-seconds=0")));
+                || line.equals("test.delivery.timeout-seconds=10") || line.equals("test.smtp.enabled=false") || line.equals("test.ftp.consumer.min-age-seconds=0") || line.startsWith("test.sftp.")));
         assertTrue(support.contains("getResourceAsStream(\"/module-test.properties\")"));
         assertTrue(support.contains("StandardCharsets.UTF_8"));
         assertTrue(support.contains("if (input == null) throw"));

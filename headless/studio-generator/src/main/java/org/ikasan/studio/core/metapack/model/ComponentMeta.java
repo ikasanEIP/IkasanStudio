@@ -176,6 +176,9 @@ public class ComponentMeta implements IkasanMeta {
     @Getter(AccessLevel.NONE)
     private boolean supportsTestMailServer;         // Meta-pack capability flag for endpoints served by Studio's mail harness.
     @Getter(AccessLevel.NONE)
+    private boolean supportsTestSftpServer;
+    public boolean supportsTestSftpServer() { return supportsTestSftpServer; }
+
     private boolean supportsTestFtpServer;          // True if this component talks to a plain FTP server over remoteHost/remotePort/username/password
                                                       // and so can be pointed at Studio's own embedded test FTP server - set on both the FTP Consumer
                                                       // (which reads files from it) and the FTP Producer (which delivers files to it). Deliberately a

@@ -1,4 +1,5 @@
 {
+  "supportsTestSftpServer": true,
   "name": "SFTP Consumer",
   "producedOutputType": "org.ikasan.filetransfer.Payload",
   "testPayloadAdapter": "ikasan-file-transfer-payload",

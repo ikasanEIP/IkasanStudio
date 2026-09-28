@@ -148,6 +148,7 @@ public abstract class ModuleFlowTestSupport {
         List<Class<?>> sources = new ArrayList<>();
         sources.add(Class.forName("org.ikasan.studio.boot.Application"));
         Collections.addAll(sources, testConfigurationClasses());
+        LocalSftpTestServer sftp = null;
         LocalFtpTestServer ftp = null;
         LocalSmtpTestServer smtp = null;
         ConfigurableApplicationContext startedContext = null;
@@ -163,7 +164,16 @@ public abstract class ModuleFlowTestSupport {
             if (Boolean.parseBoolean(properties.getOrDefault("test.smtp.enabled", "false"))) {
                 smtp = LocalSmtpTestServer.start();
             }
+            if (Boolean.parseBoolean(properties.getOrDefault("test.sftp.enabled", "false"))) {
+                sftp = LocalSftpTestServer.start(properties, ftpTestDirectory.newFolder().toPath());
+            }
             SpringApplication application = new SpringApplication(sources.toArray(new Class<?>[0]));
+            LocalSftpTestServer ownedSftp = sftp;
+            if (ownedSftp != null) application.addInitializers(context -> {
+                context.getBeanFactory().registerSingleton("studioLocalSftpTestServer", ownedSftp);
+                ((DefaultListableBeanFactory) context.getBeanFactory())
+                        .registerDisposableBean("studioLocalSftpTestServer", ownedSftp::close);
+            });
             LocalFtpTestServer ownedFtp = ftp;
             if (ownedFtp != null) application.addInitializers(context -> {
                 context.getBeanFactory().registerSingleton("studioLocalFtpTestServer", ownedFtp);
@@ -189,6 +199,14 @@ public abstract class ModuleFlowTestSupport {
 </#if>
 </#list>
             }
+            if (sftp != null) {
+                Module<Flow> module = startedContext.getBean(Module.class);
+<#list sftpEndpoints as endpoint>
+                sftp.configure(module.getFlow("${endpoint.flow?j_string}")
+                        .getFlowElement("${endpoint.component?j_string}").getFlowComponent(),
+                        "${endpoint.flow?j_string}", "${endpoint.component?j_string}", ${endpoint.consumer}, properties);
+</#list>
+            }
             if (smtp != null) {
                 Module<Flow> module = startedContext.getBean(Module.class);
 <#list smtpEndpoints as endpoint>
@@ -200,6 +218,7 @@ public abstract class ModuleFlowTestSupport {
         } catch (Exception | Error failure) {
             if (startedContext != null) try { startedContext.close(); } catch (Exception cleanup) { failure.addSuppressed(cleanup); }
             if (smtp != null) try { smtp.close(); } catch (Exception cleanup) { failure.addSuppressed(cleanup); }
+            if (sftp != null) try { sftp.close(); } catch (Exception cleanup) { failure.addSuppressed(cleanup); }
             if (ftp != null) try { ftp.close(); } catch (Exception cleanup) { failure.addSuppressed(cleanup); }
             throw failure;
         }
@@ -325,6 +344,13 @@ public abstract class ModuleFlowTestSupport {
             throw new IllegalStateException("Enable test.ftp.enabled=true in module-test.properties, or adapt verifyReceivedOutput for your external FTP server");
         }
         return context.getBean(LocalFtpTestServer.class).root();
+    }
+
+    /** Returns one endpoint's directory on the local test SFTP server, retained across batches. */
+    protected final Path localSftpDirectory(ConfigurableApplicationContext context, String flow, String component) {
+        if (context.getBeansOfType(LocalSftpTestServer.class).isEmpty())
+            throw new IllegalStateException("Enable test.sftp.enabled=true in module-test.properties");
+        return context.getBean(LocalSftpTestServer.class).directory(flow, component);
     }
 
     /** Returns the owned SMTP inbox; external servers need their own receiver-side assertions. */
