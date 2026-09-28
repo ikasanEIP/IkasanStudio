@@ -44,10 +44,12 @@ for ((suffix, packVersion) in mapOf("v3" to "3.3.9", "v4" to "4.1.6")) {
     }
     dependencies.add(providerClasspath.name, dependencies.platform("org.ikasan:ikasan-eip-standalone-bom:$packVersion"))
     dependencies.add(providerClasspath.name, "org.apache.activemq:activemq-client")
+    // A file collection, not the Configuration itself, so the argument provider is configuration-cache safe.
+    val providerFiles = files(providerClasspath)
     tasks.test {
-        inputs.files(providerClasspath).withPropertyName("activeMq$suffix").withNormalizer(ClasspathNormalizer::class.java)
+        inputs.files(providerFiles).withPropertyName("activeMq$suffix").withNormalizer(ClasspathNormalizer::class.java)
         jvmArgumentProviders.add(CommandLineArgumentProvider {
-            listOf("-Dstudio.activemq.$suffix.classpath=${providerClasspath.asPath}")
+            listOf("-Dstudio.activemq.$suffix.classpath=${providerFiles.asPath}")
         })
     }
 }
