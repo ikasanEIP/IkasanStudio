@@ -4,6 +4,8 @@
   "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/endpoint/quartz-schedule/Readme.md",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "implementingClass": "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+  "flowTestInputMode": "scheduled-context",
+  "flowTestInputModeInvalidatedByProperties": ["messageProvider"],
   "producedOutputType": "org.quartz.JobExecutionContext",
   "outputTypeInvalidatedByProperties": ["messageProvider"],
   "usesBuilderInFactory": true,

@@ -175,7 +175,7 @@ public final class FlowTestFiles {
             throw failure;
         }
     }
-    /** Adds missing sample-input defaults only; explicit developer values (including false) win. */
+    /** Adds missing fixture defaults and an inferred embedded JMS reference; explicit developer values win. */
     static void addMissingFixtureInputDefaults(Path root, String generated) throws IOException {
         if (generated == null) return;
         java.util.Properties defaults = new java.util.Properties();
@@ -191,12 +191,17 @@ public final class FlowTestFiles {
                 added.append(key).append("=true\n");
             }
         }
+        String broker = defaults.getProperty("test.jms.broker-url");
+        if (broker != null && !current.containsKey("test.jms.broker-url")) {
+            added.append("# Test sender uses the same embedded broker as the JMS consumer.\n")
+                    .append("test.jms.broker-url=").append(broker).append('\n');
+        }
         if (added.isEmpty()) return;
         Path backup = file.resolveSibling(file.getFileName() + ".bak" + java.time.LocalDateTime.now()
                 .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")) + "-" + UUID.randomUUID());
         Path temporary = Files.createTempFile(file.getParent(), ".fixture-input-", ".tmp");
         try {
-            Files.writeString(temporary, original + "\n\n# Deterministic sample input: remove if unused; set false to retain polling across regeneration.\n" + added);
+            Files.writeString(temporary, original + "\n\n# Missing test defaults added by Generate Flow Test; existing settings are preserved.\n" + added);
             if (!Files.readString(file).equals(original)) throw new IOException("Test properties changed; retry generation.");
             Files.copy(file, backup);
             Files.move(temporary, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);

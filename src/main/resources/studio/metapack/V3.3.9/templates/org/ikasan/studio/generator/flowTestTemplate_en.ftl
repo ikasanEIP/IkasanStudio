@@ -1,6 +1,10 @@
 package org.ikasan.studio.flowtests;
 
 import org.ikasan.studio.flowtests.support.ModuleFlowTestSupport;
+<#if scheduledContext>
+import org.ikasan.studio.flowtests.support.ScheduledEventFixture;
+import org.quartz.JobExecutionContext;
+</#if>
 <#if ftpInput>
 import org.ikasan.studio.flowtests.support.FtpInputFixture;
 </#if>
@@ -104,7 +108,6 @@ public class ${className} extends ModuleFlowTestSupport {
     @Rule
     public TemporaryFolder inputDirectory = TemporaryFolder.builder().assureDeletion().build();
 </#if>
-
     // TODO 1: Review shared connections in src/test/resources/module-test.properties.
     // Shared setup supplies a fresh context and isolated H2; all flows initially start MANUAL.
     @Test
@@ -125,6 +128,12 @@ public class ${className} extends ModuleFlowTestSupport {
 </#if>
 
     @Override protected String outputText(Object payload) {
+<#if scheduledContext>
+        // The default provider forwards the timer context, including our test fixture text.
+        if (STRINGIFY_ACTUAL_OUTPUT && payload instanceof JobExecutionContext) {
+            return ScheduledEventFixture.text((JobExecutionContext) payload);
+        }
+</#if>
         return outputText(payload, STRINGIFY_ACTUAL_OUTPUT);
     }
 
@@ -196,6 +205,11 @@ public class ${className} extends ModuleFlowTestSupport {
         FileInputFixture.prepareLocalBatch(inputDirectory.getRoot().toPath(), batch,
                 FIRST_BATCH_INPUT_FILENAME, SECOND_BATCH_INPUT_FILENAME);
         harness.fireScheduledConsumer();
+<#elseif scheduledContext>
+        // Fire the real scheduled consumer now; no waiting for its cron expression.
+        // This creates a Quartz timer event carrying fixture text, not a String business payload.
+        ScheduledEventFixture.fire(harness, "${consumerName?j_string}",
+                batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT);
 <#elseif scheduled>
         // Create the files/provider data here BEFORE firing. Scanning does not create input.
         // Account for filename filters, minimum file age and duplicate detection when applicable.
@@ -257,7 +271,7 @@ public class ${className} extends ModuleFlowTestSupport {
 </#if>
     }
 </#if>
-<#if scheduled && !isolatedFiles>
+<#if scheduled && !isolatedFiles && !scheduledContext>
 
     private void prepareInputBatch(ConfigurableApplicationContext context, int batch) throws Exception {
 <#if sftpInput>

@@ -26,10 +26,16 @@ test.delivery.timeout-seconds=10
 # JMS tests: ModuleJmsTestConfig uses ActiveMQ. Replace that class for other providers.
 # Set the SAME isolated broker URL in the flow's connection.factory.jndi.provider.url override.
 # Choose dedicated test queues in the flow's destination overrides; never reuse production queues.
+<#if jmsBrokerPropertyKey?has_content>
+# Use the same embedded broker as the module's JMS consumer (including test overrides of that property).
+test.jms.broker-url=${r"${"}${jmsBrokerPropertyKey}}
+<#else>
+# Configure explicitly: no single common embedded JMS consumer broker was identified.
 # test.jms.broker-url=vm://studio-flow-tests?broker.persistent=false&broker.useJmx=false
+</#if>
 # test.jms.username=
 # test.jms.password=
-# Existing files are preserved: add these keys manually if this file predates JMS support.
+# Generation adds a missing embedded-broker reference with a backup; existing values are preserved.
 
 # New Generic Consumer sample implementations support per-class polling delays in milliseconds.
 # Replace example.MyConsumer with the fully qualified implementation class printed in its @Value keys.

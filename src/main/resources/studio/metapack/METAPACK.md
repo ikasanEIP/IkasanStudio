@@ -255,3 +255,8 @@ configuration also exposes `setMinAge(Long)`. `filenamePattern` and its external
 label supply input filtering. The core generator selects these behaviours by capability,
 not component class name. Each endpoint gets a separate JUnit-owned server directory.
 Keep helper APIs and SSHD dependencies aligned with the pack's Java/Ikasan baseline.
+
+Consumers forwarding a raw Quartz timer context can declare `flowTestInputMode: "scheduled-context"`.
+This generates synchronous `ScheduledEventFixture` input and fixture-text extraction for assertions.
+Declare `flowTestInputModeInvalidatedByProperties: ["messageProvider"]` when a custom provider
+changes the payload contract. This mode verifies processing, not scheduling accuracy.

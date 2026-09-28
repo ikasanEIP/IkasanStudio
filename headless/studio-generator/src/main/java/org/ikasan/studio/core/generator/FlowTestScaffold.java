@@ -88,6 +88,23 @@ public final class FlowTestScaffold {
         }
         values.put("sftpEndpoints", sftpEndpoints);
         values.put("modulePropertyKeys", propertyKeys);
+        // Reuse a common configured ActiveMQ consumer URL via Spring, without copying connection values.
+        // Ambiguous modules retain explicit configuration rather than silently choosing another broker.
+        Map<String, String> jmsBrokerKeys = new LinkedHashMap<>();
+        for (var moduleFlow : module.getFlows()) {
+            var consumer = moduleFlow.getConsumer();
+            if (consumer == null || !"org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer".equals(
+                    consumer.getComponentMeta().getImplementingClass())) continue;
+            var provider = consumer.getProperty("connectionFactoryJndiPropertyProviderUrl");
+            if (provider == null) continue;
+            String label = provider.getMeta().getPropertyConfigFileLabel();
+            if (!provider.valueNotSet() && label != null && !label.isBlank()) {
+                jmsBrokerKeys.put(consumer.getPropertyValueAsString("connectionFactoryJndiPropertyProviderUrl"),
+                        org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(module, moduleFlow, consumer, label));
+            }
+        }
+        values.put("jmsBrokerPropertyKey", jmsBrokerKeys.size() == 1 && jmsBrokerKeys.keySet().iterator().next().startsWith("vm://")
+                ? jmsBrokerKeys.values().iterator().next() : "");
         values.put("flowNames", module.getFlows().stream().map(Flow::getIdentity).toList());
         values.put("consumerName", flow.getConsumer().getIdentity());
         values.put("localFile", flow.getConsumer().getComponentMeta().isLocalFileConsumer());
@@ -116,6 +133,9 @@ public final class FlowTestScaffold {
                 && inputMeta.getFlowTestInputModeInvalidatedByProperties().stream().allMatch(name ->
                     flow.getConsumer().getProperty(name) == null || flow.getConsumer().getProperty(name).valueNotSet())
                 && flow.getFlowRoute().getFlowElements().get(0).getComponentMeta().isFlowTestObservationOnly();
+        values.put("scheduledContext", "scheduled-context".equals(inputMeta.getFlowTestInputMode())
+                && inputMeta.getFlowTestInputModeInvalidatedByProperties().stream().allMatch(name ->
+                    flow.getConsumer().getProperty(name) == null || flow.getConsumer().getProperty(name).valueNotSet()));
         String implementation = flow.getConsumer().getPropertyValueAsString("userImplementedClassName");
         values.put("sampleSubmission", "sample-submission".equals(inputMeta.getFlowTestInputMode())
                 && implementation != null && !implementation.isBlank());
@@ -187,6 +207,8 @@ public final class FlowTestScaffold {
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleJmsTestConfigTemplate_en.ftl", values));
         if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/JmsFlowTestSupport.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "jmsFlowTestSupportTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/ScheduledEventFixture.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "scheduledEventFixtureTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileInputFixture.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "fileInputFixtureTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FtpInputFixture.java",

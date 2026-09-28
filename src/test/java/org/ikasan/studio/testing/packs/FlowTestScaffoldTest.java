@@ -12,6 +12,56 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FlowTestScaffoldTest {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void scheduledTimerFixtureIsSelectedByMetadataAndDisabledForCustomProviders(String version) throws Exception {
+        var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
+        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
+        flow.setConsumer(org.ikasan.studio.core.TestFixtures.getScheduledConsumer(version));
+        flow.getConsumer().setPropertyValue("messageProvider", "");
+        String parent = Files.readString(Path.of("regression-tests/migration/project/pom.xml"));
+        String app = Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml"));
+        var result = FlowTestScaffold.render(module, flow, parent, app);
+        String code = result.files().get(result.testPath());
+        assertTrue(code.contains("ScheduledEventFixture.fire(harness,"));
+        assertTrue(code.contains("ScheduledEventFixture.text((JobExecutionContext) payload)"));
+        assertFalse(code.contains("prepareInputBatch"));
+        assertFalse(code.contains("UnsupportedOperationException"));
+        assertTrue(result.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/ScheduledEventFixture.java"));
+        var meta = flow.getConsumer().getComponentMeta();
+        flow.getConsumer().setComponentMeta(meta.toBuilder().implementingClass("example.Timer").build());
+        result = FlowTestScaffold.render(module, flow, parent, app);
+        assertTrue(result.files().get(result.testPath()).contains("ScheduledEventFixture.fire(harness,"));
+        flow.getConsumer().setComponentMeta(meta);
+        flow.getConsumer().setPropertyValue("messageProvider", "example.CustomProvider");
+        result = FlowTestScaffold.render(module, flow, parent, app);
+        assertFalse(result.files().get(result.testPath()).contains("ScheduledEventFixture.fire(harness,"));
+        assertTrue(result.files().get(result.testPath()).contains("prepareInputBatch(context, batch)"));
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void jmsPropertiesReferenceCommonEmbeddedConsumerBroker(String version) throws Exception {
+        var module = ComponentIO.validatePersistedModuleJson(ModelMigration.analyse(
+                Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module.json")), version).targetJson(), "test", false);
+        var flow = module.getFlows().get(0);
+        flow.setConsumer(org.ikasan.studio.core.TestFixtures.getSpringJmsConsumer(version));
+        flow.getConsumer().setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "vm://embedded-broker?broker.persistent=false");
+        var scaffold = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        var properties = new java.util.Properties();
+        properties.load(new StringReader(scaffold.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH)));
+        String key = org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(module, flow, flow.getConsumer(),
+                flow.getConsumer().getProperty("connectionFactoryJndiPropertyProviderUrl").getMeta().getPropertyConfigFileLabel());
+        assertEquals("${" + key + "}", properties.getProperty("test.jms.broker-url"));
+        flow.getConsumer().setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "tcp://external:61616");
+        scaffold = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        properties.clear();
+        properties.load(new StringReader(scaffold.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH)));
+        assertNull(properties.getProperty("test.jms.broker-url"));
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void smtpProducerGetsLocalInboxAndResourceExpectations(String version) throws Exception {
         var module = ComponentIO.validatePersistedModuleJson(ModelMigration.analyse(
                 Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module.json")), version).targetJson(), "test", false);

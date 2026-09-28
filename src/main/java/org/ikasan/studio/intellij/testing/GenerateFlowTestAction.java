@@ -205,7 +205,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                         if (regenerateSupport) {
                             var first = scaffolds.get(0);
                             for (String helper : List.of("OutputTextSupport", "LocalSmtpTestServer", "LocalFtpTestServer", "LocalSftpTestServer",
-                                    "FtpInputFixture", "FileInputFixture", "FileDeliveryAssertions")) {
+                                    "FtpInputFixture", "FileInputFixture", "ScheduledEventFixture", "FileDeliveryAssertions")) {
                                 String helperPath = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/" + helper + ".java";
                                 scaffolds.add(new FlowTestScaffold.Scaffold(first.rootPom(), helperPath,
                                         java.util.Map.of(helperPath, first.files().get(helperPath))));

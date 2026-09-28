@@ -258,6 +258,12 @@ For a configured Spring JMS **queue** consumer, generation adds `JmsFlowTestSupp
 is also a configured Spring JMS queue producer, it additionally receives/asserts the actual output
 text for each batch. Otherwise, add external receiver checks where needed.
 
+When JMS consumers share one configured embedded (`vm://`) broker, generation supplies
+`test.jms.broker-url` as a Spring reference to the consumer's provider-URL property. This keeps
+the test sender aligned with application settings and any test overrides. For existing properties
+files, a missing reference is added with a backup; explicit values are preserved. External or
+multiple distinct broker URLs require deliberate configuration.
+
 Set `test.jms.broker-url` (and optional username/password) in `module-test.properties`, and point the
 flow's connection/destination overrides at the same isolated broker and dedicated queues. Input and
 output queues must be distinct. The helper uses physical queue names; adapt JNDI aliases explicitly.
@@ -654,3 +660,18 @@ classes unchanged while creating missing tests, helpers and resource files. This
 when a local FTP, SFTP or SMTP server is selected. Choose archive and regenerate when you want
 to update existing shared support; otherwise ensure your retained support provides the APIs
 used by the new test. Skipping support does not cancel creation of a missing flow test.
+
+### Scheduled timer events
+
+For a Scheduled Consumer using its default Quartz message provider, the scaffold uses
+`ScheduledEventFixture.fire(harness, consumerName, text)` to send each batch through the real
+consumer immediately. The event remains a `JobExecutionContext`, with fixture text in
+`ScheduledEventFixture.TEXT_KEY`; the generated `outputText` reads that text for comparison.
+The harness suppresses normal cron firing and keeps the same flow running for both batches.
+
+`ScheduledEventFixture.create(consumer, text)` is also available for custom assertions.
+Each call creates an independent context with a fixed fire time and copied job data.
+It has no live scheduler: this checks downstream processing, not cron timing or recovery.
+A custom message provider retains the input-preparation scaffold because its data requirements
+cannot be inferred. Existing developer-owned tests are preserved; regenerate with the normal
+backup option or use the helper directly.

@@ -36,6 +36,24 @@ class FlowTestFilesTest {
         assertEquals("custom second fixture", Files.readString(second));
     }
 
+    @Test void missingJmsBrokerReferenceIsAddedOnceAndCustomValueIsPreserved() throws Exception {
+        Path file = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, "# existing settings\nother=keep\n");
+        String generated = "test.jms.broker-url=${flow7.jms.provider}\n";
+        FlowTestFiles.addMissingFixtureInputDefaults(root, generated);
+        String updated = Files.readString(file);
+        assertTrue(updated.contains(generated));
+        FlowTestFiles.addMissingFixtureInputDefaults(root, generated);
+        assertEquals(updated, Files.readString(file));
+        Files.writeString(file, "test.jms.broker-url=vm://custom\n");
+        FlowTestFiles.addMissingFixtureInputDefaults(root, generated);
+        assertEquals("test.jms.broker-url=vm://custom\n", Files.readString(file));
+        try (var paths = Files.list(file.getParent())) {
+            assertEquals(1, paths.filter(path -> path.getFileName().toString().contains(".bak")).count());
+        }
+    }
+
     @Test void missingSampleInputDefaultsAreBackedUpAndExplicitFalseIsPreserved() throws Exception {
         Path file = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
         Files.createDirectories(file.getParent());
