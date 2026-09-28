@@ -1,3 +1,7 @@
+# Maximum wait for each expected delivery or component-path assertion (positive whole seconds).
+# Increase on slow CI agents; successful delivery returns immediately. Default: 10.
+test.delivery.timeout-seconds=10
+
 # Shared connection settings for this module's flow tests (UTF-8).
 # Review using LOCAL_TEST_ENVIRONMENT.md. Uncomment only the overrides you need.
 # Commented/absent keys retain the application's existing configuration, NOT isolated defaults.
@@ -59,3 +63,11 @@ studio.sample-consumer.${implementation}.fixture-input-enabled=true
 # Seed files / assert delivery via context.getBean(LocalFtpTestServer.class).root().
 # For an existing external test server leave test.ftp.enabled absent or false and set endpoint keys above.
 </#if>
+
+# FTP consumer input filenames come from the resource paths in the test class.
+# Their basenames must match the consumer filenamePattern.
+
+# Local test SMTP server: loopback only, dynamically allocated port, fresh inbox per test.
+# Overrides mail endpoint connections in this test application; no email is forwarded.
+# Enable through Generate Flow Test or set true here. Uses test.delivery.timeout-seconds.
+test.smtp.enabled=false

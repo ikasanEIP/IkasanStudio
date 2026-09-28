@@ -39,6 +39,29 @@ class FlowTestFilesTest {
         }
     }
 
+    @Test void smtpChoiceArchivesPropertiesAndAddsPackDependency() throws Exception {
+        Path properties = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
+        Files.createDirectories(properties.getParent());
+        String original = "# keep\ntest.ftp.enabled=true\ntest.smtp.enabled=false\ncustom=value\n";
+        Files.writeString(properties, original);
+        FlowTestFiles.enableLocalSmtp(root);
+        String updated = Files.readString(properties);
+        assertTrue(updated.startsWith(original));
+        assertTrue(updated.endsWith("test.smtp.enabled=true\n"));
+        assertEquals(updated, FlowTestFiles.localSmtpProperties(updated));
+        try (var paths = Files.list(properties.getParent())) {
+            assertTrue(paths.anyMatch(p -> p.getFileName().toString().startsWith("module-test.properties.bak")));
+        }
+        String pom = "<project><modelVersion>4.0.0</modelVersion></project>";
+        var files = java.util.Map.of(
+                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java", "ftp",
+                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java", "smtp",
+                "user-flow-tests/pom.xml", "<project><modelVersion>4.0.0</modelVersion><dependencies><dependency><groupId>com.icegreen</groupId><artifactId>greenmail</artifactId><version>1.6.15</version></dependency></dependencies></project>");
+        String result = FlowTestFiles.withFtpTestDependencies(pom, files);
+        assertTrue(result.contains("<artifactId>greenmail</artifactId><version>1.6.15</version>"));
+        assertEquals(result, FlowTestFiles.withFtpTestDependencies(result, files));
+    }
+
     @Test void localFtpChoicePreservesPropertiesAndArchivesOriginal() throws Exception {
         Path properties = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
         Files.createDirectories(properties.getParent());
@@ -90,7 +113,7 @@ class FlowTestFilesTest {
         Files.createDirectories(pom.getParent());
         Files.writeString(pom, original);
         var files = new java.util.LinkedHashMap<>(scaffold().files());
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java", "helper");
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java", "helper");
         var plan = new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files);
         Path test = FlowTestFiles.write(root, "original", plan);
         assertEquals("test", Files.readString(test));
@@ -113,7 +136,7 @@ class FlowTestFilesTest {
         String original = "<project><modelVersion>4.0.0</modelVersion><!-- my settings --><properties><custom>keep</custom></properties></project>";
         Files.writeString(testPom, original);
         var files = new java.util.LinkedHashMap<>(scaffold().files());
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java", "helper");
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java", "helper");
         FlowTestFiles.write(root, "original", new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files));
         String updated = Files.readString(testPom);
         assertTrue(updated.contains("<!-- my settings -->"));

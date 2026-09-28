@@ -1,4 +1,4 @@
-package org.ikasan.studio.flowtests;
+package org.ikasan.studio.flowtests.support;
 
 import jakarta.jms.Connection;
 import jakarta.jms.ConnectionFactory;
@@ -18,12 +18,20 @@ import static org.junit.Assert.assertTrue;
 public final class JmsFlowTestSupport implements AutoCloseable {
     private final Connection connection;
     private final Session session;
+    private final long deliveryTimeoutMillis;
 
     public static JmsFlowTestSupport from(ConfigurableApplicationContext context) throws JMSException {
-        return new JmsFlowTestSupport(context.getBean("studioTestJmsConnectionFactory", ConnectionFactory.class));
+        return new JmsFlowTestSupport(context.getBean("studioTestJmsConnectionFactory", ConnectionFactory.class),
+                ModuleFlowTestSupport.deliveryTimeoutSeconds(context.getEnvironment()
+                        .getProperty("test.delivery.timeout-seconds", "10")));
     }
 
     public JmsFlowTestSupport(ConnectionFactory factory) throws JMSException {
+        this(factory, 10);
+    }
+
+    public JmsFlowTestSupport(ConnectionFactory factory, int timeoutSeconds) throws JMSException {
+        deliveryTimeoutMillis = 1000L * ModuleFlowTestSupport.deliveryTimeoutSeconds(String.valueOf(timeoutSeconds));
         connection = factory.createConnection();
         try {
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -44,7 +52,7 @@ public final class JmsFlowTestSupport implements AutoCloseable {
     public void assertText(String queue, String expected) throws JMSException {
         MessageConsumer consumer = session.createConsumer(session.createQueue(queue));
         try {
-            Message message = consumer.receive(10000);
+            Message message = consumer.receive(deliveryTimeoutMillis);
             assertTrue("Expected a text message from " + queue, message instanceof TextMessage);
             assertEquals(expected, ((TextMessage) message).getText());
         } finally { consumer.close(); }

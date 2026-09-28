@@ -31,10 +31,12 @@ class OutputTextSupportTemplateTest {
         Files.writeString(payload, "package org.ikasan.filetransfer; public interface Payload { byte[] getContent(); }");
         Path message = root.resolve("TextMessage.java");
         Files.writeString(message, "package " + namespace + "; public interface TextMessage { String getText(); void acknowledge(); }");
+        Path email = root.resolve("EmailPayload.java");
+        Files.writeString(email, "package org.ikasan.component.endpoint.email.producer; public interface EmailPayload { String getEmailBody(); }");
         Path diagnostics = root.resolve("javac.log");
         Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", "11", "-encoding", "UTF-8", "-d", root.toString(),
-                source.toString(), payload.toString(), message.toString())
+                source.toString(), payload.toString(), message.toString(), email.toString())
                 .redirectErrorStream(true).redirectOutput(diagnostics.toFile()).start();
         try {
             assertTrue(compiler.waitFor(20, TimeUnit.SECONDS), "javac did not finish within 20 seconds");
@@ -43,18 +45,27 @@ class OutputTextSupportTemplateTest {
             if (compiler.isAlive()) compiler.destroyForcibly().waitFor();
         }
         try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, ClassLoader.getPlatformClassLoader())) {
-            Method stringify = loader.loadClass("org.ikasan.studio.flowtests.OutputTextSupport").getMethod("stringify", Object.class);
+            Method stringify = loader.loadClass("org.ikasan.studio.flowtests.support.OutputTextSupport").getMethod("stringify", Object.class);
+            Class<?> emailContract = loader.loadClass("org.ikasan.component.endpoint.email.producer.EmailPayload");
+            Object emailPayload = Proxy.newProxyInstance(loader, new Class<?>[]{emailContract}, (p, m, a) -> {
+                if (!m.getName().equals("getEmailBody")) throw new AssertionError("Unexpected email payload method: " + m);
+                return "email body";
+            });
+            assertEquals("email body", stringify.invoke(null, emailPayload));
             assertEquals("hello", stringify.invoke(null, "hello"));
             assertEquals("null", stringify.invoke(null, new Object[]{null}));
             byte[] bytes = "注文\n".getBytes(StandardCharsets.UTF_8);
-            assertEquals("注文\n", stringify.invoke(null, bytes));
+            assertEquals("注文\n", stringify.invoke(null, (Object) bytes));
             Path file = Files.write(root.resolve("payload.txt"), bytes);
             assertEquals("注文\n", stringify.invoke(null, file));
             assertEquals("注文\n", stringify.invoke(null, file.toFile()));
             Path secondFile = Files.writeString(root.resolve("second.txt"), "second\n");
             assertEquals("second\n注文\n", stringify.invoke(null, List.of(secondFile.toFile(), file.toFile())));
             Class<?> contract = loader.loadClass("org.ikasan.filetransfer.Payload");
-            Object wrapped = Proxy.newProxyInstance(loader, new Class<?>[]{contract}, (p, m, a) -> bytes);
+            Object wrapped = Proxy.newProxyInstance(loader, new Class<?>[]{contract}, (p, m, a) -> {
+                if (!m.getName().equals("getContent")) throw new AssertionError("Unexpected file payload method: " + m);
+                return bytes;
+            });
             assertEquals("注文\n", stringify.invoke(null, wrapped));
             Class<?> text = loader.loadClass(namespace + ".TextMessage");
             List<String> calls = new ArrayList<>();

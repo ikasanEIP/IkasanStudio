@@ -14,7 +14,7 @@ import java.util.Map;
 /** Renders developer-owned tests once; normal generation never owns these files. */
 public final class FlowTestScaffold {
     public static final String TEST_PROPERTIES_PATH = "user-flow-tests/src/test/resources/module-test.properties";
-    public static final String SUPPORT_PATH = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/ModuleFlowTestSupport.java";
+    public static final String SUPPORT_PATH = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/ModuleFlowTestSupport.java";
     private FlowTestScaffold() { }
     public record Scaffold(String rootPom, String testPath, Map<String, String> files) { }
 
@@ -69,6 +69,13 @@ public final class FlowTestScaffold {
             ftpEndpoints.add(endpoint);
         }
         values.put("ftpEndpoints", ftpEndpoints);
+        java.util.List<Map<String, String>> smtpEndpoints = new java.util.ArrayList<>();
+        for (var moduleFlow : module.getFlows()) for (var component : moduleFlow.getFlowElementsNoExternalEndPoints()) {
+            if (component.getComponentMeta().supportsTestMailServer()) {
+                smtpEndpoints.add(Map.of("flow", moduleFlow.getIdentity(), "component", component.getIdentity()));
+            }
+        }
+        values.put("smtpEndpoints", smtpEndpoints);
         values.put("modulePropertyKeys", propertyKeys);
         values.put("flowNames", module.getFlows().stream().map(Flow::getIdentity).toList());
         values.put("consumerName", flow.getConsumer().getIdentity());
@@ -86,6 +93,8 @@ public final class FlowTestScaffold {
         for (var element : flow.getFlowRoute().getFlowElements()) {
             String type = element.getComponentMeta().getComponentType();
             String method = type == null ? null : methods.get(type.substring(type.lastIndexOf('.') + 1));
+            if ("org.ikasan.spec.component.filter.Filter".equals(type)
+                    && element.getComponentMeta().isFlowTestPassThroughFilter()) method = "filter";
             if (method == null) automaticPath = false;
             else executionPath.add(Map.of("method", method, "name", element.getIdentity()));
         }
@@ -113,6 +122,7 @@ public final class FlowTestScaffold {
                 && destination.getMeta().getPropertyConfigFileLabel() != null;
         var jmsOutputs = flow.getFlowElementsNoExternalEndPoints().stream().filter(e -> e.getComponentMeta().isProducer()).toList();
         values.put("fileDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().isFlowTestFileDelivery());
+        values.put("smtpDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().supportsTestMailServer());
         values.put("ftpFileDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().supportsTestFtpServer());
         String jmsOutputKey = "";
         if (jmsOutputs.size() == 1) {
@@ -130,6 +140,13 @@ public final class FlowTestScaffold {
         values.put("jmsConsumer", jmsConsumer);
         values.put("jmsInputKey", jmsConsumer ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
                 module, flow, flow.getConsumer(), destination.getMeta().getPropertyConfigFileLabel()) : "");
+        var patternProperty = flow.getConsumer().getProperty("filenamePattern");
+        boolean ftpInput = flow.getConsumer().getComponentMeta().supportsTestFtpServer()
+                && patternProperty != null && !patternProperty.valueNotSet()
+                && patternProperty.getMeta().getPropertyConfigFileLabel() != null;
+        values.put("ftpInput", ftpInput);
+        values.put("ftpInputPatternKey", ftpInput ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
+                module, flow, flow.getConsumer(), patternProperty.getMeta().getPropertyConfigFileLabel()) : "");
         values.put("scheduled", flow.getConsumer().getComponentMeta().isTimeEventConsumer());
         values.put("producers", flow.getFlowElementsNoExternalEndPoints().stream()
                 .filter(e -> e.getComponentMeta().isProducer()).map(FlowElement::getIdentity).toList());
@@ -141,17 +158,21 @@ public final class FlowTestScaffold {
         values.put("applicationVersion", application.getVersion() == null ? parent.getVersion() : application.getVersion());
         String path = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/" + className + ".java";
         Map<String, String> files = new LinkedHashMap<>();
-        if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/ModuleJmsTestConfig.java",
+        if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/ModuleJmsTestConfig.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleJmsTestConfigTemplate_en.ftl", values));
-        if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/JmsFlowTestSupport.java",
+        if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/JmsFlowTestSupport.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "jmsFlowTestSupportTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FtpInputFixture.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "ftpInputFixtureTemplate_en.ftl", values));
         files.put(TEST_PROPERTIES_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestPropertiesTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localFtpTestServerTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/FileDeliveryAssertions.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileDeliveryAssertions.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "fileDeliveryAssertionsTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/OutputTextSupport.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "outputTextSupportTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localSmtpTestServerTemplate_en.ftl", values));
         files.put(SUPPORT_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestSupportTemplate_en.ftl", values));
         files.put(path, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), observationOnly ? "flowObservationTestTemplate_en.ftl" : "flowTestTemplate_en.ftl", values));
         files.put("user-flow-tests/pom.xml", FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestPomTemplate_en.ftl", values));
@@ -159,19 +180,26 @@ public final class FlowTestScaffold {
                 # Flow tests
 
                 These are developer-owned scaffolds using the actual generated application.
+                Flow tests live in org.ikasan.studio.flowtests; shared helpers live in org.ikasan.studio.flowtests.support.
+                Existing helpers in the old package are retained. Port custom setup before adopting the new support package.
                 Scenario tests use IkasanFlowTestRule; continuous-source observation tests use a bounded counting listener.
                 They deliberately FAIL before starting services until you complete the test scenario.
                 Direct self-generating-source/discard-sink observation tests have only TODO 1–2: review settings, then enable.
                 They check any meta-pack initial payload sequence, count later events, and stop the test flow only during teardown.
                 Other scenarios follow TODO 1–5 in the Java test: isolate settings, supply two input batches, select output and expected results,
-                review component-path expectations, then enable and run. Set CONFIGURED only after completing the first four tasks.
+                review component-path expectations, then enable and run. Set TEST_REVIEWED only after completing the first four tasks.
                 Configure shared test connections in src/test/resources/module-test.properties (UTF-8).
                 For plain FTP endpoints, set test.ftp.enabled=true to start a disposable loopback FTP server per test.
                 This overrides all module FTP connections and directories; inspect/seed context.getBean(LocalFtpTestServer.class).root().
-                The server and temporary files are cleaned up with the context. SFTP/FTPS require separate services.
+                Closing the context stops the server; JUnit then removes its temporary files after the test. SFTP/FTPS require separate services.
                 The Generate Flow Test dialog can enable local FTP and regenerate shared setup, archiving existing files.
                 Unchecked leaves settings unchanged. Selecting FTP preserves unrelated properties and custom credentials.
-                Missing FTP/MINA dependencies are added to an existing test POM with a backup; other contents are preserved.
+                For email endpoints, the local SMTP option enables test.smtp.enabled=true and a fresh embedded inbox.
+                verifyReceivedOutput checks real SMTP delivery against expected email-body resources.
+                Review multiple-recipient/attachment assertions using localSmtpServer(context).receivedMessages().
+                SMTP configuration overrides affect only the test application's mail producers; mail is never forwarded.
+                Existing shared setup and email helpers require archive-and-regenerate when enabling this option.
+                Missing GreenMail and FTP/MINA dependencies are added to an existing test POM with a backup; other contents are preserved.
                 ModuleFlowTestSupport.java loads that file and enforces isolated H2 and test-only startup settings.
                 Missing sample-consumer fixture-input defaults are added with a backup; explicit values are preserved.
                 Set a fixture-input flag false to retain polling across regeneration; adapt the input scenario accordingly.

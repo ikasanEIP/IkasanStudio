@@ -1,9 +1,8 @@
-package org.ikasan.studio.flowtests;
+package org.ikasan.studio.flowtests.support;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import org.apache.ftpserver.FtpServer;
@@ -20,16 +19,19 @@ public final class LocalFtpTestServer implements AutoCloseable {
     private FtpServer server;
     private int port;
 
-    private LocalFtpTestServer(Map<String, String> properties) throws IOException {
+    private LocalFtpTestServer(Map<String, String> properties, Path directory) throws IOException {
         username = properties.getOrDefault("test.ftp.username", "ikasan");
         password = properties.getOrDefault("test.ftp.password", username);
         if (username.isBlank() || password.isBlank()) throw new IllegalArgumentException("Test FTP credentials must not be blank");
-        root = Files.createTempDirectory("studio-flow-test-ftp-");
+        if (!Files.isDirectory(directory) || Files.isSymbolicLink(directory)) {
+            throw new IOException("Test FTP home must be an existing temporary directory: " + directory);
+        }
+        root = directory;
     }
 
     /** Binds directly to port zero; no free-port probe/race. Cleans partial startup failures. */
-    public static LocalFtpTestServer start(Map<String, String> properties) throws Exception {
-        LocalFtpTestServer fixture = new LocalFtpTestServer(properties);
+    public static LocalFtpTestServer start(Map<String, String> properties, Path directory) throws Exception {
+        LocalFtpTestServer fixture = new LocalFtpTestServer(properties, directory);
         try {
             FtpServerFactory factory = new FtpServerFactory();
             ListenerFactory listener = new ListenerFactory();
@@ -71,13 +73,8 @@ public final class LocalFtpTestServer implements AutoCloseable {
     public Path root() { return root; }
     public int port() { return port; }
 
-    /** Stops only this owned server and removes only its unique temporary home. Safe to call twice. */
-    @Override public void close() throws IOException {
+    /** Stops this test server; the enclosing JUnit TemporaryFolder owns file cleanup. Safe to call twice. */
+    @Override public void close() {
         if (server != null) { server.stop(); server = null; }
-        if (Files.exists(root)) {
-            try (var paths = Files.walk(root)) {
-                for (Path path : paths.sorted(Comparator.reverseOrder()).collect(java.util.stream.Collectors.toList())) Files.deleteIfExists(path);
-            }
-        }
     }
 }

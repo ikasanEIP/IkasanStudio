@@ -1,5 +1,7 @@
 package org.ikasan.studio.flowtests;
 
+import org.ikasan.studio.flowtests.support.ModuleFlowTestSupport;
+
 import org.junit.Test;
 <#if expectedInitialOutputs?has_content>
 
@@ -13,15 +15,16 @@ import java.util.List;
  */
 public class ${className} extends ModuleFlowTestSupport {
     // TODO 1: Review src/test/resources/module-test.properties for other module startup connections.
-    // TODO 2: Review the observation below, then set CONFIGURED=true and run this test.
+    // TODO 2: Review the observation below, then set TEST_REVIEWED=true and run this test.
     // mvn -pl user-flow-tests -am -Dtest=${className} -Dsurefire.failIfNoSpecifiedTests=false test
-    private static final boolean CONFIGURED = false;
+    private static final boolean TEST_REVIEWED = false;
 
-    @Override protected String getFlowName() { return "${flowName?j_string}"; }
+    private static final String FLOW_NAME = "${flowName?j_string}";
+    @Override protected String getFlowName() { return FLOW_NAME; }
 
-    @Test(timeout = 60000)
+    @Test
     public void testGeneratedEventsReachProducerAndFlowKeepsRunning() throws Exception {
-        runObservationTest(CONFIGURED, "${producers[0]?j_string}"<#if expectedInitialOutputs?has_content>,
+        runObservationTest(TEST_REVIEWED, "${producers[0]?j_string}"<#if expectedInitialOutputs?has_content>,
                 // Expected messages from the built-in event provider.
                 List.of(<#list expectedInitialOutputs as output>"${output?j_string}"<#sep>, </#sep></#list>)</#if>);
     }

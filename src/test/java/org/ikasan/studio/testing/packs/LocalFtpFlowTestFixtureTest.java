@@ -12,13 +12,15 @@ import static org.junit.jupiter.api.Assertions.*;
 class LocalFtpFlowTestFixtureTest {
     @TempDir Path temporary;
 
-    private static String jarPath(Class<?> type) throws Exception {
+    private static String jarPath(Class<?> type) {
         URL resource = type.getResource("/" + type.getName().replace('.', '/') + ".class");
+        assertNotNull(resource, "Class resource not found for " + type.getName());
+        assertEquals("jar", resource.getProtocol(), "Expected a JAR resource for " + type.getName());
         String url = resource.toExternalForm();
         return Path.of(URI.create(url.substring("jar:".length(), url.indexOf("!/")))).toString();
     }
 
-    @Test @org.junit.jupiter.api.Timeout(30) void realFtpDeliveryIsolationAndCleanup() throws Exception {
+    @Test @org.junit.jupiter.api.Timeout(30) void realFtpDeliveryIsolationAndCleanup() throws Throwable {
         Path source = temporary.resolve("LocalFtpTestServer.java");
         String template = Files.readString(Path.of("src/main/resources/studio/metapack/V3.3.9/templates/org/ikasan/studio/generator/localFtpTestServerTemplate_en.ftl"));
         assertEquals(template, Files.readString(Path.of("src/main/resources/studio/metapack/V4.1.6/templates/org/ikasan/studio/generator/localFtpTestServerTemplate_en.ftl")));
@@ -32,11 +34,17 @@ class LocalFtpFlowTestFixtureTest {
         String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
         try (var loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()}, getClass().getClassLoader())) {
-            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.LocalFtpTestServer");
-            Path home;
-            int port;
-            try (AutoCloseable server = (AutoCloseable) type.getMethod("start", Map.class).invoke(null, Map.of());
-                 AutoCloseable second = (AutoCloseable) type.getMethod("start", Map.class).invoke(null, Map.of())) {
+            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.LocalFtpTestServer");
+            for (boolean failScenario : List.of(false, true)) {
+                var folder = org.junit.rules.TemporaryFolder.builder().assureDeletion().build();
+                Path[] testRoot = new Path[1];
+                var statement = new org.junit.runners.model.Statement() {
+                    @Override public void evaluate() throws Throwable {
+                        testRoot[0] = folder.getRoot().toPath();
+                        Path home;
+                        int port;
+            try (AutoCloseable server = (AutoCloseable) type.getMethod("start", Map.class, Path.class).invoke(null, Map.of(), folder.newFolder().toPath());
+                 AutoCloseable second = (AutoCloseable) type.getMethod("start", Map.class, Path.class).invoke(null, Map.of(), folder.newFolder().toPath())) {
                 home = (Path) type.getMethod("root").invoke(server);
                 port = (Integer) type.getMethod("port").invoke(server);
                 assertNotEquals(port, type.getMethod("port").invoke(second));
@@ -57,9 +65,20 @@ class LocalFtpFlowTestFixtureTest {
                     assertEquals("first batch", new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
                 }
             }
-            assertFalse(Files.exists(home));
+            // Stopping the server does not delete JUnit-owned files prematurely.
+            assertTrue(Files.exists(home.resolve("sample.txt")));
             try (Socket socket = new Socket()) {
                 assertThrows(IOException.class, () -> socket.connect(new InetSocketAddress("127.0.0.1", port), 1000));
+            }
+                        if (failScenario) throw new AssertionError("deliberate scenario failure");
+                    }
+                };
+                var execution = folder.apply(statement, org.junit.runner.Description.EMPTY);
+                if (failScenario) {
+                    var failure = assertThrows(AssertionError.class, execution::evaluate);
+                    assertEquals("deliberate scenario failure", failure.getMessage());
+                } else execution.evaluate();
+                assertFalse(Files.exists(testRoot[0]), "JUnit must remove both FTP homes after success or failure");
             }
         }
     }

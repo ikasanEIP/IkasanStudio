@@ -19,7 +19,7 @@ opens in the editor. If a selected flow has no consumer, deselect it or add its 
 ## Optional local FTP server
 
 When the module contains components marked `supportsTestFtpServer` in its meta-pack,
-the generation dialog offers **Use an isolated local FTP server for tests** when an FTP
+the generation dialog selects **Use a local test FTP server** by default when an FTP
 flow is selected. Selecting it regenerates shared setup (with the usual archive confirmation)
 and enables the server in `module-test.properties`. Existing properties are backed up before
 changing the enablement flag; custom credentials and unrelated settings are preserved.
@@ -34,7 +34,7 @@ test.ftp.enabled=true
 ```
 
 This starts a real Apache FTP server before the Spring application, bound to loopback on
-an allocated port. Each test gets a unique temporary home. Shared support overrides the
+an allocated port. Each test gets a unique FTP home inside the shared JUnit `TemporaryFolder`. Shared support overrides the
 module's FTP host, port, credentials and source/output directories using the meta-pack's
 property labels; all those directories become `/` inside that temporary home. Other settings,
 such as filename filters, remain unchanged. The option covers **all plain FTP endpoints in
@@ -51,8 +51,9 @@ Files.writeString(home.resolve("input.txt"), "test content");
 Choose filenames and content that match your consumer. Scheduled consumers still need their
 normal test trigger. In `verifyReceivedOutput`, inspect that same directory and assert the
 producer's final filename and contents. Observing a payload at the producer alone does not
-prove the correct file was delivered. The server stops and its temporary files are removed
-when the application context closes, including failed tests. No existing IDE server is stopped.
+prove the correct file was delivered. Closing the application context stops the server. JUnit
+then removes its temporary files when the test finishes, including after test failures.
+No existing IDE server is stopped.
 
 For existing tests, the FTP choice also selects **Archive and regenerate shared module setup**
 to refresh `ModuleFlowTestSupport`. Accept the archive/regenerate confirmation for that file.
@@ -167,7 +168,7 @@ For scenario scaffolds:
    splitters, filters, sequencers, unknown component types and exception-resolution scenarios
    require an explicit scenario; a guard prevents that unfinished expectation setup from passing.
    Add receiver-side delivery, branch and exclusion assertions where required.
-5. **Run:** set `CONFIGURED=true` after completing the other tasks and use the supplied Maven command.
+5. **Run:** set `TEST_REVIEWED=true` after completing the other tasks and use the supplied Maven command.
 
 The rule is used explicitly rather than as `@Rule`: the generated test starts it, checks its
 expectations, and stops it in `finally`. Payload assertions and first/idle/later running-state
@@ -193,7 +194,7 @@ regenerate an existing one, to get the revised scaffold.
 3. Read `user-flow-tests/README.md`. Fill in isolated test settings, the output producer name,
    input batches and expected payloads. Consult `LOCAL_TEST_ENVIRONMENT.md` for local services.
    Review application startup beans and connection settings before enabling the test.
-4. Set `CONFIGURED=true` only after completing the scenario. Run from the project root:
+4. Set `TEST_REVIEWED=true` only after completing the scenario. Run from the project root:
    `mvn -pl user-flow-tests -am test`. Until configured, the test deliberately fails **before**
    starting Spring or any external services; it does not silently skip or report success.
 
@@ -355,7 +356,7 @@ New flow tests override `getFlowName()` and `defineExpectedPath()` and delegate 
 scenario to `runTest(...)`. The base class checks the setup guard before opening a fresh context,
 then closes it on success or failure. Override `outputText(Object)` only when the default text
 representation is unsuitable. Local-file tests use the shared file-content decoder.
-For complex scenarios, `runTest(CONFIGURED, context -> { ... })` supplies the same context lifecycle
+For complex scenarios, `runTest(TEST_REVIEWED, context -> { ... })` supplies the same context lifecycle
 while leaving input and assertions explicit. Existing direct `verifyFlow`/`verifyScenario` callers
 remain supported. Regenerate shared module setup when generating tests that use these new helpers.
 
@@ -379,7 +380,7 @@ Generated JUnit methods start with `test`, for example
 the name is for readability. Existing developer-owned tests are preserved. To adopt the new
 scaffold, archive/regenerate the selected flow test and shared module setup.
 
-Standard generated scenarios call `runTest(CONFIGURED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT)`.
+Standard generated scenarios call `runTest(TEST_REVIEWED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT)`.
 Override `supplyInput(context, harness, batch)` to provide each batch, and optionally
 `verifyReceivedOutput(context, batch, expected)` for external delivery checks. The support class
 calls these methods directly through its standard scenario wiring; no method references or lambdas
@@ -445,3 +446,127 @@ Generation adds missing fixture-input settings with a backup and preserves expli
 Remove a setting if not needed; set it to `false` to retain automatic polling across subsequent
 regeneration, and adapt the scenario to account for automatic events. Meaningful inputs, expected
 outputs and appropriate receiver-side assertions still need developer review.
+
+### Delivery timeouts on CI
+
+Set `test.delivery.timeout-seconds=10` in `user-flow-tests/src/test/resources/module-test.properties`.
+The default is 10 seconds when absent; use a positive whole number, such as 60 for a slow Bamboo agent.
+This controls each producer-output, generated-event, file-delivery, JMS receive and component-path
+completion wait. Successful checks return immediately. The deliberate one-second idle/no-message
+observation windows remain separate; they are not delivery deadlines.
+
+The shared JUnit timeout reads this setting from `module-test.properties` and allows 60 seconds
+for overhead plus ten delivery-timeout intervals. Set CI timeout increases in that shared file.
+It replaces the fixed 60-second annotation in newly generated tests. Network connection and Spring
+startup operations still depend on their own connection settings and are bounded by the outer test limit.
+Existing developer-owned files are preserved: regenerate the shared support and affected tests using
+archive-and-replace, or update them manually, and add the property to the existing properties file.
+Remove old `@Test(timeout = 60000)` limits if longer delivery waits are needed.
+
+### FTP consumer input files
+
+For FTP consumers with an externalised filename pattern, add fixture files under
+`user-flow-tests/src/test/resources` and set the paths in the test class:
+
+```java
+private static final String FIRST_BATCH_INPUT_FILENAME = "/input/orders-1.xml";
+private static final String SECOND_BATCH_INPUT_FILENAME = "/input/orders-2.xml";
+```
+
+The generated defaults are `/<flow name>/<consumer name>/first.txt` and
+`/<flow name>/<consumer name>/second.txt`, relative to the test resources root.
+The shared `noSpaces()` helper replaces spaces in both directory names with underscores:
+for example, flow `flow 2` and consumer `my ftp consumer` use
+`/flow_2/my_ftp_consumer/first.txt`. Runtime names remain unchanged.
+
+`prepareInputBatch` streams each classpath resource unchanged to `localFtpDirectory(context)`
+using its basename (`orders-1.xml`, for example). It validates the basename against the runtime
+consumer pattern, refuses existing files, and stages the copy outside the scanned directory
+before publishing it. Use distinct matching filenames and enable `test.ftp.enabled=true`.
+No `test.ftp.input.filename.batch1/batch2` settings are needed by these new tests.
+The helper does not connect to external FTP/SFTP servers. The inline-text `FtpInputFixture.write`
+helper remains available for custom scenarios and existing tests.
+
+### Expected-output resources
+
+File-producer tests use `FIRST_EXPECTED_OUTPUT_RESOURCE` and `SECOND_EXPECTED_OUTPUT_RESOURCE`,
+by default `/<flow name>/<producer name>/first.txt` and
+`/<flow name>/<producer name>/second.txt`. Both directory names use `noSpaces()` to replace
+spaces with underscores, matching the input-resource convention. Add independent expected
+UTF-8 files under that directory in `src/test/resources`; change the paths for XML or other text fixtures.
+The test reads these only when the reviewed scenario runs. Expected-resource basenames do not
+constrain producer filenames. Review the delivered-file glob or use
+`assertFileMatchesResource(deliveredPath, expectedResource)` for a known output filename.
+`assertDeliveredFileResources(directory, glob, resources...)` checks count and contents,
+including duplicates, without depending on delivery order. Comparisons preserve whitespace;
+failures show bounded context around a text difference rather than dumping large XML files.
+SFTP output must first be downloaded or made locally accessible; these helpers do not fetch it.
+
+For non-FTP inputs, inline text remains the default, with a commented alternative using
+`readTestResource("/input/first.txt")`. This helper also lets custom assertions read an FTP
+input fixture as UTF-8 text. Classpath access works in IntelliJ, Maven and CI without absolute
+paths. Missing resources produce an actionable error. No placeholder data files are generated:
+choose meaningful input and expected output fixtures before setting `TEST_REVIEWED=true`.
+Regenerate the affected tests, `ModuleFlowTestSupport`, `FtpInputFixture` and
+`FileDeliveryAssertions` together using archive-and-replace to adopt these defaults.
+
+The shared FTP directory uses `TemporaryFolder.builder().assureDeletion().build()`: failure to
+remove it fails the test. The folder encloses the shared timeout rule. Both FTP consumer input
+creation and FTP producer delivery assertions use `localFtpDirectory(context)`, so they retain
+the same directory throughout a scenario and its two batches. Server startup receives a fresh
+subdirectory for each application context. Server shutdown does not delete files; JUnit removes
+them after the test, including ordinary assertion failures. A forcibly terminated JVM can still
+leave temporary files behind. Regenerate shared support together with `LocalFtpTestServer`;
+existing developer-owned tests and properties are not silently replaced.
+
+### Shared support package
+
+New flow tests remain in `org.ikasan.studio.flowtests`. Shared setup, FTP/JMS helpers and
+file/payload assertions are generated into `org.ikasan.studio.flowtests.support` beneath
+`user-flow-tests/src/test/java`. Scenario templates explicitly import the helpers they use.
+
+Existing developer-owned files in the original package are retained so existing tests continue
+to compile. Regenerating a scenario uses the new support package; port any custom shared setup
+to that package before running it. Remove the old helpers only after all your tests have moved
+and no references remain. Archive-and-replace continues to protect existing files in the new
+support package when you regenerate shared setup.
+
+### Local test SMTP server
+
+For flows containing a component with the meta-pack's `supportsTestMailServer` capability,
+the flow and module generation dialogs offer **Use a local test SMTP server**, selected by
+default. Accept archive-and-regenerate for shared setup and the email helpers. Existing
+properties and POM changes are backed up. The option enables this setting in
+`user-flow-tests/src/test/resources/module-test.properties`:
+
+```properties
+test.smtp.enabled=true
+```
+
+Each test application starts an embedded GreenMail inbox on `127.0.0.1` with a dynamically
+allocated port. Before the manually started flow runs, its mail producers are configured to
+use that inbox, including producers whose original host/port were generated as Java literals.
+The fixture also replaces extended mail-session connection settings with plain, unauthenticated
+local SMTP settings. Recipients, subject and content remain the application's responsibility.
+These changes apply only to the test application; they do not edit the model or generated code.
+Closing the context stops the server; startup/configuration failures also clean up the server.
+No mail is forwarded and there is no dependency on an already-running MailHog process.
+
+This is separate from the canvas **Start Test Mail Server** tool, which launches MailHog for
+interactive use. Both Ikasan 3.3.9 and 4.1.6 email endpoints use `javax.mail`, so their templates
+use GreenMail 1.6.15 (Ikasan 4's Jakarta JMS support does not imply Jakarta Mail support).
+
+Generated email-producer scenarios use expected body resources such as
+`/flow2/my_email_producer/first.txt` and `second.txt`. The payload adapter extracts
+`EmailPayload.getEmailBody()`. `verifyReceivedOutput` additionally checks the actual SMTP inbox
+with `localSmtpServer(context).assertBody(batch, expected, deliveryTimeout(context))`.
+The timeout comes from `test.delivery.timeout-seconds` (default 10). The default expects one
+mailbox delivery per batch and compares exact decoded text; adapt the assertion for multiple
+recipients, MIME alternatives or attachments. `receivedMessages()` exposes captured messages
+for subject, address and attachment assertions. Input and expected files remain developer-owned.
+
+For an existing flow such as Flow2, regenerate the test and shared support with both FTP and
+SMTP options selected, approve backups, supply the expected email-body resources, then set
+`TEST_REVIEWED=true`. Choosing not to use the SMTP option preserves current settings; to disable
+an existing fixture, explicitly set `test.smtp.enabled=false` and provide external-server
+configuration and receiver assertions.

@@ -223,3 +223,22 @@ mechanism for behavioural API changes; add only mappings verified for the versio
 major-version direction does not match its source/target identities. Reverse mappings
 use their own 4.x → 3.x declaration. This describes rule applicability; it does not widen
 the set of tested/supported migration version pairs.
+
+A filter can declare `flowTestPassThroughFilter: true` only when its standard implementation
+always forwards the input. This lets the flow-test generator include `.filter(componentName)`
+in an otherwise linear expected path. Debug Transition uses this capability. The default is
+false: ordinary filters, routing, splitting and exception-resolution scenarios still need
+explicit expectations. Developer-owned changes to the filter must be reviewed when completing
+the test scaffold; this flag does not prove custom code is pass-through.
+
+#### SMTP flow-test fixtures
+
+`supportsTestMailServer` opts a component into local SMTP test generation and the generation
+dialog checkbox. The pack's `localSmtpTestServerTemplate_en.ftl` owns the adapter contract:
+`getConfiguration()` exposes the email connection setters used by that template. The generator
+passes flow/component names, not Java implementation checks. A new component with a different
+configuration API needs a corresponding pack adapter before enabling this capability.
+Keep the GreenMail dependency in `flowTestPomTemplate_en.ftl` aligned with the endpoint's Mail
+API, independently of JMS namespace changes. Both currently bundled email endpoints use Javax
+Mail. The fixture must bind loopback, allocate its port, never forward messages, and close with
+the test application or after startup failure.

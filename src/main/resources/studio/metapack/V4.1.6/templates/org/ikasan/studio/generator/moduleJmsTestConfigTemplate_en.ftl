@@ -1,4 +1,4 @@
-package org.ikasan.studio.flowtests;
+package org.ikasan.studio.flowtests.support;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.context.annotation.Bean;

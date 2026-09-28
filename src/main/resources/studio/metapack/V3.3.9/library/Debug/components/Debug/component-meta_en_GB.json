@@ -1,5 +1,6 @@
 {
   "name": "Debug Transition",
+  "flowTestPassThroughFilter": true,
   "additionalKey":"DebugTransition",
   "generatesUserImplementedClass": "true",
   "helpText": "<p>Set a breakpoint on data as it moves between components.</p><p><strong>Note:</strong> debug elements are not saved when the project closes.</p>",

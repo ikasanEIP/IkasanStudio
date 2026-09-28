@@ -27,7 +27,7 @@ class GeneratedVerificationTest {
         assertTrue(bundle.files().get("resources/studio-verification/baseline.properties").contains("model.sha256=" + modelHash));
         String code = bundle.files().entrySet().stream().filter(e -> e.getKey().endsWith("VerificationTest.java")).findFirst().orElseThrow().getValue();
         assertFalse(code.contains("TODO"));
-        assertFalse(code.contains("CONFIGURED"));
+        assertFalse(code.contains("TEST_REVIEWED"));
         assertFalse(code.contains("testRuntimeBehaviourNotVerified"));
         assertFalse(code.contains("Assume"));
         assertTrue(code.contains("runtime and business scenarios in user-flow-tests"));

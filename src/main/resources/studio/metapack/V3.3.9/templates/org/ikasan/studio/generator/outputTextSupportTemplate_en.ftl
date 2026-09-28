@@ -1,5 +1,8 @@
-package org.ikasan.studio.flowtests;
+package org.ikasan.studio.flowtests.support;
 
+import java.lang.reflect.InvocationTargetException;
+import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -33,19 +36,21 @@ public final class OutputTextSupport {
             // Match the interface contract, including proxies/subclasses, rather than an implementation name.
             Class<?> payload = findInterface(value.getClass(), "org.ikasan.filetransfer.Payload");
             if (payload != null) return decode((byte[]) payload.getMethod("getContent").invoke(value));
+            Class<?> email = findInterface(value.getClass(), "org.ikasan.component.endpoint.email.producer.EmailPayload");
+            if (email != null) return String.valueOf(email.getMethod("getEmailBody").invoke(value));
             Class<?> message = findInterface(value.getClass(), "javax.jms.TextMessage");
             if (message != null) return String.valueOf(message.getMethod("getText").invoke(value));
             throw new IllegalArgumentException("No text-content adapter for " + value.getClass().getName()
                     + ". Override outputText(Object) for this payload. JMS supports TextMessage only; binary/object messages need an explicit mapping.");
-        } catch (java.lang.reflect.InvocationTargetException failure) {
+        } catch (InvocationTargetException failure) {
             throw new IllegalArgumentException("Cannot read output content from " + value.getClass().getName(), failure.getCause());
-        } catch (java.io.IOException | ReflectiveOperationException failure) {
+        } catch (IOException | ReflectiveOperationException failure) {
             throw new IllegalArgumentException("Cannot decode output content; use UTF-8 text or override outputText(Object)", failure);
         }
     }
 
     /** Reject malformed UTF-8 instead of silently replacing bytes and hiding a conversion defect. */
-    private static String decode(byte[] bytes) throws java.nio.charset.CharacterCodingException {
+    private static String decode(byte[] bytes) throws CharacterCodingException {
         if (bytes == null) throw new IllegalArgumentException("Payload content is null; supply an explicit null-content assertion");
         return StandardCharsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(bytes)).toString();
     }

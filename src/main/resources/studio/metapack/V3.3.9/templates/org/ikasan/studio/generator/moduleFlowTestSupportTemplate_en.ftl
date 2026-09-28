@@ -1,5 +1,7 @@
-package org.ikasan.studio.flowtests;
+package org.ikasan.studio.flowtests.support;
 
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import java.util.Arrays;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +31,11 @@ import org.ikasan.spec.flow.FlowEvent;
 import org.ikasan.spec.flow.FlowEventListener;
 import org.ikasan.spec.module.Module;
 import org.ikasan.testharness.flow.rule.IkasanFlowTestRule;
+import org.junit.Rule;
+import org.junit.rules.Timeout;
+import org.junit.rules.TemporaryFolder;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -41,6 +48,27 @@ import static org.junit.Assert.fail;
 /** Developer-owned shared setup. Each call creates a NEW application, never a cached/static context. */
 public abstract class ModuleFlowTestSupport {
     private volatile RuntimeException outputTextFailure;
+    private int deliveryTimeoutSeconds = 10;
+    private final TemporaryFolder ftpTestDirectory = TemporaryFolder.builder().assureDeletion().build();
+
+    /** Positive per-delivery wait, shared by producer, file, JMS and path assertions. */
+    public static int deliveryTimeoutSeconds(String value) {
+        try {
+            int seconds = Integer.parseInt(value);
+            if (seconds > 0) return seconds;
+        } catch (NumberFormatException invalid) { /* Report the setting, not a parser failure. */ }
+        throw new IllegalArgumentException("test.delivery.timeout-seconds must be a positive whole number");
+    }
+
+    /** Allow startup/cleanup plus multiple sequential delivery waits without a fixed 60-second cap. */
+    @Rule
+    public TestRule scenarioRules() throws IOException {
+        // Do not call scenario overrides here: they can allocate temporary directories/services.
+        Map<String, String> properties = moduleTestProperties();
+        int seconds = deliveryTimeoutSeconds(properties.getOrDefault("test.delivery.timeout-seconds", "10"));
+        // JUnit removes files after the test/context cleanup, and reports deletion failures.
+        return RuleChain.outerRule(ftpTestDirectory).around(Timeout.seconds(60L + 10L * seconds));
+    }
     /**
      * Reloads shared test settings from the UTF-8 properties file into a fresh map.
      * Fails if the file is missing rather than silently using application connection defaults.
@@ -67,6 +95,23 @@ public abstract class ModuleFlowTestSupport {
         return properties;
     }
 
+    /** Replaces spaces with underscores for resource paths, without changing runtime component names. */
+    protected static String noSpaces(String name) {
+        return name.replace(' ', '_');
+    }
+
+    /** Loads exact UTF-8 fixture text from src/test/resources, independent of the working directory. */
+    protected static String readTestResource(String resourcePath) {
+        String path = resourcePath.startsWith("/") ? resourcePath : "/" + resourcePath;
+        try (InputStream input = ModuleFlowTestSupport.class.getResourceAsStream(path)) {
+            if (input == null) throw new IllegalArgumentException(
+                    "Missing test resource " + path + "; add it under user-flow-tests/src/test/resources");
+            return new String(input.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException failure) {
+            throw new UncheckedIOException("Cannot read test resource " + path, failure);
+        }
+    }
+
     /** Fresh scenario overrides for each test invocation; shared settings come from module-test.properties. */
     protected Map<String, String> flowTestProperties() {
         return new LinkedHashMap<>();
@@ -81,6 +126,7 @@ public abstract class ModuleFlowTestSupport {
         outputTextFailure = null;
         Map<String, String> properties = new LinkedHashMap<>(moduleTestProperties());
         properties.putAll(flowProperties); // Flow-specific settings override shared connections.
+        deliveryTimeoutSeconds = deliveryTimeoutSeconds(properties.getOrDefault("test.delivery.timeout-seconds", "10"));
         // Enforced isolation is scoped to this test application, never the saved Studio model.
         properties.put("server.port", "0");
         properties.put("datasource.url", "jdbc:h2:mem:flowtest_" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1");
@@ -92,27 +138,48 @@ public abstract class ModuleFlowTestSupport {
         sources.add(Class.forName("org.ikasan.studio.boot.Application"));
         Collections.addAll(sources, testConfigurationClasses());
         LocalFtpTestServer ftp = null;
+        LocalSmtpTestServer smtp = null;
+        ConfigurableApplicationContext startedContext = null;
         try {
             if (Boolean.parseBoolean(properties.getOrDefault("test.ftp.enabled", "false"))) {
-                ftp = LocalFtpTestServer.start(properties);
+                ftp = LocalFtpTestServer.start(properties, ftpTestDirectory.newFolder().toPath());
 <#list ftpEndpoints as endpoint>
                 ftp.configure(properties, "${endpoint.name?j_string}", ${((endpoint.secure!"")?lower_case == "true")?c},
                         "${endpoint.remoteHost?j_string}", "${endpoint.remotePort?j_string}",
                         "${endpoint.username?j_string}", "${endpoint.password?j_string}", "${endpoint.directory?j_string}");
 </#list>
             }
+            if (Boolean.parseBoolean(properties.getOrDefault("test.smtp.enabled", "false"))) {
+                smtp = LocalSmtpTestServer.start();
+            }
             SpringApplication application = new SpringApplication(sources.toArray(new Class<?>[0]));
             LocalFtpTestServer ownedFtp = ftp;
             if (ownedFtp != null) application.addInitializers(context -> {
                 context.getBeanFactory().registerSingleton("studioLocalFtpTestServer", ownedFtp);
                 // Register before application beans so the server is destroyed after the flows.
-                ((org.springframework.beans.factory.support.DefaultListableBeanFactory) context.getBeanFactory())
+                ((DefaultListableBeanFactory) context.getBeanFactory())
                         .registerDisposableBean("studioLocalFtpTestServer", ownedFtp::close);
+            });
+            LocalSmtpTestServer ownedSmtp = smtp;
+            if (ownedSmtp != null) application.addInitializers(context -> {
+                context.getBeanFactory().registerSingleton("studioLocalSmtpTestServer", ownedSmtp);
+                ((DefaultListableBeanFactory) context.getBeanFactory())
+                        .registerDisposableBean("studioLocalSmtpTestServer", ownedSmtp::close);
             });
             String[] arguments = properties.entrySet().stream()
                     .map(entry -> "--" + entry.getKey() + "=" + entry.getValue()).toArray(String[]::new);
-            return application.run(arguments);
+            startedContext = application.run(arguments);
+            if (smtp != null) {
+                Module<Flow> module = startedContext.getBean(Module.class);
+<#list smtpEndpoints as endpoint>
+                smtp.configure(module.getFlow("${endpoint.flow?j_string}")
+                        .getFlowElement("${endpoint.component?j_string}").getFlowComponent());
+</#list>
+            }
+            return startedContext;
         } catch (Exception | Error failure) {
+            if (startedContext != null) try { startedContext.close(); } catch (Exception cleanup) { failure.addSuppressed(cleanup); }
+            if (smtp != null) try { smtp.close(); } catch (Exception cleanup) { failure.addSuppressed(cleanup); }
             if (ftp != null) try { ftp.close(); } catch (Exception cleanup) { failure.addSuppressed(cleanup); }
             throw failure;
         }
@@ -150,7 +217,7 @@ public abstract class ModuleFlowTestSupport {
 
     /** Fresh context per scenario, closed even if setup, delivery or assertions fail. */
     protected final void runTest(boolean configured, TestScenario scenario) throws Exception {
-        assertTrue("Complete TODO 1–4, then set CONFIGURED=true in TODO 5. See user-flow-tests/README.md", configured);
+        assertTrue("Complete TODO 1–4, then set TEST_REVIEWED=true in TODO 5. See user-flow-tests/README.md", configured);
         try (ConfigurableApplicationContext context = openTestApplication(flowTestProperties())) {
             scenario.run(context);
         }
@@ -207,7 +274,7 @@ public abstract class ModuleFlowTestSupport {
         return String.valueOf(payload);
     }
 
-    /** Returns the actual isolated FTP home created for this context, never a guessed remote directory. */
+    /** Returns the test FTP server's directory inside the JUnit temporary folder. */
     protected final Path localFtpDirectory(ConfigurableApplicationContext context) {
         if (context.getBeansOfType(LocalFtpTestServer.class).isEmpty()) {
             throw new IllegalStateException("Enable test.ftp.enabled=true in module-test.properties, or adapt verifyReceivedOutput for your external FTP server");
@@ -215,14 +282,46 @@ public abstract class ModuleFlowTestSupport {
         return context.getBean(LocalFtpTestServer.class).root();
     }
 
+    /** Returns the owned SMTP inbox; external servers need their own receiver-side assertions. */
+    protected final LocalSmtpTestServer localSmtpServer(ConfigurableApplicationContext context) {
+        if (context.getBeansOfType(LocalSmtpTestServer.class).isEmpty())
+            throw new IllegalStateException("Enable test.smtp.enabled=true in module-test.properties");
+        return context.getBean(LocalSmtpTestServer.class);
+    }
+
+    protected final Duration deliveryTimeout(ConfigurableApplicationContext context) {
+        return Duration.ofSeconds(deliveryTimeoutSeconds(context.getEnvironment()
+                .getProperty("test.delivery.timeout-seconds", "10")));
+    }
+
     /** Waits for an exact final file and UTF-8 contents; suitable for local or locally accessible server output. */
     protected final void assertFileContents(Path file, String expected) throws Exception {
-        FileDeliveryAssertions.assertFileContents(file, expected, Duration.ofSeconds(10));
+        FileDeliveryAssertions.assertFileContents(file, expected, Duration.ofSeconds(deliveryTimeoutSeconds));
     }
 
     /** Checks exact file count and contents (including duplicates) for a final-filename glob, irrespective of order. */
     protected final void assertDeliveredFileContents(Path directory, String glob, String... expected) throws Exception {
-        FileDeliveryAssertions.assertDeliveredFileContents(directory, glob, List.of(expected), Duration.ofSeconds(10));
+        FileDeliveryAssertions.assertDeliveredFileContents(directory, glob, List.of(expected), Duration.ofSeconds(deliveryTimeoutSeconds));
+    }
+
+    /** Compares a delivered file with an independent UTF-8 classpath fixture, preserving whitespace. */
+    protected final void assertFileMatchesResource(Path file, String resource) throws Exception {
+        String expected = readTestResource(resource);
+        try { assertFileContents(file, expected); }
+        catch (AssertionError failure) {
+            throw new AssertionError("Expected resource " + resource + ": " + failure.getMessage(), failure);
+        }
+    }
+
+    /** Checks delivered contents against resource fixtures; resource basenames do not constrain output names. */
+    protected final void assertDeliveredFileResources(Path directory, String glob, String... resources) throws Exception {
+        String[] expected = new String[resources.length];
+        for (int i = 0; i < resources.length; i++) expected[i] = readTestResource(resources[i]);
+        try { assertDeliveredFileContents(directory, glob, expected); }
+        catch (AssertionError failure) {
+            throw new AssertionError("Expected resources " + Arrays.toString(resources)
+                    + ": " + failure.getMessage(), failure);
+        }
     }
 
     /** Compatibility overload for observation tests generated without payload expectations. */
@@ -239,7 +338,7 @@ public abstract class ModuleFlowTestSupport {
     protected final void runObservationTest(boolean configured, String output,
             List<String> expectedInitialOutputs) throws Exception {
         List<String> expected = List.copyOf(expectedInitialOutputs);
-        assertTrue("Review TODO 1–2, then set CONFIGURED=true", configured);
+        assertTrue("Review TODO 1–2, then set TEST_REVIEWED=true", configured);
         try (ConfigurableApplicationContext context = openTestApplication(flowTestProperties())) {
             Module<Flow> module = context.getBean(Module.class);
             Flow flow = module.getFlow(getFlowName());
@@ -266,7 +365,7 @@ public abstract class ModuleFlowTestSupport {
                 awaitObservedEvent(flow, delivered, 0);
                 for (int index = 0; index < expected.size(); index++) {
                     assertEquals("Initial producer payload " + (index + 1), expected.get(index),
-                            awaitOutputText(initialOutputs, 10));
+                            awaitOutputText(initialOutputs, deliveryTimeoutSeconds));
                 }
                 // Keep the SAME flow running during the observation window, then require a NEW event.
                 long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(1);
@@ -292,15 +391,15 @@ public abstract class ModuleFlowTestSupport {
     }
 
     /**
-     * Waits up to ten seconds for the delivery count to exceed the supplied snapshot.
+     * Waits up to the configured delivery timeout for the delivery count to exceed the supplied snapshot.
      * Fails if the flow is no longer RUNNING or no new event arrives before the deadline.
      */
     private void awaitObservedEvent(Flow flow,
             AtomicLong delivered, long previous) throws InterruptedException {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(deliveryTimeoutSeconds);
         while (delivered.get() <= previous) {
             assertEquals("Ready for generated events", Flow.RUNNING, flow.getState());
-            if (System.nanoTime() >= deadline) fail("No new event reached the selected producer within 10 seconds");
+            if (System.nanoTime() >= deadline) fail("No new event reached the selected producer within " + deliveryTimeoutSeconds + " seconds");
             Thread.sleep(20);
         }
         assertEquals("Running after delivery", Flow.RUNNING, flow.getState());
@@ -337,7 +436,7 @@ public abstract class ModuleFlowTestSupport {
                 input.send(harness, batch);
                 assertEquals("Output for batch " + batch,
                         batch == 1 ? firstExpected : secondExpected,
-                        awaitOutputText(outputs, 10));
+                        awaitOutputText(outputs, deliveryTimeoutSeconds));
                 receiverCheck.verify(batch);
                 assertEquals("Ready after delivery", Flow.RUNNING, flow.getState());
                 assertNull("No unexpected output while idle", awaitOutputText(outputs, 1));
@@ -356,7 +455,7 @@ public abstract class ModuleFlowTestSupport {
     /**
      * Attaches the test rule and output listener, starts the flow and runs the supplied scenario.
      * The scenario supplies input and asserts deliveries, branches or deliberate absence.
-     * Allows up to ten seconds afterward for component-path expectations to finish, then checks
+     * Allows the configured delivery timeout afterward for component-path expectations to finish, then checks
      * that the flow remains RUNNING. Always stops the test flow and removes the output listener;
      * the caller retains ownership of the application context.
      */
@@ -364,6 +463,8 @@ public abstract class ModuleFlowTestSupport {
             Function<Object, String> describeOutput,
             Consumer<IkasanFlowTestRule> expectations,
             FlowScenario scenario) throws Exception {
+        deliveryTimeoutSeconds = deliveryTimeoutSeconds(context.getEnvironment()
+                .getProperty("test.delivery.timeout-seconds", "10"));
         Module<Flow> module = context.getBean(Module.class);
         Flow flow = module.getFlow(flowName);
         assertNotNull("Flow must exist: " + flowName, flow);
@@ -381,7 +482,7 @@ public abstract class ModuleFlowTestSupport {
             harness.startFlow();
             scenario.verify(harness, flow, outputs);
             // A rejected/filtered event can finish asynchronously without reaching the output listener.
-            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(deliveryTimeoutSeconds);
             while (true) {
                 try { harness.assertIsSatisfied(); break; }
                 catch (AssertionError pending) {

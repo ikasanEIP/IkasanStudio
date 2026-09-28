@@ -8,6 +8,7 @@
     <dependency><groupId>junit</groupId><artifactId>junit</artifactId><version>4.13.2</version><scope>test</scope></dependency>
     <dependency><groupId>org.apache.ftpserver</groupId><artifactId>ftpserver-core</artifactId><version>1.2.1</version><scope>test</scope></dependency>
     <dependency><groupId>org.apache.mina</groupId><artifactId>mina-core</artifactId><version>2.2.9</version><scope>test</scope></dependency>
+    <dependency><groupId>com.icegreen</groupId><artifactId>greenmail</artifactId><version>1.6.15</version><scope>test</scope></dependency>
   </dependencies>
   <build><plugins><plugin>
     <groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.2.5</version>

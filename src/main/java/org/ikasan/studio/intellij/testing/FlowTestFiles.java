@@ -205,9 +205,17 @@ public final class FlowTestFiles {
 
     /** Explicit dialog choice: preserve existing settings and archive the file before enabling the fixture. */
     static void enableLocalFtp(Path projectRoot) throws IOException {
+        enableLocalFixture(projectRoot, false);
+    }
+
+    static void enableLocalSmtp(Path projectRoot) throws IOException {
+        enableLocalFixture(projectRoot, true);
+    }
+
+    private static void enableLocalFixture(Path projectRoot, boolean smtp) throws IOException {
         Path properties = safe(projectRoot.toAbsolutePath().normalize(), FlowTestScaffold.TEST_PROPERTIES_PATH);
         String original = Files.readString(properties);
-        String updated = localFtpProperties(original);
+        String updated = smtp ? localSmtpProperties(original) : localFtpProperties(original);
         if (updated.equals(original)) return;
         Path backup = properties.resolveSibling(properties.getFileName() + ".bak"
                 + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS"))
@@ -238,15 +246,32 @@ public final class FlowTestFiles {
         return result.toString();
     }
 
+    static String localSmtpProperties(String original) throws IOException {
+        Properties properties = new Properties();
+        properties.load(new java.io.StringReader(original));
+        if ("true".equalsIgnoreCase(properties.getProperty("test.smtp.enabled"))) return original;
+        return original + "\n\n# Local test SMTP inbox: loopback only, allocated port, no forwarding.\n"
+                + "# Overrides all mail producer connections in this test application.\ntest.smtp.enabled=true\n";
+    }
+
     /** Adds only missing fixture dependencies; preserves developer XML and archives changes at the write boundary. */
     static String withFtpTestDependencies(String existing, Map<String, String> generated) throws IOException {
-        if (!generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java")) return existing;
+        if (!generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java")) return existing;
         try {
             var reader = new org.apache.maven.model.io.xpp3.MavenXpp3Reader();
             var model = reader.read(new java.io.StringReader(existing));
             StringBuilder additions = new StringBuilder();
-            for (String[] dependency : List.of(new String[]{"org.apache.ftpserver", "ftpserver-core", "1.2.1"},
-                    new String[]{"org.apache.mina", "mina-core", "2.2.9"})) {
+            List<String[]> dependencies = new ArrayList<>(List.of(
+                    new String[]{"org.apache.ftpserver", "ftpserver-core", "1.2.1"},
+                    new String[]{"org.apache.mina", "mina-core", "2.2.9"}));
+            if (generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java")) {
+                var templatePom = reader.read(new java.io.StringReader(generated.get("user-flow-tests/pom.xml")));
+                var smtp = templatePom.getDependencies().stream()
+                        .filter(d -> "com.icegreen".equals(d.getGroupId()) && "greenmail".equals(d.getArtifactId()))
+                        .findFirst().orElseThrow(() -> new IOException("Missing GreenMail dependency in generated test POM"));
+                dependencies.add(new String[]{smtp.getGroupId(), smtp.getArtifactId(), smtp.getVersion()});
+            }
+            for (String[] dependency : dependencies) {
                 if (model.getDependencies().stream().noneMatch(d -> dependency[0].equals(d.getGroupId()) && dependency[1].equals(d.getArtifactId()))) {
                     additions.append("\n    <dependency><groupId>").append(dependency[0]).append("</groupId><artifactId>")
                             .append(dependency[1]).append("</artifactId><version>").append(dependency[2])

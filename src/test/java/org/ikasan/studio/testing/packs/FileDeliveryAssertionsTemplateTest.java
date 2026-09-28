@@ -25,7 +25,7 @@ class FileDeliveryAssertionsTemplateTest {
         String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
         try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
-            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.FileDeliveryAssertions");
+            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.FileDeliveryAssertions");
             Method file = type.getMethod("assertFileContents", Path.class, String.class, Duration.class);
             Method files = type.getMethod("assertDeliveredFileContents", Path.class, String.class, List.class, Duration.class);
             Path output = Files.createDirectory(root.resolve("output"));
@@ -50,7 +50,16 @@ class FileDeliveryAssertionsTemplateTest {
             fails(file, first, "wrong");
             fails(file, output.resolve("missing.dat"), "missing");
             fails(files, output.resolve("missing"), "*.dat", List.of());
-            assertEquals("first\n", Files.readString(first));
+            String prefix = "x".repeat(10000);
+            Files.writeString(first, prefix + "actual");
+            InvocationTargetException difference = assertThrows(InvocationTargetException.class,
+                    () -> file.invoke(null, first, prefix + "expected", Duration.ofMillis(25)));
+            String message = difference.getCause().getMessage();
+            assertTrue(message.contains("character 10000"));
+            assertTrue(message.contains("expected"));
+            assertTrue(message.contains("actual"));
+            assertTrue(message.length() < 1000, "Do not dump large fixture contents");
+            assertEquals(prefix + "actual", Files.readString(first));
             assertTrue(Files.exists(output.resolve("pending.tmp")));
         }
     }

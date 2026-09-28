@@ -12,6 +12,56 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FlowTestScaffoldTest {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void smtpProducerGetsLocalInboxAndResourceExpectations(String version) throws Exception {
+        var module = ComponentIO.validatePersistedModuleJson(ModelMigration.analyse(
+                Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module.json")), version).targetJson(), "test", false);
+        var flow = module.getFlows().get(0);
+        flow.setConsumer(org.ikasan.studio.core.TestFixtures.getFtpConsumer(version));
+        flow.getFlowRoute().getFlowElements().clear();
+        flow.getFlowRoute().getFlowElements().add(org.ikasan.studio.core.TestFixtures.getEmailProducer(version));
+        var scaffold = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        String code = scaffold.files().get(scaffold.testPath());
+        assertTrue(code.contains("FIRST_EXPECTED_OUTPUT_RESOURCE"));
+        assertTrue(code.contains("localSmtpServer(context).assertBody(batch, expected, deliveryTimeout(context))"));
+        String support = scaffold.files().get(FlowTestScaffold.SUPPORT_PATH);
+        assertTrue(support.contains("LocalSmtpTestServer.start()"));
+        assertTrue(support.contains(".getFlowElement(\"My Email Producer\").getFlowComponent()"));
+        assertTrue(support.contains("ownedSmtp::close"));
+        String pom = scaffold.files().get("user-flow-tests/pom.xml");
+        assertTrue(pom.contains("<artifactId>greenmail</artifactId><version>" + "1.6.15"));
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void debugFilterKeepsLinearPathButOrdinaryFiltersRequireReview(String version) throws Exception {
+        var module = ComponentIO.validatePersistedModuleJson(ModelMigration.analyse(
+                Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module.json")), version).targetJson(), "test", false);
+        var flow = module.getFlows().get(0);
+        flow.setConsumer(org.ikasan.studio.core.TestFixtures.getFtpConsumer(version));
+        var debug = org.ikasan.studio.core.TestFixtures.getDebugTransition(version);
+        debug.setPropertyValue("componentName", "Input debug");
+        flow.getFlowRoute().getFlowElements().add(0, debug);
+        String rootPom = Files.readString(Path.of("regression-tests/migration/project/pom.xml"));
+        String generatedPom = Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml"));
+        var scaffold = FlowTestScaffold.render(module, flow, rootPom, generatedPom);
+        String code = scaffold.files().get(scaffold.testPath());
+        assertTrue(code.contains(".scheduledConsumer("));
+        assertTrue(code.contains("FtpInputFixture.copyResource(localFtpDirectory(context)"));
+        assertTrue(code.contains("batch == 1 ? FIRST_BATCH_INPUT_FILENAME : SECOND_BATCH_INPUT_FILENAME"));
+        assertFalse(code.contains("test.ftp.input.filename.batch"));
+        assertFalse(code.contains("Prepare input batch "));
+        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FtpInputFixture.java"));
+        assertTrue(code.contains(".filter(\"Input debug\")"));
+        assertTrue(code.indexOf(".filter(\"Input debug\")") < code.indexOf(".converter("));
+        assertTrue(code.contains(".repeat(2)"));
+        assertFalse(code.contains("Define the expected component path for both input batches"));
+        flow.getFlowRoute().getFlowElements().set(0, org.ikasan.studio.core.TestFixtures.getMessageFilter(version));
+        var filtered = FlowTestScaffold.render(module, flow, rootPom, generatedPom);
+        assertTrue(filtered.files().get(filtered.testPath()).contains("Define the expected component path for both input batches"));
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void fileProducersOfferPhysicalDeliveryChecksAndNamedInputs(String version) throws Exception {
         var module = ComponentIO.validatePersistedModuleJson(ModelMigration.analyse(
                 Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module.json")), version).targetJson(), "test", false);
@@ -25,12 +75,17 @@ class FlowTestScaffoldTest {
         assertTrue(test.contains("private static final String FIRST_BATCH_INPUT"));
         assertTrue(test.contains("private static final boolean STRINGIFY_ACTUAL_OUTPUT = true"));
         assertTrue(test.contains("return outputText(payload, STRINGIFY_ACTUAL_OUTPUT)"));
-        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/OutputTextSupport.java"));
+        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java"));
         assertTrue(test.contains("private static final String SECOND_BATCH_INPUT"));
         assertTrue(test.contains("batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT"));
-        assertTrue(test.contains("assertDeliveredFileContents(localFtpDirectory(context)"));
+        assertTrue(test.contains("assertDeliveredFileResources(localFtpDirectory(context)"));
+        assertTrue(test.contains("FIRST_EXPECTED_OUTPUT_RESOURCE = \"/\" + noSpaces(FLOW_NAME)"));
+        assertTrue(test.contains("noSpaces(PRODUCER_NAME) + \"/first.txt\""));
+        assertTrue(test.contains("noSpaces(PRODUCER_NAME) + \"/second.txt\""));
+        assertTrue(test.contains("readTestResource(SECOND_EXPECTED_OUTPUT_RESOURCE)"));
+        assertFalse(test.contains("FIRST_EXPECTED_OUTPUT = readTestResource"));
         assertTrue(scaffold.files().get(FlowTestScaffold.SUPPORT_PATH).contains("context.getBean(LocalFtpTestServer.class).root()"));
-        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/FileDeliveryAssertions.java"));
+        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileDeliveryAssertions.java"));
         flow.getFlowRoute().getFlowElements().clear();
         flow.getFlowRoute().getFlowElements().add(org.ikasan.studio.core.TestFixtures.getSftpProducer(version));
         var sftp = FlowTestScaffold.render(module, flow,
@@ -79,13 +134,20 @@ class FlowTestScaffoldTest {
         assertTrue(support.indexOf("assertTrue(\"Complete") < support.indexOf("try (ConfigurableApplicationContext"));
         assertTrue(test.contains("protected String getFlowName()"));
         assertFalse(test.contains("try (ConfigurableApplicationContext"));
-        assertTrue(test.contains("runTest(CONFIGURED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT)"));
+        assertTrue(test.contains("runTest(TEST_REVIEWED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT)"));
         assertTrue(test.contains("protected void supplyInput("));
+        assertTrue(test.contains("FIRST_BATCH_INPUT = readTestResource(\"/input/first.txt\")"));
+        assertTrue(test.contains("SECOND_BATCH_INPUT = readTestResource(\"/input/second.txt\")"));
+        assertTrue(support.contains("protected static String readTestResource(String resourcePath)"));
+        assertTrue(support.contains("new String(input.readAllBytes(), StandardCharsets.UTF_8)"));
+
         assertFalse(test.contains("this::"));
         assertFalse(test.contains(" -> "));
         String properties = scaffold.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH);
         assertTrue(properties.contains("${TEST_PASSWORD}"));
-        assertTrue(properties.lines().allMatch(line -> line.isBlank() || line.startsWith("#")));
+        assertTrue(properties.contains("test.delivery.timeout-seconds=10"));
+        assertTrue(properties.lines().allMatch(line -> line.isBlank() || line.startsWith("#")
+                || line.equals("test.delivery.timeout-seconds=10") || line.equals("test.smtp.enabled=false")));
         assertTrue(support.contains("getResourceAsStream(\"/module-test.properties\")"));
         assertTrue(support.contains("StandardCharsets.UTF_8"));
         assertTrue(support.contains("if (input == null) throw"));
@@ -117,8 +179,15 @@ class FlowTestScaffoldTest {
         assertTrue(localTest.contains("int batch) throws Exception"));
         assertTrue(localTest.contains("harness.fireScheduledConsumer()"));
         assertTrue(localTest.contains("FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT"));
-        assertTrue(support.contains("awaitOutputText(outputs, 10)"));
-        assertTrue(localTest.contains("CONFIGURED = false"));
+        assertTrue(support.contains("awaitOutputText(outputs, deliveryTimeoutSeconds)"));
+        assertTrue(localTest.contains("TEST_REVIEWED = false"));
+        assertFalse(localTest.contains("@Test(timeout ="));
+        assertTrue(support.contains("test.delivery.timeout-seconds"));
+        assertTrue(support.contains("Timeout.seconds(60L + 10L * seconds)"));
+        assertTrue(support.contains("TemporaryFolder.builder().assureDeletion().build()"));
+        assertTrue(support.contains("RuleChain.outerRule(ftpTestDirectory)"));
+        assertTrue(support.contains("LocalFtpTestServer.start(properties, ftpTestDirectory.newFolder().toPath())"));
+        assertTrue(support.contains("Duration.ofSeconds(deliveryTimeoutSeconds)"));
         for (int task = 1; task <= 5; task++) assertTrue(localTest.contains("// TODO " + task + ":"));
     }
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
@@ -147,14 +216,14 @@ class FlowTestScaffoldTest {
         assertTrue(test.contains("jms.sendText"));
         assertTrue(test.contains("jms.assertText"));
         assertTrue(test.contains("protected void verifyReceivedOutput("));
-        assertTrue(test.contains("runTest(CONFIGURED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT)"));
+        assertTrue(test.contains("runTest(TEST_REVIEWED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT)"));
         assertFalse(test.contains("this::"));
         assertFalse(test.contains(" -> "));
         assertTrue(test.contains("ModuleJmsTestConfig.class"));
         assertFalse(test.contains("removeAllMessages"));
-        String helper = scaffold.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/JmsFlowTestSupport.java");
+        String helper = scaffold.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/JmsFlowTestSupport.java");
         assertTrue(helper.contains((version.equals("V3.3.9") ? "javax" : "jakarta") + ".jms.Connection;"));
-        assertTrue(helper.contains("consumer.receive(10000)"));
+        assertTrue(helper.contains("consumer.receive(deliveryTimeoutMillis)"));
         consumer.setPropertyValue("pubSubDomain", true);
         var topic = FlowTestScaffold.render(module, flow, parent, app);
         assertFalse(topic.files().get(topic.testPath()).contains("jms.sendText"));
@@ -170,7 +239,7 @@ class FlowTestScaffoldTest {
         var result = FlowTestScaffold.render(module, flow, parent, app);
         String test = result.files().get(result.testPath());
         assertTrue(test.contains("testGeneratedEventsReachProducerAndFlowKeepsRunning"));
-        assertTrue(test.contains("runObservationTest(CONFIGURED"));
+        assertTrue(test.contains("runObservationTest(TEST_REVIEWED"));
         assertTrue(test.contains("List.of(\"Test Message 1\", \"Test Message 2\", \"Test Message 3\")"));
         assertFalse(test.contains("sendInput"));
         assertFalse(test.contains("FIRST_EXPECTED_OUTPUT"));

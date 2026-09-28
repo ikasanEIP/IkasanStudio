@@ -1,4 +1,4 @@
-package org.ikasan.studio.flowtests;
+package org.ikasan.studio.flowtests.support;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -20,13 +20,15 @@ public final class FileDeliveryAssertions {
     public static void assertFileContents(Path file, String expected, Duration timeout) throws Exception {
         long started = System.nanoTime();
         long limit = timeoutNanos(timeout);
+        String actual = null;
         do {
             try {
-                if (Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS)
-                        && expected.equals(Files.readString(file, StandardCharsets.UTF_8))) return;
+                actual = Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS)
+                        ? Files.readString(file, StandardCharsets.UTF_8) : null;
+                if (expected.equals(actual)) return;
             } catch (NoSuchFileException pendingRename) { /* Recheck an atomic delivery/rename. */ }
             if (System.nanoTime() - started >= limit)
-                throw new AssertionError("Final file missing or UTF-8 contents differ: " + file + " (waited " + timeout + ")");
+                throw new AssertionError("Final file missing or UTF-8 contents differ: " + file + " (waited " + timeout + "): " + difference(expected, actual));
             Thread.sleep(25);
         } while (true);
     }
@@ -53,7 +55,7 @@ public final class FileDeliveryAssertions {
             if (System.nanoTime() - started >= limit)
                 throw new AssertionError("Delivered files differ in " + directory + " matching " + glob
                         + ": expected " + wanted.size() + " files with specified UTF-8 contents; last completed scan found "
-                        + actual.size() + " (waited " + timeout + ")");
+                        + actual.size() + " (waited " + timeout + "): " + firstDifference(wanted, actual));
             Thread.sleep(25);
         } while (true);
     }
@@ -69,6 +71,26 @@ public final class FileDeliveryAssertions {
         }
         Collections.sort(contents);
         return contents;
+    }
+
+    /** Shows bounded context around the first differing UTF-16 character; never dumps a large fixture. */
+    private static String difference(String expected, String actual) {
+        if (actual == null) return "file is missing";
+        int offset = 0;
+        while (offset < expected.length() && offset < actual.length()
+                && expected.charAt(offset) == actual.charAt(offset)) offset++;
+        int start = Math.max(0, offset - 40);
+        return "first difference at character " + offset + "; expected length " + expected.length()
+                + ", actual length " + actual.length() + "; expected ["
+                + expected.substring(start, Math.min(expected.length(), offset + 40))
+                + "]; actual [" + actual.substring(start, Math.min(actual.length(), offset + 40)) + "]";
+    }
+
+    private static String firstDifference(List<String> expected, List<String> actual) {
+        for (int i = 0; i < Math.min(expected.size(), actual.size()); i++) {
+            if (!expected.get(i).equals(actual.get(i))) return difference(expected.get(i), actual.get(i));
+        }
+        return "file count differs";
     }
 
     private static long timeoutNanos(Duration timeout) {

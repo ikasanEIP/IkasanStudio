@@ -118,21 +118,28 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                     .filter(flow -> flow.getFlowElementsNoExternalEndPoints().stream()
                             .anyMatch(element -> element.getComponentMeta().supportsTestFtpServer()))
                     .map(Flow::getIdentity).collect(java.util.stream.Collectors.toSet());
+            java.util.Set<String> smtpFlows = live.getFlows().stream()
+                    .filter(flow -> flow.getFlowElementsNoExternalEndPoints().stream()
+                            .anyMatch(element -> element.getComponentMeta().supportsTestMailServer()))
+                    .map(Flow::getIdentity).collect(java.util.stream.Collectors.toSet());
             List<String> choices;
+            boolean useLocalSmtp;
             boolean useLocalFtp;
             boolean regenerateSupport;
             if (multiple) {
-                FlowTestsDialog dialog = new FlowTestsDialog(project, flows, ftpFlows);
+                FlowTestsDialog dialog = new FlowTestsDialog(project, flows, ftpFlows, smtpFlows);
                 if (!dialog.showAndGet()) return;
                 choices = dialog.selectedFlows();
                 regenerateSupport = dialog.regenerateSupport();
                 useLocalFtp = dialog.useLocalFtp();
+                useLocalSmtp = dialog.useLocalSmtp();
             } else {
-                FlowTestDialog dialog = new FlowTestDialog(project, flows, selectedFlow, ftpFlows);
+                FlowTestDialog dialog = new FlowTestDialog(project, flows, selectedFlow, ftpFlows, smtpFlows);
                 if (!dialog.showAndGet()) return;
                 choices = List.of(dialog.selectedFlow());
                 regenerateSupport = dialog.regenerateSupport();
                 useLocalFtp = dialog.useLocalFtp();
+                useLocalSmtp = dialog.useLocalSmtp();
             }
             if (choices.isEmpty()) return;
             boolean batchWrite = multiple || regenerateSupport;
@@ -174,24 +181,42 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                         if (regenerateSupport) {
                             var first = scaffolds.get(0);
                             scaffolds.add(new FlowTestScaffold.Scaffold(first.rootPom(), FlowTestScaffold.SUPPORT_PATH,
-                                    java.util.Map.of(FlowTestScaffold.SUPPORT_PATH, first.files().get(FlowTestScaffold.SUPPORT_PATH),
+                                    java.util.Map.of("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java",
+                                           first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java"),
+                                           FlowTestScaffold.SUPPORT_PATH, first.files().get(FlowTestScaffold.SUPPORT_PATH),
                                             FlowTestScaffold.TEST_PROPERTIES_PATH, first.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH),
-                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java",
-                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/LocalFtpTestServer.java"),
+                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java",
+                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java"),
                                             "user-flow-tests/pom.xml", first.files().get("user-flow-tests/pom.xml"),
-                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/FileDeliveryAssertions.java",
-                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/FileDeliveryAssertions.java"),
-                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/OutputTextSupport.java",
-                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/OutputTextSupport.java"))));
+                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FtpInputFixture.java",
+                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FtpInputFixture.java"),
+                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileDeliveryAssertions.java",
+                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileDeliveryAssertions.java"),
+                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java",
+                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java"))));
+                        }
+                        if (useLocalSmtp) {
+                            var first = scaffolds.get(0);
+                            for (String helper : List.of("OutputTextSupport", "LocalSmtpTestServer")) {
+                                String helperPath = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/" + helper + ".java";
+                                scaffolds.add(new FlowTestScaffold.Scaffold(first.rootPom(), helperPath,
+                                        java.util.Map.of(helperPath, first.files().get(helperPath))));
+                            }
                         }
                         if (!Files.readString(root.resolve(MigrationArtifacts.MODEL)).equals(source)) {
                             throw new IllegalStateException(StudioBundle.message("message.TheModelChangedWhilePreparingMigration"));
                         }
                         if (batchWrite && !batchReviewed.get()) FlowTestFiles.checkExisting(root, scaffolds);
-                        if (useLocalFtp && Files.exists(root.resolve(FlowTestScaffold.SUPPORT_PATH))
-                                && (batchApproval.get() == null || batchApproval.get().stream().noneMatch(
-                                        approved -> approved.path().equals(root.resolve(FlowTestScaffold.SUPPORT_PATH))))) {
-                            throw new IllegalStateException(StudioBundle.message("flowTest.localFtp.regenerateRequired"));
+                        List<String> requiredHelpers = useLocalSmtp ? List.of(FlowTestScaffold.SUPPORT_PATH,
+                                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java",
+                                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java")
+                                : useLocalFtp ? List.of(FlowTestScaffold.SUPPORT_PATH) : List.of();
+                        for (String helper : requiredHelpers) {
+                            if (Files.exists(root.resolve(helper)) && (batchApproval.get() == null
+                                    || batchApproval.get().stream().noneMatch(approved -> approved.path().equals(root.resolve(helper))))) {
+                                throw new IllegalStateException(StudioBundle.message(useLocalSmtp
+                                        ? "flowTest.localSmtp.regenerateRequired" : "flowTest.localFtp.regenerateRequired"));
+                            }
                         }
                         List<Path> tests = batchWrite ? (batchApproval.get() == null
                                 ? FlowTestFiles.writeAll(root, pom, scaffolds)
@@ -202,6 +227,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                         created.set(tests);
                         if (tests.isEmpty()) return;
                         if (useLocalFtp) FlowTestFiles.enableLocalFtp(root);
+                        if (useLocalSmtp) FlowTestFiles.enableLocalSmtp(root);
                         context.setIkasanPomModel(null);
                         var base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root);
                         if (base != null) base.refresh(false, true);
