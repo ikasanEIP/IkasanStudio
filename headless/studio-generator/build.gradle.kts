@@ -14,7 +14,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.0.20")
     compileOnly("org.projectlombok:lombok:1.18.48")
     annotationProcessor("org.projectlombok:lombok:1.18.48")
-    testImplementation("com.tngtech.archunit:archunit:1.5.0")
+    testImplementation("com.tngtech.archunit:archunit:1.5.1")
 }
 
 // Use a separate source root so IntelliJ does not claim the plugin's UI tests.
