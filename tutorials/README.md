@@ -16,19 +16,22 @@ Start with the videos below, or jump to the topic you need. Durations are shown 
 3. **Create a JMS-to-JMS flow** — 1:39  
    [Watch: Create a JMS-to-JMS flow](shorts-JMStoJMS.mp4)
 
-4. **Auto Generated Tests** — 2:52
+4. **Converters and Recipes** — 1:33
+   [Watch: Converters and Recipes](shorts-convertersAndRecipes.mp4)
+
+5. **Auto Generated Tests** — 2:52
   [Watch: Auto Generated Tests](shorts-autoGenTests.mp4)
 
-5. **Import a model/module from another project and copy/paste flows** — 1:33
+6. **Import a model/module from another project and copy/paste flows** — 1:33
    [Watch: Import a model and copy flows](shorts-CopyModuleAndFlow.mp4)
 
-6. **Simple migration** — 1:44
+7. **Simple migration** — 1:44
    [Watch: Simple migration](shorts-Migration.mp4)
 
-7. **Use AI to generate and test a module** — 6:37
+8. **Use AI to generate and test a module** — 6:37
    [Watch: Use AI to generate and test a module](Demo-AIAgentImplemenStatementOfWork.mp4)
 
-8. **Bug hunting, using event generators, debug components and fow control** — 5:55
+9. **Bug hunting, using event generators, debug components and fow control** — 5:55
    [Watch: Bug hunting, using event generators, debug components and fow control](TrackingBugs-HarnessesEventGeneratorDebugFlowControl.mp4)
 
 ### Ikasan Studio Contributor Focused
