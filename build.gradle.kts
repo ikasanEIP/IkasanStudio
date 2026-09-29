@@ -476,8 +476,8 @@ val cpdTools = configurations.create("cpdTools") {
     isCanBeResolved = true
 }
 dependencies {
-    add(cpdTools.name, "net.sourceforge.pmd:pmd-cli:7.27.0")
-    add(cpdTools.name, "net.sourceforge.pmd:pmd-java:7.27.0")
+    add(cpdTools.name, "net.sourceforge.pmd:pmd-cli:7.28.0")
+    add(cpdTools.name, "net.sourceforge.pmd:pmd-java:7.28.0")
 }
 val cpdReportFile = layout.buildDirectory.file("reports/cpd/duplicates.txt")
 val cpdSourceDirectories = listOf(file("src/main/java"), file("headless/studio-generator/src/main/java"))
