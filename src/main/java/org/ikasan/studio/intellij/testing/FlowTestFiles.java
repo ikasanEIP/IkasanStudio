@@ -24,6 +24,38 @@ public final class FlowTestFiles {
         ExistingTestsException(List<ExistingTestException> tests) { super("Selected tests already exist"); this.tests = List.copyOf(tests); }
         public List<ExistingTestException> tests() { return tests; }
     }
+    /** Automatic support refresh must never nominate existing business scenarios for replacement. */
+    public static List<FlowTestScaffold.Scaffold> preserveExistingScenarios(Path root,
+            List<FlowTestScaffold.Scaffold> scaffolds) {
+        return scaffolds.stream().filter(plan -> !plan.testPath().startsWith(
+                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/")
+                || plan.testPath().contains("/support/") || !Files.exists(root.resolve(plan.testPath()))).toList();
+    }
+
+    /** Each shared helper is a distinct archive target; properties and POM retain their existing values. */
+    static List<FlowTestScaffold.Scaffold> supportRefreshPlans(List<FlowTestScaffold.Scaffold> scaffolds) {
+        Map<String, String> shared = new LinkedHashMap<>();
+        for (var scaffold : scaffolds) {
+            for (var entry : scaffold.files().entrySet()) {
+                String path = entry.getKey();
+                if (path.startsWith("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/")
+                        || path.equals(FlowTestScaffold.TEST_PROPERTIES_PATH) || path.equals("user-flow-tests/pom.xml")) {
+                    String previous = shared.putIfAbsent(path, entry.getValue());
+                    if (previous != null && !previous.equals(entry.getValue()))
+                        throw new IllegalArgumentException("Conflicting flow test file: " + path);
+                }
+            }
+        }
+        List<FlowTestScaffold.Scaffold> plans = new ArrayList<>();
+        for (String path : shared.keySet()) {
+            if (path.startsWith("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/")) {
+                plans.add(new FlowTestScaffold.Scaffold(scaffolds.get(0).rootPom(), path,
+                        path.equals(FlowTestScaffold.SUPPORT_PATH) ? Map.copyOf(shared) : Map.of(path, shared.get(path))));
+            }
+        }
+        return plans;
+    }
+
     public static void checkExisting(Path root, List<FlowTestScaffold.Scaffold> scaffolds) throws IOException {
         List<ExistingTestException> existing = new ArrayList<>();
         for (var scaffold : scaffolds) {

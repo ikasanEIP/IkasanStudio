@@ -45,19 +45,20 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
         UiContext context = project.getService(UiContext.class);
         boolean acquired = false;
         try {
+            String basePath = project.getBasePath();
             var live = context.getIkasanModule();
-            if (project.getBasePath() == null || live == null || !live.isInitialised() || context.isModelPersistenceBlocked())
+            if (basePath == null || live == null || !live.isInitialised() || context.isModelPersistenceBlocked())
                 throw new IllegalStateException(StudioBundle.message("message.ConfigureAndSaveTheModuleFirst"));
             if (context.getPropertiesPanel() != null && context.getPropertiesPanel().dataHasChangedAndOKToProcess())
                 throw new IllegalStateException(StudioBundle.message("message.ApplyOrDiscardThePendingPropertyEditsBeforeMigrating"));
             for (var document : FileDocumentManager.getInstance().getUnsavedDocuments()) {
                 var file = FileDocumentManager.getInstance().getFile(document);
-                if (file != null && file.getPath().startsWith(project.getBasePath() + "/"))
+                if (file != null && file.getPath().startsWith(basePath + "/"))
                     throw new IllegalStateException(StudioBundle.message("flowTest.saveFiles"));
             }
             if (!context.tryBeginMigration()) throw new IllegalStateException(StudioBundle.message("message.WaitForTheCurrentGenerationOrMigrationToFinish"));
             acquired = true;
-            Path root = Path.of(project.getBasePath());
+            Path root = Path.of(basePath);
             AtomicReference<Exception> failure = new AtomicReference<>();
             AtomicReference<org.ikasan.studio.core.generator.GeneratedVerification.Bundle> bundle = new AtomicReference<>();
             AtomicReference<String> snapshot = new AtomicReference<>();
@@ -106,8 +107,9 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
         UiContext context = project.getService(UiContext.class);
         boolean acquired = false;
         try {
+            String basePath = project.getBasePath();
             var live = context.getIkasanModule();
-            if (project.getBasePath() == null || live == null || !live.isInitialised() || context.isModelPersistenceBlocked()) {
+            if (basePath == null || live == null || !live.isInitialised() || context.isModelPersistenceBlocked()) {
                 throw new IllegalStateException(StudioBundle.message("message.ConfigureAndSaveTheModuleFirst"));
             }
             if (context.getPropertiesPanel() != null && context.getPropertiesPanel().dataHasChangedAndOKToProcess()) {
@@ -127,6 +129,16 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                     .filter(flow -> flow.getFlowElementsNoExternalEndPoints().stream()
                             .anyMatch(element -> element.getComponentMeta().supportsTestSftpServer()))
                     .map(Flow::getIdentity).collect(java.util.stream.Collectors.toSet());
+            java.util.concurrent.atomic.AtomicBoolean stale = new java.util.concurrent.atomic.AtomicBoolean();
+            AtomicReference<Exception> fingerprintFailure = new AtomicReference<>();
+            ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
+                try {
+                    Path support = Path.of(basePath).resolve(FlowTestScaffold.SUPPORT_PATH);
+                    stale.set(Files.exists(support) && FlowTestScaffold.supportNeedsRefresh(Files.readString(support), live));
+                } catch (Exception ex) { fingerprintFailure.set(ex); }
+            }, title, false, project);
+            if (fingerprintFailure.get() != null) throw fingerprintFailure.get();
+            boolean staleSupport = stale.get();
             boolean useLocalSftp;
             List<String> choices;
             boolean useLocalSmtp;
@@ -134,6 +146,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             boolean regenerateSupport;
             if (multiple) {
                 FlowTestsDialog dialog = new FlowTestsDialog(project, flows, ftpFlows, smtpFlows, sftpFlows);
+                dialog.setSupportStale(staleSupport);
                 if (!dialog.showAndGet()) return;
                 choices = dialog.selectedFlows();
                 regenerateSupport = dialog.regenerateSupport();
@@ -142,6 +155,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                 useLocalSftp = dialog.useLocalSftp();
             } else {
                 FlowTestDialog dialog = new FlowTestDialog(project, flows, selectedFlow, ftpFlows, smtpFlows, sftpFlows);
+                dialog.setSupportStale(staleSupport);
                 if (!dialog.showAndGet()) return;
                 choices = List.of(dialog.selectedFlow());
                 regenerateSupport = dialog.regenerateSupport();
@@ -156,11 +170,11 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             acquired = true;
             for (var document : FileDocumentManager.getInstance().getUnsavedDocuments()) {
                 var file = FileDocumentManager.getInstance().getFile(document);
-                if (file != null && file.getPath().startsWith(project.getBasePath() + "/")) {
+                if (file != null && file.getPath().startsWith(basePath + "/")) {
                     throw new IllegalStateException(StudioBundle.message("flowTest.saveFiles"));
                 }
             }
-            Path root = Path.of(project.getBasePath());
+            Path root = Path.of(basePath);
             AtomicReference<com.intellij.openapi.vfs.VirtualFile> result = new AtomicReference<>();
             AtomicReference<Exception> failure = new AtomicReference<>();
             AtomicReference<List<Path>> created = new AtomicReference<>(List.of());
@@ -187,30 +201,11 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                             catch (Exception ex) { throw new IllegalArgumentException(choice + ": " + ex.getMessage(), ex); }
                         }
                         if (regenerateSupport) {
-                            var first = scaffolds.get(0);
-                            scaffolds.add(new FlowTestScaffold.Scaffold(first.rootPom(), FlowTestScaffold.SUPPORT_PATH,
-                                    java.util.Map.of("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java",
-                                           first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java"),
-                                           FlowTestScaffold.SUPPORT_PATH, first.files().get(FlowTestScaffold.SUPPORT_PATH),
-                                            FlowTestScaffold.TEST_PROPERTIES_PATH, first.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH),
-                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java",
-                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java"),
-                                            "user-flow-tests/pom.xml", first.files().get("user-flow-tests/pom.xml"),
-                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FtpInputFixture.java",
-                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FtpInputFixture.java"),
-                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileDeliveryAssertions.java",
-                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileDeliveryAssertions.java"),
-                                            "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java",
-                                            first.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java"))));
+                            scaffolds.addAll(FlowTestFiles.supportRefreshPlans(scaffolds));
                         }
-                        if (regenerateSupport) {
-                            var first = scaffolds.get(0);
-                            for (String helper : List.of("OutputTextSupport", "LocalSmtpTestServer", "LocalFtpTestServer", "LocalSftpTestServer",
-                                    "FtpInputFixture", "FileInputFixture", "ScheduledEventFixture", "FileDeliveryAssertions")) {
-                                String helperPath = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/" + helper + ".java";
-                                scaffolds.add(new FlowTestScaffold.Scaffold(first.rootPom(), helperPath,
-                                        java.util.Map.of(helperPath, first.files().get(helperPath))));
-                            }
+                        if (staleSupport) {
+                            // Refresh shared wiring, never select existing business scenarios for replacement.
+                            scaffolds = FlowTestFiles.preserveExistingScenarios(root, scaffolds);
                         }
                         if (!Files.readString(root.resolve(MigrationArtifacts.MODEL)).equals(source)) {
                             throw new IllegalStateException(StudioBundle.message("message.TheModelChangedWhilePreparingMigration"));
@@ -259,11 +254,11 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             long scenarioCount = created.get().stream()
                     .filter(path -> path.getParent().equals(root.resolve("user-flow-tests/src/test/java/org/ikasan/studio/flowtests")))
                     .count();
-            Messages.showInfoMessage(project, batchWrite
+            Messages.showInfoMessage(project, (staleSupport ? StudioBundle.message("flowTest.supportRefreshedReview") + "\n\n" : "") + (batchWrite
                     ? (batchApproval.get() == null ? "" : StudioBundle.message("flowTest.batchArchived", batchApproval.get().size()) + "\n\n")
                             + StudioBundle.message("flowTest.batchCreated", scenarioCount, choices.size() - scenarioCount)
                     : (archiveApproval.get() == null ? "" : StudioBundle.message("flowTest.archived") + "\n\n")
-                            + StudioBundle.message("flowTest.created"), title);
+                            + StudioBundle.message("flowTest.created")), title);
         } catch (Exception ex) {
             LOG.warn("Could not generate flow test", ex);
             if (!project.isDisposed()) Messages.showWarningDialog(project, ex.getMessage() == null ? ex.toString() : ex.getMessage(), title);

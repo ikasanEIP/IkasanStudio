@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -51,6 +52,10 @@ public abstract class ModuleFlowTestSupport {
     private int deliveryTimeoutSeconds = 10;
     private final TemporaryFolder ftpTestDirectory = TemporaryFolder.builder().assureDeletion().build();
 
+    private static final String SUPPORT_MODEL_SHA256 = "${supportFingerprint}";
+    private static final Set<String> SUPPORT_MODEL_FIELDS = Set.of(
+            <#list supportModelFields as field>"${field?j_string}"<#sep>, </#sep></#list>);
+
     /** Positive per-delivery wait, shared by producer, file, JMS and path assertions. */
     public static int deliveryTimeoutSeconds(String value) {
         try {
@@ -84,6 +89,7 @@ public abstract class ModuleFlowTestSupport {
      * Regenerating this class archives it first and preserves module-test.properties.
      */
     protected Map<String, String> moduleTestProperties() throws IOException {
+        FlowTestSupportFingerprint.verify(SUPPORT_MODEL_SHA256, SUPPORT_MODEL_FIELDS);
         Properties loaded = new Properties();
         try (InputStream input = ModuleFlowTestSupport.class.getResourceAsStream("/module-test.properties")) {
             if (input == null) throw new IOException(
@@ -189,6 +195,16 @@ public abstract class ModuleFlowTestSupport {
             });
             String[] arguments = properties.entrySet().stream()
                     .map(entry -> "--" + entry.getKey() + "=" + entry.getValue()).toArray(String[]::new);
+            application.addInitializers(context -> {
+                for (String key : properties.keySet()) {
+                    try { context.getEnvironment().getProperty(key); }
+                    catch (IllegalArgumentException invalidReference) {
+                        throw new IllegalStateException("Review module-test.properties or scenario overrides: property '"
+                                + key + "' refers to a missing or invalid application property. "
+                                + "Component renames can change property keys; compare with generated application.properties.", invalidReference);
+                    }
+                }
+            });
             startedContext = application.run(arguments);
             if (ftp != null) {
                 Module<Flow> module = startedContext.getBean(Module.class);

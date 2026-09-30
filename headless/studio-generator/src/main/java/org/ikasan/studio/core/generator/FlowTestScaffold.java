@@ -18,6 +18,27 @@ public final class FlowTestScaffold {
     private FlowTestScaffold() { }
     public record Scaffold(String rootPom, String testPath, Map<String, String> files) { }
 
+    /** Pack-declared external settings and provider choices affect shared test wiring. */
+    public static java.util.Set<String> supportModelFields(Module module) {
+        java.util.Set<String> fields = new java.util.TreeSet<>();
+        for (var flow : module.getFlows()) for (var component : flow.getFlowElementsNoExternalEndPoints()) {
+            component.getComponentMeta().getAllowableProperties().forEach((name, property) -> {
+                if (property.getPropertyConfigFileLabel() != null && !property.getPropertyConfigFileLabel().isBlank()) fields.add(name);
+            });
+            fields.addAll(component.getComponentMeta().getFlowTestInputModeInvalidatedByProperties());
+        }
+        return fields;
+    }
+
+    public static String supportFingerprint(Module module) throws Exception {
+        return FlowTestSupportFingerprint.fingerprint(org.ikasan.studio.core.io.ComponentIO.toJson(module), supportModelFields(module));
+    }
+
+    /** Legacy support has no fingerprint and needs one explicit refresh. */
+    public static boolean supportNeedsRefresh(String existingSupport, Module module) throws Exception {
+        return !existingSupport.contains("SUPPORT_MODEL_SHA256 = \"" + supportFingerprint(module) + "\"");
+    }
+
     public static Scaffold render(Module module, Flow flow, String rootPom, String applicationPom) throws Exception {
         if (flow.getConsumer() == null) throw new IllegalArgumentException("Add a consumer before generating a flow test.");
         Model parent = new MavenXpp3Reader().read(new StringReader(rootPom));
@@ -29,6 +50,8 @@ public final class FlowTestScaffold {
         String className = flow.getJavaClassName() + "FlowTest";
         if (!className.matches("[A-Za-z_$][A-Za-z0-9_$]*")) throw new IllegalArgumentException("Invalid flow Java class name.");
         Map<String, Object> values = new LinkedHashMap<>();
+        values.put("supportFingerprint", supportFingerprint(module));
+        values.put("supportModelFields", supportModelFields(module));
         values.put("className", className);
         values.put("flowName", flow.getIdentity());
         java.util.Set<String> propertyKeys = new java.util.TreeSet<>();
@@ -209,6 +232,8 @@ public final class FlowTestScaffold {
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "jmsFlowTestSupportTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/ScheduledEventFixture.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "scheduledEventFixtureTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FlowTestSupportFingerprint.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestSupportFingerprintTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileInputFixture.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "fileInputFixtureTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FtpInputFixture.java",

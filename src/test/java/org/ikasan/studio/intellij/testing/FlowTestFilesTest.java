@@ -14,6 +14,64 @@ class FlowTestFilesTest {
         return new FlowTestScaffold.Scaffold("updated", "user-flow-tests/src/test/java/ExampleTest.java",
                 Map.of("user-flow-tests/src/test/java/ExampleTest.java", "test", "user-flow-tests/pom.xml", "generated pom"));
     }
+    @Test void refreshPlansArchiveEachHelperOnceAndIncludeJmsFromLaterFlows() throws Exception {
+        Files.writeString(root.resolve("pom.xml"), "original");
+        String helper = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java";
+        String jms = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/JmsFlowTestSupport.java";
+        var shared = Map.of(FlowTestScaffold.SUPPORT_PATH, "new support", helper, "new helper",
+                FlowTestScaffold.TEST_PROPERTIES_PATH, "custom.property=new", "user-flow-tests/pom.xml", "new pom");
+        var later = new java.util.LinkedHashMap<>(shared);
+        later.put(jms, "new JMS helper");
+        var plans = FlowTestFiles.supportRefreshPlans(java.util.List.of(
+                new FlowTestScaffold.Scaffold("original", "FirstTest.java", shared),
+                new FlowTestScaffold.Scaffold("original", "SecondTest.java", later)));
+        assertEquals(3, plans.size());
+        assertEquals(3, plans.stream().map(FlowTestScaffold.Scaffold::testPath).distinct().count());
+        for (var entry : shared.entrySet()) {
+            Files.createDirectories(root.resolve(entry.getKey()).getParent());
+            Files.writeString(root.resolve(entry.getKey()), "old content");
+        }
+        var prompt = assertThrows(FlowTestFiles.ExistingTestsException.class,
+                () -> FlowTestFiles.checkExisting(root, plans));
+        assertEquals(2, prompt.tests().size());
+        FlowTestFiles.archiveAndWriteAll(root, "original", plans, prompt.tests());
+        assertEquals("new support", Files.readString(root.resolve(FlowTestScaffold.SUPPORT_PATH)));
+        assertEquals("new helper", Files.readString(root.resolve(helper)));
+        assertEquals("new JMS helper", Files.readString(root.resolve(jms)));
+        assertEquals("old content", Files.readString(root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH)));
+        assertEquals("old content", Files.readString(root.resolve("user-flow-tests/pom.xml")));
+    }
+
+    @Test void staleRefreshArchivesSupportButPreservesBusinessTestsPropertiesAndFixtures() throws Exception {
+        Files.writeString(root.resolve("pom.xml"), "original");
+        String test = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/BusinessTest.java";
+        String fixture = "user-flow-tests/src/test/resources/input/first.txt";
+        var contents = Map.of(test, "custom assertions", FlowTestScaffold.SUPPORT_PATH, "old support",
+                FlowTestScaffold.TEST_PROPERTIES_PATH, "custom.property=keep", fixture, "custom input");
+        for (var entry : contents.entrySet()) {
+            Files.createDirectories(root.resolve(entry.getKey()).getParent());
+            Files.writeString(root.resolve(entry.getKey()), entry.getValue());
+        }
+        var generated = Map.of(test, "new scaffold", FlowTestScaffold.SUPPORT_PATH, "fresh support",
+                FlowTestScaffold.TEST_PROPERTIES_PATH, "custom.property=replace", fixture, "sample input");
+        var plans = FlowTestFiles.preserveExistingScenarios(root, java.util.List.of(
+                new FlowTestScaffold.Scaffold("original", test, generated),
+                new FlowTestScaffold.Scaffold("original", FlowTestScaffold.SUPPORT_PATH, generated)));
+        var prompt = assertThrows(FlowTestFiles.ExistingTestsException.class,
+                () -> FlowTestFiles.checkExisting(root, plans));
+        assertEquals(1, prompt.tests().size());
+        assertEquals(root.resolve(FlowTestScaffold.SUPPORT_PATH), prompt.tests().get(0).path());
+        FlowTestFiles.archiveAndWriteAll(root, "original", plans, prompt.tests());
+        assertEquals("fresh support", Files.readString(root.resolve(FlowTestScaffold.SUPPORT_PATH)));
+        for (String preserved : java.util.List.of(test, FlowTestScaffold.TEST_PROPERTIES_PATH, fixture))
+            assertEquals(contents.get(preserved), Files.readString(root.resolve(preserved)));
+        try (var paths = Files.walk(root)) {
+            var backups = paths.filter(path -> path.getFileName().toString().contains(".bak")).toList();
+            assertEquals(1, backups.size());
+            assertEquals("old support", Files.readString(backups.get(0)));
+        }
+    }
+
     @Test void fixtureResourcesAreCreatedOnlyWhenMissingIncludingOnRegeneration() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
         String directory = "user-flow-tests/src/test/resources/flow4/my_local_consumer/";

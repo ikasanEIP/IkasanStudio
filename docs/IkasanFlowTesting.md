@@ -675,3 +675,28 @@ It has no live scheduler: this checks downstream processing, not cron timing or 
 A custom message provider retains the input-preparation scaffold because its data requirements
 cannot be inferred. Existing developer-owned tests are preserved; regenerate with the normal
 backup option or use the helper directly.
+
+### Shared support refresh detection
+
+Keep your business tests. Studio tells you when shared test support needs refreshing.
+When opening either flow-test generation dialog, Studio compares the shared support's
+recorded fingerprint with the current model. Missing fingerprints in older support also
+select refresh. The dialog explains the change; use the normal archive-and-regenerate
+confirmation to replace support. Existing business scenarios and fixture resources are
+excluded from automatic replacement. Skip Existing still preserves support, so it remains
+stale until refreshed.
+
+After one refresh with this version of Studio, tests also check the saved model before
+Spring starts. Renamed, added or removed components and changes to pack-declared external
+settings trigger an actionable failure. JSON formatting, property ordering, canvas fields,
+Java business-code edits and a version-number-only change do not. The fingerprint records
+no connection values, only their digest and the property names selected by the pack.
+Run tests from the project root or user-flow-tests directory so the saved model can be found.
+
+Shared refresh preserves module-test.properties. Review its connection references and
+any affected business test names after a rename; unresolved property references now identify
+the setting requiring review before Spring creates application beans. This check does not
+validate business expectations or promise that every manual override remains appropriate.
+During migration comparisons, keep the before/after tests frozen; preserve any stale-support
+failure evidence before deliberately refreshing. Actual component/API changes may require
+support updates even though a version-number change alone does not.
