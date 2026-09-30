@@ -73,7 +73,7 @@ dependencies {
     implementation("org.ikasan.studio:ikasan-studio-ide-mediator:1.0.2")
     testImplementation("org.freemarker:freemarker:2.3.35")
     testImplementation("org.mockito:mockito-core:5.24.0")
-    testImplementation("com.icegreen:greenmail:1.6.15")
+    testImplementation("com.icegreen:greenmail:2.1.14")
     implementation("org.apache.sshd:sshd-sftp:2.19.0") {
         exclude(group = "org.slf4j", module = "slf4j-api")
     }
