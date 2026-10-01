@@ -22,6 +22,9 @@ public class ${className} extends ModuleFlowTestSupport {
     private static final String FLOW_NAME = "${flowName?j_string}";
     @Override protected String getFlowName() { return FLOW_NAME; }
 
+    // Override prepareFixtures(context) for instance fixtures after Spring starts, before the flow starts.
+    // Override cleanupFixtures(context) for custom cleanup, including when fixture preparation fails.
+
     @Test
     public void testGeneratedEventsReachProducerAndFlowKeepsRunning() throws Exception {
         runObservationTest(TEST_REVIEWED, "${producers[0]?j_string}"<#if expectedInitialOutputs?has_content>,

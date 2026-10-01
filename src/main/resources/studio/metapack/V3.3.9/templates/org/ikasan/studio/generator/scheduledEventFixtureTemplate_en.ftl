@@ -14,7 +14,7 @@ import org.quartz.spi.TriggerFiredBundle;
 
 /**
  * Deterministic timer events for the default QuartzMessageProvider.
- * The consumer still emits a JobExecutionContext; fixture text is stored in its job data map.
+ * The consumer still emits a JobExecutionContext; optional fixture text is stored in its job data map.
  * These events exercise flow processing, not cron timing, misfires or scheduler recovery.
  * Custom providers needing a live scheduler should use the harness's fireScheduledConsumer().
  */
@@ -22,6 +22,19 @@ public final class ScheduledEventFixture {
     /** Job data key available to downstream components in these test events. */
     public static final String TEXT_KEY = "studio.test.event.text";
     private ScheduledEventFixture() { }
+
+    /**
+     * Fires a timer trigger without business input or fixture text. Use this when a downstream
+     * broker obtains its own data; prepare that data source before firing the trigger.
+     * Call after startFlow() and register scheduledConsumer(name) to suppress normal cron firing.
+     * The flow remains available for later triggers without restarting.
+     * @param harness the started flow harness
+     * @param consumerName the scheduled consumer's model name
+     */
+    public static void fire(IkasanFlowTestRule harness, String consumerName) {
+        ScheduledConsumer consumer = (ScheduledConsumer) harness.getComponent(consumerName);
+        harness.fireScheduledConsumerSynchronously(create(consumer));
+    }
 
     /**
      * Fires one event synchronously through the real consumer registered with the harness.
@@ -37,6 +50,17 @@ public final class ScheduledEventFixture {
     }
 
     /**
+     * Creates a trigger-only context with the same fixed time and job identity as the text variant.
+     * No fixture text is attached; text(context) therefore rejects this event.
+     * The trigger is not registered with Quartz and getScheduler() returns null.
+     * @param consumer the started scheduled consumer
+     * @return an independent timer event without business input
+     */
+    public static JobExecutionContext create(ScheduledConsumer consumer) {
+        return createEvent(consumer, null);
+    }
+
+    /**
      * Creates an independent context using the started consumer's job identity and a fixed UTC time.
      * The trigger is not registered with Quartz and getScheduler() returns null.
      * Job data is copied so fixture changes cannot modify the consumer's real job configuration.
@@ -45,12 +69,17 @@ public final class ScheduledEventFixture {
      * @return a new timer event for synchronous harness execution
      */
     public static JobExecutionContext create(ScheduledConsumer consumer, String text) {
-        Objects.requireNonNull(text, "Fixture text");
+        return createEvent(consumer, Objects.requireNonNull(text, "Fixture text"));
+    }
+
+    private static JobExecutionContext createEvent(ScheduledConsumer consumer, String text) {
         JobDetail job = (JobDetail) consumer.getJobDetail().clone();
+        job.getJobDataMap().remove(TEXT_KEY);
         Date time = Date.from(Instant.parse("2000-01-01T00:00:00Z"));
         OperableTrigger trigger = (OperableTrigger) TriggerBuilder.newTrigger()
                 .withIdentity("studio-test-event", job.getKey().getGroup()).forJob(job)
-                .startAt(time).usingJobData(TEXT_KEY, text).build();
+                .startAt(time).build();
+        if (text != null) trigger.getJobDataMap().put(TEXT_KEY, text);
         trigger.getJobDataMap().put(ScheduledConsumer.CRON_EXPRESSION,
                 consumer.getConfiguration().getConsolidatedCronExpressions().get(0));
         TriggerFiredBundle fired = new TriggerFiredBundle(job, trigger, null, false,

@@ -49,6 +49,9 @@ public class ${className} extends ModuleFlowTestSupport {
     private static final String FLOW_NAME = "${flowName?j_string}";
     @Override protected String getFlowName() { return FLOW_NAME; }
 
+    // Override prepareFixtures(context) for instance fixtures after Spring starts, before the flow starts.
+    // Override cleanupFixtures(context) for custom cleanup, including when fixture preparation fails.
+
 <#if jmsConsumer>
     @Override protected Class<?>[] testConfigurationClasses() {
         return new Class<?>[]{ModuleJmsTestConfig.class};
@@ -129,6 +132,9 @@ public class ${className} extends ModuleFlowTestSupport {
 <#elseif scheduledContext>
         // Fire the real scheduled consumer now; no waiting for its cron expression.
         // This creates a Quartz timer event carrying fixture text, not a String business payload.
+        // If the broker supplies its own data, prepare its source and use the trigger-only overload:
+        // ScheduledEventFixture.fire(harness, "${consumerName?j_string}");
+        // Then remove the unused batch input constants; compare the broker output below.
         ScheduledEventFixture.fire(harness, "${consumerName?j_string}",
                 batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT);
 <#elseif scheduled>
@@ -177,8 +183,9 @@ public class ${className} extends ModuleFlowTestSupport {
     private static final String PRODUCER_NAME = <#if producers?size == 1>"${producers[0]?j_string}"<#else>"REPLACE: producer name"</#if>;
 
     // Decode actual Payload/byte[]/File/Path/file-list/JMS TextMessage content for comparisons.
-    // UTF-8 is used for bytes/files; false retains String.valueOf. Override outputText for other formats.
-    private static final boolean STRINGIFY_ACTUAL_OUTPUT = true;
+    // true decodes supported content as text; false uses toString(). Both modes compare text.
+    // For business objects override assertOutput(actual, batch) instead; this flag is then unused.
+    private static final boolean DECODE_OUTPUT_CONTENT_AS_TEXT = true;
 
 <#if fileDelivery || smtpDelivery>
     // Review the sample expected UTF-8 output files under src/test/resources/<flow>/<producer>/.
@@ -196,14 +203,17 @@ public class ${className} extends ModuleFlowTestSupport {
 
 </#if>
 
+    // For business objects, override assertOutput(Object actual, int batch) and assert their fields.
+    // Then call runTest(TEST_REVIEWED, PRODUCER_NAME) and remove unused text expectations/outputText.
+    // The hook receives the original payload after the producer; it does not verify external delivery.
     @Override protected String outputText(Object payload) {
 <#if scheduledContext>
         // The default provider forwards the timer context, including our test fixture text.
-        if (STRINGIFY_ACTUAL_OUTPUT && payload instanceof JobExecutionContext) {
+        if (DECODE_OUTPUT_CONTENT_AS_TEXT && payload instanceof JobExecutionContext) {
             return ScheduledEventFixture.text((JobExecutionContext) payload);
         }
 </#if>
-        return outputText(payload, STRINGIFY_ACTUAL_OUTPUT);
+        return outputText(payload, DECODE_OUTPUT_CONTENT_AS_TEXT);
     }
 
 

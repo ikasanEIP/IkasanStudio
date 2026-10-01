@@ -269,6 +269,9 @@ public final class FlowTestScaffold {
                 Other scenarios follow TODO 1–5 in the Java test: isolate settings, supply two input batches, select output and expected results,
                 review component-path expectations, then enable and run. Set TEST_REVIEWED only after completing the first four tasks.
                 Configure shared test connections in src/test/resources/module-test.properties (UTF-8).
+                After refactoring, use Refresh test properties (archive existing) in Generate Flow Tests
+                to rebuild settings from the model while keeping business tests and fixtures.
+                Review custom settings in the properties backup before running tests.
                 For plain FTP endpoints, set test.ftp.enabled=true to start a disposable loopback FTP server per test.
                 Local FTP consumers use test.ftp.consumer.min-age-seconds=0 so complete fixtures are immediately discoverable.
                 This overrides all module FTP connections and directories; inspect/seed context.getBean(LocalFtpTestServer.class).root().
@@ -292,6 +295,9 @@ public final class FlowTestScaffold {
                 Set a fixture-input flag false to retain polling across regeneration; adapt the input scenario accordingly.
                 Absent settings retain application defaults; review them before starting the whole module context.
                 Each scenario opens and closes a fresh context; contexts and service state are not shared across tests.
+                Override prepareFixtures(context) to initialise instance fixtures after Spring starts, before the flow starts.
+                cleanupFixtures(context) runs before Spring closes, even after partial setup or test failure.
+                Cleanup failures are suppressed onto the original failure; tolerate partially initialised fixtures.
                 Standard tests use runTest with named supplyInput and optional verifyReceivedOutput overrides.
                 verifyFlow supplies the common lifecycle and two-delivery checks; verifyScenario supports
                 deliberate rejection/branch scenarios with explicit expectations and output/absence assertions.
@@ -307,7 +313,10 @@ public final class FlowTestScaffold {
 
                 Run from the project root: `mvn -pl user-flow-tests -am test`.
                 For one test: `mvn -pl user-flow-tests -am -Dtest=YourFlowTest -Dsurefire.failIfNoSpecifiedTests=false test`.
-                STRINGIFY_ACTUAL_OUTPUT enables content comparison for Ikasan Payload, bytes, files/paths/file lists and JMS TextMessage.
+                Override assertOutput(Object actual, int batch) for business-object field assertions and call
+                runTest(TEST_REVIEWED, PRODUCER_NAME); this bypasses outputText conversion.
+                With text assertions, false uses toString(), not object equality.
+                DECODE_OUTPUT_CONTENT_AS_TEXT enables content comparison for Ikasan Payload, bytes, files/paths/file lists and JMS TextMessage.
                 It uses UTF-8, rejects unsupported types and never acknowledges/consumes JMS messages; override outputText for other formats.
                 Set it false to retain String.valueOf. Receiver delivery assertions remain separate.
                 FIRST_BATCH_INPUT and SECOND_BATCH_INPUT define scenario data independently of expected outputs.

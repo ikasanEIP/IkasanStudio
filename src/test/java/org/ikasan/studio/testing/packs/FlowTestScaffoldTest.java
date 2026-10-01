@@ -127,8 +127,8 @@ class FlowTestScaffoldTest {
                 Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
         String test = scaffold.files().get(scaffold.testPath());
         assertTrue(test.contains("private static final String FIRST_BATCH_INPUT"));
-        assertTrue(test.contains("private static final boolean STRINGIFY_ACTUAL_OUTPUT = true"));
-        assertTrue(test.contains("return outputText(payload, STRINGIFY_ACTUAL_OUTPUT)"));
+        assertTrue(test.contains("private static final boolean DECODE_OUTPUT_CONTENT_AS_TEXT = true"));
+        assertTrue(test.contains("return outputText(payload, DECODE_OUTPUT_CONTENT_AS_TEXT)"));
         assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/OutputTextSupport.java"));
         assertTrue(test.contains("private static final String SECOND_BATCH_INPUT"));
         assertTrue(test.contains("batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT"));

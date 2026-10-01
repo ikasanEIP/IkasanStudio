@@ -17,6 +17,9 @@ final class FlowTestDialog extends DialogWrapper {
     private final ComboBox<String> flows;
     private final com.intellij.ui.components.JBCheckBox regenerateSupport = new com.intellij.ui.components.JBCheckBox(
             StudioBundle.message("flowTest.regenerateSupport"), false);
+    private final com.intellij.ui.components.JBCheckBox refreshProperties = new com.intellij.ui.components.JBCheckBox(
+            StudioBundle.message("flowTest.refreshProperties"), false);
+    boolean refreshProperties() { return refreshProperties.isSelected(); }
     private boolean staleSupport;
     private final JBLabel staleNotice = new JBLabel("<html><body style='width: 420px'>"
             + StringUtil.escapeXmlEntities(StudioBundle.message("flowTest.staleSupport")) + "</body></html>");
@@ -95,6 +98,8 @@ final class FlowTestDialog extends DialogWrapper {
         if (!ftpFlows.isEmpty()) options.add(localFtp);
         if (!smtpFlows.isEmpty()) options.add(localSmtp);
         options.add(regenerateSupport);
+        refreshProperties.setToolTipText(StudioBundle.message("flowTest.refreshProperties.help"));
+        options.add(refreshProperties);
         staleNotice.setVisible(staleSupport);
         options.add(staleNotice);
         panel.add(options, BorderLayout.SOUTH);

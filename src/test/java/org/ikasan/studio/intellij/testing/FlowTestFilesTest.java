@@ -14,6 +14,40 @@ class FlowTestFilesTest {
         return new FlowTestScaffold.Scaffold("updated", "user-flow-tests/src/test/java/ExampleTest.java",
                 Map.of("user-flow-tests/src/test/java/ExampleTest.java", "test", "user-flow-tests/pom.xml", "generated pom"));
     }
+    @Test void explicitPropertiesRefreshArchivesCustomSettingsAndPreservesScenarios() throws Exception {
+        Path properties = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
+        Files.createDirectories(properties.getParent());
+        String original = "# custom settings\r\ntest.jms.broker-url=${old.consumer.url}\r\n";
+        Files.writeString(properties, original);
+        Path scenario = root.resolve("user-flow-tests/src/test/java/BusinessTest.java");
+        Files.createDirectories(scenario.getParent());
+        Files.writeString(scenario, "custom assertions");
+        Path fixture = properties.resolveSibling("first.txt");
+        Files.writeString(fixture, "business input");
+        FlowTestFiles.refreshProperties(root, "test.jms.broker-url=${new.consumer.url}\n");
+        assertEquals("test.jms.broker-url=${new.consumer.url}\n", Files.readString(properties));
+        try (var files = Files.list(properties.getParent())) {
+            var backups = files.filter(p -> p.getFileName().toString().startsWith("module-test.properties.bak")).toList();
+            assertEquals(1, backups.size());
+            assertEquals(original, Files.readString(backups.get(0)));
+        }
+        assertEquals("custom assertions", Files.readString(scenario));
+        assertEquals("business input", Files.readString(fixture));
+    }
+
+    @Test void propertiesRefreshCreatesMissingFileWithoutBackup() throws Exception {
+        Path properties = FlowTestFiles.refreshProperties(root, "fresh=true\n");
+        assertEquals("fresh=true\n", Files.readString(properties));
+        try (var files = Files.list(properties.getParent())) { assertEquals(1, files.count()); }
+    }
+
+    @Test void propertiesRefreshRejectsDirectoryWithoutRemovingIt() throws Exception {
+        Path properties = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
+        Files.createDirectories(properties);
+        assertThrows(IOException.class, () -> FlowTestFiles.refreshProperties(root, "fresh=true\n"));
+        assertTrue(Files.isDirectory(properties));
+    }
+
     @Test void refreshPlansPreserveUtilitiesAndCreateMissingUtilitiesFromLaterFlows() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
         String helper = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/OutputTextSupport.java";

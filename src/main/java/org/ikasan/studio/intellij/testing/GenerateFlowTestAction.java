@@ -144,12 +144,14 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             boolean useLocalSmtp;
             boolean useLocalFtp;
             boolean regenerateSupport;
+            boolean refreshProperties;
             if (multiple) {
                 FlowTestsDialog dialog = new FlowTestsDialog(project, flows, ftpFlows, smtpFlows, sftpFlows);
                 dialog.setSupportStale(staleSupport);
                 if (!dialog.showAndGet()) return;
                 choices = dialog.selectedFlows();
                 regenerateSupport = dialog.regenerateSupport();
+                refreshProperties = dialog.refreshProperties();
                 useLocalFtp = dialog.useLocalFtp();
                 useLocalSmtp = dialog.useLocalSmtp();
                 useLocalSftp = dialog.useLocalSftp();
@@ -159,12 +161,13 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                 if (!dialog.showAndGet()) return;
                 choices = List.of(dialog.selectedFlow());
                 regenerateSupport = dialog.regenerateSupport();
+                refreshProperties = dialog.refreshProperties();
                 useLocalFtp = dialog.useLocalFtp();
                 useLocalSmtp = dialog.useLocalSmtp();
                 useLocalSftp = dialog.useLocalSftp();
             }
             if (choices.isEmpty()) return;
-            boolean batchWrite = multiple || regenerateSupport;
+            boolean batchWrite = multiple || regenerateSupport || refreshProperties;
             // Block canvas generation/migration while modal background work snapshots the saved model and writes files.
             if (!context.tryBeginMigration()) throw new IllegalStateException(StudioBundle.message("message.WaitForTheCurrentGenerationOrMigrationToFinish"));
             acquired = true;
@@ -203,7 +206,8 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                         if (regenerateSupport) {
                             scaffolds.addAll(FlowTestFiles.supportRefreshPlans(scaffolds));
                         }
-                        if (staleSupport) {
+                        String freshProperties = scaffolds.get(0).files().get(FlowTestScaffold.TEST_PROPERTIES_PATH);
+                        if (staleSupport || refreshProperties) {
                             // Refresh shared wiring, never select existing business scenarios for replacement.
                             scaffolds = FlowTestFiles.preserveExistingScenarios(root, scaffolds);
                         }
@@ -219,6 +223,10 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                                 : List.of(archiveApproval.get() == null
                                         ? FlowTestFiles.write(root, pom, scaffolds.get(0))
                                         : FlowTestFiles.archiveAndWrite(root, pom, scaffolds.get(0), archiveApproval.get()));
+                        if (refreshProperties) {
+                            Path properties = FlowTestFiles.refreshProperties(root, freshProperties);
+                            if (tests.isEmpty()) tests = List.of(properties);
+                        }
                         created.set(tests);
                         if (tests.isEmpty()) return;
                         if (useLocalSftp) FlowTestFiles.enableLocalSftp(root);
@@ -254,7 +262,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             long scenarioCount = created.get().stream()
                     .filter(path -> path.getParent().equals(root.resolve("user-flow-tests/src/test/java/org/ikasan/studio/flowtests")))
                     .count();
-            Messages.showInfoMessage(project, (staleSupport ? StudioBundle.message("flowTest.supportRefreshedReview") + "\n\n" : "") + (batchWrite
+            Messages.showInfoMessage(project, (refreshProperties ? StudioBundle.message("flowTest.propertiesRefreshed") + "\n\n" : "") + (staleSupport ? StudioBundle.message("flowTest.supportRefreshedReview") + "\n\n" : "") + (batchWrite
                     ? (batchApproval.get() == null ? "" : StudioBundle.message("flowTest.batchArchived", batchApproval.get().size()) + "\n\n")
                             + StudioBundle.message("flowTest.batchCreated", scenarioCount, choices.size() - scenarioCount)
                     : (archiveApproval.get() == null ? "" : StudioBundle.message("flowTest.archived") + "\n\n")

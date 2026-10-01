@@ -57,6 +57,36 @@ public final class FlowTestFiles {
         return plans;
     }
 
+    /**
+     * Explicit recovery action: archive current settings and atomically replace them with model defaults.
+     * Business scenarios and resources are untouched. A failed replacement retains the original file.
+     */
+    static Path refreshProperties(Path root, String contents) throws IOException {
+        if (contents == null) throw new IOException("Missing generated test properties");
+        Path file = safe(root.toAbsolutePath().normalize(), FlowTestScaffold.TEST_PROPERTIES_PATH);
+        Files.createDirectories(file.getParent());
+        if (!Files.exists(file)) {
+            Files.writeString(file, contents, StandardOpenOption.CREATE_NEW);
+            return file;
+        }
+        if (!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS))
+            throw new IOException("Expected a properties file: " + file);
+        byte[] original = Files.readAllBytes(file);
+        Path backup = file.resolveSibling(file.getFileName() + ".bak" + java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")) + "-" + UUID.randomUUID());
+        Path temporary = Files.createTempFile(file.getParent(), ".test-properties-", ".tmp");
+        try {
+            Files.writeString(temporary, contents);
+            Files.write(backup, original, StandardOpenOption.CREATE_NEW);
+            if (!Arrays.equals(original, Files.readAllBytes(file)))
+                throw new IOException("Test properties changed; retry generation. Original settings are backed up at " + backup);
+            Files.move(temporary, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
+        return file;
+    }
+
     public static void checkExisting(Path root, List<FlowTestScaffold.Scaffold> scaffolds) throws IOException {
         List<ExistingTestException> existing = new ArrayList<>();
         for (var scaffold : scaffolds) {

@@ -285,10 +285,32 @@ public abstract class ModuleFlowTestSupport {
                   IkasanFlowTestRule harness, int batch) throws Exception;
     }
 
+    /**
+     * Prepares instance fixtures once per test after Spring starts, before the test flow starts.
+     * Override to build expected objects, load resources or seed data through Spring beans.
+     * Use supplyInput for per-batch preparation after the flow starts. The default does nothing.
+     * @param context the active application context owned by this test
+     * @throws Exception if fixture preparation fails; cleanupFixtures will still run
+     */
+    protected void prepareFixtures(ConfigurableApplicationContext context) throws Exception { }
+
+    /**
+     * Releases custom fixtures once per test before Spring closes, including after partial setup.
+     * Runs after the standard runner stops the test flow. Tolerate uninitialised fixture fields.
+     * Failures are suppressed onto any setup/scenario failure so the original cause is retained.
+     * Not called when application startup itself fails, since no fixture setup has begun.
+     * The default does nothing; do not close the context or resources owned by Spring/JUnit here.
+     * @param context the still-active application context owned by this test
+     * @throws Exception if fixture cleanup fails
+     */
+    protected void cleanupFixtures(ConfigurableApplicationContext context) throws Exception { }
+
     /** Fresh context per scenario, closed even if setup, delivery or assertions fail. */
     protected final void runTest(boolean configured, TestScenario scenario) throws Exception {
         assertTrue("Complete TODO 1–4, then set TEST_REVIEWED=true in TODO 5. See user-flow-tests/README.md", configured);
-        try (ConfigurableApplicationContext context = openTestApplication(flowTestProperties())) {
+        try (ConfigurableApplicationContext context = openTestApplication(flowTestProperties());
+             AutoCloseable fixtures = () -> cleanupFixtures(context)) {
+            prepareFixtures(context);
             scenario.run(context);
         }
     }
@@ -319,26 +341,71 @@ public abstract class ModuleFlowTestSupport {
     protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch,
                                         String expected) throws Exception { }
 
+    private String[] expectedTextOutputs;
+
     /**
-     * Runs the standard scenario using the concrete test's named overrides.
-     * Calls getFlowName() and defineExpectedPath(), then supplyInput() for batch 1 and batch 2.
-     * For each batch, compares outputText(payload) and calls verifyReceivedOutput().
-     * The shared lifecycle checks continued readiness and closes the isolated application.
+     * Checks the original producer payload on the test thread for one-based batch 1 or 2.
+     * Override for business objects and assert their fields directly. No text conversion is
+     * performed before this hook. The default compares outputText(actual) with the strings
+     * supplied to runTest. Payloads are observed by reference, not deep-copied; sources must
+     * not mutate previously delivered objects. Assertion failures still trigger flow cleanup.
      */
-    protected final void runTest(boolean configured, String output,
-                                 String firstExpected, String secondExpected) throws Exception {
-        runTest(configured, context -> verifyFlow(context, getFlowName(), output,
-                this::outputText, this::defineExpectedPath,
-                (harness, batch) -> supplyInput(context, harness, batch), firstExpected, secondExpected,
-                batch -> verifyReceivedOutput(context, batch, batch == 1 ? firstExpected : secondExpected)));
+    protected void assertOutput(Object actual, int batch) throws Exception {
+        assertNotNull("Override assertOutput(actual, batch) or supply expected text to runTest", expectedTextOutputs);
+        assertEquals("Output for batch " + batch, expectedTextOutputs[batch - 1], outputText(actual));
     }
 
-    /** Standard two-batch scenario; custom routing/rejection tests can use the scenario overload. */
+    /**
+     * Runs two batches using assertOutput for business-object comparisons. Override that hook.
+     * Calls verifyReceivedOutput after each assertion, with null expected text in this mode.
+     * Keeps the same running flow for both batches and checks idle readiness between them.
+     */
+    protected final void runTest(boolean configured, String output) throws Exception {
+        runOutputTest(configured, output, this::supplyInput, null, true);
+    }
+
+    /** Runs the standard two-batch scenario; default assertOutput compares the expected text. */
+    protected final void runTest(boolean configured, String output,
+                                 String firstExpected, String secondExpected) throws Exception {
+        runOutputTest(configured, output, this::supplyInput,
+                new String[]{firstExpected, secondExpected}, true);
+    }
+
+    /** Standard two-batch scenario with an explicit input callback and output assertion hook. */
     protected final void runTest(boolean configured, String output, ContextBatchInput input,
                                  String firstExpected, String secondExpected) throws Exception {
-        runTest(configured, context -> verifyFlow(context, getFlowName(), output,
-                this::outputText, this::defineExpectedPath,
-                (harness, batch) -> input.send(context, harness, batch), firstExpected, secondExpected));
+        runOutputTest(configured, output, input, new String[]{firstExpected, secondExpected}, false);
+    }
+
+    /** Coordinates raw observations and assertions without converting business objects to strings. */
+    private void runOutputTest(boolean configured, String output, ContextBatchInput input,
+                               String[] expected, boolean checkReceiver) throws Exception {
+        expectedTextOutputs = expected;
+        try {
+            runTest(configured, context -> observeScenario(context, getFlowName(), output,
+                    PayloadObservation::new, this::defineExpectedPath, (harness, flow, outputs) -> {
+                for (int batch = 1; batch <= 2; batch++) {
+                    input.send(context, harness, batch);
+                    PayloadObservation observation = outputs.poll(deliveryTimeoutSeconds, TimeUnit.SECONDS);
+                    assertNotNull("No output observed after producer '" + output + "' in flow '" + getFlowName()
+                            + "' for batch " + batch + " within " + deliveryTimeoutSeconds + " seconds. Flow state: "
+                            + flow.getState() + ". Check earlier flow errors, consumer filename/minimum-age filters and endpoint connections.", observation);
+                    assertOutput(observation.payload, batch);
+                    if (checkReceiver) verifyReceivedOutput(context, batch, expected == null ? null : expected[batch - 1]);
+                    assertEquals("Ready after delivery", Flow.RUNNING, flow.getState());
+                    assertNull("No unexpected output while idle", outputs.poll(1, TimeUnit.SECONDS));
+                    assertEquals("Ready while idle", Flow.RUNNING, flow.getState());
+                }
+            }));
+        } finally {
+            expectedTextOutputs = null;
+        }
+    }
+
+    /** Wraps nullable payloads so a null value remains distinguishable from a missing event. */
+    private static final class PayloadObservation {
+        private final Object payload;
+        private PayloadObservation(Object payload) { this.payload = payload; }
     }
 
     /**
@@ -447,7 +514,9 @@ public abstract class ModuleFlowTestSupport {
             List<String> expectedInitialOutputs) throws Exception {
         List<String> expected = List.copyOf(expectedInitialOutputs);
         assertTrue("Review TODO 1–2, then set TEST_REVIEWED=true", configured);
-        try (ConfigurableApplicationContext context = openTestApplication(flowTestProperties())) {
+        try (ConfigurableApplicationContext context = openTestApplication(flowTestProperties());
+             AutoCloseable fixtures = () -> cleanupFixtures(context)) {
+            prepareFixtures(context);
             Module<Flow> module = context.getBean(Module.class);
             Flow flow = module.getFlow(getFlowName());
             assertNotNull("Flow must exist: " + getFlowName(), flow);
@@ -576,12 +645,24 @@ public abstract class ModuleFlowTestSupport {
             Function<Object, String> describeOutput,
             Consumer<IkasanFlowTestRule> expectations,
             FlowScenario scenario) throws Exception {
+        observeScenario(context, flowName, output, describeOutput, expectations, scenario::verify);
+    }
+
+    @FunctionalInterface
+    private interface ObservedScenario<T> {
+        void verify(IkasanFlowTestRule harness, Flow flow, BlockingQueue<T> outputs) throws Exception;
+    }
+
+    /** Shared listener/lifecycle implementation for text scenarios and raw payload assertions. */
+    private <T> void observeScenario(ConfigurableApplicationContext context, String flowName, String output,
+            Function<Object, T> describeOutput, Consumer<IkasanFlowTestRule> expectations,
+            ObservedScenario<T> scenario) throws Exception {
         deliveryTimeoutSeconds = deliveryTimeoutSeconds(context.getEnvironment()
                 .getProperty("test.delivery.timeout-seconds", "10"));
         Module<Flow> module = context.getBean(Module.class);
         Flow flow = module.getFlow(flowName);
         assertNotNull("Flow must exist: " + flowName, flow);
-        BlockingQueue<String> outputs = new LinkedBlockingQueue<>();
+        BlockingQueue<T> outputs = new LinkedBlockingQueue<>();
         FlowEventListener listener = new FlowEventListener() {
             public void beforeFlowElement(String m, String f, FlowElement e, FlowEvent event) { }
             public void afterFlowElement(String m, String f, FlowElement e, FlowEvent event) {

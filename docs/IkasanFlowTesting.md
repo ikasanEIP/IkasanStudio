@@ -65,18 +65,56 @@ helpers are preserved. Shared support must be regenerated after adding or changi
 Test teardown preserves the original startup/assertion failure; cleanup failures appear as
 suppressed exceptions rather than replacing the useful diagnosis.
 
+## Comparing business objects
+
+Override `assertOutput(Object actual, int batch)` in the business test to assert fields directly.
+The hook receives the original payload observed after the selected producer, on the test thread;
+`outputText` and its decoding flag are not used unless your override calls them.
+For example, with independently prepared `firstExpectedOrder` and `secondExpectedOrder` fixtures:
+
+```java
+@Override
+protected void assertOutput(Object actual, int batch) {
+    assertTrue("Expected an Order", actual instanceof Order);
+    Order expected = batch == 1 ? firstExpectedOrder : secondExpectedOrder;
+    Order order = (Order) actual;
+    assertEquals("Order reference", expected.reference, order.reference);
+    assertEquals("Order quantity", expected.quantity, order.quantity);
+    assertEquals("Order number", expected.getOrderNumber(), order.getOrderNumber());
+}
+
+@Test
+public void testFirstAndLaterDeliveryWithoutRestart() throws Exception {
+    runTest(TEST_REVIEWED, PRODUCER_NAME);
+}
+```
+
+Import the domain class and JUnit assertions in your test. Remove unused expected-text constants,
+`outputText` overrides and decoding flags. Assertions still run for both batches with idle/running
+checks and cleanup. `verifyReceivedOutput` remains a separate receiver-side check; its `expected`
+text argument is null when using this two-argument runner. Adapt that override to your domain
+fixtures if you need actual file/message delivery checks.
+
+Payloads are retained by reference, not serialized or deep-copied. Components must not mutate
+objects after delivering them. Existing four-argument `runTest` calls use the same hook, whose
+default implementation compares `outputText(actual)` with the supplied expected strings.
+Refresh module support to adopt the new hook; existing business tests remain compatible.
+
 ## Comparing actual output as text
 
 New scenario tests include:
 
 ```java
-private static final boolean STRINGIFY_ACTUAL_OUTPUT = true;
+private static final boolean DECODE_OUTPUT_CONTENT_AS_TEXT = true;
 
 @Override
 protected String outputText(Object payload) {
-    return outputText(payload, STRINGIFY_ACTUAL_OUTPUT);
+    return outputText(payload, DECODE_OUTPUT_CONTENT_AS_TEXT);
 }
 ```
+
+The former `STRINGIFY_ACTUAL_OUTPUT` flag is now named `DECODE_OUTPUT_CONTENT_AS_TEXT`.
+Disabling it uses `String.valueOf(actual)` (normally `toString()`); it does not enable object equality.
 
 With the flag enabled, `FIRST_EXPECTED_OUTPUT` and `SECOND_EXPECTED_OUTPUT` are compared with
 content rather than a payload object's identity string:
@@ -669,7 +707,17 @@ consumer immediately. The event remains a `JobExecutionContext`, with fixture te
 `ScheduledEventFixture.TEXT_KEY`; the generated `outputText` reads that text for comparison.
 The harness suppresses normal cron firing and keeps the same flow running for both batches.
 
-`ScheduledEventFixture.create(consumer, text)` is also available for custom assertions.
+When a broker obtains its own business data, prepare its database/service fixture and use
+`ScheduledEventFixture.fire(harness, consumerName)` instead. This fires the same deterministic
+timer event without attaching fixture text. Remove unused batch-input constants and compare
+the resulting business payload in `outputText`; do not call `ScheduledEventFixture.text` on a
+trigger-only event.
+
+`ScheduledEventFixture.create(consumer)` and `create(consumer, text)` are also available for
+custom assertions. Existing three-argument `fire` calls remain supported. Existing utility files
+are preserved during generation: to adopt these overloads, back up and remove only
+`support/utils/ScheduledEventFixture.java`, then generate again. Older projects may still have
+this helper directly in `support`; update the test import to `support.utils` when adopting it.
 Each call creates an independent context with a fixed fire time and copied job data.
 It has no live scheduler: this checks downstream processing, not cron timing or recovery.
 A custom message provider retains the input-preparation scaffold because its data requirements
@@ -723,3 +771,47 @@ Existing helpers in the old package are retained so existing business-test impor
 to compile. Newly generated tests use `support.utils`; when adopting the new layout, update
 any custom imports or explicit server-class lookups to use the new utility types. Inherited
 helpers such as `localFtpDirectory` and `localSmtpServer` avoid those explicit lookups.
+
+
+### Recovering test properties after refactoring
+
+In either **Generate Flow Test** or **Generate Flow Tests**, select
+**Refresh test properties (archive existing)** to recreate `module-test.properties`
+from the current model. This option is off by default. It replaces stale component-property
+references and custom settings with fresh defaults, saving the previous file beside it as
+`module-test.properties.bak<timestamp>-<id>`. Review the backup and restore custom settings
+you still need before running tests.
+
+Existing business test classes and fixture resources are preserved when this option is selected.
+Properties refresh still runs if you choose **Skip Existing** for shared support. Refresh stale
+shared support too when Studio flags it; rebuilding properties does not repair component names
+or expectations inside business tests. The selected local FTP/SFTP/SMTP options are applied to
+the fresh properties after generation.
+
+
+### Preparing and cleaning up instance fixtures
+
+Both `runTest` and `runObservationTest` call `prepareFixtures(context)` once after Spring
+starts and before starting the test flow. Override it to initialise expected-object instance
+fields, load resources, seed databases or access Spring beans. Keep per-batch input preparation
+in `supplyInput(context, harness, batch)`.
+
+```java
+private Order firstExpectedOrder;
+private Order secondExpectedOrder;
+
+@Override
+protected void prepareFixtures(ConfigurableApplicationContext context) throws Exception {
+    firstExpectedOrder = new Order("first-reference", 10);
+    secondExpectedOrder = new Order("second-reference", 20);
+}
+```
+
+Override `cleanupFixtures(context)` for resources your fixture owns. The default hooks do
+nothing. Cleanup runs before Spring closes, after the standard flow teardown, even when setup
+only partially succeeds or assertions fail. It must tolerate uninitialised fields. Cleanup
+failures are suppressed onto the original failure; when cleanup alone fails, the test fails.
+Application-startup failures occur before either hook. Spring and JUnit retain ownership of
+their own resources, including the context and temporary test folders.
+
+Refresh shared module support to adopt the hooks; existing tests and utility classes are preserved.
