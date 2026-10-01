@@ -24,9 +24,9 @@ For a supported local FTP Consumer or Producer, choose **Start Test FTP Server**
 
 For a paired demonstration, use `/` for both the producer output and consumer source unless you have created a subdirectory through **Show Test FTP Directory**. A remote `/studio-demo` means `studio-demo` inside the harness root, not a directory in your source project. Verify it exists and the account can list, read, write and rename there before starting either flow. A producer's create-parent-directory option does not guarantee the directory exists before a consumer polls. `ClientCommandCdException` means directory access failed; check the path and permissions.
 
-Use **Stop Test FTP Server** when finished. The server is project-owned and stops on project disposal. Its files live under IntelliJ's system directory, not your source project; copy anything worth retaining elsewhere. Only one FTP server configuration is active per project. TCP ports remain shared across projects.
+Use **Stop Test FTP Server** when finished. The server is project-owned and stops on project disposal. Its files use the configured test directory, by default `temporary-files/test-data/ftp` under the project; see Local working files below. Only one FTP server configuration is active per project. TCP ports remain shared across projects.
 
-This is a plain FTP harness, **not an SFTP or FTPS server**. Testing actual SFTP transport requires your own SFTP endpoint. Sending a synthetic payload downstream does not test that endpoint's connectivity, authentication or scanning.
+This is a plain FTP harness, **not an SFTP or FTPS server**. Interactive testing of actual SFTP transport requires an SFTP endpoint. Generated JUnit flow tests can instead start a local test SFTP server; see [Flow testing](IkasanFlowTesting.md). Sending a synthetic payload downstream does not test that endpoint's connectivity, authentication or scanning.
 
 ## JMS readers
 
@@ -98,14 +98,16 @@ Deleting remote files does **not** clear persisted duplicate-detection records. 
 **View File Duplicate History…** separately when investigating why a consumer ignores a file.
 Browsing verifies access with the browser's settings; it does not prove delivery by the module.
 
-### Finite sample sources
+### Event-generating sources
 
-An Event Generating Consumer stops producing when its provider returns `null`. A finite sample
-can therefore show **Stopped** after successful delivery. Check the expected received messages
-and errors before treating this as a startup failure. Starting the flow again does not reset a
-stateful provider automatically; document and test its replay mechanism. For an ongoing visual
-demonstration, a paced Scheduled Consumer may be more appropriate. Do not use an unbounded fast
-loop simply to keep a flow marked Running.
+Flows normally remain running while idle and accept later input. Verify first delivery, idle
+readiness and later delivery in the same running flow. Unexpected **Stopped** or error states
+need investigation even if the first message arrived. A custom finite provider may end a flow;
+reserve that behaviour for explicitly bounded batch scenarios. Sources need pacing and
+cancellation, not a busy loop to keep a Running label.
+
+Generated business flow tests provide controllable fixtures, including `submitNow` for the
+sample generic consumer and scheduled-event triggers. See [Flow testing](IkasanFlowTesting.md).
 
 ## Inspect locally excluded events
 

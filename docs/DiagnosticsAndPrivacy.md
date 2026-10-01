@@ -2,16 +2,19 @@
 
 ## Network behaviour and local data
 
-Designing a flow, matching converter recipes and rendering templates use local model data and bundled metadata. Studio does not send these to an AI service. The generated AI catalogue is a local project artifact; any external AI tool you choose has its own data-handling rules.
+Designing a flow, matching converter recipes and rendering templates use local model data and bundled metadata and do not require an AI service. Optional AI integration allows a connected client to read the live model and catalogue and submit supported proposals. That client may send data to its configured service; review its settings and data-handling policies before connecting. The generated AI catalogue is a local project artifact. See [Studio AI bridge](StudioAiBridge.md).
 
 | Operation | Connection or data involved |
 | --- | --- |
 | Project creation, Maven import/build | Maven contacts repositories configured for the project/settings to resolve archetypes, plugins and dependencies. Cached dependencies can avoid downloads. |
 | Plugin installation/updates | IntelliJ manages downloads through its configured plugin repositories. A local ZIP installation does not itself publish the project. |
 | Start Test Mail Server | On first use, Studio downloads the platform MailHog v1.0.1 executable from `https://github.com/mailhog/MailHog/releases/download/v1.0.1/`, following download redirects. It caches it under IntelliJ's system directory at `ikasan-studio/mailhog`. The current downloader has no independent checksum/signature verification step. |
-| Mail/FTP harnesses | Local listening sockets accept test traffic. MailHog's web inbox/API bind to `127.0.0.1:8025`; SMTP uses the supported local configured address. FTP uses the configured local address and keeps test files under the IDE system directory. See [Harnesses](Harnesses.md). |
+| Mail/FTP harnesses | Local listening sockets accept test traffic. MailHog's web inbox/API bind to `127.0.0.1:8025`; SMTP uses the supported local configured address. FTP uses the configured local address and configured test directory (by default `temporary-files/test-data/ftp` under the project). See [Harnesses](Harnesses.md). |
 | Running-module controls and tests | Studio uses local HTTP requests to the module's configured port/context path for flow controls, status and test injection. Injected messages can include your chosen text or file content. Runtime/status polling and optional mail-harness polling can generate background local traffic. |
 | Console and component web help | These actions open the browser at the local Blue Console or the component's configured documentation URL. External websites receive normal browser requests. |
+| SFTP file browser | Connects directly from the IDE to the selected remote server; downloads and confirmed deletions affect those files. |
+| Generated flow-test fixtures | Selected local FTP/SFTP/SMTP fixtures open test sockets and use temporary storage. Tests can still contact external systems through other configured components. See [Flow testing](IkasanFlowTesting.md). |
+| Optional AI bridge | Exposes supported project/model information to the connected client. Client configuration determines any onward service connections. |
 | Generated application | Runs separately and connects to the JMS, SMTP, FTP/SFTP, database or other services you configure. Test injection can trigger real downstream writes or sends. |
 | Diagnostics and error reporting | Diagnostics are saved locally. The IDE error dialog offers explicit report submission through JetBrains; details follow below. |
 
@@ -29,7 +32,7 @@ Expected configuration, connectivity and generation failures remain recoverable 
 
 After publishing a plugin update with this registration, the Marketplace plugin administration page provides an **Exceptions** tab for the development team. This uses the existing plugin ID `com.github.ikasaneip.ikasanstudio`. Uploading/publishing and confirming team access remain release steps; local registration tests do not prove delivery to the Marketplace backend.
 
-Local verification: the real IDEA extension test confirms that exactly one Marketplace reporter belongs to Studio and provides a report action and privacy notice. The full suite passes (659 tests), and `buildPlugin` succeeds. The packaged descriptor includes the manual reporter and no automatic reporting sink. No reports were transmitted during verification.
+The IDEA extension test checks that exactly one Marketplace reporter belongs to Studio and provides a report action and privacy notice. Re-run the tests and inspect the packaged descriptor for each candidate; local checks do not establish Marketplace delivery.
 
 Release verification:
 
@@ -39,6 +42,10 @@ Release verification:
 4. Confirm an invalid model or unavailable module still shows recoverable UI rather than a fatal-error reporting prompt.
 
 See [JetBrains Exception Analyzer](https://plugins.jetbrains.com/docs/marketplace/exception-analyzer.html) for the hosted workflow. The implementation exists in the project's IDEA 2024.3.7 target and has been available since IDEA 2023.3.
+
+## What to include in feedback
+
+Use the [bug report form](https://github.com/IkasanEIP/IkasanStudio/issues/new?template=bug_report.yml) with your Studio version, IntelliJ IDEA version/edition and build, operating system, selected Ikasan version and reproduction steps. Describe expected and actual behaviour. If setup failed before selecting a version, say so. Attach only reviewed, sanitised diagnostics; report vulnerabilities through [SECURITY.md](../SECURITY.md).
 
 ## Collecting diagnostics
 

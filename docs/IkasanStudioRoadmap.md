@@ -1,5 +1,8 @@
 # Ikasan Studio Product and Technical Roadmap
 
+> Historical evidence or planning for the date stated below. For current guidance, see [Supported versions](SupportedVersions.md) and the [release-candidate checks](ReleaseCandidateVerification.md). This document does not certify a newer beta.
+
+
 ## Purpose
 
 Ikasan Studio is intended to let developers visually build, run, and debug Ikasan integration flows from IntelliJ with:

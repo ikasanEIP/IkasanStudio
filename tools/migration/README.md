@@ -25,7 +25,7 @@ The **Apply recommended migration search and replace (review changes before appl
 option is selected by default in Studio; it currently updates compatible Java imports only.
 Projects with no successful executed tests are reported as **INCOMPLETE**.
 
-Read [CommandLineMigration.md](CommandLineMigration.md) for profiles, report locations,
+Read [Command-line migration guide](https://github.com/IkasanEIP/IkasanStudio/blob/main/docs/CommandLineMigration.md) for profiles, report locations,
 recovery snapshots, limitations and the IDE-based workflow. The standard command above
 includes compatible Java import updates in `user/src/main/java`; review them in the preview
 diff before applying. Other developer code and tests are preserved. After migration, review

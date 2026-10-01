@@ -125,4 +125,4 @@ Release preparation is a maintainer workflow. Ordinary contributions do not requ
 
 The release workflow builds from the release tag; it does not simply promote the previously audited ZIP. Record which commit and artifact were tested and reconcile the published artifact with that evidence. Keep plugin Marketplace publication separate from Maven publication of the ancillary projects and [independently versioned pack artifacts](docs/IndependentMetaPackArtifacts.md).
 
-By submitting a contribution, you agree that it is licensed under the repository's existing [Apache License 2.0](LICENSE.txt).
+By submitting a contribution, you agree that it is licensed under the repository's existing [BSD 3-Clause License](LICENSE.txt).

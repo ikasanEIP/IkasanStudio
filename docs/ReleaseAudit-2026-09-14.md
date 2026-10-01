@@ -1,5 +1,8 @@
 # Compatibility and release audit — 14 September 2026
 
+> Historical evidence or planning for the date stated below. For current guidance, see [Supported versions](SupportedVersions.md) and the [release-candidate checks](ReleaseCandidateVerification.md). This document does not certify a newer beta.
+
+
 Status: **automated gates passed; manual release sign-off remains open**.
 
 Audited checkout: `813f6499` plus the release-engineering changes in this working tree. Candidate: `build/distributions/ikasanstudio-1.0.0.zip`. SHA-256: `db427df85b6a17fdf5237b57c0a4bbc9febccf221f577489e3197133f25fa9e1`. Rebuilding may produce a different archive; retain the report matching the ZIP actually distributed.

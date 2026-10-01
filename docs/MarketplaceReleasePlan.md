@@ -1,21 +1,21 @@
 # Ikasan Studio 1.0 Marketplace release plan
 
-This is a proposed four-week plan, with dates driven by readiness. It complements the existing
-[release-candidate verification](ReleaseCandidateVerification.md) and manual checklist](MarketplaceReleaseManualChecklist.md).
+This is a phased plan for a public beta followed by 1.0, with dates driven by readiness. It complements the existing
+[release-candidate verification](ReleaseCandidateVerification.md) and [manual checklist](MarketplaceReleaseManualChecklist.md).
 
 ## Recommended route
 
-* Carry our internal developer review using the zip file to install locally.
-* Deply a hidden release in the Marketplace submissions area for wider testing.
+* Carry out internal developer review using the zip file to install locally.
+* Deploy a hidden release in the Marketplace submissions area for wider testing.
 * Conduct final acceptance (senior Ikasan team).
-* Public 1.0 launch.
+* Public beta for evaluation and feedback, followed by a reviewed 1.0 release.
 * Post release support until community becomes self-maintaining.
 
 The account and listing preparation work can start without delay, only release-quality candidate
 will be submitted.
 
 The first Marketplace upload must be manual; later updates can use Gradle publishing.
-Release candidtes will use unique candidate versions such as `1.0.0-beta.1`, retaining `1.0.0` for the
+Release candidates will use unique candidate versions such as `1.0.0-beta.1`, retaining `1.0.0` for the
 final artifact. A non-default channel requires testers to add a repository in IntelliJ.
 [JetBrains publishing instructions](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html).
 
@@ -40,7 +40,7 @@ choosing this route. [Hidden release](https://plugins.jetbrains.com/docs/marketp
 Account state, repository secrets, branch protection, signing credentials and Marketplace ownership have
 not been inspected.
 
-## Week 1 — ownership, scope and publishing controls
+## Phase 1 — ownership, scope and publishing controls
 
 **Owner: product owner for identity and decisions; maintainer for engineering.**
 
@@ -68,7 +68,7 @@ not been inspected.
 **Exit:** named release owner, confirmed distribution model and a publication path that cannot
 silently bypass candidate approval. Workflow changes above are planned, not yet implemented.
 
-## Week 2 — release candidate and realistic testing
+## Phase 2 — release candidate and realistic testing
 
 **Owner: maintainer, with named testers for Windows, macOS and Linux.**
 
@@ -95,7 +95,7 @@ Follow the linked verification documents for exact IDE boundaries and evidence. 
 **Exit:** candidate ZIP/hash, automated reports and completed manual matrix; no unresolved blockers.
 Changes after testing require a new candidate and proportionate re-verification.
 
-## Week 3 — listing and Marketplace review
+## Phase 3 — listing and Marketplace review
 
 **Owner: product owner/publisher, with maintainer answering technical questions.**
 
@@ -106,8 +106,8 @@ Keep Blue Console distinct from Dashboard. Check the icon on both themes and all
 
 Review privacy wording against actual behaviour: optional AI model sharing, user-submitted
 error reports, diagnostics, harness downloads, remote file access and credential handling.
-The current diagnostics introduction predates parts of the AI bridge and needs reconciliation
-with `StudioAiBridge.md`; avoid an unqualified claim that model data never leaves the machine.
+Keep [Diagnostics and privacy](DiagnosticsAndPrivacy.md) aligned with `StudioAiBridge.md`;
+avoid an unqualified claim that model data never leaves the machine.
 Provide the applicable privacy policy if personal data is collected, as required by the
 [approval guidelines](https://plugins.jetbrains.com/docs/marketplace/jetbrains-marketplace-approval-guidelines.html).
 
@@ -125,7 +125,7 @@ for review/questions as our planning allowance, not a service commitment.
 **Exit:** approved candidate/listing and completed beta feedback. A changed final 1.0 artifact
 still needs its own verification and Marketplace approval; beta approval does not cover it.
 
-## Week 4 — public launch and support
+## Phase 4 — public launch and support
 
 **Owner: product owner signs off; publisher executes; maintainer monitors.**
 

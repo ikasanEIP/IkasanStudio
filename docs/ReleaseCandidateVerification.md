@@ -5,6 +5,8 @@ For the staged first-publication schedule, ownership and Marketplace submission 
 
 Do not equate a successful build or Plugin Verifier result with an installation or project-workflow test. Keep the candidate ZIP, its SHA-256, reports, IDE builds, runtimes and manual results together.
 
+After Marketplace approval, also verify installation of the published version through its intended channel or hidden listing link, following [Installation](Installation.md). Confirm that the downloaded version matches the approved candidate. ZIP installation alone does not verify listing visibility or channel setup.
+
 ## Evidence for a release decision
 
 Automated and manual checks provide complementary evidence for the same candidate. Keep the archive hash with the results so a later rebuild is not mistaken for the tested artifact.

@@ -4,7 +4,7 @@
 
 Start with the videos below, or jump to the topic you need. Durations are shown as minutes:seconds.
 
-### Ikasan Module Developer Focused
+### For Ikasan module developers
 
 1. **Setting up a project** — 1:02  
    Included for completeness; skip this if you already have an Ikasan Studio project.  
@@ -19,8 +19,8 @@ Start with the videos below, or jump to the topic you need. Durations are shown 
 4. **Converters and Recipes** — 1:33
    [Watch: Converters and Recipes](shorts-convertersAndRecipes.mp4)
 
-5. **Auto Generated Tests** — 2:52
-  [Watch: Auto Generated Tests](shorts-autoGenTests.mp4)
+5. **Generated tests** — 2:52
+  [Watch: Generated tests](shorts-autoGenTests.mp4)
 
 6. **Import a model/module from another project and copy/paste flows** — 1:33
    [Watch: Import a model and copy flows](shorts-CopyModuleAndFlow.mp4)
@@ -31,10 +31,10 @@ Start with the videos below, or jump to the topic you need. Durations are shown 
 8. **Use AI to generate and test a module** — 6:37
    [Watch: Use AI to generate and test a module](Demo-AIAgentImplemenStatementOfWork.mp4)
 
-9. **Bug hunting, using event generators, debug components and fow control** — 5:55
-   [Watch: Bug hunting, using event generators, debug components and fow control](TrackingBugs-HarnessesEventGeneratorDebugFlowControl.mp4)
+9. **Bug hunting, using event generators, debug components and flow control** — 5:55
+   [Watch: Bug hunting, using event generators, debug components and flow control](TrackingBugs-HarnessesEventGeneratorDebugFlowControl.mp4)
 
-### Ikasan Studio Contributor Focused
+### For Ikasan Studio contributors
 
 1. **Migration testing for Meta-Pack developers** — 6:12
    [Watch: Migration testing for Meta-Pack developers](StudioDeveloperMigrationTesting.mp4)

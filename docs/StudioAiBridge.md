@@ -190,7 +190,7 @@ application without resetting beans or restarting flows. Finite completion is re
 explicit batch requirements or bounded tests; completion messages do not excuse an unintended
 Stopped state. Verify Studio's normal **Run module** path separately. A launcher that starts selected flows with overrides is
 useful test evidence but does not establish normal-launch readiness. See the
-[untitled11 review](AiDemoReview-2026-09-20-untitled11.md) for the motivating findings.
+[release-candidate checks](ReleaseCandidateVerification.md) for normal-launch verification.
 
 ### Delete or replace a component
 

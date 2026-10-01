@@ -20,7 +20,7 @@ The first example below uses only a timer and logging; it does not need those ex
 
 ## Before you start
 
-Install the candidate plugin ZIP using **Settings → Plugins → gear → Install Plugin from Disk**, then restart if prompted. Use [Supported versions](SupportedVersions.md) to choose an IDE and project JDK. These instructions describe the current candidate.
+Follow the [installation guide](Installation.md), then use [Supported versions](SupportedVersions.md) to choose an IDE and project JDK. Marketplace availability and candidate ZIP installation are described separately there.
 
 ## 1. Create the project
 
