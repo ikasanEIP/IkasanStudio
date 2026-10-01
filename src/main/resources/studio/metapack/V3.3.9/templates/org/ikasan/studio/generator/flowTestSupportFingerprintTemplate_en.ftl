@@ -1,4 +1,4 @@
-package org.ikasan.studio.flowtests.support;
+package org.ikasan.studio.flowtests.support.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

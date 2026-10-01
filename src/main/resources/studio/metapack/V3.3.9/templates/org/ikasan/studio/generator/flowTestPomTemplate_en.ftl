@@ -9,6 +9,8 @@
     <dependency><groupId>org.apache.ftpserver</groupId><artifactId>ftpserver-core</artifactId><version>1.2.1</version><scope>test</scope></dependency>
     <dependency><groupId>org.apache.mina</groupId><artifactId>mina-core</artifactId><version>2.2.9</version><scope>test</scope></dependency>
     <dependency><groupId>com.icegreen</groupId><artifactId>greenmail</artifactId><version>1.6.15</version><scope>test</scope></dependency>
+    <!-- Patch GreenMail's transitive mail dependency for CVE-2025-7962, retaining javax.mail. -->
+    <dependency><groupId>com.sun.mail</groupId><artifactId>jakarta.mail</artifactId><version>1.6.8</version><scope>test</scope></dependency>
     <dependency><groupId>org.apache.sshd</groupId><artifactId>sshd-sftp</artifactId><version>2.19.0</version><scope>test</scope></dependency>
     <dependency><groupId>org.apache.sshd</groupId><artifactId>sshd-core</artifactId><version>2.19.0</version><scope>test</scope></dependency>
     <dependency><groupId>org.apache.sshd</groupId><artifactId>sshd-common</artifactId><version>2.19.0</version><scope>test</scope></dependency>

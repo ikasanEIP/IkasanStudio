@@ -34,9 +34,10 @@ public final class FlowTestScaffold {
         return FlowTestSupportFingerprint.fingerprint(org.ikasan.studio.core.io.ComponentIO.toJson(module), supportModelFields(module));
     }
 
-    /** Legacy support has no fingerprint and needs one explicit refresh. */
+    /** Legacy fingerprints or package layouts need one explicit module-support refresh. */
     public static boolean supportNeedsRefresh(String existingSupport, Module module) throws Exception {
-        return !existingSupport.contains("SUPPORT_MODEL_SHA256 = \"" + supportFingerprint(module) + "\"");
+        return !existingSupport.contains("import org.ikasan.studio.flowtests.support.utils.FlowTestSupportFingerprint;")
+                || !existingSupport.contains("SUPPORT_MODEL_SHA256 = \"" + supportFingerprint(module) + "\"");
     }
 
     public static Scaffold render(Module module, Flow flow, String rootPom, String applicationPom) throws Exception {
@@ -228,26 +229,26 @@ public final class FlowTestScaffold {
         }
         if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/ModuleJmsTestConfig.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleJmsTestConfigTemplate_en.ftl", values));
-        if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/JmsFlowTestSupport.java",
+        if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/JmsFlowTestSupport.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "jmsFlowTestSupportTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/ScheduledEventFixture.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/ScheduledEventFixture.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "scheduledEventFixtureTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FlowTestSupportFingerprint.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FlowTestSupportFingerprint.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestSupportFingerprintTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileInputFixture.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FileInputFixture.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "fileInputFixtureTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FtpInputFixture.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FtpInputFixture.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "ftpInputFixtureTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSftpTestServer.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSftpTestServer.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localSftpTestServerTemplate_en.ftl", values));
         files.put(TEST_PROPERTIES_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestPropertiesTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localFtpTestServerTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileDeliveryAssertions.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FileDeliveryAssertions.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "fileDeliveryAssertionsTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/OutputTextSupport.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "outputTextSupportTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSmtpTestServer.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localSmtpTestServerTemplate_en.ftl", values));
         files.put(SUPPORT_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestSupportTemplate_en.ftl", values));
         files.put(path, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), observationOnly ? "flowObservationTestTemplate_en.ftl" : "flowTestTemplate_en.ftl", values));
@@ -256,7 +257,10 @@ public final class FlowTestScaffold {
                 # Flow tests
 
                 These are developer-owned scaffolds using the actual generated application.
-                Flow tests live in org.ikasan.studio.flowtests; shared helpers live in org.ikasan.studio.flowtests.support.
+                Flow tests live in org.ikasan.studio.flowtests; module wiring lives in its support package.
+                Reusable fixtures, assertions and local test servers live in support.utils.
+                Utilities are created only when missing and are preserved during shared module setup refreshes.
+                Model edits do not require utility regeneration; Studio fixes or Ikasan upgrades may require reviewed updates.
                 Existing helpers in the old package are retained. Port custom setup before adopting the new support package.
                 Scenario tests use IkasanFlowTestRule; continuous-source observation tests use a bounded counting listener.
                 They deliberately FAIL before starting services until you complete the test scenario.
@@ -280,7 +284,8 @@ public final class FlowTestScaffold {
                 Review multiple-recipient/attachment assertions using localSmtpServer(context).receivedMessages().
                 SMTP configuration overrides affect only the test application's mail producers; mail is never forwarded.
                 Skip Existing preserves existing support and still creates missing flow tests and resources.
-                Archive and regenerate shared setup/helpers when adopting APIs or endpoint mappings they do not yet contain.
+                Archive and regenerate shared module setup when endpoint mappings change.
+                To adopt a utility fix, back up the affected utility and remove it before generating again.
                 Missing GreenMail and FTP/MINA dependencies are added to an existing test POM with a backup; other contents are preserved.
                 ModuleFlowTestSupport.java loads that file and enforces isolated H2 and test-only startup settings.
                 Missing sample-consumer fixture-input defaults are added with a backup; explicit values are preserved.

@@ -2,15 +2,15 @@ package org.ikasan.studio.flowtests;
 
 import org.ikasan.studio.flowtests.support.ModuleFlowTestSupport;
 <#if scheduledContext>
-import org.ikasan.studio.flowtests.support.ScheduledEventFixture;
+import org.ikasan.studio.flowtests.support.utils.ScheduledEventFixture;
 import org.quartz.JobExecutionContext;
 </#if>
 <#if ftpInput>
-import org.ikasan.studio.flowtests.support.FtpInputFixture;
+import org.ikasan.studio.flowtests.support.utils.FtpInputFixture;
 </#if>
 <#if jmsConsumer>
 import org.ikasan.studio.flowtests.support.ModuleJmsTestConfig;
-import org.ikasan.studio.flowtests.support.JmsFlowTestSupport;
+import org.ikasan.studio.flowtests.support.utils.JmsFlowTestSupport;
 </#if>
 
 import org.ikasan.testharness.flow.rule.IkasanFlowTestRule;
@@ -23,7 +23,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import java.util.Map;
 </#if>
 <#if isolatedFiles || sftpInput>
-import org.ikasan.studio.flowtests.support.FileInputFixture;
+import org.ikasan.studio.flowtests.support.utils.FileInputFixture;
 </#if>
 <#if isolatedFiles>
 import org.junit.Rule;

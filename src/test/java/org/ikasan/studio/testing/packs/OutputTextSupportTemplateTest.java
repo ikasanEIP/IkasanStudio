@@ -45,7 +45,7 @@ class OutputTextSupportTemplateTest {
             if (compiler.isAlive()) compiler.destroyForcibly().waitFor();
         }
         try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, ClassLoader.getPlatformClassLoader())) {
-            Method stringify = loader.loadClass("org.ikasan.studio.flowtests.support.OutputTextSupport").getMethod("stringify", Object.class);
+            Method stringify = loader.loadClass("org.ikasan.studio.flowtests.support.utils.OutputTextSupport").getMethod("stringify", Object.class);
             Class<?> emailContract = loader.loadClass("org.ikasan.component.endpoint.email.producer.EmailPayload");
             Object emailPayload = Proxy.newProxyInstance(loader, new Class<?>[]{emailContract}, (p, m, a) -> {
                 if (!m.getName().equals("getEmailBody")) throw new AssertionError("Unexpected email payload method: " + m);

@@ -1,4 +1,4 @@
-package org.ikasan.studio.flowtests.support;
+package org.ikasan.studio.flowtests.support.utils;
 
 import java.io.IOException;
 import java.nio.file.Files;

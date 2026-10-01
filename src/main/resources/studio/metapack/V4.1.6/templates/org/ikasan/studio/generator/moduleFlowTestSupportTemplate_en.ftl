@@ -1,5 +1,11 @@
 package org.ikasan.studio.flowtests.support;
 
+import org.ikasan.studio.flowtests.support.utils.FlowTestSupportFingerprint;
+import org.ikasan.studio.flowtests.support.utils.LocalSftpTestServer;
+import org.ikasan.studio.flowtests.support.utils.LocalFtpTestServer;
+import org.ikasan.studio.flowtests.support.utils.FileDeliveryAssertions;
+import org.ikasan.studio.flowtests.support.utils.OutputTextSupport;
+import org.ikasan.studio.flowtests.support.utils.LocalSmtpTestServer;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import java.util.Arrays;
 import java.io.File;

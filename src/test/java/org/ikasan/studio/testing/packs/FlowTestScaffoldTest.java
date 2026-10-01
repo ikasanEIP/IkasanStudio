@@ -25,7 +25,7 @@ class FlowTestScaffoldTest {
         assertTrue(code.contains("ScheduledEventFixture.text((JobExecutionContext) payload)"));
         assertFalse(code.contains("prepareInputBatch"));
         assertFalse(code.contains("UnsupportedOperationException"));
-        assertTrue(result.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/ScheduledEventFixture.java"));
+        assertTrue(result.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/ScheduledEventFixture.java"));
         var meta = flow.getConsumer().getComponentMeta();
         flow.getConsumer().setComponentMeta(meta.toBuilder().implementingClass("example.Timer").build());
         result = FlowTestScaffold.render(module, flow, parent, app);
@@ -81,6 +81,7 @@ class FlowTestScaffoldTest {
         assertTrue(support.contains("ownedSmtp::close"));
         String pom = scaffold.files().get("user-flow-tests/pom.xml");
         assertTrue(pom.contains("<artifactId>greenmail</artifactId><version>" + "1.6.15"));
+        assertTrue(pom.contains("<groupId>com.sun.mail</groupId><artifactId>jakarta.mail</artifactId><version>1.6.8</version><scope>test</scope>"));
     }
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
@@ -104,7 +105,7 @@ class FlowTestScaffoldTest {
         assertTrue(code.contains("batch == 1 ? FIRST_BATCH_INPUT_FILENAME : SECOND_BATCH_INPUT_FILENAME"));
         assertFalse(code.contains("test.ftp.input.filename.batch"));
         assertFalse(code.contains("Prepare input batch "));
-        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FtpInputFixture.java"));
+        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FtpInputFixture.java"));
         assertTrue(code.contains(".filter(\"Input debug\")"));
         assertTrue(code.indexOf(".filter(\"Input debug\")") < code.indexOf(".converter("));
         assertTrue(code.contains(".repeat(2)"));
@@ -128,7 +129,7 @@ class FlowTestScaffoldTest {
         assertTrue(test.contains("private static final String FIRST_BATCH_INPUT"));
         assertTrue(test.contains("private static final boolean STRINGIFY_ACTUAL_OUTPUT = true"));
         assertTrue(test.contains("return outputText(payload, STRINGIFY_ACTUAL_OUTPUT)"));
-        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java"));
+        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/OutputTextSupport.java"));
         assertTrue(test.contains("private static final String SECOND_BATCH_INPUT"));
         assertTrue(test.contains("batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT"));
         assertTrue(test.contains("assertDeliveredFileResources(localFtpDirectory(context)"));
@@ -138,7 +139,7 @@ class FlowTestScaffoldTest {
         assertTrue(test.contains("readTestResource(SECOND_EXPECTED_OUTPUT_RESOURCE)"));
         assertFalse(test.contains("FIRST_EXPECTED_OUTPUT = readTestResource"));
         assertTrue(scaffold.files().get(FlowTestScaffold.SUPPORT_PATH).contains("context.getBean(LocalFtpTestServer.class).root()"));
-        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileDeliveryAssertions.java"));
+        assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FileDeliveryAssertions.java"));
         flow.getFlowRoute().getFlowElements().clear();
         flow.getFlowRoute().getFlowElements().add(org.ikasan.studio.core.TestFixtures.getSftpProducer(version));
         var sftp = FlowTestScaffold.render(module, flow,
@@ -246,7 +247,7 @@ class FlowTestScaffoldTest {
         assertTrue(localTest.contains("FileInputFixture.localFilenames("));
         assertTrue(localTest.contains("noSpaces(CONSUMER_NAME)"));
         assertFalse(localTest.contains("FIRST_BATCH_INPUT ="));
-        assertTrue(localScaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FileInputFixture.java"));
+        assertTrue(localScaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FileInputFixture.java"));
         assertTrue(support.contains("harness.assertIsSatisfied()"));
         assertTrue(localTest.contains(".repeat(2)"));
         assertTrue(localTest.contains(".scheduledConsumer(\"" + local.getIdentity() + "\")"));
@@ -303,7 +304,7 @@ class FlowTestScaffoldTest {
         assertFalse(test.contains(" -> "));
         assertTrue(test.contains("ModuleJmsTestConfig.class"));
         assertFalse(test.contains("removeAllMessages"));
-        String helper = scaffold.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/JmsFlowTestSupport.java");
+        String helper = scaffold.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/JmsFlowTestSupport.java");
         assertTrue(helper.contains((version.equals("V3.3.9") ? "javax" : "jakarta") + ".jms.Connection;"));
         assertTrue(helper.contains("consumer.receive(deliveryTimeoutMillis)"));
         consumer.setPropertyValue("pubSubDomain", true);

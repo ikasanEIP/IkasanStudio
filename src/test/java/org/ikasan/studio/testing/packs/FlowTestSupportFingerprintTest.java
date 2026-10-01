@@ -54,10 +54,23 @@ class FlowTestSupportFingerprintTest {
         assertTrue(FlowTestScaffold.supportNeedsRefresh("old support", module));
         assertTrue(support.indexOf("FlowTestSupportFingerprint.verify(") < support.indexOf("application.run(arguments)"));
         assertTrue(support.contains("Review module-test.properties or scenario overrides"));
+        assertTrue(FlowTestScaffold.supportNeedsRefresh(support.replace(
+                "import org.ikasan.studio.flowtests.support.utils.FlowTestSupportFingerprint;", ""), module));
+        // Utility source must remain independent of module names and connection mappings.
+        for (var entry : scaffold.files().entrySet()) {
+            if (!entry.getKey().contains("/support/utils/")) continue;
+            String className = Path.of(entry.getKey()).getFileName().toString().replace(".java", "");
+            String templateName = Character.toLowerCase(className.charAt(0)) + className.substring(1) + "Template_en.ftl";
+            String template = Files.readString(Path.of("src/main/resources/studio/metapack", version,
+                    "templates/org/ikasan/studio/generator", templateName));
+            assertFalse(template.contains("${"), templateName);
+            assertFalse(template.contains("<#"), templateName);
+            assertTrue(entry.getValue().startsWith("package org.ikasan.studio.flowtests.support.utils;"));
+        }
         // The runtime uses the same projection/hash implementation as Studio.
-        String helper = scaffold.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FlowTestSupportFingerprint.java");
+        String helper = scaffold.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FlowTestSupportFingerprint.java");
         String core = Files.readString(Path.of("headless/studio-generator/src/main/java/org/ikasan/studio/core/generator/FlowTestSupportFingerprint.java"));
         assertTrue(helper.startsWith(core.replace("package org.ikasan.studio.core.generator;",
-                "package org.ikasan.studio.flowtests.support;").stripTrailing().replaceAll("}\\z", "")));
+                "package org.ikasan.studio.flowtests.support.utils;").stripTrailing().replaceAll("}\\z", "")));
     }
 }

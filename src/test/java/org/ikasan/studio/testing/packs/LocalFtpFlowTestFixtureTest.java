@@ -45,7 +45,7 @@ class LocalFtpFlowTestFixtureTest {
         String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
         try (var loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()}, getClass().getClassLoader())) {
-            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.LocalFtpTestServer");
+            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.utils.LocalFtpTestServer");
             for (boolean failScenario : List.of(false, true)) {
                 var folder = org.junit.rules.TemporaryFolder.builder().assureDeletion().build();
                 Path[] testRoot = new Path[1];

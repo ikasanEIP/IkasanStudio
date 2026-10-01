@@ -1,5 +1,6 @@
-package org.ikasan.studio.flowtests.support;
+package org.ikasan.studio.flowtests.support.utils;
 
+import org.ikasan.studio.flowtests.support.ModuleFlowTestSupport;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;

@@ -32,7 +32,7 @@ public final class FlowTestFiles {
                 || plan.testPath().contains("/support/") || !Files.exists(root.resolve(plan.testPath()))).toList();
     }
 
-    /** Each shared helper is a distinct archive target; properties and POM retain their existing values. */
+    /** Refresh module wiring only; reusable utilities, properties and POM retain existing values. */
     static List<FlowTestScaffold.Scaffold> supportRefreshPlans(List<FlowTestScaffold.Scaffold> scaffolds) {
         Map<String, String> shared = new LinkedHashMap<>();
         for (var scaffold : scaffolds) {
@@ -48,7 +48,8 @@ public final class FlowTestFiles {
         }
         List<FlowTestScaffold.Scaffold> plans = new ArrayList<>();
         for (String path : shared.keySet()) {
-            if (path.startsWith("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/")) {
+            if (path.startsWith("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/")
+                    && !path.contains("/support/utils/")) {
                 plans.add(new FlowTestScaffold.Scaffold(scaffolds.get(0).rootPom(), path,
                         path.equals(FlowTestScaffold.SUPPORT_PATH) ? Map.copyOf(shared) : Map.of(path, shared.get(path))));
             }
@@ -306,7 +307,7 @@ public final class FlowTestFiles {
 
     /** Adds only missing fixture dependencies; preserves developer XML and archives changes at the write boundary. */
     static String withFtpTestDependencies(String existing, Map<String, String> generated) throws IOException {
-        if (!generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java")) return existing;
+        if (!generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java")) return existing;
         try {
             var reader = new org.apache.maven.model.io.xpp3.MavenXpp3Reader();
             var model = reader.read(new java.io.StringReader(existing));
@@ -314,14 +315,14 @@ public final class FlowTestFiles {
             List<String[]> dependencies = new ArrayList<>(List.of(
                     new String[]{"org.apache.ftpserver", "ftpserver-core", "1.2.1"},
                     new String[]{"org.apache.mina", "mina-core", "2.2.9"}));
-            if (generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java")) {
+            if (generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSmtpTestServer.java")) {
                 var templatePom = reader.read(new java.io.StringReader(generated.get("user-flow-tests/pom.xml")));
                 var smtp = templatePom.getDependencies().stream()
                         .filter(d -> "com.icegreen".equals(d.getGroupId()) && "greenmail".equals(d.getArtifactId()))
                         .findFirst().orElseThrow(() -> new IOException("Missing GreenMail dependency in generated test POM"));
                 dependencies.add(new String[]{smtp.getGroupId(), smtp.getArtifactId(), smtp.getVersion()});
             }
-            if (generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSftpTestServer.java")) {
+            if (generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSftpTestServer.java")) {
                 var templatePom = reader.read(new java.io.StringReader(generated.get("user-flow-tests/pom.xml")));
                 for (String artifact : List.of("sshd-sftp", "sshd-core", "sshd-common")) {
                     var dependency = templatePom.getDependencies().stream()

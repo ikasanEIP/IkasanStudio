@@ -1,4 +1,4 @@
-package org.ikasan.studio.flowtests.support;
+package org.ikasan.studio.flowtests.support.utils;
 
 import java.time.Instant;
 import java.util.Date;

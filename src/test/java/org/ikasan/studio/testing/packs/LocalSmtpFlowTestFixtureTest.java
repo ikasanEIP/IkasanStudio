@@ -27,7 +27,7 @@ class LocalSmtpFlowTestFixtureTest {
         assertEquals(0, compiler.waitFor(), diagnostics);
         int port;
         try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
-            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.LocalSmtpTestServer");
+            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.utils.LocalSmtpTestServer");
             Object server = type.getMethod("start").invoke(null);
             Object second = type.getMethod("start").invoke(null);
             port = (int) type.getMethod("port").invoke(server);

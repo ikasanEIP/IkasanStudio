@@ -1,4 +1,4 @@
-package org.ikasan.studio.flowtests.support;
+package org.ikasan.studio.flowtests.support.utils;
 
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.util.GreenMail;

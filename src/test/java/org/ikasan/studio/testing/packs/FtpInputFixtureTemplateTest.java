@@ -25,7 +25,7 @@ class FtpInputFixtureTemplateTest {
         String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
         try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
-            var write = loader.loadClass("org.ikasan.studio.flowtests.support.FtpInputFixture")
+            var write = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FtpInputFixture")
                     .getMethod("write", Path.class, String.class, String.class, int.class, String.class);
             Path home = Files.createDirectory(root.resolve("ftp"));
             Path first = (Path) write.invoke(null, home, ".*\\.txt", null, 1, "first café");
@@ -42,7 +42,7 @@ class FtpInputFixtureTemplateTest {
             assertEquals("custom", Files.readString(custom));
             assertThrows(InvocationTargetException.class, () -> write.invoke(null, home, ".*", "../escape", 1, "bad"));
             assertThrows(InvocationTargetException.class, () -> write.invoke(null, home, ".*\\.txt", "bad.csv", 1, "bad"));
-            var copy = loader.loadClass("org.ikasan.studio.flowtests.support.FtpInputFixture")
+            var copy = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FtpInputFixture")
                     .getMethod("copyResource", Path.class, String.class, String.class);
             Path resources = Files.createDirectories(root.resolve("input"));
             byte[] original = new byte[]{0, 1, (byte) 255, 13, 10, 42};
@@ -62,7 +62,7 @@ class FtpInputFixtureTemplateTest {
                 assertFalse(paths.anyMatch(path -> path.getFileName().toString().startsWith("file-input-")));
             }
             try (var files = Files.list(home)) { assertEquals(4, files.count()); }
-            Class<?> sharedType = loader.loadClass("org.ikasan.studio.flowtests.support.FileInputFixture");
+            Class<?> sharedType = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FileInputFixture");
             var pattern = sharedType.getMethod("localFilenames", Path.class, String[].class);
             var prepare = sharedType.getMethod("prepareLocalBatch", Path.class, int.class, String[].class);
             Path localHome = Files.createDirectory(root.resolve("local"));

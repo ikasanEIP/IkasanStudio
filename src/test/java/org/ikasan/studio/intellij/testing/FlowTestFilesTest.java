@@ -14,10 +14,10 @@ class FlowTestFilesTest {
         return new FlowTestScaffold.Scaffold("updated", "user-flow-tests/src/test/java/ExampleTest.java",
                 Map.of("user-flow-tests/src/test/java/ExampleTest.java", "test", "user-flow-tests/pom.xml", "generated pom"));
     }
-    @Test void refreshPlansArchiveEachHelperOnceAndIncludeJmsFromLaterFlows() throws Exception {
+    @Test void refreshPlansPreserveUtilitiesAndCreateMissingUtilitiesFromLaterFlows() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
-        String helper = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/OutputTextSupport.java";
-        String jms = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/JmsFlowTestSupport.java";
+        String helper = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/OutputTextSupport.java";
+        String jms = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/JmsFlowTestSupport.java";
         var shared = Map.of(FlowTestScaffold.SUPPORT_PATH, "new support", helper, "new helper",
                 FlowTestScaffold.TEST_PROPERTIES_PATH, "custom.property=new", "user-flow-tests/pom.xml", "new pom");
         var later = new java.util.LinkedHashMap<>(shared);
@@ -25,18 +25,18 @@ class FlowTestFilesTest {
         var plans = FlowTestFiles.supportRefreshPlans(java.util.List.of(
                 new FlowTestScaffold.Scaffold("original", "FirstTest.java", shared),
                 new FlowTestScaffold.Scaffold("original", "SecondTest.java", later)));
-        assertEquals(3, plans.size());
-        assertEquals(3, plans.stream().map(FlowTestScaffold.Scaffold::testPath).distinct().count());
+        assertEquals(1, plans.size());
+        assertEquals(1, plans.stream().map(FlowTestScaffold.Scaffold::testPath).distinct().count());
         for (var entry : shared.entrySet()) {
             Files.createDirectories(root.resolve(entry.getKey()).getParent());
             Files.writeString(root.resolve(entry.getKey()), "old content");
         }
         var prompt = assertThrows(FlowTestFiles.ExistingTestsException.class,
                 () -> FlowTestFiles.checkExisting(root, plans));
-        assertEquals(2, prompt.tests().size());
+        assertEquals(1, prompt.tests().size());
         FlowTestFiles.archiveAndWriteAll(root, "original", plans, prompt.tests());
         assertEquals("new support", Files.readString(root.resolve(FlowTestScaffold.SUPPORT_PATH)));
-        assertEquals("new helper", Files.readString(root.resolve(helper)));
+        assertEquals("old content", Files.readString(root.resolve(helper)));
         assertEquals("new JMS helper", Files.readString(root.resolve(jms)));
         assertEquals("old content", Files.readString(root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH)));
         assertEquals("old content", Files.readString(root.resolve("user-flow-tests/pom.xml")));
@@ -147,8 +147,8 @@ class FlowTestFilesTest {
                     .append("</artifactId><version>2.19.0</version><scope>test</scope></dependency>");
         template.append("</dependencies></project>");
         var files = Map.of(
-                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java", "ftp",
-                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSftpTestServer.java", "sftp",
+                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java", "ftp",
+                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSftpTestServer.java", "sftp",
                 "user-flow-tests/pom.xml", template.toString());
         String updated = FlowTestFiles.withFtpTestDependencies(existing, files);
         assertTrue(updated.contains("<artifactId>sshd-core</artifactId><version>custom</version>"));
@@ -160,7 +160,7 @@ class FlowTestFilesTest {
     @Test void skippingExistingSupportStillCreatesMissingFlowAndFixtures() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
         String supportPath = FlowTestScaffold.SUPPORT_PATH;
-        String helperPath = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSftpTestServer.java";
+        String helperPath = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSftpTestServer.java";
         String testPath = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/Flow7FlowTest.java";
         String fixturePath = "user-flow-tests/src/test/resources/flow7/my_sftp_producer/first.txt";
         for (String path : java.util.List.of(supportPath, helperPath)) {
@@ -215,8 +215,8 @@ class FlowTestFilesTest {
         }
         String pom = "<project><modelVersion>4.0.0</modelVersion></project>";
         var files = java.util.Map.of(
-                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java", "ftp",
-                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalSmtpTestServer.java", "smtp",
+                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java", "ftp",
+                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSmtpTestServer.java", "smtp",
                 "user-flow-tests/pom.xml", "<project><modelVersion>4.0.0</modelVersion><dependencies><dependency><groupId>com.icegreen</groupId><artifactId>greenmail</artifactId><version>1.6.15</version></dependency></dependencies></project>");
         String result = FlowTestFiles.withFtpTestDependencies(pom, files);
         assertTrue(result.contains("<artifactId>greenmail</artifactId><version>1.6.15</version>"));
@@ -274,7 +274,7 @@ class FlowTestFilesTest {
         Files.createDirectories(pom.getParent());
         Files.writeString(pom, original);
         var files = new java.util.LinkedHashMap<>(scaffold().files());
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java", "helper");
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java", "helper");
         var plan = new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files);
         Path test = FlowTestFiles.write(root, "original", plan);
         assertEquals("test", Files.readString(test));
@@ -297,7 +297,7 @@ class FlowTestFilesTest {
         String original = "<project><modelVersion>4.0.0</modelVersion><!-- my settings --><properties><custom>keep</custom></properties></project>";
         Files.writeString(testPom, original);
         var files = new java.util.LinkedHashMap<>(scaffold().files());
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/LocalFtpTestServer.java", "helper");
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java", "helper");
         FlowTestFiles.write(root, "original", new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files));
         String updated = Files.readString(testPom);
         assertTrue(updated.contains("<!-- my settings -->"));

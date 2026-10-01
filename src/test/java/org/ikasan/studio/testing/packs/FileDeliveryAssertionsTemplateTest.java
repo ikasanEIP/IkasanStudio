@@ -25,7 +25,7 @@ class FileDeliveryAssertionsTemplateTest {
         String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
         try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
-            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.FileDeliveryAssertions");
+            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FileDeliveryAssertions");
             Method file = type.getMethod("assertFileContents", Path.class, String.class, Duration.class);
             Method files = type.getMethod("assertDeliveredFileContents", Path.class, String.class, List.class, Duration.class);
             Path output = Files.createDirectory(root.resolve("output"));

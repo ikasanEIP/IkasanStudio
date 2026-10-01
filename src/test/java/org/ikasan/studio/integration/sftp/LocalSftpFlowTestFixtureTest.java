@@ -56,7 +56,7 @@ class LocalSftpFlowTestFixtureTest {
         assertEquals(0, compiler.waitFor(), diagnostics);
         int port;
         try (var loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()}, getClass().getClassLoader())) {
-            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.LocalSftpTestServer");
+            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.utils.LocalSftpTestServer");
             try (var server = (AutoCloseable) type.getMethod("start", Map.class, Path.class)
                     .invoke(null, Map.of(), Files.createDirectory(temporary.resolve("server")))) {
                 var configure = type.getMethod("configure", Object.class, String.class, String.class, boolean.class, Map.class);

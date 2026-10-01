@@ -73,7 +73,10 @@ dependencies {
     implementation("org.ikasan.studio:ikasan-studio-ide-mediator:1.0.2")
     testImplementation("org.freemarker:freemarker:2.3.35")
     testImplementation("org.mockito:mockito-core:5.24.0")
-    testImplementation("com.icegreen:greenmail:2.1.14")
+    // Compile and exercise the SMTP fixture with the same javax.mail API as the generated flow tests.
+    testImplementation("com.icegreen:greenmail:1.6.15")
+    // GreenMail's transitive 1.6.7 has CVE-2025-7962; 1.6.8 preserves the javax.mail API.
+    testImplementation("com.sun.mail:jakarta.mail:1.6.8")
     implementation("org.apache.sshd:sshd-sftp:2.19.0") {
         exclude(group = "org.slf4j", module = "slf4j-api")
     }

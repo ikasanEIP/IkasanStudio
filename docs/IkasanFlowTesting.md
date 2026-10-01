@@ -599,9 +599,9 @@ a missing observation as an actual null payload comparison.
 
 Reusable support APIs document ownership, input/output semantics, cumulative counts, timeout
 behaviour and failure cases in Javadoc. Business tests can use these helpers directly; callers
-starting fixtures themselves own their cleanup. Archive and regenerate shared support and
-`LocalFtpTestServer` together to adopt the minimum-age fix; regeneration now offers the shared
-helper files for backup as well. Existing business scenario edits and resources need not change.
+starting fixtures themselves own their cleanup. To adopt the minimum-age fix, refresh shared
+module support and update `LocalFtpTestServer` using the utility-update procedure below.
+Existing business scenario edits and resources need not change.
 
 ### Local-file consumer resources
 
@@ -680,8 +680,8 @@ backup option or use the helper directly.
 
 Keep your business tests. Studio tells you when shared test support needs refreshing.
 When opening either flow-test generation dialog, Studio compares the shared support's
-recorded fingerprint with the current model. Missing fingerprints in older support also
-select refresh. The dialog explains the change; use the normal archive-and-regenerate
+recorded fingerprint with the current model. Missing fingerprints or the older helper-package
+layout also select refresh. The dialog explains the change; use the normal archive-and-regenerate
 confirmation to replace support. Existing business scenarios and fixture resources are
 excluded from automatic replacement. Skip Existing still preserves support, so it remains
 stale until refreshed.
@@ -700,3 +700,26 @@ validate business expectations or promise that every manual override remains app
 During migration comparisons, keep the before/after tests frozen; preserve any stale-support
 failure evidence before deliberately refreshing. Actual component/API changes may require
 support updates even though a version-number change alone does not.
+
+
+### Module wiring and reusable utilities
+
+`org.ikasan.studio.flowtests.support` contains the model-dependent
+`ModuleFlowTestSupport` and `ModuleJmsTestConfig`. Refresh these when Studio detects
+changed module wiring.
+
+`org.ikasan.studio.flowtests.support.utils` contains `ScheduledEventFixture`,
+`FileInputFixture`, `FtpInputFixture`, `FileDeliveryAssertions`, `OutputTextSupport`,
+`JmsFlowTestSupport`, `FlowTestSupportFingerprint`, and the local FTP, SFTP and SMTP
+servers. Their source contains no module-specific mappings. Generation creates missing
+utilities, but refreshing module support preserves existing utilities and any custom edits.
+
+**Model changes require no utility regeneration.** Utilities remain meta-pack supplied:
+Ikasan API upgrades or Studio fixes can still require updates. To adopt such an update,
+back up the affected utility, remove that file, then generate again and review the diff.
+For migration comparisons, retain the original tests until the comparison is complete.
+
+Existing helpers in the old package are retained so existing business-test imports continue
+to compile. Newly generated tests use `support.utils`; when adopting the new layout, update
+any custom imports or explicit server-class lookups to use the new utility types. Inherited
+helpers such as `localFtpDirectory` and `localSmtpServer` avoid those explicit lookups.

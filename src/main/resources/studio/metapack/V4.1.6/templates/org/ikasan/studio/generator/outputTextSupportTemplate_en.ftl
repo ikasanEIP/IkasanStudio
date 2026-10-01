@@ -1,4 +1,4 @@
-package org.ikasan.studio.flowtests.support;
+package org.ikasan.studio.flowtests.support.utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.io.IOException;
