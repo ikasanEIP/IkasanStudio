@@ -77,7 +77,7 @@ dependencies {
     testImplementation("com.icegreen:greenmail:1.6.15")
     // GreenMail's transitive 1.6.7 has CVE-2025-7962; 1.6.8 preserves the javax.mail API.
     testImplementation("com.sun.mail:jakarta.mail:1.6.8")
-    implementation("org.apache.sshd:sshd-sftp:2.19.0") {
+    implementation("org.apache.sshd:sshd-sftp:2.20.0") {
         exclude(group = "org.slf4j", module = "slf4j-api")
     }
     implementation("org.apache.ftpserver:ftpserver-core:1.2.1") {
