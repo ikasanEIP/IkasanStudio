@@ -76,7 +76,7 @@ dependencies {
     // Compile and exercise the SMTP fixture with the same javax.mail API as the generated flow tests.
     testImplementation("com.icegreen:greenmail:1.6.15")
     // GreenMail's transitive 1.6.7 has CVE-2025-7962; 1.6.8 preserves the javax.mail API.
-    testImplementation("com.sun.mail:jakarta.mail:1.6.8")
+    testImplementation("com.sun.mail:jakarta.mail:2.0.2")
     implementation("org.apache.sshd:sshd-sftp:2.20.0") {
         exclude(group = "org.slf4j", module = "slf4j-api")
     }
