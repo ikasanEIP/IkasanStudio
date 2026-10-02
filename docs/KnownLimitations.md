@@ -4,6 +4,8 @@ These are the public beta's documented feature boundaries. They are not a guaran
 
 ## Compatibility and generation
 
+- [Runtime JSON import](IkasanRuntimeJson.md) accepts core Ikasan/Dashboard topology and separate configuration exports. They do not contain all source code or Spring wiring. Ambiguous variants require a choice; only explicitly supported configuration mappings are applied. Originals are retained for review. New saves use a three-document container; older Studio builds cannot read it. Restore the earlier project revision before downgrading Studio.
+
 - Bundled packs cover Ikasan V3.3.9 (Java 11) and V4.1.6 (Java 17). Other Ikasan versions and future IntelliJ builds are not implicitly verified. See [Supported versions](SupportedVersions.md).
 - Generated application-specific stubs require business implementation. Type warnings and converter suggestions use declared metadata; they do not prove runtime compatibility, inspect arbitrary business logic or infer all Java inheritance relationships. Suggestions do not cross branching routers. See [Type guidance](TypeGuidance.md).
 - Recipes cover explicit payload conversions, not arbitrary business mappings. Supplied JMS/local-file recipes are intended for small messages and enforce a 16 MiB limit; local-file recipes require a single-file batch. See [Converter recipes](ConversionRecipes.md).

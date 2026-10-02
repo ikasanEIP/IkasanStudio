@@ -3,6 +3,8 @@ package org.ikasan.studio.intellij.psi;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.application.WriteIntentReadAction;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbService;
@@ -153,7 +155,15 @@ public final class FlowPackageRefactoring {
         return execute(plan, () -> {});
     }
 
+    // Required for callbacks without implicit read access; available on the minimum supported IDE.
+    @SuppressWarnings("UnstableApiUsage")
     static boolean execute(Plan plan, Runnable afterPackageRename) {
+        // Swing callbacks do not necessarily hold read access in newer IDEs. The processor
+        // reads PSI during construction and enters its own write command when applying edits.
+        return WriteIntentReadAction.compute((Computable<Boolean>) () -> executeWithReadAccess(plan, afterPackageRename));
+    }
+
+    private static boolean executeWithReadAccess(Plan plan, Runnable afterPackageRename) {
         if (plan.source() == null) {
             com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction(plan.project(), afterPackageRename);
             return true;

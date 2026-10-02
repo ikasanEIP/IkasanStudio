@@ -152,6 +152,12 @@ public class ComponentMeta implements IkasanMeta {
     private boolean flowTestPassThroughFilter;       // Filter always forwards input: safe to include in a linear test path.
     private boolean flowTestFileDelivery;            // Producer delivers files: offer receiver-side filesystem assertions.
     private boolean flowTestObservationOnly;          // Discard sinks only: invocation has no external delivery/content contract.
+    /** Runtime ConfigurationMetaData parameters verified to map directly to Studio properties. */
+    @lombok.Builder.Default
+    @JsonSetter(nulls = Nulls.SKIP)
+    private List<String> runtimeConfigurationProperties = List.of();
+    /** Optional runtime configuration type when no user-supplied configuration property is exposed. */
+    private String runtimeConfigurationClass;
     private String testPayloadAdapter;               // Optional metadata-driven adapter used by Send Test Message to construct an interface-based payload.
     private boolean isFileBasedConsumer;             // Consumer only: true if the payload it deals in is file content/a file path rather
                                                       // than a message (e.g. FTP/SFTP/Local File/Generic Consumer) - drives the canvas's
@@ -194,7 +200,9 @@ public class ComponentMeta implements IkasanMeta {
     @EqualsAndHashCode.Exclude
     private String iconResourceDirectory;
 
-    public ComponentMeta() {}
+    public ComponentMeta() {
+        this.runtimeConfigurationProperties = List.of();
+    }
 
     /**
      * Get a list of the mandatory properties for this component.

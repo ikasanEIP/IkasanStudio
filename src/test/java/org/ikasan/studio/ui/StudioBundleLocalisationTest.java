@@ -78,7 +78,7 @@ class StudioBundleLocalisationTest {
 
         assertEquals("Import model.json...", english.getProperty("button.ImportModelJson"));
         assertEquals("Choose file...", english.getProperty("button.ChooseModelJsonFile"));
-        assertTrue(english.getProperty("message.ImportModelJsonExplanation").contains("Paste a model.json"));
+        assertTrue(english.getProperty("message.ImportModelJsonExplanation").contains("Paste a Studio model.json"));
         assertTrue(english.getProperty("message.ImportModelSuccess").contains("{0}"));
         assertTrue(english.getProperty("message.ImportModelJdkNotConfigured").contains("Project Structure"));
         assertTrue(english.getProperty("message.LoadJsonModelFromFile").contains("model.json"));

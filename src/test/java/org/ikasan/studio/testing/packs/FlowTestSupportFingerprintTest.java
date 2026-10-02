@@ -55,7 +55,7 @@ class FlowTestSupportFingerprintTest {
         assertTrue(support.indexOf("FlowTestSupportFingerprint.verify(") < support.indexOf("application.run(arguments)"));
         assertTrue(support.contains("Review module-test.properties or scenario overrides"));
         assertTrue(FlowTestScaffold.supportNeedsRefresh(support.replace(
-                "import org.ikasan.studio.flowtests.support.utils.FlowTestSupportFingerprint;", ""), module));
+                "import org.ikasan.studio.flowtests.support.FlowTestSupportFingerprint;", ""), module));
         // Utility source must remain independent of module names and connection mappings.
         for (var entry : scaffold.files().entrySet()) {
             if (!entry.getKey().contains("/support/utils/")) continue;
@@ -68,9 +68,11 @@ class FlowTestSupportFingerprintTest {
             assertTrue(entry.getValue().startsWith("package org.ikasan.studio.flowtests.support.utils;"));
         }
         // The runtime uses the same projection/hash implementation as Studio.
-        String helper = scaffold.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FlowTestSupportFingerprint.java");
+        String helper = scaffold.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FlowTestSupportFingerprint.java");
         String core = Files.readString(Path.of("headless/studio-generator/src/main/java/org/ikasan/studio/core/generator/FlowTestSupportFingerprint.java"));
-        assertTrue(helper.startsWith(core.replace("package org.ikasan.studio.core.generator;",
-                "package org.ikasan.studio.flowtests.support.utils;").stripTrailing().replaceAll("}\\z", "")));
+        assertTrue(helper.startsWith(core.substring(0, core.indexOf("    private static JsonNode variant("))
+                .replace("package org.ikasan.studio.core.generator;", "package org.ikasan.studio.flowtests.support;")));
+        String saved = org.ikasan.studio.core.generator.ModelTemplate.create(module);
+        assertEquals(FlowTestScaffold.supportFingerprint(module), FlowTestSupportFingerprint.fingerprint(saved, FlowTestScaffold.supportModelFields(module)));
     }
 }

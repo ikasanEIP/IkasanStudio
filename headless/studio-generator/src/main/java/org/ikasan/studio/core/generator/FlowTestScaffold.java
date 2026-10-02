@@ -36,7 +36,7 @@ public final class FlowTestScaffold {
 
     /** Legacy fingerprints or package layouts need one explicit module-support refresh. */
     public static boolean supportNeedsRefresh(String existingSupport, Module module) throws Exception {
-        return !existingSupport.contains("import org.ikasan.studio.flowtests.support.utils.FlowTestSupportFingerprint;")
+        return !existingSupport.contains("import org.ikasan.studio.flowtests.support.FlowTestSupportFingerprint;")
                 || !existingSupport.contains("SUPPORT_MODEL_SHA256 = \"" + supportFingerprint(module) + "\"");
     }
 
@@ -53,6 +53,9 @@ public final class FlowTestScaffold {
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("supportFingerprint", supportFingerprint(module));
         values.put("supportModelFields", supportModelFields(module));
+        Map<String, org.ikasan.studio.core.metapack.model.ComponentMeta> identities = new java.util.TreeMap<>(
+                org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponents(module.getMetaVersion()));
+        values.put("supportComponentIdentities", identities);
         values.put("className", className);
         values.put("flowName", flow.getIdentity());
         java.util.Set<String> propertyKeys = new java.util.TreeSet<>();
@@ -233,7 +236,7 @@ public final class FlowTestScaffold {
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "jmsFlowTestSupportTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/ScheduledEventFixture.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "scheduledEventFixtureTemplate_en.ftl", values));
-        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FlowTestSupportFingerprint.java",
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FlowTestSupportFingerprint.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestSupportFingerprintTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FileInputFixture.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "fileInputFixtureTemplate_en.ftl", values));

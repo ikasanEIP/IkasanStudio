@@ -11,6 +11,7 @@ import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.ikasan.studio.core.persistence.json.IkasanModelDocuments;
 
 import java.util.*;
 
@@ -37,7 +38,7 @@ public final class ModelMigration {
         public String report() {
             StringBuilder text = new StringBuilder("Ikasan migration: " + sourceVersion + " → " + targetVersion + "\n\n");
             JsonNode source;
-            try { source = JSON.readTree(sourceJson); }
+            try { source = IkasanModelDocuments.toLegacy(JSON.readTree(sourceJson)); }
             catch (java.io.IOException ex) { source = JSON.missingNode(); }
             JsonNode reportSource = source;
             findings.stream().filter(Finding::blocking).forEach(f -> text.append("BLOCKED: ")
@@ -83,7 +84,7 @@ public final class ModelMigration {
     }
 
     public static Plan analyse(String sourceJson, String targetVersion) throws Exception {
-        JsonNode parsed = JSON.readTree(sourceJson);
+        JsonNode parsed = IkasanModelDocuments.toLegacy(JSON.readTree(sourceJson));
         if (!(parsed instanceof ObjectNode source)) throw new StudioBuildException("The model must be a JSON object.");
         String sourceVersion = source.path("version").asText();
         List<Finding> findings = new ArrayList<>();
@@ -146,7 +147,10 @@ public final class ModelMigration {
     }
 
     private static Plan plan(String from, String to, String original, ObjectNode target, List<Finding> findings) throws Exception {
-        return new Plan(from, to, original, JSON.writerWithDefaultPrettyPrinter().writeValueAsString(target) + "\n", findings);
+        JsonNode output = target;
+        if (IkasanModelDocuments.isDocumentContainer(JSON.readTree(original)) && findings.stream().noneMatch(Finding::blocking))
+            output = IkasanModelDocuments.fromLegacy(target);
+        return new Plan(from, to, original, JSON.writerWithDefaultPrettyPrinter().writeValueAsString(output) + "\n", findings);
     }
 
     private static void migrateComponent(JsonNode node, String path, Map<String, ComponentMeta> from,
@@ -204,7 +208,7 @@ public final class ModelMigration {
                                       MigrationRules rules, List<Finding> findings) {
         if (from == null || to == null) { findings.add(new Finding(true, path, "Missing component metadata.")); return; }
         object.fieldNames().forEachRemaining(name -> {
-            if (STRUCTURAL.contains(name) || "version".equals(name)) return;
+            if (STRUCTURAL.contains(name) || "version".equals(name) || IkasanModelDocuments.RETAINED.equals(name) || "_ikasanFlowExtensions".equals(name) || "_ikasanComponentExtensions".equals(name)) return;
             ComponentPropertyMeta old = from.getMetadata(name), next = to.getMetadata(name);
             if (old != null && next == null) {
                 findings.add(new Finding(true, path + "/" + name, "Property has no target equivalent; no value has been discarded."));
@@ -272,6 +276,7 @@ public final class ModelMigration {
     }
 
     private static void checkPreserved(JsonNode expected, JsonNode actual, String path, List<Finding> findings) {
+        if (("/" + IkasanModelDocuments.RETAINED).equals(path)) return; // Native documents are re-rendered for the target pack.
         if (expected.isObject()) {
             expected.properties().forEach(e -> checkPreserved(e.getValue(), actual.path(e.getKey()), path + "/" + e.getKey(), findings));
         } else if (expected.isArray()) {

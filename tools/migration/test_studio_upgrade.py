@@ -9,6 +9,20 @@ from unittest.mock import patch
 import studio_upgrade as tool
 
 class UpgradeTest(unittest.TestCase):
+    def test_native_model_version_and_conservative_comparison(self):
+        before = {'modelFormat': 'ikasan-studio-documents', 'formatVersion': 1,
+                  'module': {'name': 'orders', 'version': 'app-2', 'ikasanVersion': '3.3.9', 'flows': []},
+                  'configuration': [], 'studio': {'metaPack': 'V3.3.9', 'properties': {}, 'flows': {}}}
+        after = copy.deepcopy(before)
+        after['module']['ikasanVersion'] = '4.1.6'
+        after['studio']['metaPack'] = 'V4.1.6'
+        self.assertEqual('V3.3.9', tool.model_version(before))
+        self.assertEqual('V4.1.6', tool.model_version(after))
+        self.assertEqual(tool.normalized(before), tool.normalized(after))
+        after['module']['version'] = 'app-3'
+        self.assertNotEqual(tool.normalized(before), tool.normalized(after))
+        self.assertEqual('V3.3.9', tool.model_version({'version': 'V3.3.9'}))
+
     def test_report_timestamps_preserve_original_verification_times(self):
         before = self.report(); after = copy.deepcopy(before)
         before['verifiedAt'] = '2026-09-26T12:00:00+00:00'

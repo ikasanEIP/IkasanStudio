@@ -56,6 +56,8 @@
             <separator/>
             <action id="IkasanStudio.MigrateVersion"
                     class="org.ikasan.studio.intellij.migration.MigrateIkasanVersionAction"/>
+            <action id="IkasanStudio.ExportModelDocuments"
+                    class="org.ikasan.studio.intellij.project.ExportIkasanModelAction"/>
             <action id="IkasanStudio.RestoreMigration"
                     class="org.ikasan.studio.intellij.migration.RestoreIkasanMigrationAction"/>
             <action id="IkasanStudio.ExportOfflineTools"

@@ -1,4 +1,5 @@
 {
+  "runtimeConfigurationProperties": ["emailBody", "emailFormat", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailSmtpClass", "user", "mailPopHost", "mailPopPort", "mailPopUser", "mailPopClass", "mailStoreProtocol", "mailDebug", "mailMimeAddressStrict"],
   "name": "Email Producer",
   "supportsTestMailServer": true,
   "builderFactory": "org.ikasan.builder.BuilderFactory",

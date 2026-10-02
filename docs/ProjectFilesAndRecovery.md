@@ -1,5 +1,7 @@
 # Project files, backups and recovery
 
+New model saves contain three separate documents in the same atomic file: Ikasan `module` metadata, Ikasan `configuration` records and `studio` generation settings. Existing flat models convert on their next save; rotating model backups retain the prior representation. See [model documents and compatibility](IkasanRuntimeJson.md#studios-persisted-model).
+
 | Location | Ownership and handling |
 | --- | --- |
 | `generated/src/main/model/model.json` | Source-of-truth visual model. Commit it; its location under `generated/` does not make it disposable. |

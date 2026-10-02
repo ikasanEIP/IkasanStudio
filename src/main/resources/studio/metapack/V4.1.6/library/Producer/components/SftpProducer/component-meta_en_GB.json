@@ -1,4 +1,5 @@
 {
+  "runtimeConfigurationProperties": ["checksumDelivered", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "createParentDirectory", "maxRetryAttempts", "outputDirectory", "overwrite", "password", "preferredKeyExchangeAlgorithm", "privateKeyFilename", "remoteHost", "remotePort", "renameExtension", "tempFileName", "unzip", "username"],
   "flowTestFileDelivery": true,
   "supportsTestSftpServer": true,
   "name": "SFTP Producer",

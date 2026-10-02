@@ -69,6 +69,8 @@ Pending property edits are preserved; hiding the panels does not apply them.
 
 ### Importing an existing model
 
+For module metadata and separate configuration JSON downloaded from core Ikasan or the Dashboard, select runtime import in the same dialog. See [Importing Ikasan runtime JSON](IkasanRuntimeJson.md) for component choices and settings that need review.
+
 Importing `model.json` from **Create your Ikasan module** regenerates Studio-owned files
 and aligns the root Maven POM with the imported meta-pack: Java 11 for V3.3.9 or Java 17
 for V4.1.6, the Ikasan BOM and required component dependencies. Unrelated Maven settings

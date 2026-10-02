@@ -27,6 +27,8 @@
     "flowTestFileDelivery": { "type": "boolean" },
     "flowTestPassThroughFilter": { "type": "boolean" },
     "flowTestObservationOnly": { "type": "boolean" },
+    "runtimeConfigurationProperties": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "runtimeConfigurationClass": { "type": "string" },
     "testPayloadAdapter": { "type": "string", "enum": ["ikasan-file-transfer-payload"] },
     "outputTypeInvalidatedByProperties": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
     "conversionRecipes": { "type": "array", "items": { "$ref": "#/$defs/conversionRecipe" } },

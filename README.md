@@ -139,6 +139,7 @@ Studio validates proposals and applies them according to its approval settings. 
 | [Harnesses](docs/Harnesses.md)                                          | Local SMTP/FTP/SFTP testing, JMS readers, message injection and real scans                   |
 | [Generate Flow Test](docs/IkasanFlowTesting.md)                         | Developer-owned Ikasan flow-test scaffolds, completion steps and migration                   |
 | [JMS object messages](docs/JmsObjectMessages.md)                        | ActiveMQ trusted packages and Java-object payloads                                           |
+| [Ikasan model documents](docs/IkasanRuntimeJson.md) | Native-shaped topology/configuration, existing-model conversion and runtime JSON import |
 | [Flow copy/paste](docs/FlowCopyPaste.md)                                | Reuse flows and update shared references                                                     |
 | [Command-line migration and verification](docs/CommandLineMigration.md) | Verify your own project before/after upgrades; preview and apply migrations without IntelliJ |
 | [Ikasan version migration](docs/IkasanVersionMigration.md)              | Preview, apply and recover migrations between supported packs                                |

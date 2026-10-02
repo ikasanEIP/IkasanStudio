@@ -15,6 +15,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.metapack.model.ComponentTypeMeta;
 import org.ikasan.studio.core.metapack.model.IkasanMeta;
 import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.ikasan.studio.core.persistence.json.IkasanModelDocuments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,7 +132,11 @@ public class ComponentIO {
         }
     }
 
-    /** Serializes a module and proves that the result can be read back before it is eligible for persistence. */
+    /**
+     * Validates the internal adapter JSON used by engine operations and legacy-compatible APIs.
+     * Project persistence uses {@link org.ikasan.studio.core.generator.ModelTemplate#create(Module)},
+     * which separates this representation into Ikasan module/configuration and Studio documents.
+     */
     public static String toValidatedModuleJson(Module module) {
         if (module == null) {
             throw new StudioRuntimeException("The Studio model is not available. The existing model.json has not been changed.");
@@ -205,8 +210,8 @@ public class ComponentIO {
         if (json != null && json.startsWith("\uFEFF")) json = json.substring(1);
         final JsonNode root;
         try {
-            root = MAPPER.readTree(json);
-        } catch (JsonProcessingException e) {
+            root = IkasanModelDocuments.toLegacy(MAPPER.readTree(json));
+        } catch (java.io.IOException e) {
             throw new StudioBuildException("The serialised data in [" + source + "] is not valid JSON: " + e.getMessage(), e);
         }
         if (root == null || !root.isObject()) {

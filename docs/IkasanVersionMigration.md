@@ -1,5 +1,7 @@
 # Migrating Ikasan versions
 
+Migration accepts both legacy flat Studio models and the [Ikasan document container](IkasanRuntimeJson.md#studios-persisted-model). Both IDE and CLI migrations write the container format. `studio.metaPack` selects the generator and `module.ikasanVersion` records the framework version; `module.version` remains the application version. Recovery snapshots retain the exact previous model representation.
+
 Studio can migrate a saved project between **V3.3.9 and V4.1.6 in either direction**. Use **Tools → Ikasan Studio → Migrate Ikasan Version…** (also available through Find Action). You can also right-click the module in the designer and choose **Migrate Ikasan Version…**. Configured modules show their version as read-only in Properties.
 
 ## Workflow

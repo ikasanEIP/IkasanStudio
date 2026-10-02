@@ -193,6 +193,13 @@ def execute(command, project, log, timeout):
             return 124
 
 
+def model_version(model):
+    """Read either legacy Studio designs or the native-document container."""
+    if model.get('modelFormat') == 'ikasan-studio-documents':
+        return model.get('studio', {}).get('metaPack')
+    return model.get('version')
+
+
 def verify(args):
     project = Path(args.project).resolve()
     if not (project/'pom.xml').is_file() or not (project/'user').is_dir():
@@ -233,7 +240,7 @@ def verify(args):
     checks.append(check('No failing test cases', not any(t['status'] == 'FAIL' for t in tests)))
     checks.append(dict(name='Executed project tests', status='PASS' if passed else 'INCOMPLETE',
                        detail=f"{len(passed)} passed; {sum(t['status']=='SKIP' for t in tests)} skipped. No executed tests means behaviour is unverified."))
-    report = dict(format=FORMAT, project=str(project), version=model.get('version'), model=model,
+    report = dict(format=FORMAT, project=str(project), version=model_version(model), model=model,
                   userSourceHashes=before, tests=tests, command=command, checks=checks,
                   verifiedAt=datetime.datetime.now(datetime.timezone.utc).isoformat())
     log = directory/'build.log'
@@ -257,6 +264,10 @@ def exit_code(result):
 def normalized(value, field=None):
     # Conservative fallback for IDE migrations. Other changes require review, never blanket replacement.
     if isinstance(value, dict):
+        if field is None and value.get('modelFormat') == 'ikasan-studio-documents':
+            # Only the two framework-version selectors change automatically; application version remains significant.
+            value = dict(value, module={k: v for k, v in value['module'].items() if k != 'ikasanVersion'},
+                         studio={k: v for k, v in value['studio'].items() if k != 'metaPack'})
         return {k: normalized(v, k) for k, v in value.items() if not (field is None and k == 'version')}
     if isinstance(value, list):
         return [normalized(v, 'item') for v in value]
@@ -311,9 +322,9 @@ def comparison(before, after, plan=None):
         mismatches = []
         for phase, actual, expected in [('Before', before['model'], expected_before), ('After', after['model'], expected_after)]:
             if actual != expected:
-                mismatches.append(f"{phase} model does not match the plan: recorded version {actual.get('version')}, "
-                                  f"expected {expected.get('version')}." +
-                                  (' Model content differs despite matching versions.' if actual.get('version') == expected.get('version') else ''))
+                mismatches.append(f"{phase} model does not match the plan: recorded version {model_version(actual)}, "
+                                  f"expected {model_version(expected)}." +
+                                  (' Model content differs despite matching versions.' if model_version(actual) == model_version(expected) else ''))
         matches = not mismatches
         detail = ' '.join(mismatches) if mismatches else 'Matches the exact source and target model in the saved engine preview.'
     else:

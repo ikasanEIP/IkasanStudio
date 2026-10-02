@@ -1,4 +1,5 @@
 {
+  "runtimeConfigurationProperties": ["ageOfFiles", "checksum", "chronological", "chunkSize", "chunking", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "cronExpression", "destructive", "eager", "filenamePattern", "ignoreMisfire", "isRecursive", "maxEagerCallbacks", "maxRetryAttempts", "maxRows", "minAge", "moveOnSuccessNewPath", "password", "preferredKeyExchangeAlgorithm", "privateKeyFilename", "remoteHost", "remotePort", "renameOnSuccess", "renameOnSuccessExtension", "sourceDirectory", "timezone", "username"],
   "supportsTestSftpServer": true,
   "name": "SFTP Consumer",
   "producedOutputType": "org.ikasan.filetransfer.Payload",

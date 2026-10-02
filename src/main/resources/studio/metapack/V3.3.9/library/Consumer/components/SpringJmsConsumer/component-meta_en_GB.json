@@ -1,4 +1,5 @@
 {
+  "runtimeConfigurationProperties": ["destinationJndiName", "autoContentConversion", "connectionFactoryName", "connectionFactoryUsername", "connectionFactoryPassword", "pubSubDomain", "durable", "durableSubscriptionName", "sessionTransacted", "sessionAcknowledgeMode", "batchMode", "batchSize", "autoSplitBatch", "concurrentConsumers", "maxConcurrentConsumers", "cacheLevel"],
   "name": "Spring JMS Consumer",
   "producedOutputType": "javax.jms.Message",
   "builderFactory": "org.ikasan.builder.BuilderFactory",

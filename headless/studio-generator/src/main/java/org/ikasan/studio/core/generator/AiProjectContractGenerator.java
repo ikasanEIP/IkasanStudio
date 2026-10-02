@@ -112,7 +112,12 @@ public final class AiProjectContractGenerator {
                 ## Sources of truth
 
                 - `src/main/model/model.json` (relative to this generated module) is the editable Studio model.
-                - `src/main/model/model.schema.json` describes its stable JSON shape.
+                - New saves contain three documents: `module` (Ikasan topology), `configuration` (Ikasan records
+                  linked by configurationId), and `studio` (meta-pack and extra generation settings).
+                  Edit each value in its owning document; do not copy topology or configuration values into
+                  `studio.properties`. `module.version` is the application version; `studio.metaPack` selects
+                  the generator. Old flat models remain readable and convert on the next save.
+                - `src/main/model/model.schema.json` describes both supported JSON shapes.
                 - `src/main/model/component-catalogue.json` is generated from the selected meta-pack and lists
                   valid component keys, roles, properties, defaults, types and choices.
                 - Java, Maven and configuration files in `generated/` are Studio-owned derived output.
@@ -713,7 +718,45 @@ public final class AiProjectContractGenerator {
                 """.formatted(metapackVersion);
     }
 
+    /** Both formats remain readable; new saves use the three-document contract. */
     public static String modelSchema() {
+        try {
+            var mapper = StudioJson.newObjectMapper();
+            var schema = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(legacyModelSchema());
+            var required = schema.remove("required");
+            var alternatives = schema.putArray("oneOf");
+            var legacy = alternatives.addObject();
+            legacy.set("required", required);
+            legacy.putObject("not").putArray("required").add("modelFormat");
+            alternatives.addObject().putArray("required").add("modelFormat").add("formatVersion")
+                    .add("module").add("configuration").add("studio");
+            var properties = (com.fasterxml.jackson.databind.node.ObjectNode) schema.get("properties");
+            properties.putObject("modelFormat").put("const", "ikasan-studio-documents");
+            properties.putObject("formatVersion").put("const", 1);
+            properties.set("module", mapper.readTree("""
+                    {"type":"object","required":["name","ikasanVersion","flows"],
+                     "properties":{"name":{"type":"string"},"version":{"type":"string"},
+                     "ikasanVersion":{"type":"string"},"flows":{"type":"array","items":{"$ref":"#/$defs/flow"}}}}
+                    """));
+            properties.set("configuration", mapper.readTree("""
+                    {"type":"array","items":{"type":"object","required":["configurationId","parameters"],
+                     "properties":{"configurationId":{"type":"string"},"implementingClass":{"type":"string"},
+                     "parameters":{"type":"array","items":{"type":"object","required":["name","value"],
+                     "properties":{"name":{"type":"string"},"value":{}}}}}}}
+                    """));
+            properties.set("studio", mapper.readTree("""
+                    {"type":"object","required":["metaPack","properties","flows"],
+                     "properties":{"metaPack":{"type":"string"},"properties":{"type":"object"},
+                     "flows":{"type":"object","additionalProperties":{"type":"object",
+                     "required":["properties","components"],"properties":{"properties":{"type":"object"},
+                     "components":{"type":"object","additionalProperties":{"type":"object",
+                     "required":["component","properties"],"properties":{"component":{"type":"string"},"properties":{"type":"object"}}}}}}}}}
+                    """));
+            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(schema);
+        } catch (java.io.IOException e) { throw new IllegalStateException("Cannot build model schema", e); }
+    }
+
+    private static String legacyModelSchema() {
         return """
                 {
                   "$schema": "https://json-schema.org/draft/2020-12/schema",

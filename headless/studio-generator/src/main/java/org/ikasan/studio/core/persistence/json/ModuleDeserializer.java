@@ -44,7 +44,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
      */
     @Override
     public Module deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, StudioBuildRuntimeException {
-        JsonNode jsonNode = jp.getCodec().readTree(jp);
+        JsonNode jsonNode = IkasanModelDocuments.toLegacy(jp.getCodec().readTree(jp));
         String metapackVersion = getStringFromNode(jsonNode.get(VERSION));
         Module module;
         if (metapackVersion == null || metapackVersion.isBlank()) {

@@ -73,8 +73,8 @@ public final class MigrationController {
                 }
                 String source = Files.readString(root.resolve(MigrationArtifacts.MODEL));
                 Module persisted = ComponentIO.validatePersistedModuleJson(source, "migration source", false);
-                if (!StudioJson.newObjectMapper().readTree(ComponentIO.toJson(persisted)).equals(
-                        StudioJson.newObjectMapper().readTree(ComponentIO.toJson(context.getIkasanModule())))) {
+                if (!StudioJson.newObjectMapper().readTree(org.ikasan.studio.core.generator.ModelTemplate.create(persisted)).equals(
+                        StudioJson.newObjectMapper().readTree(org.ikasan.studio.core.generator.ModelTemplate.create(context.getIkasanModule())))) {
                     throw new IllegalStateException(StudioBundle.message("message.TheCanvasAndSavedModelDiffer"));
                 }
                 var plan = ModelMigration.analyse(source, selectedTarget);
@@ -181,7 +181,7 @@ public final class MigrationController {
     // The Java scheduling APIs in IDEA 2024.2/2024.3 return void. Keep the promise-based
     // bridge so compilation waits for import/resolve and retains import-failure reporting.
     // Revisit when the minimum IDE version or this controller's coroutine integration changes.
-    @SuppressWarnings({"deprecation", "removal"})
+    @SuppressWarnings("deprecation")
     private static void importBeforeCompile(MavenProjectsManager maven, Project project, Path snapshot,
                                             Runnable onImported) {
         maven.forceUpdateProjects(maven.getProjects()).onSuccess(ignored ->

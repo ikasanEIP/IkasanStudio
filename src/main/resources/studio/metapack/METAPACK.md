@@ -260,3 +260,9 @@ Consumers forwarding a raw Quartz timer context can declare `flowTestInputMode: 
 This generates synchronous `ScheduledEventFixture` input and fixture-text extraction for assertions.
 Declare `flowTestInputModeInvalidatedByProperties: ["messageProvider"]` when a custom provider
 changes the payload contract. This mode verifies processing, not scheduling accuracy.
+
+## Runtime JSON import mappings
+
+`ComponentMeta.runtimeConfigurationProperties` is an optional list of runtime configuration parameter names verified to map directly to same-named Studio properties. The importer also requires the configuration JSON's `implementingClass` to match `runtimeConfigurationClass`, or the `configuration` property's `usageDataType` when no explicit class is declared. Declare only verified scalar mappings for that pack's Ikasan API. Unknown fields and incompatible value types remain in the retained source snapshot and are reported, never guessed. The bundled mappings cover verified scalar settings for scheduled, JMS, FTP/SFTP, local-file, email and logging components.
+
+Runtime implementation classes may identify several palette variants. The importer asks the developer to select among exact matches; configuration class names alone do not identify message-provider wiring. User implementations require the existing `requiresStub=false` contract to avoid replacement stub generation. See [runtime JSON import](../../../../../docs/IkasanRuntimeJson.md).

@@ -58,6 +58,7 @@ class ModelSchemaTest {
 
         List<String> errors = new ArrayList<>();
         validate(schema, JSON.readTree(ComponentIO.toValidatedModuleJson(live)), schema, "$", errors);
+        validate(schema, JSON.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(live)), schema, "$", errors);
         assertThat(errors).as(pack + " model written by Studio").isEmpty();
     }
 
@@ -78,6 +79,21 @@ class ModelSchemaTest {
 
     /** A deliberately small JSON Schema subset: $ref, type, required, properties, items, additionalProperties, minLength. */
     private static void validate(JsonNode root, JsonNode node, JsonNode schema, String path, List<String> errors) {
+        if (schema.has("oneOf")) {
+            int matches = 0;
+            for (JsonNode alternative : schema.get("oneOf")) {
+                List<String> failures = new ArrayList<>();
+                validate(root, node, alternative, path, failures);
+                if (failures.isEmpty()) matches++;
+            }
+            if (matches != 1) errors.add(path + ": must match exactly one supported format");
+        }
+        if (schema.has("not")) {
+            List<String> failures = new ArrayList<>();
+            validate(root, node, schema.get("not"), path, failures);
+            if (failures.isEmpty()) errors.add(path + ": forbidden shape");
+        }
+        if (schema.has("const") && !schema.get("const").equals(node)) errors.add(path + ": wrong constant");
         if (schema.has("$ref")) {
             JsonNode target = root;
             for (String part : schema.get("$ref").asText().substring(2).split("/")) target = target.path(part);

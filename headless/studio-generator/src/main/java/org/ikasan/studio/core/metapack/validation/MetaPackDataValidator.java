@@ -69,6 +69,21 @@ final class MetaPackDataValidator {
             namespace(problems, pack, path + ".implementingClass", component.getImplementingClass());
             namespace(problems, pack, path + ".expectedInputTypes", component.getExpectedInputTypes());
             namespace(problems, pack, path + ".producedOutputType", component.getProducedOutputType());
+            if (component.getRuntimeConfigurationProperties() == null) {
+                add(problems, path + ".runtimeConfigurationProperties", "must be an array, not null");
+            } else if (!component.getRuntimeConfigurationProperties().isEmpty()) {
+                var configuration = component.getAllowableProperties() == null ? null : component.getAllowableProperties().get("configuration");
+                if ((component.getRuntimeConfigurationClass() == null || component.getRuntimeConfigurationClass().isBlank())
+                        && (configuration == null || configuration.getUsageDataType() == null || configuration.getUsageDataType().isBlank()))
+                    add(problems, path + ".runtimeConfigurationProperties", "requires runtimeConfigurationClass or the configuration property's usageDataType");
+                javaName(problems, path + ".runtimeConfigurationClass", component.getRuntimeConfigurationClass());
+                for (String name : component.getRuntimeConfigurationProperties()) {
+                    var property = component.getAllowableProperties() == null ? null : component.getAllowableProperties().get(name);
+                    if (property == null || !property.isSetterProperty() || property.isUserSuppliedClass()
+                            || property.isReadOnlyProperty())
+                        add(problems, path + ".runtimeConfigurationProperties", "must reference editable scalar setter properties: " + name);
+                }
+            }
             if (component.getTestPayloadAdapter() != null && !component.getTestPayloadAdapter().isBlank()) {
                 if (!ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER.equals(component.getTestPayloadAdapter())) {
                     add(problems, path + ".testPayloadAdapter", "has an unsupported adapter: " + component.getTestPayloadAdapter());

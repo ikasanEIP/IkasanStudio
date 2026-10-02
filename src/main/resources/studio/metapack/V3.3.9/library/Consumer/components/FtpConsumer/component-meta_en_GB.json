@@ -1,4 +1,5 @@
 {
+  "runtimeConfigurationProperties": ["active", "ageOfFiles", "checksum", "chronological", "chunkSize", "chunking", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "cronExpression", "dataTimeout", "destructive", "eager", "filenamePattern", "filterDuplicates", "filterOnFilename", "filterOnLastModifiedDate", "ftpsIsImplicit", "ftpsKeyStoreFilePassword", "ftpsKeyStoreFilePath", "ftpsPort", "ftpsProtocol", "ignoreMisfire", "isRecursive", "maxEagerCallbacks", "maxRetryAttempts", "maxRows", "minAge", "moveOnSuccess", "moveOnSuccessNewPath", "password", "passwordFilePath", "remoteHost", "remotePort", "renameOnSuccess", "renameOnSuccessExtension", "socketTimeout", "sourceDirectory", "systemKey", "timezone", "username"],
   "name": "FTP Consumer",
   "producedOutputType": "org.ikasan.filetransfer.Payload",
   "testPayloadAdapter": "ikasan-file-transfer-payload",

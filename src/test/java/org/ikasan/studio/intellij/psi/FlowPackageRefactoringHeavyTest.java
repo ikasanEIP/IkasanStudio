@@ -54,6 +54,31 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
         assertEquals("Original Flow", flow.getIdentity());
     }
 
+    // The internal test hook reproduces an EDT callback without the legacy implicit read lock.
+    @SuppressWarnings("UnstableApiUsage")
+    public void testRenameFromSwingCallbackWithoutImplicitReadAccess() {
+        var plan = plan();
+        myProject.getService(org.ikasan.studio.ui.UiContext.class).setIkasanModule(module);
+        var application = com.intellij.openapi.application.ex.ApplicationManagerEx.getApplicationEx();
+        application.runUnlockingIntendedWrite(() -> {
+            assertTrue(application.isDispatchThread());
+            assertFalse(application.isReadAccessAllowed());
+            assertTrue(FlowPackageRefactoring.renameAndSave(plan, module, flow, "Renamed Flow"));
+            return null;
+        });
+        assertEquals("Renamed Flow", flow.getIdentity());
+        assertNull(file(oldPackage, "Implementation"));
+        assertNotNull(file(newPackage, "Implementation"));
+        assertTrue(text("outside", "Caller").contains(newPackage + ".Implementation"));
+        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base);
+        var modelFile = base.findFileByRelativePath("generated/src/main/model/model.json");
+        assertNotNull(modelFile);
+        String modelText = StudioProjectFiles.readVirtualFileAsString(modelFile);
+        assertNotNull(modelText);
+        assertTrue(modelText.contains("Renamed Flow"));
+    }
+
     public void testDestinationConflictLeavesOriginalCodeAndModelUntouched() {
         write(newPackage, "Implementation", "package " + newPackage + "; public class Implementation {}");
         try {

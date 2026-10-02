@@ -1,4 +1,5 @@
 {
+  "runtimeConfigurationProperties": ["destinationJndiName", "connectionFactoryName", "connectionFactoryUsername", "connectionFactoryPassword", "pubSubDomain", "sessionTransacted", "sessionAcknowledgeMode", "sessionAcknowledgeModeName", "deliveryMode", "deliveryPersistent", "explicitQosEnabled", "priority", "timeToLive", "pubSubNoLocal", "messageIdEnabled", "messageTimestampEnabled", "receiveTimeout"],
   "name": "Spring JMS Producer",
   "builderFactory": "org.ikasan.builder.BuilderFactory",
   "endpointKey": "Channel Endpoint",

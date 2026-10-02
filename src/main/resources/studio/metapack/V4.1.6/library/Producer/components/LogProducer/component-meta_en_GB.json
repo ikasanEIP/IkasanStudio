@@ -1,4 +1,6 @@
 {
+  "runtimeConfigurationProperties": ["logEveryNth", "replacementText", "regExpPattern"],
+  "runtimeConfigurationClass": "org.ikasan.component.endpoint.util.producer.LogProducerConfiguration",
   "name": "Logging Producer",
   "builder": "",
   "builderFactory": "org.ikasan.builder.BuilderFactory",

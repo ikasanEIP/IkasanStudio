@@ -1,6 +1,6 @@
 package org.ikasan.studio.flowtests.support;
 
-import org.ikasan.studio.flowtests.support.utils.FlowTestSupportFingerprint;
+import org.ikasan.studio.flowtests.support.FlowTestSupportFingerprint;
 import org.ikasan.studio.flowtests.support.utils.LocalSftpTestServer;
 import org.ikasan.studio.flowtests.support.utils.LocalFtpTestServer;
 import org.ikasan.studio.flowtests.support.utils.FileDeliveryAssertions;

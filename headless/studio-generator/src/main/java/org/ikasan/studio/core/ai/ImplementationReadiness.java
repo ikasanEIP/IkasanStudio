@@ -66,7 +66,7 @@ public final class ImplementationReadiness {
         return new Report(java.time.Instant.now().toString(), "Saved primary user implementation files only; unsaved edits and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.", false, List.copyOf(findings));
     }
     public static Report scanProject(Path root) throws java.io.IOException {
-        return scan(root.toAbsolutePath().normalize(), StudioJson.newObjectMapper().readTree(
-                Files.readString(root.resolve("generated/src/main/model/model.json"))));
+        return scan(root.toAbsolutePath().normalize(), org.ikasan.studio.core.persistence.json.IkasanModelDocuments.toLegacy(StudioJson.newObjectMapper().readTree(
+                Files.readString(root.resolve("generated/src/main/model/model.json")))));
     }
 }

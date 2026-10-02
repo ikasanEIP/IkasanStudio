@@ -25,7 +25,7 @@ public final class MigrationArtifacts {
         if (!plan.canApply()) throw new IllegalStateException("Resolve migration blockers before rendering.");
         Module module = ComponentIO.validatePersistedModuleJson(plan.targetJson(), "migration preview", false);
         Map<String, String> files = new LinkedHashMap<>();
-        files.put(MODEL, plan.targetJson());
+        files.put(MODEL, ModelTemplate.create(module));
         var mavenModel = new MavenXpp3Reader().read(new StringReader(rootPom));
         Module sourceModule = ComponentIO.validatePersistedModuleJson(plan.sourceJson(), "migration source dependencies", false);
         Set<String> targetDependencies = module.getAllUniqueSortedJarDependencies().stream()

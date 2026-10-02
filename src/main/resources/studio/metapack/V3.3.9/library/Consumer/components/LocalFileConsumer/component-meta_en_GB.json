@@ -1,4 +1,5 @@
 {
+  "runtimeConfigurationProperties": ["cronExpression", "directoryDepth", "eager", "encoding", "ignoreFileRenameWhilstScanning", "ignoreMisfire", "includeHeader", "includeTrailer", "logMatchedFilenames", "maxEagerCallbacks", "sortAscending", "sortByModifiedDateTime", "timezone"],
   "name": "Local File Consumer",
   "producedOutputType": "java.util.List<java.io.File>",
   "isFileBasedConsumer": "true",

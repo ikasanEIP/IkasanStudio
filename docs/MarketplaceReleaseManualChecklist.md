@@ -25,3 +25,14 @@
 - Run `./gradlew cleanTest test`.
 - Run `./gradlew buildPlugin verifyReleaseArchive verifyPlugin`.
 - Complete the boundary IDE, installation, upgrade, uninstall and clean-profile matrix in [ReleaseCandidateVerification.md](ReleaseCandidateVerification.md).
+
+## Ikasan model document compatibility
+
+- Open an existing flat Studio model, save, reload and confirm that `module`, `configuration` and `studio` sections retain the same design and generated behavior.
+- Rename a flow and component, save/reload, and verify configuration links and any imported metadata are retained.
+- Import representative core/Dashboard module and configuration exports into a new project; review ambiguous component choices and MANUAL startup.
+- Preview and apply a 3.3.9 → 4.1.6 migration in the IDE and CLI, then restore its snapshot. Confirm framework version selectors change while the application version remains intact.
+- Refresh shared flow-test support after conversion and run an existing business test. Confirm scenario code and reusable fixtures remain intact.
+- Check a deliberately malformed document is preserved and saving is blocked with an actionable error. Restore a legacy model backup and confirm it opens.
+
+These are manual candidate checks, not claims of completed interactive verification.

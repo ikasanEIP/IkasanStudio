@@ -1,6 +1,5 @@
 package org.ikasan.studio.intellij.project;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -16,9 +15,15 @@ final class JsonAttributes {
             return null;
         }
         try {
-            JsonNode value = OBJECT_MAPPER.readTree(json).get(attributeName);
+            JsonNode root = OBJECT_MAPPER.readTree(json);
+            JsonNode value;
+            if (root != null && root.path("modelFormat").asText().equals("ikasan-studio-documents")) {
+                value = "version".equals(attributeName) ? root.path("studio").get("metaPack")
+                        : root.path("module").has(attributeName) ? root.path("module").get(attributeName)
+                        : root.path("studio").path("properties").get(attributeName);
+            } else value = root == null ? null : root.get(attributeName);
             return value == null || value.isNull() ? null : value.asText();
-        } catch (JsonProcessingException ignored) {
+        } catch (java.io.IOException ignored) {
             return null;
         }
     }
