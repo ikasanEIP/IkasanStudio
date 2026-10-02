@@ -4,6 +4,16 @@ dependencies {
     api(project(":studio-pack-v4"))
     testImplementation(project(":studio-test-kit"))
     testImplementation("commons-io:commons-io:2.22.0")
+    // The shared SMTP fixture compiles and runs the same javax.mail helper shipped by both packs.
+    // Keep aligned with flowTestPomTemplate_en.ftl and the root plugin test dependencies.
+    testImplementation("com.icegreen:greenmail:1.6.15")
+    testImplementation("com.sun.mail:jakarta.mail:1.6.8")
+    testImplementation("junit:junit:4.13.2")
+    // The same shared source set also compiles and exercises the local FTP fixture.
+    testImplementation("org.apache.ftpserver:ftpserver-core:1.2.1")
+    constraints {
+        testImplementation("org.apache.mina:mina-core:2.2.9")
+    }
 }
 // Give this module its own source root. Sharing the plugin's entire test root with
 // include filters makes IntelliJ assign unrelated plugin tests to this module.

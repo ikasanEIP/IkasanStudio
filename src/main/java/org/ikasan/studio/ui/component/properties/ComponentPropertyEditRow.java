@@ -237,8 +237,22 @@ public class ComponentPropertyEditRow {
             // STRING INPUT
             this.propertyValueField = new JFormattedTextField();
 
+            if (isTypedCollection()) {
+                propertyValueField.setEditable(false);
+                chooseValueButton = new JButton(StudioBundle.message("collection.Edit"));
+                chooseValueButton.setEnabled(!meta.isReadOnlyProperty());
+                chooseValueButton.addActionListener(e -> {
+                    var dialog = new StringCollectionDialog(project, meta.getPropertyName(), meta.getPropertyDataType(), getValue());
+                    if (dialog.showAndGet()) {
+                        Object edited = dialog.value();
+                        showingDefaultOnly = false;
+                        propertyValueField.setText(edited == null ? "" : org.ikasan.studio.core.model.StringCollectionValues.json(edited));
+                    }
+                });
+            }
+
             // For list, allow comma seperated entry then convert to/from at start/end
-            if (meta.getUsageDataType().equals(STRING_LIST)) {
+            if (!isTypedCollection() && meta.getUsageDataType().equals(STRING_LIST)) {
                 isList = true;
             }
 
@@ -565,6 +579,14 @@ public class ComponentPropertyEditRow {
 
     public void resetDataEntryComponentsWithNewValues() {
         Object value = componentProperty.getValue();
+        if (isTypedCollection()) {
+            Object display = value != null ? value : previewableDefault();
+            suppressChangeDetection = true;
+            try { propertyValueField.setText(display == null ? "" : display instanceof String ? display.toString() : org.ikasan.studio.core.model.StringCollectionValues.json(display)); }
+            finally { suppressChangeDetection = false; }
+            showingDefaultOnly = value == null && display != null;
+            return;
+        }
         if (meta.getChoices() != null) {
             if (componentProperty.getValue() != null) {
                 propertyChoiceValueField.setSelectedItem(componentProperty.getValue());
@@ -691,6 +713,10 @@ public class ComponentPropertyEditRow {
         if (showingDefaultOnly) {
             return null;
         }
+        if (isTypedCollection()) {
+            try { return org.ikasan.studio.core.model.StringCollectionValues.normalize(meta.getPropertyDataType(), propertyValueField.getText()); }
+            catch (IllegalArgumentException failure) { return propertyValueField.getText(); }
+        }
         Object returnValue = null;
         if (isChoiceProperty()) {
             Object selected = meta.isChoicesEditable() ? propertyChoiceValueField.getEditor().getItem()
@@ -777,7 +803,7 @@ public class ComponentPropertyEditRow {
         }
         for (String siblingPropertyName : siblingPropertyNames) {
             ComponentPropertyEditRow sibling = componentPropertyEditBoxMap.get(siblingPropertyName);
-            if (sibling != null && !sibling.inputfieldIsUnset()) {
+            if (sibling != null && !sibling.missingRequiredValue()) {
                 return true;
             }
         }
@@ -801,7 +827,12 @@ public class ComponentPropertyEditRow {
      * For the given field type, determine if a valid value has been set.
      * @return true if the field is empty or unset
      */
+    private boolean isTypedCollection() {
+        return org.ikasan.studio.core.model.StringCollectionValues.supports(meta.getPropertyDataType());
+    }
+
     public boolean inputfieldIsUnset() {
+        if (isTypedCollection()) return getValue() == null;
         boolean fieldNotSet = false;
         // For boolean we don't current support unset @todo support unset if we need to
 
@@ -828,9 +859,17 @@ public class ComponentPropertyEditRow {
      * Validates the values populated
      * @return a populated ValidationInfo array if there are any validation issues.
      */
+    private boolean missingRequiredValue() {
+        Object value = getValue();
+        return inputfieldIsUnset() || value instanceof java.util.Collection<?> entries && entries.isEmpty()
+                || value instanceof java.util.Map<?, ?> mappings && mappings.isEmpty();
+    }
+
     protected java.util.List<ValidationInfo> doValidateAll() {
         //@todo setup once in class and clear down
         List<ValidationInfo> result = new ArrayList<>();
+        if (isTypedCollection() && getValue() instanceof String)
+            result.add(new ValidationInfo(StudioBundle.message("collection.InvalidLegacy"), propertyValueField));
         if ((meta.getPropertyDataType() == java.lang.Integer.class
                 || meta.getPropertyDataType() == java.lang.Long.class)
                 && getValue() instanceof String) {
@@ -839,12 +878,12 @@ public class ComponentPropertyEditRow {
         // 1. force population of mandatory properties - either unconditionally, or conditionally where none of
         // this property's mandatoryUnlessAnyOf siblings has been genuinely set (e.g. an SFTP consumer's password
         // is only required if privateKeyFilename hasn't been supplied instead, and vice versa).
-        if (meta.isMandatory() && inputfieldIsUnset()) {
+        if (meta.isMandatory() && missingRequiredValue()) {
             result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set to a valid value", getOverridingInputField()));
-        } else if (meta.hasMandatoryUnlessAnyOf() && inputfieldIsUnset() && !anySiblingHasValue(meta.getMandatoryUnlessAnyOf())) {
+        } else if (meta.hasMandatoryUnlessAnyOf() && missingRequiredValue() && !anySiblingHasValue(meta.getMandatoryUnlessAnyOf())) {
             result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set, unless "
                     + String.join(" or ", meta.getMandatoryUnlessAnyOf()) + " is provided instead", getOverridingInputField()));
-        } else if (meta.hasMandatoryIfTrue() && inputfieldIsUnset() && siblingIsTrue(meta.getMandatoryIfTrue())) {
+        } else if (meta.hasMandatoryIfTrue() && missingRequiredValue() && siblingIsTrue(meta.getMandatoryIfTrue())) {
             result.add(new ValidationInfo(componentProperty.getMeta().getPropertyName() + " must be set, because "
                     + meta.getMandatoryIfTrue() + " is enabled", getOverridingInputField()));
         }

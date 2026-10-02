@@ -8,7 +8,7 @@ import java.util.Map;
 public class SerializerUtils {
     /**
      * Utility method to extract a typed value from a JSON field.
-     * It handles Boolean, Number, and String types.
+     * It handles scalar values and structured JSON arrays/objects.
      *
      * @param field the Map.Entry containing the field name and JsonNode value
      * @return the extracted value as types Java Object, or null if the JsonNode is null
@@ -17,7 +17,9 @@ public class SerializerUtils {
         Object value = null;
         if (field.getValue() != null) {
             JsonNodeType type = field.getValue().getNodeType();
-            if (JsonNodeType.BOOLEAN == type) {
+            if (JsonNodeType.ARRAY == type || JsonNodeType.OBJECT == type) {
+                value = StudioJson.newObjectMapper().convertValue(field.getValue(), Object.class);
+            } else if (JsonNodeType.BOOLEAN == type) {
                 value = field.getValue().asBoolean();
             } else if (JsonNodeType.NUMBER == type) {
                 value = field.getValue().asLong();

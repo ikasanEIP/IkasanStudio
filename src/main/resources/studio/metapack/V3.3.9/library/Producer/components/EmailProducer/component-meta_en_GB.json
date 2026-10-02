@@ -1,5 +1,5 @@
 {
-  "runtimeConfigurationProperties": ["emailBody", "emailFormat", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailSmtpClass", "user", "mailPopHost", "mailPopPort", "mailPopUser", "mailPopClass", "mailStoreProtocol", "mailDebug", "mailMimeAddressStrict"],
+  "runtimeConfigurationProperties": ["toRecipients", "ccRecipients", "bccRecipients", "extendedMailSessionProperties", "emailBody", "emailFormat", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailSmtpClass", "user", "mailPopHost", "mailPopPort", "mailPopUser", "mailPopClass", "mailStoreProtocol", "mailDebug", "mailMimeAddressStrict"],
   "name": "Email Producer",
   "supportsTestMailServer": true,
   "builderFactory": "org.ikasan.builder.BuilderFactory",
@@ -35,7 +35,8 @@
     },
     "toRecipients": {
       "propertyName": "toRecipients",
-      "helpText": "The list of To recipients, enter a comma-separated list of (unquoted) strings.",
+      "propertyDataType": "java.util.List",
+      "helpText": "The list of To recipients, use Edit entries to enter one address per row.",
       "propertyDisplayOrder": -95,
       "setterProperty": true,
       "usageDataType": "java.util.List<String>",
@@ -97,7 +98,8 @@
     },
     "ccRecipients": {
       "propertyName": "ccRecipients",
-      "helpText": "The list of CC recipient, enter a comma-separated list of (unquoted) strings. At least one recipient must be provided across To, CC or BCC.",
+      "propertyDataType": "java.util.List",
+      "helpText": "The list of CC recipient, use Edit entries to enter one address per row. At least one recipient must be provided across To, CC or BCC.",
       "propertyConfigFileLabel": "__flow.__component.email.producer.ccRecipients",
       "propertyDisplayOrder": -85,
       "setterProperty": true,
@@ -118,7 +120,8 @@
     },
     "bccRecipients": {
       "propertyName": "bccRecipients",
-      "helpText": "The list of BCC recipient, enter a comma-separated list of (unquoted) strings. At least one recipient must be provided across To, CC or BCC.",
+      "propertyDataType": "java.util.List",
+      "helpText": "The list of BCC recipient, use Edit entries to enter one address per row. At least one recipient must be provided across To, CC or BCC.",
       "propertyConfigFileLabel": "__flow.__component.email.producer.bccRecipients",
       "propertyDisplayOrder": -75,
       "setterProperty": true,
@@ -274,6 +277,7 @@
     },
     "extendedMailSessionProperties": {
       "propertyName": "extendedMailSessionProperties",
+      "propertyDataType": "java.util.Map",
       "helpText": "Extended set of email properties, for any JavaMail session property not otherwise exposed here.",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 730,

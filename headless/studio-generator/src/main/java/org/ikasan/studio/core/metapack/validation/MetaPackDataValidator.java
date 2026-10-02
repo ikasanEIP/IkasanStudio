@@ -81,7 +81,7 @@ final class MetaPackDataValidator {
                     var property = component.getAllowableProperties() == null ? null : component.getAllowableProperties().get(name);
                     if (property == null || !property.isSetterProperty() || property.isUserSuppliedClass()
                             || property.isReadOnlyProperty())
-                        add(problems, path + ".runtimeConfigurationProperties", "must reference editable scalar setter properties: " + name);
+                        add(problems, path + ".runtimeConfigurationProperties", "must reference editable scalar or string-collection setter properties: " + name);
                 }
             }
             if (component.getTestPayloadAdapter() != null && !component.getTestPayloadAdapter().isBlank()) {

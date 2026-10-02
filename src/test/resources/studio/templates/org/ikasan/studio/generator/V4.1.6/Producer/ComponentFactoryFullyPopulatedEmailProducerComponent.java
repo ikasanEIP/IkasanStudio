@@ -10,31 +10,67 @@ public class ComponentFactoryMyFlow1
 {
 @org.springframework.beans.factory.annotation.Value("${module.name}")
 private String moduleName;
+@org.springframework.beans.factory.annotation.Autowired
+private org.springframework.core.env.Environment studioEnvironment;
+
+private com.fasterxml.jackson.databind.JsonNode studioCollection(String name) {
+    try {
+        return new com.fasterxml.jackson.databind.ObjectMapper()
+            .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
+            .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .readTree(studioEnvironment.getRequiredProperty(name));
+    } catch (java.io.IOException failure) {
+        throw new IllegalArgumentException("Invalid collection configuration: " + name);
+    }
+}
+
+private java.util.List<String> studioStringList(String name) {
+    String raw = studioEnvironment.getRequiredProperty(name);
+    // Existing deployment overrides may still use comma-separated recipient lists.
+    if (!raw.stripLeading().startsWith("[")) {
+        return raw.isBlank() ? new java.util.ArrayList<>()
+            : new java.util.ArrayList<>(java.util.Arrays.asList(raw.split("\\s*,\\s*", -1)));
+    }
+    com.fasterxml.jackson.databind.JsonNode value = studioCollection(name);
+    if (!value.isArray()) throw new IllegalArgumentException("Expected string list: " + name);
+    java.util.List<String> result = new java.util.ArrayList<>();
+    for (com.fasterxml.jackson.databind.JsonNode entry : value) {
+        if (!entry.isTextual()) throw new IllegalArgumentException("Expected string entries: " + name);
+        result.add(entry.textValue());
+    }
+    return result;
+}
+
+private java.util.Map<String, String> studioStringMap(String name) {
+    com.fasterxml.jackson.databind.JsonNode value = studioCollection(name);
+    if (value == null || !value.isObject()) throw new IllegalArgumentException("Expected string map: " + name);
+    java.util.Map<String, String> result = new java.util.LinkedHashMap<>();
+    value.fields().forEachRemaining(entry -> {
+        if (!entry.getValue().isTextual()) throw new IllegalArgumentException("Expected string entries: " + name);
+        result.put(entry.getKey(), entry.getValue().textValue());
+    });
+    return result;
+}
 
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-@org.springframework.beans.factory.annotation.Value("#{'${myflow1.myemailproducer.email.producer.bccRecipients}'.split(',')}")
-java.util.List<String> myFlow1MyEmailProducerEmailProducerBccRecipients;
-@org.springframework.beans.factory.annotation.Value("#{'${myflow1.myemailproducer.email.producer.ccRecipients}'.split(',')}")
-java.util.List<String> myFlow1MyEmailProducerEmailProducerCcRecipients;
-@org.springframework.beans.factory.annotation.Value("#{'${myflow1.myemailproducer.email.producer.toRecipients}'.split(',')}")
-java.util.List<String> myFlow1MyEmailProducerEmailProducerToRecipients;
+
 @javax.annotation.Resource
 org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration myConfigurationClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMyEmailProducer() {
 return builderFactory.getComponentBuilder().emailProducer()
 .setBccRecipient("myBccRecipient")
-.setBccRecipients(myFlow1MyEmailProducerEmailProducerBccRecipients)
+.setBccRecipients(studioStringList("myflow1.myemailproducer.email.producer.bccRecipients"))
 .setCcRecipient("myCcRecipient")
-.setCcRecipients(myFlow1MyEmailProducerEmailProducerCcRecipients)
+.setCcRecipients(studioStringList("myflow1.myemailproducer.email.producer.ccRecipients"))
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
 .setCriticalOnStartup(true)
 .setEmailBody("myEmailBody")
 .setEmailFormat("html")
-.setExtendedMailSessionProperties(key1value1key2value2)
+.setExtendedMailSessionProperties(new java.util.LinkedHashMap<String, String>(java.util.Map.ofEntries(java.util.Map.entry("key1", "value1"), java.util.Map.entry("key2", "value2"))))
 .setFrom("FromAddress")
 .setHasAttachment(true)
 .setMailDebug(true)
@@ -52,7 +88,7 @@ return builderFactory.getComponentBuilder().emailProducer()
 .setMailSubject("myMailSubject")
 .setMailhost("myMailhostAddress")
 .setToRecipient("myToRecipient")
-.setToRecipients(myFlow1MyEmailProducerEmailProducerToRecipients)
+.setToRecipients(studioStringList("myflow1.myemailproducer.email.producer.toRecipients"))
 .setTransportProtocol("myTransportProtocol")
 .setUser("myUser")
 .build();

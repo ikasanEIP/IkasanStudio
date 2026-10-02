@@ -44,7 +44,9 @@ public class BasicElementSerializer extends StdSerializer<BasicElement> {
                     if (componentProperty.getValue() != null) {
                         // Since we need to cast, have to identify type explicitly
                         Class<?> clazz = componentProperty.getValue().getClass();
-                        if (clazz == Boolean.class) {
+                        if (org.ikasan.studio.core.model.StringCollectionValues.supports(componentProperty.getMeta().getPropertyDataType())) {
+                            jsonGenerator.writeObjectField(componentProperty.getMeta().getPropertyName(), componentProperty.getValue());
+                        } else if (clazz == Boolean.class) {
                             jsonGenerator.writeBooleanField(
                                     componentProperty.getMeta().getPropertyName(),
                                     (Boolean) componentProperty.getValue());

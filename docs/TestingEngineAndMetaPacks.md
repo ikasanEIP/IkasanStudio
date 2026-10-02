@@ -28,6 +28,14 @@ flowchart TB
 
 Choose the relevant suites below and record application/runtime checks separately.
 
+Shared fixture tests run in both the root plugin build and `headless/studio-bundled-packs`.
+Declare their test dependencies in both builds; copying the Java source does not copy its classpath.
+Do not edit the generated copies under `build/generated/sources/sharedTest`.
+The SMTP helpers in both packs currently use `javax.mail`, GreenMail 1.6.15 and
+`com.sun.mail:jakarta.mail:1.6.8` (despite that artifact name, version 1.6 uses `javax.mail`).
+GreenMail 2.x and mail 2.x require a coordinated migration of the helpers and tests to the
+Jakarta namespace. Keep these dependencies aligned with the packs' `flowTestPomTemplate_en.ftl`.
+
 ## Running the tests
 
 Run commands from the repository root. The build uses the Java 17 toolchain. Use `gradlew.bat` instead of `./gradlew` on Windows. Initial dependency resolution requires access to the configured artifact repositories. Both the root and independent `headless` build configure the Foojay toolchain resolver, so a machine running Gradle on Java 21 (including Travis) can download JDK 17 automatically. Included builds need their own resolver configuration. The first build also needs network access to the toolchain provider; offline builds require JDK 17 to be installed or already provisioned. There is no need to publish the headless artifacts before building the plugin.

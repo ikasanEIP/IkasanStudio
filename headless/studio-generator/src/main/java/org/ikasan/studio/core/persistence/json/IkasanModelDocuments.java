@@ -323,6 +323,10 @@ public final class IkasanModelDocuments {
 
     private static JsonNode scalarValue(ComponentMeta meta, String key, JsonNode value) throws IOException {
         Class<?> type = meta.getAllowableProperties().get(key).getPropertyDataType();
+        if (org.ikasan.studio.core.model.StringCollectionValues.supports(type)) {
+            try { return JSON.valueToTree(org.ikasan.studio.core.model.StringCollectionValues.normalize(type, JSON.convertValue(value, Object.class))); }
+            catch (IllegalArgumentException failure) { throw invalid("Invalid collection configuration for " + key); }
+        }
         if (!value.isTextual() || type == String.class) return value;
         String text = value.asText();
         try {
@@ -336,7 +340,7 @@ public final class IkasanModelDocuments {
 
     private static void checkValue(ComponentMeta meta, String key, JsonNode value) throws IOException {
         Class<?> type = meta.getAllowableProperties().get(key).getPropertyDataType();
-        boolean valid = value.isNull() || type == String.class && value.isTextual()
+        boolean valid = value.isNull() || org.ikasan.studio.core.model.StringCollectionValues.compatible(type, value) || type == String.class && value.isTextual()
                 || (type == Boolean.class || type == boolean.class) && value.isBoolean()
                 || (type == Integer.class || type == int.class) && value.isIntegralNumber() && value.canConvertToInt()
                 || (type == Long.class || type == long.class) && value.isIntegralNumber() && value.canConvertToLong();

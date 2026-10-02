@@ -41,14 +41,13 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         String factory = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
         String properties = PropertiesTemplate.create(module);
         for (String recipient : java.util.List.of("ToRecipients", "CcRecipients", "BccRecipients")) {
-            for (String name : java.util.List.of("Output1", "Output3")) {
-                String field = "myFlow1" + name + "EmailProducer" + recipient;
-                assertEquals(1, factory.split("java.util.List<String> " + field + ";", -1).length - 1, factory);
-                assertTrue(factory.contains(".set" + recipient + "(" + field + ")"), factory);
+            for (String name : java.util.List.of("output1", "output3")) {
+                String property = "myflow1." + name + ".email.producer." + Character.toLowerCase(recipient.charAt(0)) + recipient.substring(1);
+                assertTrue(factory.contains(".set" + recipient + "(studioStringList(\"" + property + "\"))"), factory);
             }
         }
-        assertTrue(properties.contains("myflow1.output1.email.producer.toRecipients=first@example.com"), properties);
-        assertTrue(properties.contains("myflow1.output3.email.producer.toRecipients=third@example.com"), properties);
+        assertTrue(properties.contains("myflow1.output1.email.producer.toRecipients=[\"first@example.com\"]"), properties);
+        assertTrue(properties.contains("myflow1.output3.email.producer.toRecipients=[\"third@example.com\"]"), properties);
     }
 
     //  ------------------------------- BROKER ----------------------------------

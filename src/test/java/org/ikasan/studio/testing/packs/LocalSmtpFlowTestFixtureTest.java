@@ -2,7 +2,8 @@ package org.ikasan.studio.testing.packs;
 
 import com.icegreen.greenmail.util.GreenMailUtil;
 import com.icegreen.greenmail.util.ServerSetup;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.*;
@@ -16,13 +17,15 @@ import static org.junit.jupiter.api.Assertions.*;
 class LocalSmtpFlowTestFixtureTest {
     @TempDir Path root;
 
-    @Test @Timeout(30) void deliversTwoBatchesIsolatesInboxesAndClosesPort() throws Exception {
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"}) @Timeout(30)
+    void deliversTwoBatchesIsolatesInboxesAndClosesPort(String pack) throws Exception {
         Path source = root.resolve("LocalSmtpTestServer.java");
-        Files.writeString(source, Files.readString(Path.of("src/main/resources/studio/metapack/V3.3.9/templates/org/ikasan/studio/generator/localSmtpTestServerTemplate_en.ftl")));
+        Files.writeString(source, Files.readString(Path.of("src/main/resources/studio/metapack", pack,
+                "templates/org/ikasan/studio/generator/localSmtpTestServerTemplate_en.ftl")));
         String classpath = String.join(File.pathSeparator, List.of(
                 location(com.icegreen.greenmail.util.GreenMail.class), location(javax.mail.Part.class), location(org.junit.Assert.class)));
         Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
-                "--release", "11", "-cp", classpath, "-d", root.toString(), source.toString()).redirectErrorStream(true).start();
+                "--release", pack.equals("V3.3.9") ? "11" : "17", "-cp", classpath, "-d", root.toString(), source.toString()).redirectErrorStream(true).start();
         String diagnostics = new String(compiler.getInputStream().readAllBytes());
         assertEquals(0, compiler.waitFor(), diagnostics);
         int port;

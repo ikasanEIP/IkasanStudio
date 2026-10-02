@@ -8,6 +8,17 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    # 9.8.0 misresolves IntelliJ bundled SDK artifacts with Platform plugin 2.19.0.
+    # See docs/Troubleshooting.md; later Gradle versions still receive update proposals.
+    ignore:
+      - dependency-name: "gradle-wrapper"
+        versions: ["9.8.0"]
+      # The generated SMTP fixtures use javax.mail. Major upgrades require a coordinated
+      # helper/API migration, not a library-only bump. Keep 1.x updates eligible.
+      - dependency-name: "com.icegreen:greenmail"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "com.sun.mail:jakarta.mail"
+        update-types: ["version-update:semver-major"]
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"

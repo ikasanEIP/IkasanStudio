@@ -44,6 +44,17 @@ public class ComponentProperty {
      * ClassCastException, and it re-saves as the quoted text Studio always writes.
      */
     private static Object asDeclaredType(ComponentPropertyMeta meta, Object value) {
+        if (meta != null && org.ikasan.studio.core.model.StringCollectionValues.supports(meta.getPropertyDataType())) {
+            // A legacy string "[]" meant unset; a structured empty JSON array is explicitly empty.
+            if (meta.getPropertyDataType() == java.util.List.class && value instanceof String text && text.strip().equals("[]")) return null;
+            try { return org.ikasan.studio.core.model.StringCollectionValues.normalize(meta.getPropertyDataType(), value); }
+            catch (IllegalArgumentException failure) {
+                // Older maps were unrestricted text. Keep an invalid draft visible for correction,
+                // rather than preventing the project from opening or silently discarding it.
+                if (value instanceof String) return value;
+                throw failure;
+            }
+        }
         if ((value instanceof Number || value instanceof Boolean) && meta != null && meta.getPropertyDataType() == String.class) {
             return value.toString();
         }
@@ -61,6 +72,8 @@ public class ComponentProperty {
 
     @JsonIgnore
     public String getValueString() {
+        if (meta != null && org.ikasan.studio.core.model.StringCollectionValues.supports(meta.getPropertyDataType()))
+            return org.ikasan.studio.core.model.StringCollectionValues.json(value);
         String returnValue = "null";
         if (value != null) {
             if (value instanceof List) {
@@ -127,6 +140,7 @@ public class ComponentProperty {
      */
     @JsonIgnore
     public boolean valueNotSet() {
+        if (meta != null && org.ikasan.studio.core.model.StringCollectionValues.supports(meta.getPropertyDataType())) return value == null;
         return (value == null) ||
                 (value instanceof String && ((String) value).isEmpty()) ||
                 (value instanceof List && ((List<?>) value).isEmpty()) ||

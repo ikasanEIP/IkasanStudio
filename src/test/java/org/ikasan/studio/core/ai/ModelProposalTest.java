@@ -22,6 +22,29 @@ public class ModelProposalTest {
             """;
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void typedCollectionEditsPreserveStructureAndUndo(String version) throws Exception {
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        var operations = JSON.readTree("""
+                [{"type":"addFlow","flow":"Mail"},
+                 {"type":"addComponent","flow":"Mail","key":"Generic Consumer","name":"Input"},
+                 {"type":"addComponent","flow":"Mail","key":"Email Producer","name":"Output",
+                  "properties":{"toRecipients":["a@example.com","a@example.com"],
+                    "extendedMailSessionProperties":{"mail.smtp.auth":"true"}}},
+                 {"type":"connect","flow":"Mail","order":["Input","Output"]}]
+                """);
+        var changes = ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live), operations));
+        changes.apply();
+        var producer = live.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
+        assertThat(producer.getPropertyValue("toRecipients")).isEqualTo(List.of("a@example.com", "a@example.com"));
+        assertThat(producer.getPropertyValue("extendedMailSessionProperties")).isEqualTo(java.util.Map.of("mail.smtp.auth", "true"));
+        assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
+                [{"type":"setProperty","flow":"Mail","component":"Output","property":"toRecipients","value":[1]}]
+                """))).isInstanceOf(IllegalArgumentException.class);
+        changes.undo();
+        assertThat(live.getFlows()).isEmpty();
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void flowStartupPropertyPersistsGeneratesAndSupportsUndoRedo(String version) throws Exception {
         Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
         live.setPropertyValue("flowStartupType", "AUTOMATIC");

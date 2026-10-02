@@ -1,4 +1,5 @@
 <#assign StudioBuildUtils=statics['org.ikasan.studio.core.StudioBuildUtils']>
+<#assign StringCollectionValues=statics['org.ikasan.studio.core.model.StringCollectionValues']>
 <#assign TestJmsHarnessLinks=statics['org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks']>
 package ${studioPackageTag};
 
@@ -12,6 +13,15 @@ public class ComponentFactory${flow.getJavaClassName()}
 {
 @org.springframework.beans.factory.annotation.Value("${r"${module.name}"}")
 private String moduleName;
+<#assign hasCollectionProperties=false>
+<#list flow.ftlGetAllFlowElementsInAnyRouteNoEndpoints()![] as element>
+<#list element.getStandardComponentProperties() as key, property>
+<#if StringCollectionValues.supports(property.meta.propertyDataType) && property.meta.propertyConfigFileLabel?has_content && !property.valueNotSet()><#assign hasCollectionProperties=true></#if>
+</#list>
+</#list>
+<#if hasCollectionProperties>
+<#include "stringCollectionProperties_en.ftl">
+</#if>
 
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
@@ -32,7 +42,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     </#if>
 
     <#list flowElement.getStandardComponentProperties()![] as propKey, componentProperty>
-        <#if componentProperty.meta.propertyConfigFileLabel?? && !componentProperty.valueNotSet()>
+        <#if componentProperty.meta.propertyConfigFileLabel?? && !componentProperty.valueNotSet() && !StringCollectionValues.supports(componentProperty.meta.propertyDataType)>
             <#if componentProperty.meta.usageDataType?starts_with("java.util.List")>
                 <#assign f_startTag = r"#{'${" >
                 <#assign f_endTag = r"}'.split(',')}" >
@@ -118,6 +128,8 @@ org.ikasan.builder.BuilderFactory builderFactory;
             </#if>
             <#if propKey == "destinationJndiName" && testDestination?has_content>
                 .${setter}("${testDestination?j_string}")
+            <#elseif StringCollectionValues.supports(propValue.meta.propertyDataType)>
+                <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(<#if propValue.meta.propertyConfigFileLabel?has_content>studioString<#if propValue.meta.propertyDataType.getCanonicalName() == "java.util.List">List<#else>Map</#if>("${StudioBuildUtils.substitutePlaceholderInLowerCase(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)?j_string}")<#else>${StringCollectionValues.javaLiteral(propValue.meta.propertyDataType, propValue.value)}</#if>)<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
             <#elseif propValue.meta.propertyConfigFileLabel?? &&  propValue.meta.propertyConfigFileLabel!= "">
                 <#if flowElement.componentMeta.generatesUserImplementedClass>${flowElement.getJavaVariableName()}</#if>.${setter}(${StudioBuildUtils.substitutePlaceholderInJavaCamelCase(module, flow, flowElement, propValue.meta.propertyConfigFileLabel)})<#if flowElement.componentMeta.generatesUserImplementedClass>;</#if>
             <#else>

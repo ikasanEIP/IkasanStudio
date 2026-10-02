@@ -630,7 +630,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("criticalOnStartup", true);
         flowElement.setPropertyValue("emailBody", "myEmailBody");
         flowElement.setPropertyValue("emailFormat", "html");
-        flowElement.setPropertyValue("extendedMailSessionProperties", "key1value1key2value2");
+        flowElement.setPropertyValue("extendedMailSessionProperties", java.util.Map.of("key1", "value1", "key2", "value2"));
         flowElement.setPropertyValue("from", "FromAddress");
         flowElement.setPropertyValue("hasAttachments", true);
         flowElement.setPropertyValue("mailDebug", true);

@@ -46,3 +46,8 @@ under Gradle 9.8.0 (`file:/maven-model`, `file:/jps-builders` and similar invali
 9.7.1 compiled both the main plugin and native MCP module successfully. Refreshing dependencies
 and starting a fresh Gradle process did not resolve the 9.8.0 failure. Recheck this combination
 before upgrading the wrapper. After changing versions, reload Gradle and allow indexing to finish.
+
+The same failure was reproduced on 2 October after an automated wrapper update, including
+`file:/intellij.libraries.ktor.client`, even with configuration caching disabled. The SDK JARs
+were present; deleting SDK caches was unnecessary. Dependabot now ignores the specific wrapper
+version 9.8.0 to prevent recurrence; later versions remain eligible for compatibility review.

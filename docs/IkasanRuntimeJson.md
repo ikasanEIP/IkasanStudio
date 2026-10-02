@@ -79,7 +79,7 @@ After conversion, regenerate shared flow-test support if prompted. `FlowTestSupp
 
 For imported runtime exports, the original input documents and review report are retained as import provenance under `studio.properties.ikasanRuntimeImport`. That provenance is an immutable reference snapshot; editing it does not change the active topology or configuration. Configuration and provenance may contain credentials; handle them as application configuration.
 
-Configuration application is explicitly meta-pack driven. `runtimeConfigurationProperties` lists verified scalar parameters that map directly to component properties; the configuration class must also match the pack's configuration type (`runtimeConfigurationClass`, or the `configuration` property's `usageDataType`). The bundled packs declare verified scalar settings for scheduled, JMS, FTP/SFTP, local-file, email and logging components. Other configuration values, module/flow/invoker configuration and decorators are preserved for review but are not automatically applied. Custom component references use existing implementations and request no replacement stub; their construction and payload types still require review.
+Configuration application is explicitly meta-pack driven. `runtimeConfigurationProperties` lists verified scalar and string-collection parameters that map directly to component properties; the configuration class must also match the pack's configuration type (`runtimeConfigurationClass`, or the `configuration` property's `usageDataType`). The bundled packs declare verified scalar settings for scheduled, JMS, FTP/SFTP, local-file, email and logging components. Email Producer also maps `toRecipients`, `ccRecipients`, `bccRecipients` (`List<String>`) and `extendedMailSessionProperties` (`Map<String, String>`). Other configuration values, module/flow/invoker configuration and decorators are preserved for review but are not automatically applied. Custom component references use existing implementations and request no replacement stub; their construction and payload types still require review.
 
 Ambiguous or unsupported components, invalid configuration records, cycles, joins and disconnected graphs fail before import changes project files. These are reported rather than silently dropping components or changing routing. New mappings should be added to the meta-pack with tests against the corresponding Ikasan API.
 
@@ -91,3 +91,13 @@ Import is bounded to 8 MiB of text per document, 1,000 flows and 500 components 
 
 
 `IkasanRuntimeImportTest` covers both bundled packs, configuration separation, application-version handling, preservation through Studio serialization, explicit component choices, custom implementation references and rejection of malformed input. Exercise the import dialog with representative downloaded files as part of the next [release-candidate checks](ReleaseCandidateVerification.md).
+
+## String collection configuration
+
+In both supported packs, Email Producer's recipient lists and extended mail-session properties offer **Edit entries…**. Lists have one string per row; maps have key and value columns. Strings are preserved exactly, including commas, quotes, whitespace and line breaks. Lists preserve order and duplicate entries; map keys must be unique. Nested values, null entries and arbitrary Java objects are not supported in these configuration fields.
+
+Select **Leave unset** to use the component default. Clearing all rows with that option unselected supplies an explicitly empty collection. Existing comma-separated recipient lists are converted when loaded, and legacy string `"[]"` retains its previous meaning of unset. A structured JSON `[]` means explicitly empty. Invalid legacy map text remains visible for correction and is not emitted as executable Java.
+
+Saved/exported parameter values use JSON arrays or objects and Ikasan's `ConfigurationParameterListImpl` / `ConfigurationParameterMapImpl` identifiers. Generated recipient entries in `application.properties` now use JSON arrays; the generated factory reads these without evaluating their contents as Spring expressions. Existing comma-separated recipient overrides are still accepted. Extended mail-session maps are generated as Java collection values in the component factory.
+
+After updating a design to use these types, regenerate its application code and properties together. These changes concern configuration values; payloads such as `List<Order>` remain developer-defined Java objects.

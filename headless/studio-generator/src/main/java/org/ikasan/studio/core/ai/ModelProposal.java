@@ -294,6 +294,12 @@ public final class ModelProposal {
     }
 
     private static Object propertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta meta, String key, JsonNode value) {
+        if (org.ikasan.studio.core.model.StringCollectionValues.supports(meta.getPropertyDataType())) {
+            if (value.isNull()) return null;
+            if (!org.ikasan.studio.core.model.StringCollectionValues.compatible(meta.getPropertyDataType(), value))
+                fail("Expected a string collection for " + key);
+            return StudioJson.newObjectMapper().convertValue(value, Object.class);
+        }
         if (value.isContainerNode()) fail("Property values must be scalar: " + key);
         Object converted = null;
         if (!value.isNull()) {

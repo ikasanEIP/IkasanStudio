@@ -260,6 +260,8 @@ public final class IkasanRuntimeImport {
     }
 
     private static boolean compatible(JsonNode value, Class<?> type) {
+        if (org.ikasan.studio.core.model.StringCollectionValues.supports(type))
+            return org.ikasan.studio.core.model.StringCollectionValues.compatible(type, value);
         if (type == String.class) return value.isTextual();
         if (type == Boolean.class || type == boolean.class) return value.isBoolean();
         if (type == Integer.class || type == int.class) return value.isIntegralNumber() && value.canConvertToInt();
