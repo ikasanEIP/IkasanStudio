@@ -58,7 +58,7 @@ class DemoGenerationRegressionTest {
         write("org/quartz/JobExecutionContext.java", "package org.quartz; public interface JobExecutionContext {}");
         write("org/ikasan/component/endpoint/quartz/consumer/MessageProvider.java", "package org.ikasan.component.endpoint.quartz.consumer; public interface MessageProvider<T> { T invoke(org.quartz.JobExecutionContext context); }");
         write("example/Samples.java", source);
-        compile();
+        compile(pack);
         try (var loader = new URLClassLoader(new java.net.URL[]{temp.toUri().toURL()}, null)) {
             Class<?> type = loader.loadClass("example.Samples");
             assertNotNull(type.getMethod("invoke", loader.loadClass("org.quartz.JobExecutionContext")));
@@ -97,7 +97,7 @@ class DemoGenerationRegressionTest {
                 + "static class Builders { Builders getComponentBuilder() { return this; } "
                 + "org.ikasan.builder.component.endpoint.LogProducerBuilder logProducer() { return new org.ikasan.builder.component.endpoint.LogProducerBuilder(); }} "
                 + "Builders builderFactory = new Builders(); " + method + " }");
-        compile();
+        compile(pack);
         try (var loader = new URLClassLoader(new java.net.URL[]{temp.toUri().toURL()}, null)) {
             var type = loader.loadClass("example.Factory");
             assertNotNull(type.getMethod("getOutput").invoke(type.getConstructor().newInstance()));
@@ -108,9 +108,11 @@ class DemoGenerationRegressionTest {
         Path file = temp.resolve(relative); Files.createDirectories(file.getParent()); Files.writeString(file, content);
     }
 
-    private void compile() throws Exception {
+    private void compile(String pack) throws Exception {
         try (var files = Files.walk(temp)) {
-            var args = new ArrayList<String>(); args.add("-d"); args.add(temp.toString());
+            var args = new ArrayList<String>();
+            args.add("--release"); args.add(pack.equals("V3.3.9") ? "11" : "17");
+            args.add("-d"); args.add(temp.toString());
             files.filter(p -> p.toString().endsWith(".java")).forEach(p -> args.add(p.toString()));
             args.add(0, "javac");
             Path output = temp.resolve("javac.txt");

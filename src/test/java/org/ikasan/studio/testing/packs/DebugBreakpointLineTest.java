@@ -47,11 +47,12 @@ class DebugBreakpointLineTest extends AbstractGeneratorTestFixtures {
         assertEquals(0, compiler.exitValue(), Files.readString(compilerOutput));
         Path output = directory.resolve("javap.txt");
         Process process = new ProcessBuilder("javap",
-                "-l", "-classpath", directory.toString(), qualifiedName)
+                "-c", "-l", "-classpath", directory.toString(), qualifiedName)
                 .redirectErrorStream(true).redirectOutput(output.toFile()).start();
         if (!process.waitFor(20, TimeUnit.SECONDS)) { process.destroyForcibly(); fail("javap timed out"); }
         String table = Files.readString(output);
         assertEquals(0, process.exitValue(), table);
+        assertTrue(table.contains("LineNumberTable:"), "javap did not print line-number tables:\n" + table);
         String entry = "line " + breakpointLine + ":";
         assertEquals(1, table.lines().filter(line -> line.strip().startsWith(entry)).count(), table);
     }
