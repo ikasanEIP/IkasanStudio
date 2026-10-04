@@ -3,6 +3,13 @@ package org.ikasan.studio.ui.component.canvas;
 import com.intellij.ui.components.JBTextArea;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.ui.PopupHandler;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationActivationListener;
 import com.intellij.openapi.application.ApplicationManager;
@@ -17,6 +24,7 @@ import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
 import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -155,6 +163,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
         setLayout(new BorderLayout());
         headerPanel.add(canvasHeaderButtonPanel, BorderLayout.CENTER);
         add(headerPanel, BorderLayout.NORTH);
+        installToolbarContextMenu(headerPanel, new DefaultActionGroup(new AdvancedControlsAction()));
 
         JBScrollPane canvasScrollPane = new JBScrollPane();
         canvasScrollPane.setBorder(JBUI.Borders.empty());
@@ -187,6 +196,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
         JPanel controls = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
         controls.add(button);
         headerPanel.add(controls, BorderLayout.EAST);
+        installToolbarContextMenu(controls, new DefaultActionGroup(new AdvancedControlsAction()));
     }
 
     @SuppressWarnings("rawtypes")
@@ -291,6 +301,37 @@ public class CanvasPanel extends JBPanel implements Disposable {
         stopModuleButton.setEnabled(flag);
     }
 
+    // Install on the buttons and group panels too: Swing mouse events do not bubble to the header.
+    private static void installToolbarContextMenu(JComponent component, DefaultActionGroup actions) {
+        PopupHandler.installPopupMenu(component, actions, "IkasanStudio.ToolbarContextMenu");
+        for (Component child : component.getComponents()) {
+            if (child instanceof JComponent swingChild) installToolbarContextMenu(swingChild, actions);
+        }
+    }
+
+    private static final class AdvancedControlsAction extends ToggleAction implements DumbAware {
+        private AdvancedControlsAction() {
+            super(StudioBundle.message("checkbox.ShowAdvancedControls"));
+        }
+
+        @Override public @NotNull ActionUpdateThread getActionUpdateThread() { return ActionUpdateThread.EDT; }
+
+        @Override public boolean isSelected(@NotNull AnActionEvent event) {
+            return IkasanStudioSettings.isShowAdvancedControlsEnabled();
+        }
+
+        @Override public void setSelected(@NotNull AnActionEvent event, boolean selected) {
+            IkasanStudioSettings.setShowAdvancedControls(selected);
+            for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+                if (project.isDisposed()) continue;
+                UiContext context = project.getService(UiContext.class);
+                if (context != null && context.getCanvasPanel() != null) {
+                    context.getCanvasPanel().refreshAdvancedControlsVisibility();
+                }
+            }
+        }
+    }
+
     /**
      * Re-applies the "Show advanced controls" setting to whichever controls it currently gates (H2 start,
      * Console and Load). Called once at construction and again from IkasanStudioSettingsConfigurable when
@@ -301,5 +342,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
         h2Button.setVisible(showAdvancedControls);
         consoleButton.setVisible(showAdvancedControls);
         loadModuleButton.setVisible(showAdvancedControls);
+        headerPanel.revalidate();
+        headerPanel.repaint();
     }
 }

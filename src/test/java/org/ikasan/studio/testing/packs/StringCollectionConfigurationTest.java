@@ -57,6 +57,40 @@ class StringCollectionConfigurationTest {
         assertThat(ModelTemplate.create(module)).contains("ConfigurationParameterListImpl");
     }
 
+    @ParameterizedTest @ValueSource(strings={"V3.3.9", "V4.1.6"})
+    void loadsLegacyStudioRecipientsAndSavesThemAsNativeConfiguration(String pack) throws Exception {
+        var producer = FlowElement.flowElementBuilder()
+                .componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Email Producer"))
+                .componentName("Mail").build();
+        producer.setPropertyValue("configurationId", "mail-config");
+        var flow = TestFixtures.getUnbuiltFlow(pack).consumer(TestFixtures.getEventGeneratingConsumer(pack)).build();
+        flow.getFlowRoute().getFlowElements().add(producer);
+        producer.setContainingFlowRoute(flow.getFlowRoute());
+        var module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
+        var mapper = StudioJson.newObjectMapper();
+        var document = mapper.readTree(ModelTemplate.create(module));
+        var settings = (com.fasterxml.jackson.databind.node.ObjectNode) document.path("studio")
+                .path("flows").elements().next().path("components").path("Mail").path("properties");
+        settings.put("toRecipients", "[first@example.com, second@example.com]");
+        settings.put("extendedMailSessionProperties", "{\"mail.smtp.auth\":\"true\"}");
+        var loaded = ComponentIO.validatePersistedModuleJson(document.toString(), "legacy collections", false);
+        var restored = loaded.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
+        assertThat(restored.getPropertyValue("toRecipients")).isEqualTo(List.of("first@example.com", "second@example.com"));
+        assertThat(restored.getPropertyValue("extendedMailSessionProperties")).isEqualTo(Map.of("mail.smtp.auth", "true"));
+        var saved = mapper.readTree(ModelTemplate.create(loaded));
+        assertThat(saved.path("studio").path("flows").elements().next().path("components")
+                .path("Mail").path("properties").has("toRecipients")).isFalse();
+        assertThat(saved.path("configuration").toString()).contains("ConfigurationParameterListImpl", "ConfigurationParameterMapImpl");
+        assertThat(ComponentIO.validatePersistedModuleJson(saved.toString(), "round trip", false)
+                .getFlows().get(0).getFlowRoute().getFlowElements().get(0).getPropertyValue("toRecipients"))
+                .isEqualTo(restored.getPropertyValue("toRecipients"));
+        // Ambiguous duplicate settings must still trigger recovery rather than lose user data.
+        ((com.fasterxml.jackson.databind.node.ObjectNode) saved.path("studio").path("flows").elements().next()
+                .path("components").path("Mail").path("properties")).put("toRecipients", "other@example.com");
+        assertThatThrownBy(() -> ComponentIO.validatePersistedModuleJson(saved.toString(), "conflict", false))
+                .hasMessageContaining("Conflicting Studio and runtime configuration field toRecipients");
+    }
+
     @Test void rejectsNonStringEntriesNestedObjectsAndDuplicateKeys() {
         assertThatThrownBy(() -> StringCollectionValues.normalize(List.class, List.of(1))).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> StringCollectionValues.normalize(Map.class, Map.of("k", Map.of()))).isInstanceOf(IllegalArgumentException.class);

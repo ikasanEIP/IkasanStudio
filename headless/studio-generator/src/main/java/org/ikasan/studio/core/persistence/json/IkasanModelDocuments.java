@@ -264,7 +264,15 @@ public final class IkasanModelDocuments {
         if (!meta.getComponentType().equals(text(raw, "componentType"))) throw invalid("Component type disagrees with variant for " + name);
         ObjectNode result = object(extra.get("properties"), "component properties").deepCopy();
         rejectFields(result, COMPONENT_FIELDS, "component properties");
-        rejectFields(result, meta.getRuntimeConfigurationProperties(), "component properties");
+        // Collection settings lived in studio.properties before native List/Map support.
+        // Keep those legacy values for ComponentProperty to normalize, but never silently
+        // choose between a legacy setting and a native configuration value below.
+        for (String key : meta.getRuntimeConfigurationProperties()) {
+            if (!org.ikasan.studio.core.model.StringCollectionValues.supports(
+                    meta.getAllowableProperties().get(key).getPropertyDataType())) {
+                rejectFields(result, List.of(key), "component properties");
+            }
+        }
         rejectFields(result, List.of("componentType", "implementingClass", "additionalKey"), "component properties");
         copy(raw, result, COMPONENT_FIELDS);
         ObjectNode componentExtensions = object(raw, "component").deepCopy();
@@ -298,6 +306,7 @@ public final class IkasanModelDocuments {
             for (JsonNode p : requiredArray(config.get("parameters"), "parameters")) {
                 String key = text(p, "name");
                 if (meta.getRuntimeConfigurationProperties().contains(key)) {
+                    if (result.has(key)) throw invalid("Conflicting Studio and runtime configuration field " + key + " for " + name);
                     if (!p.has("value")) throw invalid("Missing configuration value for " + key);
                     checkValue(meta, key, p.get("value"));
                     result.set(key, p.get("value").deepCopy());

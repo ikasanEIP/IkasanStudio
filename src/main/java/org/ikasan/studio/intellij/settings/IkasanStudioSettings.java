@@ -216,12 +216,6 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
         return s != null && s.showAdvancedControls;
     }
 
-    // No caller today (IkasanStudioSettingsConfigurable#apply() currently writes the State field directly, like
-    // the other settings here) - kept as the public setter symmetric with isShowAdvancedControlsEnabled() and
-    // this class's other isX()/setX() pairs, matching setPromptBeforeDeletingUserCode's own real external
-    // caller (DeleteComponentAction) as the precedent for why a settings setter earns its place even before a
-    // second caller exists.
-    @SuppressWarnings("unused")
     public static void setShowAdvancedControls(boolean showAdvancedControls) {
         IkasanStudioSettings instance = getInstance();
         State s = instance != null ? instance.getState() : null;

@@ -51,6 +51,8 @@ This example needs no JMS broker, FTP server or email account. The built-in prov
 
 Click **Run module**. Studio selects or creates an IntelliJ Application run configuration. Wait for the application startup message in the Run console, then look for the flow's logging output. A launched process alone does not mean startup has finished.
 
+To show or hide **H2**, **Console** and **Reload from Disk**, right-click the Studio toolbar and toggle **Show advanced controls**. This uses the same saved preference as **Settings → Tools → Ikasan Studio**.
+
 Open **Console** to view the module-local **Blue Console**. The local example login is `admin` / `admin`. Check that `HelloFlow` is running. The Blue Console is distinct from the central Ikasan Dashboard.
 
 To inspect source, use a component's **Jump to Code** or **Jump to Properties** action when offered. Pending property changes do not need to be accepted merely to inspect an available navigation target.
