@@ -288,6 +288,36 @@ class DesignerCanvasTest {
 
 
     @Test
+    void localSftpEndpointMenuOffersFilesModeAndStop() {
+        Project project = mock(Project.class);
+        JPopupMenu menu = DesignCanvasContextMenu.createTestSftpServerMenu(project);
+        try (var actions = org.mockito.Mockito.mockStatic(org.ikasan.studio.ui.actions.SftpHarnessAction.class)) {
+            assertThat(((JMenuItem) menu.getComponent(0)).getText()).isEqualTo(StudioBundle.message("sftpHarness.files"));
+            ((JMenuItem) menu.getComponent(0)).doClick();
+            actions.verify(() -> org.ikasan.studio.ui.actions.SftpHarnessAction.showFiles(project));
+            ((JMenuItem) menu.getComponent(1)).doClick();
+            actions.verify(() -> org.ikasan.studio.ui.actions.SftpHarnessAction.choose(project));
+            assertThat(((JMenuItem) menu.getComponent(3)).getText()).isEqualTo(StudioBundle.message("sftpHarness.stop"));
+            ((JMenuItem) menu.getComponent(3)).doClick();
+            actions.verify(() -> org.ikasan.studio.ui.actions.SftpHarnessAction.stop(project));
+        }
+    }
+
+    @Test
+    void localSftpEndpointsSeparateConsumersAndProducersAndExcludeFtp() throws Exception {
+        FlowElement consumer = TestFixtures.getSftpConsumer(BASE_META_PACK);
+        FlowElement producer = TestFixtures.getSftpProducer(BASE_META_PACK);
+        Flow flow = mock(Flow.class);
+        when(flow.getFlowElementsNoExternalEndPoints()).thenReturn(List.of(
+                consumer, producer, TestFixtures.getFtpProducer(BASE_META_PACK)));
+        Module module = mock(Module.class);
+        when(module.getFlows()).thenReturn(List.of(flow));
+        assertThat(DesignerCanvas.sftpMembers(module, true)).containsExactly(consumer);
+        assertThat(DesignerCanvas.sftpMembers(module, false)).containsExactly(producer);
+        assertThat(DesignerCanvas.sftpMembers(null, true)).isEmpty();
+    }
+
+    @Test
     void runningMailHarnessContextMenuExposesDetailsAndStop() throws Exception {
         Project project = mock(Project.class);
         FlowElement mail = FlowElement.flowElementBuilder()

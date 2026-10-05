@@ -244,6 +244,21 @@ public class DesignCanvasContextMenu {
         menu.show(designerCanvas, mouseEvent.getX(), mouseEvent.getY());
     }
 
+    static JPopupMenu createTestSftpServerMenu(Project project) {
+        JPopupMenu menu = new JPopupMenu();
+        JMenuItem files = new JMenuItem(StudioBundle.message("sftpHarness.files"));
+        files.addActionListener(event -> SftpHarnessAction.showFiles(project));
+        menu.add(files);
+        JMenuItem mode = new JMenuItem(StudioBundle.message("sftpHarness.title"));
+        mode.addActionListener(event -> SftpHarnessAction.choose(project));
+        menu.add(mode);
+        menu.addSeparator();
+        JMenuItem stop = new JMenuItem(StudioBundle.message("sftpHarness.stop"));
+        stop.addActionListener(event -> SftpHarnessAction.stop(project));
+        menu.add(stop);
+        return menu;
+    }
+
     public static void showStopTestFtpServerMenu(Project project, DesignerCanvas canvas, MouseEvent event, BasicElement element) {
         JPopupMenu menu = createTestFtpServerMenu(project, element);
         menu.show(canvas, event.getX(), event.getY());

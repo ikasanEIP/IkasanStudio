@@ -58,6 +58,8 @@ public final class LocalSftpHarness implements AutoCloseable {
         return "flow-" + java.net.URLEncoder.encode(flow, java.nio.charset.StandardCharsets.UTF_8)
                 + "/component-" + java.net.URLEncoder.encode(component, java.nio.charset.StandardCharsets.UTF_8);
     }
+    /** Non-blocking listener state for the canvas; performs no network probe. */
+    public boolean isRunning() { return server.isStarted() && !server.isClosing(); }
     public int port() { return server.getPort(); }
     public Path home() { return home; }
     /** Ephemeral launch overrides; never save these credentials in the model or log them. */

@@ -38,6 +38,7 @@ import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.intellij.psi.UserImplementedClassRelocator;
 import org.ikasan.studio.intellij.runtime.FlowErrorMonitorService;
 import org.ikasan.studio.intellij.runtime.TestFtpServerService;
+import org.ikasan.studio.intellij.runtime.TestSftpServerService;
 import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
 import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.ikasan.studio.runtime.state.FlowErrorStates;
@@ -400,6 +401,10 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             FlowElement testFtpServerOwner = getOwnerForTestFtpServerNodeAtXY(x, y);
             if (testFtpServerOwner != null) {
                 DesignCanvasContextMenu.showStopTestFtpServerMenu(project, this, me, testFtpServerOwner);
+                return;
+            }
+            if (getOwnerForTestSftpServerNodeAtXY(x, y) != null) {
+                DesignCanvasContextMenu.createTestSftpServerMenu(project).show(this, me.getX(), me.getY());
                 return;
             }
             FlowElement testMailServerNodeOwner = getOwnerForTestMailServerNodeAtXY(x, y);
@@ -1755,6 +1760,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
                 paintSharedFtpEndpoints(g, ikasanModule);
                 paintTestMailServerNode(g, ikasanModule);
                 paintTestFtpServerNode(g, ikasanModule);
+                paintTestSftpServerNode(g, ikasanModule);
                 paintTestJmsHarnessNode(g, ikasanModule);
                 updateFlowErrorFlashState(ikasanModule);
                 paintFlowTransportControls(g, ikasanModule);
@@ -1939,7 +1945,10 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
                 .anyMatch(link -> ftpService.isRunningAt(link.configuration()) && !link.producers().isEmpty());
         boolean hasRightMailHarness = TestMailServerLinks.findLinks(module).stream()
                 .anyMatch(link -> mailService.isListening(link.host(), link.port()));
-        boolean hasRightHarness = hasRightFtpHarness || hasRightMailHarness;
+        boolean sftpRunning = isLocalSftpServerRunning();
+        hasLeftHarness |= sftpRunning && !sftpMembers(module, true).isEmpty();
+        boolean hasRightHarness = hasRightFtpHarness || hasRightMailHarness
+                || sftpRunning && !sftpMembers(module, false).isEmpty();
         int leftReserve = hasLeftHarness ? TEST_FTP_SERVER_NODE_WIDTH + TEST_FTP_SERVER_NODE_GAP : 0;
         int rightReserve = hasRightHarness ? TEST_FTP_SERVER_NODE_WIDTH + TEST_FTP_SERVER_NODE_GAP : 0;
         int bottomReserve = 70; // clears the lowest flow's getting-started guidance as well as its border
@@ -2075,12 +2084,50 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
                     continue;
                 }
                 for (TestFtpServerSide side : TestFtpServerSide.values()) {
-                    paintTestFtpServerSide(graphics, g2d, module, membersOn(link, side), side);
+                    paintTestFileServerSide(graphics, g2d, module, membersOn(link, side), side, TEST_FTP_SERVER_LABEL);
                 }
             }
         } finally {
             g2d.dispose();
         }
+    }
+
+    private boolean isLocalSftpServerRunning() {
+        TestSftpServerService service = project.getService(TestSftpServerService.class);
+        return service != null && service.isRunning();
+    }
+
+    /** The local server covers every SFTP endpoint, independently of its saved external host. */
+    static List<FlowElement> sftpMembers(Module module, boolean consumers) {
+        if (module == null || module.getFlows() == null) return List.of();
+        return module.getFlows().stream().flatMap(flow -> flow.getFlowElementsNoExternalEndPoints().stream())
+                .filter(element -> "SFTP Endpoint".equals(element.getComponentMeta().getEndpointKey()))
+                .filter(element -> consumers ? element.getComponentMeta().isConsumer() : element.getComponentMeta().isProducer())
+                .toList();
+    }
+
+    private void paintTestSftpServerNode(Graphics graphics, Module module) {
+        if (!(graphics instanceof Graphics2D) || !isLocalSftpServerRunning()) return;
+        Graphics2D g2d = (Graphics2D) graphics.create();
+        try {
+            g2d.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            for (TestFtpServerSide side : TestFtpServerSide.values()) {
+                paintTestFileServerSide(graphics, g2d, module, sftpMembers(module, side == TestFtpServerSide.LEFT),
+                        side, StudioBundle.message("sftpHarness.endpoint"));
+            }
+        } finally { g2d.dispose(); }
+    }
+
+    private FlowElement getOwnerForTestSftpServerNodeAtXY(int x, int y) {
+        if (!isLocalSftpServerRunning()) return null;
+        Module module = getIkasanModule();
+        if (module == null) return null;
+        for (TestFtpServerSide side : TestFtpServerSide.values()) {
+            FlowElement anchor = firstByModuleOrder(module, sftpMembers(module, side == TestFtpServerSide.LEFT));
+            Point connector = endpointConnectorPoint(anchor, side);
+            if (connector != null && testFtpServerNodeBounds(connector, side).contains(x, y)) return anchor;
+        }
+        return null;
     }
 
     private List<FlowElement> membersOn(TestFtpServerLinks.Link link, TestFtpServerSide side) {
@@ -2094,8 +2141,8 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
      * Same shape as the mail server's own trunk (see {@link #paintTestMailServerLink}), so several flows sharing
      * one test server read as a single visible spine rather than a tangle of individual lines.
      */
-    private void paintTestFtpServerSide(Graphics graphics, Graphics2D g2d, Module module,
-                                        List<FlowElement> members, TestFtpServerSide side) {
+    private void paintTestFileServerSide(Graphics graphics, Graphics2D g2d, Module module,
+                                        List<FlowElement> members, TestFtpServerSide side, String label) {
         FlowElement anchor = firstByModuleOrder(module, members);
         Point anchorConnector = endpointConnectorPoint(anchor, side);
         if (anchorConnector == null) {
@@ -2130,7 +2177,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
 
         paintExternalSystemCard(g2d, nodeBounds);
         ComponentIconProvider.getFtpServerIcon().paintIcon(this, graphics, nodeBounds.x, nodeBounds.y);
-        StudioUIUtils.drawCenteredStringFromTopCentre(graphics, PaintMode.PAINT, TEST_FTP_SERVER_LABEL,
+        StudioUIUtils.drawCenteredStringFromTopCentre(graphics, PaintMode.PAINT, label,
                 nodeBounds.x + (TEST_FTP_SERVER_NODE_WIDTH / 2),
                 nodeBounds.y + TEST_FTP_SERVER_NODE_HEIGHT + TEST_MAIL_SERVER_LABEL_GAP,
                 TEST_FTP_SERVER_NODE_WIDTH + 60, StudioUIUtils.getMainFont());
