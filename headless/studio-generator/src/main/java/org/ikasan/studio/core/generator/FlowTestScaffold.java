@@ -36,8 +36,10 @@ public final class FlowTestScaffold {
 
     /** Legacy fingerprints or package layouts need one explicit module-support refresh. */
     public static boolean supportNeedsRefresh(String existingSupport, Module module) throws Exception {
-        return !existingSupport.contains("import org.ikasan.studio.flowtests.support.FlowTestSupportFingerprint;")
-                || !existingSupport.contains("SUPPORT_MODEL_SHA256 = \"" + supportFingerprint(module) + "\"");
+        return !existingSupport.contains("new FileDeliveryBatchAssertions()")
+                || !existingSupport.contains("protected String formatOutputText(Object payload)")
+                || !existingSupport.contains("WIRING_SCHEMA_VERSION = " + ModuleTestWiring.SCHEMA_VERSION + ";")
+                || !existingSupport.contains("SUPPORT_META_PACK = \"" + module.getMetaVersion() + "\"");
     }
 
     public static Scaffold render(Module module, Flow flow, String rootPom, String applicationPom) throws Exception {
@@ -51,88 +53,13 @@ public final class FlowTestScaffold {
         String className = flow.getJavaClassName() + "FlowTest";
         if (!className.matches("[A-Za-z_$][A-Za-z0-9_$]*")) throw new IllegalArgumentException("Invalid flow Java class name.");
         Map<String, Object> values = new LinkedHashMap<>();
-        values.put("supportFingerprint", supportFingerprint(module));
-        values.put("supportModelFields", supportModelFields(module));
+        values.put("supportMetaPack", module.getMetaVersion());
         Map<String, org.ikasan.studio.core.metapack.model.ComponentMeta> identities = new java.util.TreeMap<>(
                 org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponents(module.getMetaVersion()));
         values.put("supportComponentIdentities", identities);
         values.put("className", className);
         values.put("flowName", flow.getIdentity());
-        java.util.Set<String> propertyKeys = new java.util.TreeSet<>();
-        for (var moduleFlow : module.getFlows()) for (var component : moduleFlow.getFlowElementsNoExternalEndPoints()) {
-            for (var property : component.getComponentProperties().values()) {
-                String label = property.getMeta().getPropertyConfigFileLabel();
-                if (label != null && !label.isBlank() && !property.valueNotSet()) {
-                    propertyKeys.add(org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(module, moduleFlow, component, label));
-                }
-            }
-        }
-        java.util.Set<String> sampleConsumerClasses = new java.util.TreeSet<>();
-        for (var moduleFlow : module.getFlows()) {
-            var consumer = moduleFlow.getConsumer();
-            if (consumer == null || !"sample-submission".equals(consumer.getComponentMeta().getFlowTestInputMode())) continue;
-            String implementationClass = consumer.getPropertyValueAsString("userImplementedClassName");
-            if (implementationClass != null && !implementationClass.isBlank()) {
-                sampleConsumerClasses.add(implementationClass.contains(".") ? implementationClass
-                        : GeneratorUtils.getUserImplementedClassesPackageName(module, moduleFlow) + "." + implementationClass);
-            }
-        }
-        values.put("sampleConsumerClasses", sampleConsumerClasses);
-        // The capability flag defines the connection contract; labels remain pack-owned.
-        java.util.List<Map<String, String>> ftpEndpoints = new java.util.ArrayList<>();
-        for (var moduleFlow : module.getFlows()) for (var component : moduleFlow.getFlowElementsNoExternalEndPoints()) {
-            if (!component.getComponentMeta().supportsTestFtpServer()) continue;
-            Map<String, String> endpoint = new LinkedHashMap<>();
-            endpoint.put("name", moduleFlow.getIdentity() + " / " + component.getIdentity());
-            endpoint.put("flow", moduleFlow.getIdentity());
-            endpoint.put("component", component.getIdentity());
-            endpoint.put("consumer", Boolean.toString(component.getComponentMeta().isConsumer()));
-            endpoint.put("secure", component.getPropertyValueAsString("ftps"));
-            for (String name : java.util.List.of("remoteHost", "remotePort", "username", "password",
-                    component.getComponentMeta().isProducer() ? "outputDirectory" : "sourceDirectory")) {
-                var property = component.getProperty(name);
-                String label = property == null ? null : property.getMeta().getPropertyConfigFileLabel();
-                endpoint.put(name.endsWith("Directory") ? "directory" : name,
-                        label == null || label.isBlank() || property.valueNotSet() ? "" :
-                        org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(module, moduleFlow, component, label));
-            }
-            ftpEndpoints.add(endpoint);
-        }
-        values.put("ftpEndpoints", ftpEndpoints);
-        java.util.List<Map<String, String>> smtpEndpoints = new java.util.ArrayList<>();
-        for (var moduleFlow : module.getFlows()) for (var component : moduleFlow.getFlowElementsNoExternalEndPoints()) {
-            if (component.getComponentMeta().supportsTestMailServer()) {
-                smtpEndpoints.add(Map.of("flow", moduleFlow.getIdentity(), "component", component.getIdentity()));
-            }
-        }
-        values.put("smtpEndpoints", smtpEndpoints);
-        java.util.List<Map<String, String>> sftpEndpoints = new java.util.ArrayList<>();
-        for (var moduleFlow : module.getFlows()) for (var component : moduleFlow.getFlowElementsNoExternalEndPoints()) {
-            if (component.getComponentMeta().supportsTestSftpServer()) {
-                sftpEndpoints.add(Map.of("flow", moduleFlow.getIdentity(), "component", component.getIdentity(),
-                        "consumer", Boolean.toString(component.getComponentMeta().isConsumer())));
-            }
-        }
-        values.put("sftpEndpoints", sftpEndpoints);
-        values.put("modulePropertyKeys", propertyKeys);
-        // Reuse a common configured ActiveMQ consumer URL via Spring, without copying connection values.
-        // Ambiguous modules retain explicit configuration rather than silently choosing another broker.
-        Map<String, String> jmsBrokerKeys = new LinkedHashMap<>();
-        for (var moduleFlow : module.getFlows()) {
-            var consumer = moduleFlow.getConsumer();
-            if (consumer == null || !"org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer".equals(
-                    consumer.getComponentMeta().getImplementingClass())) continue;
-            var provider = consumer.getProperty("connectionFactoryJndiPropertyProviderUrl");
-            if (provider == null) continue;
-            String label = provider.getMeta().getPropertyConfigFileLabel();
-            if (!provider.valueNotSet() && label != null && !label.isBlank()) {
-                jmsBrokerKeys.put(consumer.getPropertyValueAsString("connectionFactoryJndiPropertyProviderUrl"),
-                        org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(module, moduleFlow, consumer, label));
-            }
-        }
-        values.put("jmsBrokerPropertyKey", jmsBrokerKeys.size() == 1 && jmsBrokerKeys.keySet().iterator().next().startsWith("vm://")
-                ? jmsBrokerKeys.values().iterator().next() : "");
-        values.put("flowNames", module.getFlows().stream().map(Flow::getIdentity).toList());
+        values.putAll(ModuleTestWiring.values(module));
         values.put("consumerName", flow.getConsumer().getIdentity());
         values.put("localFile", flow.getConsumer().getComponentMeta().isLocalFileConsumer());
         var filenameProperty = flow.getConsumer().getProperty("filenames");
@@ -223,6 +150,7 @@ public final class FlowTestScaffold {
         values.put("applicationVersion", application.getVersion() == null ? parent.getVersion() : application.getVersion());
         String path = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/" + className + ".java";
         Map<String, String> files = new LinkedHashMap<>();
+        files.put(ModuleTestWiring.PATH, ModuleTestWiring.create(module));
         if (!observationOnly) {
             if (ftpInput || sftpInput || isolatedFiles) addSampleResources(files, flow.getIdentity(), flow.getConsumer().getIdentity());
             if (jmsOutputs.size() == 1 && (jmsOutputs.get(0).getComponentMeta().isFlowTestFileDelivery()
@@ -247,6 +175,8 @@ public final class FlowTestScaffold {
         files.put(TEST_PROPERTIES_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestPropertiesTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localFtpTestServerTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FileDeliveryBatchAssertions.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "fileDeliveryBatchAssertionsTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FileDeliveryAssertions.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "fileDeliveryAssertionsTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/OutputTextSupport.java",
@@ -310,17 +240,19 @@ public final class FlowTestScaffold {
                 from the context explicitly (these tests do not use SpringRunner field injection).
                 Flow-specific input overrides remain in the individual test. The support file is created if missing,
                 otherwise preserved unless you explicitly select archive and regenerate shared setup.
-                Review shared setup when flows are added or renamed; merge custom settings from its backup after regeneration.
+                Model-dependent connections and flow names are in generated/src/main/resources/studio-flow-test-wiring.json.
+                Normal code generation refreshes that file automatically. Shared support needs explicit refresh only
+                for a support schema or meta-pack upgrade. Business test names and expected results remain yours to review.
                 Consult ../LOCAL_TEST_ENVIRONMENT.md for test services. Never point tests at production systems.
                 Test-only MANUAL startup does not change the model or normal application startup settings.
 
                 Run from the project root: `mvn -pl user-flow-tests -am test`.
                 For one test: `mvn -pl user-flow-tests -am -Dtest=YourFlowTest -Dsurefire.failIfNoSpecifiedTests=false test`.
                 Override assertOutput(Object actual, int batch) for business-object field assertions and call
-                runTest(TEST_REVIEWED, PRODUCER_NAME); this bypasses outputText conversion.
+                runTest(TEST_REVIEWED, PRODUCER_NAME); this bypasses formatOutputText conversion.
                 With text assertions, false uses toString(), not object equality.
                 DECODE_OUTPUT_CONTENT_AS_TEXT enables content comparison for Ikasan Payload, bytes, files/paths/file lists and JMS TextMessage.
-                It uses UTF-8, rejects unsupported types and never acknowledges/consumes JMS messages; override outputText for other formats.
+                It uses UTF-8, rejects unsupported types and never acknowledges/consumes JMS messages; override formatOutputText for other formats.
                 Set it false to retain String.valueOf. Receiver delivery assertions remain separate.
                 FIRST_BATCH_INPUT and SECOND_BATCH_INPUT define scenario data independently of expected outputs.
                 Resource-based scenarios create missing first.txt and second.txt sample fixtures under src/test/resources/<flow>/<component>/.

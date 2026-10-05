@@ -51,7 +51,8 @@ class FlowTestScaffoldTest {
         properties.load(new StringReader(scaffold.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH)));
         String key = org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(module, flow, flow.getConsumer(),
                 flow.getConsumer().getProperty("connectionFactoryJndiPropertyProviderUrl").getMeta().getPropertyConfigFileLabel());
-        assertEquals("${" + key + "}", properties.getProperty("test.jms.broker-url"));
+        assertNull(properties.getProperty("test.jms.broker-url"));
+        assertTrue(scaffold.files().get(org.ikasan.studio.core.generator.ModuleTestWiring.PATH).contains(key));
         flow.getConsumer().setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "tcp://external:61616");
         scaffold = FlowTestScaffold.render(module, flow,
                 Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
@@ -77,7 +78,7 @@ class FlowTestScaffoldTest {
         assertTrue(code.contains("localSmtpServer(context).assertBody(batch, expected, deliveryTimeout(context))"));
         String support = scaffold.files().get(FlowTestScaffold.SUPPORT_PATH);
         assertTrue(support.contains("LocalSmtpTestServer.start()"));
-        assertTrue(support.contains(".getFlowElement(\"My Email Producer\").getFlowComponent()"));
+        assertTrue(scaffold.files().get(org.ikasan.studio.core.generator.ModuleTestWiring.PATH).contains("My Email Producer"));
         assertTrue(support.contains("ownedSmtp::close"));
         String pom = scaffold.files().get("user-flow-tests/pom.xml");
         assertTrue(pom.contains("<artifactId>greenmail</artifactId><version>" + "1.6.15"));
@@ -128,7 +129,7 @@ class FlowTestScaffoldTest {
         String test = scaffold.files().get(scaffold.testPath());
         assertTrue(test.contains("private static final String FIRST_BATCH_INPUT"));
         assertTrue(test.contains("private static final boolean DECODE_OUTPUT_CONTENT_AS_TEXT = true"));
-        assertTrue(test.contains("return outputText(payload, DECODE_OUTPUT_CONTENT_AS_TEXT)"));
+        assertTrue(test.contains("return formatOutputText(payload, DECODE_OUTPUT_CONTENT_AS_TEXT)"));
         assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/OutputTextSupport.java"));
         assertTrue(test.contains("private static final String SECOND_BATCH_INPUT"));
         assertTrue(test.contains("batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT"));
@@ -181,7 +182,7 @@ class FlowTestScaffoldTest {
                 Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
         String support = scaffold.files().get(FlowTestScaffold.SUPPORT_PATH);
         assertTrue(support.contains("ftp.configure(properties"));
-        assertTrue(support.contains("myflow1.ftp.consumer.remote-host"));
+        assertTrue(scaffold.files().get(org.ikasan.studio.core.generator.ModuleTestWiring.PATH).contains("myflow1.ftp.consumer.remote-host"));
         assertTrue(scaffold.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH).contains("# test.ftp.enabled=true"));
         assertFalse(scaffold.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH).contains("secret"));
         assertTrue(scaffold.files().get("user-flow-tests/pom.xml").contains("ftpserver-core"));
@@ -227,7 +228,8 @@ class FlowTestScaffoldTest {
         assertTrue(support.contains("StandardCharsets.UTF_8"));
         assertTrue(support.contains("if (input == null) throw"));
         assertFalse(test.contains("SpringApplication.run"));
-        assertTrue(support.contains("flowStartupTypes[0]\", \"MyFlow1,MANUAL"));
+        assertTrue(support.contains("flowIndex++"));
+        assertTrue(scaffold.files().get(org.ikasan.studio.core.generator.ModuleTestWiring.PATH).contains("MyFlow1"));
         assertTrue(support.contains("UUID.randomUUID()"));
         assertTrue(support.contains("properties.putAll(flowProperties)"));
         assertTrue(support.contains("protected Map<String, String> flowTestProperties() {\n        return new LinkedHashMap<>();"));
@@ -380,7 +382,7 @@ class FlowTestScaffoldTest {
         assertTrue(test.contains("fixture-input-enabled=true"));
         assertTrue(test.contains("                .submitNow(batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT)"));
         assertFalse(test.contains("throw new UnsupportedOperationException(\"Configure fixture input"));
-        assertTrue(result.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH).lines().anyMatch(line -> line.startsWith("studio.sample-consumer.") && line.endsWith(".fixture-input-enabled=true")));
+        assertTrue(result.files().get(org.ikasan.studio.core.generator.ModuleTestWiring.PATH).contains("sampleConsumerClasses"));
         flow.getConsumer().setComponentMeta(flow.getConsumer().getComponentMeta().toBuilder().flowTestInputMode(null).build());
         var ordinary = FlowTestScaffold.render(module, flow, parent, app);
         assertFalse(ordinary.files().get(ordinary.testPath()).contains("submitNow"));

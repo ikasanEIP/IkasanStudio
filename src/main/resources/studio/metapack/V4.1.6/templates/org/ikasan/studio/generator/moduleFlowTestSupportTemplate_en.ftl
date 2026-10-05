@@ -1,9 +1,12 @@
 package org.ikasan.studio.flowtests.support;
 
 import org.ikasan.studio.flowtests.support.FlowTestSupportFingerprint;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ikasan.studio.flowtests.support.utils.LocalSftpTestServer;
 import org.ikasan.studio.flowtests.support.utils.LocalFtpTestServer;
 import org.ikasan.studio.flowtests.support.utils.FileDeliveryAssertions;
+import org.ikasan.studio.flowtests.support.utils.FileDeliveryBatchAssertions;
 import org.ikasan.studio.flowtests.support.utils.OutputTextSupport;
 import org.ikasan.studio.flowtests.support.utils.LocalSmtpTestServer;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -58,9 +61,25 @@ public abstract class ModuleFlowTestSupport {
     private int deliveryTimeoutSeconds = 10;
     private final TemporaryFolder ftpTestDirectory = TemporaryFolder.builder().assureDeletion().build();
 
-    private static final String SUPPORT_MODEL_SHA256 = "${supportFingerprint}";
-    private static final Set<String> SUPPORT_MODEL_FIELDS = Set.of(
-            <#list supportModelFields as field>"${field?j_string}"<#sep>, </#sep></#list>);
+    // Wiring schema changes require an explicit support upgrade; model edits only regenerate the JSON resource.
+    private static final int WIRING_SCHEMA_VERSION = 1;
+    private static final String SUPPORT_META_PACK = "${supportMetaPack}";
+    private JsonNode testWiring;
+
+    private JsonNode testWiring() throws IOException {
+        if (testWiring == null) {
+            try (InputStream input = ModuleFlowTestSupport.class.getResourceAsStream("/studio-flow-test-wiring.json")) {
+                if (input == null) throw new IOException("Missing studio-flow-test-wiring.json. Regenerate application code and rebuild generated resources.");
+                testWiring = new ObjectMapper().readTree(input);
+            }
+            if (testWiring == null || testWiring.path("schemaVersion").asInt() != WIRING_SCHEMA_VERSION)
+                throw new IOException("Unsupported flow-test wiring schema. Refresh shared flow-test support.");
+            Set<String> fields = new java.util.HashSet<>();
+            testWiring.path("modelFields").forEach(field -> fields.add(field.asText()));
+            FlowTestSupportFingerprint.verify(testWiring.path("modelFingerprint").asText(), fields);
+        }
+        return testWiring;
+    }
 
     /** Positive per-delivery wait, shared by producer, file, JMS and path assertions. */
     public static int deliveryTimeoutSeconds(String value) {
@@ -95,7 +114,7 @@ public abstract class ModuleFlowTestSupport {
      * Regenerating this class archives it first and preserves module-test.properties.
      */
     protected Map<String, String> moduleTestProperties() throws IOException {
-        FlowTestSupportFingerprint.verify(SUPPORT_MODEL_SHA256, SUPPORT_MODEL_FIELDS);
+        JsonNode wiring = testWiring();
         Properties loaded = new Properties();
         try (InputStream input = ModuleFlowTestSupport.class.getResourceAsStream("/module-test.properties")) {
             if (input == null) throw new IOException(
@@ -103,6 +122,10 @@ public abstract class ModuleFlowTestSupport {
             loaded.load(new InputStreamReader(input, StandardCharsets.UTF_8));
         }
         Map<String, String> properties = new LinkedHashMap<>();
+        for (JsonNode implementation : wiring.path("sampleConsumerClasses"))
+            properties.put("studio.sample-consumer." + implementation.asText() + ".fixture-input-enabled", "true");
+        String brokerKey = wiring.path("jmsBrokerPropertyKey").asText();
+        if (!brokerKey.isBlank()) properties.put("test.jms.broker-url", "${r"${"}" + brokerKey + "}");
         for (String key : loaded.stringPropertyNames()) properties.put(key, loaded.getProperty(key));
         return properties;
     }
@@ -149,14 +172,20 @@ public abstract class ModuleFlowTestSupport {
         outputTextFailure = null;
         Map<String, String> properties = new LinkedHashMap<>(moduleTestProperties());
         properties.putAll(flowProperties); // Flow-specific settings override shared connections.
+        String brokerOverride = properties.get("test.jms.broker-url");
+        String generatedBrokerReference = "${r"${"}" + testWiring().path("jmsBrokerPropertyKey").asText() + "}";
+        if (brokerOverride != null && !brokerOverride.equals(generatedBrokerReference)) {
+            for (JsonNode key : testWiring().path("jmsBrokerPropertyKeys"))
+                properties.putIfAbsent(key.asText(), brokerOverride);
+        }
         deliveryTimeoutSeconds = deliveryTimeoutSeconds(properties.getOrDefault("test.delivery.timeout-seconds", "10"));
         // Enforced isolation is scoped to this test application, never the saved Studio model.
         properties.put("server.port", "0");
         properties.put("datasource.url", "jdbc:h2:mem:flowtest_" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1");
         properties.put("ikasan.module.activator.startup.type.defaultStartupType", "MANUAL");
-<#list flowNames as name>
-        properties.put("ikasan.module.activator.startup.type.flowStartupTypes[${name?index}]", "${name?j_string},MANUAL");
-</#list>
+        int flowIndex = 0;
+        for (JsonNode name : testWiring().path("flowNames"))
+            properties.put("ikasan.module.activator.startup.type.flowStartupTypes[" + flowIndex++ + "]", name.asText() + ",MANUAL");
         List<Class<?>> sources = new ArrayList<>();
         sources.add(Class.forName("org.ikasan.studio.boot.Application"));
         Collections.addAll(sources, testConfigurationClasses());
@@ -167,11 +196,11 @@ public abstract class ModuleFlowTestSupport {
         try {
             if (Boolean.parseBoolean(properties.getOrDefault("test.ftp.enabled", "false"))) {
                 ftp = LocalFtpTestServer.start(properties, ftpTestDirectory.newFolder().toPath());
-<#list ftpEndpoints as endpoint>
-                ftp.configure(properties, "${endpoint.name?j_string}", ${((endpoint.secure!"")?lower_case == "true")?c},
-                        "${endpoint.remoteHost?j_string}", "${endpoint.remotePort?j_string}",
-                        "${endpoint.username?j_string}", "${endpoint.password?j_string}", "${endpoint.directory?j_string}");
-</#list>
+                for (JsonNode endpoint : testWiring().path("ftpEndpoints")) {
+                    ftp.configure(properties, endpoint.path("name").asText(), endpoint.path("secure").asBoolean(false),
+                            endpoint.path("remoteHost").asText(), endpoint.path("remotePort").asText(),
+                            endpoint.path("username").asText(), endpoint.path("password").asText(), endpoint.path("directory").asText());
+                }
             }
             if (Boolean.parseBoolean(properties.getOrDefault("test.smtp.enabled", "false"))) {
                 smtp = LocalSmtpTestServer.start();
@@ -214,27 +243,24 @@ public abstract class ModuleFlowTestSupport {
             startedContext = application.run(arguments);
             if (ftp != null) {
                 Module<Flow> module = startedContext.getBean(Module.class);
-<#list ftpEndpoints as endpoint>
-<#if endpoint.consumer == "true">
-                ftp.configureConsumer(module.getFlow("${endpoint.flow?j_string}")
-                        .getFlowElement("${endpoint.component?j_string}").getFlowComponent(), properties);
-</#if>
-</#list>
+                for (JsonNode endpoint : testWiring().path("ftpEndpoints")) {
+                    if (endpoint.path("consumer").asBoolean()) ftp.configureConsumer(module.getFlow(endpoint.path("flow").asText())
+                            .getFlowElement(endpoint.path("component").asText()).getFlowComponent(), properties);
+                }
             }
             if (sftp != null) {
                 Module<Flow> module = startedContext.getBean(Module.class);
-<#list sftpEndpoints as endpoint>
-                sftp.configure(module.getFlow("${endpoint.flow?j_string}")
-                        .getFlowElement("${endpoint.component?j_string}").getFlowComponent(),
-                        "${endpoint.flow?j_string}", "${endpoint.component?j_string}", ${endpoint.consumer}, properties);
-</#list>
+                for (JsonNode endpoint : testWiring().path("sftpEndpoints")) {
+                    String flow = endpoint.path("flow").asText(), component = endpoint.path("component").asText();
+                    sftp.configure(module.getFlow(flow).getFlowElement(component).getFlowComponent(),
+                            flow, component, endpoint.path("consumer").asBoolean(), properties);
+                }
             }
             if (smtp != null) {
                 Module<Flow> module = startedContext.getBean(Module.class);
-<#list smtpEndpoints as endpoint>
-                smtp.configure(module.getFlow("${endpoint.flow?j_string}")
-                        .getFlowElement("${endpoint.component?j_string}").getFlowComponent());
-</#list>
+                for (JsonNode endpoint : testWiring().path("smtpEndpoints"))
+                    smtp.configure(module.getFlow(endpoint.path("flow").asText())
+                            .getFlowElement(endpoint.path("component").asText()).getFlowComponent());
             }
             return startedContext;
         } catch (Exception | Error failure) {
@@ -261,10 +287,20 @@ public abstract class ModuleFlowTestSupport {
         throw new UnsupportedOperationException("Define the expected component path");
     }
     /** Override to extract stable business content from the observed producer payload. */
+    protected String formatOutputText(Object payload) { return outputText(payload); }
+
+    /** @deprecated Override formatOutputText instead. Retained for existing developer tests. */
+    @Deprecated
     protected String outputText(Object payload) { return String.valueOf(payload); }
 
+    /** @deprecated Use formatOutputText(payload, decodeContent) instead. */
+    @Deprecated
+    protected final String outputText(Object payload, boolean decodeContent) {
+        return formatOutputText(payload, decodeContent);
+    }
+
     /** Explicit content conversion; false retains the original String.valueOf behaviour. */
-    protected final String outputText(Object payload, boolean stringifyActualOutput) {
+    protected final String formatOutputText(Object payload, boolean stringifyActualOutput) {
         try {
             return stringifyActualOutput ? OutputTextSupport.stringify(payload) : String.valueOf(payload);
         } catch (RuntimeException failure) {
@@ -307,6 +343,7 @@ public abstract class ModuleFlowTestSupport {
 
     /** Fresh context per scenario, closed even if setup, delivery or assertions fail. */
     protected final void runTest(boolean configured, TestScenario scenario) throws Exception {
+        fileDeliveryBatches.reset();
         assertTrue("Complete TODO 1–4, then set TEST_REVIEWED=true in TODO 5. See user-flow-tests/README.md", configured);
         try (ConfigurableApplicationContext context = openTestApplication(flowTestProperties());
              AutoCloseable fixtures = () -> cleanupFixtures(context)) {
@@ -346,13 +383,13 @@ public abstract class ModuleFlowTestSupport {
     /**
      * Checks the original producer payload on the test thread for one-based batch 1 or 2.
      * Override for business objects and assert their fields directly. No text conversion is
-     * performed before this hook. The default compares outputText(actual) with the strings
+     * performed before this hook. The default compares formatOutputText(actual) with the strings
      * supplied to runTest. Payloads are observed by reference, not deep-copied; sources must
      * not mutate previously delivered objects. Assertion failures still trigger flow cleanup.
      */
     protected void assertOutput(Object actual, int batch) throws Exception {
         assertNotNull("Override assertOutput(actual, batch) or supply expected text to runTest", expectedTextOutputs);
-        assertEquals("Output for batch " + batch, expectedTextOutputs[batch - 1], outputText(actual));
+        assertEquals("Output for batch " + batch, expectedTextOutputs[batch - 1], formatOutputText(actual));
     }
 
     /**
@@ -410,7 +447,7 @@ public abstract class ModuleFlowTestSupport {
 
     /**
      * Concatenates UTF-8 contents when the payload is a list of files, avoiding temporary paths
-     * in assertions. Other payloads use their string representation; override outputText for
+     * in assertions. Other payloads use their string representation; override formatOutputText for
      * custom conversions. File read failures fail the test rather than hiding missing content.
      */
     protected final String describeFileOutput(Object payload) {
@@ -480,6 +517,34 @@ public abstract class ModuleFlowTestSupport {
         }
     }
 
+    private final FileDeliveryBatchAssertions fileDeliveryBatches = new FileDeliveryBatchAssertions();
+
+    /**
+     * Checks this batch's resource expectations, retaining earlier successful batches internally.
+     * Pass only the current batch's resources; batch numbers start at 1 for each directory/glob.
+     * Exact cumulative file counts and contents are checked without deleting delivered files.
+     * Use distinct final filenames in a fresh directory; intentional overwrites need assertFileMatchesResource.
+     * History resets at the start of runTest. For independently managed scenarios call resetFileDeliveryBatches().
+     * @param directory local output directory owned by this scenario
+     * @param glob final-file glob, unchanged between batches
+     * @param batch one-based sequential batch number
+     * @param resources this batch's expected UTF-8 classpath resources; repeat for duplicate contents
+     * @throws Exception on resource or filesystem errors
+     * @throws AssertionError if delivered count or contents differ after the shared timeout
+     */
+    protected final void assertDeliveredFileResources(Path directory, String glob, int batch, String... resources) throws Exception {
+        List<String> expected = new ArrayList<>();
+        for (String resource : resources) expected.add(readTestResource(resource));
+        try { fileDeliveryBatches.assertBatch(directory, glob, batch, expected, Duration.ofSeconds(deliveryTimeoutSeconds)); }
+        catch (AssertionError failure) {
+            throw new AssertionError("Delivery batch " + batch + ", expected resources " + Arrays.toString(resources)
+                    + ": " + failure.getMessage(), failure);
+        }
+    }
+
+    /** Resets batch expectation history for a custom scenario; delivered files remain untouched. */
+    protected final void resetFileDeliveryBatches() { fileDeliveryBatches.reset(); }
+
     /**
      * Checks cumulative file count and contents against independent classpath fixtures.
      * Resource basenames do not constrain delivered filenames; the glob selects final output files.
@@ -505,10 +570,19 @@ public abstract class ModuleFlowTestSupport {
     }
 
     /**
-     * Starts the selected self-generating flow and checks its initial payload sequence at the sink.
-     * Checks RUNNING state for one second, then requires a fresh later event without restarting.
+     * Observes the real self-generating consumer without injecting fixture input.
+     * A successful run checks:
+     * <ul>
+     *   <li>Events reach and complete the named producer.</li>
+     *   <li>The supplied initial payloads match in order, when expectations are provided.</li>
+     *   <li>The flow remains RUNNING throughout a one-second observation window.</li>
+     *   <li>A fresh later event reaches the producer without a flow or application restart.</li>
+     *   <li>Teardown stops the flow and confirms its STOPPED state.</li>
+     * </ul>
+     * Events may continue during the observation window; this is not a no-input idle test.
+     * External delivery, intermediate component order and recovery behaviour are not asserted.
      * Retains only the expected initial samples; subsequent events are counted without storing payloads.
-     * Finally stops the test flow, checks its stopped state, removes the listener and closes the context.
+     * Removes the listener and closes the application context during cleanup.
      */
     protected final void runObservationTest(boolean configured, String output,
             List<String> expectedInitialOutputs) throws Exception {
@@ -529,7 +603,7 @@ public abstract class ModuleFlowTestSupport {
                 public void afterFlowElement(String m, String f, FlowElement e, FlowEvent event) {
                     if (output.equals(e.getComponentName())) {
                         long index = delivered.incrementAndGet();
-                        if (index <= expected.size()) initialOutputs.offer(outputText(event.getPayload()));
+                        if (index <= expected.size()) initialOutputs.offer(formatOutputText(event.getPayload()));
                     }
                 }
             };

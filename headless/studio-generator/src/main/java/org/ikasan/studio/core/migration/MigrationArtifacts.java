@@ -61,6 +61,7 @@ public final class MigrationArtifacts {
         java(files, Generator.STUDIO_BOOT_PACKAGE, "StudioInjectController", StudioInjectControllerTemplate.create(module));
         files.put("generated/h2/pom.xml", H2StartStopTemplate.create(module.getMetaVersion()));
         files.put("generated/src/main/resources/application.properties", PropertiesTemplate.create(module));
+        files.put(ModuleTestWiring.PATH, ModuleTestWiring.create(module));
         for (var flow : module.getFlows()) {
             String pkg = Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();
             java(files, pkg, FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME + flow.getJavaClassName(), FlowsComponentFactoryTemplate.create(pkg, module, flow));

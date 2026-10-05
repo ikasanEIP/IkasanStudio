@@ -20,6 +20,9 @@ public final class FlowTestSupportFingerprint {
     public static String fingerprint(String model, Set<String> fields) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = wiringModel(mapper.readTree(model), mapper);
+        // Legacy serialization omits an empty flow collection; empty modules still have valid wiring.
+        if (root != null && root.isObject() && root.hasNonNull("name") && !root.has("flows"))
+            ((ObjectNode) root).putArray("flows");
         if (root == null || !root.isObject() || !root.path("flows").isArray())
             throw new IOException("Expected a Studio module model with flows");
         ObjectNode selected = mapper.createObjectNode();

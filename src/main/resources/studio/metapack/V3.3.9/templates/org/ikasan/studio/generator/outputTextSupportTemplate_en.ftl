@@ -45,11 +45,11 @@ public final class OutputTextSupport {
             Class<?> message = findInterface(value.getClass(), "javax.jms.TextMessage");
             if (message != null) return String.valueOf(message.getMethod("getText").invoke(value));
             throw new IllegalArgumentException("No text-content adapter for " + value.getClass().getName()
-                    + ". Override outputText(Object) for this payload. JMS supports TextMessage only; binary/object messages need an explicit mapping.");
+                    + ". Override formatOutputText(Object) for this payload. JMS supports TextMessage only; binary/object messages need an explicit mapping.");
         } catch (InvocationTargetException failure) {
             throw new IllegalArgumentException("Cannot read output content from " + value.getClass().getName(), failure.getCause());
         } catch (IOException | ReflectiveOperationException failure) {
-            throw new IllegalArgumentException("Cannot decode output content; use UTF-8 text or override outputText(Object)", failure);
+            throw new IllegalArgumentException("Cannot decode output content; use UTF-8 text or override formatOutputText(Object)", failure);
         }
     }
 

@@ -60,7 +60,7 @@ to refresh `ModuleFlowTestSupport`. Accept the archive/regenerate confirmation f
 Without the FTP choice, shared-setup regeneration leaves `module-test.properties` unchanged. Generation adds missing FTP/MINA test dependencies to an
 existing test POM, preserving its XML and saving a timestamped backup. Existing dependency
 versions remain developer-owned. Review any custom server helper before regenerating; existing
-helpers are preserved. Shared support must be regenerated after adding or changing FTP endpoints.
+helpers are preserved. Normal code generation refreshes the generated FTP test wiring after endpoint changes.
 
 Test teardown preserves the original startup/assertion failure; cleanup failures appear as
 suppressed exceptions rather than replacing the useful diagnosis.
@@ -69,7 +69,7 @@ suppressed exceptions rather than replacing the useful diagnosis.
 
 Override `assertOutput(Object actual, int batch)` in the business test to assert fields directly.
 The hook receives the original payload observed after the selected producer, on the test thread;
-`outputText` and its decoding flag are not used unless your override calls them.
+`formatOutputText` and its decoding flag are not used unless your override calls them.
 For example, with independently prepared `firstExpectedOrder` and `secondExpectedOrder` fixtures:
 
 ```java
@@ -90,14 +90,14 @@ public void testFirstAndLaterDeliveryWithoutRestart() throws Exception {
 ```
 
 Import the domain class and JUnit assertions in your test. Remove unused expected-text constants,
-`outputText` overrides and decoding flags. Assertions still run for both batches with idle/running
+`formatOutputText` overrides and decoding flags. Assertions still run for both batches with idle/running
 checks and cleanup. `verifyReceivedOutput` remains a separate receiver-side check; its `expected`
 text argument is null when using this two-argument runner. Adapt that override to your domain
 fixtures if you need actual file/message delivery checks.
 
 Payloads are retained by reference, not serialized or deep-copied. Components must not mutate
 objects after delivering them. Existing four-argument `runTest` calls use the same hook, whose
-default implementation compares `outputText(actual)` with the supplied expected strings.
+default implementation compares `formatOutputText(actual)` with the supplied expected strings.
 Refresh module support to adopt the new hook; existing business tests remain compatible.
 
 ## Comparing actual output as text
@@ -108,8 +108,8 @@ New scenario tests include:
 private static final boolean DECODE_OUTPUT_CONTENT_AS_TEXT = true;
 
 @Override
-protected String outputText(Object payload) {
-    return outputText(payload, DECODE_OUTPUT_CONTENT_AS_TEXT);
+protected String formatOutputText(Object payload) {
+    return formatOutputText(payload, DECODE_OUTPUT_CONTENT_AS_TEXT);
 }
 ```
 
@@ -132,7 +132,7 @@ content rather than a payload object's identity string:
 The helper uses the pack's JMS namespace (`javax.jms` or `jakarta.jms`) and needs no additional
 endpoint dependencies for modules that do not use those types. It does not acknowledge messages,
 read streams, deserialize JMS object messages or advance binary-message cursors. Other types,
-unreadable files and malformed UTF-8 fail explicitly; override `outputText(Object)` for binary
+unreadable files and malformed UTF-8 fail explicitly; override `formatOutputText(Object)` for binary
 formats, another encoding, selected object fields or other JMS bodies. Asynchronous decoding
 failures are surfaced on the test thread rather than appearing only as an output timeout.
 
@@ -397,7 +397,7 @@ archived and regenerated when adopting this default method.
 
 New flow tests override `getFlowName()` and `defineExpectedPath()` and delegate their standard
 scenario to `runTest(...)`. The base class checks the setup guard before opening a fresh context,
-then closes it on success or failure. Override `outputText(Object)` only when the default text
+then closes it on success or failure. Override `formatOutputText(Object)` only when the default text
 representation is unsuitable. Local-file tests use the shared file-content decoder.
 For complex scenarios, `runTest(TEST_REVIEWED, context -> { ... })` supplies the same context lifecycle
 while leaving input and assertions explicit. Existing direct `verifyFlow`/`verifyScenario` callers
@@ -704,13 +704,13 @@ used by the new test. Skipping support does not cancel creation of a missing flo
 For a Scheduled Consumer using its default Quartz message provider, the scaffold uses
 `ScheduledEventFixture.fire(harness, consumerName, text)` to send each batch through the real
 consumer immediately. The event remains a `JobExecutionContext`, with fixture text in
-`ScheduledEventFixture.TEXT_KEY`; the generated `outputText` reads that text for comparison.
+`ScheduledEventFixture.TEXT_KEY`; the generated `formatOutputText` reads that text for comparison.
 The harness suppresses normal cron firing and keeps the same flow running for both batches.
 
 When a broker obtains its own business data, prepare its database/service fixture and use
 `ScheduledEventFixture.fire(harness, consumerName)` instead. This fires the same deterministic
 timer event without attaching fixture text. Remove unused batch-input constants and compare
-the resulting business payload in `outputText`; do not call `ScheduledEventFixture.text` on a
+the resulting business payload in `formatOutputText`; do not call `ScheduledEventFixture.text` on a
 trigger-only event.
 
 `ScheduledEventFixture.create(consumer)` and `create(consumer, text)` are also available for
@@ -726,39 +726,41 @@ backup option or use the helper directly.
 
 ### Shared support refresh detection
 
-Keep your business tests. Studio tells you when shared test support needs refreshing.
-When opening either flow-test generation dialog, Studio compares the shared support's
-recorded fingerprint with the current model. Missing fingerprints or the older helper-package
-layout also select refresh. The dialog explains the change; use the normal archive-and-regenerate
-confirmation to replace support. Existing business scenarios and fixture resources are
-excluded from automatic replacement. Skip Existing still preserves support, so it remains
-stale until refreshed.
+Model-dependent test wiring lives in `generated/src/main/resources/studio-flow-test-wiring.json`.
+Normal IDE and external code generation updates this Studio-owned resource together with application
+code. It holds flow names, endpoint mappings, property keys, sample-consumer defaults and a model
+fingerprint; it contains no connection credentials or expected business results.
 
-After one refresh with this version of Studio, tests also check the saved model before
-Spring starts. Renamed, added or removed components and changes to pack-declared external
-settings trigger an actionable failure. JSON formatting, property ordering, canvas fields,
-Java business-code edits and a version-number-only change do not. The fingerprint records
-no connection values, only their digest and the property names selected by the pack.
-Run tests from the project root or user-flow-tests directory so the saved model can be found.
+Shared Java support reads that resource. A flow rename or connection change no longer requires
+regenerating shared classes. Rebuild generated resources before running tests. A stale resource
+fails before Spring starts with regeneration guidance. Business tests still own their flow/component
+names, fixtures and assertions; review these after a rename.
 
-Shared refresh preserves module-test.properties. Review its connection references and
-any affected business test names after a rename; unresolved property references now identify
-the setting requiring review before Spring creates application beans. This check does not
-validate business expectations or promise that every manual override remains appropriate.
-During migration comparisons, keep the before/after tests frozen; preserve any stale-support
-failure evidence before deliberately refreshing. Actual component/API changes may require
-support updates even though a version-number change alone does not.
+Existing projects need **one shared-support refresh** to adopt this format. Choose **Archive and
+Regenerate** when prompted, preserving business tests and fixtures. Regenerate application code too.
+Subsequent explicit support refreshes are needed for schema or meta-pack upgrades, rather than
+ordinary model edits. The banner identifies old support and broken property references.
 
+`module-test.properties` remains developer-owned. New scaffolds obtain a common embedded JMS broker
+from generated wiring instead of storing a rename-sensitive placeholder. An explicit
+`test.jms.broker-url` overrides the common broker and its matching endpoint keys; explicit
+component-key overrides still take precedence. Multiple distinct brokers require explicit
+component configuration. Existing placeholder settings are preserved: use **Refresh test properties
+(archive existing)** once to replace obsolete defaults, then review custom settings against the backup.
+Sample-consumer fixture defaults also come from the wiring and may be overridden in test properties.
 
 ### Module wiring and reusable utilities
 
-`org.ikasan.studio.flowtests.support` contains the model-dependent
-`ModuleFlowTestSupport` and `ModuleJmsTestConfig`. Refresh these when Studio detects
-changed module wiring.
+`org.ikasan.studio.flowtests.support` contains reusable setup such as `ModuleFlowTestSupport`,
+`ModuleJmsTestConfig` and `FlowTestSupportFingerprint`. The generated JSON owns changing module mappings.
+This is business-test wiring, not a frozen verification baseline: normal generation never
+regenerates `generated/src/test` verification tests or developer-owned expected results.
+For migration comparisons, retain original tests and failure evidence until comparison is complete;
+refresh support explicitly afterwards if the target meta-pack requires it.
 
 `org.ikasan.studio.flowtests.support.utils` contains `ScheduledEventFixture`,
 `FileInputFixture`, `FtpInputFixture`, `FileDeliveryAssertions`, `OutputTextSupport`,
-`JmsFlowTestSupport`, `FlowTestSupportFingerprint`, and the local FTP, SFTP and SMTP
+`JmsFlowTestSupport`, and the local FTP, SFTP and SMTP
 servers. Their source contains no module-specific mappings. Generation creates missing
 utilities, but refreshing module support preserves existing utilities and any custom edits.
 
@@ -828,10 +830,24 @@ unsaved test-property edits must be saved before refreshing. Test startup also r
 invalid references, including changes made outside Studio. Shared configuration is
 validated for the whole module, even when the selected flow does not use JMS.
 
-The same banner also compares existing shared support with the saved model fingerprint,
-including changes to flow names, components and connections. **Refresh flow test setup…**
+The same banner also checks the shared-support schema and meta-pack compatibility.
+Legacy support requires one refresh to adopt generated wiring. **Refresh flow test setup…**
 opens the generation dialog with stale support refresh selected. Choose **Archive and
 Regenerate** when prompted; **Skip Existing** leaves that support stale. Properties refresh
 is selected only when broken property references were detected. Checks run on editor opening
 and saved model/support changes, and the banner remains until both issues are resolved.
 Existing business tests and fixture files are preserved during shared-support refresh.
+
+For append-only file delivery, pass the batch number and only the current batch's resources:
+
+```java
+assertDeliveredFileResources(localFtpDirectory(context), "*.xml", batch,
+        batch == 1 ? FIRST_EXPECTED_OUTPUT_RESOURCE : SECOND_EXPECTED_OUTPUT_RESOURCE);
+```
+
+The helper retains successful expectations and checks exact total counts and contents, including
+duplicates. Earlier files cannot substitute for additional deliveries, and files remain available
+for inspection. Number batches from 1 for each directory/glob pair; failed checks do not advance
+history. `runTest` resets history per scenario. Custom scenarios can call
+`resetFileDeliveryBatches()`. For intentional filename overwrites, use `assertFileMatchesResource`.
+The older overload without a batch number retains its cumulative-expectation semantics.

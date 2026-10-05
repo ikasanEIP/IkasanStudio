@@ -14,6 +14,46 @@ class FlowTestFilesTest {
         return new FlowTestScaffold.Scaffold("updated", "user-flow-tests/src/test/java/ExampleTest.java",
                 Map.of("user-flow-tests/src/test/java/ExampleTest.java", "test", "user-flow-tests/pom.xml", "generated pom"));
     }
+    @Test void realScaffoldWritesGeneratedWiringAndRefreshPreservesBusinessTests() throws Exception {
+        var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow("V3.3.9");
+        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule("V3.3.9", java.util.List.of(flow));
+        String pom = Files.readString(Path.of("regression-tests/migration/project/pom.xml"));
+        Files.writeString(root.resolve("pom.xml"), pom);
+        var plan = FlowTestScaffold.render(module, flow, pom,
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        FlowTestFiles.write(root, pom, plan);
+        Path wiring = root.resolve(org.ikasan.studio.core.generator.ModuleTestWiring.PATH);
+        assertEquals(plan.files().get(org.ikasan.studio.core.generator.ModuleTestWiring.PATH), Files.readString(wiring));
+        Path business = root.resolve(plan.testPath());
+        Files.writeString(business, "developer assertions");
+        Files.delete(root.resolve(FlowTestScaffold.SUPPORT_PATH));
+        Files.writeString(wiring, "old wiring");
+        var plans = new java.util.ArrayList<FlowTestScaffold.Scaffold>();
+        plans.add(plan);
+        plans.addAll(FlowTestFiles.supportRefreshPlans(java.util.List.of(plan)));
+        plans = new java.util.ArrayList<>(FlowTestFiles.preserveExistingScenarios(root, plans));
+        FlowTestFiles.writeAll(root, Files.readString(root.resolve("pom.xml")), plans);
+        assertEquals("developer assertions", Files.readString(business));
+        assertTrue(Files.exists(root.resolve(FlowTestScaffold.SUPPORT_PATH)));
+        assertEquals(plan.files().get(org.ikasan.studio.core.generator.ModuleTestWiring.PATH), Files.readString(wiring));
+    }
+
+    @Test void generatedWiringExceptionDoesNotPermitOtherGeneratedFilesOrSymlinks() throws Exception {
+        Files.writeString(root.resolve("pom.xml"), "original");
+        String test = "user-flow-tests/src/test/java/ExampleTest.java";
+        for (String forbidden : java.util.List.of("generated/src/main/resources/application.properties",
+                "generated/src/main/resources/../resources/studio-flow-test-wiring.json")) {
+            var plan = new FlowTestScaffold.Scaffold("original", test, Map.of(test, "test", forbidden, "bad"));
+            assertThrows(IOException.class, () -> FlowTestFiles.write(root, "original", plan));
+            assertFalse(Files.exists(root.resolve(test)));
+        }
+        Path outside = Files.createDirectory(root.resolve("outside"));
+        Files.createSymbolicLink(root.resolve("generated"), outside);
+        var plan = new FlowTestScaffold.Scaffold("original", test, Map.of(test, "test",
+                org.ikasan.studio.core.generator.ModuleTestWiring.PATH, "bad"));
+        assertThrows(IOException.class, () -> FlowTestFiles.write(root, "original", plan));
+    }
+
     @Test void explicitPropertiesRefreshArchivesCustomSettingsAndPreservesScenarios() throws Exception {
         Path properties = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
         Files.createDirectories(properties.getParent());

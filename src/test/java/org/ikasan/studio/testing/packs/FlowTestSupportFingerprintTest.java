@@ -55,7 +55,7 @@ class FlowTestSupportFingerprintTest {
         assertTrue(support.indexOf("FlowTestSupportFingerprint.verify(") < support.indexOf("application.run(arguments)"));
         assertTrue(support.contains("Review module-test.properties or scenario overrides"));
         assertTrue(FlowTestScaffold.supportNeedsRefresh(support.replace(
-                "import org.ikasan.studio.flowtests.support.FlowTestSupportFingerprint;", ""), module));
+                "WIRING_SCHEMA_VERSION = 1;", ""), module));
         // Utility source must remain independent of module names and connection mappings.
         for (var entry : scaffold.files().entrySet()) {
             if (!entry.getKey().contains("/support/utils/")) continue;

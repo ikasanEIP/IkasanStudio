@@ -20,6 +20,8 @@ class FlowTestPropertyWarningsTest {
         assertThat(FlowTestPropertyWarnings.inspect(root).needsRefresh()).isFalse();
         flow.setName("Renamed flow");
         java.nio.file.Files.writeString(model, org.ikasan.studio.core.generator.ModelTemplate.create(module));
+        assertThat(FlowTestPropertyWarnings.inspect(root).needsRefresh()).isFalse(); // Model edits no longer stale generic support.
+        java.nio.file.Files.writeString(support, "legacy support");
         var stale = FlowTestPropertyWarnings.inspect(root);
         assertThat(stale.staleSupport()).isTrue();
         assertThat(stale.brokenReferences()).isEmpty();
@@ -39,8 +41,8 @@ class FlowTestPropertyWarningsTest {
 
     private static void writeSupport(java.nio.file.Path path,
             org.ikasan.studio.core.model.ikasan.instance.Module module) throws Exception {
-        java.nio.file.Files.writeString(path, "import org.ikasan.studio.flowtests.support.FlowTestSupportFingerprint;\n"
-                + "SUPPORT_MODEL_SHA256 = \"" + org.ikasan.studio.core.generator.FlowTestScaffold.supportFingerprint(module) + "\";");
+        java.nio.file.Files.writeString(path, "new FileDeliveryBatchAssertions();\nprotected String formatOutputText(Object payload) {}\nWIRING_SCHEMA_VERSION = 1;\nSUPPORT_META_PACK = \""
+                + module.getMetaVersion() + "\";");
     }
 
     @Test void reportsEveryStaleComponentReferenceWithoutExposingValues() throws Exception {

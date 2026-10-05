@@ -44,7 +44,6 @@ import org.junit.rules.TemporaryFolder;
 public class ${className} extends ModuleFlowTestSupport {
     // TODO 5: After completing TODOs 1–4, set TEST_REVIEWED=true and run from the project root:
     // mvn -pl user-flow-tests -am -Dtest=${className} -Dsurefire.failIfNoSpecifiedTests=false test
-    // Success requires first delivery, idle readiness and later delivery without restarting.
     private static final boolean TEST_REVIEWED = false;
     private static final String FLOW_NAME = "${flowName?j_string}";
     @Override protected String getFlowName() { return FLOW_NAME; }
@@ -74,8 +73,8 @@ public class ${className} extends ModuleFlowTestSupport {
     // If needed for an assertion: readTestResource(FIRST_BATCH_INPUT_FILENAME) reads its UTF-8 text.
 <#else>
     // TODO 1: Set the data supplied for each batch; expected outputs below are independent assertions.
-    private static final String FIRST_BATCH_INPUT = "REPLACE: first input";
-    private static final String SECOND_BATCH_INPUT = "REPLACE: second input";
+    private static final String FIRST_BATCH_INPUT = "first expected payload";
+    private static final String SECOND_BATCH_INPUT = "second expected payload";
 
     // Alternative: put UTF-8 fixture files in user-flow-tests/src/test/resources/input/.
     // Replace the two input constants above with these declarations (do not keep both):
@@ -119,8 +118,7 @@ public class ${className} extends ModuleFlowTestSupport {
         }
 <#elseif sampleSubmission>
         // The following property has been set in module-test.properties so that the ${sampleConsumerClass} does not
-        // Automatically pole on its configured time based schedule, but instead is triggered by the test
-        // Remove the property or set it to false if this is now required.
+        // automatically pole on its configured time based schedule, but instead is triggered by the test
         // studio.sample-consumer.${sampleConsumerClass}.fixture-input-enabled=true
         context.getBean(${sampleConsumerClass}.class)
                 .submitNow(batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT);
@@ -184,7 +182,6 @@ public class ${className} extends ModuleFlowTestSupport {
 
     // Decode actual Payload/byte[]/File/Path/file-list/JMS TextMessage content for comparisons.
     // true decodes supported content as text; false uses toString(). Both modes compare text.
-    // For business objects override assertOutput(actual, batch) instead; this flag is then unused.
     private static final boolean DECODE_OUTPUT_CONTENT_AS_TEXT = true;
 
 <#if fileDelivery || smtpDelivery>
@@ -196,24 +193,23 @@ public class ${className} extends ModuleFlowTestSupport {
     private static final String SECOND_EXPECTED_OUTPUT_RESOURCE = "/" + noSpaces(FLOW_NAME)
             + "/" + noSpaces(PRODUCER_NAME) + "/second.txt";
 <#else>
-    // Set the expected text outputs for the first and second test. The test compares these values with outputText(actualPayload).
-    // Override outputText(Object payload) to decode the actual payload, for example UTF-8 file content.
+    // Set the expected text outputs for the first and second test. The test compares these values with formatOutputText(actualPayload).
+    // Override formatOutputText(Object payload) to decode the actual payload, for example UTF-8 file content.
     private static final String FIRST_EXPECTED_OUTPUT = "REPLACE: first expected payload";
     private static final String SECOND_EXPECTED_OUTPUT = "REPLACE: second expected payload";
 
 </#if>
 
-    // For business objects, override assertOutput(Object actual, int batch) and assert their fields.
-    // Then call runTest(TEST_REVIEWED, PRODUCER_NAME) and remove unused text expectations/outputText.
-    // The hook receives the original payload after the producer; it does not verify external delivery.
-    @Override protected String outputText(Object payload) {
+    // To check business-object fields instead of text, override assertOutput(actualAfterProducer, batch) and
+    // remove the formatOutputText method below.
+    @Override protected String formatOutputText(Object payload) {
 <#if scheduledContext>
         // The default provider forwards the timer context, including our test fixture text.
         if (DECODE_OUTPUT_CONTENT_AS_TEXT && payload instanceof JobExecutionContext) {
             return ScheduledEventFixture.text((JobExecutionContext) payload);
         }
 </#if>
-        return outputText(payload, DECODE_OUTPUT_CONTENT_AS_TEXT);
+        return formatOutputText(payload, DECODE_OUTPUT_CONTENT_AS_TEXT);
     }
 
 
@@ -268,26 +264,23 @@ public class ${className} extends ModuleFlowTestSupport {
         // Check the output received from the producer.
 <#if sftpFileDelivery>
         // The local test SFTP server owns a separate directory for this producer.
-        assertDeliveredFileResources(localSftpDirectory(context, FLOW_NAME, PRODUCER_NAME), "*", batch == 1
-                ? new String[]{FIRST_EXPECTED_OUTPUT_RESOURCE}
-                : new String[]{FIRST_EXPECTED_OUTPUT_RESOURCE, SECOND_EXPECTED_OUTPUT_RESOURCE});
+        assertDeliveredFileResources(localSftpDirectory(context, FLOW_NAME, PRODUCER_NAME), "*", batch,
+                batch == 1 ? FIRST_EXPECTED_OUTPUT_RESOURCE : SECOND_EXPECTED_OUTPUT_RESOURCE);
 <#elseif ftpFileDelivery>
         // The FTP unit test server is enabled by test.ftp.enabled in test properties. The property
         // test.delivery.timeout-seconds allows timeout configuration.
         // Refine the "*" glob to resemble the expected filename(s)
-        // When sending multiple files, append the expected output as a new array element so we can check both files
-        assertDeliveredFileResources(localFtpDirectory(context), "*", batch == 1
-                ? new String[]{FIRST_EXPECTED_OUTPUT_RESOURCE}
-                : new String[]{FIRST_EXPECTED_OUTPUT_RESOURCE, SECOND_EXPECTED_OUTPUT_RESOURCE});
+        // Supply only this batch's expected resources; earlier deliveries are tracked internally.
+        assertDeliveredFileResources(localFtpDirectory(context), "*", batch,
+                batch == 1 ? FIRST_EXPECTED_OUTPUT_RESOURCE : SECOND_EXPECTED_OUTPUT_RESOURCE);
         // For a known filename/overwrite: assertFileMatchesResource(localFtpDirectory(context).resolve("result.txt"),
         //         batch == 1 ? FIRST_EXPECTED_OUTPUT_RESOURCE : SECOND_EXPECTED_OUTPUT_RESOURCE);
 <#else>
         // Use the test server's LOCAL output directory, or download remote files to a temporary directory.
         // A remote SFTP path is not a local filesystem path. These helpers do not connect to SFTP.
         // var directory = Path.of("REPLACE: local test output directory");
-        // assertDeliveredFileResources(directory, "*", batch == 1
-        //         ? new String[]{FIRST_EXPECTED_OUTPUT_RESOURCE}
-        //         : new String[]{FIRST_EXPECTED_OUTPUT_RESOURCE, SECOND_EXPECTED_OUTPUT_RESOURCE});
+        // assertDeliveredFileResources(directory, "*", batch,
+        //         batch == 1 ? FIRST_EXPECTED_OUTPUT_RESOURCE : SECOND_EXPECTED_OUTPUT_RESOURCE);
         throw new UnsupportedOperationException("Implement verifyReceivedOutput to check physical file delivery");
 </#if>
     }
@@ -297,6 +290,8 @@ public class ${className} extends ModuleFlowTestSupport {
     // Shared setup supplies a fresh context and isolated H2; all flows initially start MANUAL.
     @Test
     public void testFirstAndLaterDeliveryWithoutRestart() throws Exception {
+        // If you override assertOutput(actualAfterProducer, batch), replace the call below with:
+        // runTest(TEST_REVIEWED, PRODUCER_NAME);
 <#if fileDelivery || smtpDelivery>
         assertTrue("Complete TODOs 1–4, then set TEST_REVIEWED=true", TEST_REVIEWED);
         runTest(TEST_REVIEWED, PRODUCER_NAME, readTestResource(FIRST_EXPECTED_OUTPUT_RESOURCE),

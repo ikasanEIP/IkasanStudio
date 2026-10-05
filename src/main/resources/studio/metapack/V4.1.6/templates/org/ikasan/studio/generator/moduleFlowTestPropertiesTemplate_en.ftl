@@ -26,16 +26,12 @@ test.delivery.timeout-seconds=10
 # JMS tests: ModuleJmsTestConfig uses ActiveMQ. Replace that class for other providers.
 # Set the SAME isolated broker URL in the flow's connection.factory.jndi.provider.url override.
 # Choose dedicated test queues in the flow's destination overrides; never reuse production queues.
-<#if jmsBrokerPropertyKey?has_content>
-# Use the same embedded broker as the module's JMS consumer (including test overrides of that property).
-test.jms.broker-url=${r"${"}${jmsBrokerPropertyKey}}
-<#else>
-# Configure explicitly: no single common embedded JMS consumer broker was identified.
+# A common embedded JMS broker is selected through generated test wiring when available.
+# Override test.jms.broker-url explicitly for an external or alternative test broker.
 # test.jms.broker-url=vm://studio-flow-tests?broker.persistent=false&broker.useJmx=false
-</#if>
 # test.jms.username=
 # test.jms.password=
-# Generation adds a missing embedded-broker reference with a backup; existing values are preserved.
+# Generated wiring supplies the broker default; explicit values here are preserved.
 
 # New Generic Consumer sample implementations support per-class polling delays in milliseconds.
 # Replace example.MyConsumer with the fully qualified implementation class printed in its @Value keys.
@@ -48,10 +44,10 @@ test.jms.broker-url=${r"${"}${jmsBrokerPropertyKey}}
 
 # Deterministic input for sample Generic Consumers: submitNow supplies each test batch directly.
 # Remove a setting if not needed, or set false to test automatic polling (and adapt supplyInput).
-# Regeneration adds missing defaults; an explicit false is preserved across regeneration.
-<#list sampleConsumerClasses as implementation>
-studio.sample-consumer.${implementation}.fixture-input-enabled=true
-</#list>
+# Generated wiring supplies current defaults; an explicit false here takes precedence.
+# Generated wiring enables fixture input for current sample consumers by default.
+# To test automatic polling, override the current class explicitly:
+# studio.sample-consumer.example.MyConsumer.fixture-input-enabled=false
 
 <#if ftpEndpoints?has_content>
 # Optional real, isolated FTP server (plain FTP only, not SFTP/FTPS).

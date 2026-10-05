@@ -27,6 +27,14 @@ public class ${className} extends ModuleFlowTestSupport {
 
     @Test
     public void testGeneratedEventsReachProducerAndFlowKeepsRunning() throws Exception {
+        // runObservationTest checks:
+        // - The real consumer generates events, without injected fixture input.
+        // - Events reach and complete the named producer.
+        // - Supplied initial payloads match in order (when expectations are provided).
+        // - The flow stays RUNNING throughout a one-second observation window.
+        // - A fresh later event reaches the producer without restarting the flow.
+        // - Teardown stops the flow and confirms its STOPPED state.
+        // It does not check external delivery, intermediate component order or recovery behaviour.
         runObservationTest(TEST_REVIEWED, "${producers[0]?j_string}"<#if expectedInitialOutputs?has_content>,
                 // Expected messages from the built-in event provider.
                 List.of(<#list expectedInitialOutputs as output>"${output?j_string}"<#sep>, </#sep></#list>)</#if>);

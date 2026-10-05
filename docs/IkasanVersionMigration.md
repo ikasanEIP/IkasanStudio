@@ -169,3 +169,9 @@ After applying a migration, the review text is retained in the `report` field of
 snapshot at `.ikasan-studio/migrations/<snapshot-id>.json`. CLI preview also saves it in the
 plan JSON's `report` field. An IDE preview that is cancelled is not persisted; copy its text
 before closing if you need to retain an unapplied review.
+
+Business flow-test wiring (`generated/src/main/resources/studio-flow-test-wiring.json`) is
+regenerated with application code in both IDE and external migrations. This updates mechanical
+endpoint mappings only; frozen verification tests and developer assertions are not regenerated.
+Keep the original tests for before/after comparison. A support schema or meta-pack change may
+require an explicit shared-support refresh after preserving comparison evidence.

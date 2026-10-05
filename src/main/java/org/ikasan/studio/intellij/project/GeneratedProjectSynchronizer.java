@@ -782,6 +782,9 @@ public class GeneratedProjectSynchronizer {
         String templateString;
         try {
             templateString = PropertiesTemplate.create(module);
+            StudioProjectFiles.createFileWithDirectories(project,
+                    org.ikasan.studio.core.generator.ModuleTestWiring.PATH,
+                    org.ikasan.studio.core.generator.ModuleTestWiring.create(module), null);
             Map<String, String> applicationProperties = StudioBuildUtils.convertStringToMap(templateString);
             StudioProjectFiles.afterGenerationCommit(() ->
                     project.getService(UiContext.class).setApplicationProperties(applicationProperties));

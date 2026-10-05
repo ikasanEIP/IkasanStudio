@@ -20,6 +20,9 @@ public final class FlowTestSupportFingerprint {
     public static String fingerprint(String model, Set<String> fields) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = wiringModel(mapper.readTree(model), mapper);
+        // Legacy serialization omits an empty flow collection; empty modules still have valid wiring.
+        if (root != null && root.isObject() && root.hasNonNull("name") && !root.has("flows"))
+            ((ObjectNode) root).putArray("flows");
         if (root == null || !root.isObject() || !root.path("flows").isArray())
             throw new IOException("Expected a Studio module model with flows");
         ObjectNode selected = mapper.createObjectNode();
@@ -134,10 +137,9 @@ public final class FlowTestSupportFingerprint {
             if (java.nio.file.Files.isRegularFile(model)) {
                 String actual = fingerprint(java.nio.file.Files.readString(model), fields);
                 if (!expected.equals(actual)) throw new IllegalStateException(
-                        "Shared flow-test support is out of date: module components or connections changed. "
-                        + "In Studio choose Generate Flow Test and refresh shared support (archive existing support). "
-                        + "Keep your business tests and fixture files; review module-test.properties and affected test names. "
-                        + "For migration comparisons, retain this failure evidence before refreshing support.");
+                        "Generated flow-test wiring is out of date. Regenerate application code and rebuild generated resources. "
+                        + "Business test names and expected results remain developer-owned. "
+                        + "For migration comparisons, retain this failure evidence before regenerating.");
                 return;
             }
             directory = directory.getParent();

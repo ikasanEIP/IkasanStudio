@@ -39,6 +39,7 @@ public final class FlowTestFiles {
             for (var entry : scaffold.files().entrySet()) {
                 String path = entry.getKey();
                 if (path.startsWith("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/")
+                        || path.equals(org.ikasan.studio.core.generator.ModuleTestWiring.PATH)
                         || path.equals(FlowTestScaffold.TEST_PROPERTIES_PATH) || path.equals("user-flow-tests/pom.xml")) {
                     String previous = shared.putIfAbsent(path, entry.getValue());
                     if (previous != null && !previous.equals(entry.getValue()))
@@ -109,6 +110,8 @@ public final class FlowTestFiles {
                 throw new IOException("The existing tests changed. Review them before regenerating.");
         }
         if (!Files.readString(safe(root, "pom.xml")).equals(originalPom)) throw new IOException("pom.xml changed. Generate the tests again.");
+        // Validate every output before moving any developer-owned test into an archive.
+        for (var scaffold : scaffolds) for (String output : scaffold.files().keySet()) safe(root, output);
         Map<Path, Path> backups = new LinkedHashMap<>();
         try {
             for (var test : approved) {
@@ -226,6 +229,15 @@ public final class FlowTestFiles {
                     Files.writeString(temp, newTestPom);
                     Files.move(temp, testPom, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
                 } finally { Files.deleteIfExists(temp); }
+            }
+            String wiring = scaffold.files().get(org.ikasan.studio.core.generator.ModuleTestWiring.PATH);
+            if (wiring != null) {
+                Path target = safe(root, org.ikasan.studio.core.generator.ModuleTestWiring.PATH);
+                Path temporary = Files.createTempFile(target.getParent(), ".flow-test-wiring-", ".tmp");
+                try {
+                    Files.writeString(temporary, wiring);
+                    Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                } finally { Files.deleteIfExists(temporary); }
             }
             addMissingFixtureInputDefaults(root, scaffold.files().get(FlowTestScaffold.TEST_PROPERTIES_PATH));
             return test;
@@ -417,7 +429,8 @@ public final class FlowTestFiles {
     private static Path safe(Path root, String relative) throws IOException {
         Path path = root.resolve(relative).normalize();
         if (!path.startsWith(root) || Path.of(relative).isAbsolute()
-                || !(relative.equals("pom.xml") || relative.startsWith("user-flow-tests/"))) {
+                || !(relative.equals("pom.xml") || relative.equals(org.ikasan.studio.core.generator.ModuleTestWiring.PATH)
+                || relative.startsWith("user-flow-tests/"))) {
             throw new IOException("Invalid flow test path: " + relative);
         }
         for (Path part = path; part != null && part.startsWith(root); part = part.getParent()) {

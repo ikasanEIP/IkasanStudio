@@ -64,6 +64,47 @@ class FileDeliveryAssertionsTemplateTest {
         }
     }
 
+    @Test @Timeout(30) void batchHistoryRequiresFreshDeliveriesAndAdvancesOnlyAfterSuccess() throws Exception {
+        Path assertions = root.resolve("FileDeliveryAssertions.java");
+        Path batches = root.resolve("FileDeliveryBatchAssertions.java");
+        String base = "templates/org/ikasan/studio/generator/";
+        for (Path source : List.of(assertions, batches)) {
+            String template = Character.toLowerCase(source.getFileName().toString().charAt(0))
+                    + source.getFileName().toString().substring(1).replace(".java", "Template_en.ftl");
+            String code = Files.readString(Path.of("src/main/resources/studio/metapack/V3.3.9", base, template));
+            assertEquals(code, Files.readString(Path.of("src/main/resources/studio/metapack/V4.1.6", base, template)));
+            Files.writeString(source, code);
+        }
+        Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
+                "--release", "11", "-d", root.toString(), assertions.toString(), batches.toString()).redirectErrorStream(true).start();
+        String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        assertEquals(0, compiler.waitFor(), diagnostics);
+        try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
+            Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FileDeliveryBatchAssertions");
+            Object tracker = type.getConstructor().newInstance();
+            Method check = type.getMethod("assertBatch", Path.class, String.class, int.class, List.class, Duration.class);
+            Path output = Files.createDirectory(root.resolve("batches"));
+            Files.writeString(output.resolve("one.txt"), "same");
+            check.invoke(tracker, output, "*.txt", 1, List.of("same"), Duration.ofMillis(100));
+            var stale = assertThrows(InvocationTargetException.class, () ->
+                    check.invoke(tracker, output, "*.txt", 2, List.of("same"), Duration.ofMillis(50)));
+            assertInstanceOf(AssertionError.class, stale.getCause());
+            Files.writeString(output.resolve("two.txt"), "same");
+            check.invoke(tracker, output, "*.txt", 2, List.of("same"), Duration.ofMillis(100));
+            var repeated = assertThrows(InvocationTargetException.class, () ->
+                    check.invoke(tracker, output, "*.txt", 2, List.of("same"), Duration.ofMillis(50)));
+            assertInstanceOf(IllegalArgumentException.class, repeated.getCause());
+            Files.writeString(output.resolve("three.txt"), "third");
+            Files.writeString(output.resolve("four.txt"), "fourth");
+            check.invoke(tracker, output, "*.txt", 3, List.of("third", "fourth"), Duration.ofMillis(100));
+            Files.writeString(output.resolve("mail.xml"), "separate");
+            check.invoke(tracker, output, "*.xml", 1, List.of("separate"), Duration.ofMillis(100));
+            type.getMethod("reset").invoke(tracker);
+            check.invoke(tracker, output, "*.txt", 1, List.of("same", "same", "third", "fourth"), Duration.ofMillis(100));
+            assertEquals("same", Files.readString(output.resolve("one.txt")), "Assertions must retain deliveries");
+        }
+    }
+
     private static void fails(Method method, Object... arguments) {
         Object[] timed = java.util.Arrays.copyOf(arguments, arguments.length + 1);
         timed[arguments.length] = Duration.ofMillis(75);

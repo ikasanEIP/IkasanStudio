@@ -140,7 +140,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
                 try {
                     Path support = Path.of(basePath).resolve(FlowTestScaffold.SUPPORT_PATH);
-                    stale.set(Files.exists(support) && FlowTestScaffold.supportNeedsRefresh(Files.readString(support), live));
+                    stale.set(!Files.exists(support) || FlowTestScaffold.supportNeedsRefresh(Files.readString(support), live));
                 } catch (Exception ex) { fingerprintFailure.set(ex); }
             }, title, false, project);
             if (fingerprintFailure.get() != null) throw fingerprintFailure.get();
