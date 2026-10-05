@@ -120,6 +120,16 @@ public class DesignCanvasContextMenu {
             menu.add(wiretaps);
             var meta = flowElement.getComponentMeta();
             addRemoteFilesMenuItem(menu, project, flowElement, false);
+            if ("SFTP Endpoint".equals(meta.getEndpointKey())) {
+                JMenuItem harness = new JMenuItem(StudioBundle.message("sftpHarness.title"));
+                harness.addActionListener(e -> SftpHarnessAction.choose(project));
+                menu.add(harness);
+                if (project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class).isLocal()) {
+                    JMenuItem files = new JMenuItem(StudioBundle.message("sftpHarness.files"));
+                    files.addActionListener(e -> SftpHarnessAction.showFiles(project));
+                    menu.add(files);
+                }
+            }
             if (meta.isConsumer() && ("FTP Endpoint".equals(meta.getEndpointKey())
                     || "SFTP Endpoint".equals(meta.getEndpointKey()))) {
                 JMenuItem fileHistory = new JMenuItem(StudioBundle.message("fileHistory.action"));

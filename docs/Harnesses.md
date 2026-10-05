@@ -1,6 +1,6 @@
 # Testing with harnesses
 
-Harnesses support local development. Start with a disposable project and test endpoints, apply **Update Code**, and restart the module whenever generated configuration changes. Actions are shown only for components and states that support them. Toolbar harness start/stop controls manage the module's FTP and mail test harnesses; they do not start a JMS broker or the application.
+Harnesses support local development. Start with a disposable project and test endpoints, apply **Update Code**, and restart the module whenever generated configuration changes. Actions are shown only for components and states that support them. Toolbar harness start/stop controls manage the module's FTP, local SFTP and mail test harnesses; they do not start a JMS broker or the application.
 
 ## AI-assisted demonstrations
 
@@ -26,7 +26,22 @@ For a paired demonstration, use `/` for both the producer output and consumer so
 
 Use **Stop Test FTP Server** when finished. The server is project-owned and stops on project disposal. Its files use the configured test directory, by default `temporary-files/test-data/ftp` under the project; see Local working files below. Only one FTP server configuration is active per project. TCP ports remain shared across projects.
 
-This is a plain FTP harness, **not an SFTP or FTPS server**. Interactive testing of actual SFTP transport requires an SFTP endpoint. Generated JUnit flow tests can instead start a local test SFTP server; see [Flow testing](IkasanFlowTesting.md). Sending a synthetic payload downstream does not test that endpoint's connectivity, authentication or scanning.
+### Local or external SFTP
+
+Right-click an SFTP Consumer or Producer and choose **SFTP test harness…**:
+
+- **Use local test SFTP server** starts a project-owned Apache MINA SSHD server on an allocated loopback port. No installed SSH service or Docker is needed. This is suggested in the chooser; existing projects keep their configured connections until you select it.
+- **Use configured external server** uses the saved component connection settings. Studio does not start or stop that external server.
+
+The choice applies to all SFTP components in this project and is stored in the local IDE workspace. Stop the module before switching modes. Regenerate code with this Studio version before the first local run; old SFTP factories are rejected at launch until regenerated. Use **Harness Start** before launching the module with Studio Run/Debug; after **Harness Stop**, start it again before restarting the module. Closing the project stops its local server.
+
+Local mode supplies transient launch settings to IntelliJ Application configurations for `org.ikasan.studio.boot.Application`. It does not rewrite the model, generated application properties or saved run configuration. Maven, command-line application launches and JUnit flow tests retain their own settings. Switching back to external mode removes the overrides on the next launch. Local endpoints use separate runtime configuration IDs so persisted external connection records cannot override them or be overwritten. Local configuration records may remain in the module’s development database after the session.
+
+Use **Show local test SFTP files** to add input files and inspect output under `temporary-files/test-data/sftp/home`. Each component has its own `flow-<encoded name>/component-<encoded name>` directory. Names are URL-encoded to keep paths safe on Windows, macOS and Linux. Files are retained across stops for inspection; unlike JUnit fixtures, they are not automatically deleted between runs. Use fresh filenames when duplicate detection or overwrite protection is enabled. Local consumers use a minimum file age of zero; filename patterns, schedules and other processing settings still apply. Paired consumers and producers use separate directories, so they do not automatically feed one another.
+
+**Browse remote files…** uses the local component directory while local mode is selected, and the external connection dialog otherwise. The server supplies its own host key and generated credentials. The browser verifies that key; the Ikasan connector retains its version-specific host-key behavior (including the password-authentication limitation described below).
+
+Generated JUnit flow tests retain their separate self-contained SFTP fixtures; see [Flow testing](IkasanFlowTesting.md). Both harnesses use Apache MINA SSHD, but runtime files and lifecycle are project-owned, while JUnit owns its temporary directories. Sending a synthetic payload downstream does not test SFTP connectivity, authentication or scanning.
 
 ## JMS readers
 

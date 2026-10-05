@@ -55,10 +55,12 @@ public final class HarnessControlActions {
 
     static boolean hasHarnesses(Module module) {
         return module != null && (!TestFtpServerLinks.findLinks(module).isEmpty()
-                || !TestMailServerLinks.findLinks(module).isEmpty());
+                || !TestMailServerLinks.findLinks(module).isEmpty()
+                || org.ikasan.studio.intellij.runtime.TestSftpServerService.hasSftp(module));
     }
 
     private void startHarnesses(Module module, ActionEvent event) {
+        if (org.ikasan.studio.intellij.runtime.TestSftpServerService.hasSftp(module)) SftpHarnessAction.start(project);
         List<TestFtpServerLinks.Link> ftpLinks = TestFtpServerLinks.findLinks(module);
         if (!ftpLinks.isEmpty()) {
             FlowElement owner = firstFtpOwner(ftpLinks.get(0));
@@ -73,6 +75,7 @@ public final class HarnessControlActions {
     }
 
     private void stopHarnesses(Module module, ActionEvent event) {
+        SftpHarnessAction.stop(project);
         List<TestFtpServerLinks.Link> ftpLinks = TestFtpServerLinks.findLinks(module);
         if (!ftpLinks.isEmpty()) {
             FlowElement owner = firstFtpOwner(ftpLinks.get(0));

@@ -48,6 +48,30 @@ public final class SftpFilesDialog extends DialogWrapper {
     private volatile RemoteFilesClient active;
 
     public static void open(Project project, FlowElement component) {
+        var harness = project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
+        if (harness.isLocal()) {
+            String remote = "/" + org.ikasan.studio.integration.sftp.LocalSftpHarness.directory(
+                    component.getContainingFlow().getIdentity(), component.getIdentity());
+            ApplicationManager.getApplication().executeOnPooledThread(() -> {
+                try {
+                    var server = harness.start();
+                    java.nio.file.Files.createDirectories(server.home().resolve(remote.substring(1)));
+                    var connection = server.connection();
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        if (project.isDisposed()) return;
+                        SftpFilesDialog browser = new SftpFilesDialog(project, connection, remote);
+                        browser.show();
+                        browser.load();
+                    });
+                } catch (Exception failure) {
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        if (!project.isDisposed()) org.ikasan.studio.ui.StudioUIUtils.displayIdeaErrorMessage(project,
+                                StudioBundle.message("sftpHarness.failed", failure.getClass().getSimpleName()));
+                    });
+                }
+            });
+            return;
+        }
         Settings settings = new Settings(project, component);
         if (settings.showAndGet()) {
             SftpFilesDialog browser = new SftpFilesDialog(project, settings.connection(), settings.remote.getText().trim());

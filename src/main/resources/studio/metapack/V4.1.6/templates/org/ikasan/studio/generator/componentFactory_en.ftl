@@ -14,11 +14,16 @@ public class ComponentFactory${flow.getJavaClassName()}
 @org.springframework.beans.factory.annotation.Value("${r"${module.name}"}")
 private String moduleName;
 <#assign hasCollectionProperties=false>
+<#assign hasSftp=false>
 <#list flow.ftlGetAllFlowElementsInAnyRouteNoEndpoints()![] as element>
+<#if (element.componentMeta.endpointKey!"") == "SFTP Endpoint"><#assign hasSftp=true></#if>
 <#list element.getStandardComponentProperties() as key, property>
 <#if StringCollectionValues.supports(property.meta.propertyDataType) && property.meta.propertyConfigFileLabel?has_content && !property.valueNotSet()><#assign hasCollectionProperties=true></#if>
 </#list>
 </#list>
+<#if hasSftp>
+<#include "localSftpHarness_en.ftl">
+</#if>
 <#if hasCollectionProperties>
 <#include "stringCollectionProperties_en.ftl">
 </#if>
@@ -94,6 +99,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
         <#include "trustedObjectPackages_en.ftl">
     </#if>
     <#-- Ikasan's logging setRegExpPattern returns null in these versions: do not chain setters. -->
+    <#assign localSftp = (flowElement.componentMeta.endpointKey!"") == "SFTP Endpoint">
     <#assign nonFluentLog = flowElement.componentMeta.implementingClass == "org.ikasan.component.endpoint.util.producer.LogProducer">
     <#assign testDestination=TestJmsHarnessLinks.destinationOverride(module, flowElement)!"">
     public ${flowElement.componentMeta.componentType} get${flowElement.getJavaClassName()}() {
@@ -101,9 +107,9 @@ org.ikasan.builder.BuilderFactory builderFactory;
         <#if nonFluentLog>
             org.ikasan.builder.component.endpoint.LogProducerBuilder logBuilder = builderFactory.getComponentBuilder().logProducer();
         <#elseif flowElement.componentMeta.ikasanComponentFactoryMethod??>
-            return builderFactory.getComponentBuilder().${flowElement.componentMeta.ikasanComponentFactoryMethod}()
+            return <#if localSftp>studioLocalSftp(</#if>builderFactory.getComponentBuilder().${flowElement.componentMeta.ikasanComponentFactoryMethod}()
         <#else>
-            return builderFactory.getComponentBuilder().${StudioBuildUtils.toJavaIdentifier(flowElement.componentMeta.name)}()
+            return <#if localSftp>studioLocalSftp(</#if>builderFactory.getComponentBuilder().${StudioBuildUtils.toJavaIdentifier(flowElement.componentMeta.name)}()
         </#if>
     <#else>
         <#if flowElement.componentMeta.useImplementingClassInFactory>
@@ -168,7 +174,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
     <#elseif flowElement.componentMeta.generatesUserImplementedClass>
         return ${flowElement.getJavaVariableName()};
     <#else>
-        <#if nonFluentLog>return logBuilder</#if>.build();
+        <#if nonFluentLog>return logBuilder</#if>.build()<#if localSftp>, "${flow.identity?j_string}", "${flowElement.componentName?j_string}", ${flowElement.componentMeta.isConsumer()?c})</#if>;
     </#if>
     }
 </#list>
