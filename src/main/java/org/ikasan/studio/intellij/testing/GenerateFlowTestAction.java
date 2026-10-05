@@ -102,7 +102,13 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
         } finally { if (acquired) context.endMigration(); }
     }
 
+    public static void openPropertiesRefresh(Project project) { open(project, null, false, true); }
+
     private static void open(Project project, String selectedFlow, boolean multiple) {
+        open(project, selectedFlow, multiple, false);
+    }
+
+    private static void open(Project project, String selectedFlow, boolean multiple, boolean refreshRequested) {
         String title = StudioBundle.message(multiple ? "flowTest.batchTitle" : "flowTest.title");
         UiContext context = project.getService(UiContext.class);
         boolean acquired = false;
@@ -148,6 +154,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             if (multiple) {
                 FlowTestsDialog dialog = new FlowTestsDialog(project, flows, ftpFlows, smtpFlows, sftpFlows);
                 dialog.setSupportStale(staleSupport);
+                dialog.setRefreshProperties(refreshRequested);
                 if (!dialog.showAndGet()) return;
                 choices = dialog.selectedFlows();
                 regenerateSupport = dialog.regenerateSupport();
@@ -158,6 +165,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             } else {
                 FlowTestDialog dialog = new FlowTestDialog(project, flows, selectedFlow, ftpFlows, smtpFlows, sftpFlows);
                 dialog.setSupportStale(staleSupport);
+                dialog.setRefreshProperties(refreshRequested);
                 if (!dialog.showAndGet()) return;
                 choices = List.of(dialog.selectedFlow());
                 regenerateSupport = dialog.regenerateSupport();
@@ -257,6 +265,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             }
             if (failure.get() != null) throw failure.get();
             if (project.isDisposed()) return;
+            FlowTestPropertyWarnings.checkAfterRename(project);
             if (!created.get().isEmpty()) MavenProjectsManager.getInstance(project).forceUpdateAllProjectsOrFindAllAvailablePomFiles();
             if (result.get() != null) FileEditorManager.getInstance(project).openFile(result.get(), true);
             long scenarioCount = created.get().stream()

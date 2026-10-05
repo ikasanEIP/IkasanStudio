@@ -20,6 +20,7 @@ final class FlowTestsDialog extends DialogWrapper {
             StudioBundle.message("flowTest.regenerateSupport"), false);
     private final com.intellij.ui.components.JBCheckBox refreshProperties = new com.intellij.ui.components.JBCheckBox(
             StudioBundle.message("flowTest.refreshProperties"), false);
+    void setRefreshProperties(boolean selected) { refreshProperties.setSelected(selected); }
     boolean refreshProperties() { return refreshProperties.isSelected(); }
     private boolean staleSupport;
     private final JBLabel staleNotice = new JBLabel("<html><body style='width: 420px'>"

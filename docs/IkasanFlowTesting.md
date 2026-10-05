@@ -815,3 +815,23 @@ Application-startup failures occur before either hook. Spring and JUnit retain o
 their own resources, including the context and temporary test folders.
 
 Refresh shared module support to adopt the hooks; existing tests and utility classes are preserved.
+
+After a flow or component rename, Studio checks test-property references to generated
+JMS, FTP, SFTP, email and local-file configuration once code generation succeeds.
+If references no longer exist, a persistent, non-flashing banner appears above the canvas.
+**Show details** lists the affected settings. Studio also checks when the editor opens
+and when either properties file is saved; the banner disappears once references resolve.
+**Refresh test properties…** opens the generation dialog with **Refresh test properties
+(archive existing)** selected. Confirm the refresh, then review custom settings against
+its backup. Existing business tests are preserved. The advisory checks saved files;
+unsaved test-property edits must be saved before refreshing. Test startup also reports
+invalid references, including changes made outside Studio. Shared configuration is
+validated for the whole module, even when the selected flow does not use JMS.
+
+The same banner also compares existing shared support with the saved model fingerprint,
+including changes to flow names, components and connections. **Refresh flow test setup…**
+opens the generation dialog with stale support refresh selected. Choose **Archive and
+Regenerate** when prompted; **Skip Existing** leaves that support stale. Properties refresh
+is selected only when broken property references were detected. Checks run on editor opening
+and saved model/support changes, and the banner remains until both issues are resolved.
+Existing business tests and fixture files are preserved during shared-support refresh.

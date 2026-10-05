@@ -162,7 +162,11 @@ public class CanvasPanel extends JBPanel implements Disposable {
 
         setLayout(new BorderLayout());
         headerPanel.add(canvasHeaderButtonPanel, BorderLayout.CENTER);
-        add(headerPanel, BorderLayout.NORTH);
+        testPropertiesBanner = new org.ikasan.studio.intellij.testing.FlowTestPropertiesBanner(project);
+        JPanel top = new JPanel(new BorderLayout());
+        top.add(headerPanel, BorderLayout.NORTH);
+        top.add(testPropertiesBanner, BorderLayout.SOUTH);
+        add(top, BorderLayout.NORTH);
         installToolbarContextMenu(headerPanel, new DefaultActionGroup(new AdvancedControlsAction()));
 
         JBScrollPane canvasScrollPane = new JBScrollPane();
@@ -188,6 +192,12 @@ public class CanvasPanel extends JBPanel implements Disposable {
                         designerCanvas.notifyApplicationReactivated();
                     }
                 });
+    }
+
+    private final org.ikasan.studio.intellij.testing.FlowTestPropertiesBanner testPropertiesBanner;
+
+    public void refreshTestPropertyWarning() {
+        if (testPropertiesBanner != null) testPropertiesBanner.requestCheck();
     }
 
     private final JPanel headerPanel = new JPanel(new BorderLayout());
@@ -239,6 +249,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
     @Override
     public void dispose() {
         harnessRefreshTimer.stop();
+        com.intellij.openapi.util.Disposer.dispose(testPropertiesBanner);
         designerCanvas.disposeCanvas();
         if (canvasTextArea.getCaret() instanceof DefaultCaret caret) {
             caret.setBlinkRate(0);

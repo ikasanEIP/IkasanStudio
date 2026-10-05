@@ -207,7 +207,7 @@ public abstract class ModuleFlowTestSupport {
                     catch (IllegalArgumentException invalidReference) {
                         throw new IllegalStateException("Review module-test.properties or scenario overrides: property '"
                                 + key + "' refers to a missing or invalid application property. "
-                                + "Component renames can change property keys; compare with generated application.properties.", invalidReference);
+                                + "Shared configuration is checked for the whole module. Flow or component renames can change property keys. In Generate Flow Tests, select Refresh test properties (archive existing), then review custom settings against the archived file.", invalidReference);
                     }
                 }
             });

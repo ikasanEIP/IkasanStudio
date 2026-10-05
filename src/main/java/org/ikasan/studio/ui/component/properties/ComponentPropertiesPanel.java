@@ -186,6 +186,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * This method is invoked when we have checked it's OK to process the panel i.e. all items are valid
      */
     protected void doOKAction() {
+        boolean renamed = propertyHasChanged(ComponentPropertyMeta.NAME);
         updateUserCodeManually = false;
         // Save the model independently of the user's choice to maintain or regenerate their implementation.
         if (!confirmFlowPackageChange()) {
@@ -243,6 +244,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 generationRequest = GenerationRequest.full();
             }
             latestGeneration = StudioProjectFiles.refreshCodeFromModel(project, generationRequest);
+            if (renamed) latestGeneration.thenRun(() ->
+                    org.ikasan.studio.intellij.testing.FlowTestPropertyWarnings.checkAfterRename(project));
             if (updateUserCodeManually) {
                 StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.UpdateUserCodeManuallyReminder"));
             }
