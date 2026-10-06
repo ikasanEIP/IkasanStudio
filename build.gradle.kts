@@ -264,33 +264,34 @@ changelog {
 
 tasks {
     val verifyMetaPackBoms = register("verifyMetaPackBoms") {
-        notCompatibleWithConfigurationCache("Resolves detached configurations through Project at execution time")
         group = "verification"
         description = "Verifies that every BOM declared by a packaged meta-pack resolves independently."
-        inputs.property("coordinates", metaPackBomCoordinates)
+        val coordinates = metaPackBomCoordinates.toList()
+        val bomFiles = objects.fileCollection().from(coordinates.map { coordinate ->
+            configurations.detachedConfiguration(project.dependencies.create(coordinate)).apply {
+                isTransitive = false
+            }
+        })
+        inputs.property("coordinates", coordinates)
+        inputs.files(bomFiles).withPropertyName("bomFiles").withPathSensitivity(PathSensitivity.NONE)
         doLast {
-            metaPackBomCoordinates.forEach { coordinate ->
-                val bom = configurations.detachedConfiguration(
-                    project.dependencies.create(coordinate)
-                ).apply { isTransitive = false }
-                if (bom.resolve().isEmpty()) {
-                    throw GradleException("Meta-pack BOM did not resolve: " + coordinate)
-                }
+            if (bomFiles.files.size != coordinates.size) {
+                throw GradleException("Expected one resolved BOM per coordinate: " + coordinates.joinToString())
             }
         }
     }
 
     val verifyMetaPackHelpUrls = register("verifyMetaPackHelpUrls") {
-        notCompatibleWithConfigurationCache("HTTP verification action captures build-script resource inputs")
         group = "verification"
         description = "Verifies that HTTPS help URLs declared by packaged meta-packs are reachable."
-        inputs.property("urls", metaPackHelpUrls)
+        val urls = metaPackHelpUrls.toList()
+        inputs.property("urls", urls)
         doLast {
             val client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(15))
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build()
-            val failures = metaPackHelpUrls.mapNotNull { url ->
+            val failures = urls.mapNotNull { url ->
                 try {
                     val request = HttpRequest.newBuilder(URI.create(url))
                         .timeout(Duration.ofSeconds(20))

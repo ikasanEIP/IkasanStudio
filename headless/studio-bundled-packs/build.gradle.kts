@@ -1,4 +1,15 @@
 plugins { `java-library` }
+
+abstract class ActiveMqTestArguments : CommandLineArgumentProvider {
+    @get:org.gradle.api.tasks.Input
+    abstract val variant: Property<String>
+
+    @get:org.gradle.api.tasks.Classpath
+    abstract val providerFiles: ConfigurableFileCollection
+
+    override fun asArguments() = listOf("-Dstudio.activemq.${variant.get()}.classpath=${providerFiles.asPath}")
+}
+
 dependencies {
     api(project(":studio-pack-v3"))
     api(project(":studio-pack-v4"))
@@ -50,10 +61,11 @@ for ((suffix, packVersion) in mapOf("v3" to "3.3.9", "v4" to "4.1.6")) {
         it["groupId"] == "org.apache.activemq" && it["artifactId"] == "activemq-client"
     }
     dependencies.add(providerClasspath.name, "${client["groupId"]}:${client["artifactId"]}:${client["version"]}")
+    val arguments = objects.newInstance<ActiveMqTestArguments>().apply {
+        variant.set(suffix)
+        providerFiles.from(providerClasspath)
+    }
     tasks.test {
-        inputs.files(providerClasspath).withPropertyName("activeMq$suffix").withNormalizer(ClasspathNormalizer::class.java)
-        jvmArgumentProviders.add(CommandLineArgumentProvider {
-            listOf("-Dstudio.activemq.$suffix.classpath=${providerClasspath.asPath}")
-        })
+        jvmArgumentProviders.add(arguments)
     }
 }
