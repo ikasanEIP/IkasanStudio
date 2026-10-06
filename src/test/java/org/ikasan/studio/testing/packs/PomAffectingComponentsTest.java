@@ -20,6 +20,34 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @org.junit.jupiter.api.Tag("packs")
 public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"V3.3.9,5.19.5", "V4.1.6,6.2.4"})
+    void regenerationRepairsExistingJmsClientAndBrokerVersions(String pack, String patchedVersion) throws Exception {
+        var flow = TestFixtures.getUnbuiltFlow(pack)
+                .consumer(TrustedObjectPackagesTemplateTest.jms(pack, "Consumer")).build();
+        flow.getFlowRoute().getFlowElements().add(TrustedObjectPackagesTemplateTest.jms(pack, "Producer"));
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, java.util.List.of(flow));
+        var model = new org.apache.maven.model.Model();
+        for (String artifact : java.util.List.of("activemq-client", "activemq-broker")) {
+            var old = new org.apache.maven.model.Dependency();
+            old.setGroupId("org.apache.activemq");
+            old.setArtifactId(artifact);
+            old.setVersion("5.16.3");
+            model.addDependency(old);
+        }
+        var pom = new org.ikasan.studio.core.maven.IkasanPomModel(model);
+        for (var dependency : module.getAllUniqueSortedJarDependencies()) {
+            pom.checkIfDependancyAlreadyExists(dependency);
+        }
+        var jmsDependencies = model.getDependencies().stream()
+                .filter(dependency -> "org.apache.activemq".equals(dependency.getGroupId())).toList();
+        org.assertj.core.api.Assertions.assertThat(jmsDependencies).hasSize(2)
+                .allSatisfy(dependency -> org.assertj.core.api.Assertions.assertThat(dependency.getVersion())
+                        .isEqualTo(patchedVersion));
+        org.assertj.core.api.Assertions.assertThat(pom.isDirty()).isTrue();
+        org.assertj.core.api.Assertions.assertThat(pom.isNewDependency(module.getAllUniqueSortedJarDependencies())).isFalse();
+    }
+
+    @ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"SFTP Consumer", "SFTP Producer"})
     void java11SftpComponentsDeclareEd25519Provider(String componentName) throws Exception {
         var component = org.ikasan.studio.core.metapack.ComponentLibrary

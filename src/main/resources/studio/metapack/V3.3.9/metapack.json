@@ -16,6 +16,18 @@
       "artifactId": "bcprov-jdk18on",
       "version": "1.85.2",
       "reason": "JSch 0.2.17 requires Bouncy Castle for Ed25519/Ed448 authentication on Java 11. Verified with Ikasan 3.3.9 SFTP; native Java support starts at Java 15."
+    },
+    {
+      "groupId": "org.apache.activemq",
+      "artifactId": "activemq-client",
+      "version": "5.19.5",
+      "reason": "Security override for CVE-2023-46604, CVE-2025-27533, CVE-2026-33227 and CVE-2026-39304; retain the javax.jms / Java 11 contract. Remove when the matching Ikasan BOM manages a patched version."
+    },
+    {
+      "groupId": "org.apache.activemq",
+      "artifactId": "activemq-broker",
+      "version": "5.19.5",
+      "reason": "Security override for CVE-2023-46604, CVE-2025-27533, CVE-2026-33227 and CVE-2026-39304; retain the javax.jms / Java 11 contract. Remove when the matching Ikasan BOM manages a patched version."
     }
   ],
   "packVersion": "0.1.0-SNAPSHOT",

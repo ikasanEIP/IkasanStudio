@@ -9,6 +9,19 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
 
+// Build tools parse remote repository metadata. Keep their libraries patched without
+// placing them on the plugin runtime classpath or replacing IntelliJ-owned libraries.
+buildscript {
+    dependencies {
+        classpath(platform("com.fasterxml.jackson:jackson-bom:2.22.3"))
+        constraints {
+            add("classpath", "org.jsoup:jsoup:1.23.2") {
+                because("GHSA-pmhh-3w7g-xqp8 and GHSA-65r4-943x-97jj affect build-tool XML parsing")
+            }
+        }
+    }
+}
+
 plugins {
     id("java") // Java support
     alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
@@ -114,6 +127,17 @@ dependencies {
         pluginVerifier()
         zipSigner()
         testFramework(TestFrameworkType.Platform)
+    }
+}
+
+// The platform fixtures resolve separately from testRuntimeClasspath. These are
+// test-only repairs; IntelliJ's installed libraries remain owned by JetBrains.
+dependencies {
+    add("intellijPlatformTestDependencies", platform("com.fasterxml.jackson:jackson-bom:2.18.11"))
+    constraints {
+        add("intellijPlatformTestDependencies", "org.assertj:assertj-core:3.27.7") {
+            because("CVE-2026-24400: patch the platform fixture's XML assertions")
+        }
     }
 }
 

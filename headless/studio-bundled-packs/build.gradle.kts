@@ -42,7 +42,14 @@ for ((suffix, packVersion) in mapOf("v3" to "3.3.9", "v4" to "4.1.6")) {
         isCanBeResolved = true
     }
     dependencies.add(providerClasspath.name, dependencies.platform("org.ikasan:ikasan-eip-standalone-bom:$packVersion"))
-    dependencies.add(providerClasspath.name, "org.apache.activemq:activemq-client")
+    // Use the same explicit security overrides as generated JMS applications.
+    val manifest = groovy.json.JsonSlurper().parse(
+        file("../../src/main/resources/studio/metapack/V$packVersion/metapack.json")) as Map<*, *>
+    val overrides = manifest["compatibilityOverrides"] as List<*>
+    val client = overrides.map { it as Map<*, *> }.single {
+        it["groupId"] == "org.apache.activemq" && it["artifactId"] == "activemq-client"
+    }
+    dependencies.add(providerClasspath.name, "${client["groupId"]}:${client["artifactId"]}:${client["version"]}")
     tasks.test {
         inputs.files(providerClasspath).withPropertyName("activeMq$suffix").withNormalizer(ClasspathNormalizer::class.java)
         jvmArgumentProviders.add(CommandLineArgumentProvider {

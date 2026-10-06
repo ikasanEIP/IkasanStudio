@@ -16,11 +16,13 @@
     },
     {
       "groupId": "org.apache.activemq",
-      "artifactId": "activemq-client"
+      "artifactId": "activemq-client",
+      "version": "5.19.5"
     },
     {
       "groupId": "org.apache.activemq",
-      "artifactId": "activemq-broker"
+      "artifactId": "activemq-broker",
+      "version": "5.19.5"
     }
   ],
   "usesBuilderInFactory": true,
