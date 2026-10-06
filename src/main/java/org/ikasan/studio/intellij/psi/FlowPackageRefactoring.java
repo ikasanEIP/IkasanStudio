@@ -115,6 +115,8 @@ public final class FlowPackageRefactoring {
     public static boolean renameAndSave(Plan plan, Module module, Flow flow, String newName) {
         var context = plan.project().getService(org.ikasan.studio.ui.UiContext.class);
         if (context.isModelPersistenceBlocked()) throw new IllegalStateException(context.getModelPersistenceBlockReason());
+        var tests = org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.prepare(
+                plan.project(), module, flow, null, newName);
         String oldName = flow.getIdentity();
         Map<Flow, String> oldOwners = new LinkedHashMap<>();
         var links = org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.findLinks(module).stream()
@@ -129,13 +131,13 @@ public final class FlowPackageRefactoring {
             links.forEach(link -> link.harnessFlow().setPropertyValue("testHarnessOwner",
                     org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.ownerKeyFor(link.ownerProducer())));
         };
-        return execute(plan, () -> {
+        boolean renamed = execute(plan, () -> {
             try {
                 VirtualFile base = StudioProjectFiles.getProjectBaseDir(plan.project());
                 if (base == null) throw new IllegalStateException(StudioBundle.message("message.FlowRenameNoProject"));
                 applyModel.run();
-                StudioProjectFiles.replaceJsonModelFileSafely(plan.project(),
-                        org.ikasan.studio.core.generator.ModelTemplate.create(module));
+                tests.apply(() -> StudioProjectFiles.replaceJsonModelFileSafely(plan.project(),
+                        org.ikasan.studio.core.generator.ModelTemplate.create(module)));
                 // Protected atomic model writes and subsequent asynchronous generation are not one IDE
                 // undo transaction. Block a partial file-only undo; reverse through Rename flow instead.
                 VirtualFile modelFile = base.findFileByRelativePath("generated/src/main/model/model.json");
@@ -148,6 +150,8 @@ public final class FlowPackageRefactoring {
                 throw failure;
             }
         });
+        if (renamed) org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.reportReview(tests);
+        return renamed;
     }
 
     /** Returns false on a cancelled refactoring; callers must leave model edits pending in that case. */

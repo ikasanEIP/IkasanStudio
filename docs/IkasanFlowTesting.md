@@ -734,7 +734,22 @@ fingerprint; it contains no connection credentials or expected business results.
 Shared Java support reads that resource. A flow rename or connection change no longer requires
 regenerating shared classes. Rebuild generated resources before running tests. A stale resource
 fails before Spring starts with regeneration guidance. Business tests still own their flow/component
-names, fixtures and assertions; review these after a rename.
+names, fixtures and assertions. Studio renames now refactor recognised references in those tests:
+`FLOW_NAME`, `CONSUMER_NAME`, `PRODUCER_NAME`, expected-path component calls, observation-test
+producer arguments, generated property lookups and explicit fixture resource constants. Matching
+fixture directories move with their contents; existing destination directories block the rename.
+Exact property keys and placeholder references in `module-test.properties` are updated while
+preserving their values. Custom assertions, expected payload values and `TEST_REVIEWED` are retained.
+When a flow is renamed, a test class and file still using the generated `<FlowJavaName>FlowTest`
+name are renamed together using IntelliJ Java refactoring. Java references and supported run
+configurations follow the rename; a conflicting destination blocks it. Custom test class names
+are retained, and component renames do not change test class names. Save open test edits before renaming. Review any custom references listed
+by Studio, then rebuild and rerun the existing tests; no scenario regeneration is required.
+
+This targets the recognised generated patterns in `user-flow-tests`, not arbitrary Java string
+literals. Tests whose flow identity is computed dynamically, or custom resource-path construction,
+may need manual updates. Renames made outside Studio do not run this refactoring. If model saving
+fails, test edits and resource moves are restored together with the rename.
 
 Existing projects need **one shared-support refresh** to adopt this format. Choose **Archive and
 Regenerate** when prompted, preserving business tests and fixtures. Regenerate application code too.

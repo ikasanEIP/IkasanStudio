@@ -30,7 +30,7 @@ public class ${className} extends ModuleFlowTestSupport {
         // runObservationTest checks:
         // - The real consumer generates events, without injected fixture input.
         // - Events reach and complete the named producer.
-        // - Supplied initial payloads match in order (when expectations are provided).
+        // - Supplied expected payloads match in order provided (the actual payload comes from the afterFlowElement of the producer).
         // - The flow stays RUNNING throughout a one-second observation window.
         // - A fresh later event reaches the producer without restarting the flow.
         // - Teardown stops the flow and confirms its STOPPED state.

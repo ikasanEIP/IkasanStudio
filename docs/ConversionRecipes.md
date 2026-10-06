@@ -38,6 +38,8 @@ An incoming filename is always preserved when one is available (an existing `Pay
 - **FTP/SFTP output**: no incoming filename → the **Fallback filename** property if set → otherwise a name generated fresh on every call, from the sanitised flow and converter name, a timestamp and a UUID (e.g. `MyFlow-MyConverter-20260908-143012-501-3fa8...dat`). This is deliberately never reused, since many FTP/SFTP servers - including strict test emulators - refuse to overwrite an existing file and would stop the flow the moment a fixed or repeated name collided with one already delivered. The timestamp doubles as a delivery history, and the flow/converter name lets you tell which converter produced a given file when several deliver into the same directory.
 - **Email attachments**: no incoming filename → the **Fallback filename** property if set → otherwise `message.dat`, unchanged from before. An attachment isn't written to a directory that could reject a repeated name, so there's nothing to generate around.
 
+Generated FTP/SFTP converters expose `public static final String FILENAME_PREFIX` for automatic names. Tests can use `MyConverter.FILENAME_PREFIX + "*"` as the delivery glob. This prefix does not apply when an incoming or explicitly configured filename is used.
+
 **Existing models**: a component saved before automatic naming existed may already have **Fallback filename** explicitly set to `message.dat` (its old default). That value is never silently reinterpreted - it's honoured as a fixed name exactly as before. To switch such a component to automatic FTP/SFTP naming, open its properties and clear **Fallback filename**, then regenerate.
 
 ### Email attachments require a second, separate switch

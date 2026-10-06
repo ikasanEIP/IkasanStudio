@@ -10,6 +10,17 @@ import org.ikasan.spec.component.transformation.TransformationException;
 public class ${className} implements Converter<${conversionRecipe.sourceType}, ${conversionRecipe.targetType}> {
 private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(${className}.class);
 
+<#if conversionRecipe.constructionTemplate == 'construct-file.ftl'>
+<#if flowElement.getContainingFlow()??>
+<#assign filenameFlowPart = (flowElement.getContainingFlow().getIdentity()!'flow')?replace('[^A-Za-z0-9._-]+', '_', 'r')>
+<#else>
+<#assign filenameFlowPart = 'flow'>
+</#if>
+<#assign filenameConverterPart = (flowElement.getComponentName()!'converter')?replace('[^A-Za-z0-9._-]+', '_', 'r')>
+    /** Prefix for automatically generated output filenames; fixed or incoming filenames take precedence. */
+    public static final String FILENAME_PREFIX = "${filenameFlowPart?j_string}-${filenameConverterPart?j_string}-";
+</#if>
+
     @Override
     public ${conversionRecipe.targetType} convert(${conversionRecipe.sourceType} payload) throws TransformationException {
 // Uncomment for diagnostics without logging message contents.

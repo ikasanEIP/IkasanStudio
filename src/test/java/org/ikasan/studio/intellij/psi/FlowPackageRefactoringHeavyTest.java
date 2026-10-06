@@ -79,6 +79,27 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
         assertTrue(modelText.contains("Renamed Flow"));
     }
 
+    public void testFlowRenameUpdatesTestClassAndItsImplementationImportTogether() {
+        String directory = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/";
+        StudioProjectFiles.createFileWithDirectories(myProject, "/" + directory + "OriginalFlowFlowTest.java",
+                "package org.ikasan.studio.flowtests; import " + oldPackage + ".Implementation; "
+                        + "public class OriginalFlowFlowTest { static final String FLOW_NAME = \"Original Flow\"; Implementation value; }", null);
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base);
+        VirtualFile root = base.findFileByRelativePath("user-flow-tests/src/test/java");
+        assertNotNull(root);
+        PsiTestUtil.addContentRoot(myModule, root);
+        PsiTestUtil.addSourceRoot(myModule, root, true);
+        myProject.getService(org.ikasan.studio.ui.UiContext.class).setIkasanModule(module);
+        assertTrue(FlowPackageRefactoring.renameAndSave(plan(), module, flow, "Renamed Flow"));
+        assertNull(base.findFileByRelativePath(directory + "OriginalFlowFlowTest.java"));
+        String renamed = StudioProjectFiles.readVirtualFileAsString(base.findFileByRelativePath(directory + "RenamedFlowFlowTest.java"));
+        assertNotNull(renamed);
+        assertTrue(renamed, renamed.contains("import " + newPackage + ".Implementation"));
+        assertTrue(renamed, renamed.contains("class RenamedFlowFlowTest"));
+        assertTrue(renamed, renamed.contains("FLOW_NAME = \"Renamed Flow\""));
+    }
+
     public void testDestinationConflictLeavesOriginalCodeAndModelUntouched() {
         write(newPackage, "Implementation", "package " + newPackage + "; public class Implementation {}");
         try {

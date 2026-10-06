@@ -136,7 +136,7 @@ public class ${className} extends ModuleFlowTestSupport {
         ScheduledEventFixture.fire(harness, "${consumerName?j_string}",
                 batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT);
 <#elseif scheduled>
-        // Create the files/provider data here BEFORE firing. Scanning does not create input.
+        // Create the files/provider data here BEFORE firing.
         // Account for filename filters, minimum file age and duplicate detection when applicable.
         prepareInputBatch(context, batch);
         harness.fireScheduledConsumer();
@@ -195,8 +195,8 @@ public class ${className} extends ModuleFlowTestSupport {
 <#else>
     // Set the expected text outputs for the first and second test. The test compares these values with formatOutputText(actualPayload).
     // Override formatOutputText(Object payload) to decode the actual payload, for example UTF-8 file content.
-    private static final String FIRST_EXPECTED_OUTPUT = "REPLACE: first expected payload";
-    private static final String SECOND_EXPECTED_OUTPUT = "REPLACE: second expected payload";
+    private static final String FIRST_EXPECTED_OUTPUT = "first expected payload";
+    private static final String SECOND_EXPECTED_OUTPUT = "second expected payload";
 
 </#if>
 
@@ -239,6 +239,25 @@ public class ${className} extends ModuleFlowTestSupport {
 </#if>
     }
 
+    // TODO 4: Review shared connections in src/test/resources/module-test.properties.
+    // Shared setup supplies a fresh context and isolated H2; all flows initially start MANUAL.
+    // Compares each batch's event payload observed by afterFlowElement after PRODUCER_NAME completes.
+    // Runs two batches in the same running flow, checking idle readiness between deliveries.
+    // When overridden, verifyReceivedOutput adds a receiver-side check after each payload assertion
+    // (for example, a delivered file or email); it is a hook within this test, not a separate test.
+    @Test
+    public void testFirstAndLaterDeliveryWithoutRestart() throws Exception {
+        // If you override assertOutput(actualAfterProducer, batch), replace the call below with:
+        // runTest(TEST_REVIEWED, PRODUCER_NAME);
+<#if fileDelivery || smtpDelivery>
+        assertTrue("Complete TODOs 1–4, then set TEST_REVIEWED=true", TEST_REVIEWED);
+        runTest(TEST_REVIEWED, PRODUCER_NAME, readTestResource(FIRST_EXPECTED_OUTPUT_RESOURCE),
+                readTestResource(SECOND_EXPECTED_OUTPUT_RESOURCE));
+<#else>
+        runTest(TEST_REVIEWED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT);
+</#if>
+    }
+
 <#if jmsConsumer && jmsOutputKey?has_content>
 
     @Override
@@ -261,7 +280,7 @@ public class ${className} extends ModuleFlowTestSupport {
 
     @Override
     protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch, String expected) throws Exception {
-        // Check the output received from the producer.
+        // Check the output artifacts created by the producer.
 <#if sftpFileDelivery>
         // The local test SFTP server owns a separate directory for this producer.
         assertDeliveredFileResources(localSftpDirectory(context, FLOW_NAME, PRODUCER_NAME), "*", batch,
@@ -270,7 +289,6 @@ public class ${className} extends ModuleFlowTestSupport {
         // The FTP unit test server is enabled by test.ftp.enabled in test properties. The property
         // test.delivery.timeout-seconds allows timeout configuration.
         // Refine the "*" glob to resemble the expected filename(s)
-        // Supply only this batch's expected resources; earlier deliveries are tracked internally.
         assertDeliveredFileResources(localFtpDirectory(context), "*", batch,
                 batch == 1 ? FIRST_EXPECTED_OUTPUT_RESOURCE : SECOND_EXPECTED_OUTPUT_RESOURCE);
         // For a known filename/overwrite: assertFileMatchesResource(localFtpDirectory(context).resolve("result.txt"),
@@ -285,20 +303,5 @@ public class ${className} extends ModuleFlowTestSupport {
 </#if>
     }
 </#if>
-
-    // TODO 4: Review shared connections in src/test/resources/module-test.properties.
-    // Shared setup supplies a fresh context and isolated H2; all flows initially start MANUAL.
-    @Test
-    public void testFirstAndLaterDeliveryWithoutRestart() throws Exception {
-        // If you override assertOutput(actualAfterProducer, batch), replace the call below with:
-        // runTest(TEST_REVIEWED, PRODUCER_NAME);
-<#if fileDelivery || smtpDelivery>
-        assertTrue("Complete TODOs 1–4, then set TEST_REVIEWED=true", TEST_REVIEWED);
-        runTest(TEST_REVIEWED, PRODUCER_NAME, readTestResource(FIRST_EXPECTED_OUTPUT_RESOURCE),
-                readTestResource(SECOND_EXPECTED_OUTPUT_RESOURCE));
-<#else>
-        runTest(TEST_REVIEWED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT);
-</#if>
-    }
 
 }

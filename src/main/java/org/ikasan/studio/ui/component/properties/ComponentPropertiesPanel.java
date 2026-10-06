@@ -198,6 +198,8 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             return;
         }
 
+        if (!refactorComponentTestReferences()) return;
+
         if (dataHasChangedAndOKToProcess()) {
             UiContext uiContext = project.getService(UiContext.class);
             StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CodeGenerationInProgressPleaseWait"));
@@ -474,6 +476,28 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      * (may be null if nothing has been generated yet) for the optional backup (component self-edit case).
      */
     private record AffectedUserImplementedClass(Flow flow, String className, RegenerateUserClassDialog.AffectedClass description, UserClassReference userClassReference) {}
+
+    private boolean refactorComponentTestReferences() {
+        if (!(getSelectedComponent() instanceof FlowElement element) || element.getContainingFlow() == null) return true;
+        var row = componentPropertyEditRowList.stream()
+                .filter(r -> r.getPropertyKey().equals(element.getIdentityPropertyMetaKey()))
+                .findFirst().orElse(null);
+        if (row == null || !row.propertyValueHasChanged() || !(row.getValue() instanceof String name)) return true;
+        UiContext context = project.getService(UiContext.class);
+        if (!context.tryBeginMigration()) {
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.FlowRenameBusy"));
+            return false;
+        }
+        try {
+            org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.renameComponentAndSave(
+                    project, context.getIkasanModule(), element, name);
+            return true;
+        } catch (RuntimeException failure) {
+            LOG.warn("Component test refactoring failed", failure);
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("flowTest.renameFailed", failure.getMessage()));
+            return false;
+        } finally { context.endMigration(); }
+    }
 
     /** Refactor existing implementations before committing the name or generating any new stubs. */
     private boolean confirmFlowPackageChange() {

@@ -1,6 +1,7 @@
 package org.ikasan.studio.intellij.testing;
 
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.WriteIntentReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -51,11 +52,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                 throw new IllegalStateException(StudioBundle.message("message.ConfigureAndSaveTheModuleFirst"));
             if (context.getPropertiesPanel() != null && context.getPropertiesPanel().dataHasChangedAndOKToProcess())
                 throw new IllegalStateException(StudioBundle.message("message.ApplyOrDiscardThePendingPropertyEditsBeforeMigrating"));
-            for (var document : FileDocumentManager.getInstance().getUnsavedDocuments()) {
-                var file = FileDocumentManager.getInstance().getFile(document);
-                if (file != null && file.getPath().startsWith(basePath + "/"))
-                    throw new IllegalStateException(StudioBundle.message("flowTest.saveFiles"));
-            }
+            if (!saveProjectDocumentsBeforeGeneration(project, basePath, title)) return;
             if (!context.tryBeginMigration()) throw new IllegalStateException(StudioBundle.message("message.WaitForTheCurrentGenerationOrMigrationToFinish"));
             acquired = true;
             Path root = Path.of(basePath);
@@ -179,12 +176,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             // Block canvas generation/migration while modal background work snapshots the saved model and writes files.
             if (!context.tryBeginMigration()) throw new IllegalStateException(StudioBundle.message("message.WaitForTheCurrentGenerationOrMigrationToFinish"));
             acquired = true;
-            for (var document : FileDocumentManager.getInstance().getUnsavedDocuments()) {
-                var file = FileDocumentManager.getInstance().getFile(document);
-                if (file != null && file.getPath().startsWith(basePath + "/")) {
-                    throw new IllegalStateException(StudioBundle.message("flowTest.saveFiles"));
-                }
-            }
+            if (!saveProjectDocumentsBeforeGeneration(project, basePath, title)) return;
             Path root = Path.of(basePath);
             AtomicReference<com.intellij.openapi.vfs.VirtualFile> result = new AtomicReference<>();
             AtomicReference<Exception> failure = new AtomicReference<>();
@@ -283,4 +275,45 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             if (acquired) context.endMigration();
         }
     }
+
+    /** Saves only this project's editor documents, with explicit consent before generation writes files. */
+    @SuppressWarnings("UnstableApiUsage")
+    static boolean saveProjectDocumentsBeforeGeneration(Project project, String basePath, String title) {
+        FileDocumentManager manager = FileDocumentManager.getInstance();
+        var pending = unsavedProjectDocuments(manager, basePath);
+        if (pending.isEmpty()) return true;
+        String files = unsavedFileNames(manager, basePath, pending);
+        int choice = Messages.showDialog(project, StudioBundle.message("flowTest.saveFilesQuestion", files), title,
+                new String[]{StudioBundle.message("flowTest.saveAndGenerate"), StudioBundle.message("flowTest.cancel")},
+                0, Messages.getQuestionIcon());
+        if (choice != 0 || project.isDisposed()) return false;
+        // Swing context-menu callbacks can run on EDT without write-intent access in newer IDEs.
+        // Acquire it only for saving; keep confirmation dialogs outside the access scope.
+        WriteIntentReadAction.run((Runnable) () -> {
+            for (var document : pending) manager.saveDocument(document);
+        });
+        var remaining = unsavedProjectDocuments(manager, basePath);
+        if (remaining.isEmpty()) return true;
+        Messages.showWarningDialog(project, StudioBundle.message("flowTest.filesStillUnsaved",
+                unsavedFileNames(manager, basePath, remaining)), title);
+        return false;
+    }
+
+    private static List<com.intellij.openapi.editor.Document> unsavedProjectDocuments(
+            FileDocumentManager manager, String basePath) {
+        List<com.intellij.openapi.editor.Document> documents = new ArrayList<>();
+        for (var document : manager.getUnsavedDocuments()) {
+            var file = manager.getFile(document);
+            if (file != null && file.getPath().startsWith(basePath + "/")) documents.add(document);
+        }
+        return documents;
+    }
+
+    private static String unsavedFileNames(FileDocumentManager manager, String basePath,
+                                          List<com.intellij.openapi.editor.Document> documents) {
+        return documents.stream().map(manager::getFile).filter(java.util.Objects::nonNull)
+                .map(file -> file.getPath().substring(basePath.length() + 1)).sorted()
+                .collect(java.util.stream.Collectors.joining("\n"));
+    }
+
 }

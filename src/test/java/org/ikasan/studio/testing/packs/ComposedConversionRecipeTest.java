@@ -83,6 +83,8 @@ class ComposedConversionRecipeTest extends AbstractGeneratorTestFixtures {
         converter.setPropertyValue("userImplementedClassName", "FtpAutomatic");
         String ftpAutomatic = generateUserImplementedComponentTemplate(version, module, converter);
         assertTrue(ftpAutomatic.contains("String filename = \"\";"));
+        assertTrue(ftpAutomatic.contains("public static final String FILENAME_PREFIX ="));
+        assertTrue(ftpAutomatic.contains("filename = FILENAME_PREFIX"));
         assertTrue(ftpAutomatic.contains("DateTimeFormatter.ofPattern(\"yyyyMMdd-HHmmss-SSS\")"));
         assertTrue(ftpAutomatic.contains("java.util.UUID.randomUUID() + \".dat\""));
 
@@ -94,6 +96,7 @@ class ComposedConversionRecipeTest extends AbstractGeneratorTestFixtures {
         assertTrue(emailAutomatic.contains("String filename = \"\";"));
         assertTrue(emailAutomatic.contains("if (filename.isBlank()) filename = \"message.dat\";"));
         assertFalse(emailAutomatic.contains("DateTimeFormatter"));
+        assertFalse(emailAutomatic.contains("FILENAME_PREFIX"));
 
         converter.setPropertyValue("conversionRecipeId", ftpRecipe.getId());
         converter.setPropertyValue("fromType", ftpRecipe.getSourceType());

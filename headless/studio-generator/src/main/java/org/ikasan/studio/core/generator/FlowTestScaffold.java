@@ -35,7 +35,7 @@ public final class FlowTestScaffold {
     }
 
     /** Legacy fingerprints or package layouts need one explicit module-support refresh. */
-    public static boolean supportNeedsRefresh(String existingSupport, Module module) throws Exception {
+    public static boolean supportNeedsRefresh(String existingSupport, Module module) {
         return !existingSupport.contains("new FileDeliveryBatchAssertions()")
                 || !existingSupport.contains("protected String formatOutputText(Object payload)")
                 || !existingSupport.contains("WIRING_SCHEMA_VERSION = " + ModuleTestWiring.SCHEMA_VERSION + ";")
@@ -202,7 +202,12 @@ public final class FlowTestScaffold {
                 Other scenarios follow TODO 1–5 in the Java test: isolate settings, supply two input batches, select output and expected results,
                 review component-path expectations, then enable and run. Set TEST_REVIEWED only after completing the first four tasks.
                 Configure shared test connections in src/test/resources/module-test.properties (UTF-8).
-                After refactoring, use Refresh test properties (archive existing) in Generate Flow Tests
+                Studio flow/component renames update recognised test names, property references and fixture directories.
+                Business assertions, expected values, TEST_REVIEWED and custom test class names are preserved.
+                Flow renames also rename test classes/files still using the generated name, updating Java references
+                and supported run configurations. Conflicting names block the rename.
+                Review any custom references reported by Studio, then rebuild and rerun existing tests.
+                For remaining stale settings after custom or external refactoring, use Refresh test properties (archive existing) in Generate Flow Tests
                 to rebuild settings from the model while keeping business tests and fixtures.
                 Review custom settings in the properties backup before running tests.
                 For plain FTP endpoints, set test.ftp.enabled=true to start a disposable loopback FTP server per test.

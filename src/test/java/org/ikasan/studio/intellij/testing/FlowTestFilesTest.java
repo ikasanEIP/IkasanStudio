@@ -146,6 +146,28 @@ class FlowTestFilesTest {
         }
     }
 
+    @Test void preservedOrSkippedScenarioStillCreatesMissingFixtures() throws Exception {
+        Files.writeString(root.resolve("pom.xml"), "original");
+        String test = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/BusinessTest.java";
+        String first = "user-flow-tests/src/test/resources/flow/producer/first.txt";
+        String second = "user-flow-tests/src/test/resources/flow/producer/second.txt";
+        Files.createDirectories(root.resolve(test).getParent());
+        Files.writeString(root.resolve(test), "custom assertions");
+        Files.createDirectories(root.resolve(first).getParent());
+        Files.writeString(root.resolve(first), "custom expected payload");
+        var plan = new FlowTestScaffold.Scaffold("original", test,
+                Map.of(test, "replacement", first, "sample first", second, "sample second"));
+        for (boolean refresh : new boolean[]{true, false}) {
+            var plans = java.util.List.of(plan);
+            if (refresh) plans = FlowTestFiles.preserveExistingScenarios(root, plans);
+            FlowTestFiles.writeAll(root, "original", plans);
+            assertEquals("custom assertions", Files.readString(root.resolve(test)));
+            assertEquals("custom expected payload", Files.readString(root.resolve(first)));
+            assertEquals("sample second", Files.readString(root.resolve(second)));
+            Files.delete(root.resolve(second));
+        }
+    }
+
     @Test void fixtureResourcesAreCreatedOnlyWhenMissingIncludingOnRegeneration() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
         String directory = "user-flow-tests/src/test/resources/flow4/my_local_consumer/";

@@ -565,8 +565,8 @@ public abstract class ModuleFlowTestSupport {
     }
 
     /** Compatibility overload for observation tests generated without payload expectations. */
-    protected final void runObservationTest(boolean configured, String output) throws Exception {
-        runObservationTest(configured, output, List.of());
+    protected final void runObservationTest(boolean configured, String producerName) throws Exception {
+        runObservationTest(configured, producerName, List.of());
     }
 
     /**
@@ -583,10 +583,14 @@ public abstract class ModuleFlowTestSupport {
      * External delivery, intermediate component order and recovery behaviour are not asserted.
      * Retains only the expected initial samples; subsequent events are counted without storing payloads.
      * Removes the listener and closes the application context during cleanup.
+     * @param configured whether the developer has reviewed and enabled this scenario
+     * @param producerName name of the producer observed through afterFlowElement
+     * @param expectedPayloadValues expected initial payload values in order, compared using formatOutputText;
+     *                              an empty list skips payload-value assertions
      */
-    protected final void runObservationTest(boolean configured, String output,
-            List<String> expectedInitialOutputs) throws Exception {
-        List<String> expected = List.copyOf(expectedInitialOutputs);
+    protected final void runObservationTest(boolean configured, String producerName,
+            List<String> expectedPayloadValues) throws Exception {
+        List<String> expected = List.copyOf(expectedPayloadValues);
         assertTrue("Review TODO 1–2, then set TEST_REVIEWED=true", configured);
         try (ConfigurableApplicationContext context = openTestApplication(flowTestProperties());
              AutoCloseable fixtures = () -> cleanupFixtures(context)) {
@@ -601,7 +605,7 @@ public abstract class ModuleFlowTestSupport {
                 public void beforeFlowElement(String m, String f, FlowElement e, FlowEvent event) { }
                 /** Counts sink invocations and captures only the bounded initial payload sequence. */
                 public void afterFlowElement(String m, String f, FlowElement e, FlowEvent event) {
-                    if (output.equals(e.getComponentName())) {
+                    if (producerName.equals(e.getComponentName())) {
                         long index = delivered.incrementAndGet();
                         if (index <= expected.size()) initialOutputs.offer(formatOutputText(event.getPayload()));
                     }

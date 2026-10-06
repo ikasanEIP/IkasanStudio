@@ -27,9 +27,32 @@ public final class FlowTestFiles {
     /** Automatic support refresh must never nominate existing business scenarios for replacement. */
     public static List<FlowTestScaffold.Scaffold> preserveExistingScenarios(Path root,
             List<FlowTestScaffold.Scaffold> scaffolds) {
-        return scaffolds.stream().filter(plan -> !plan.testPath().startsWith(
-                "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/")
-                || plan.testPath().contains("/support/") || !Files.exists(root.resolve(plan.testPath()))).toList();
+        List<FlowTestScaffold.Scaffold> plans = new ArrayList<>();
+        Map<String, FlowTestScaffold.Scaffold> fixtures = new LinkedHashMap<>();
+        for (var plan : scaffolds) {
+            boolean existingScenario = plan.testPath().startsWith(
+                    "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/")
+                    && !plan.testPath().contains("/support/")
+                    && Files.isRegularFile(root.resolve(plan.testPath()));
+            if (!existingScenario) {
+                plans.add(plan);
+                continue;
+            }
+            // Preserve developer assertions, but still seed missing sample input/expected-output files.
+            for (var entry : plan.files().entrySet()) {
+                String path = entry.getKey();
+                if (path.startsWith("user-flow-tests/src/test/resources/")
+                        && !path.equals(FlowTestScaffold.TEST_PROPERTIES_PATH)
+                        && !Files.exists(root.resolve(path))) {
+                    var fixture = new FlowTestScaffold.Scaffold(plan.rootPom(), path, Map.of(path, entry.getValue()));
+                    var previous = fixtures.putIfAbsent(path, fixture);
+                    if (previous != null && !previous.files().equals(fixture.files()))
+                        throw new IllegalArgumentException("Conflicting flow test fixture: " + path);
+                }
+            }
+        }
+        plans.addAll(fixtures.values());
+        return List.copyOf(plans);
     }
 
     /** Refresh module wiring only; reusable utilities, properties and POM retain existing values. */
@@ -158,6 +181,7 @@ public final class FlowTestFiles {
     /** Preflight the whole selection, preserve existing tests, then create all new files in one transaction. */
     public static List<Path> writeAll(Path root, String originalPom, List<FlowTestScaffold.Scaffold> scaffolds) throws IOException {
         root = root.toAbsolutePath().normalize();
+        scaffolds = preserveExistingScenarios(root, scaffolds);
         Set<Path> seen = new HashSet<>();
         List<Path> tests = new ArrayList<>();
         Map<String, String> files = new LinkedHashMap<>();
