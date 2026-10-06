@@ -7,7 +7,7 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     # 9.8.0 misresolves IntelliJ bundled SDK artifacts with Platform plugin 2.19.0.
     # See docs/Troubleshooting.md; later Gradle versions still receive update proposals.
     ignore:
@@ -23,4 +23,4 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
