@@ -52,6 +52,9 @@ class FlowTestSupportFingerprintTest {
         String support = scaffold.files().get(FlowTestScaffold.SUPPORT_PATH);
         assertFalse(FlowTestScaffold.supportNeedsRefresh(support, module));
         assertTrue(FlowTestScaffold.supportNeedsRefresh("old support", module));
+        assertTrue(FlowTestScaffold.supportNeedsRefresh(support.replace(
+                "protected final void runTest(TestScenario scenario)",
+                "protected final void runTest(boolean reviewed, TestScenario scenario)"), module));
         assertTrue(support.indexOf("FlowTestSupportFingerprint.verify(") < support.indexOf("application.run(arguments)"));
         assertTrue(support.contains("Review module-test.properties or scenario overrides"));
         assertTrue(FlowTestScaffold.supportNeedsRefresh(support.replace(

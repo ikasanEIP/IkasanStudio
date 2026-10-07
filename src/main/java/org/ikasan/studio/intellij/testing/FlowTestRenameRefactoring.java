@@ -253,7 +253,7 @@ public final class FlowTestRenameRefactoring {
         while (!pending.isEmpty()) {
             VirtualFile file = pending.removeFirst();
             if (file.isDirectory()) {
-                if (file == directory || !file.getName().equals("support"))
+                if (file.equals(directory) || !file.getName().equals("support"))
                     Collections.addAll(pending, file.getChildren());
                 continue;
             }
@@ -296,7 +296,9 @@ public final class FlowTestRenameRefactoring {
                                 "sequencer", "producer").contains(callName)) replacement = newName;
                         if (call != null && Set.of("runObservationTest", "runTest").contains(callName)) {
                             var args = call.getArgumentList().getExpressions();
-                            if (args.length > 1 && args[1] == literal) replacement = newName;
+                            // Legacy overloads start with a boolean review flag; current ones start with the producer.
+                            int producerIndex = args.length > 0 && PsiTypes.booleanType().equals(args[0].getType()) ? 1 : 0;
+                            if (args.length > producerIndex && args[producerIndex] == literal) replacement = newName;
                         }
                     }
                     if (keys.containsKey(value) && Set.of("getRequiredProperty", "getProperty").contains(callName))

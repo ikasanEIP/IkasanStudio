@@ -82,7 +82,8 @@ public final class FlowTestFiles {
     }
 
     /**
-     * Explicit recovery action: archive current settings and atomically replace them with model defaults.
+     * Explicit recovery action: archive current settings and replace model-dependent settings with defaults.
+     * Preserve local test service choices, which are module-wide and independent of flow selection.
      * Business scenarios and resources are untouched. A failed replacement retains the original file.
      */
     static Path refreshProperties(Path root, String contents) throws IOException {
@@ -96,6 +97,7 @@ public final class FlowTestFiles {
         if (!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS))
             throw new IOException("Expected a properties file: " + file);
         byte[] original = Files.readAllBytes(file);
+        contents = preserveLocalServiceChoices(new String(original, java.nio.charset.StandardCharsets.UTF_8), contents);
         Path backup = file.resolveSibling(file.getFileName() + ".bak" + java.time.LocalDateTime.now()
                 .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")) + "-" + UUID.randomUUID());
         Path temporary = Files.createTempFile(file.getParent(), ".test-properties-", ".tmp");
@@ -110,6 +112,24 @@ public final class FlowTestFiles {
         }
         return file;
     }
+
+    private static String preserveLocalServiceChoices(String original, String fresh) throws IOException {
+        Properties previous = new Properties();
+        previous.load(new java.io.StringReader(original));
+        StringBuilder retained = new StringBuilder();
+        for (String protocol : List.of("ftp", "sftp", "smtp")) {
+            String key = "test." + protocol + ".enabled";
+            String value = previous.getProperty(key);
+            if (value == null) continue;
+            // Match the support helpers' Boolean.parseBoolean semantics, including duplicate-key precedence.
+            boolean enabled = Boolean.parseBoolean(value);
+            fresh = fresh.replaceAll("(?m)^" + java.util.regex.Pattern.quote(key)
+                    + "[ \t]*[=:][^\r\n]*(?:\r?\n|$)", "");
+            retained.append(key).append('=').append(enabled).append('\n');
+        }
+        return retained.isEmpty() ? fresh : fresh + "\n# Local test service choices retained from previous settings.\n" + retained;
+    }
+
 
     public static void checkExisting(Path root, List<FlowTestScaffold.Scaffold> scaffolds) throws IOException {
         List<ExistingTestException> existing = new ArrayList<>();
@@ -338,11 +358,42 @@ public final class FlowTestFiles {
         } finally { Files.deleteIfExists(temporary); }
     }
 
-    /** Last-key precedence preserves comments and unrelated settings, including escaped/multiline values. */
+    /** Replace only the selected property, preserving unrelated logical entries and comments verbatim. */
+    private static String setFixtureProperty(String original, String key, String value) throws IOException {
+        StringBuilder result = new StringBuilder();
+        StringBuilder entry = new StringBuilder();
+        boolean replaced = false;
+        for (String line : original.split("(?<=\\n)", -1)) {
+            entry.append(line);
+            String physical = line.replaceFirst("[\\r\\n]+$", "");
+            int slashes = 0;
+            for (int i = physical.length() - 1; i >= 0 && physical.charAt(i) == '\\'; i--) slashes++;
+            String trimmed = entry.toString().stripLeading();
+            boolean comment = trimmed.startsWith("#") || trimmed.startsWith("!");
+            if (!comment && slashes % 2 == 1 && line.endsWith("\n")) continue;
+            Properties parsed = new Properties();
+            parsed.load(new java.io.StringReader(entry.toString()));
+            if (parsed.containsKey(key)) {
+                if (!replaced) {
+                    result.append(key).append('=').append(value).append('\n');
+                    replaced = true;
+                }
+            } else result.append(entry);
+            entry.setLength(0);
+        }
+        if (!replaced) {
+            if (!result.isEmpty() && result.charAt(result.length() - 1) != '\n') result.append('\n');
+            result.append(key).append('=').append(value).append('\n');
+        }
+        return result.toString();
+    }
+
+    /** Preserve custom credentials when enabling local FTP. */
     static String localFtpProperties(String original) throws IOException {
         java.util.Properties properties = new java.util.Properties();
         properties.load(new java.io.StringReader(original));
-        if ("true".equalsIgnoreCase(properties.getProperty("test.ftp.enabled"))) return original;
+        if (properties.containsKey("test.ftp.enabled"))
+            return setFixtureProperty(original, "test.ftp.enabled", "true");
         StringBuilder result = new StringBuilder(original).append("\n\n# Enabled by Generate Flow Test: disposable loopback FTP, allocated port, temporary home.\n")
                 .append("# Applies to all FTP endpoints in this test application; original settings above are retained.\n")
                 .append("test.ftp.enabled=true\n");
@@ -358,7 +409,8 @@ public final class FlowTestFiles {
     static String localSftpProperties(String original) throws IOException {
         Properties properties = new Properties();
         properties.load(new java.io.StringReader(original));
-        if ("true".equalsIgnoreCase(properties.getProperty("test.sftp.enabled"))) return original;
+        if (properties.containsKey("test.sftp.enabled"))
+            return setFixtureProperty(original, "test.sftp.enabled", "true");
         return original + "\n\n# Local test SFTP: loopback, allocated port, trusted temporary key and endpoint directories.\n"
                 + "test.sftp.enabled=true\n";
     }
@@ -366,7 +418,8 @@ public final class FlowTestFiles {
     static String localSmtpProperties(String original) throws IOException {
         Properties properties = new Properties();
         properties.load(new java.io.StringReader(original));
-        if ("true".equalsIgnoreCase(properties.getProperty("test.smtp.enabled"))) return original;
+        if (properties.containsKey("test.smtp.enabled"))
+            return setFixtureProperty(original, "test.smtp.enabled", "true");
         return original + "\n\n# Local test SMTP inbox: loopback only, allocated port, no forwarding.\n"
                 + "# Overrides all mail producer connections in this test application.\ntest.smtp.enabled=true\n";
     }

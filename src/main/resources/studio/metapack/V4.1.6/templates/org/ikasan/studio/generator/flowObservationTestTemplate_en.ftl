@@ -15,9 +15,8 @@ import java.util.List;
  */
 public class ${className} extends ModuleFlowTestSupport {
     // TODO 1: Review src/test/resources/module-test.properties for other module startup connections.
-    // TODO 2: Review the observation below, then set TEST_REVIEWED=true and run this test.
+    // TODO 2: Review the producer and expected payloads in the observation below.
     // mvn -pl user-flow-tests -am -Dtest=${className} -Dsurefire.failIfNoSpecifiedTests=false test
-    private static final boolean TEST_REVIEWED = false;
 
     private static final String FLOW_NAME = "${flowName?j_string}";
     @Override protected String getFlowName() { return FLOW_NAME; }
@@ -35,7 +34,7 @@ public class ${className} extends ModuleFlowTestSupport {
         // - A fresh later event reaches the producer without restarting the flow.
         // - Teardown stops the flow and confirms its STOPPED state.
         // It does not check external delivery, intermediate component order or recovery behaviour.
-        runObservationTest(TEST_REVIEWED, "${producers[0]?j_string}"<#if expectedInitialOutputs?has_content>,
+        runObservationTest("${producers[0]?j_string}"<#if expectedInitialOutputs?has_content>,
                 // Expected messages from the built-in event provider.
                 List.of(<#list expectedInitialOutputs as output>"${output?j_string}"<#sep>, </#sep></#list>)</#if>);
     }

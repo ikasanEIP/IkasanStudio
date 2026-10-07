@@ -66,6 +66,24 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
         assertNotNull(file(RESOURCES + "Original_Flow/New_Consumer/first.txt"));
     }
 
+    public void testProducerArgumentsInCurrentAndLegacyRunnerCallsFollowRename() {
+        write(TEST, text().replace("void customAssertion()", """
+                void runners() {
+                    runTest("Old Consumer", "Old Consumer", "expected");
+                    runTest(TEST_REVIEWED, "Old Consumer", "Old Consumer", "expected");
+                    runObservationTest("Old Consumer");
+                    runObservationTest(TEST_REVIEWED, "Old Consumer");
+                }
+                void customAssertion()
+                """));
+        var plan = inspect(flow.getConsumer(), "New Consumer");
+        WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> {}));
+        assertTrue(text().contains("runTest(\"New Consumer\", \"Old Consumer\", \"expected\")"));
+        assertTrue(text().contains("runTest(TEST_REVIEWED, \"New Consumer\", \"Old Consumer\", \"expected\")"));
+        assertTrue(text().contains("runObservationTest(\"New Consumer\")"));
+        assertTrue(text().contains("runObservationTest(TEST_REVIEWED, \"New Consumer\")"));
+    }
+
     public void testPersistenceFailureRestoresReferencesAndResources() {
         String before = text();
         var plan = inspect(null, "Renamed Flow");

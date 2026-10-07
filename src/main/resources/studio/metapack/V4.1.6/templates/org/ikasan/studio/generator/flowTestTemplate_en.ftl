@@ -15,9 +15,6 @@ import org.ikasan.studio.flowtests.support.utils.JmsFlowTestSupport;
 
 import org.ikasan.testharness.flow.rule.IkasanFlowTestRule;
 import org.junit.Test;
-<#if fileDelivery || smtpDelivery>
-import static org.junit.Assert.assertTrue;
-</#if>
 import org.springframework.context.ConfigurableApplicationContext;
 <#if localFile>
 import java.util.Map;
@@ -38,13 +35,12 @@ import org.junit.rules.TemporaryFolder;
  * 2. Choose the output producer and a stable payload representation.
  * 3. Review the expected component path and any branch/delivery assertions.
  * 4. Review test connections in module-test.properties.
- * 5. Enable the completed scenario and run it.
+ * Run immediately to see what works; use the TODOs to refine inputs and assertions.
  * See user-flow-tests/README.md for details. Generated scaffolds are not completed tests.
  */
 public class ${className} extends ModuleFlowTestSupport {
-    // TODO 5: After completing TODOs 1–4, set TEST_REVIEWED=true and run from the project root:
+    // Run from IntelliJ or from the project root:
     // mvn -pl user-flow-tests -am -Dtest=${className} -Dsurefire.failIfNoSpecifiedTests=false test
-    private static final boolean TEST_REVIEWED = false;
     private static final String FLOW_NAME = "${flowName?j_string}";
     @Override protected String getFlowName() { return FLOW_NAME; }
 
@@ -57,7 +53,14 @@ public class ${className} extends ModuleFlowTestSupport {
     }
 </#if>
 
-<#if ftpInput || sftpInput || isolatedFiles>
+<#if objectMessageInput>
+    // TODO 1: Construct a serializable business object for each batch (expected type: ${objectInputType?j_string}).
+    // This flow unwraps a JMS ObjectMessage. Text/XML/JSON sent with sendText cannot substitute for it.
+    // Use prepareFixtures(context) if construction needs Spring beans or other runtime fixtures.
+    protected java.io.Serializable createInputObject(int batch) {
+        throw new UnsupportedOperationException("Create the ${objectInputType?j_string} fixture for batch " + batch);
+    }
+<#elseif ftpInput || sftpInput || isolatedFiles>
     // TODO 1: Review the sample input files under user-flow-tests/src/test/resources (or change the paths).
     // Each resource is copied unchanged to the JUnit test input directory using only its filename.
     // Use distinct filenames; the test directory is configured automatically.
@@ -113,8 +116,13 @@ public class ${className} extends ModuleFlowTestSupport {
         // ModuleJmsTestConfig supplies the test connection. Configure test.jms.broker-url
         // and matching isolated flow broker/destinations in module-test.properties.
         try (JmsFlowTestSupport jms = JmsFlowTestSupport.from(context)) {
+<#if objectMessageInput>
+            jms.sendObject(context.getEnvironment().getRequiredProperty("${jmsInputKey?j_string}"), createInputObject(batch));
+<#else>
+            // Text is a starting fixture; review the first processing component's required JMS message type.
             jms.sendText(context.getEnvironment().getRequiredProperty("${jmsInputKey?j_string}"),
                     batch == 1 ? FIRST_BATCH_INPUT : SECOND_BATCH_INPUT);
+</#if>
         }
 <#elseif sampleSubmission>
         // The following property has been set in module-test.properties so that the ${sampleConsumerClass} does not
@@ -248,13 +256,12 @@ public class ${className} extends ModuleFlowTestSupport {
     @Test
     public void testFirstAndLaterDeliveryWithoutRestart() throws Exception {
         // If you override assertOutput(actualAfterProducer, batch), replace the call below with:
-        // runTest(TEST_REVIEWED, PRODUCER_NAME);
+        // runTest(PRODUCER_NAME);
 <#if fileDelivery || smtpDelivery>
-        assertTrue("Complete TODOs 1–4, then set TEST_REVIEWED=true", TEST_REVIEWED);
-        runTest(TEST_REVIEWED, PRODUCER_NAME, readTestResource(FIRST_EXPECTED_OUTPUT_RESOURCE),
+        runTest(PRODUCER_NAME, readTestResource(FIRST_EXPECTED_OUTPUT_RESOURCE),
                 readTestResource(SECOND_EXPECTED_OUTPUT_RESOURCE));
 <#else>
-        runTest(TEST_REVIEWED, PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT);
+        runTest(PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT);
 </#if>
     }
 

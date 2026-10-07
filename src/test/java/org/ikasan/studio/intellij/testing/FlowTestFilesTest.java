@@ -75,6 +75,32 @@ class FlowTestFilesTest {
         assertEquals("business input", Files.readString(fixture));
     }
 
+    @Test void propertiesRefreshRetainsModuleWideLocalServiceChoices() throws Exception {
+        Path properties = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
+        Files.createDirectories(properties.getParent());
+        String original = "test.sftp.enabled=false\ntest.sftp.enabled=true\n"
+                + "test.ftp.enabled=true\ntest.smtp.enabled=false\nold.endpoint=${removed.key}\n";
+        Files.writeString(properties, original);
+        FlowTestFiles.refreshProperties(root,
+                "test.sftp.enabled=false\ntest.ftp.enabled=false\ntest.smtp.enabled=true\nnew.endpoint=sample\n");
+        var refreshed = new java.util.Properties();
+        refreshed.load(new java.io.StringReader(Files.readString(properties)));
+        assertEquals("true", refreshed.getProperty("test.sftp.enabled"));
+        assertEquals("true", refreshed.getProperty("test.ftp.enabled"));
+        assertEquals("false", refreshed.getProperty("test.smtp.enabled"));
+        assertNull(refreshed.getProperty("old.endpoint"));
+        assertEquals("sample", refreshed.getProperty("new.endpoint"));
+        assertEquals(1, Files.readString(properties).lines().filter(line -> line.startsWith("test.sftp.enabled=")).count());
+        try (var files = Files.list(properties.getParent())) {
+            Path backup = files.filter(path -> path.getFileName().toString().startsWith("module-test.properties.bak")).findFirst().orElseThrow();
+            assertEquals(original, Files.readString(backup));
+        }
+        // A newly selected local fixture can still enable a previously external endpoint after refresh.
+        FlowTestFiles.enableLocalSmtp(root);
+        refreshed.load(new java.io.StringReader(Files.readString(properties)));
+        assertEquals("true", refreshed.getProperty("test.smtp.enabled"));
+    }
+
     @Test void propertiesRefreshCreatesMissingFileWithoutBackup() throws Exception {
         Path properties = FlowTestFiles.refreshProperties(root, "fresh=true\n");
         assertEquals("fresh=true\n", Files.readString(properties));
@@ -287,8 +313,7 @@ class FlowTestFilesTest {
         Files.writeString(properties, original);
         FlowTestFiles.enableLocalSftp(root);
         String updated = Files.readString(properties);
-        assertTrue(updated.startsWith(original));
-        assertTrue(updated.endsWith("test.sftp.enabled=true\n"));
+        assertEquals(original.replace("enabled=false", "enabled=true"), updated);
         FlowTestFiles.enableLocalSftp(root);
         assertEquals(updated, Files.readString(properties));
         try (var paths = Files.list(properties.getParent())) {
@@ -303,8 +328,7 @@ class FlowTestFilesTest {
         Files.writeString(properties, original);
         FlowTestFiles.enableLocalSmtp(root);
         String updated = Files.readString(properties);
-        assertTrue(updated.startsWith(original));
-        assertTrue(updated.endsWith("test.smtp.enabled=true\n"));
+        assertEquals(original.replace("enabled=false", "enabled=true"), updated);
         assertEquals(updated, FlowTestFiles.localSmtpProperties(updated));
         try (var paths = Files.list(properties.getParent())) {
             assertTrue(paths.anyMatch(p -> p.getFileName().toString().startsWith("module-test.properties.bak")));
@@ -326,7 +350,7 @@ class FlowTestFilesTest {
         Files.writeString(properties, original);
         FlowTestFiles.enableLocalFtp(root);
         String updated = Files.readString(properties);
-        assertTrue(updated.startsWith(original));
+        assertEquals(original.replace("enabled=false", "enabled=true"), updated);
         java.util.Properties loaded = new java.util.Properties();
         loaded.load(new java.io.StringReader(updated));
         assertEquals("true", loaded.getProperty("test.ftp.enabled"));
@@ -339,6 +363,20 @@ class FlowTestFilesTest {
             var backups = paths.filter(p -> p.getFileName().toString().contains(".bak")).toList();
             assertEquals(1, backups.size());
             assertEquals(original, Files.readString(backups.get(0)));
+        }
+    }
+
+    @Test void localFixtureChoicesCollapseDuplicatesAndPreserveLogicalEntries() throws Exception {
+        for (String protocol : java.util.List.of("ftp", "sftp", "smtp")) {
+            String key = "test." + protocol + ".enabled";
+            String unrelated = "# keep\r\nother=first\\\n  " + key + "=literal\n";
+            String original = unrelated + "  " + key + " : false\n" + key + "=true\n";
+            String updated = switch (protocol) {
+                case "ftp" -> FlowTestFiles.localFtpProperties(original);
+                case "sftp" -> FlowTestFiles.localSftpProperties(original);
+                default -> FlowTestFiles.localSmtpProperties(original);
+            };
+            assertEquals(unrelated + key + "=true\n", updated);
         }
     }
 

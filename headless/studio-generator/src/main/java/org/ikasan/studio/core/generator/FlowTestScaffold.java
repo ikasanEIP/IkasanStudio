@@ -36,7 +36,9 @@ public final class FlowTestScaffold {
 
     /** Legacy fingerprints or package layouts need one explicit module-support refresh. */
     public static boolean supportNeedsRefresh(String existingSupport, Module module) {
-        return !existingSupport.contains("new FileDeliveryBatchAssertions()")
+        return !existingSupport.contains("FlowTestFailureCapture")
+                || !existingSupport.contains("protected final void runTest(TestScenario scenario)")
+                || !existingSupport.contains("new FileDeliveryBatchAssertions()")
                 || !existingSupport.contains("protected String formatOutputText(Object payload)")
                 || !existingSupport.contains("WIRING_SCHEMA_VERSION = " + ModuleTestWiring.SCHEMA_VERSION + ";")
                 || !existingSupport.contains("SUPPORT_META_PACK = \"" + module.getMetaVersion() + "\"");
@@ -124,6 +126,27 @@ public final class FlowTestScaffold {
         }
         values.put("jmsOutputKey", jmsOutputKey);
         values.put("jmsConsumer", jmsConsumer);
+        boolean objectMessageInput = false;
+        String objectInputType = "java.io.Serializable";
+        // Only infer along the initial linear route; do not look through arbitrary transformations/branches.
+        if (jmsConsumer) {
+            for (var element : flow.getFlowRoute().getFlowElements()) {
+                if (element.getComponentMeta().isFlowTestPassThroughFilter()) continue;
+                if (!objectMessageInput) {
+                    objectMessageInput = "org.ikasan.component.converter.jms.ObjectMessageToObjectConverter"
+                            .equals(element.getComponentMeta().getImplementingClass());
+                    if (!objectMessageInput) break;
+                } else {
+                    String declared = element.getEffectiveInputTypeDescription();
+                    if (declared != null && declared.matches("[a-zA-Z_$][\\w$]*(\\.[a-zA-Z_$][\\w$]*)+"))
+                        objectInputType = declared;
+                    break;
+                }
+            }
+        }
+        values.put("objectMessageInput", objectMessageInput);
+        values.put("objectInputType", objectInputType);
+
         values.put("jmsInputKey", jmsConsumer ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
                 module, flow, flow.getConsumer(), destination.getMeta().getPropertyConfigFileLabel()) : "");
         var patternProperty = flow.getConsumer().getProperty("filenamePattern");
@@ -183,6 +206,8 @@ public final class FlowTestScaffold {
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "outputTextSupportTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSmtpTestServer.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localSmtpTestServerTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FlowTestFailureCapture.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestFailureCaptureTemplate_en.ftl", values));
         files.put(SUPPORT_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestSupportTemplate_en.ftl", values));
         files.put(path, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), observationOnly ? "flowObservationTestTemplate_en.ftl" : "flowTestTemplate_en.ftl", values));
         files.put("user-flow-tests/pom.xml", FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestPomTemplate_en.ftl", values));
@@ -196,14 +221,21 @@ public final class FlowTestScaffold {
                 Model edits do not require utility regeneration; Studio fixes or Ikasan upgrades may require reviewed updates.
                 Existing helpers in the old package are retained. Port custom setup before adopting the new support package.
                 Scenario tests use IkasanFlowTestRule; continuous-source observation tests use a bounded counting listener.
-                They deliberately FAIL before starting services until you complete the test scenario.
-                Direct self-generating-source/discard-sink observation tests have only TODO 1–2: review settings, then enable.
+                Standard scenarios surface component failures with the flow/component, incoming payload type and original cause.
+                This is a success-scenario check; deliberately expected failure/recovery paths need custom observation.
+                JMS input normally starts with text. An initial ObjectMessageToObjectConverter selects sendObject and
+                createInputObject(batch) instead: populate its TODO with a serializable business object for each batch.
+                A downstream declared input class is a fixture hint, not automatically constructed business data.
+                Existing utils/JmsFlowTestSupport.java is preserved. If it lacks sendObject, archive it outside the .java
+                extension and generate again to recreate the missing helper; review/reapply customisations.
+                New tests run immediately, starting the configured application and fixtures; no review flag is required.
+                Direct self-generating-source/discard-sink observation tests have only TODO 1–2: review settings and observation expectations.
                 They check any meta-pack initial payload sequence, count later events, and stop the test flow only during teardown.
-                Other scenarios follow TODO 1–5 in the Java test: isolate settings, supply two input batches, select output and expected results,
-                review component-path expectations, then enable and run. Set TEST_REVIEWED only after completing the first four tasks.
+                Other scenarios follow TODO 1–4 in the Java test: supply two input batches, select output and expected results,
+                review component-path expectations, and review shared test connections. Tests run immediately; use failures to guide completion of the TODOs.
                 Configure shared test connections in src/test/resources/module-test.properties (UTF-8).
                 Studio flow/component renames update recognised test names, property references and fixture directories.
-                Business assertions, expected values, TEST_REVIEWED and custom test class names are preserved.
+                Business assertions, expected values and custom test class names are preserved.
                 Flow renames also rename test classes/files still using the generated name, updating Java references
                 and supported run configurations. Conflicting names block the rename.
                 Review any custom references reported by Studio, then rebuild and rerun existing tests.
@@ -254,7 +286,7 @@ public final class FlowTestScaffold {
                 Run from the project root: `mvn -pl user-flow-tests -am test`.
                 For one test: `mvn -pl user-flow-tests -am -Dtest=YourFlowTest -Dsurefire.failIfNoSpecifiedTests=false test`.
                 Override assertOutput(Object actual, int batch) for business-object field assertions and call
-                runTest(TEST_REVIEWED, PRODUCER_NAME); this bypasses formatOutputText conversion.
+                runTest(PRODUCER_NAME); this bypasses formatOutputText conversion.
                 With text assertions, false uses toString(), not object equality.
                 DECODE_OUTPUT_CONTENT_AS_TEXT enables content comparison for Ikasan Payload, bytes, files/paths/file lists and JMS TextMessage.
                 It uses UTF-8, rejects unsupported types and never acknowledges/consumes JMS messages; override formatOutputText for other formats.
