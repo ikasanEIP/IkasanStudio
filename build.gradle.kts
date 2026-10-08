@@ -133,7 +133,7 @@ dependencies {
 // The platform fixtures resolve separately from testRuntimeClasspath. These are
 // test-only repairs; IntelliJ's installed libraries remain owned by JetBrains.
 dependencies {
-    add("intellijPlatformTestDependencies", platform("com.fasterxml.jackson:jackson-bom:2.18.11"))
+    add("intellijPlatformTestDependencies", platform("com.fasterxml.jackson:jackson-bom:2.22.3"))
     constraints {
         add("intellijPlatformTestDependencies", "org.assertj:assertj-core:3.27.7") {
             because("CVE-2026-24400: patch the platform fixture's XML assertions")
