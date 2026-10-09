@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiAnnotation;
@@ -13,7 +14,9 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesUtil;
+import com.intellij.refactoring.JavaRefactoringFactory;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameProcessor;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generator.GeneratorUtils;
@@ -178,11 +181,26 @@ public final class UserImplementedClassRelocator {
                 if (destinationDir != null) {
                     PsiDirectory psiDestinationDir = ReadAction.compute(() -> PsiManager.getInstance(project).findDirectory(destinationDir));
                     if (psiDestinationDir != null) {
-                        PsiClass relocatedClass = WriteCommandAction.writeCommandAction(project).compute(() ->
-                                MoveClassesOrPackagesUtil.doMoveClass(psiClass, psiDestinationDir));
+                        var pointer = SmartPointerManager.getInstance(project).createSmartPsiElementPointer(psiClass);
+                        VirtualFile sourceRoot = ReadAction.compute(() -> ProjectRootManager.getInstance(project)
+                                .getFileIndex().getSourceRootForFile(destinationDir));
+                        if (sourceRoot == null) {
+                            throw new IllegalStateException("Destination is not an imported Java source root");
+                        }
+                        var factory = JavaRefactoringFactory.getInstance(project);
+                        var move = factory.createMoveClassesOrPackages(new PsiElement[]{psiClass},
+                                factory.createSourceRootMoveDestination(newPackageName, sourceRoot), false, false);
+                        move.setPreviewUsages(false);
+                        move.setInteractive(null);
+                        // The public refactoring owns its command/write action and updates Java usages.
+                        move.run();
+                        PsiClass relocatedClass = pointer.getElement();
+                        if (relocatedClass == null || !newPackageName.equals(
+                                ((PsiJavaFile) relocatedClass.getContainingFile()).getPackageName())) {
+                            throw new IllegalStateException("Class move did not complete");
+                        }
                         if (!newClassName.equals(relocatedClass.getName())) {
-                            // RenameProcessor manages its own write action/command internally - run it as a
-                            // separate step rather than nesting it inside the move's WriteCommandAction above.
+                            // RenameProcessor owns its write action/command too.
                             new RenameProcessor(project, relocatedClass, newClassName, false, false).run();
                         }
                         WriteCommandAction.runWriteCommandAction(project, () ->

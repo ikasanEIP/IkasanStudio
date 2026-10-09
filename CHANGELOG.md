@@ -39,6 +39,9 @@ release verification and outstanding checks are tracked separately in
 
 ### Fixed
 
+- Use IntelliJ's public move-class refactoring when moving handwritten components between flows, preserving Java references and generated Spring bean names.
+- Await a full Maven sync before compiling migrated projects, with project-lifetime cancellation and import-failure handling.
+
 - Filename lists now stay comma-separated when saving the model or copying flows, preventing literal list brackets from reappearing after reload. Regex character classes are preserved.
 
 - In-place migrations now remove unmodified, unversioned source-component dependencies retired by the target pack, avoiding unmanaged legacy JAXB dependencies after upgrading to 4.1.6 while preserving explicit overrides.

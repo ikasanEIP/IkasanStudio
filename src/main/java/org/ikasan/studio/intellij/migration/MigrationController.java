@@ -178,16 +178,10 @@ public final class MigrationController {
         }
     }
 
-    // The Java scheduling APIs in IDEA 2024.2/2024.3 return void. Keep the promise-based
-    // bridge so compilation waits for import/resolve and retains import-failure reporting.
-    // Revisit when the minimum IDE version or this controller's coroutine integration changes.
-    @SuppressWarnings("deprecation")
     private static void importBeforeCompile(MavenProjectsManager maven, Project project, Path snapshot,
                                             Runnable onImported) {
-        maven.forceUpdateProjects(maven.getProjects()).onSuccess(ignored ->
-                maven.scheduleImportAndResolve().onSuccess(modules -> onImported.run())
-                        .onError(error -> notifyImportFailure(project, snapshot))
-        ).onError(error -> notifyImportFailure(project, snapshot));
+        project.getService(MigrationMavenSync.class).importBeforeCompile(maven, onImported,
+                () -> notifyImportFailure(project, snapshot));
     }
 
     private static void notifyImportFailure(Project project, Path snapshot) {

@@ -104,6 +104,16 @@ public class UserImplementedClassRelocatorHeavyTest extends HeavyPlatformTestCas
         String originalContent = "package " + oldPackage + ";\n\npublic class " + className + " {\n    " + distinctiveMarker + "\n}\n";
         StudioProjectFiles.createJavaSourceFile(myProject, StudioProjectFiles.USER_CONTENT_ROOT, StudioProjectFiles.SRC_MAIN_JAVA_CODE,
                 oldPackage, className, originalContent, null);
+        VirtualFile sourceRoot = StudioProjectFiles.getUserImplementedClassFile(myProject, oldPackage, className).getParent();
+        for (String ignored : oldPackage.split("\\.")) sourceRoot = sourceRoot.getParent();
+        com.intellij.testFramework.PsiTestUtil.addContentRoot(myModule, sourceRoot);
+        com.intellij.testFramework.PsiTestUtil.addSourceRoot(myModule, sourceRoot);
+        String callerPackage = "org.example.caller";
+        StudioProjectFiles.createJavaSourceFile(myProject, StudioProjectFiles.USER_CONTENT_ROOT,
+                StudioProjectFiles.SRC_MAIN_JAVA_CODE, callerPackage, "BrokerCaller",
+                "package " + callerPackage + ";\nimport " + oldPackage + "." + className + ";\n"
+                        + "public class BrokerCaller { " + className + " broker = new " + className + "(); }", null);
+        VirtualFile caller = StudioProjectFiles.getUserImplementedClassFile(myProject, callerPackage, "BrokerCaller");
         assertThat("sanity: the old, hand-written stub should exist before the move",
                 StudioProjectFiles.getUserImplementedClassFile(myProject, oldPackage, className), notNullValue());
 
@@ -120,6 +130,10 @@ public class UserImplementedClassRelocatorHeavyTest extends HeavyPlatformTestCas
         assertThat("the relocated file's content should be readable", relocatedContent, notNullValue());
         assertThat("the hand-written body must survive the relocation intact",
                 relocatedContent.contains(distinctiveMarker), is(true));
+        String callerContent = com.intellij.openapi.application.ReadAction.compute(() ->
+                com.intellij.psi.PsiManager.getInstance(myProject).findFile(caller).getText());
+        assertTrue("Java usages must follow the moved class: " + callerContent,
+                callerContent.contains("import " + newPackage + "." + className + ";"));
     }
 
     public void test_moveUpdatesGeneratedBeanName() throws Exception {

@@ -27,7 +27,7 @@ plugins {
     alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
     alias(libs.plugins.qodana) // Gradle Qodana Plugin
-    id("org.jetbrains.kotlin.jvm") version "2.4.20" apply false
+    id("org.jetbrains.kotlin.jvm") version "2.4.20"
     id("idea")
 }
 
@@ -56,6 +56,15 @@ val metaPackHelpUrls = fileTree("src/main/resources/studio/metapack") {
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+kotlin {
+    jvmToolchain(17)
+    compilerOptions {
+        // Use the IDE-provided runtime and the oldest API supported by this compiler.
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
     }
 }
 
@@ -408,6 +417,31 @@ tasks {
 
 
 intellijPlatformTesting {
+    testIde {
+        register("testIdeCompatibility") {
+            type = IntelliJPlatformType.IntellijIdea
+            version = providers.gradleProperty("compatibilityTestIdeVersion")
+                .orElse(providers.gradleProperty("verificationNewestIde"))
+            testFrameworks(TestFrameworkType.Platform, TestFrameworkType.Plugin.Java)
+            plugins {
+                bundledPlugins("com.intellij.java", "org.jetbrains.idea.maven", "org.jetbrains.plugins.terminal",
+                    "com.intellij.mcpServer")
+            }
+            prepareSandboxTask {
+                // Keep this workaround in the test sandbox. The headless runner flattens plugin
+                // loaders, where a commercial startup class collides with an obfuscated core class.
+                disabledPlugins.add("com.intellij.modules.ultimate")
+            }
+            task {
+                description = "Exercises the refactoring, Maven sync and optional MCP module on a newer IDE."
+                filter {
+                    includeTestsMatching("*UserImplementedClassRelocatorHeavyTest")
+                    includeTestsMatching("*MigrationMavenSyncTest")
+                    includeTestsMatching("*StudioNativeMcpLoadingTest")
+                }
+            }
+        }
+    }
     runIde {
         register("runIdeModern") {
             type = IntelliJPlatformType.IntellijIdea
