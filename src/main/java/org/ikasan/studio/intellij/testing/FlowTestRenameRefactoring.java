@@ -177,7 +177,9 @@ public final class FlowTestRenameRefactoring {
         AtomicReference<RuntimeException> failure = new AtomicReference<>();
         com.intellij.openapi.application.WriteIntentReadAction.run((Runnable) () ->
                 ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
-                    try { result.set(ReadAction.compute(() -> inspect(project, module, flow, component, newName))); }
+                    try { result.set(ReadAction.nonBlocking(() -> inspect(project, module, flow, component, newName))
+                            .expireWith(project.getService(org.ikasan.studio.intellij.project.StudioProjectInitialisationService.class)).executeSynchronously()); }
+                    catch (com.intellij.openapi.progress.ProcessCanceledException canceled) { throw canceled; }
                     catch (RuntimeException ex) { failure.set(ex); }
                 }, StudioBundle.message("flowTest.renamePreparing"), false, project));
         if (failure.get() != null) throw failure.get();
@@ -324,7 +326,12 @@ public final class FlowTestRenameRefactoring {
         boolean key = false;
         if ("entry".equals(name)) key = arguments.length == 2 && arguments[0] == literal;
         else if ("of".equals(name)) {
-            for (int i = 0; i < arguments.length; i += 2) if (arguments[i] == literal) key = true;
+            for (int i = 0; i < arguments.length; i += 2) {
+                if (arguments[i] == literal) {
+                    key = true;
+                    break;
+                }
+            }
         }
         if (!key) return false;
         var parent = PsiTreeUtil.getParentOfType(call, PsiMethodCallExpression.class, true);

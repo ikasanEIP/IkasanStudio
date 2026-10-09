@@ -14,6 +14,7 @@ import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import java.util.List;
 
 public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
+    private com.intellij.openapi.ui.TestDialog previousDialog;
     private Module module;
     private Flow flow;
     private String oldPackage;
@@ -27,6 +28,10 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        previousDialog = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> {
+            assertTrue("Unexpected dialog: " + message, message.startsWith("Undo "));
+            return com.intellij.openapi.ui.Messages.OK;
+        });
         createTestProjectStructure("src/test/testData/ikasanStandardSampleApps/general/");
         flow = TestFixtures.getUnbuiltFlow(TestFixtures.BASE_META_PACK).name("Original Flow")
                 .consumer(TestFixtures.getEventGeneratingConsumer(TestFixtures.BASE_META_PACK)).build();
@@ -43,6 +48,29 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
         PsiDocumentManager.getInstance(myProject).commitAllDocuments();
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        try { com.intellij.openapi.ui.TestDialogManager.setTestDialog(previousDialog); }
+        finally { super.tearDown(); }
+    }
+
+    // Test-only adapter: IntelliJ changed its internal unlock hook after our baseline SDK.
+    private static void withoutWriteIntent(Runnable action) throws Exception {
+        var app = com.intellij.openapi.application.ApplicationManager.getApplication();
+        try {
+            var legacy = app.getClass().getMethod("runUnlockingIntendedWrite", com.intellij.openapi.util.ThrowableComputable.class);
+            legacy.invoke(app, (com.intellij.openapi.util.ThrowableComputable<Void, RuntimeException>) () -> {
+                action.run(); return null;
+            });
+        } catch (NoSuchMethodException modern) {
+            Object threading = app.getClass().getMethod("getThreadingSupport").invoke(app);
+            var contract = Class.forName("com.intellij.openapi.application.ThreadingSupport");
+            contract.getMethod("releaseTheAcquiredWriteIntentLockThenExecuteActionAndTakeWriteIntentLockBack",
+                    kotlin.jvm.functions.Function0.class).invoke(threading,
+                    (kotlin.jvm.functions.Function0<kotlin.Unit>) () -> { action.run(); return kotlin.Unit.INSTANCE; });
+        }
+    }
+
     public void testMovesHelpersAndUpdatesReferencesWithoutCommittingTheModelEarly() {
         var plan = plan();
         assertEquals(2, plan.files().size());
@@ -55,16 +83,14 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     // The internal test hook reproduces an EDT callback without the legacy implicit read lock.
-    @SuppressWarnings("UnstableApiUsage")
-    public void testRenameFromSwingCallbackWithoutImplicitReadAccess() {
+    public void testRenameFromSwingCallbackWithoutImplicitReadAccess() throws Exception {
         var plan = plan();
         myProject.getService(org.ikasan.studio.ui.UiContext.class).setIkasanModule(module);
         var application = com.intellij.openapi.application.ex.ApplicationManagerEx.getApplicationEx();
-        application.runUnlockingIntendedWrite(() -> {
+        withoutWriteIntent(() -> {
             assertTrue(application.isDispatchThread());
             assertFalse(application.isReadAccessAllowed());
             assertTrue(FlowPackageRefactoring.renameAndSave(plan, module, flow, "Renamed Flow"));
-            return null;
         });
         assertEquals("Renamed Flow", flow.getIdentity());
         assertNull(file(oldPackage, "Implementation"));
@@ -119,7 +145,12 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
             fail("Expected failure");
         } catch (IllegalStateException expected) {
             assertEquals("injected failure", expected.getMessage());
-            assertEquals(0, expected.getSuppressed().length);
+            // Newer IntelliJ attaches a diagnostic rethrow location as a suppressed exception.
+            // Genuine rollback failures must still fail this test.
+            for (Throwable suppressed : expected.getSuppressed()) {
+                assertEquals(suppressed.toString(), "com.intellij.util.ExceptionUtilRt$RethrownStack",
+                        suppressed.getClass().getName());
+            }
         }
         assertNotNull(file(oldPackage, "Implementation"));
         assertNull(file(newPackage, "Implementation"));

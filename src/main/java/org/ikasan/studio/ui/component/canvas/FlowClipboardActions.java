@@ -100,9 +100,11 @@ final class FlowClipboardActions implements CopyProvider, PasteProvider {
             var snapshot = FlowClipboard.capture(flow, module.getVersion());
             String packageName = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
             runTask("menu.CopyFlow", () -> FlowClipboard.encode(snapshot,
-                    ReadAction.compute(() -> FlowSourceTransfer.capture(project, packageName))), encoded ->
+                    ReadAction.nonBlocking(() -> FlowSourceTransfer.capture(project, packageName))
+                            .expireWith(project.getService(org.ikasan.studio.intellij.project.StudioProjectInitialisationService.class)).executeSynchronously()), encoded ->
                     CopyPasteManager.getInstance().setContents(new StringSelection(encoded)));
-        } catch (RuntimeException exception) { failed(exception); }
+        } catch (com.intellij.openapi.progress.ProcessCanceledException canceled) { throw canceled; }
+        catch (RuntimeException exception) { failed(exception); }
     }
 
     private void paste() {
@@ -161,8 +163,9 @@ final class FlowClipboardActions implements CopyProvider, PasteProvider {
                 || !Objects.equals(version, module.getVersion()) || !FlowClipboard.nameAvailable(module, flow.getIdentity())) return;
         if (!sources.files().isEmpty()) {
             String destinationPackage = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
-            runTask("menu.PasteFlow", () -> ReadAction.compute(() ->
-                    FlowSourceTransfer.relocate(project, sources, destinationPackage)), relocated -> {
+            runTask("menu.PasteFlow", () -> ReadAction.nonBlocking(() ->
+                    FlowSourceTransfer.relocate(project, sources, destinationPackage))
+                    .expireWith(project.getService(org.ikasan.studio.intellij.project.StudioProjectInitialisationService.class)).executeSynchronously(), relocated -> {
                 if (project.isDisposed() || context.getIkasanModule() != module || context.getDesignerCanvas() != canvas
                         || !Objects.equals(version, module.getVersion())
                         || !Objects.equals(destinationPackage, GeneratorUtils.getUserImplementedClassesPackageName(module, flow))

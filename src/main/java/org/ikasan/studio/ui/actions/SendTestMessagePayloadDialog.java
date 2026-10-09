@@ -4,7 +4,7 @@ import com.intellij.util.ui.JBUI;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
@@ -283,7 +283,7 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
      * choice is made, never on cancel.
      */
     private void loadFromFile() {
-        StudioProjectFiles.chooseFileAndReadText(project, FileChooserDescriptorFactory.createSingleFileDescriptor(), result -> {
+        StudioProjectFiles.chooseFileAndReadText(project, new FileChooserDescriptor(true, true, true, true, false, false), result -> {
             if (result.errorMessage() != null) {
                 StudioUIUtils.displayIdeaWarnMessage(project,
                         StudioBundle.message("message.CouldNotReadPayloadFile", result.errorMessage()));

@@ -112,7 +112,8 @@ public final class StudioProjectInitialisationService implements Disposable {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
                 if (disposed || project.isDisposed()) return;
-                if (!ReadAction.compute(() -> StudioProjectFiles.hasGeneratedContentRoot(project))) {
+                if (!ReadAction.nonBlocking(() -> StudioProjectFiles.hasGeneratedContentRoot(project))
+                        .expireWith(this).executeSynchronously()) {
                     waitForProjectImport();
                     return;
                 }

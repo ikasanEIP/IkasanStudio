@@ -438,6 +438,10 @@ intellijPlatformTesting {
                     includeTestsMatching("*UserImplementedClassRelocatorHeavyTest")
                     includeTestsMatching("*MigrationMavenSyncTest")
                     includeTestsMatching("*StudioNativeMcpLoadingTest")
+                    includeTestsMatching("*StudioBundleLocalisationTest")
+                    includeTestsMatching("*FlowPackageRefactoringHeavyTest")
+                    includeTestsMatching("*FlowTestRenameRefactoringHeavyTest")
+                    includeTestsMatching("*FlowClipboardActionsTest")
                 }
             }
         }

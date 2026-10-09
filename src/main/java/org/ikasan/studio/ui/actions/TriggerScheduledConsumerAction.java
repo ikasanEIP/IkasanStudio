@@ -76,8 +76,8 @@ public class TriggerScheduledConsumerAction implements ActionListener {
             return StudioBundle.message("message.ScanCriteriaUnavailable");
         }
         java.util.List<String> entries = new java.util.ArrayList<>();
-        criteriaNode.fields().forEachRemaining(entry ->
-                entries.add(entry.getKey() + "=" + nodeToText(entry.getValue())));
+        criteriaNode.fieldNames().forEachRemaining(name ->
+                entries.add(name + "=" + nodeToText(criteriaNode.get(name))));
         return String.join(", ", entries);
     }
 

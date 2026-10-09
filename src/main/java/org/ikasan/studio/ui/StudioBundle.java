@@ -16,13 +16,12 @@ import org.jetbrains.annotations.PropertyKey;
  * open the English properties file. See the header comment in {@code studioBundle.properties} for the full
  * list of {@code <uiCategory>} prefixes in use.
  */
-public final class StudioBundle extends DynamicBundle {
+public final class StudioBundle {
     @NonNls
     private static final String BUNDLE = "messages.studioBundle";
-    private static final StudioBundle INSTANCE = new StudioBundle();
+    private static final DynamicBundle INSTANCE = new DynamicBundle(StudioBundle.class, BUNDLE);
 
     private StudioBundle() {
-        super(BUNDLE);
     }
 
     public static @Nls String message(@NonNls @PropertyKey(resourceBundle = BUNDLE) String key, Object... params) {

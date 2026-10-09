@@ -14,7 +14,6 @@ import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.util.ui.JBFont;
 
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -160,7 +159,7 @@ public class ImportModelJsonDialog extends DialogWrapper {
     }
 
     private void chooseFile() {
-        FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
+        FileChooserDescriptor descriptor = new FileChooserDescriptor(true, true, true, true, false, false)
                 .withTitle(StudioBundle.message("dialog.ChooseModelJsonFile"))
                 .withDescription(StudioBundle.message("message.ChooseModelJsonFileDescription"));
         StudioProjectFiles.chooseFileAndReadText(project, descriptor, result -> {
@@ -181,7 +180,7 @@ public class ImportModelJsonDialog extends DialogWrapper {
 
     private void chooseConfiguration() {
         StudioProjectFiles.chooseFileAndReadText(project,
-                FileChooserDescriptorFactory.createSingleFileDescriptor()
+                new FileChooserDescriptor(true, true, true, true, false, false)
                         .withTitle(StudioBundle.message("import.runtime.chooseConfiguration")), result -> {
                     if (isDisposed() || project.isDisposed()) return;
                     if (result.content() != null) configurationArea.setText(result.content());

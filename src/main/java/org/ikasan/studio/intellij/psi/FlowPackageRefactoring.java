@@ -43,8 +43,10 @@ public final class FlowPackageRefactoring {
         AtomicReference<RuntimeException> failure = new AtomicReference<>();
         boolean completed = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
             try {
-                plan.set(ReadAction.compute(() -> inspect(project, module, flow, newName)));
-            } catch (RuntimeException e) { failure.set(e); }
+                plan.set(ReadAction.nonBlocking(() -> inspect(project, module, flow, newName))
+                        .expireWith(project.getService(org.ikasan.studio.intellij.project.StudioProjectInitialisationService.class)).executeSynchronously());
+            } catch (com.intellij.openapi.progress.ProcessCanceledException canceled) { throw canceled; }
+            catch (RuntimeException e) { failure.set(e); }
         }, StudioBundle.message("dialog.FlowPackageChange"), true, project);
         if (!completed) return null;
         if (failure.get() != null) throw failure.get();
