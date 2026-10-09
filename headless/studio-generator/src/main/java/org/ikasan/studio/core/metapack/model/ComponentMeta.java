@@ -150,6 +150,8 @@ public class ComponentMeta implements IkasanMeta {
     @JsonSetter(nulls = Nulls.SKIP)
     private List<String> flowTestExpectedInitialOutputs = List.of(); // Ordered text samples for the default self-generating provider.
     private boolean flowTestPassThroughFilter;       // Filter always forwards input: safe to include in a linear test path.
+    private String flowTestDeliveryStrategy; // none, file, ftp, sftp or smtp; absent preserves legacy pack behaviour.
+    private List<List<String>> flowTestRecipientProperties; // Alternative setters per recipient group.
     private boolean flowTestFileDelivery;            // Producer delivers files: offer receiver-side filesystem assertions.
     private boolean flowTestObservationOnly;          // Discard sinks only: invocation has no external delivery/content contract.
     /** Runtime ConfigurationMetaData parameters verified to map directly to Studio properties. */

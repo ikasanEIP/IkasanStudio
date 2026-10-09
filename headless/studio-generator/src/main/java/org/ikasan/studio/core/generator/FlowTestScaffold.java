@@ -36,7 +36,8 @@ public final class FlowTestScaffold {
 
     /** Legacy fingerprints or package layouts need one explicit module-support refresh. */
     public static boolean supportNeedsRefresh(String existingSupport, Module module) {
-        return !existingSupport.contains("protected void assertExpectedOutput(")
+        return !existingSupport.contains("FlowTestFailureDiagnostics.contextualise(")
+                || !existingSupport.contains("protected void assertExpectedOutput(")
                 || !existingSupport.contains("protected final <I> void runBatches(")
                 || !existingSupport.contains("FlowTestFailureCapture")
                 || !existingSupport.contains("protected final void runTest(TestScenario scenario)")
@@ -110,10 +111,8 @@ public final class FlowTestScaffold {
                 && destination != null && !destination.valueNotSet()
                 && destination.getMeta().getPropertyConfigFileLabel() != null;
         var jmsOutputs = flow.getFlowElementsNoExternalEndPoints().stream().filter(e -> e.getComponentMeta().isProducer()).toList();
-        values.put("fileDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().isFlowTestFileDelivery());
-        values.put("smtpDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().supportsTestMailServer());
-        values.put("sftpFileDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().supportsTestSftpServer());
-        values.put("ftpFileDelivery", jmsOutputs.size() == 1 && jmsOutputs.get(0).getComponentMeta().supportsTestFtpServer());
+        var delivery = FlowTestDelivery.forProducers(jmsOutputs);
+        delivery.contributeTo(values);
         String jmsOutputKey = "";
         if (jmsOutputs.size() == 1) {
             var output = jmsOutputs.get(0);
@@ -195,8 +194,7 @@ public final class FlowTestScaffold {
         files.put(ModuleTestWiring.PATH, ModuleTestWiring.create(module));
         if (!observationOnly) {
             if (ftpInput || sftpInput || isolatedFiles) addSampleResources(files, flow.getIdentity(), flow.getConsumer().getIdentity());
-            if (jmsOutputs.size() == 1 && (jmsOutputs.get(0).getComponentMeta().isFlowTestFileDelivery()
-                    || jmsOutputs.get(0).getComponentMeta().supportsTestMailServer())) {
+            if (delivery.usesResources()) {
                 addSampleResources(files, flow.getIdentity(), jmsOutputs.get(0).getIdentity());
             }
         }
@@ -227,6 +225,8 @@ public final class FlowTestScaffold {
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localSmtpTestServerTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FlowTestFailureCapture.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestFailureCaptureTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FlowTestFailureDiagnostics.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestFailureDiagnosticsTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FlowTestBatch.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestBatchTemplate_en.ftl", values));
         files.put(SUPPORT_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestSupportTemplate_en.ftl", values));

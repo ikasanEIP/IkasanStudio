@@ -107,7 +107,10 @@ public final class FlowTestBatch<I> {
                 else comparison.verify(expected, delivery.payload);
             }
             catch (AssertionError | Exception failure) {
-                throw new AssertionError("Producer '" + delivery.producer + "', output " + (index + 1) + " failed", failure);
+                String detail = failure.getMessage();
+                if (detail == null || detail.isBlank()) detail = failure.getClass().getName();
+                throw new AssertionError("Producer '" + delivery.producer + "', output " + (index + 1)
+                        + " failed: " + detail, failure);
             }
             received.put(delivery.producer, index + 1);
         }

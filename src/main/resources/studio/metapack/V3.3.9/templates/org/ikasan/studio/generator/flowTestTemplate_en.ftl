@@ -245,6 +245,16 @@ public class ${className} extends ModuleFlowTestSupport {
         return formatOutputText(payload, DECODE_OUTPUT_CONTENT_AS_TEXT);
     }
 
+    @Override
+    protected void assertExpectedOutput(Object expected, Object actualAfterProducer) {
+        Object actual = expected instanceof String
+                ? formatOutputText(actualAfterProducer)
+                : actualAfterProducer;
+
+        // Set a breakpoint here to inspect expected, actual and actualAfterProducer.
+        org.junit.Assert.assertEquals(expected, actual);
+    }
+
     // TODO 4: Review shared connections in src/test/resources/module-test.properties.
     // Starts once, supplies every batch, checks outputs and idle readiness, then stops during teardown.
     // A single batch cannot demonstrate later delivery; use at least two for that check.
@@ -274,8 +284,17 @@ public class ${className} extends ModuleFlowTestSupport {
     @Override
     protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch, String expected) throws Exception {
         // Verify actual SMTP delivery, not just the email producer invocation.
-        // The default expects one mailbox delivery per batch; adapt for multiple recipients or attachments.
-        localSmtpServer(context).assertBody(batch, expected, deliveryTimeout(context));
+        // Set a breakpoint on the assertion below; inspect localSmtpServer(context).receivedMessages()
+        // for the actual recipients, subjects and bodies.
+<#if smtpRecipientCount gt 0>
+        // Expect one mailbox copy per configured recipient. Review if recipient settings change.
+        localSmtpServer(context).assertBatchBodies(
+                List.of(<#list 1..smtpRecipientCount as recipient>expected<#sep>, </#list>), deliveryTimeout(context));
+<#else>
+        // Review the recipient settings: the mailbox count could not be inferred safely.
+        // Supply one expected body per recipient, for example List.of(expected, expected) for two.
+        localSmtpServer(context).assertBatchBodies(List.of(expected), deliveryTimeout(context));
+</#if>
     }
 </#if>
 <#if fileDelivery && !(jmsConsumer && jmsOutputKey?has_content && !objectOutput)>

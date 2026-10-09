@@ -41,7 +41,7 @@ class FlowTestPropertyWarningsTest {
 
     private static void writeSupport(java.nio.file.Path path,
             org.ikasan.studio.core.model.ikasan.instance.Module module) throws Exception {
-        java.nio.file.Files.writeString(path, "protected void assertExpectedOutput(\nprotected final <I> void runBatches(\nFlowTestFailureCapture\nprotected final void runTest(TestScenario scenario) {}\nnew FileDeliveryBatchAssertions();\nprotected String formatOutputText(Object payload) {}\nWIRING_SCHEMA_VERSION = 1;\nSUPPORT_META_PACK = \""
+        java.nio.file.Files.writeString(path, "FlowTestFailureDiagnostics.contextualise(\nprotected void assertExpectedOutput(\nprotected final <I> void runBatches(\nFlowTestFailureCapture\nprotected final void runTest(TestScenario scenario) {}\nnew FileDeliveryBatchAssertions();\nprotected String formatOutputText(Object payload) {}\nWIRING_SCHEMA_VERSION = 1;\nSUPPORT_META_PACK = \""
                 + module.getMetaVersion() + "\";");
     }
 

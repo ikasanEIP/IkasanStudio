@@ -85,6 +85,16 @@ return List.of(
 Expected lists contain values directly. Business objects must implement `equals` (and matching
 `hashCode`); comparison is not recursive. String expectations use `formatOutputText` to decode the
 actual payload. Override `assertExpectedOutput(expected, actualAfterProducer)` for special comparisons.
+Generated batch tests expose `assertExpectedOutput` immediately above the test method. Place a
+breakpoint on its `Assert.assertEquals(expected, actual)` line to inspect the expected value, the
+raw `actualAfterProducer` payload and the comparison value `actual`. String expectations use the
+text adapter; business objects remain unchanged and use their `equals` implementation. Failures
+retain JUnit's Expected/Actual comparison. The reported failure starts at the actual captured
+`assertExpectedOutput` or `verifyReceivedOutput` frame in the developer-owned test, with flow/batch/producer context in its
+message and the original exception chain retained. Failures outside that assertion keep their
+original support location; no source line numbers are hard-coded. Refresh shared support to adopt
+this behaviour; generation creates the new `FlowTestFailureDiagnostics` utility if missing.
+
 Older `textOutput(...)` wrappers remain supported for compatibility.
 When adopting value-based batches in an existing project, archive the old
 `support/utils/FlowTestBatch.java` as `.java.bak`, then generate tests with shared-support refresh

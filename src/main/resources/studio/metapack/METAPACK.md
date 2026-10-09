@@ -274,3 +274,19 @@ Set `propertyDataType` to `java.util.List` or `java.util.Map`, with `usageDataTy
 Declare a property in `runtimeConfigurationProperties` only after checking the runtime configuration getter and builder setter for that pack. The initial verified collection mappings are Email Producer's three recipient lists and `extendedMailSessionProperties`, in both packs. Existing `usageDataType`-only list fields retain their original handling.
 
 Collection properties with a `propertyConfigFileLabel` emit JSON in application.properties and are read by the component factory's `stringCollectionProperties_en.ftl` helper. Lists also accept older comma-separated deployment overrides. Collection setters without an external property label receive generated mutable Java collections. Test escaping, empty/unset, wrong entry types, legacy input and both runtime imports and Studio persistence before adding further mappings.
+
+### Flow-test delivery strategies
+
+`flowTestDeliveryStrategy` selects receiver assertions independently of the component's
+Java implementation: `none`, `file`, `ftp`, `sftp`, or `smtp`. Bundled producers declare
+this explicitly. Older packs without the declaration retain the legacy capability-flag
+selection. The general scaffold delegates delivery interpretation to `FlowTestDelivery`.
+
+SMTP components declare `flowTestRecipientProperties` as groups of alternative property
+names, for example `[["toRecipient", "toRecipients"], ["ccRecipient", "ccRecipients"],
+["bccRecipient", "bccRecipients"]]`. Each group contributes literal addresses from one
+configured property (a string or list). Conflicting alternatives, duplicate addresses,
+expressions, or non-simple addresses leave recipient review guidance instead of an inferred
+count. Clear configurations generate one expected body per recipient. These expectations
+are a generation-time snapshot, deliberately visible and editable in the developer's test;
+configuration changes do not silently update developer-owned assertions.

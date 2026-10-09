@@ -38,6 +38,11 @@ class FlowTestScaffoldTest {
         var result = FlowTestScaffold.render(module, flow, parent, app);
         String code = result.files().get(result.testPath());
         assertTrue(code.contains("ScheduledEventFixture.fire(harness,"));
+        assertTrue(code.contains("protected void assertExpectedOutput(Object expected, Object actualAfterProducer)"));
+        assertTrue(code.contains("org.junit.Assert.assertEquals(expected, actual);"));
+        assertTrue(code.indexOf("protected void assertExpectedOutput(")
+                < code.indexOf("public void testFirstAndLaterDeliveryWithoutRestart()"));
+
         assertTrue(code.contains("ScheduledEventFixture.text((JobExecutionContext) payload)"));
         assertFalse(code.contains("prepareInputBatch"));
         assertFalse(code.contains("UnsupportedOperationException"));
@@ -91,7 +96,42 @@ class FlowTestScaffoldTest {
                 Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
         String code = scaffold.files().get(scaffold.testPath());
         assertTrue(code.contains("FIRST_EXPECTED_OUTPUT_RESOURCE"));
-        assertTrue(code.contains("localSmtpServer(context).assertBody(batch, expected, deliveryTimeout(context))"));
+        assertTrue(code.contains("localSmtpServer(context).assertBatchBodies("));
+        var producer = flow.getFlowRoute().getFlowElements().get(0);
+        // Property names come from metadata, including on a component with an unrelated implementation.
+        producer.setComponentMeta(producer.getComponentMeta().toBuilder().build());
+        var properties = new java.util.LinkedHashMap<>(producer.getComponentMeta().getAllowableProperties());
+        properties.put("testAddresses", properties.get("toRecipients"));
+        properties.put("testCopies", properties.get("ccRecipient"));
+        producer.getComponentMeta().setAllowableProperties(properties);
+        producer.getComponentMeta().setImplementingClass("example.CustomMailProducer");
+        producer.getComponentMeta().setFlowTestRecipientProperties(java.util.List.of(
+                java.util.List.of("testAddresses"), java.util.List.of("testCopies")));
+        producer.setPropertyValue("testAddresses", java.util.List.of("one@example.com", "two@example.com"));
+        producer.setPropertyValue("testCopies", "three@example.com");
+        var inferred = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        assertTrue(inferred.files().get(inferred.testPath()).contains("List.of(expected, expected, expected)"));
+        producer.setPropertyValue("testCopies", "${runtime.recipient}");
+        var unresolved = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        assertTrue(unresolved.files().get(unresolved.testPath()).contains("could not be inferred safely"));
+        for (Object ambiguous : java.util.List.of("one@example.com", "Person <person@example.com>", 42)) {
+            producer.setPropertyValue("testCopies", ambiguous);
+            var reviewed = FlowTestScaffold.render(module, flow,
+                    Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                    Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+            assertTrue(reviewed.files().get(reviewed.testPath()).contains("could not be inferred safely"));
+        }
+        producer.getComponentMeta().setFlowTestRecipientProperties(java.util.List.of(
+                java.util.List.of("testAddresses", "testCopies")));
+        producer.setPropertyValue("testCopies", "three@example.com");
+        var conflicting = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        assertTrue(conflicting.files().get(conflicting.testPath()).contains("could not be inferred safely"));
         String support = scaffold.files().get(FlowTestScaffold.SUPPORT_PATH);
         assertTrue(support.contains("LocalSmtpTestServer.start()"));
         assertTrue(scaffold.files().get(org.ikasan.studio.core.generator.ModuleTestWiring.PATH).contains("My Email Producer"));
@@ -346,8 +386,12 @@ class FlowTestScaffoldTest {
         assertTrue(objectTest.contains("jms.sendObject("));
         assertTrue(objectTest.contains("expected type: example.orders.Order"));
         assertFalse(objectTest.contains("createInputObject"));
-        assertTrue(objectTest.contains("@Override protected String getFlowName() { return FLOW_NAME; }\n\n"
-                + "    @Override\n    protected void defineExpectedPath("));
+        assertTrue(objectTest.contains("""
+                @Override protected String getFlowName() { return FLOW_NAME; }
+
+                    @Override
+                    protected void defineExpectedPath(\
+                """));
         var todos = java.util.regex.Pattern.compile("// TODO (\\d+):").matcher(objectTest);
         int expectedTodo = 1;
         while (todos.find()) assertEquals(expectedTodo++, Integer.parseInt(todos.group(1)));

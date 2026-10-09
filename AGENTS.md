@@ -158,6 +158,30 @@ Tests cover the model, JSON IO, meta-pack lookup, code generators, PSI/file beha
 6. **Generated/user code ownership.** Never overwrite developer-owned code unexpectedly. Make regeneration scope and consequences clear.
 7. **Version compatibility.** Validate generated output against the corresponding Ikasan source and APIs, not assumptions based on another major version.
 
+## Generated-test diagnostics and debugging
+
+Making failures easy to understand and fix is a product requirement, alongside making tests easy
+to create and run. Apply this pattern to future generated tests, adapting it to the test framework:
+
+- Keep a small comparison hook in the developer-owned test, near the test method. Expose the
+  expected value, original observed payload and final comparison value together, with a comment
+  identifying the assertion line as a useful breakpoint. Keep transport and fixture plumbing
+  in support code where possible.
+- Preserve native Expected/Actual comparison and diff support. Add relevant flow, batch,
+  component/producer and output context without burying the actual mismatch.
+- When a developer assertion fails, make the first reported stack frame point to its real captured
+  source location. Never hard-code filenames or line numbers, invent locations, or redirect setup,
+  timeout or runtime failures to an assertion they did not reach. Preserve original causes.
+- Make diagnostics accurate and actionable. Distinguish value mismatches, missing comparison
+  implementations, invalid fixtures and runtime failures. Do not claim equals is missing merely
+  because objects differ. Never alter expected business values just to make a test pass.
+- Verify failure messages and navigation, including Expected/Actual preservation and fallback
+  to the real support-code location for failures outside developer assertions.
+
+Flow tests use `assertExpectedOutput(expected, actualAfterProducer)` and
+`FlowTestFailureDiagnostics`; see [flow testing](docs/IkasanFlowTesting.md). This is a general UX
+principle, not a requirement to duplicate flow-specific machinery in every kind of test.
+
 ## Working Conventions
 
 - Prefer IntelliJ Platform components and APIs (`JB*` controls, services, progress APIs, notifications, tool-window APIs, disposal/lifecycle utilities) over custom substitutes.

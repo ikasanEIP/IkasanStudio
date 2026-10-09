@@ -1,4 +1,6 @@
 {
+  "flowTestDeliveryStrategy": "smtp",
+  "flowTestRecipientProperties": [["toRecipient", "toRecipients"], ["ccRecipient", "ccRecipients"], ["bccRecipient", "bccRecipients"]],
   "runtimeConfigurationProperties": ["toRecipients", "ccRecipients", "bccRecipients", "extendedMailSessionProperties", "emailBody", "emailFormat", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailSmtpClass", "user", "mailPopHost", "mailPopPort", "mailPopUser", "mailPopClass", "mailStoreProtocol", "mailDebug", "mailMimeAddressStrict"],
   "name": "Email Producer",
   "supportsTestMailServer": true,

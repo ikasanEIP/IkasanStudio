@@ -44,6 +44,21 @@ class FlowTestBatchTemplateTest {
                         var different = objects.observe(); different.accept("Orders", new Order(8));
                         fails(() -> different.verify(WAIT, QUIET, () -> {}), "Producer 'Orders', output 1");
                         if (!objects.expectedOutputs("Orders").equals(List.of(new Order(7)))) throw new AssertionError("Expected values");
+                        var diagnosticBatch = new FlowTestBatch<>(List.of(), Map.of("Orders", List.of("expected")));
+                        AssertionError original = new AssertionError("reference expected:<null> but was:<mr-ref 2000-01-01T00:00:00Z>");
+                        var diagnostic = diagnosticBatch.observe((expected, actual) -> { throw original; });
+                        diagnostic.accept("Orders", "actual");
+                        try {
+                            diagnostic.verify(WAIT, QUIET, () -> {});
+                            throw new AssertionError("Expected mismatch");
+                        } catch (AssertionError failure) {
+                            if (!failure.getMessage().contains("Producer 'Orders', output 1 failed: " + original.getMessage()))
+                                throw new AssertionError("Missing comparison details", failure);
+                            if (failure.getCause() != original) throw new AssertionError("Original cause lost");
+                        }
+                        var unnamed = diagnosticBatch.observe((expected, actual) -> { throw new IllegalStateException(); });
+                        unnamed.accept("Orders", "actual");
+                        fails(() -> unnamed.verify(WAIT, QUIET, () -> {}), "java.lang.IllegalStateException");
                         var inputs = new ArrayList<>(List.of("one input"));
                         var batch = new FlowTestBatch<>(inputs, Map.of("A",List.of(equal("a1"),equal("a2")),
                                 "B",List.of(equal("b")), "Silent",List.of()));

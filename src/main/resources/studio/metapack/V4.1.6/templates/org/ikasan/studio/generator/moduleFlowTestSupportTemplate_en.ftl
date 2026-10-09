@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ikasan.studio.flowtests.support.utils.LocalSftpTestServer;
 import org.ikasan.studio.flowtests.support.utils.FlowTestFailureCapture;
 import org.ikasan.studio.flowtests.support.utils.FlowTestBatch;
+import org.ikasan.studio.flowtests.support.utils.FlowTestFailureDiagnostics;
 import org.ikasan.studio.flowtests.support.utils.LocalFtpTestServer;
 import org.ikasan.studio.flowtests.support.utils.FileDeliveryAssertions;
 import org.ikasan.studio.flowtests.support.utils.FileDeliveryBatchAssertions;
@@ -526,7 +527,7 @@ public abstract class ModuleFlowTestSupport {
     /** Strings use the text adapter; business objects must implement equals (and matching hashCode). */
     protected void assertExpectedOutput(Object expected, Object actualAfterProducer) {
         if (expected instanceof String) assertEquals(expected, formatOutputText(actualAfterProducer));
-        else assertEquals("Business payloads must implement equals", expected, actualAfterProducer);
+        else assertEquals("Producer payload differs; review expected values in createInputOutputBatches", expected, actualAfterProducer);
     }
     /** Compatibility for existing tests; new batches contain expected values directly. */
     @Deprecated
@@ -596,8 +597,8 @@ public abstract class ModuleFlowTestSupport {
                         active.get().assertNoPending();
                         failures.check();
                     } catch (AssertionError | Exception failure) {
-                        throw new AssertionError("Flow '" + getFlowName() + "', batch " + (index + 1)
-                                + " of " + batches.size() + " failed: " + failure.getMessage(), failure);
+                        throw FlowTestFailureDiagnostics.contextualise("Flow '" + getFlowName() + "', batch " + (index + 1)
+                                + " of " + batches.size() + " failed: " + failure.getMessage(), failure, getClass());
                     }
                 }
                 long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(deliveryTimeoutSeconds);
