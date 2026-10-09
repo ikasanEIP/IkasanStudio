@@ -36,7 +36,9 @@ public final class FlowTestScaffold {
 
     /** Legacy fingerprints or package layouts need one explicit module-support refresh. */
     public static boolean supportNeedsRefresh(String existingSupport, Module module) {
-        return !existingSupport.contains("FlowTestFailureCapture")
+        return !existingSupport.contains("protected void assertExpectedOutput(")
+                || !existingSupport.contains("protected final <I> void runBatches(")
+                || !existingSupport.contains("FlowTestFailureCapture")
                 || !existingSupport.contains("protected final void runTest(TestScenario scenario)")
                 || !existingSupport.contains("new FileDeliveryBatchAssertions()")
                 || !existingSupport.contains("protected String formatOutputText(Object payload)")
@@ -146,6 +148,23 @@ public final class FlowTestScaffold {
         }
         values.put("objectMessageInput", objectMessageInput);
         values.put("objectInputType", objectInputType);
+        // Infer the observed payload from the last upstream component on an unambiguous linear path.
+        // Producers are terminal in metadata, but afterFlowElement still observes their input payload.
+        String objectOutputType = "";
+        if (automaticPath) {
+            String payloadType = flow.getConsumer().getEffectiveOutputTypeDescription();
+            for (var element : flow.getFlowRoute().getFlowElements()) {
+                if (element.getComponentMeta().isProducer()) break;
+                if (element.getComponentMeta().isFlowTestPassThroughFilter()) continue;
+                payloadType = element.getEffectiveOutputTypeDescription();
+            }
+            if (payloadType != null && payloadType.matches("[a-zA-Z_$][\\w$]*(\\.[a-zA-Z_$][\\w$]*)+")
+                    && !payloadType.startsWith("java.") && !payloadType.startsWith("javax.")
+                    && !payloadType.startsWith("jakarta.") && !payloadType.startsWith("org.ikasan.")
+                    && !payloadType.startsWith("org.quartz.")) objectOutputType = payloadType;
+        }
+        values.put("objectOutputType", objectOutputType);
+
 
         values.put("jmsInputKey", jmsConsumer ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
                 module, flow, flow.getConsumer(), destination.getMeta().getPropertyConfigFileLabel()) : "");
@@ -208,6 +227,8 @@ public final class FlowTestScaffold {
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "localSmtpTestServerTemplate_en.ftl", values));
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FlowTestFailureCapture.java",
                 FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestFailureCaptureTemplate_en.ftl", values));
+        files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FlowTestBatch.java",
+                FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestBatchTemplate_en.ftl", values));
         files.put(SUPPORT_PATH, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "moduleFlowTestSupportTemplate_en.ftl", values));
         files.put(path, FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), observationOnly ? "flowObservationTestTemplate_en.ftl" : "flowTestTemplate_en.ftl", values));
         files.put("user-flow-tests/pom.xml", FreemarkerUtils.generateFromTemplate(module.getMetaVersion(), "flowTestPomTemplate_en.ftl", values));
@@ -224,14 +245,14 @@ public final class FlowTestScaffold {
                 Standard scenarios surface component failures with the flow/component, incoming payload type and original cause.
                 This is a success-scenario check; deliberately expected failure/recovery paths need custom observation.
                 JMS input normally starts with text. An initial ObjectMessageToObjectConverter selects sendObject and
-                createInputObject(batch) instead: populate its TODO with a serializable business object for each batch.
+                object payloads in createInputOutputBatches: populate its TODO with serializable business objects.
                 A downstream declared input class is a fixture hint, not automatically constructed business data.
                 Existing utils/JmsFlowTestSupport.java is preserved. If it lacks sendObject, archive it outside the .java
                 extension and generate again to recreate the missing helper; review/reapply customisations.
                 New tests run immediately, starting the configured application and fixtures; no review flag is required.
                 Direct self-generating-source/discard-sink observation tests have only TODO 1–2: review settings and observation expectations.
                 They check any meta-pack initial payload sequence, count later events, and stop the test flow only during teardown.
-                Other scenarios follow TODO 1–4 in the Java test: supply two input batches, select output and expected results,
+                Other scenarios follow TODO 1–4 in the Java test: define input collections per batch, select producer outputs and expected results,
                 review component-path expectations, and review shared test connections. Tests run immediately; use failures to guide completion of the TODOs.
                 Configure shared test connections in src/test/resources/module-test.properties (UTF-8).
                 Studio flow/component renames update recognised test names, property references and fixture directories.
@@ -268,7 +289,14 @@ public final class FlowTestScaffold {
                 Override prepareFixtures(context) to initialise instance fixtures after Spring starts, before the flow starts.
                 cleanupFixtures(context) runs before Spring closes, even after partial setup or test failure.
                 Cleanup failures are suppressed onto the original failure; tolerate partially initialised fixtures.
-                Standard tests use runTest with named supplyInput and optional verifyReceivedOutput overrides.
+                Standard tests use runBatches with createInputOutputBatches, supplyInput and an optional receiver callback.
+                The number of definitions is the batch count; each input list is submitted in the same running flow.
+                Expected output values are grouped by producer and ordered within each producer, not across branches.
+                Business objects must implement equals and matching hashCode. String expectations use formatOutputText.
+                An empty output list means no delivery during the observation window; omitted producers are ignored.
+                Outputs need not match input counts. Customise path expectations for routing, filtering and splitting.
+                Increase test.scenario.timeout-seconds for large/slow collections; the default total limit is 60 + 10 * delivery timeout.
+                Legacy runTest calls continue to run two batches.
                 verifyFlow supplies the common lifecycle and two-delivery checks; verifyScenario supports
                 deliberate rejection/branch scenarios with explicit expectations and output/absence assertions.
                 For JMS queue scaffolds configure test.jms.broker-url and the flow's matching isolated broker/destinations

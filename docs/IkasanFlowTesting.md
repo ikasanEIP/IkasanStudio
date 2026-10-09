@@ -65,8 +65,76 @@ helpers are preserved. Normal code generation refreshes the generated FTP test w
 Test teardown preserves the original startup/assertion failure; cleanup failures appear as
 suppressed exceptions rather than replacing the useful diagnosis.
 
-## Comparing business objects
+## Collection-based batches and multiple producers
 
+New scenarios define `createInputOutputBatches(context)` and call `runBatches`. Each batch contains input values
+and a map from producer name to an ordered list of output assertions. The outer list determines the
+number of batches; each input list determines the number of submissions. Output counts are independent:
+filters can emit nothing, splitters can emit several events, and routers can deliver to different producers.
+
+```java
+return List.of(
+    batch(List.of(orderA, orderB), Map.of(
+        "Warehouse", List.of(expectedA),
+        "Rejected orders", List.of(rejectedB))),
+    batch(List.of(orderC), Map.of(
+        "Warehouse", List.of(expectedC),
+        "Rejected orders", List.of())));
+```
+
+Expected lists contain values directly. Business objects must implement `equals` (and matching
+`hashCode`); comparison is not recursive. String expectations use `formatOutputText` to decode the
+actual payload. Override `assertExpectedOutput(expected, actualAfterProducer)` for special comparisons.
+Older `textOutput(...)` wrappers remain supported for compatibility.
+When adopting value-based batches in an existing project, archive the old
+`support/utils/FlowTestBatch.java` as `.java.bak`, then generate tests with shared-support refresh
+so both that utility and `ModuleFlowTestSupport` use the new API. Existing utility files are
+otherwise preserved to protect customisations.
+
+Each expected payload is observed by `afterFlowElement` after its named producer. Ordering is checked
+within each producer, never across branches. An empty expectation list asserts no output during the
+batch's bounded observation; omitting a producer deliberately ignores it. Missing and extra outputs
+fail with the batch and producer identified. Delivery waits use `test.delivery.timeout-seconds`,
+followed by a one-second quiet/readiness window per batch. This is not proof that no event could ever
+arrive later; delayed routes need a custom observation window/scenario.
+
+The runner starts the flow once, submits each batch's input values through `supplyInput(context, harness, input)`,
+checks its outputs and optional receiver assertions, and then moves to the next batch without restarting.
+The sender receives the **input value**, not an implicit 1/2 index. `createInputOutputBatches` runs after Spring
+startup and `prepareFixtures`, so values can depend on beans and temporary services. Empty input lists
+are allowed for observing autonomous work; explicit scheduled triggers can be represented by input
+values whose sender fires the scheduled consumer. Fully autonomous sources still usually suit
+`runObservationTest` better. One batch is valid but does not prove later delivery after an idle period.
+
+For linear one-path-per-input flows, generated path expectations use `.repeat(expectedInputCount())`,
+which sums the input-list sizes. Branching, filtering, splitting and trigger-to-many-event flows require
+custom path expectations; the harness never assumes one input equals one output.
+
+The optional third argument to `runBatches` checks external delivery **once per batch**, after payload
+checks. It receives `(context, batchNumber, definition)`; only this diagnostic/hook batch number is
+one-based. `definition.expectedCount(producer)` and `definition.expectedText(producer, index)` help
+with text delivery checks (output indexes are zero-based). Business-object expectations have no expected text; use `definition.expectedOutputs(producer)`
+for their receiver checks. Generated receiver examples initially assume one
+output per batch; adapt them for multiple files, queue messages or email recipients. Payload checks
+and physical delivery checks remain separate. Captured payloads are references, not deep copies.
+
+The whole JUnit scenario also has a safety timeout, by default `60 + 10 * deliveryTimeoutSeconds` seconds.
+Set `test.scenario.timeout-seconds` explicitly for large collections or slow external endpoints.
+Existing `runTest` calls retain their two-batch behaviour. Refresh shared support to add `runBatches`
+and the missing `FlowTestBatch` utility; existing business tests are preserved unless explicitly regenerated.
+
+For business objects, an output assertion can directly inspect fields:
+
+```java
+batch(List.of(orderA), Map.of("Order sink", List.of(actual -> {
+    assertTrue(actual instanceof Order);
+    assertEquals("ORDER-A", ((Order) actual).reference);
+})))
+```
+
+## Comparing business objects in existing two-batch tests
+
+The following legacy hook remains supported; new collection-based tests use assertion lambdas above.
 Override `assertOutput(Object actual, int batch)` in the business test to assert fields directly.
 The hook receives the original payload observed after the selected producer, on the test thread;
 `formatOutputText` and its decoding flag are not used unless your override calls them.
@@ -296,20 +364,16 @@ text for each batch. Otherwise, add external receiver checks where needed.
 
 When the initial processing component is **JMS Object Message To Object Converter** (allowing
 metadata-declared pass-through debug filters before it), the scaffold instead calls
-`jms.sendObject(queue, createInputObject(batch))`. Complete the TODO in `createInputObject` with a
-serializable business object for each batch. Its initial implementation deliberately fails with a
-fixture-specific explanation: Studio cannot invent valid business data. The TODO names the expected
-business class when the next processing component declares one; otherwise it uses `Serializable`.
-Inference stops at unknown transformations and does not search through branches. Review input types
+`jms.sendObject(queue, input)`. Populate the input payloads directly in `createInputOutputBatches`,
+alongside each batch's expected outputs. For a known business class, the scaffold imports the type and supplies `new Type()` with a TODO to
+populate its fields; adjust the constructor if it requires arguments or a factory method. Studio
+cannot infer valid business values or constructor availability from the type hint. Unknown types
+retain `Serializable` null placeholders with a message naming the missing fixture. There is no
+batch-number factory.
+For a domain class with a suitable constructor, an input can be written directly as
+`batch(List.of(new Order("ORDER-A", 101, 2)), Map.of(PRODUCER_NAME, List.of(expectedXml)))`.
+Inference stops at unknown transformations and does not search through branches; review input types
 for other arrangements rather than assuming the default text fixture is suitable.
-
-```java
-protected java.io.Serializable createInputObject(int batch) {
-    Order order = new Order();
-    // Populate the fields required by your flow for this batch.
-    return order;
-}
-```
 
 Object-message receivers must trust the intended business packages; keep the normal explicit
 allowlist rather than trusting every package. See [JMS object messages](JmsObjectMessages.md).
@@ -457,13 +521,9 @@ Generated JUnit methods start with `test`, for example
 the name is for readability. Existing developer-owned tests are preserved. To adopt the new
 scaffold, archive/regenerate the selected flow test and shared module setup.
 
-Standard generated scenarios call `runTest(PRODUCER_NAME, FIRST_EXPECTED_OUTPUT, SECOND_EXPECTED_OUTPUT)`.
-Override `supplyInput(context, harness, batch)` to provide each batch, and optionally
-`verifyReceivedOutput(context, batch, expected)` for external delivery checks. The support class
-calls these methods directly through its standard scenario wiring; no method references or lambdas
-are needed in the concrete test. JMS scaffolds supply both overrides when a single output queue
-is known, opening and closing a helper connection for each operation. Advanced callback overloads
-remain available, and older callback-based tests still work with regenerated shared support.
+Standard generated scenarios now call `runBatches(this::createInputOutputBatches, this::supplyInput)` with an
+optional receiver-check callback. Two example definitions are supplied initially; add or remove
+batch definitions rather than changing a separate count. Older `runTest` overloads still work.
 
 ### Generic Consumer sample timing
 
@@ -594,7 +654,7 @@ Regenerate the affected tests, `ModuleFlowTestSupport`, `FtpInputFixture` and
 The shared FTP directory uses `TemporaryFolder.builder().assureDeletion().build()`: failure to
 remove it fails the test. The folder encloses the shared timeout rule. Both FTP consumer input
 creation and FTP producer delivery assertions use `localFtpDirectory(context)`, so they retain
-the same directory throughout a scenario and its two batches. Server startup receives a fresh
+the same directory throughout a scenario and all its batches. Server startup receives a fresh
 subdirectory for each application context. Server shutdown does not delete files; JUnit removes
 them after the test, including ordinary assertion failures. A forcibly terminated JVM can still
 leave temporary files behind. Regenerate shared support together with `LocalFtpTestServer`;
@@ -645,6 +705,22 @@ The timeout comes from `test.delivery.timeout-seconds` (default 10). The default
 mailbox delivery per batch and compares exact decoded text; adapt the assertion for multiple
 recipients, MIME alternatives or attachments. `receivedMessages()` exposes captured messages
 for subject, address and attachment assertions. Input and expected files remain developer-owned.
+
+For multiple recipients, keep the scenario's assertion small:
+
+```java
+localSmtpServer(context).assertBatchBodies(List.of(expected, expected), deliveryTimeout(context));
+```
+
+This example expects two mailbox copies for the current batch. The helper retains earlier
+expectations, decodes multipart text bodies while skipping attachments, and compares the
+cumulative inbox without assuming mailbox order. Supply only the current batch's bodies;
+include duplicates for recipient copies. It checks counts and bodies, not recipient addresses
+or subjects, and detects extra messages present when the assertion runs. Use this helper
+consistently from the first batch; do not mix its history with `assertBody` calls.
+Existing utility files are preserved during regeneration. To adopt this helper in an older
+project, archive `support/utils/LocalSmtpTestServer.java` outside the Java source set (or rename
+it to `.java.bak`), then generate the missing support utility and review any custom changes.
 
 For an existing flow such as Flow2, regenerate the test and shared support with both FTP and
 SMTP options selected, approve backups, supply the expected email-body resources, then run the test. Choosing not to use the SMTP option preserves current settings; to disable
@@ -715,7 +791,7 @@ set a positive value only when deliberately testing age filtering.
 SFTP inputs use `/flow_name/consumer_name/first.txt` and `second.txt` resources, with missing
 samples created during generation. Each resource is copied into the endpoint's temporary
 server directory before the consumer is triggered. Filenames must match the model's
-`filenamePattern`. The same flow processes both batches without restarting.
+`filenamePattern`. The same flow processes all batches without restarting.
 
 `localSftpDirectory(context, FLOW_NAME, componentName)` exposes a separate directory for each
 endpoint. Generated producer tests use it with `assertDeliveredFileResources` to verify real
@@ -737,7 +813,7 @@ For a Scheduled Consumer using its default Quartz message provider, the scaffold
 `ScheduledEventFixture.fire(harness, consumerName, text)` to send each batch through the real
 consumer immediately. The event remains a `JobExecutionContext`, with fixture text in
 `ScheduledEventFixture.TEXT_KEY`; the generated `formatOutputText` reads that text for comparison.
-The harness suppresses normal cron firing and keeps the same flow running for both batches.
+The harness suppresses normal cron firing and keeps the same flow running for all batches.
 
 When a broker obtains its own business data, prepare its database/service fixture and use
 `ScheduledEventFixture.fire(harness, consumerName)` instead. This fires the same deterministic

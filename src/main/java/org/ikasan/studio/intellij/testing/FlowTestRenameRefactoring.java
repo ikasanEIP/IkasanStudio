@@ -301,6 +301,7 @@ public final class FlowTestRenameRefactoring {
                             if (args.length > producerIndex && args[producerIndex] == literal) replacement = newName;
                         }
                     }
+                    if (!flowRename && oldName.equals(value) && isBatchProducerKey(literal, call)) replacement = newName;
                     if (keys.containsKey(value) && Set.of("getRequiredProperty", "getProperty").contains(callName))
                         replacement = keys.get(value);
                     if (value.startsWith(oldResource) && field != null && field.getInitializer() == literal
@@ -314,6 +315,28 @@ public final class FlowTestRenameRefactoring {
             }
         }
     }
+    private static boolean isBatchProducerKey(PsiLiteralExpression literal, PsiMethodCallExpression call) {
+        if (call == null) return false;
+        var qualifier = call.getMethodExpression().getQualifierExpression();
+        if (qualifier == null || !Set.of("Map", "java.util.Map").contains(qualifier.getText())) return false;
+        String name = call.getMethodExpression().getReferenceName();
+        var arguments = call.getArgumentList().getExpressions();
+        boolean key = false;
+        if ("entry".equals(name)) key = arguments.length == 2 && arguments[0] == literal;
+        else if ("of".equals(name)) {
+            for (int i = 0; i < arguments.length; i += 2) if (arguments[i] == literal) key = true;
+        }
+        if (!key) return false;
+        var parent = PsiTreeUtil.getParentOfType(call, PsiMethodCallExpression.class, true);
+        if (parent != null && "ofEntries".equals(parent.getMethodExpression().getReferenceName())) {
+            call = parent;
+            parent = PsiTreeUtil.getParentOfType(call, PsiMethodCallExpression.class, true);
+        }
+        if (parent == null || !"batch".equals(parent.getMethodExpression().getReferenceName())) return false;
+        var batchArgs = parent.getArgumentList().getExpressions();
+        return batchArgs.length == 2 && batchArgs[1] == call;
+    }
+
     private static void prepareClassRename(Plan plan, PsiClass clazz, String oldFlow, String newFlow) {
         String before = StudioBuildUtils.toJavaClassName(oldFlow) + "FlowTest";
         String after = StudioBuildUtils.toJavaClassName(newFlow) + "FlowTest";

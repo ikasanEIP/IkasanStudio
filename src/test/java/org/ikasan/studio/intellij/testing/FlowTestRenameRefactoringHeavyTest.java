@@ -73,6 +73,9 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
                     runTest(TEST_REVIEWED, "Old Consumer", "Old Consumer", "expected");
                     runObservationTest("Old Consumer");
                     runObservationTest(TEST_REVIEWED, "Old Consumer");
+                    batch(List.of("Old Consumer"), Map.of("Old Consumer", List.of(textOutput("Old Consumer"))));
+                    batch(List.of(), Map.ofEntries(Map.entry("Old Consumer", List.of(textOutput("Old Consumer")))));
+                    Map.of("Old Consumer", "unrelated");
                 }
                 void customAssertion()
                 """));
@@ -82,6 +85,11 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
         assertTrue(text().contains("runTest(TEST_REVIEWED, \"New Consumer\", \"Old Consumer\", \"expected\")"));
         assertTrue(text().contains("runObservationTest(\"New Consumer\")"));
         assertTrue(text().contains("runObservationTest(TEST_REVIEWED, \"New Consumer\")"));
+        assertTrue(text().contains("Map.of(\"New Consumer\", List.of(textOutput(\"Old Consumer\")))"));
+        assertTrue(text().contains("Map.entry(\"New Consumer\", List.of(textOutput(\"Old Consumer\")))"));
+        assertTrue(text().contains("Map.of(\"Old Consumer\", \"unrelated\")"));
+        assertTrue(text().contains("batch(List.of(\"Old Consumer\")"));
+
     }
 
     public void testPersistenceFailureRestoresReferencesAndResources() {

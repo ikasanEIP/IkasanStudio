@@ -16,6 +16,7 @@ import static org.junit.Assert.assertEquals;
 public final class LocalSmtpTestServer implements AutoCloseable {
     private final GreenMail server;
     private boolean closed;
+    private final java.util.List<String> verifiedBodies = new java.util.ArrayList<>();
 
     private LocalSmtpTestServer() {
         server = new GreenMail(new ServerSetup(0, "127.0.0.1", ServerSetup.PROTOCOL_SMTP));
@@ -94,6 +95,34 @@ public final class LocalSmtpTestServer implements AutoCloseable {
         MimeMessage[] messages = receivedMessages();
         assertEquals("SMTP mailbox delivery count (multiple recipients may create multiple copies)", deliveryCount, messages.length);
         assertEquals("Received email body for delivery " + deliveryCount, expected, textBody(messages[deliveryCount - 1]));
+    }
+
+    /**
+     * Checks this batch's mailbox bodies plus all previously verified batches, ignoring mailbox order.
+     * Include one entry per recipient copy (for two recipients, use List.of(expected, expected)).
+     * Earlier messages remain in the inbox; callers need not repeat earlier expectations.
+     * Decodes the first non-attachment text MIME part. Does not check subjects or recipient addresses;
+     * use receivedMessages() for those assertions. Extra messages present at the check fail.
+     * @param expectedBodies bodies delivered by this batch, including whitespace and duplicate copies
+     * @param timeout positive maximum wait for the cumulative delivery count
+     */
+    public void assertBatchBodies(java.util.List<String> expectedBodies, Duration timeout) throws Exception {
+        if (timeout.isNegative() || timeout.isZero())
+            throw new IllegalArgumentException("Timeout must be positive");
+        var cumulative = new java.util.ArrayList<>(verifiedBodies);
+        cumulative.addAll(java.util.List.copyOf(expectedBodies));
+        if (!cumulative.isEmpty() && !server.waitForIncomingEmail(timeout.toMillis(), cumulative.size()))
+            throw new AssertionError("Expected " + cumulative.size() + " SMTP mailbox deliveries within " + timeout
+                    + "; received " + receivedMessages().length);
+        MimeMessage[] messages = receivedMessages();
+        assertEquals("SMTP mailbox delivery count", cumulative.size(), messages.length);
+        var actual = new java.util.ArrayList<String>();
+        for (MimeMessage message : messages) actual.add(textBody(message));
+        java.util.Collections.sort(cumulative);
+        actual.sort(java.util.Comparator.nullsFirst(java.util.Comparator.naturalOrder()));
+        assertEquals("SMTP mailbox bodies across verified batches", cumulative, actual);
+        verifiedBodies.clear();
+        verifiedBodies.addAll(cumulative);
     }
 
     /** Finds the text body, excluding attachments; custom MIME structures can use receivedMessages(). */

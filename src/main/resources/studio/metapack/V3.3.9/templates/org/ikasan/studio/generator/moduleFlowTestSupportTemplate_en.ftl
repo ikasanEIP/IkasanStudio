@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ikasan.studio.flowtests.support.utils.LocalSftpTestServer;
 import org.ikasan.studio.flowtests.support.utils.FlowTestFailureCapture;
+import org.ikasan.studio.flowtests.support.utils.FlowTestBatch;
 import org.ikasan.studio.flowtests.support.utils.LocalFtpTestServer;
 import org.ikasan.studio.flowtests.support.utils.FileDeliveryAssertions;
 import org.ikasan.studio.flowtests.support.utils.FileDeliveryBatchAssertions;
@@ -99,7 +100,8 @@ public abstract class ModuleFlowTestSupport {
         Map<String, String> properties = moduleTestProperties();
         int seconds = deliveryTimeoutSeconds(properties.getOrDefault("test.delivery.timeout-seconds", "10"));
         // JUnit removes files after the test/context cleanup, and reports deletion failures.
-        return RuleChain.outerRule(ftpTestDirectory).around(Timeout.seconds(60L + 10L * seconds));
+        return RuleChain.outerRule(ftpTestDirectory).around(Timeout.seconds(deliveryTimeoutSeconds(properties.getOrDefault("test.scenario.timeout-seconds",
+                String.valueOf(60L + 10L * seconds)))));
     }
     /**
      * Reloads shared test settings from the UTF-8 properties file into a fresh map.
@@ -498,6 +500,118 @@ public abstract class ModuleFlowTestSupport {
         } finally {
             expectedTextOutputs = null;
         }
+    }
+
+    /** Checks this batch's text file contents, retaining prior successful delivery expectations internally. */
+    protected final void assertDeliveredBatchContents(Path directory, String glob, int batch, String... expected) throws Exception {
+        fileDeliveryBatches.assertBatch(directory, glob, batch, Arrays.asList(expected), Duration.ofSeconds(deliveryTimeoutSeconds));
+    }
+
+    /** Inputs are values, not batch numbers. Each batch is sent on the same running flow. */
+    @FunctionalInterface
+    protected interface InputSender<I> {
+        void send(ConfigurableApplicationContext context, IkasanFlowTestRule harness, I input) throws Exception;
+    }
+    @FunctionalInterface
+    protected interface BatchFactory<I> {
+        List<FlowTestBatch<I>> create(ConfigurableApplicationContext context) throws Exception;
+    }
+    @FunctionalInterface
+    protected interface BatchDeliveryCheck<I> {
+        void verify(ConfigurableApplicationContext context, int batchNumber, FlowTestBatch<I> batch) throws Exception;
+    }
+    protected static <I> FlowTestBatch<I> batch(List<I> inputs, Map<String, ? extends List<?>> outputs) {
+        return new FlowTestBatch<>(inputs, outputs);
+    }
+    /** Strings use the text adapter; business objects must implement equals (and matching hashCode). */
+    protected void assertExpectedOutput(Object expected, Object actualAfterProducer) {
+        if (expected instanceof String) assertEquals(expected, formatOutputText(actualAfterProducer));
+        else assertEquals("Business payloads must implement equals", expected, actualAfterProducer);
+    }
+    /** Compatibility for existing tests; new batches contain expected values directly. */
+    @Deprecated
+    protected final FlowTestBatch.OutputCheck textOutput(String expected) {
+        return new FlowTestBatch.OutputCheck() {
+            public void verify(Object actual) { assertEquals(expected, formatOutputText(actual)); }
+            public String expectedText() { return expected; }
+        };
+    }
+    private int batchInputCount = 2;
+    /** Total input submissions for a simple one-path-per-input expectation; routers/splitters need custom paths. */
+    protected final int expectedInputCount() { return batchInputCount; }
+
+    protected final <I> void runBatches(List<FlowTestBatch<I>> batches, InputSender<I> sender) throws Exception {
+        runBatches(context -> batches, sender, (context, number, batch) -> { });
+    }
+    protected final <I> void runBatches(BatchFactory<I> factory, InputSender<I> sender) throws Exception {
+        runBatches(factory, sender, (context, number, batch) -> { });
+    }
+    /** Factory runs after prepareFixtures; useful when inputs need Spring beans or temporary services. */
+    protected final <I> void runBatches(BatchFactory<I> factory, InputSender<I> sender,
+            BatchDeliveryCheck<I> receiverCheck) throws Exception {
+        runTest(context -> {
+            List<FlowTestBatch<I>> batches = List.copyOf(factory.create(context));
+            if (batches.isEmpty()) throw new IllegalArgumentException("Define at least one batch");
+            batchInputCount = batches.stream().mapToInt(b -> b.inputs().size()).sum();
+            Module<Flow> module = context.getBean(Module.class);
+            Flow flow = module.getFlow(getFlowName());
+            assertNotNull("Flow must exist: " + getFlowName(), flow);
+            for (FlowTestBatch<I> batch : batches) {
+                for (String producer : batch.producers()) {
+                    var element = flow.getFlowElement(producer);
+                    assertNotNull("Unknown producer '" + producer + "' in flow '" + getFlowName() + "'", element);
+                    assertTrue("Expected a producer: " + producer,
+                            element.getFlowComponent() instanceof org.ikasan.spec.component.endpoint.Producer);
+                }
+            }
+            java.util.concurrent.atomic.AtomicReference<FlowTestBatch<I>.Observation> active =
+                    new java.util.concurrent.atomic.AtomicReference<>();
+            FlowEventListener listener = new FlowEventListener() {
+                public void beforeFlowElement(String m, String f, FlowElement e, FlowEvent event) { }
+                public void afterFlowElement(String m, String f, FlowElement e, FlowEvent event) {
+                    var observation = active.get();
+                    if (observation != null) observation.accept(e.getComponentName(), event.getPayload());
+                }
+            };
+            var harness = new IkasanFlowTestRule().withFlow(flow);
+            defineExpectedPath(harness);
+            deliveryTimeoutSeconds = deliveryTimeoutSeconds(context.getEnvironment()
+                    .getProperty("test.delivery.timeout-seconds", "10"));
+            flow.addFlowListener(listener);
+            try (FlowTestFailureCapture failures = new FlowTestFailureCapture(flow, getFlowName());
+                 AutoCloseable cleanup = flowCleanup(flow, listener, harness::stopFlow)) {
+                processingFailures = failures;
+                active.set(batches.get(0).observe(this::assertExpectedOutput));
+                harness.startFlow();
+                for (int index = 0; index < batches.size(); index++) {
+                    var batch = batches.get(index);
+                    if (index > 0) active.set(batch.observe(this::assertExpectedOutput));
+                    try {
+                        for (I input : batch.inputs()) { failures.check(); sender.send(context, harness, input); }
+                        active.get().verify(Duration.ofSeconds(deliveryTimeoutSeconds), Duration.ofSeconds(1), () -> {
+                            failures.check();
+                            assertEquals("Flow must remain ready between deliveries", Flow.RUNNING, flow.getState());
+                        });
+                        receiverCheck.verify(context, index + 1, batch);
+                        active.get().assertNoPending();
+                        failures.check();
+                    } catch (AssertionError | Exception failure) {
+                        throw new AssertionError("Flow '" + getFlowName() + "', batch " + (index + 1)
+                                + " of " + batches.size() + " failed: " + failure.getMessage(), failure);
+                    }
+                }
+                long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(deliveryTimeoutSeconds);
+                while (true) {
+                    failures.check();
+                    try { harness.assertIsSatisfied(); break; }
+                    catch (AssertionError pending) {
+                        if (System.nanoTime() >= deadline) throw pending;
+                        Thread.sleep(20);
+                    }
+                }
+                assertEquals("Ready after all batches", Flow.RUNNING, flow.getState());
+            } finally { processingFailures = null; batchInputCount = 2; }
+        });
     }
 
     /** Wraps nullable payloads so a null value remains distinguishable from a missing event. */

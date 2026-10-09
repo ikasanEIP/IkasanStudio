@@ -25,7 +25,7 @@ class LocalSftpHarnessTest {
     }
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"}) @Timeout(60)
-    void generatedOverridesDeliverBothBatchesAndPreserveExternalMode(String pack) throws Exception {
+    void generatedOverridesDeliverAllPayloadsAndPreserveExternalMode(String pack) throws Exception {
         String helper = Files.readString(Path.of("src/main/resources/studio/metapack", pack,
                 "templates/org/ikasan/studio/generator/localSftpHarness_en.ftl"));
         Path source = temporary.resolve("HarnessSettings.java");
@@ -36,6 +36,12 @@ class LocalSftpHarnessTest {
                 .redirectErrorStream(true).start();
         String diagnostics = new String(compiler.getInputStream().readAllBytes());
         assertEquals(0, compiler.waitFor(), diagnostics);
+        // These are file-transfer examples, not a fixed batch count in the flow-test runner.
+        // Both transfer directions check every filename/payload pair in this collection.
+        var expectedFiles = List.of(
+                Map.entry("first.txt", "First payload"),
+                Map.entry("second.txt", "Second payload"),
+                Map.entry("later.txt", "Later payload on the same connection"));
         int port;
         Map<String, String> previous = new HashMap<>();
         try (var server = LocalSftpHarness.start(temporary.resolve("server"));
@@ -61,12 +67,12 @@ class LocalSftpHarnessTest {
             assertEquals("/" + LocalSftpHarness.directory("My flow", "input"), consumer.configuration.directory);
             try (var client = new RemoteFilesClient()) {
                 client.connect(server.connection(), temporary);
-                for (String batch : List.of("first", "second")) {
-                    Path file = server.home().resolve(consumer.configuration.directory.substring(1)).resolve(batch + ".txt");
-                    Files.writeString(file, batch);
+                for (var expectedFile : expectedFiles) {
+                    Path file = server.home().resolve(consumer.configuration.directory.substring(1)).resolve(expectedFile.getKey());
+                    Files.writeString(file, expectedFile.getValue());
                     var entry = client.list(consumer.configuration.directory).entries().stream()
-                            .filter(e -> e.name().equals(batch + ".txt")).findFirst().orElseThrow();
-                    assertEquals(batch, Files.readString(client.download(consumer.configuration.directory, entry, temporary)));
+                            .filter(e -> e.name().equals(expectedFile.getKey())).findFirst().orElseThrow();
+                    assertEquals(expectedFile.getValue(), Files.readString(client.download(consumer.configuration.directory, entry, temporary)));
                 }
                 assertTrue(client.list(producer.configuration.directory).entries().isEmpty());
                 try (var ssh = org.apache.sshd.client.SshClient.setUpDefaultClient()) {
@@ -78,12 +84,12 @@ class LocalSftpHarnessTest {
                         session.addPasswordIdentity(producer.configuration.password);
                         session.auth().verify(5000);
                         try (var sftp = org.apache.sshd.sftp.client.SftpClientFactory.instance().createSftpClient(session)) {
-                            for (String batch : List.of("first", "second")) {
-                                try (var stream = sftp.write(producer.configuration.directory + "/" + batch + ".txt")) {
-                                    stream.write(batch.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                            for (var expectedFile : expectedFiles) {
+                                try (var stream = sftp.write(producer.configuration.directory + "/" + expectedFile.getKey())) {
+                                    stream.write(expectedFile.getValue().getBytes(java.nio.charset.StandardCharsets.UTF_8));
                                 }
-                                assertEquals(batch, Files.readString(server.home().resolve(
-                                        producer.configuration.directory.substring(1)).resolve(batch + ".txt")));
+                                assertEquals(expectedFile.getValue(), Files.readString(server.home().resolve(
+                                        producer.configuration.directory.substring(1)).resolve(expectedFile.getKey())));
                             }
                         }
                     }

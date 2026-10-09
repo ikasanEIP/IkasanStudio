@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-/** Queue/text-message helper. Use isolated test destinations, not production queues or topics. */
+/** Queue text/object-message helper. Use isolated test destinations, not production queues or topics. */
 public final class JmsFlowTestSupport implements AutoCloseable {
     private final Connection connection;
     private final Session session;
@@ -61,6 +61,14 @@ public final class JmsFlowTestSupport implements AutoCloseable {
     public void sendText(String queue, String text) throws JMSException {
         MessageProducer producer = session.createProducer(session.createQueue(queue));
         try { producer.send(session.createTextMessage(text)); }
+        finally { producer.close(); }
+    }
+
+    /** Sends a serializable business object inside a JMS ObjectMessage; does not convert text to an object. */
+    public void sendObject(String queue, java.io.Serializable payload) throws JMSException {
+        if (payload == null) throw new IllegalArgumentException("Supply a non-null business-object fixture");
+        MessageProducer producer = session.createProducer(session.createQueue(queue));
+        try { producer.send(session.createObjectMessage(payload)); }
         finally { producer.close(); }
     }
 

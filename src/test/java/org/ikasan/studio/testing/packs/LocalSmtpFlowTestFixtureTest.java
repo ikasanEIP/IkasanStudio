@@ -43,6 +43,23 @@ class LocalSmtpFlowTestFixtureTest {
                 type.getMethod("assertBody", int.class, String.class, Duration.class)
                         .invoke(server, 2, "later body", Duration.ofSeconds(2));
                 assertEquals(0, ((Object[]) type.getMethod("receivedMessages").invoke(second)).length);
+                var batchCheck = type.getMethod("assertBatchBodies", List.class, Duration.class);
+                var otherSetup = new ServerSetup((int) type.getMethod("port").invoke(second), "127.0.0.1", "smtp");
+                for (String body : List.of("first", "later", "third")) {
+                    GreenMailUtil.sendTextEmail("a@example.test,b@example.test", "from@example.test", "subject", body, otherSetup);
+                    batchCheck.invoke(second, List.of(body, body), Duration.ofSeconds(2));
+                }
+                // A failed comparison must not advance the helper's expected history.
+                GreenMailUtil.sendTextEmail("a@example.test", "from@example.test", "subject", "fourth", otherSetup);
+                var mismatch = assertThrows(InvocationTargetException.class, () ->
+                        batchCheck.invoke(second, List.of("wrong"), Duration.ofSeconds(2)));
+                assertInstanceOf(AssertionError.class, mismatch.getCause());
+                batchCheck.invoke(second, List.of("fourth"), Duration.ofSeconds(2));
+                GreenMailUtil.sendTextEmail("a@example.test", "from@example.test", "subject", "unexpected", otherSetup);
+                var extra = assertThrows(InvocationTargetException.class, () ->
+                        batchCheck.invoke(second, List.of(), Duration.ofSeconds(2)));
+                assertInstanceOf(AssertionError.class, extra.getCause());
+
                 InvocationTargetException failure = assertThrows(InvocationTargetException.class, () ->
                         type.getMethod("assertBody", int.class, String.class, Duration.class)
                                 .invoke(server, 3, "missing", Duration.ofMillis(50)));
