@@ -46,6 +46,34 @@ class IkasanModelDocumentsTest {
         assertThat(json.readTree(ModelTemplate.create(loaded))).isEqualTo(docs);
     }
 
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void inferredConfigurationIdsDoNotBecomeExplicitPropertiesOnReload(String pack) throws Exception {
+        ObjectNode legacy = (ObjectNode) json.readTree(fixture("populated_module.json"));
+        legacy.put("version", pack);
+        var flow = (ObjectNode) legacy.path("flows").get(0);
+        var meta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Scheduled Consumer");
+        var consumer = flow.putObject("consumer").put("componentName", "Scheduled input")
+                .put("componentType", meta.getComponentType()).put("implementingClass", meta.getImplementingClass())
+                .put("cronExpression", "0/5 * * * * ?");
+        if (meta.getAdditionalKey() != null) consumer.put("additionalKey", meta.getAdditionalKey());
+        flow.remove(java.util.List.of("flowElements", "transitions"));
+        var live = ComponentIO.validatePersistedModuleJson(legacy.toString(), "live", false);
+        var saved = json.readTree(ModelTemplate.create(live));
+        var reloaded = ComponentIO.validatePersistedModuleJson(saved.toString(), "saved", false);
+        assertThat(json.readTree(ModelTemplate.create(reloaded))).isEqualTo(saved);
+        assertThat(reloaded.getFlows().get(0).getConsumer().getPropertyValue("configurationId")).isNull();
+        // An explicit choice must survive even when it happens to equal the automatic ID.
+        String id = saved.at("/module/flows/0/flowElements/0/configurationId").asText();
+        if (id.isEmpty()) id = saved.at("/module/flows/0/consumer/configurationId").asText();
+        assertThat(id).isNotEmpty();
+        consumer.put("configurationId", id);
+        var explicit = ComponentIO.validatePersistedModuleJson(legacy.toString(), "explicit", false);
+        var explicitSaved = json.readTree(ModelTemplate.create(explicit));
+        var explicitReloaded = ComponentIO.validatePersistedModuleJson(explicitSaved.toString(), "explicit saved", false);
+        assertThat(explicitReloaded.getFlows().get(0).getConsumer().getPropertyValue("configurationId")).isEqualTo(id);
+        assertThat(json.readTree(ModelTemplate.create(explicitReloaded))).isEqualTo(explicitSaved);
+    }
+
     @Test void bothMigrationDirectionsRetainTheDocumentFormat() throws Exception {
         String source = ModelTemplate.create(ComponentIO.validatePersistedModuleJson(fixture("populated_module.json"), "test", false));
         var forward = ModelMigration.analyse(source, "V4.1.6");

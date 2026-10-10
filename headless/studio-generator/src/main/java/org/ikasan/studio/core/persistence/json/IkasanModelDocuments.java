@@ -299,6 +299,13 @@ public final class IkasanModelDocuments {
             }
             result.put(key, value);
         }
+        // A generated native ID is not an explicitly configured Studio property. Turning it
+        // into one on load adds configurationIdProperty on the next save and makes a freshly
+        // saved live canvas compare unequal to the same model reloaded for test generation.
+        if (!extra.has("configurationIdProperty") && !meta.getRuntimeConfigurationProperties().isEmpty()
+                && id.equals(identifier(moduleName, flowName, name, configurationClass(meta)))) {
+            result.remove("configurationId");
+        }
         if (!meta.getRuntimeConfigurationProperties().isEmpty()) {
             ObjectNode config = configs.get(id);
             if (config == null) throw invalid("Missing configuration " + id + " for " + name);

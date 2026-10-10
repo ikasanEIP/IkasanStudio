@@ -67,7 +67,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                     var saved = ComponentIO.validatePersistedModuleJson(model.get(), "generated verification", false);
                     var mapper = StudioJson.newObjectMapper();
                     if (!mapper.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(saved)).equals(mapper.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(live))))
-                        throw new IllegalStateException(StudioBundle.message("message.TheCanvasAndSavedModelDiffer"));
+                        throw new IllegalStateException(StudioBundle.message("flowTest.canvasModelMismatch"));
                     parent.set(Files.readString(root.resolve("pom.xml")));
                     snapshot.set(GeneratedVerificationFiles.snapshot(root.resolve(org.ikasan.studio.core.generator.GeneratedVerification.DIRECTORY)));
                     bundle.set(org.ikasan.studio.core.generator.GeneratedVerification.render(saved, model.get(), parent.get(),
@@ -192,7 +192,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                         var module = ComponentIO.validatePersistedModuleJson(source, "flow test generation", false);
                         var mapper = StudioJson.newObjectMapper();
                         if (!mapper.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(module)).equals(mapper.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(live)))) {
-                            throw new IllegalStateException(StudioBundle.message("message.TheCanvasAndSavedModelDiffer"));
+                            throw new IllegalStateException(StudioBundle.message("flowTest.canvasModelMismatch"));
                         }
                         String pom = Files.readString(root.resolve("pom.xml"));
                         String applicationPom = Files.readString(root.resolve("generated/pom.xml"));
