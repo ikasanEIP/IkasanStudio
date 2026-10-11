@@ -75,6 +75,18 @@ public final class FileDeliveryAssertions {
         } while (true);
     }
 
+    /** Observes one second without any change to previously delivered file contents. */
+    public static void assertNoAdditionalFiles(Path directory, String glob, List<String> expected) throws Exception {
+        List<String> wanted = new ArrayList<>(expected);
+        Collections.sort(wanted);
+        long end = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(1);
+        do {
+            List<String> actual = Files.isDirectory(directory) ? readContents(directory, glob) : List.of();
+            if (!wanted.equals(actual)) throw new AssertionError("Unexpected file delivery in an empty-output batch: " + directory);
+            Thread.sleep(25);
+        } while (System.nanoTime() < end);
+    }
+
     /** Reads only the selected regular files; IO errors other than an in-progress rename fail the test. */
     private static List<String> readContents(Path directory, String glob) throws IOException {
         List<String> contents = new ArrayList<>();

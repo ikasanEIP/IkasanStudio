@@ -30,6 +30,20 @@ class FileDeliveryAssertionsTemplateTest {
             Method files = type.getMethod("assertDeliveredFileContents", Path.class, String.class, List.class, Duration.class);
             Path output = Files.createDirectory(root.resolve("output"));
             Path first = output.resolve("first.dat");
+            Method quiet = type.getMethod("assertNoAdditionalFiles", Path.class, String.class, List.class);
+            quiet.invoke(null, output, "*.dat", List.of());
+            var delayed = java.util.concurrent.Executors.newSingleThreadExecutor();
+            try {
+                var arrival = delayed.submit(() -> {
+                    Thread.sleep(100);
+                    return Files.writeString(output.resolve("unexpected.dat"), "unexpected");
+                });
+                var unexpected = assertThrows(InvocationTargetException.class,
+                        () -> quiet.invoke(null, output, "*.dat", List.of()));
+                assertInstanceOf(AssertionError.class, unexpected.getCause());
+                Files.delete(arrival.get());
+            } finally { delayed.shutdownNow(); }
+
             var writer = java.util.concurrent.Executors.newSingleThreadExecutor();
             try {
                 var written = writer.submit(() -> {

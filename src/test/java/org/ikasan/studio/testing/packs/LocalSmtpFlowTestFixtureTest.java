@@ -49,6 +49,7 @@ class LocalSmtpFlowTestFixtureTest {
                     GreenMailUtil.sendTextEmail("a@example.test,b@example.test", "from@example.test", "subject", body, otherSetup);
                     batchCheck.invoke(second, List.of(body, body), Duration.ofSeconds(2));
                 }
+                batchCheck.invoke(second, List.of(), Duration.ofSeconds(2));
                 // A failed comparison must not advance the helper's expected history.
                 GreenMailUtil.sendTextEmail("a@example.test", "from@example.test", "subject", "fourth", otherSetup);
                 var mismatch = assertThrows(InvocationTargetException.class, () ->

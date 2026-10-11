@@ -42,9 +42,9 @@ import org.junit.rules.TemporaryFolder;
 /**
  * Developer-owned scenario for ${flowName?j_string}.
  * Complete the numbered TODOs below in order (IntelliJ's TODO view can locate them):
- * 1. Review the expected component path and any branch/delivery assertions.
- * 2. Define input payloads or fixtures for the batches in createInputOutputBatches().
- * 3. Choose the output producer and a stable payload representation.
+ * 1. Choose the output producer and review the expected payloads below.
+ * 2. Review the expected component path and any branch/delivery assertions.
+ * 3. Define input payloads or fixtures for the batches in createInputOutputBatches().
  * 4. Review test connections in module-test.properties.
  * Run immediately to see what works; use the TODOs to refine inputs and assertions.
  * See user-flow-tests/README.md for details. Generated scaffolds are not completed tests.
@@ -53,11 +53,20 @@ public class ${className} extends ModuleFlowTestSupport {
     // Run from IntelliJ or from the project root:
     // mvn -pl user-flow-tests -am -Dtest=${className} -Dsurefire.failIfNoSpecifiedTests=false test
     private static final String FLOW_NAME = "${flowName?j_string}";
+    // TODO 1: Confirm this is the producer to observe, then set the expected payloads below.
+<#if producers?size != 1>
+    // Review expected outputs for each producer in createInputOutputBatches; omit only deliberately unchecked producers:
+<#list producers as producer>
+    // "${producer?j_string}"
+</#list>
+</#if>
+    private static final String PRODUCER_NAME = <#if producers?size gt 0>"${producers[0]?j_string}"<#else>"REPLACE: producer name"</#if>;
+
     @Override protected String getFlowName() { return FLOW_NAME; }
 
     @Override
     protected void defineExpectedPath(IkasanFlowTestRule harness) {
-        // TODO 1: Review the expected journey through the flow. This is separate from payload checks.
+        // TODO 2: Review the expected journey through the flow. This is separate from payload checks.
 <#if automaticPath>
         // Define the flow per batch below. This will be executed per batch supplied.
         harness.blockStart()
@@ -66,19 +75,33 @@ public class ${className} extends ModuleFlowTestSupport {
                 .${step.method}("${step.name?j_string}")
 </#list>
                 .repeat(expectedInputCount());
-<#elseif splitterPath>
+<#elseif splitterPath || filterPath>
+<#if splitterPath>
         // The component sequence is known; split counts depend on your fixtures and business logic.
         // Each count below is an example of ONE output item, not an inferred expectation.
         // Adjust inside the loops if counts differ by input or by an earlier splitter's item.
         // Final expected outputs alone cannot tell us the intermediate split counts.
+</#if>
+<#if filterPath>
+        // The component sequence is known; filter decisions depend on your inputs and business logic.
+        // The true values below are editable examples, not inferred filter outcomes.
+        // Set each decision for inputIndex (zero-based across all batches).
+        // A rejected event visits its filter, but none of the components inside the following if block.
+        // After a splitter, decisions can also depend on the enclosing splitItem index.
+        // Match producer expectations to accepted events; an empty producer list asserts no output.
+</#if>
         for (int inputIndex = 0; inputIndex < expectedInputCount(); inputIndex++) {
             harness.<#if scheduled>scheduledConsumer<#else>consumer</#if>("${consumerName?j_string}");
 <#list splitSteps as step>
 ${step.indent}harness.${step.method}("${step.name?j_string}");
 <#if step.splitter>
-${step.indent}// TODO 1: Set the expected number of items from this invocation of "${step.name?j_string}".
+${step.indent}// TODO 2: Set the expected number of items from this invocation of "${step.name?j_string}".
 ${step.indent}int expectedSplitItems${step.index} = 1;
 ${step.indent}for (int splitItem${step.index} = 0; splitItem${step.index} < expectedSplitItems${step.index}; splitItem${step.index}++) {
+<#elseif step.filterDecision>
+${step.indent}// TODO 2: Set whether this invocation of "${step.name?j_string}" passes the event.
+${step.indent}boolean expectedFilterPasses${step.index} = true;
+${step.indent}if (expectedFilterPasses${step.index}) {
 </#if>
 </#list>
 <#list splitClosings as indent>
@@ -106,9 +129,9 @@ ${indent}}
 <#if objectMessageInput>
     // Construct a serializable business object for each batch (expected type: ${objectInputType?j_string}).
 <#elseif triggerOnly>
-    // TODO 2: Prepare the broker data in prepareFixtures if needed; each triggeredBatch fires once.
+    // TODO 3: Prepare the broker data in prepareFixtures if needed; each triggeredBatch fires once.
 <#elseif ftpInput || sftpInput || isolatedFiles>
-    // TODO 2: Review the sample input files under user-flow-tests/src/test/resources (or change the paths).
+    // TODO 3: Review the sample input files under user-flow-tests/src/test/resources (or change the paths).
     // Each resource is copied unchanged to the JUnit test input directory using only its filename.
     // Use distinct filenames; the test directory is configured automatically.
 <#if ftpInput || sftpInput>
@@ -122,14 +145,13 @@ ${indent}}
             + "/" + noSpaces(CONSUMER_NAME) + "/second.txt";
     // If needed for an assertion: readTestResource(FIRST_BATCH_INPUT_FILENAME) reads its UTF-8 text.
 <#else>
-    // TODO 2: Set the data supplied for each batch; expected outputs below are independent assertions.
+    // TODO 3: Set the data supplied for each batch; expected outputs below are independent assertions.
     private static final String FIRST_BATCH_INPUT = "first expected payload";
     private static final String SECOND_BATCH_INPUT = "second expected payload";
 
     // Alternative: put UTF-8 fixture files in user-flow-tests/src/test/resources/input/.
-    // Replace the two input constants above with these declarations (do not keep both):
+    // Replace the input constants above with these styles of declarations (do not keep both):
     // private static final String FIRST_BATCH_INPUT = readTestResource("/input/first.txt");
-    // private static final String SECOND_BATCH_INPUT = readTestResource("/input/second.txt");
     // Paths are relative to src/test/resources, not your working directory. Whitespace is preserved.
 </#if>
 
@@ -156,10 +178,10 @@ ${indent}}
         // Runs after prepareFixtures(context), so inputs may use Spring beans or runtime fixtures.
 <#if objectMessageInput>
 <#if objectInputType != "java.io.Serializable">
-        // TODO 2: Populate each ${objectInputType?j_string} below with values for its expected output.
+        // TODO 3: Populate each ${objectInputType?j_string} below with values for its expected output.
         // Adjust the constructor calls if this type requires arguments or a factory method.
 <#else>
-        // TODO 2: Replace null with populated Serializable business objects for each expected output.
+        // TODO 3: Replace null with populated Serializable business objects for each expected output.
         java.io.Serializable firstInputPayload = null;
         java.io.Serializable secondInputPayload = null;
 </#if>
@@ -219,15 +241,6 @@ ${indent}}
 </#if>
     }
 </#if>
-    // TODO 3: Confirm this is the producer to observe, then set the expected payloads below.
-<#if producers?size != 1>
-    // Review expected outputs for each producer in createInputOutputBatches; omit only deliberately unchecked producers:
-<#list producers as producer>
-    // "${producer?j_string}"
-</#list>
-</#if>
-    private static final String PRODUCER_NAME = <#if producers?size gt 0>"${producers[0]?j_string}"<#else>"REPLACE: producer name"</#if>;
-
     // Decode actual Payload/byte[]/File/Path/file-list/JMS TextMessage content for comparisons.
     // true decodes supported content as text; false uses toString(). Both modes compare text.
     private static final boolean DECODE_OUTPUT_CONTENT_AS_TEXT = true;
@@ -285,56 +298,59 @@ ${indent}}
     public void testFirstAndLaterDeliveryWithoutRestart() throws Exception {
 <#if fileDelivery || smtpDelivery || (jmsConsumer && jmsOutputKey?has_content && !objectOutput)>
         runBatches(this::createInputOutputBatches, this::supplyInput,
-                (context, batchNumber, definition) -> verifyReceivedOutput(context, batchNumber,
-                        definition.expectedText(PRODUCER_NAME, 0)));
+                (context, batchNumber, definition) -> {
+                    if (definition.producers().contains(PRODUCER_NAME))
+                        verifyReceivedOutput(context, batchNumber, definition.expectedTexts(PRODUCER_NAME));
+                });
 <#else>
         runBatches(this::createInputOutputBatches, this::supplyInput);
 </#if>
     }
 
-    // Receiver hooks below are examples for one output per batch. Adapt them for multiple outputs/recipients.
+    // Receiver checks receive all expected outputs; an empty list checks for no delivery.
 <#if jmsConsumer && jmsOutputKey?has_content && !objectOutput>
 
     @Override
-    protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch, String expected) throws Exception {
+    protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch, List<String> expected) throws Exception {
         // Read the actual isolated output queue; keep input and output queues distinct.
         try (JmsFlowTestSupport jms = JmsFlowTestSupport.from(context)) {
-            jms.assertText(context.getEnvironment().getRequiredProperty("${jmsOutputKey?j_string}"), expected);
+            jms.assertTexts(context.getEnvironment().getRequiredProperty("${jmsOutputKey?j_string}"), expected);
         }
     }
 </#if>
 <#if smtpDelivery>
     @Override
-    protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch, String expected) throws Exception {
+    protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch, List<String> expected) throws Exception {
         // Verify actual SMTP delivery, not just the email producer invocation.
         // Set a breakpoint on the assertion below; inspect localSmtpServer(context).receivedMessages()
         // for the actual recipients, subjects and bodies.
 <#if smtpRecipientCount gt 0>
         // Expect one mailbox copy per configured recipient. Review if recipient settings change.
         localSmtpServer(context).assertBatchBodies(
-                List.of(<#list 1..smtpRecipientCount as recipient>expected<#sep>, </#list>), deliveryTimeout(context));
+                expected.stream().flatMap(body -> java.util.Collections.nCopies(${smtpRecipientCount}, body).stream())
+                        .collect(java.util.stream.Collectors.toList()), deliveryTimeout(context));
 <#else>
         // Review the recipient settings: the mailbox count could not be inferred safely.
-        // Supply one expected body per recipient, for example List.of(expected, expected) for two.
-        localSmtpServer(context).assertBatchBodies(List.of(expected), deliveryTimeout(context));
+        // Supply one expected body per mailbox copy; repeat each body for multiple recipients.
+        localSmtpServer(context).assertBatchBodies(expected, deliveryTimeout(context));
 </#if>
     }
 </#if>
 <#if fileDelivery && !(jmsConsumer && jmsOutputKey?has_content && !objectOutput)>
 
     @Override
-    protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch, String expected) throws Exception {
+    protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch, List<String> expected) throws Exception {
         // Check the output artifacts created by the producer.
 <#if sftpFileDelivery>
         // The local test SFTP server owns a separate directory for this producer.
         assertDeliveredBatchContents(localSftpDirectory(context, FLOW_NAME, PRODUCER_NAME), "*", batch,
-                expected);
+                expected.toArray(new String[0]));
 <#elseif ftpFileDelivery>
         // The FTP unit test server is enabled by test.ftp.enabled in test properties. The property
         // test.delivery.timeout-seconds allows timeout configuration.
         // Refine the "*" glob to resemble the expected filename(s)
         assertDeliveredBatchContents(localFtpDirectory(context), "*", batch,
-                expected);
+                expected.toArray(new String[0]));
         // For a known filename/overwrite: assertFileContents(localFtpDirectory(context).resolve("result.txt"),
         //         expected);
 <#else>

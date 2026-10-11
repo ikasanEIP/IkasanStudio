@@ -89,13 +89,16 @@ public final class FlowTestScaffold {
             if (element.getComponentMeta().isDebug()) continue;
             String type = element.getComponentMeta().getComponentType();
             String method = type == null ? null : methods.get(type.substring(type.lastIndexOf('.') + 1));
-            if ("org.ikasan.spec.component.filter.Filter".equals(type)
-                    && element.getComponentMeta().isFlowTestPassThroughFilter()) method = "filter";
+            if ("org.ikasan.spec.component.filter.Filter".equals(type)) method = "filter";
             if (method == null) automaticPath = false;
-            else executionPath.add(Map.of("method", method, "name", element.getIdentity()));
+            else executionPath.add(Map.of("method", method, "name", element.getIdentity(),
+                    "filterDecision", Boolean.toString("filter".equals(method)
+                            && !element.getComponentMeta().isFlowTestPassThroughFilter())));
         }
         automaticPath &= !executionPath.isEmpty() && "producer".equals(executionPath.get(executionPath.size() - 1).get("method"));
         boolean splitterPath = automaticPath && executionPath.stream().anyMatch(step -> "splitter".equals(step.get("method")));
+        boolean filterPath = automaticPath && executionPath.stream().anyMatch(step -> "true".equals(step.get("filterDecision")));
+        values.put("filterPath", filterPath);
         values.put("splitterPath", splitterPath);
         java.util.List<Map<String, Object>> splitSteps = new java.util.ArrayList<>();
         java.util.List<String> splitClosings = new java.util.ArrayList<>();
@@ -103,16 +106,17 @@ public final class FlowTestScaffold {
         for (var step : executionPath) {
             String indent = "    ".repeat(3 + splitDepth);
             boolean splitter = "splitter".equals(step.get("method"));
+            boolean filterDecision = "true".equals(step.get("filterDecision"));
             splitSteps.add(Map.of("method", step.get("method"), "name", step.get("name"),
-                    "indent", indent, "splitter", splitter, "index", splitDepth + 1));
-            if (splitter) {
+                    "indent", indent, "splitter", splitter, "filterDecision", filterDecision, "index", splitDepth + 1));
+            if (splitter || filterDecision) {
                 splitClosings.add(0, indent);
                 splitDepth++;
             }
         }
         values.put("splitSteps", splitSteps);
         values.put("splitClosings", splitClosings);
-        automaticPath &= !splitterPath;
+        automaticPath &= !splitterPath && !filterPath;
         var inputMeta = flow.getConsumer().getComponentMeta();
         boolean observationOnly = automaticPath && flow.getFlowRoute().getFlowElements().size() == 1
                 && "self-generating".equals(inputMeta.getFlowTestInputMode())

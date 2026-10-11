@@ -14,16 +14,18 @@ import java.util.List;
  * This checks the declared initial payload sequence and continued running, not external delivery.
  */
 public class ${className} extends ModuleFlowTestSupport {
-    // TODO 1: Review src/test/resources/module-test.properties for other module startup connections.
-    // TODO 2: Review the producer and expected payloads in the observation below.
     // mvn -pl user-flow-tests -am -Dtest=${className} -Dsurefire.failIfNoSpecifiedTests=false test
 
     private static final String FLOW_NAME = "${flowName?j_string}";
+    // TODO 1: Confirm this is the producer to observe, then review the expected payloads below.
+    private static final String PRODUCER_NAME = "${producers[0]?j_string}";
+
     @Override protected String getFlowName() { return FLOW_NAME; }
 
     // Override prepareFixtures(context) for instance fixtures after Spring starts, before the flow starts.
     // Override cleanupFixtures(context) for custom cleanup, including when fixture preparation fails.
 
+    // TODO 2: Review src/test/resources/module-test.properties for other module startup connections.
     @Test
     public void testGeneratedEventsReachProducerAndFlowKeepsRunning() throws Exception {
         // runObservationTest checks:
@@ -34,7 +36,7 @@ public class ${className} extends ModuleFlowTestSupport {
         // - A fresh later event reaches the producer without restarting the flow.
         // - Teardown stops the flow and confirms its STOPPED state.
         // It does not check external delivery, intermediate component order or recovery behaviour.
-        runObservationTest("${producers[0]?j_string}"<#if expectedInitialOutputs?has_content>,
+        runObservationTest(PRODUCER_NAME<#if expectedInitialOutputs?has_content>,
                 // Expected messages from the built-in event provider.
                 List.of(<#list expectedInitialOutputs as output>"${output?j_string}"<#sep>, </#sep></#list>)</#if>);
     }

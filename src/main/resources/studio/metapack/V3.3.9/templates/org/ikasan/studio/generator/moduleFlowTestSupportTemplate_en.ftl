@@ -484,6 +484,8 @@ public abstract class ModuleFlowTestSupport {
     private void runOutputTest(String output, ContextBatchInput input,
                                String[] expected, boolean checkReceiver) throws Exception {
         expectedTextOutputs = expected;
+        // Legacy runTest overloads explicitly submit two inputs. Collection-based tests derive their count.
+        batchInputCount = 2;
         try {
             runTest(context -> observeScenario(context, getFlowName(), output,
                     PayloadObservation::new, this::defineExpectedPath, (harness, flow, outputs) -> {
@@ -502,12 +504,19 @@ public abstract class ModuleFlowTestSupport {
             }));
         } finally {
             expectedTextOutputs = null;
+            batchInputCount = 0;
         }
     }
 
     /** Checks this batch's text file contents, retaining prior successful delivery expectations internally. */
     protected final void assertDeliveredBatchContents(Path directory, String glob, int batch, String... expected) throws Exception {
         fileDeliveryBatches.assertBatch(directory, glob, batch, Arrays.asList(expected), Duration.ofSeconds(deliveryTimeoutSeconds));
+    }
+
+    /** Receiver check for the whole batch, including zero or multiple deliveries. */
+    protected void verifyReceivedOutput(ConfigurableApplicationContext context, int batch,
+            List<String> expected) throws Exception {
+        throw new UnsupportedOperationException("Override verifyReceivedOutput(context, batch, List<String>) to check receiver deliveries");
     }
 
     /** Inputs are values, not batch numbers. Each batch is sent on the same running flow. */
@@ -595,7 +604,8 @@ public abstract class ModuleFlowTestSupport {
         }.withFlow(observedFlow);
     }
 
-    private int batchInputCount = 2;
+    // Populated before defineExpectedPath; zero before a scenario is configured.
+    private int batchInputCount = 0;
     /** Total input submissions and explicit timer triggers for a simple one-path-per-invocation expectation; routers/splitters need custom paths. */
     protected final int expectedInputCount() { return batchInputCount; }
 
@@ -670,7 +680,7 @@ public abstract class ModuleFlowTestSupport {
                     }
                 }
                 assertEquals("Ready after all batches", Flow.RUNNING, flow.getState());
-            } finally { processingFailures = null; batchInputCount = 2; }
+            } finally { processingFailures = null; batchInputCount = 0; }
         });
     }
 

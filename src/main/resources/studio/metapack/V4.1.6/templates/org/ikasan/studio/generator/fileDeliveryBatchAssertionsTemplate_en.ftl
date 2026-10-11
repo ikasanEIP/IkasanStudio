@@ -42,7 +42,8 @@ public final class FileDeliveryBatchAssertions {
         List<String> cumulative = new ArrayList<>();
         if (previous != null) cumulative.addAll(previous.contents);
         cumulative.addAll(expected);
-        FileDeliveryAssertions.assertDeliveredFileContents(directory, glob, cumulative, timeout);
+        if (expected.isEmpty()) FileDeliveryAssertions.assertNoAdditionalFiles(directory, glob, cumulative);
+        else FileDeliveryAssertions.assertDeliveredFileContents(directory, glob, cumulative, timeout);
         batches.put(key, new Batch(batch, List.copyOf(cumulative)));
     }
 

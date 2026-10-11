@@ -114,6 +114,13 @@ public final class LocalSmtpTestServer implements AutoCloseable {
         if (!cumulative.isEmpty() && !server.waitForIncomingEmail(timeout.toMillis(), cumulative.size()))
             throw new AssertionError("Expected " + cumulative.size() + " SMTP mailbox deliveries within " + timeout
                     + "; received " + receivedMessages().length);
+        if (expectedBodies.isEmpty()) {
+            long end = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(1);
+            do {
+                assertEquals("Unexpected SMTP delivery in an empty-output batch", cumulative.size(), receivedMessages().length);
+                Thread.sleep(25);
+            } while (System.nanoTime() < end);
+        }
         MimeMessage[] messages = receivedMessages();
         assertEquals("SMTP mailbox delivery count", cumulative.size(), messages.length);
         var actual = new java.util.ArrayList<String>();

@@ -86,6 +86,12 @@ public final class JmsFlowTestSupport implements AutoCloseable {
         } finally { consumer.close(); }
     }
 
+    /** Checks every expected delivery in order, then observes one second for unexpected messages. */
+    public void assertTexts(String queue, java.util.List<String> expected) throws JMSException {
+        for (String text : expected) assertText(queue, text);
+        assertNoMessage(queue);
+    }
+
     /** Observes the queue for one second and fails if any message arrives; receipt consumes that message. */
     public void assertNoMessage(String queue) throws JMSException {
         MessageConsumer consumer = session.createConsumer(session.createQueue(queue));

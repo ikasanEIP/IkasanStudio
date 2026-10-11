@@ -40,10 +40,22 @@ public final class FlowTestBatch<I> {
     public List<I> inputs() { return inputs; }
     public List<?> expectedOutputs(String producer) { return outputs.getOrDefault(producer, List.of()); }
     public String expectedText(String producer, int outputIndex) {
-        Object expected = outputs.get(producer).get(outputIndex);
+        List<?> values = outputs.get(producer);
+        if (values == null || outputIndex < 0 || outputIndex >= values.size())
+            throw new IllegalArgumentException("Producer '" + producer + "' has "
+                    + (values == null ? "no output checks" : values.size() + " expected outputs")
+                    + " in this batch, but the receiver check requested output " + (outputIndex + 1)
+                    + ". Update verifyReceivedOutput to handle the whole expected-output list, including empty lists.");
+        Object expected = values.get(outputIndex);
         if (expected instanceof String) return (String) expected;
         if (expected instanceof OutputCheck) return ((OutputCheck) expected).expectedText();
         throw new IllegalStateException("Expected payload is not text; customise receiver verification");
+    }
+    /** Text expectations for a receiver; an empty list means no delivery is expected. */
+    public List<String> expectedTexts(String producer) {
+        List<String> texts = new ArrayList<>();
+        for (int i = 0; i < expectedCount(producer); i++) texts.add(expectedText(producer, i));
+        return Collections.unmodifiableList(texts);
     }
     public int expectedCount(String producer) { return outputs.getOrDefault(producer, List.of()).size(); }
     public Set<String> producers() { return outputs.keySet(); }

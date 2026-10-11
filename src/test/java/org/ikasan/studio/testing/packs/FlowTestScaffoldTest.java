@@ -12,6 +12,57 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FlowTestScaffoldTest {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void filterExamplesRecordRejectedFiltersButSkipDownstreamComponents(String version,
+            @org.junit.jupiter.api.io.TempDir Path temporary) throws Exception {
+        var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
+        flow.getFlowRoute().getFlowElements().clear();
+        var first = org.ikasan.studio.core.TestFixtures.getMessageFilter(version);
+        first.setPropertyValue("componentName", "first filter");
+        var second = org.ikasan.studio.core.TestFixtures.getMessageFilter(version);
+        second.setPropertyValue("componentName", "second filter");
+        flow.getFlowRoute().getFlowElements().add(first);
+        flow.getFlowRoute().getFlowElements().add(second);
+        flow.getFlowRoute().getFlowElements().add(org.ikasan.studio.core.TestFixtures.getDevNullProducer(version));
+        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
+        var result = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        String code = result.files().get(result.testPath());
+        assertFalse(code.contains("Define the expected component path for all input batches"));
+        assertTrue(code.contains("boolean expectedFilterPasses1 = true"));
+        assertTrue(code.contains("boolean expectedFilterPasses2 = true"));
+        String method = code.substring(code.indexOf("    protected void defineExpectedPath"),
+                code.indexOf("    // Override prepareFixtures"))
+                .replace("expectedFilterPasses1 = true", "expectedFilterPasses1 = inputIndex != 0")
+                .replace("expectedFilterPasses2 = true", "expectedFilterPasses2 = inputIndex != 1");
+        String source = "public class FilterProbe { static int expectedInputCount() { return 3; } "
+                + "public static class IkasanFlowTestRule { public java.util.List<String> calls = new java.util.ArrayList<>();"
+                + "public void consumer(String n) { calls.add(\"consumer\"); }"
+                + "public void filter(String n) { calls.add(n); }"
+                + "public void producer(String n) { calls.add(\"producer\"); }}"
+                + method + "public static void main(String[] args) { var h = new IkasanFlowTestRule();"
+                + "new FilterProbe().defineExpectedPath(h); if (!h.calls.equals(java.util.List.of("
+                + "\"consumer\",\"first filter\",\"consumer\",\"first filter\",\"second filter\","
+                + "\"consumer\",\"first filter\",\"second filter\",\"producer\"))) throw new AssertionError(h.calls); }}";
+        Path file = temporary.resolve("FilterProbe.java");
+        Files.writeString(file, source);
+        Path log = temporary.resolve("probe.log");
+        String bin = Path.of(System.getProperty("java.home"), "bin").toString();
+        var compiler = new ProcessBuilder(bin + "/javac", "--release", "11", file.toString())
+                .redirectErrorStream(true).redirectOutput(log.toFile()).start();
+        try {
+            assertTrue(compiler.waitFor(30, java.util.concurrent.TimeUnit.SECONDS));
+            assertEquals(0, compiler.exitValue(), Files.readString(log));
+        } finally { if (compiler.isAlive()) compiler.destroyForcibly(); }
+        var run = new ProcessBuilder(bin + "/java", "-cp", temporary.toString(), "FilterProbe")
+                .redirectErrorStream(true).redirectOutput(log.toFile()).start();
+        try {
+            assertTrue(run.waitFor(30, java.util.concurrent.TimeUnit.SECONDS));
+            assertEquals(0, run.exitValue(), Files.readString(log));
+        } finally { if (run.isAlive()) run.destroyForcibly(); }
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void timerBrokerUsesExplicitTriggerBatches(String version) throws Exception {
         var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
         flow.setConsumer(org.ikasan.studio.core.TestFixtures.getScheduledConsumer(version));
@@ -176,7 +227,7 @@ class FlowTestScaffoldTest {
         var inferred = FlowTestScaffold.render(module, flow,
                 Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
                 Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
-        assertTrue(inferred.files().get(inferred.testPath()).contains("List.of(expected, expected, expected)"));
+        assertTrue(inferred.files().get(inferred.testPath()).contains("java.util.Collections.nCopies(3, body)"));
         producer.setPropertyValue("testCopies", "${runtime.recipient}");
         var unresolved = FlowTestScaffold.render(module, flow,
                 Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
@@ -233,7 +284,7 @@ class FlowTestScaffoldTest {
         assertFalse(code.contains("Define the expected component path for all input batches"));
         flow.getFlowRoute().getFlowElements().set(0, org.ikasan.studio.core.TestFixtures.getMessageFilter(version));
         var filtered = FlowTestScaffold.render(module, flow, rootPom, generatedPom);
-        assertTrue(filtered.files().get(filtered.testPath()).contains("Define the expected component path for all input batches"));
+        assertTrue(filtered.files().get(filtered.testPath()).contains("boolean expectedFilterPasses1 = true"));
     }
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
@@ -427,7 +478,7 @@ class FlowTestScaffoldTest {
         assertTrue(test.contains("protected void verifyReceivedOutput("));
         assertTrue(test.contains("runBatches(this::createInputOutputBatches, this::supplyInput"));
         assertTrue(test.contains("this::createInputOutputBatches"));
-        assertTrue(test.contains("definition.expectedText(PRODUCER_NAME, 0)"));
+        assertTrue(test.contains("definition.expectedTexts(PRODUCER_NAME)"));
         assertTrue(test.contains("ModuleJmsTestConfig.class"));
         assertFalse(test.contains("removeAllMessages"));
         String helper = scaffold.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/JmsFlowTestSupport.java");
@@ -463,7 +514,7 @@ class FlowTestScaffoldTest {
 
         assertTrue(objectTest.contains("import example.orders.Order;"));
         assertTrue(objectTest.contains("List.of(new Order())"));
-        assertTrue(objectTest.contains("// TODO 2: Populate each example.orders.Order"));
+        assertTrue(objectTest.contains("// TODO 3: Populate each example.orders.Order"));
         assertFalse(objectTest.contains("requireNonNull(firstInputPayload"));
         assertTrue(objectTest.indexOf("protected List<FlowTestBatch<java.io.Serializable>> createInputOutputBatches")
                 < objectTest.indexOf("// TODO 3:"));
@@ -502,7 +553,7 @@ class FlowTestScaffoldTest {
         String test = result.files().get(result.testPath());
         assertFalse(test.contains("TEST_REVIEWED"));
         assertTrue(test.contains("testGeneratedEventsReachProducerAndFlowKeepsRunning"));
-        assertTrue(test.contains("runObservationTest(\""));
+        assertTrue(test.contains("runObservationTest(PRODUCER_NAME"));
         assertFalse(test.contains("TEST_REVIEWED"));
         assertTrue(test.contains("List.of(\"Test Message 1\", \"Test Message 2\", \"Test Message 3\")"));
         assertFalse(test.contains("sendInput"));

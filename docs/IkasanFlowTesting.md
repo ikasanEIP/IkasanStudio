@@ -1026,3 +1026,28 @@ not component names. Ordinary business filters and failures in debug components 
 subject to verification. Existing explicit debug-filter path entries are ignored too.
 Refresh shared support and regenerate application code/resources to obtain this behaviour;
 developer-owned test definitions are preserved.
+
+### Editable filter paths
+
+For a linear flow with business filters, the scaffold generates the known component
+sequence with `expectedFilterPassesN` decisions. Each defaults to `true` as a clearly
+labelled example. Set the expected decision for each input (`inputIndex` is zero-based
+across all batches), or for each split item where filters follow a splitter.
+The filter itself is always expected when reached; rejection skips the following
+nested block. These decisions describe expected behaviour and do not execute or reuse
+the production filter logic.
+
+Adjust producer expectations and external receiver checks to match accepted events.
+Use an empty list for a named producer to assert no output, rather than `Map.of()`,
+which skips output checks. Router branches and exception-resolution paths still require
+manual scenario definitions. Existing developer-owned tests are not automatically rewritten.
+
+Receiver hooks generated for batch tests now take `List<String> expected`, rather than
+indexing the first expectation. Named producers with an empty list require no delivery
+for a one-second bounded observation window; an omitted producer skips its receiver check.
+JMS checks all messages in order and then checks for extras. SMTP expands each expected
+body by the configured recipient count; file checks retain cumulative delivery history.
+Legacy single-value hooks remain available for older tests. When adapting an existing
+batch test, use `definition.expectedTexts(PRODUCER_NAME)` and update the receiver hook's
+parameter to `List<String>`; refresh shared support too. An invalid `expectedText` index
+now identifies the producer, expected count and receiver method to update.

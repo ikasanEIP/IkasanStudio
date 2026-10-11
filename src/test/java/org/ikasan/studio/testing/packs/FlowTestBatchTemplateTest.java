@@ -46,6 +46,15 @@ class FlowTestBatchTemplateTest {
                             throw new AssertionError("Empty batches must not trigger");
                         if (new FlowTestBatch<>(List.of("a", "b", "c"), Map.of()).invocationCount() != 3)
                             throw new AssertionError("Input counts must stay dynamic");
+                        var emptyOutput = new FlowTestBatch<>(List.of("input"), Map.of("P", List.of()));
+                        if (!emptyOutput.expectedTexts("P").isEmpty()) throw new AssertionError("Expected silence");
+                        var many = new FlowTestBatch<>(List.of("input"), Map.of("P", List.of("a", "b")));
+                        if (!many.expectedTexts("P").equals(List.of("a", "b"))) throw new AssertionError("Lost outputs");
+                        try { emptyOutput.expectedText("P", 0); throw new AssertionError("Expected guidance"); }
+                        catch (IllegalArgumentException expected) {
+                            if (!expected.getMessage().contains("0 expected outputs")
+                                    || !expected.getMessage().contains("verifyReceivedOutput")) throw new AssertionError(expected);
+                        }
                         var objects = new FlowTestBatch<>(List.of(), Map.of("Orders", List.of(new Order(7))));
                         var matching = objects.observe(); matching.accept("Orders", new Order(7));
                         matching.verify(WAIT, QUIET, () -> {});
