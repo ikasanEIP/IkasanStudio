@@ -13,6 +13,8 @@ import org.ikasan.studio.flowtests.support.utils.FileDeliveryBatchAssertions;
 import org.ikasan.studio.flowtests.support.utils.OutputTextSupport;
 import org.ikasan.studio.flowtests.support.utils.LocalSmtpTestServer;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.ikasan.studio.flowtests.support.utils.ScheduledEventFixture;
+
 import java.util.Arrays;
 import java.io.File;
 import java.io.IOException;
@@ -537,8 +539,64 @@ public abstract class ModuleFlowTestSupport {
             public String expectedText() { return expected; }
         };
     }
+    /** One timer event without a business input. Empty ordinary batches only observe. */
+    protected static <I> FlowTestBatch<I> triggeredBatch(Map<String, ? extends List<?>> outputs) {
+        return FlowTestBatch.triggered(outputs);
+    }
+    protected void triggerBatch(ConfigurableApplicationContext context, IkasanFlowTestRule harness) throws Exception {
+        JsonNode definition = testWiring().path("testFlows").path(getFlowName());
+        if (!"scheduled-context".equals(definition.path("inputMode").asText()))
+            throw new IllegalArgumentException("triggeredBatch requires a scheduled-context consumer; override triggerBatch for a custom provider");
+        ScheduledEventFixture.fire(harness, definition.path("consumer").asText());
+    }
+
+    private IkasanFlowTestRule testHarness(Flow observedFlow) throws IOException {
+        java.util.Set<String> debugComponents = new java.util.HashSet<>();
+        for (JsonNode name : testWiring().path("testFlows").path(getFlowName()).path("debugComponents"))
+            debugComponents.add(name.asText());
+        var pathListener = new org.ikasan.testharness.flow.listener.FlowEventListenerSubject(
+                org.ikasan.flow.event.DefaultReplicationFactory.getInstance()) {
+            @Override public void beforeFlowElement(String module, String name, FlowElement element, FlowEvent event) {
+                if (!debugComponents.contains(element.getComponentName())) super.beforeFlowElement(module, name, element, event);
+            }
+            @Override public void afterFlowElement(String module, String name, FlowElement element, FlowEvent event) {
+                if (!debugComponents.contains(element.getComponentName())) super.afterFlowElement(module, name, element, event);
+            }
+        };
+        // The listener overload casts the raw component, unlike startFlow(), which unwraps Spring proxies.
+        // Suppress scheduling ourselves through getComponent(), then bypass that unsafe cast.
+        return new IkasanFlowTestRule(true) {
+            private String timerConsumer;
+            @Override public IkasanFlowTestRule scheduledConsumer(String name) {
+                timerConsumer = name;
+                return super.scheduledConsumer(name);
+            }
+            @Override public IkasanFlowTestRule consumer(String name) {
+                if (getComponent(name) instanceof org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer)
+                    timerConsumer = name;
+                return super.consumer(name);
+            }
+            @Override public IkasanFlowTestRule filter(String name) {
+                return debugComponents.contains(name) ? this : super.filter(name);
+            }
+            @Override public void startFlow() {
+                if (timerConsumer != null) {
+                    var consumer = (org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer) getComponent(timerConsumer);
+                    consumer.getConfiguration().setCronExpression("0/5 * * * * ? 2099");
+                    consumer.getConfiguration().setEager(false);
+                }
+                observedFlow.addFlowListener(pathListener);
+                try { super.startFlow(pathListener); }
+                catch (RuntimeException | Error failure) { observedFlow.removeFlowListener(pathListener); throw failure; }
+            }
+            @Override public void stopFlow() {
+                try { super.stopFlow(); } finally { observedFlow.removeFlowListener(pathListener); }
+            }
+        }.withFlow(observedFlow);
+    }
+
     private int batchInputCount = 2;
-    /** Total input submissions for a simple one-path-per-input expectation; routers/splitters need custom paths. */
+    /** Total input submissions and explicit timer triggers for a simple one-path-per-invocation expectation; routers/splitters need custom paths. */
     protected final int expectedInputCount() { return batchInputCount; }
 
     protected final <I> void runBatches(List<FlowTestBatch<I>> batches, InputSender<I> sender) throws Exception {
@@ -553,7 +611,7 @@ public abstract class ModuleFlowTestSupport {
         runTest(context -> {
             List<FlowTestBatch<I>> batches = List.copyOf(factory.create(context));
             if (batches.isEmpty()) throw new IllegalArgumentException("Define at least one batch");
-            batchInputCount = batches.stream().mapToInt(b -> b.inputs().size()).sum();
+            batchInputCount = batches.stream().mapToInt(FlowTestBatch::invocationCount).sum();
             Module<Flow> module = context.getBean(Module.class);
             Flow flow = module.getFlow(getFlowName());
             assertNotNull("Flow must exist: " + getFlowName(), flow);
@@ -574,7 +632,7 @@ public abstract class ModuleFlowTestSupport {
                     if (observation != null) observation.accept(e.getComponentName(), event.getPayload());
                 }
             };
-            var harness = new IkasanFlowTestRule().withFlow(flow);
+            var harness = testHarness(flow);
             defineExpectedPath(harness);
             deliveryTimeoutSeconds = deliveryTimeoutSeconds(context.getEnvironment()
                     .getProperty("test.delivery.timeout-seconds", "10"));
@@ -588,6 +646,7 @@ public abstract class ModuleFlowTestSupport {
                     var batch = batches.get(index);
                     if (index > 0) active.set(batch.observe(this::assertExpectedOutput));
                     try {
+                        if (batch.isTriggered()) { failures.check(); triggerBatch(context, harness); }
                         for (I input : batch.inputs()) { failures.check(); sender.send(context, harness, input); }
                         active.get().verify(Duration.ofSeconds(deliveryTimeoutSeconds), Duration.ofSeconds(1), () -> {
                             failures.check();
@@ -927,7 +986,7 @@ public abstract class ModuleFlowTestSupport {
                 if (output.equals(e.getComponentName())) outputs.add(describeOutput.apply(event.getPayload()));
             }
         };
-        var harness = new IkasanFlowTestRule().withFlow(flow);
+        var harness = testHarness(flow);
         expectations.accept(harness);
         flow.addFlowListener(listener);
         try (FlowTestFailureCapture failures = new FlowTestFailureCapture(flow, flowName);

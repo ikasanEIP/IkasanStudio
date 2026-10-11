@@ -38,6 +38,14 @@ class FlowTestBatchTemplateTest {
                         throw new AssertionError("Missing failure: " + diagnostic);
                     }
                     public static void run() throws Exception {
+                        var trigger = FlowTestBatch.triggered(Map.of("P", List.of("value")));
+                        if (!trigger.isTriggered() || trigger.invocationCount() != 1 || !trigger.inputs().isEmpty())
+                            throw new AssertionError("Trigger has no business inputs but invokes once");
+                        var observationOnly = new FlowTestBatch<>(List.of(), Map.of());
+                        if (observationOnly.isTriggered() || observationOnly.invocationCount() != 0)
+                            throw new AssertionError("Empty batches must not trigger");
+                        if (new FlowTestBatch<>(List.of("a", "b", "c"), Map.of()).invocationCount() != 3)
+                            throw new AssertionError("Input counts must stay dynamic");
                         var objects = new FlowTestBatch<>(List.of(), Map.of("Orders", List.of(new Order(7))));
                         var matching = objects.observe(); matching.accept("Orders", new Order(7));
                         matching.verify(WAIT, QUIET, () -> {});

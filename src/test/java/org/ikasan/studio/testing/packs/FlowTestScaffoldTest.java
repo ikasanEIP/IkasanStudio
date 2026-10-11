@@ -12,6 +12,70 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FlowTestScaffoldTest {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void timerBrokerUsesExplicitTriggerBatches(String version) throws Exception {
+        var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
+        flow.setConsumer(org.ikasan.studio.core.TestFixtures.getScheduledConsumer(version));
+        flow.getConsumer().setPropertyValue("messageProvider", "");
+        flow.getFlowRoute().getFlowElements().set(0, org.ikasan.studio.core.TestFixtures.getBroker(version));
+        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
+        var result = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        String code = result.files().get(result.testPath());
+        assertTrue(code.contains("triggeredBatch(\n"));
+        assertFalse(code.contains("private static final String FIRST_BATCH_INPUT"));
+        assertFalse(code.contains("List.of(FIRST_BATCH_INPUT)"));
+        assertTrue(result.files().get(org.ikasan.studio.core.generator.ModuleTestWiring.PATH).contains("scheduled-context"));
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void nestedSplittersGenerateExecutablePathWithExplicitCounts(String version,
+            @org.junit.jupiter.api.io.TempDir Path temporary) throws Exception {
+        var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
+        flow.getFlowRoute().getFlowElements().clear();
+        flow.getFlowRoute().getFlowElements().add(org.ikasan.studio.core.TestFixtures.getBroker(version));
+        flow.getFlowRoute().getFlowElements().add(org.ikasan.studio.core.TestFixtures.getDefaultListSplitter(version));
+        flow.getFlowRoute().getFlowElements().add(org.ikasan.studio.core.TestFixtures.getCustomSplitter(version));
+        flow.getFlowRoute().getFlowElements().add(org.ikasan.studio.core.TestFixtures.getDevNullProducer(version));
+        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
+        var result = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        String code = result.files().get(result.testPath());
+        assertFalse(code.contains("Define the expected component path for all input batches"));
+        assertTrue(code.contains("expectedSplitItems1 = 1"));
+        assertTrue(code.contains("expectedSplitItems2 = 1"));
+        String method = code.substring(code.indexOf("    protected void defineExpectedPath"),
+                code.indexOf("    // Override prepareFixtures"))
+                .replace("expectedSplitItems1 = 1", "expectedSplitItems1 = 3")
+                .replace("expectedSplitItems2 = 1", "expectedSplitItems2 = 2");
+        // Compile and execute the actual rendered method to verify nesting and per-input order.
+        String source = "public class Probe { static int expectedInputCount() { return 2; } "
+                + "public static class IkasanFlowTestRule { public java.util.List<String> calls = new java.util.ArrayList<>();"
+                + "public void consumer(String n) { calls.add(\"consumer\"); }"
+                + "public void broker(String n) { calls.add(\"broker\"); }"
+                + "public void splitter(String n) { calls.add(n); }"
+                + "public void producer(String n) { calls.add(\"producer\"); }}"
+                + method + "public static java.util.List<String> run() { var h = new IkasanFlowTestRule();"
+                + "new Probe().defineExpectedPath(h); return h.calls; }}";
+        Path javaFile = temporary.resolve("Probe.java");
+        Files.writeString(javaFile, source);
+        var compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
+                "--release", "11", "-d", temporary.toString(), javaFile.toString()).redirectErrorStream(true).start();
+        String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        assertEquals(0, compiler.waitFor(), diagnostics);
+        var expected = new java.util.ArrayList<String>();
+        for (int input = 0; input < 2; input++) {
+            expected.addAll(java.util.List.of("consumer", "broker", "My Default List Splitter"));
+            for (int item = 0; item < 3; item++)
+                expected.addAll(java.util.List.of("My Custom Splitter", "producer", "producer"));
+        }
+        try (var loader = new java.net.URLClassLoader(new java.net.URL[]{temporary.toUri().toURL()})) {
+            assertEquals(expected, loader.loadClass("Probe").getMethod("run").invoke(null));
+        }
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void knownBusinessPayloadProducesObjectExpectations(String version) throws Exception {
         var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
         var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
@@ -163,8 +227,8 @@ class FlowTestScaffoldTest {
         assertFalse(code.contains("test.ftp.input.filename.batch"));
         assertFalse(code.contains("Prepare input batch "));
         assertTrue(scaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FtpInputFixture.java"));
-        assertTrue(code.contains(".filter(\"Input debug\")"));
-        assertTrue(code.indexOf(".filter(\"Input debug\")") < code.indexOf(".converter("));
+        assertFalse(code.contains(".filter(\"Input debug\")"));
+        assertTrue(scaffold.files().get(org.ikasan.studio.core.generator.ModuleTestWiring.PATH).contains("Input debug"));
         assertTrue(code.contains(".repeat(expectedInputCount())"));
         assertFalse(code.contains("Define the expected component path for all input batches"));
         flow.getFlowRoute().getFlowElements().set(0, org.ikasan.studio.core.TestFixtures.getMessageFilter(version));

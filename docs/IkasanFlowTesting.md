@@ -357,6 +357,23 @@ Backups retain exact original contents with timestamped `.bak` names. Merge cust
 settings from the backup; regeneration deliberately does not guess how to merge Java edits.
 Existing independent tests still work; explicitly regenerate them to adopt shared setup.
 
+## Splitter path scaffolds
+
+For a linear flow containing splitters, Studio generates the known component path with
+ordinary nested Java loops. The outer loop covers each input across the supplied batches;
+each splitter introduces a loop around its downstream components. This avoids nesting the
+Ikasan harness's single-block `blockStart()`/`repeat()` API.
+
+Each `expectedSplitItemsN` starts at **1 as an explicit example**, with a review TODO beside
+its splitter. Set it to the expected number of items from that invocation. If counts vary,
+use `inputIndex` and the enclosing `splitItemN` indices (all zero-based) to express the
+fixture-specific counts. Expected producer values remain in `createInputOutputBatches()`;
+the final output count cannot establish intermediate splitter counts. Counts are not
+inferred by running the implementation being tested.
+
+Selection uses the component type metadata. Flows containing routers, ordinary filters,
+unknown invocation types or exception resolvers retain the manual-path guard.
+
 ## Short scenarios and JMS tests
 
 `ModuleFlowTestSupport.verifyFlow(...)` owns listener attachment, the Ikasan rule, two deliveries,
@@ -989,3 +1006,23 @@ for inspection. Number batches from 1 for each directory/glob pair; failed check
 history. `runTest` resets history per scenario. Custom scenarios can call
 `resetFileDeliveryBatches()`. For intentional filename overwrites, use `assertFileMatchesResource`.
 The older overload without a batch number retains its cumulative-expectation semantics.
+
+### Timer triggers and debug components
+
+For a timer consumer whose broker obtains its own business data, use
+`triggeredBatch(Map.of(PRODUCER_NAME, List.of(expectedValue)))`. Each definition
+fires one deterministic timer event; no dummy input is needed. Prepare the broker's
+source in `prepareFixtures` when necessary. The default trigger supports the standard
+scheduled-context provider; custom providers can override `triggerBatch`.
+The scaffold selects this form for scheduled-context flows containing a broker.
+
+`batch(inputs, outputs)` supplies each input. `batch(List.of(), outputs)` only observes;
+it neither supplies input nor fires a timer. Timer fixture-text scenarios can continue
+to use ordinary input batches. `expectedInputCount()` includes explicit triggers.
+
+Studio debug components still execute and can hit breakpoints, but are excluded from
+expected-path checks. Identification comes from model metadata in generated test wiring,
+not component names. Ordinary business filters and failures in debug components remain
+subject to verification. Existing explicit debug-filter path entries are ignored too.
+Refresh shared support and regenerate application code/resources to obtain this behaviour;
+developer-owned test definitions are preserved.

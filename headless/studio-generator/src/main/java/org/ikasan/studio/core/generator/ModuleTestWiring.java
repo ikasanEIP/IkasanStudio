@@ -44,6 +44,21 @@ public final class ModuleTestWiring {
             }
         }
         values.put("sampleConsumerClasses", sampleConsumerClasses);
+        Map<String, Object> testFlows = new LinkedHashMap<>();
+        for (var flow : module.getFlows()) {
+            var consumer = flow.getConsumer();
+            if (consumer == null) continue;
+            testFlows.put(flow.getIdentity(), Map.of(
+                    "consumer", consumer.getIdentity(),
+                    "inputMode", consumer.getComponentMeta().getFlowTestInputModeInvalidatedByProperties().stream()
+                            .allMatch(name -> consumer.getProperty(name) == null || consumer.getProperty(name).valueNotSet())
+                            ? java.util.Objects.toString(consumer.getComponentMeta().getFlowTestInputMode(), "") : "",
+                    "debugComponents", flow.getFlowElementsNoExternalEndPoints().stream()
+                            .filter(component -> component.getComponentMeta().isDebug())
+                            .map(component -> component.getIdentity()).toList()));
+        }
+        values.put("testFlows", testFlows);
+
         // The capability flag defines the connection contract; labels remain pack-owned.
         java.util.List<Map<String, String>> ftpEndpoints = new java.util.ArrayList<>();
         for (var moduleFlow : module.getFlows()) for (var component : moduleFlow.getFlowElementsNoExternalEndPoints()) {

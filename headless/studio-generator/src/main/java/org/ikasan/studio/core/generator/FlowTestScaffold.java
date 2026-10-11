@@ -16,6 +16,14 @@ public final class FlowTestScaffold {
     public static final String TEST_PROPERTIES_PATH = "user-flow-tests/src/test/resources/module-test.properties";
     public static final String SUPPORT_PATH = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/ModuleFlowTestSupport.java";
     private FlowTestScaffold() { }
+    /** Default developer-owned test location, shared by generation and navigation. */
+    public static String testPath(Flow flow) {
+        String className = flow.getJavaClassName() + "FlowTest";
+        if (!className.matches("[A-Za-z_$][A-Za-z0-9_$]*"))
+            throw new IllegalArgumentException("Invalid flow Java class name.");
+        return "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/" + className + ".java";
+    }
+
     public record Scaffold(String rootPom, String testPath, Map<String, String> files) { }
 
     /** Pack-declared external settings and provider choices affect shared test wiring. */
@@ -74,10 +82,11 @@ public final class FlowTestScaffold {
         values.put("isolatedFiles", isolatedFiles);
         values.put("filenameKey", isolatedFiles ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
                 module, flow, flow.getConsumer(), filenameProperty.getMeta().getPropertyConfigFileLabel()) : "");
-        Map<String, String> methods = Map.of("Converter", "converter", "Translator", "translator", "Broker", "broker", "Producer", "producer");
+        Map<String, String> methods = Map.of("Converter", "converter", "Translator", "translator", "Broker", "broker", "Producer", "producer", "Splitter", "splitter");
         java.util.List<Map<String, String>> executionPath = new java.util.ArrayList<>();
         boolean automaticPath = flow.getFlowRoute().getChildRoutes().isEmpty() && flow.getExceptionResolver() == null;
         for (var element : flow.getFlowRoute().getFlowElements()) {
+            if (element.getComponentMeta().isDebug()) continue;
             String type = element.getComponentMeta().getComponentType();
             String method = type == null ? null : methods.get(type.substring(type.lastIndexOf('.') + 1));
             if ("org.ikasan.spec.component.filter.Filter".equals(type)
@@ -86,6 +95,24 @@ public final class FlowTestScaffold {
             else executionPath.add(Map.of("method", method, "name", element.getIdentity()));
         }
         automaticPath &= !executionPath.isEmpty() && "producer".equals(executionPath.get(executionPath.size() - 1).get("method"));
+        boolean splitterPath = automaticPath && executionPath.stream().anyMatch(step -> "splitter".equals(step.get("method")));
+        values.put("splitterPath", splitterPath);
+        java.util.List<Map<String, Object>> splitSteps = new java.util.ArrayList<>();
+        java.util.List<String> splitClosings = new java.util.ArrayList<>();
+        int splitDepth = 0;
+        for (var step : executionPath) {
+            String indent = "    ".repeat(3 + splitDepth);
+            boolean splitter = "splitter".equals(step.get("method"));
+            splitSteps.add(Map.of("method", step.get("method"), "name", step.get("name"),
+                    "indent", indent, "splitter", splitter, "index", splitDepth + 1));
+            if (splitter) {
+                splitClosings.add(0, indent);
+                splitDepth++;
+            }
+        }
+        values.put("splitSteps", splitSteps);
+        values.put("splitClosings", splitClosings);
+        automaticPath &= !splitterPath;
         var inputMeta = flow.getConsumer().getComponentMeta();
         boolean observationOnly = automaticPath && flow.getFlowRoute().getFlowElements().size() == 1
                 && "self-generating".equals(inputMeta.getFlowTestInputMode())
@@ -95,6 +122,8 @@ public final class FlowTestScaffold {
         values.put("scheduledContext", "scheduled-context".equals(inputMeta.getFlowTestInputMode())
                 && inputMeta.getFlowTestInputModeInvalidatedByProperties().stream().allMatch(name ->
                     flow.getConsumer().getProperty(name) == null || flow.getConsumer().getProperty(name).valueNotSet()));
+        values.put("triggerOnly", Boolean.TRUE.equals(values.get("scheduledContext"))
+                && executionPath.stream().anyMatch(step -> "broker".equals(step.get("method"))));
         String implementation = flow.getConsumer().getPropertyValueAsString("userImplementedClassName");
         values.put("sampleSubmission", "sample-submission".equals(inputMeta.getFlowTestInputMode())
                 && implementation != null && !implementation.isBlank());
@@ -189,7 +218,7 @@ public final class FlowTestScaffold {
         values.put("applicationGroupId", application.getGroupId() == null ? parent.getGroupId() : application.getGroupId());
         values.put("applicationArtifactId", application.getArtifactId());
         values.put("applicationVersion", application.getVersion() == null ? parent.getVersion() : application.getVersion());
-        String path = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/" + className + ".java";
+        String path = testPath(flow);
         Map<String, String> files = new LinkedHashMap<>();
         files.put(ModuleTestWiring.PATH, ModuleTestWiring.create(module));
         if (!observationOnly) {

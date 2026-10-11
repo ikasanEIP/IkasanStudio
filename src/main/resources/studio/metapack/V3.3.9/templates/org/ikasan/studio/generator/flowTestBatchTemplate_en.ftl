@@ -15,10 +15,15 @@ public final class FlowTestBatch<I> {
     @FunctionalInterface public interface OutputComparison {
         void verify(Object expected, Object actual) throws Exception;
     }
+    private final boolean triggered;
     private final List<I> inputs;
     private final Map<String, List<?>> outputs;
 
     public FlowTestBatch(List<I> inputs, Map<String, ? extends List<?>> outputs) {
+        this(inputs, outputs, false);
+    }
+    private FlowTestBatch(List<I> inputs, Map<String, ? extends List<?>> outputs, boolean triggered) {
+        this.triggered = triggered;
         this.inputs = Collections.unmodifiableList(new ArrayList<>(Objects.requireNonNull(inputs)));
         Map<String, List<?>> copy = new LinkedHashMap<>();
         Objects.requireNonNull(outputs).forEach((producer, checks) -> {
@@ -27,6 +32,11 @@ public final class FlowTestBatch<I> {
         });
         this.outputs = Collections.unmodifiableMap(copy);
     }
+    public static <I> FlowTestBatch<I> triggered(Map<String, ? extends List<?>> outputs) {
+        return new FlowTestBatch<>(List.of(), outputs, true);
+    }
+    public boolean isTriggered() { return triggered; }
+    public int invocationCount() { return triggered ? 1 : inputs.size(); }
     public List<I> inputs() { return inputs; }
     public List<?> expectedOutputs(String producer) { return outputs.getOrDefault(producer, List.of()); }
     public String expectedText(String producer, int outputIndex) {

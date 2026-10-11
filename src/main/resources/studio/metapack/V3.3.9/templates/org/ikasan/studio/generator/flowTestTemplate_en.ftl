@@ -66,6 +66,25 @@ public class ${className} extends ModuleFlowTestSupport {
                 .${step.method}("${step.name?j_string}")
 </#list>
                 .repeat(expectedInputCount());
+<#elseif splitterPath>
+        // The component sequence is known; split counts depend on your fixtures and business logic.
+        // Each count below is an example of ONE output item, not an inferred expectation.
+        // Adjust inside the loops if counts differ by input or by an earlier splitter's item.
+        // Final expected outputs alone cannot tell us the intermediate split counts.
+        for (int inputIndex = 0; inputIndex < expectedInputCount(); inputIndex++) {
+            harness.<#if scheduled>scheduledConsumer<#else>consumer</#if>("${consumerName?j_string}");
+<#list splitSteps as step>
+${step.indent}harness.${step.method}("${step.name?j_string}");
+<#if step.splitter>
+${step.indent}// TODO 1: Set the expected number of items from this invocation of "${step.name?j_string}".
+${step.indent}int expectedSplitItems${step.index} = 1;
+${step.indent}for (int splitItem${step.index} = 0; splitItem${step.index} < expectedSplitItems${step.index}; splitItem${step.index}++) {
+</#if>
+</#list>
+<#list splitClosings as indent>
+${indent}}
+</#list>
+        }
 <#else>
         // This flow needs scenario-specific expectations (routing, splitting, filtering or exclusions).
         // List the actual component invocations for all inputs in execution order using:
@@ -86,6 +105,8 @@ public class ${className} extends ModuleFlowTestSupport {
 
 <#if objectMessageInput>
     // Construct a serializable business object for each batch (expected type: ${objectInputType?j_string}).
+<#elseif triggerOnly>
+    // TODO 2: Prepare the broker data in prepareFixtures if needed; each triggeredBatch fires once.
 <#elseif ftpInput || sftpInput || isolatedFiles>
     // TODO 2: Review the sample input files under user-flow-tests/src/test/resources (or change the paths).
     // Each resource is copied unchanged to the JUnit test input directory using only its filename.
@@ -126,7 +147,9 @@ public class ${className} extends ModuleFlowTestSupport {
     // );
     //
     // Expected business objects must implement equals (and matching hashCode).
-    // With no inputs, use batch(List.of(), ...). With no output checks, use Map.of().
+    // For one timer event without business input, use triggeredBatch(Map.of(...)).
+    // batch(List.of(), ...) only observes: it supplies no input and fires no timer.
+    // With no output checks, use Map.of().
     // Map.of() skips output checks; Map.of(PRODUCER_NAME, List.of()) asserts no output there.
     //
     protected List<FlowTestBatch<<#if objectMessageInput>java.io.Serializable<#else>String</#if>>> createInputOutputBatches(ConfigurableApplicationContext context) throws Exception {
@@ -142,8 +165,8 @@ public class ${className} extends ModuleFlowTestSupport {
 </#if>
 </#if>
         return List.of(
-                batch(
-                        List.of(<#if objectMessageInput><#if objectInputType != "java.io.Serializable">new ${inputTypeName}()<#else>java.util.Objects.requireNonNull(firstInputPayload, "Update createInputOutputBatches: populate firstInputPayload with a ${objectInputType?j_string} fixture")</#if><#elseif ftpInput || sftpInput || isolatedFiles>FIRST_BATCH_INPUT_FILENAME<#else>FIRST_BATCH_INPUT</#if>),
+                <#if triggerOnly>triggeredBatch(<#else>batch(
+                        List.of(<#if objectMessageInput><#if objectInputType != "java.io.Serializable">new ${inputTypeName}()<#else>java.util.Objects.requireNonNull(firstInputPayload, "Update createInputOutputBatches: populate firstInputPayload with a ${objectInputType?j_string} fixture")</#if><#elseif ftpInput || sftpInput || isolatedFiles>FIRST_BATCH_INPUT_FILENAME<#else>FIRST_BATCH_INPUT</#if>),</#if>
 <#if producers?size gt 1>
                         Map.ofEntries(
 <#list producers as producer>
@@ -156,8 +179,8 @@ public class ${className} extends ModuleFlowTestSupport {
                         )
 </#if>
                 ),
-                batch(
-                        List.of(<#if objectMessageInput><#if objectInputType != "java.io.Serializable">new ${inputTypeName}()<#else>java.util.Objects.requireNonNull(secondInputPayload, "Update createInputOutputBatches: populate secondInputPayload with a ${objectInputType?j_string} fixture")</#if><#elseif ftpInput || sftpInput || isolatedFiles>SECOND_BATCH_INPUT_FILENAME<#else>SECOND_BATCH_INPUT</#if>),
+                <#if triggerOnly>triggeredBatch(<#else>batch(
+                        List.of(<#if objectMessageInput><#if objectInputType != "java.io.Serializable">new ${inputTypeName}()<#else>java.util.Objects.requireNonNull(secondInputPayload, "Update createInputOutputBatches: populate secondInputPayload with a ${objectInputType?j_string} fixture")</#if><#elseif ftpInput || sftpInput || isolatedFiles>SECOND_BATCH_INPUT_FILENAME<#else>SECOND_BATCH_INPUT</#if>),</#if>
 <#if producers?size gt 1>
                         Map.ofEntries(
 <#list producers as producer>
@@ -365,7 +388,7 @@ public class ${className} extends ModuleFlowTestSupport {
         // This creates a Quartz timer event carrying fixture text, not a String business payload.
         // If the broker supplies its own data, prepare its source and use the trigger-only overload:
         // ScheduledEventFixture.fire(harness, "${consumerName?j_string}");
-        // Then remove the unused batch input constants; compare the broker output below.
+        // Use triggeredBatch(outputs) for trigger-only events; this input method is then not called.
         ScheduledEventFixture.fire(harness, "${consumerName?j_string}",
                 input);
 <#elseif scheduled>
