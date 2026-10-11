@@ -1039,7 +1039,7 @@ the production filter logic.
 
 Adjust producer expectations and external receiver checks to match accepted events.
 Use an empty list for a named producer to assert no output, rather than `Map.of()`,
-which skips output checks. Router branches and exception-resolution paths still require
+which skips output checks. Unsupported combinations and exception-resolution paths still require
 manual scenario definitions. Existing developer-owned tests are not automatically rewritten.
 
 Receiver hooks generated for batch tests now take `List<String> expected`, rather than
@@ -1051,3 +1051,15 @@ Legacy single-value hooks remain available for older tests. When adapting an exi
 batch test, use `definition.expectedTexts(PRODUCER_NAME)` and update the receiver hook's
 parameter to `List<String>`; refresh shared support too. An invalid `expectedText` index
 now identifies the producer, expected count and receiver method to update.
+
+### Editable router paths
+
+Router scaffolds list every known branch once per input, using plain harness calls with
+begin/end route comments. This is an editable starting assumption, not inferred business
+behaviour. For a single-recipient router, keep or condition only the branch expected for
+that input. For multi-recipient routers, retain the selected branches in invocation order.
+Match producer output expectations to the paths you choose. Nested routers are expanded
+in the same way. Visual route endpoints and Studio debug components are not runtime path steps.
+The harness checks invocation order; this scaffold does not establish ordering for
+concurrently executed routes. Branches containing splitters, business filters, unsupported
+components or exception resolvers retain the manual guard.

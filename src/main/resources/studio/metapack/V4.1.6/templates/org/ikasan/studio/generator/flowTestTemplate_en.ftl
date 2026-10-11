@@ -1,3 +1,19 @@
+<#macro expectedRoute route indent>
+<#list route.steps as step>
+${indent}harness.${step.method}("${step.name?j_string}");
+</#list>
+<#if route.children?has_content>
+${indent}// TODO 2: Every route is listed once as a starting example; adjust for this inputIndex.
+<#if !route.multi>
+${indent}// This is a single-recipient router: keep only the branch expected for this input.
+</#if>
+<#list route.children as child>
+${indent}// Begin route "${child.name?j_string}"
+<@expectedRoute route=child indent=indent />
+${indent}// End route "${child.name?j_string}"
+</#list>
+</#if>
+</#macro>
 <#assign importInputType = objectMessageInput && objectInputType != "java.io.Serializable" && objectInputType?contains(".") && !["ModuleFlowTestSupport", "FlowTestBatch", "List", "Map", "ScheduledEventFixture", "JobExecutionContext", "FtpInputFixture", "ModuleJmsTestConfig", "JmsFlowTestSupport", "IkasanFlowTestRule", "Test", "ConfigurableApplicationContext", "FileInputFixture", "Rule", "TemporaryFolder", "String", "Object", "Class", "Exception", "UnsupportedOperationException", className]?seq_contains(objectInputType?keep_after_last("."))>
 <#assign inputTypeName = importInputType?then(objectInputType?keep_after_last("."), objectInputType)>
 <#assign objectOutput = objectOutputType?has_content && !fileDelivery && !smtpDelivery && producers?size == 1>
@@ -75,6 +91,14 @@ public class ${className} extends ModuleFlowTestSupport {
                 .${step.method}("${step.name?j_string}")
 </#list>
                 .repeat(expectedInputCount());
+<#elseif routerPath?has_content>
+        // Every route below is listed once per input as an editable example, not an inferred business decision.
+        // inputIndex is zero-based across all batches. Multi-recipient lists must match actual invocation order.
+        // Remove or condition branches that are not visited; match producer outputs to the remaining paths.
+        for (int inputIndex = 0; inputIndex < expectedInputCount(); inputIndex++) {
+            harness.<#if scheduled>scheduledConsumer<#else>consumer</#if>("${consumerName?j_string}");
+<@expectedRoute route=routerPath indent="            " />
+        }
 <#elseif splitterPath || filterPath>
 <#if splitterPath>
         // The component sequence is known; split counts depend on your fixtures and business logic.

@@ -100,6 +100,10 @@ public final class FlowTestScaffold {
         boolean filterPath = automaticPath && executionPath.stream().anyMatch(step -> "true".equals(step.get("filterDecision")));
         values.put("filterPath", filterPath);
         values.put("splitterPath", splitterPath);
+        var routePath = flow.getExceptionResolver() == null && !flow.getFlowRoute().getChildRoutes().isEmpty()
+                ? FlowTestRoutePath.describe(flow.getFlowRoute(), new int[]{0}) : null;
+        values.put("routerPath", routePath == null ? Map.of() : routePath);
+
         java.util.List<Map<String, Object>> splitSteps = new java.util.ArrayList<>();
         java.util.List<String> splitClosings = new java.util.ArrayList<>();
         int splitDepth = 0;

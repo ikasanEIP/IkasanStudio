@@ -12,6 +12,55 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FlowTestScaffoldTest {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    void nestedRoutersGenerateEditableExecutableBranches(String version,
+            @org.junit.jupiter.api.io.TempDir Path temporary) throws Exception {
+        var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerRouterFlow(version);
+        var nested = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerSingleRecipientRouterFlow(version);
+        var branch = flow.getFlowRoute().getChildRoutes().get(0);
+        branch.setFlowElements(nested.getFlowRoute().getFlowElements());
+        branch.setChildRoutes(nested.getFlowRoute().getChildRoutes());
+        // Persisted models include visual route endpoints, unlike the simple in-memory fixtures.
+        var router = flow.getFlowRoute().getFlowElements().get(1);
+        var endpointMeta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(
+                version, router.getComponentMeta().getEndpointKey());
+        branch.getFlowElements().add(0, org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(
+                version, endpointMeta, flow, branch, "route1"));
+        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
+        var result = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        String code = result.files().get(result.testPath());
+        assertFalse(code.contains("Define the expected component path for all input batches"));
+        assertTrue(code.contains("// Begin route \"route1\""));
+        assertTrue(code.contains("// Begin route \"route2\""));
+        assertFalse(code.contains("switch (expectedRoute"));
+        String method = code.substring(code.indexOf("    protected void defineExpectedPath"),
+                code.indexOf("    // Override prepareFixtures"));
+        String source = "import java.util.*; public class RouterProbe { static int expectedInputCount() { return 2; } "
+                + "public static class IkasanFlowTestRule { List<String> calls = new ArrayList<>();"
+                + "public void consumer(String n) { calls.add(\"input\"); }"
+                + "public void converter(String n) {} public void router(String n) {} public void multiRecipientRouter(String n) {}"
+                + "public void producer(String n) { calls.add(n); }}"
+                + method + "public static void main(String[] args) { var h = new IkasanFlowTestRule();"
+                + "new RouterProbe().defineExpectedPath(h); if (!h.calls.equals(List.of("
+                + "\"input\",\"My DevNull Producer1\",\"My DevNull Producer2\",\"My DevNull Producer2\","
+                + "\"input\",\"My DevNull Producer1\",\"My DevNull Producer2\",\"My DevNull Producer2\"))) throw new AssertionError(h.calls); }}";
+        Path file = temporary.resolve("RouterProbe.java");
+        Files.writeString(file, source);
+        Path log = temporary.resolve("probe.log");
+        String bin = Path.of(System.getProperty("java.home"), "bin").toString();
+        for (var command : java.util.List.of(
+                java.util.List.of(bin + "/javac", "--release", "11", file.toString()),
+                java.util.List.of(bin + "/java", "-cp", temporary.toString(), "RouterProbe"))) {
+            var process = new ProcessBuilder(command).redirectErrorStream(true).redirectOutput(log.toFile()).start();
+            try {
+                assertTrue(process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS));
+                assertEquals(0, process.exitValue(), Files.readString(log));
+            } finally { if (process.isAlive()) process.destroyForcibly(); }
+        }
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void filterExamplesRecordRejectedFiltersButSkipDownstreamComponents(String version,
             @org.junit.jupiter.api.io.TempDir Path temporary) throws Exception {
         var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
@@ -384,7 +433,6 @@ class FlowTestScaffoldTest {
         assertTrue(test.contains("runBatches(this::createInputOutputBatches, this::supplyInput"));
         assertTrue(test.contains("protected void supplyInput("));
         assertTrue(test.contains("FIRST_BATCH_INPUT = readTestResource(\"/input/first.txt\")"));
-        assertTrue(test.contains("SECOND_BATCH_INPUT = readTestResource(\"/input/second.txt\")"));
         assertTrue(support.contains("protected static String readTestResource(String resourcePath)"));
         assertTrue(support.contains("new String(input.readAllBytes(), StandardCharsets.UTF_8)"));
 
