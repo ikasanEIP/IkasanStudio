@@ -242,7 +242,7 @@ public class ComponentPropertyEditRow {
                 chooseValueButton = new JButton(StudioBundle.message("collection.Edit"));
                 chooseValueButton.setEnabled(!meta.isReadOnlyProperty());
                 chooseValueButton.addActionListener(e -> {
-                    var dialog = new StringCollectionDialog(project, meta.getPropertyName(), meta.getPropertyDataType(), getValue());
+                    var dialog = new StringCollectionDialog(project, meta, getValue());
                     if (dialog.showAndGet()) {
                         Object edited = dialog.value();
                         showingDefaultOnly = false;
@@ -889,20 +889,36 @@ public class ComponentPropertyEditRow {
         }
         // 2. Validate populated values. Required empty fields are handled above;
         // optional fields must remain clearable even when their pattern requires a value.
-        if (meta.getPropertyDataType() == java.lang.String.class && meta.getValidationPattern() != null
-                && propertyValueHasChanged() && !inputfieldIsUnset()) {
-            String valueToBeChecked;
-            // Currently, lists are being entered as comma separated values.
-            if (meta.getUsageDataType() != null && STRING_LIST.equals(meta.getUsageDataType())) {
-                valueToBeChecked = propertyValueField.getText();
-            } else {
-                valueToBeChecked = (String) getValue();
-            }
-            if (!meta.getValidationPattern().matcher(valueToBeChecked).matches()) {
-                result.add(new ValidationInfo(meta.getPropertyName() + ": " + meta.getValidationMessage(), getOverridingInputField()));
-            }
+        if (!inputfieldIsUnset()) {
+            String issue = patternValidationMessage(meta, getValue());
+            if (issue != null) result.add(new ValidationInfo(issue, getOverridingInputField()));
         }
+        String feedback = result.isEmpty() ? null : result.get(0).message;
+        if (propertyValueField != null) {
+            propertyValueField.putClientProperty("JComponent.outline", feedback == null ? null : "error");
+            propertyValueField.setToolTipText(feedback);
+        }
+        propertyTitleField.setIcon(feedback == null ? null : AllIcons.General.Error);
+        String displayName = meta.getDisplayLabel() == null ? meta.getPropertyName() : meta.getDisplayLabel();
+        propertyTitleField.setToolTipText(feedback == null
+                ? StudioUIUtils.buildPropertyTooltipHtml(meta.getPropertyName(), displayName, meta.getHelpText())
+                : feedback);
         return result;
+    }
+
+    /** Metadata patterns apply to saved values as well as edits, and to each entry of a string list. */
+    static String patternValidationMessage(ComponentPropertyMeta meta, Object value) {
+        if (meta.getValidationPattern() == null || value == null) return null;
+        if (value instanceof List<?> entries) {
+            for (int i = 0; i < entries.size(); i++) {
+                if (!(entries.get(i) instanceof String text) || !meta.getValidationPattern().matcher(text).matches()) {
+                    return StudioBundle.message("validation.CollectionEntry", meta.getPropertyName(), i + 1, meta.getValidationMessage());
+                }
+            }
+        } else if (value instanceof String text && !meta.getValidationPattern().matcher(text).matches()) {
+            return meta.getPropertyName() + ": " + meta.getValidationMessage();
+        }
+        return null;
     }
 
     /**

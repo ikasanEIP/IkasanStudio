@@ -35,12 +35,17 @@ public final class StudioNavigator {
      * @return true if the file was found and an open was scheduled, false if it could not be resolved
      */
     public static boolean openFileByNioPath(Project project, Path path) {
+        return openFileByNioPath(project, path, 1);
+    }
+
+    /** Open a reported source location; line numbers are one-based. */
+    public static boolean openFileByNioPath(Project project, Path path, int line) {
         VirtualFile virtualFile = path == null ? null : LocalFileSystem.getInstance().refreshAndFindFileByNioFile(path);
         if (virtualFile == null) {
             return false;
         }
         ApplicationManager.getApplication().invokeLater(() -> {
-            if (!project.isDisposed()) new OpenFileDescriptor(project, virtualFile).navigate(true);
+            if (!project.isDisposed()) new OpenFileDescriptor(project, virtualFile, Math.max(0, line - 1), 0).navigate(true);
         });
         return true;
     }

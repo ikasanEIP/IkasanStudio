@@ -25,7 +25,8 @@ class SidebarVisibilityToggleTest {
                 assertEquals(1200, canvas.getWidth());
                 splitter.setSize(1500, 600);
                 splitter.doLayout();
-                toggle.button().doClick();
+                toggle.show();
+                toggle.show(); // Navigation is idempotent; it must never hide an already visible sidebar.
                 splitter.doLayout();
                 assertTrue(tabs.isVisible());
                 assertEquals(width, tabs.getWidth(), 1);

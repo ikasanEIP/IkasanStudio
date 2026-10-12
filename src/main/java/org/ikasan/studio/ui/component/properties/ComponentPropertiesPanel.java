@@ -83,6 +83,21 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private boolean updateUserCodeManually;
     private JButton cancelEditsButton;
     private final SimpleChangeListener listenerForAnyEditChanges;
+    /** Reveal a reported property, including optional rows hidden by the current search/collapse state. */
+    public void revealProperty(String property) {
+        ComponentPropertyEditRow row = componentPropertyEditBoxMap.get(property);
+        if (row == null) return;
+        if (propertySearchField != null) propertySearchField.setText(property);
+        ComponentInput input = row.getInputField();
+        if (input != null) SwingUtilities.invokeLater(() -> {
+            JComponent field = input.getFirstFocusComponent();
+            if (field != null && field.isShowing()) {
+                field.scrollRectToVisible(field.getVisibleRect());
+                field.requestFocusInWindow();
+            }
+        });
+    }
+
     private final Map<String, ComponentPropertyEditRow> componentPropertyEditBoxMap = new HashMap<>();
     private CompletableFuture<Void> latestGeneration = CompletableFuture.completedFuture(null);
 

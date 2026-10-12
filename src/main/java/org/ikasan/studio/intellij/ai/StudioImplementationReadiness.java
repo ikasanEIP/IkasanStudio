@@ -12,11 +12,14 @@ import org.ikasan.studio.core.ai.ImplementationReadiness;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 import org.ikasan.studio.intellij.navigation.StudioNavigator;
 import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.intellij.editor.IkasanStudioEditorService;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.nio.file.*;
 
-/** Saved-source report; all disk work is off EDT. The dialog is advisory and never changes user code. */
+/** Saved-model and source report; all disk work is off EDT. The dialog is advisory and never changes user code. */
 public final class StudioImplementationReadiness {
     private StudioImplementationReadiness() { }
     public static void check(Project project, boolean show) {
@@ -45,6 +48,20 @@ public final class StudioImplementationReadiness {
             }
         });
     }
+    static BasicElement resolveTarget(org.ikasan.studio.core.model.ikasan.instance.Module module,
+                                      ImplementationReadiness.Finding finding) {
+        if (module == null || finding.target() == null) return null;
+        if (finding.target() == ImplementationReadiness.Target.MODULE) return module;
+        for (var flow : module.getFlows()) {
+            if (!java.util.Objects.equals(flow.getIdentity(), finding.flow())) continue;
+            if (finding.target() == ImplementationReadiness.Target.FLOW) return flow;
+            if (finding.target() == ImplementationReadiness.Target.EXCEPTION_RESOLVER) return flow.getExceptionResolver();
+            for (var element : flow.ftlGetConsumerAndFlowElements())
+                if (java.util.Objects.equals(element.getIdentity(), finding.component())) return element;
+        }
+        return null;
+    }
+
     // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
     @SuppressWarnings("SplitModeApiUsage")
     private static final class Results extends DialogWrapper {
@@ -52,6 +69,8 @@ public final class StudioImplementationReadiness {
         private final Path root;
         private final ImplementationReadiness.Report report;
         private final JBTable table;
+        private final JTextArea details = new JTextArea(5, 60);
+        private Action navigateAction;
         private final int contentWidth;
         private final int heightLimit;
         Results(Project project, Path root, ImplementationReadiness.Report report) {
@@ -64,8 +83,9 @@ public final class StudioImplementationReadiness {
             var model = new DefaultTableModel(new String[]{StudioBundle.message("readiness.flow"), StudioBundle.message("readiness.component"), StudioBundle.message("readiness.finding"), StudioBundle.message("readiness.file")}, 0) {
                 @Override public boolean isCellEditable(int row, int column) { return false; }
             };
-            for (var f : report.findings()) model.addRow(new Object[]{f.flow(), f.component(), f.code() + ": " + f.message(), f.file() + ":" + f.line()});
+            for (var f : report.findings()) model.addRow(new Object[]{f.flow(), f.component(), f.code() + ": " + f.message(), isModelFinding(f) ? StudioBundle.message("readiness.properties") : f.file() + ":" + f.line()});
             table = new JBTable(model); table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            table.getSelectionModel().addListSelectionListener(event -> updateSelection());
             table.getEmptyText().setText(StudioBundle.message("readiness.empty"));
             table.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override public void mouseClicked(java.awt.event.MouseEvent event) {
@@ -77,6 +97,8 @@ public final class StudioImplementationReadiness {
                 }
             });
             setTitle(StudioBundle.message("readiness.title")); setModal(false); setCancelButtonText(StudioBundle.message("readiness.close")); init();
+            if (table.getRowCount() > 0) table.setRowSelectionInterval(0, 0);
+            updateSelection();
             pack();
             // Include the title, description and action buttons in the half-window limit.
             var size = getSize();
@@ -95,21 +117,70 @@ public final class StudioImplementationReadiness {
             panel.add(description, java.awt.BorderLayout.NORTH);
             panel.add(new JBScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED), java.awt.BorderLayout.CENTER);
+            details.setEditable(false);
+            details.setLineWrap(true);
+            details.setWrapStyleWord(true);
+            details.setFont(UIManager.getFont("Label.font"));
+            details.getAccessibleContext().setAccessibleName(StudioBundle.message("readiness.details"));
+            panel.add(new JBScrollPane(details), java.awt.BorderLayout.SOUTH);
             return panel;
         }
-        private void openSelectedSource() {
+        private static boolean isModelFinding(ImplementationReadiness.Finding finding) {
+            return "generated/src/main/model/model.json".equals(finding.file());
+        }
+
+        private ImplementationReadiness.Finding selectedFinding() {
             int row = table.getSelectedRow();
-            if (row < 0 || project.isDisposed()) return;
-            Path file = root.resolve(report.findings().get(table.convertRowIndexToModel(row)).file());
-            ApplicationManager.getApplication().executeOnPooledThread(() -> StudioNavigator.openFileByNioPath(project, file));
+            return row < 0 ? null : report.findings().get(table.convertRowIndexToModel(row));
+        }
+
+        private void updateSelection() {
+            var finding = selectedFinding();
+            if (navigateAction != null) {
+                navigateAction.putValue(Action.NAME, StudioBundle.message(finding != null && isModelFinding(finding)
+                        ? "readiness.showStudio" : "readiness.open"));
+                navigateAction.setEnabled(finding != null && (!isModelFinding(finding) || finding.target() != null));
+            }
+            details.setText(finding == null ? "" : finding.flow() + " / " + finding.component() + "\n"
+                    + finding.message() + (finding.property() == null ? "" : "\n"
+                    + StudioBundle.message("readiness.value", finding.property(), finding.displayValue())));
+            details.setCaretPosition(0);
+        }
+
+        private void openSelectedSource() {
+            var finding = selectedFinding();
+            if (finding == null || project.isDisposed()) return;
+            if (isModelFinding(finding)) {
+                if (finding.target() == null) return;
+                project.getService(IkasanStudioEditorService.class).open();
+                UiContext context = project.getService(UiContext.class);
+                BasicElement target = resolveTarget(context.getIkasanModule(), finding);
+                if (target == null || context.getDesignerCanvas() == null || context.getDesignerUI() == null) {
+                    com.intellij.openapi.ui.Messages.showInfoMessage(project,
+                            StudioBundle.message("readiness.targetUnavailable"), StudioBundle.message("readiness.title"));
+                    return;
+                }
+                context.getDesignerCanvas().editComponent(target);
+                if (context.getSelectedComponent() != target) return; // Pending-edit selection change was cancelled.
+                close(CANCEL_EXIT_CODE);
+                context.getDesignerUI().showProperties();
+                if (finding.target() != ImplementationReadiness.Target.EXCEPTION_RESOLVER
+                        && context.getPropertiesPanel() != null && finding.property() != null)
+                    context.getPropertiesPanel().revealProperty(finding.property());
+                return;
+            }
+            Path file = root.resolve(finding.file()).normalize();
+            if (!file.startsWith(root.normalize())) return;
+            ApplicationManager.getApplication().executeOnPooledThread(() -> StudioNavigator.openFileByNioPath(project, file, finding.line()));
         }
 
         @Override protected Action @org.jetbrains.annotations.NotNull [] createActions() {
-            return new Action[]{new AbstractAction(StudioBundle.message("readiness.open")) {
+            navigateAction = new AbstractAction(StudioBundle.message("readiness.open")) {
                 @Override public void actionPerformed(java.awt.event.ActionEvent event) {
                     openSelectedSource();
                 }
-            }, new AbstractAction(StudioBundle.message("readiness.refresh")) {
+            };
+            return new Action[]{navigateAction, new AbstractAction(StudioBundle.message("readiness.refresh")) {
                 @Override public void actionPerformed(java.awt.event.ActionEvent event) { close(CANCEL_EXIT_CODE); check(project, true); }
             }, getCancelAction()};
         }

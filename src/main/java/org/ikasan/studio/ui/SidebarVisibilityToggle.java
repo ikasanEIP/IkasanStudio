@@ -22,6 +22,10 @@ final class SidebarVisibilityToggle {
 
     JButton button() { return button; }
 
+    void show() {
+        if (!sidebar.isVisible()) toggle();
+    }
+
     private void toggle() {
         int available = splitter.getWidth() - splitter.getDividerWidth();
         if (available <= 0) return;

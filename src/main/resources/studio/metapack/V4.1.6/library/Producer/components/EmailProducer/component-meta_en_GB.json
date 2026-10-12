@@ -33,13 +33,15 @@
       "propertyDisplayOrder": -100,
       "setterProperty": true,
       "usageDataType": "java.lang.String",
-      "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,63}$",
-      "validationMessage": "Please provide a valid formatted email address.",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen.",
       "mandatoryUnlessAnyOf": ["toRecipients", "ccRecipient", "ccRecipients", "bccRecipient", "bccRecipients"],
       "mandatorySectionHeading": "At least one of..."
     },
     "toRecipients": {
       "propertyName": "toRecipients",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen.",
       "propertyDataType": "java.util.List",
       "helpText": "The list of To recipients, use Edit entries to enter one address per row.",
       "propertyConfigFileLabel": "__flow.__component.email.producer.toRecipients",
@@ -88,8 +90,8 @@
       "propertyDisplayOrder": -10,
       "setterProperty": true,
       "usageDataType": "java.lang.String",
-      "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,63}$",
-      "validationMessage": "Please provide a valid formatted email address."
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen."
     },
     "ccRecipient": {
       "propertyName": "ccRecipient",
@@ -98,13 +100,15 @@
       "propertyDisplayOrder": -90,
       "setterProperty": true,
       "usageDataType": "java.lang.String",
-      "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,63}$",
-      "validationMessage": "Please provide a valid formatted email address.",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen.",
       "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipients", "bccRecipient", "bccRecipients"],
       "mandatorySectionHeading": "At least one of..."
     },
     "ccRecipients": {
       "propertyName": "ccRecipients",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen.",
       "propertyDataType": "java.util.List",
       "helpText": "The list of CC recipient, use Edit entries to enter one address per row. At least one recipient must be provided across To, CC or BCC.",
       "propertyConfigFileLabel": "__flow.__component.email.producer.ccRecipients",
@@ -121,13 +125,15 @@
       "propertyDisplayOrder": -80,
       "setterProperty": true,
       "usageDataType": "java.lang.String",
-      "validation": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,63}$",
-      "validationMessage": "Please provide a valid formatted email address.",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen.",
       "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipient", "ccRecipients", "bccRecipients"],
       "mandatorySectionHeading": "At least one of..."
     },
     "bccRecipients": {
       "propertyName": "bccRecipients",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen.",
       "propertyDataType": "java.util.List",
       "helpText": "The list of BCC recipient, use Edit entries to enter one address per row. At least one recipient must be provided across To, CC or BCC.",
       "propertyConfigFileLabel": "__flow.__component.email.producer.bccRecipients",

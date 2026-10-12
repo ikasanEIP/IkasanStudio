@@ -5,6 +5,11 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Validate Module opens property findings in Studio, reveals the affected property and shows full explanations with safely displayed saved values. Source findings open at the reported line.
+- Validate Module now validates saved model property types, required and conditional values, choices and patterns, including recipient-list entries, and reports the flow, component and property to correct.
+
+- Reject malformed email addresses, including trailing/repeated dots and invalid domain labels, in single recipients and recipient lists. Validate saved values on opening Properties and mark invalid fields with an error indicator and corrective guidance.
+
 - Externalize configured email settings, including single recipients, sender and SMTP connection details, into generated `application.properties` for both Ikasan versions.
 
 - Externalize remaining scalar and string-map settings for JMS, FTP/SFTP, local-file, scheduled, logging and XML-converter components, using component-specific keys for new mappings. Preserve existing keys and custom Java configuration beans.

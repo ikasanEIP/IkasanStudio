@@ -16,15 +16,20 @@ import java.awt.BorderLayout;
 import java.util.*;
 
 /** Edits string entries without comma splitting, value coercion or silent duplicate-key replacement. */
+// Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
+@SuppressWarnings("SplitModeApiUsage")
 final class StringCollectionDialog extends DialogWrapper {
+    private final org.ikasan.studio.core.metapack.model.ComponentPropertyMeta meta;
     private final boolean map;
     private final DefaultTableModel rows;
     private final JBTable table;
     private final JBCheckBox unset = new JBCheckBox(StudioBundle.message("collection.Unset"));
 
-    StringCollectionDialog(Project project, String name, Class<?> type, Object value) {
+    StringCollectionDialog(Project project, org.ikasan.studio.core.metapack.model.ComponentPropertyMeta meta, Object value) {
         super(project);
-        map = type == Map.class;
+        this.meta = meta;
+        String name = meta.getPropertyName();
+        map = meta.getPropertyDataType() == Map.class;
         setTitle(StudioBundle.message("collection.Title", name));
         rows = new DefaultTableModel(map ? new String[]{StudioBundle.message("collection.Key"), StudioBundle.message("collection.Value")}
                 : new String[]{StudioBundle.message("collection.Value")}, 0);
@@ -71,6 +76,12 @@ final class StringCollectionDialog extends DialogWrapper {
             for (int i = 0; i < rows.getRowCount(); i++)
                 if (!keys.add((String) rows.getValueAt(i, 0)))
                     return new ValidationInfo(StudioBundle.message("collection.DuplicateKey"), table);
+        }
+        if (!unset.isSelected() && !map) {
+            List<String> entries = new ArrayList<>();
+            for (int i = 0; i < rows.getRowCount(); i++) entries.add((String) rows.getValueAt(i, 0));
+            String problem = ComponentPropertyEditRow.patternValidationMessage(meta, entries);
+            if (problem != null) return new ValidationInfo(problem, table);
         }
         return null;
     }

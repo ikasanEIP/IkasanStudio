@@ -293,13 +293,18 @@ AGENTS.md if necessary. A missing result is not success: use Review Latest AI Pr
 the dialog feedback. Result write failures are recorded in the IDE log. Receipts contain error
 messages and should be treated as project diagnostics rather than published automatically.
 
-## Module completeness check
+## Validate Module
 
-Right-click the module and choose **Check Module Completeness...**. The advisory dialog
-lists affected flows/components, finding codes and source locations; select a finding to open
-its source. Save edits and use **Check again** to refresh. No user source is modified.
+Right-click the module and choose **Validate Module...**. The advisory dialog
+lists affected flows/components and finding codes, with a full explanation beneath the table.
+Choose **Show in Studio** (or double-click) to select the affected component and reveal its property,
+including optional properties. Exception-action findings open the flow’s exception resolver editor.
+Java findings use **Open selected source**, at the reported line. Save edits and use **Check again**
+to refresh. No user source is modified.
 
-The first check covers primary user implementation files referenced by the model. It reports
+The check validates saved module, flow and component properties against meta-pack rules: required and conditional values, scalar/collection types, fixed choices and validation patterns (including each list entry). Exception-action properties are checked too. Property findings direct developers to Studio rather than editing `model.json`. Saved recipient values, cron expressions, startup choices and numeric/boolean values appear in the details; credentials and other potentially sensitive values are hidden. Long values are truncated. External deployment property overrides are not inspected.
+
+It also covers primary user implementation files referenced by the model. It reports
 missing source, the known generated converter exception (`Conversion has not been implemented`),
 and selected generated implementation TODO markers. TODO findings require human/agent review:
 comments can remain after implementation. An intentional UnsupportedOperationException with
@@ -308,7 +313,7 @@ another message is not automatically treated as an unfinished generated converte
 After successful generation Studio asynchronously publishes `generated/implementation-readiness.json`.
 `studio_snapshot` includes fresh `implementationReadiness` findings against the live model and saved
 source. Applied file-proposal receipts also include a fresh report. Inspect `checkedAt`; regenerate
-or run the menu check after changing source. Unsaved edits, helper/provider beans, arbitrary no-op
+or run the menu check after changing the model or source. Unsaved edits, external property overrides, helper/provider beans, arbitrary no-op
 implementations and runtime behaviour are outside this initial check. An empty report is not a
 success certificate: `runtimeVerified` remains false. No compiler, tests or application are launched.
 

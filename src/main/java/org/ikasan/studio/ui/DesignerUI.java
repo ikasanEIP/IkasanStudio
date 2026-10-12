@@ -41,7 +41,13 @@ public class DesignerUI implements Disposable {
     private final StudioProjectInitialisationService initialisationService;
     JBTabbedPane paletteAndProperties = new JBTabbedPane();
     JBSplitter propertiesAndCanvasSplitPane;
+    public void showProperties() {
+        sidebarVisibility.show();
+        project.getService(UiContext.class).setRightTabbedPaneFocus(UiContext.PROPERTIES_TAB_INDEX);
+    }
+
     private final PanelWidthToggle panelWidthToggle;
+    private final SidebarVisibilityToggle sidebarVisibility;
     // Guards the persistence listener below against our own programmatic proportion changes -
     // without this, restoring a persisted width while the split pane hasn't yet been laid out to its
     // real size (getWidth() still small/stale during early startup) computes a wrong divider location,
@@ -88,7 +94,8 @@ public class DesignerUI implements Disposable {
         Disposer.register(this, canvasPanel);
         uiContext.setCanvasPanel(canvasPanel);
         propertiesAndCanvasSplitPane = createContentSplitter(canvasPanel, paletteAndProperties);
-        canvasPanel.setSidebarToggle(new SidebarVisibilityToggle(propertiesAndCanvasSplitPane, paletteAndProperties).button());
+        sidebarVisibility = new SidebarVisibilityToggle(propertiesAndCanvasSplitPane, paletteAndProperties);
+        canvasPanel.setSidebarToggle(sidebarVisibility.button());
         panelWidthToggle = new PanelWidthToggle(propertiesAndCanvasSplitPane, paletteAndProperties, restore -> {
             componentPropertiesPanel.setRestoreWidthAvailable(restore);
             PaletteTabPanel palette = uiContext.getPalettePanel();

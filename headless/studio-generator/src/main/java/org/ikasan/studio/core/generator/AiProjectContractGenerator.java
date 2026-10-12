@@ -584,7 +584,7 @@ public final class AiProjectContractGenerator {
                 ## Module completeness checks are not runtime proof
 
                 Read implementationReadiness in studio_snapshot, or generated/implementation-readiness.json
-                after generation. Studio's module menu offers Check Module Completeness to refresh saved-source
+                after generation. Studio's module menu offers Validate Module to refresh saved-source
                 findings and open affected files. Reports inspect primary user implementation files only; save
                 edits before refreshing. Reports can become stale after edits and do not cover helper/provider beans.
                 Resolve missing source and known throwing stubs. Review generated TODO warnings against actual

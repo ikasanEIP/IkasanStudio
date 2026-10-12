@@ -9,10 +9,16 @@ import java.util.*;
 /** Conservative saved-source observations, never a proof of runtime readiness. */
 public final class ImplementationReadiness {
     private ImplementationReadiness() { }
-    public record Finding(String flow, String component, String file, int line, String code, String message) { }
+    public enum Target { MODULE, FLOW, COMPONENT, EXCEPTION_RESOLVER }
+    public record Finding(String flow, String component, String file, int line, String code, String message,
+                          Target target, String property, String displayValue) {
+        public Finding(String flow, String component, String file, int line, String code, String message) {
+            this(flow, component, file, line, code, message, null, null, null);
+        }
+    }
     public record Report(String checkedAt, String scope, boolean runtimeVerified, List<Finding> findings) { }
     public static Report scan(Path root, JsonNode model) {
-        List<Finding> findings = new ArrayList<>();
+        List<Finding> findings = new ArrayList<>(ModelPropertyValidation.scan(model));
         for (JsonNode flow : model.path("flows")) {
             List<JsonNode> components = new ArrayList<>();
             if (flow.has("consumer")) components.add(flow.get("consumer"));
@@ -63,7 +69,7 @@ public final class ImplementationReadiness {
                 }
             }
         }
-        return new Report(java.time.Instant.now().toString(), "Saved primary user implementation files only; unsaved edits and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.", false, List.copyOf(findings));
+        return new Report(java.time.Instant.now().toString(), "Saved model property rules and primary user implementation files; unsaved edits, external property overrides and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.", false, List.copyOf(findings));
     }
     public static Report scanProject(Path root) throws java.io.IOException {
         return scan(root.toAbsolutePath().normalize(), org.ikasan.studio.core.persistence.json.IkasanModelDocuments.toLegacy(StudioJson.newObjectMapper().readTree(

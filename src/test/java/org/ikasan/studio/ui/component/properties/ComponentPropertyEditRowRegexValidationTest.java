@@ -1,6 +1,7 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
+import org.jetbrains.annotations.NonNls;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
@@ -26,6 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class ComponentPropertyEditRowRegexValidationTest {
 
+    @NonNls private static final String REQUIRED_VALUE_FRAGMENT = "must be set";
+    @NonNls private static final String EMAIL_EXAMPLE = "name@example.com";
+
     private static ComponentMeta emailProducerMeta;
 
     @BeforeAll
@@ -42,8 +46,9 @@ public class ComponentPropertyEditRowRegexValidationTest {
         return flowElement;
     }
 
-    private static ComponentPropertyEditRow rowFor(FlowElement flowElement, String propertyName,
+    private static ComponentPropertyEditRow rowFor(FlowElement flowElement,
                                                      Map<String, ComponentPropertyEditRow> sharedRowMap) {
+        String propertyName = "toRecipient";
         ComponentProperty existing = flowElement.getProperty(propertyName);
         ComponentProperty property = existing != null ? existing
                 : new ComponentProperty(flowElement.getComponentMeta().getMetadata(propertyName));
@@ -53,7 +58,7 @@ public class ComponentPropertyEditRowRegexValidationTest {
     @Test
     public void aLowercaseEmailAddressIsAccepted() {
         FlowElement flowElement = newEmailProducer();
-        ComponentPropertyEditRow toRecipientRow = rowFor(flowElement, "toRecipient", new HashMap<>());
+        ComponentPropertyEditRow toRecipientRow = rowFor(flowElement, new HashMap<>());
         toRecipientRow.resetDataEntryComponentsWithNewValues();
 
         // A genuine user keystroke, not a pre-existing model value - matches the reported real-world address.
@@ -65,7 +70,7 @@ public class ComponentPropertyEditRowRegexValidationTest {
     @Test
     public void aMalformedAddressIsStillRejected() {
         FlowElement flowElement = newEmailProducer();
-        ComponentPropertyEditRow toRecipientRow = rowFor(flowElement, "toRecipient", new HashMap<>());
+        ComponentPropertyEditRow toRecipientRow = rowFor(flowElement, new HashMap<>());
         toRecipientRow.resetDataEntryComponentsWithNewValues();
 
         toRecipientRow.getOverridingInputField().setText("not-an-email-address");
@@ -76,7 +81,7 @@ public class ComponentPropertyEditRowRegexValidationTest {
     @Test
     public void theValidationMessageNamesTheOffendingProperty() {
         FlowElement flowElement = newEmailProducer();
-        ComponentPropertyEditRow toRecipientRow = rowFor(flowElement, "toRecipient", new HashMap<>());
+        ComponentPropertyEditRow toRecipientRow = rowFor(flowElement, new HashMap<>());
         toRecipientRow.resetDataEntryComponentsWithNewValues();
 
         toRecipientRow.getOverridingInputField().setText("not-an-email-address");
@@ -118,7 +123,62 @@ public class ComponentPropertyEditRowRegexValidationTest {
                 false, () -> {}, new HashMap<>());
         row.resetDataEntryComponentsWithNewValues();
         row.getOverridingInputField().setText("");
-        assertTrue(row.doValidateAll().stream().anyMatch(issue -> issue.message.contains("must be set")));
+        assertTrue(row.doValidateAll().stream().anyMatch(issue -> issue.message.contains(REQUIRED_VALUE_FRAGMENT)));
+    }
+
+    @Test
+    public void savedInvalidEmailAddressesAreMarkedAndClearWhenCorrectedInBothPacks() throws Exception {
+        for (String pack : List.of("V3.3.9", "V4.1.6")) {
+            var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Email Producer");
+            for (String field : List.of("toRecipient", "from", "ccRecipient", "bccRecipient")) {
+                for (String address : List.of("bar.@bar.com", ".bar@bar.com", "bar..x@bar.com",
+                        "bar@-example.com", "bar@example-.com", "bar@example..com")) {
+                    var row = new ComponentPropertyEditRow(null,
+                            new ComponentProperty(meta.getMetadata(field), address), false, () -> {}, new HashMap<>());
+                    assertFalse(row.propertyValueHasChanged(), "Reopening the saved value is not an edit");
+                    var issues = row.doValidateAll();
+                    assertFalse(issues.isEmpty(), pack + " " + field + ": " + address);
+                    assertTrue(issues.get(0).message.startsWith(field + ":"));
+                    assertTrue(issues.get(0).message.contains(EMAIL_EXAMPLE));
+                    org.junit.jupiter.api.Assertions.assertEquals("error",
+                            row.getOverridingInputField().getClientProperty("JComponent.outline"));
+                    org.junit.jupiter.api.Assertions.assertNotNull(row.getPropertyTitleField().getIcon());
+                    row.getOverridingInputField().setText("bar@example.com");
+                    assertTrue(row.doValidateAll().isEmpty());
+                    org.junit.jupiter.api.Assertions.assertNull(row.getOverridingInputField().getClientProperty("JComponent.outline"));
+                    org.junit.jupiter.api.Assertions.assertNull(row.getPropertyTitleField().getIcon());
+                }
+                for (String address : List.of("First.Last+orders@example.co.uk", "user_name@example-domain.com")) {
+                    var row = new ComponentPropertyEditRow(null,
+                            new ComponentProperty(meta.getMetadata(field), address), false, () -> {}, new HashMap<>());
+                    assertTrue(row.doValidateAll().isEmpty(), address);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void recipientListsIdentifyTheInvalidEntryUsingTheSameRuleAsTheCollectionDialog() throws Exception {
+        for (String pack : List.of("V3.3.9", "V4.1.6")) {
+            var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Email Producer");
+            for (String field : List.of("toRecipients", "ccRecipients", "bccRecipients")) {
+                var property = meta.getMetadata(field);
+                var entries = List.of("valid@example.com", "bar.@bar.com");
+                var row = new ComponentPropertyEditRow(null,
+                        new ComponentProperty(property, entries), false, () -> {}, new HashMap<>());
+                assertFalse(row.propertyValueHasChanged());
+                var issues = row.doValidateAll();
+                assertFalse(issues.isEmpty());
+                assertTrue(issues.get(0).message.contains(field));
+                assertTrue(issues.get(0).message.contains("2"), issues.get(0).message);
+                org.junit.jupiter.api.Assertions.assertEquals(
+                        ComponentPropertyEditRow.patternValidationMessage(property, entries), issues.get(0).message);
+                org.junit.jupiter.api.Assertions.assertNull(ComponentPropertyEditRow.patternValidationMessage(
+                        property, List.of("first.last@example.com", "second@example.com")));
+                org.junit.jupiter.api.Assertions.assertNotNull(ComponentPropertyEditRow.patternValidationMessage(
+                        property, List.of("")));
+            }
+        }
     }
 
 }
