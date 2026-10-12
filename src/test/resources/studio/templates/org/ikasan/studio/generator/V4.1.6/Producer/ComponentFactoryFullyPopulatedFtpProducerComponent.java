@@ -14,8 +14,28 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.active}")
+java.lang.Boolean myFlow1MyFTPProducerFtpProducerActive;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.checksumDelivered}")
+java.lang.Boolean myFlow1MyFTPProducerFtpProducerChecksumDelivered;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.cleanupJournalOnComplete}")
+java.lang.Boolean myFlow1MyFTPProducerFtpProducerCleanupJournalOnComplete;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.clientID}")
 java.lang.String myFlow1FtpProducerClientID;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.createParentDirectory}")
+java.lang.Boolean myFlow1MyFTPProducerFtpProducerCreateParentDirectory;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.criticalOnStartup}")
+java.lang.Boolean myFlow1MyFTPProducerFtpProducerCriticalOnStartup;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.dataTimeout}")
+java.lang.Integer myFlow1MyFTPProducerFtpProducerDataTimeout;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.ftps}")
+java.lang.Boolean myFlow1MyFTPProducerFtpProducerFtps;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.ftpsIsImplicit}")
+java.lang.Boolean myFlow1MyFTPProducerFtpProducerFtpsIsImplicit;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.ftpsKeyStoreFilePassword}")
+java.lang.String myFlow1MyFTPProducerFtpProducerFtpsKeyStoreFilePassword;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.ftpsKeyStoreFilePath}")
+java.lang.String myFlow1MyFTPProducerFtpProducerFtpsKeyStoreFilePath;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-port}")
 java.lang.Integer myFlow1FtpConsumerFtpsPort;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.ftps-protocol}")
@@ -24,14 +44,24 @@ java.lang.String myFlow1FtpConsumerFtpsProtocol;
 java.lang.Integer myFlow1FtpConsumerMaxRetryAttempts;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.producer.outputDirectory}")
 java.lang.String myFlow1FtpProducerOutputDirectory;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.overwrite}")
+java.lang.Boolean myFlow1MyFTPProducerFtpProducerOverwrite;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.password}")
 java.lang.String myFlow1FtpConsumerPassword;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-host}")
 java.lang.String myFlow1FtpConsumerRemoteHost;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.remote-port}")
 java.lang.Integer myFlow1FtpConsumerRemotePort;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.renameExtension}")
+java.lang.String myFlow1MyFTPProducerFtpProducerRenameExtension;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.socketTimeout}")
+java.lang.Integer myFlow1MyFTPProducerFtpProducerSocketTimeout;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.system-key}")
 java.lang.String myFlow1FtpConsumerSystemKey;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.tempFileName}")
+java.lang.String myFlow1MyFTPProducerFtpProducerTempFileName;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myftpproducer.ftp.producer.unzip}")
+java.lang.Boolean myFlow1MyFTPProducerFtpProducerUnzip;
 @org.springframework.beans.factory.annotation.Value("${myflow1.ftp.consumer.username}")
 java.lang.String myFlow1FtpConsumerUsername;
 @javax.annotation.Resource
@@ -41,33 +71,33 @@ org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerCl
 
 public org.ikasan.spec.component.endpoint.Producer getMyFTPProducer() {
 return builderFactory.getComponentBuilder().ftpProducer()
-.setActive(true)
-.setChecksumDelivered(true)
-.setCleanupJournalOnComplete(true)
+.setActive(myFlow1MyFTPProducerFtpProducerActive)
+.setChecksumDelivered(myFlow1MyFTPProducerFtpProducerChecksumDelivered)
+.setCleanupJournalOnComplete(myFlow1MyFTPProducerFtpProducerCleanupJournalOnComplete)
 .setClientID(myFlow1FtpProducerClientID)
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
-.setCreateParentDirectory(true)
-.setCriticalOnStartup(true)
-.setDataTimeout(300001)
-.setFTPS(true)
-.setFtpsIsImplicit(true)
-.setFtpsKeyStoreFilePassword("myFtpsKeyStoreFilePassword")
-.setFtpsKeyStoreFilePath("/test/ftps/keystore")
+.setCreateParentDirectory(myFlow1MyFTPProducerFtpProducerCreateParentDirectory)
+.setCriticalOnStartup(myFlow1MyFTPProducerFtpProducerCriticalOnStartup)
+.setDataTimeout(myFlow1MyFTPProducerFtpProducerDataTimeout)
+.setFTPS(myFlow1MyFTPProducerFtpProducerFtps)
+.setFtpsIsImplicit(myFlow1MyFTPProducerFtpProducerFtpsIsImplicit)
+.setFtpsKeyStoreFilePassword(myFlow1MyFTPProducerFtpProducerFtpsKeyStoreFilePassword)
+.setFtpsKeyStoreFilePath(myFlow1MyFTPProducerFtpProducerFtpsKeyStoreFilePath)
 .setFtpsPort(myFlow1FtpConsumerFtpsPort)
 .setFtpsProtocol(myFlow1FtpConsumerFtpsProtocol)
 .setMaxRetryAttempts(myFlow1FtpConsumerMaxRetryAttempts)
 .setOutputDirectory(myFlow1FtpProducerOutputDirectory)
-.setOverwrite(true)
+.setOverwrite(myFlow1MyFTPProducerFtpProducerOverwrite)
 .setPassword(myFlow1FtpConsumerPassword)
 .setRemoteHost(myFlow1FtpConsumerRemoteHost)
 .setRemotePort(myFlow1FtpConsumerRemotePort)
-.setRenameExtension("tmp")
-.setSocketTimeout(22)
+.setRenameExtension(myFlow1MyFTPProducerFtpProducerRenameExtension)
+.setSocketTimeout(myFlow1MyFTPProducerFtpProducerSocketTimeout)
 .setSystemKey(myFlow1FtpConsumerSystemKey)
-.setTempFileName("myTempFiilename")
+.setTempFileName(myFlow1MyFTPProducerFtpProducerTempFileName)
 .setTransactionManager(myTransactionManagerClass)
-.setUnzip(true)
+.setUnzip(myFlow1MyFTPProducerFtpProducerUnzip)
 .setUsername(myFlow1FtpConsumerUsername)
 .build();
 }}

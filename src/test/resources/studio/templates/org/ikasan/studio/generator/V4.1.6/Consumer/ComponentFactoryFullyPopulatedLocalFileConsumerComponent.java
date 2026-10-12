@@ -14,10 +14,36 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.criticalOnStartup}")
+java.lang.Boolean myFlow1MyLocalFileConsumerFileConsumerCriticalOnStartup;
 @org.springframework.beans.factory.annotation.Value("${myflow1.file.consumer.cron-expression}")
 java.lang.String myFlow1FileConsumerCronExpression;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.directoryDepth}")
+java.lang.Integer myFlow1MyLocalFileConsumerFileConsumerDirectoryDepth;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.eager}")
+java.lang.Boolean myFlow1MyLocalFileConsumerFileConsumerEager;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.encoding}")
+java.lang.String myFlow1MyLocalFileConsumerFileConsumerEncoding;
 @org.springframework.beans.factory.annotation.Value("#{'${myflow1.file.consumer.filenames}'.split(',')}")
 java.util.List<String> myFlow1FileConsumerFilenames;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.ignoreFileRenameWhilstScanning}")
+java.lang.Boolean myFlow1MyLocalFileConsumerFileConsumerIgnoreFileRenameWhilstScanning;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.ignoreMisfire}")
+java.lang.Boolean myFlow1MyLocalFileConsumerFileConsumerIgnoreMisfire;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.includeHeader}")
+java.lang.Boolean myFlow1MyLocalFileConsumerFileConsumerIncludeHeader;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.includeTrailer}")
+java.lang.Boolean myFlow1MyLocalFileConsumerFileConsumerIncludeTrailer;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.logMatchedFilenames}")
+java.lang.Boolean myFlow1MyLocalFileConsumerFileConsumerLogMatchedFilenames;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.maxEagerCallbacks}")
+java.lang.Integer myFlow1MyLocalFileConsumerFileConsumerMaxEagerCallbacks;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.sortAscending}")
+java.lang.Boolean myFlow1MyLocalFileConsumerFileConsumerSortAscending;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.sortByModifiedDateTime}")
+java.lang.Boolean myFlow1MyLocalFileConsumerFileConsumerSortByModifiedDateTime;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.timezone}")
+java.lang.String myFlow1MyLocalFileConsumerFileConsumerTimezone;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration orgIkasanMyflowConfiguration;
 @javax.annotation.Resource
@@ -33,24 +59,24 @@ public org.ikasan.spec.component.endpoint.Consumer getMyLocalFileConsumer() {
 return builderFactory.getComponentBuilder().fileConsumer()
 .setConfiguration(orgIkasanMyflowConfiguration)
 .setConfiguredResourceId("bob")
-.setCriticalOnStartup(true)
+.setCriticalOnStartup(myFlow1MyLocalFileConsumerFileConsumerCriticalOnStartup)
 .setCronExpression(myFlow1FileConsumerCronExpression)
-.setDirectoryDepth(1)
-.setEager(true)
-.setEncoding("UTF-8")
+.setDirectoryDepth(myFlow1MyLocalFileConsumerFileConsumerDirectoryDepth)
+.setEager(myFlow1MyLocalFileConsumerFileConsumerEager)
+.setEncoding(myFlow1MyLocalFileConsumerFileConsumerEncoding)
 .setEventFactory(orgIkasanMyflowMyEventFactory)
 .setFilenames(myFlow1FileConsumerFilenames)
-.setIgnoreFileRenameWhilstScanning(true)
-.setIgnoreMisfire(true)
-.setIncludeHeader(true)
-.setIncludeTrailer(true)
-.setLogMatchedFilenames(true)
+.setIgnoreFileRenameWhilstScanning(myFlow1MyLocalFileConsumerFileConsumerIgnoreFileRenameWhilstScanning)
+.setIgnoreMisfire(myFlow1MyLocalFileConsumerFileConsumerIgnoreMisfire)
+.setIncludeHeader(myFlow1MyLocalFileConsumerFileConsumerIncludeHeader)
+.setIncludeTrailer(myFlow1MyLocalFileConsumerFileConsumerIncludeTrailer)
+.setLogMatchedFilenames(myFlow1MyLocalFileConsumerFileConsumerLogMatchedFilenames)
 .setManagedEventIdentifierService(orgIkasanMyflowMyEventService)
-.setMaxEagerCallbacks(1)
+.setMaxEagerCallbacks(myFlow1MyLocalFileConsumerFileConsumerMaxEagerCallbacks)
 .setMessageProvider(orgIkasanMyflowMyMessageProvider)
 .setMessageProviderPostProcessor(orgIkasanMyflowMyMssageProviderPostProcessor)
-.setSortAscending(true)
-.setSortByModifiedDateTime(true)
-.setTimezone("UTC")
+.setSortAscending(myFlow1MyLocalFileConsumerFileConsumerSortAscending)
+.setSortByModifiedDateTime(myFlow1MyLocalFileConsumerFileConsumerSortByModifiedDateTime)
+.setTimezone(myFlow1MyLocalFileConsumerFileConsumerTimezone)
 .build();
 }}

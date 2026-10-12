@@ -33,6 +33,7 @@
     },
     "checksumDelivered": {
       "propertyName": "checksumDelivered",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.checksumDelivered",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 70,
       "defaultValue": false,
@@ -42,6 +43,7 @@
     },
     "cleanupChunks": {
       "propertyName": "cleanupChunks",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.cleanupChunks",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 80,
       "defaultValue": true,
@@ -52,6 +54,7 @@
     },
     "cleanupJournalOnComplete": {
       "propertyName": "cleanupJournalOnComplete",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.cleanupJournalOnComplete",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 350,
       "defaultValue": true,
@@ -83,6 +86,7 @@
     },
     "connectionTimeout": {
       "propertyName": "connectionTimeout",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.connectionTimeout",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 240,
       "displayLabel": "Connection Timeout (ms)",
@@ -93,6 +97,7 @@
     },
     "createParentDirectory": {
       "propertyName": "createParentDirectory",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.createParentDirectory",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 20,
       "defaultValue": false,
@@ -102,6 +107,7 @@
     },
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.criticalOnStartup",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 380,
       "defaultValue": false,
@@ -144,6 +150,7 @@
     },
     "overwrite": {
       "propertyName": "overwrite",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.overwrite",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 30,
       "defaultValue": false,
@@ -208,6 +215,7 @@
     },
     "renameExtension": {
       "propertyName": "renameExtension",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.renameExtension",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 40,
       "helpText": "Default('.tmp') file delivery to remote location takes place in two stages, first a file is delivered with suffix equal to renameExtension, further file is renamed with suffix being removed.",
@@ -217,6 +225,7 @@
     },
     "tempFileName": {
       "propertyName": "tempFileName",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.tempFileName",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 50,
       "helpText": "Temporary filename to use for incomplete transfer.",
@@ -225,6 +234,7 @@
     },
     "unzip": {
       "propertyName": "unzip",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.unzip",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 60,
       "defaultValue": false,

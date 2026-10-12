@@ -57,6 +57,7 @@
     },
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
+      "propertyConfigFileLabel": "__flow.__component.scheduled.consumer.criticalOnStartup",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 220,
       "defaultValue": false,
@@ -66,6 +67,7 @@
     },
     "eager": {
       "propertyName": "eager",
+      "propertyConfigFileLabel": "__flow.__component.scheduled.consumer.eager",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 230,
       "displayLabel": "Eager re-invoke",
@@ -88,6 +90,7 @@
     },
     "ignoreMisfire": {
       "propertyName": "ignoreMisfire",
+      "propertyConfigFileLabel": "__flow.__component.scheduled.consumer.ignoreMisfire",
       "propertyGroup": "Scheduling",
       "propertyDisplayOrder": 100,
       "helpText": "Default: true. When true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
@@ -109,6 +112,7 @@
     },
     "maxEagerCallbacks": {
       "propertyName": "maxEagerCallbacks",
+      "propertyConfigFileLabel": "__flow.__component.scheduled.consumer.maxEagerCallbacks",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 240,
       "defaultValue": 0,
@@ -132,6 +136,7 @@
     },
     "timezone": {
       "propertyName": "timezone",
+      "propertyConfigFileLabel": "__flow.__component.scheduled.consumer.timezone",
       "propertyGroup": "Scheduling",
       "propertyDisplayOrder": 110,
       "helpText": "Optional. The timezone the cronExpression schedule is evaluated in, e.g. 'America/New_York' or 'Europe/London'. If left unset, the JVM's own default timezone is used — only set this if the schedule needs to run consistently in a specific timezone regardless of where the module is deployed.",

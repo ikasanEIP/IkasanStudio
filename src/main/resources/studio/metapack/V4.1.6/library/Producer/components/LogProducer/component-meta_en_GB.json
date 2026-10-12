@@ -19,12 +19,14 @@
     },
     "logEveryNth": {
       "propertyName": "logEveryNth",
+      "propertyConfigFileLabel": "__flow.__component.log.producer.logEveryNth",
       "helpText": "Only display every 'nth' log message.",
       "propertyDataType": "java.lang.Long",
       "setterProperty": true
     },
     "replacementText": {
       "propertyName": "replacementText",
+      "propertyConfigFileLabel": "__flow.__component.log.producer.replacementText",
       "preserveWhitespace": true,
       "helpText": "Used in conjunction with regExpPattern, anything that matches regExpPattern will be replace with this replacementText.",
       "setterProperty": true,
@@ -32,6 +34,7 @@
     },
     "regExpPattern": {
       "propertyName": "regExpPattern",
+      "propertyConfigFileLabel": "__flow.__component.log.producer.regExpPattern",
       "preserveWhitespace": true,
       "helpText": "Used in conjunction with replacementText, anything matching this regexp pattern will be replace by replacementText.",
       "setterProperty": true,

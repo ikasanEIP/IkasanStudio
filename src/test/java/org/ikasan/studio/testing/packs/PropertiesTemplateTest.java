@@ -262,7 +262,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getLocalFileConsumerMandatoryOnly(metaPackVersion);
         String templateString = generatePropertiesTemplateString(metaPackVersion, module, flowElement);
-        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_fullyPopulatedLocalFileConsumerComponent.properties"), templateString);
+        assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, PropertiesTemplate.MODULE_PROPERTIES_FILENAME + "_mandatoryLocalFileConsumerComponent.properties"), templateString);
     }
 
     /**

@@ -5,6 +5,12 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Externalize configured email settings, including single recipients, sender and SMTP connection details, into generated `application.properties` for both Ikasan versions.
+
+- Externalize remaining scalar and string-map settings for JMS, FTP/SFTP, local-file, scheduled, logging and XML-converter components, using component-specific keys for new mappings. Preserve existing keys and custom Java configuration beans.
+
+- Enhance and simplify the auto-generated Flow tests.
+
 - Offer reviewed, meta-pack-driven migrations rules in IDE and offline migration, with recovery and exact-plan source comparison.
 
 - Read generation rollback snapshots and post-format fingerprints off the UI thread, rejecting stale files before commit.

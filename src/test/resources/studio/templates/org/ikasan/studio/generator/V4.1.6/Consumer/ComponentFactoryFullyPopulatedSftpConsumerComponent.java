@@ -45,16 +45,46 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.ageOfFiles}")
+java.lang.Integer myFlow1MySFTPConsumerSftpConsumerAgeOfFiles;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.checksum}")
+java.lang.Boolean myFlow1MySFTPConsumerSftpConsumerChecksum;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.chronological}")
+java.lang.Boolean myFlow1MySFTPConsumerSftpConsumerChronological;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.chunkSize}")
+java.lang.Integer myFlow1MySFTPConsumerSftpConsumerChunkSize;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.chunking}")
+java.lang.Boolean myFlow1MySFTPConsumerSftpConsumerChunking;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.cleanupJournalOnComplete}")
+java.lang.Boolean myFlow1MySFTPConsumerSftpConsumerCleanupJournalOnComplete;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.clientID}")
 java.lang.String myFlow1SftpConsumerClientID;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.connectionTimeout}")
+java.lang.Integer myFlow1MySFTPConsumerSftpConsumerConnectionTimeout;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.criticalOnStartup}")
+java.lang.Boolean myFlow1MySFTPConsumerSftpConsumerCriticalOnStartup;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.cron-expression}")
 java.lang.String myFlow1SftpConsumerCronExpression;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.destructive}")
+java.lang.Boolean myFlow1MySFTPConsumerSftpConsumerDestructive;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.eager}")
+java.lang.Boolean myFlow1MySFTPConsumerSftpConsumerEager;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.filename-pattern}")
 java.lang.String myFlow1SftpConsumerFilenamePattern;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.ignoreMisfire}")
+java.lang.Boolean myFlow1MySFTPConsumerSftpConsumerIgnoreMisfire;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.isRecursive}")
+java.lang.Boolean myFlow1MySFTPConsumerSftpConsumerIsRecursive;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.known-hosts-filename}")
 java.lang.String myFlow1SftpConsumerKnownHostsFilename;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.maxEagerCallbacks}")
+java.lang.Integer myFlow1MySFTPConsumerSftpConsumerMaxEagerCallbacks;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.max-retry-attempts}")
 java.lang.Integer myFlow1SftpConsumerMaxRetryAttempts;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.maxRows}")
+java.lang.Integer myFlow1MySFTPConsumerSftpConsumerMaxRows;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.minAge}")
+java.lang.Long myFlow1MySFTPConsumerSftpConsumerMinAge;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.move-on-success-new-path}")
 java.lang.String myFlow1SftpConsumerMoveOnSuccessNewPath;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.password}")
@@ -67,6 +97,10 @@ java.lang.String myFlow1SftpConsumerPrivateKeyFilename;
 java.lang.String myFlow1SftpConsumerRemoteHost;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.remote-port}")
 java.lang.Integer myFlow1SftpConsumerRemotePort;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.renameOnSuccess}")
+java.lang.Boolean myFlow1MySFTPConsumerSftpConsumerRenameOnSuccess;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.renameOnSuccessExtension}")
+java.lang.String myFlow1MySFTPConsumerSftpConsumerRenameOnSuccessExtension;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.source-directory}")
 java.lang.String myFlow1SftpConsumerSourceDirectory;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.username}")
@@ -86,39 +120,39 @@ org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerCl
 
 public org.ikasan.spec.component.endpoint.Consumer getMySFTPConsumer() {
 return studioLocalSftp(builderFactory.getComponentBuilder().sftpConsumer()
-.setAgeOfFiles(10)
-.setChecksum(true)
-.setChronological(true)
-.setChunkSize(1048577)
-.setChunking(true)
-.setCleanupJournalOnComplete(true)
+.setAgeOfFiles(myFlow1MySFTPConsumerSftpConsumerAgeOfFiles)
+.setChecksum(myFlow1MySFTPConsumerSftpConsumerChecksum)
+.setChronological(myFlow1MySFTPConsumerSftpConsumerChronological)
+.setChunkSize(myFlow1MySFTPConsumerSftpConsumerChunkSize)
+.setChunking(myFlow1MySFTPConsumerSftpConsumerChunking)
+.setCleanupJournalOnComplete(myFlow1MySFTPConsumerSftpConsumerCleanupJournalOnComplete)
 .setClientID(myFlow1SftpConsumerClientID)
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
-.setConnectionTimeout(600001)
-.setCriticalOnStartup(true)
+.setConnectionTimeout(myFlow1MySFTPConsumerSftpConsumerConnectionTimeout)
+.setCriticalOnStartup(myFlow1MySFTPConsumerSftpConsumerCriticalOnStartup)
 .setCronExpression(myFlow1SftpConsumerCronExpression)
-.setDestructive(true)
-.setEager(true)
+.setDestructive(myFlow1MySFTPConsumerSftpConsumerDestructive)
+.setEager(myFlow1MySFTPConsumerSftpConsumerEager)
 .setEventFactory(orgIkasanMyflowMyEventFactory)
 .setFilenamePattern(myFlow1SftpConsumerFilenamePattern)
-.setIgnoreMisfire(true)
-.setIsRecursive(true)
+.setIgnoreMisfire(myFlow1MySFTPConsumerSftpConsumerIgnoreMisfire)
+.setIsRecursive(myFlow1MySFTPConsumerSftpConsumerIsRecursive)
 .setKnownHostsFilename(myFlow1SftpConsumerKnownHostsFilename)
 .setManagedEventIdentifierService(myManagedEventIdentifierServiceClass)
-.setMaxEagerCallbacks(1)
+.setMaxEagerCallbacks(myFlow1MySFTPConsumerSftpConsumerMaxEagerCallbacks)
 .setMaxRetryAttempts(myFlow1SftpConsumerMaxRetryAttempts)
-.setMaxRows(11)
+.setMaxRows(myFlow1MySFTPConsumerSftpConsumerMaxRows)
 .setMessageProvider(myMessageProviderClass)
-.setMinAge(12L)
+.setMinAge(myFlow1MySFTPConsumerSftpConsumerMinAge)
 .setMoveOnSuccessNewPath(myFlow1SftpConsumerMoveOnSuccessNewPath)
 .setPassword(myFlow1SftpConsumerPassword)
 .setPreferredKeyExchangeAlgorithm(myFlow1SftpConsumerPreferredKeyExchangeAlgorithm)
 .setPrivateKeyFilename(myFlow1SftpConsumerPrivateKeyFilename)
 .setRemoteHost(myFlow1SftpConsumerRemoteHost)
 .setRemotePort(myFlow1SftpConsumerRemotePort)
-.setRenameOnSuccess(true)
-.setRenameOnSuccessExtension("newExtension")
+.setRenameOnSuccess(myFlow1MySFTPConsumerSftpConsumerRenameOnSuccess)
+.setRenameOnSuccessExtension(myFlow1MySFTPConsumerSftpConsumerRenameOnSuccessExtension)
 .setSourceDirectory(myFlow1SftpConsumerSourceDirectory)
 .setSourceDirectoryURLFactory(myDirectoryURLFactoryClass)
 .setTransactionManager(myTransactionManagerClass)

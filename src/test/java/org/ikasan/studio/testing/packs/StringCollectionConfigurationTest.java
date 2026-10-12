@@ -45,7 +45,7 @@ class StringCollectionConfigurationTest {
         assertThat(loadedProducer.getPropertyValue("toRecipients")).isEqualTo(recipients);
         assertThat(loadedProducer.getPropertyValue("extendedMailSessionProperties")).isEqualTo(properties);
         String generated = FlowsComponentFactoryTemplate.create("org.example", loaded, loaded.getFlows().get(0));
-        assertThat(generated).contains(".setToRecipients(studioStringList(", ".setExtendedMailSessionProperties(new java.util.LinkedHashMap", "STRICT_DUPLICATE_DETECTION");
+        assertThat(generated).contains(".setToRecipients(studioStringList(", ".setExtendedMailSessionProperties(studioStringMap(", "STRICT_DUPLICATE_DETECTION");
         var spring = new Properties();
         spring.load(new java.io.StringReader(PropertiesTemplate.create(loaded)));
         String key = spring.stringPropertyNames().stream().filter(k -> k.endsWith("toRecipients")).findFirst().orElseThrow();

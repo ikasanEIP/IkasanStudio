@@ -26,6 +26,7 @@
     },
     "toRecipient": {
       "propertyName": "toRecipient",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.toRecipient",
       "helpText": "A single To recipient. At least one recipient must be provided across To, CC or BCC.",
       "propertyDisplayOrder": -100,
       "setterProperty": true,
@@ -48,6 +49,7 @@
     },
     "mailSubject": {
       "propertyName": "mailSubject",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailSubject",
       "helpText": "Email subject line.",
       "propertyGroup": "Popular",
       "propertyDisplayOrder": -40,
@@ -56,6 +58,7 @@
     },
     "emailBody": {
       "propertyName": "emailBody",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.emailBody",
       "preserveWhitespace": true,
       "helpText": "Text body for the email, used only as a fallback - if the upstream <strong>Email Converter</strong> has already set a body on the EmailPayload, that value is sent instead of this one.",
       "propertyGroup": "Popular",
@@ -65,6 +68,7 @@
     },
     "emailFormat": {
       "propertyName": "emailFormat",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.emailFormat",
       "helpText": "The MIME content type for the email body, e.g. text/plain or text/html. Unlike emailBody, this is always used as the sent message's MIME content type, even when the upstream <strong>Email Converter</strong> supplies the body text itself. Pick one of the suggestions, or type any other MIME type directly (e.g. with a charset, such as text/plain; charset=utf-8). Unconditionally mandatory - unlike most other properties here, EmailProducerConfiguration has no Java-level default for this one, so leaving it unset sends null through to javax.mail's MimeBodyPart, which throws \"ParseException: Expected MIME type, got null\" at send time rather than falling back to anything sensible.",
       "propertyDisplayOrder": -70,
       "mandatory": true,
@@ -79,6 +83,7 @@
     },
     "from": {
       "propertyName": "from",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.from",
       "helpText": "Email address of the sender.",
       "propertyGroup": "Popular",
       "propertyDisplayOrder": -10,
@@ -89,6 +94,7 @@
     },
     "ccRecipient": {
       "propertyName": "ccRecipient",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.ccRecipient",
       "helpText": "The CC recipient. At least one recipient must be provided across To, CC or BCC.",
       "propertyDisplayOrder": -90,
       "setterProperty": true,
@@ -111,6 +117,7 @@
     },
     "bccRecipient": {
       "propertyName": "bccRecipient",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.bccRecipient",
       "helpText": "The Bcc recipient. At least one recipient must be provided across To, CC or BCC.",
       "propertyDisplayOrder": -80,
       "setterProperty": true,
@@ -133,6 +140,7 @@
     },
     "hasAttachments": {
       "propertyName": "hasAttachments",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.hasAttachments",
       "defaultValue": false,
       "helpText": "Default: false. Set to true if the email includes attachments. This only opens the gate to send them - the attachment bytes themselves must be added to the EmailPayload by the upstream <strong>Email Converter</strong> (via addAttachment), this flag does not attach anything by itself.",
       "propertyGroup": "Attachments",
@@ -143,6 +151,7 @@
     },
     "mailhost": {
       "propertyName": "mailhost",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailhost",
       "defaultValue": "localhost",
       "helpText": "Default(localhost). The default host name of the mail server for both Stores and Transports. Used if a protocol-specific host (e.g. mailSmtpHost) isn't set.",
       "propertyGroup": "Connection",
@@ -152,6 +161,7 @@
     },
     "mailSmtpHost": {
       "propertyName": "mailSmtpHost",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailSmtpHost",
       "helpText": "The host name of the mail server for the SMTP protocol. Overrides mailhost.",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 310,
@@ -160,6 +170,7 @@
     },
     "mailSmtpPort": {
       "propertyName": "mailSmtpPort",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailSmtpPort",
       "defaultValue": 25,
       "helpText": "Default(25). The port number of the mail server for the SMTP protocol. If not specified the protocol's default port number is used.",
       "propertyGroup": "Connection",
@@ -169,6 +180,7 @@
     },
     "mailSmtpUser": {
       "propertyName": "mailSmtpUser",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailSmtpUser",
       "helpText": "The user name to use when connecting to the mail server using the SMTP protocol. Overrides the user property.",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 330,
@@ -177,6 +189,7 @@
     },
     "mailSmtpClass": {
       "propertyName": "mailSmtpClass",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailSmtpClass",
       "helpText": "Specifies the fully qualified class name of the mail provider for the SMTP protocol. Only needed if more than one provider for SMTP exists and you need to choose which one to use by default.",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 340,
@@ -185,6 +198,7 @@
     },
     "user": {
       "propertyName": "user",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.user",
       "helpText": "The default user name to use when connecting to the mail server. Used if a protocol-specific user (e.g. mailSmtpUser) isn't set.",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 350,
@@ -193,6 +207,7 @@
     },
     "mailPassword": {
       "propertyName": "mailPassword",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailPassword",
       "preserveWhitespace": true,
       "helpText": "Password for the mail server.",
       "propertyGroup": "Connection",
@@ -203,6 +218,7 @@
     },
     "transportProtocol": {
       "propertyName": "transportProtocol",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.transportProtocol",
       "helpText": "Specifies the default message transport protocol, e.g. smtp.",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 370,
@@ -211,6 +227,7 @@
     },
     "mailPopHost": {
       "propertyName": "mailPopHost",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailPopHost",
       "helpText": "The host name of the mail server for the POP protocol. Overrides mailhost.",
       "propertyGroup": "POP",
       "propertyDisplayOrder": 400,
@@ -219,6 +236,7 @@
     },
     "mailPopPort": {
       "propertyName": "mailPopPort",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailPopPort",
       "defaultValue": 25,
       "helpText": "Default(25). The port number of the mail server for the POP protocol. If not specified the protocol's default port number is used.",
       "propertyGroup": "POP",
@@ -228,6 +246,7 @@
     },
     "mailPopUser": {
       "propertyName": "mailPopUser",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailPopUser",
       "helpText": "The user name to use when connecting to the mail server using the POP protocol. Overrides the user property.",
       "propertyGroup": "POP",
       "propertyDisplayOrder": 420,
@@ -236,6 +255,7 @@
     },
     "mailPopClass": {
       "propertyName": "mailPopClass",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailPopClass",
       "helpText": "Specifies the fully qualified class name of the mail provider for the POP protocol. Only needed if more than one provider for POP exists and you need to choose which one to use by default.",
       "propertyGroup": "POP",
       "propertyDisplayOrder": 430,
@@ -244,6 +264,7 @@
     },
     "mailStoreProtocol": {
       "propertyName": "mailStoreProtocol",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailStoreProtocol",
       "helpText": "Specifies the default message access (store) protocol, e.g. pop3.",
       "propertyGroup": "POP",
       "propertyDisplayOrder": 440,
@@ -252,6 +273,7 @@
     },
     "mailDebug": {
       "propertyName": "mailDebug",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailDebug",
       "defaultValue": false,
       "helpText": "Default: false. Enable JavaMail session debug logging, useful when troubleshooting mail delivery issues.",
       "propertyGroup": "advanced",
@@ -261,6 +283,7 @@
     },
     "mailMimeAddressStrict": {
       "propertyName": "mailMimeAddressStrict",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailMimeAddressStrict",
       "defaultValue": true,
       "helpText": "Default: true. The MimeMessage class uses the InternetAddress method parseHeader to parse headers in messages. This property controls the strict flag passed to the parseHeader method.",
       "propertyGroup": "advanced",
@@ -270,6 +293,7 @@
     },
     "mailRuntimeEnvironment": {
       "propertyName": "mailRuntimeEnvironment",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailRuntimeEnvironment",
       "helpText": "Additional property which may be specified to denote the runtime instance generating the email, e.g. dev, uat.",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 720,
@@ -279,6 +303,7 @@
     },
     "extendedMailSessionProperties": {
       "propertyName": "extendedMailSessionProperties",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.extendedMailSessionProperties",
       "propertyDataType": "java.util.Map",
       "helpText": "Extended set of email properties, for any JavaMail session property not otherwise exposed here.",
       "propertyGroup": "advanced",
@@ -301,6 +326,7 @@
     },
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.criticalOnStartup",
       "defaultValue": false,
       "helpText": "Default: false. Identifies this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
       "propertyGroup": "advanced",

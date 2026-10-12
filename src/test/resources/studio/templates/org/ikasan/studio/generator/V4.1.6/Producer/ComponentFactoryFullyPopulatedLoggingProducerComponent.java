@@ -14,7 +14,12 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-
+@org.springframework.beans.factory.annotation.Value("${myflow1.myloggingproducer.log.producer.logEveryNth}")
+java.lang.Long myFlow1MyLoggingProducerLogProducerLogEveryNth;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myloggingproducer.log.producer.regExpPattern}")
+java.lang.String myFlow1MyLoggingProducerLogProducerRegExpPattern;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myloggingproducer.log.producer.replacementText}")
+java.lang.String myFlow1MyLoggingProducerLogProducerReplacementText;
 
 
 public org.ikasan.spec.component.endpoint.Producer getMyLoggingProducer() {
@@ -23,13 +28,13 @@ logBuilder
 .setConfiguredResourceId("MyResourceID")
 ;
 logBuilder
-.setLogEveryNth(2L)
+.setLogEveryNth(myFlow1MyLoggingProducerLogProducerLogEveryNth)
 ;
 logBuilder
-.setRegExpPattern("this")
+.setRegExpPattern(myFlow1MyLoggingProducerLogProducerRegExpPattern)
 ;
 logBuilder
-.setReplacementText("that")
+.setReplacementText(myFlow1MyLoggingProducerLogProducerReplacementText)
 ;
 return logBuilder.build();
 }}

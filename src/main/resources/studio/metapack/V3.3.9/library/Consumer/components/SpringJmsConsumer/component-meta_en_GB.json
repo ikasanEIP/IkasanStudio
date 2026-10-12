@@ -46,6 +46,7 @@
     },
     "autoContentConversion": {
       "propertyName": "autoContentConversion",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.autoContentConversion",
       "propertyGroup": "Popular",
       "propertyDisplayOrder": -50,
       "defaultValue": false,
@@ -106,6 +107,7 @@
     },
     "connectionFactoryJndiPropertySecurityPrincipal": {
       "propertyName": "connectionFactoryJndiPropertySecurityPrincipal",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.connectionFactoryJndiPropertySecurityPrincipal",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 150,
       "helpText": "The identity of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_PRINCIPAL.",
@@ -114,6 +116,7 @@
     },
     "connectionFactoryJndiPropertySecurityCredentials": {
       "propertyName": "connectionFactoryJndiPropertySecurityCredentials",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.connectionFactoryJndiPropertySecurityCredentials",
       "preserveWhitespace": true,
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 160,
@@ -123,6 +126,7 @@
     },
     "connectionFactoryJndiPropertyUrlPkgPrefixes": {
       "propertyName": "connectionFactoryJndiPropertyUrlPkgPrefixes",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.connectionFactoryJndiPropertyUrlPkgPrefixes",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 170,
       "helpText": "This is the JMS standard URL_PKG_PREFIXES, a colon-separated list of package prefixes for the class name of the factory class that will create a URL context factory.",
@@ -131,6 +135,8 @@
     },
     "connectionFactoryJndiProperties": {
       "propertyName": "connectionFactoryJndiProperties",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.connectionFactoryJndiProperties",
+      "propertyDataType": "java.util.Map",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 180,
       "helpText": "JNDI parameters map used to look up the ConnectionFactory, as an alternative to the individual connectionFactoryJndiProperty* fields above. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
@@ -149,6 +155,7 @@
     },
     "connectionUsername": {
       "propertyName": "connectionUsername",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.connectionUsername",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 200,
       "helpText": "Authentication principal used only when connectionFactory (a directly-supplied bean) is also set - wraps that connection factory so each connection it opens authenticates with this username/connectionPassword. Has no effect if connectionFactory is left unset (i.e. when resolving via JNDI, use connectionFactoryUsername instead).",
@@ -157,6 +164,7 @@
     },
     "connectionPassword": {
       "propertyName": "connectionPassword",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.connectionPassword",
       "preserveWhitespace": true,
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 210,
@@ -166,6 +174,7 @@
     },
     "pubSubDomain": {
       "propertyName": "pubSubDomain",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.pubSubDomain",
       "displayLabel": "Queue/Topic",
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 300,
@@ -178,6 +187,7 @@
     },
     "durable": {
       "propertyName": "durable",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.durable",
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 310,
       "defaultValue": false,
@@ -187,6 +197,7 @@
     },
     "durableSubscriptionName": {
       "propertyName": "durableSubscriptionName",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.durableSubscriptionName",
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 320,
       "helpText": "Required when durable is true. Id set on the JMS session for durable subscribers.",
@@ -236,6 +247,7 @@
     },
     "destinationJndiPropertyUrlPkgPrefixes": {
       "propertyName": "destinationJndiPropertyUrlPkgPrefixes",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.destinationJndiPropertyUrlPkgPrefixes",
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 370,
       "helpText": "This is the JMS standard URL_PKG_PREFIXES, a colon-separated list of package prefixes for the class name of the factory class that will create a URL context factory.",
@@ -244,6 +256,8 @@
     },
     "destinationJndiProperties": {
       "propertyName": "destinationJndiProperties",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.destinationJndiProperties",
+      "propertyDataType": "java.util.Map",
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 380,
       "helpText": "Optional JNDI parameters map used to look up the destination, as an alternative to the individual destinationJndiProperty* fields above. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
@@ -252,6 +266,7 @@
     },
     "sessionTransacted": {
       "propertyName": "sessionTransacted",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.sessionTransacted",
       "propertyGroup": "Session",
       "propertyDisplayOrder": 400,
       "defaultValue": false,
@@ -261,6 +276,7 @@
     },
     "sessionAcknowledgeMode": {
       "propertyName": "sessionAcknowledgeMode",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.sessionAcknowledgeMode",
       "propertyGroup": "Session",
       "propertyDisplayOrder": 410,
       "helpText": "Ignored when sessionTransacted is true. The JMS acknowledgement mode that is used when creating a JMS Session to send a message, valid values are: SESSION_TRANSACTED = 0, AUTO_ACKNOWLEDGE = 1, CLIENT_ACKNOWLEDGE = 2, DUPS_OK_ACKNOWLEDGE = 3",
@@ -279,6 +295,7 @@
     },
     "batchMode": {
       "propertyName": "batchMode",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.batchMode",
       "propertyGroup": "Batching",
       "propertyDisplayOrder": 500,
       "defaultValue": false,
@@ -288,6 +305,7 @@
     },
     "batchSize": {
       "propertyName": "batchSize",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.batchSize",
       "propertyGroup": "Batching",
       "propertyDisplayOrder": 510,
       "helpText": "Required when batchMode is true. Batching consumer maximum messages per batch limit.",
@@ -296,6 +314,7 @@
     },
     "autoSplitBatch": {
       "propertyName": "autoSplitBatch",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.autoSplitBatch",
       "propertyGroup": "Batching",
       "propertyDisplayOrder": 520,
       "defaultValue": true,
@@ -305,6 +324,7 @@
     },
     "concurrentConsumers": {
       "propertyName": "concurrentConsumers",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.concurrentConsumers",
       "propertyGroup": "Concurrency",
       "propertyDisplayOrder": 600,
       "defaultValue": 1,
@@ -314,6 +334,7 @@
     },
     "maxConcurrentConsumers": {
       "propertyName": "maxConcurrentConsumers",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.maxConcurrentConsumers",
       "propertyGroup": "Concurrency",
       "propertyDisplayOrder": 610,
       "defaultValue": 1,
@@ -323,6 +344,7 @@
     },
     "cacheLevel": {
       "propertyName": "cacheLevel",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.cacheLevel",
       "propertyGroup": "Concurrency",
       "propertyDisplayOrder": 620,
       "defaultValue": 1,
@@ -391,6 +413,7 @@
     },
     "receiveTimeout": {
       "propertyName": "receiveTimeout",
+      "propertyConfigFileLabel": "__flow.__component.jms.consumer.receiveTimeout",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 750,
       "helpText": "Only applied when messageProvider is left at its default (see above). Sets the receive timeout (in milliseconds) the underlying listener container waits for a message before looping again. Defaults to the JMS spring timeout.",

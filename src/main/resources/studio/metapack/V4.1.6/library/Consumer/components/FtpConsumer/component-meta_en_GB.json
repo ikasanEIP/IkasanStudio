@@ -33,6 +33,7 @@
     },
     "active": {
       "propertyName": "active",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.active",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 200,
       "displayLabel": "Ftp Active/Passive",
@@ -45,6 +46,7 @@
     },
     "ageOfFiles": {
       "propertyName": "ageOfFiles",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.ageOfFiles",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 150,
       "displayLabel": "Age Of Files (days)",
@@ -55,6 +57,7 @@
     },
     "checksum": {
       "propertyName": "checksum",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.checksum",
       "propertyGroup": "File Transfer",
       "propertyDisplayOrder": 190,
       "defaultValue": false,
@@ -64,6 +67,7 @@
     },
     "chronological": {
       "propertyName": "chronological",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.chronological",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 60,
       "defaultValue": true,
@@ -73,6 +77,7 @@
     },
     "chunkSize": {
       "propertyName": "chunkSize",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.chunkSize",
       "propertyGroup": "File Transfer",
       "propertyDisplayOrder": 180,
       "displayLabel": "Chunk Size (bytes)",
@@ -83,6 +88,7 @@
     },
     "chunking": {
       "propertyName": "chunking",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.chunking",
       "propertyGroup": "File Transfer",
       "propertyDisplayOrder": 170,
       "defaultValue": false,
@@ -92,6 +98,7 @@
     },
     "cleanupJournalOnComplete": {
       "propertyName": "cleanupJournalOnComplete",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.cleanupJournalOnComplete",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 350,
       "defaultValue": true,
@@ -132,6 +139,7 @@
     },
     "connectionTimeout": {
       "propertyName": "connectionTimeout",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.connectionTimeout",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 240,
       "displayLabel": "Connection Timeout (ms)",
@@ -142,6 +150,7 @@
     },
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.criticalOnStartup",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 380,
       "defaultValue": false,
@@ -163,6 +172,7 @@
     },
     "dataTimeout": {
       "propertyName": "dataTimeout",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.dataTimeout",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 260,
       "displayLabel": "Data Timeout (ms)",
@@ -173,6 +183,7 @@
     },
     "destructive": {
       "propertyName": "destructive",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.destructive",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 50,
       "defaultValue": false,
@@ -182,6 +193,7 @@
     },
     "eager": {
       "propertyName": "eager",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.eager",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 80,
       "displayLabel": "Transfer multiple files",
@@ -216,6 +228,7 @@
     },
     "filterDuplicates": {
       "propertyName": "filterDuplicates",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.filterDuplicates",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 120,
       "defaultValue": true,
@@ -225,6 +238,7 @@
     },
     "filterOnFilename": {
       "propertyName": "filterOnFilename",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.filterOnFilename",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 130,
       "defaultValue": true,
@@ -234,6 +248,7 @@
     },
     "filterOnLastModifiedDate": {
       "propertyName": "filterOnLastModifiedDate",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.filterOnLastModifiedDate",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 140,
       "defaultValue": true,
@@ -243,6 +258,7 @@
     },
     "ftps": {
       "propertyName": "ftps",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.ftps",
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 270,
       "displayLabel": "Use ftps",
@@ -256,6 +272,7 @@
     },
     "ftpsIsImplicit": {
       "propertyName": "ftpsIsImplicit",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.ftpsIsImplicit",
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 290,
       "displayLabel": "Support legacy ftps",
@@ -268,6 +285,7 @@
     },
     "ftpsKeyStoreFilePassword": {
       "propertyName": "ftpsKeyStoreFilePassword",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.ftpsKeyStoreFilePassword",
       "preserveWhitespace": true,
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 320,
@@ -278,6 +296,7 @@
     },
     "ftpsKeyStoreFilePath": {
       "propertyName": "ftpsKeyStoreFilePath",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.ftpsKeyStoreFilePath",
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 310,
       "helpText": "The path to the keystore file used to validate the server certificate. Mandatory once ftps is enabled - there is no fallback to a default Java keystore; the connection will fail to establish if this is left blank while ftps is true.",
@@ -307,6 +326,7 @@
     },
     "ignoreMisfire": {
       "propertyName": "ignoreMisfire",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.ignoreMisfire",
       "propertyGroup": "Scheduling",
       "propertyDisplayOrder": 330,
       "helpText": "Default: true. When true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
@@ -316,6 +336,7 @@
     },
     "isRecursive": {
       "propertyName": "isRecursive",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.isRecursive",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 70,
       "defaultValue": false,
@@ -337,6 +358,7 @@
     },
     "maxEagerCallbacks": {
       "propertyName": "maxEagerCallbacks",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.maxEagerCallbacks",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 90,
       "defaultValue": 0,
@@ -356,6 +378,7 @@
     },
     "maxRows": {
       "propertyName": "maxRows",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.maxRows",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 160,
       "defaultValue": -1,
@@ -377,6 +400,7 @@
     },
     "minAge": {
       "propertyName": "minAge",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.minAge",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 100,
       "displayLabel": "Minimum Age (secs)",
@@ -387,6 +411,7 @@
     },
     "moveOnSuccess": {
       "propertyName": "moveOnSuccess",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.moveOnSuccess",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 10,
       "helpText": "Default: false. Indicates indicating whether to move the processed file after successful consumption to different location defined by moveOnSuccessNewPath configuration.",
@@ -444,6 +469,7 @@
     },
     "renameOnSuccess": {
       "propertyName": "renameOnSuccess",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.renameOnSuccess",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 30,
       "helpText": "Default: false. Indicates indicating whether to rename the processed file after successful consumption.",
@@ -453,6 +479,7 @@
     },
     "renameOnSuccessExtension": {
       "propertyName": "renameOnSuccessExtension",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.renameOnSuccessExtension",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 40,
       "helpText": "Requires renameOnSuccess to be true (in which case this MUST be set). This is the extension appended to the file on the remote system after successful processing, e.g. '.processed'. May include an embedded timestamp using /[dateFormat]/, e.g. '/yyyyMMddHHmmss/.complete'.",
@@ -462,6 +489,7 @@
     },
     "socketTimeout": {
       "propertyName": "socketTimeout",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.socketTimeout",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 250,
       "displayLabel": "(S)FTP connector socket timeout (ms)",
@@ -504,6 +532,7 @@
     },
     "timezone": {
       "propertyName": "timezone",
+      "propertyConfigFileLabel": "__flow.__component.ftp.consumer.timezone",
       "propertyGroup": "Scheduling",
       "propertyDisplayOrder": 340,
       "helpText": "Optional. The timezone the cronExpression schedule is evaluated in, e.g. 'America/New_York' or 'Europe/London'. If left unset, the JVM's own default timezone is used — only set this if the schedule needs to run consistently in a specific timezone regardless of where the module is deployed.",

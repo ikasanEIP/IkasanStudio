@@ -10,20 +10,83 @@ public class ComponentFactoryMyFlow1
 {
 @org.springframework.beans.factory.annotation.Value("${module.name}")
 private String moduleName;
+@org.springframework.beans.factory.annotation.Autowired
+private org.springframework.core.env.Environment studioEnvironment;
+
+private com.fasterxml.jackson.databind.JsonNode studioCollection(String name) {
+    try {
+        return new com.fasterxml.jackson.databind.ObjectMapper()
+            .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
+            .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .readTree(studioEnvironment.getRequiredProperty(name));
+    } catch (java.io.IOException failure) {
+        throw new IllegalArgumentException("Invalid collection configuration: " + name);
+    }
+}
+
+private java.util.List<String> studioStringList(String name) {
+    String raw = studioEnvironment.getRequiredProperty(name);
+    // Existing deployment overrides may still use comma-separated recipient lists.
+    if (!raw.stripLeading().startsWith("[")) {
+        return raw.isBlank() ? new java.util.ArrayList<>()
+            : new java.util.ArrayList<>(java.util.Arrays.asList(raw.split("\\s*,\\s*", -1)));
+    }
+    com.fasterxml.jackson.databind.JsonNode value = studioCollection(name);
+    if (!value.isArray()) throw new IllegalArgumentException("Expected string list: " + name);
+    java.util.List<String> result = new java.util.ArrayList<>();
+    for (com.fasterxml.jackson.databind.JsonNode entry : value) {
+        if (!entry.isTextual()) throw new IllegalArgumentException("Expected string entries: " + name);
+        result.add(entry.textValue());
+    }
+    return result;
+}
+
+private java.util.Map<String, String> studioStringMap(String name) {
+    com.fasterxml.jackson.databind.JsonNode value = studioCollection(name);
+    if (value == null || !value.isObject()) throw new IllegalArgumentException("Expected string map: " + name);
+    java.util.Map<String, String> result = new java.util.LinkedHashMap<>();
+    value.fields().forEachRemaining(entry -> {
+        if (!entry.getValue().isTextual()) throw new IllegalArgumentException("Expected string entries: " + name);
+        result.put(entry.getKey(), entry.getValue().textValue());
+    });
+    return result;
+}
 
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.autoContentConversion}")
+java.lang.Boolean myFlow1MyJSpringJMSConsumerJmsConsumerAutoContentConversion;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.autoSplitBatch}")
+java.lang.Boolean myFlow1MyJSpringJMSConsumerJmsConsumerAutoSplitBatch;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.batchMode}")
+java.lang.Boolean myFlow1MyJSpringJMSConsumerJmsConsumerBatchMode;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.batchSize}")
+java.lang.Integer myFlow1MyJSpringJMSConsumerJmsConsumerBatchSize;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.cacheLevel}")
+java.lang.Integer myFlow1MyJSpringJMSConsumerJmsConsumerCacheLevel;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.concurrentConsumers}")
+java.lang.Integer myFlow1MyJSpringJMSConsumerJmsConsumerConcurrentConsumers;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjspringjmsconsumer.connection.factory.jndi.initial}")
 java.lang.String jmsAToBConvertMyFlow1MyJSpringJMSConsumerConnectionFactoryJndiInitial;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjspringjmsconsumer.connection.factory.jndi.provider.url}")
 java.lang.String jmsAToBConvertMyFlow1MyJSpringJMSConsumerConnectionFactoryJndiProviderUrl;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.connectionFactoryJndiPropertySecurityCredentials}")
+java.lang.String myFlow1MyJSpringJMSConsumerJmsConsumerConnectionFactoryJndiPropertySecurityCredentials;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.connectionFactoryJndiPropertySecurityPrincipal}")
+java.lang.String myFlow1MyJSpringJMSConsumerJmsConsumerConnectionFactoryJndiPropertySecurityPrincipal;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.connectionFactoryJndiPropertyUrlPkgPrefixes}")
+java.lang.String myFlow1MyJSpringJMSConsumerJmsConsumerConnectionFactoryJndiPropertyUrlPkgPrefixes;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjspringjmsconsumer.connection.factory.name}")
 java.lang.String jmsAToBConvertMyFlow1MyJSpringJMSConsumerConnectionFactoryName;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjspringjmsconsumer.connection.factory.password}")
 java.lang.String jmsAToBConvertMyFlow1MyJSpringJMSConsumerConnectionFactoryPassword;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjspringjmsconsumer.connection.factory.user}")
 java.lang.String jmsAToBConvertMyFlow1MyJSpringJMSConsumerConnectionFactoryUser;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.connectionPassword}")
+java.lang.String myFlow1MyJSpringJMSConsumerJmsConsumerConnectionPassword;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.connectionUsername}")
+java.lang.String myFlow1MyJSpringJMSConsumerJmsConsumerConnectionUsername;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjspringjmsconsumer.destination}")
 java.lang.String jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestination;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjspringjmsconsumer.destination.jndi.initial}")
@@ -34,6 +97,22 @@ java.lang.String jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestinationJndiProvide
 java.lang.String jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestinationJndiPassword;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjspringjmsconsumer.destination.jndi.user}")
 java.lang.String jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestinationJndiUser;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.destinationJndiPropertyUrlPkgPrefixes}")
+java.lang.String myFlow1MyJSpringJMSConsumerJmsConsumerDestinationJndiPropertyUrlPkgPrefixes;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.durable}")
+java.lang.Boolean myFlow1MyJSpringJMSConsumerJmsConsumerDurable;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.durableSubscriptionName}")
+java.lang.String myFlow1MyJSpringJMSConsumerJmsConsumerDurableSubscriptionName;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.maxConcurrentConsumers}")
+java.lang.Integer myFlow1MyJSpringJMSConsumerJmsConsumerMaxConcurrentConsumers;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.pubSubDomain}")
+java.lang.Boolean myFlow1MyJSpringJMSConsumerJmsConsumerPubSubDomain;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.receiveTimeout}")
+java.lang.Long myFlow1MyJSpringJMSConsumerJmsConsumerReceiveTimeout;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.sessionAcknowledgeMode}")
+java.lang.Integer myFlow1MyJSpringJMSConsumerJmsConsumerSessionAcknowledgeMode;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjspringjmsconsumer.jms.consumer.sessionTransacted}")
+java.lang.Boolean myFlow1MyJSpringJMSConsumerJmsConsumerSessionTransacted;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.jms.spring.consumer.SpringMessageConsumerConfiguration myConfigurationClass;
 @javax.annotation.Resource
@@ -49,43 +128,43 @@ org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerCl
 
 public org.ikasan.spec.component.endpoint.Consumer getMyJSpringJMSConsumer() {
 return builderFactory.getComponentBuilder().jmsConsumer()
-.setAutoContentConversion(true)
-.setAutoSplitBatch(true)
-.setBatchMode(true)
-.setBatchSize(1)
-.setCacheLevel(1)
-.setConcurrentConsumers(2)
+.setAutoContentConversion(myFlow1MyJSpringJMSConsumerJmsConsumerAutoContentConversion)
+.setAutoSplitBatch(myFlow1MyJSpringJMSConsumerJmsConsumerAutoSplitBatch)
+.setBatchMode(myFlow1MyJSpringJMSConsumerJmsConsumerBatchMode)
+.setBatchSize(myFlow1MyJSpringJMSConsumerJmsConsumerBatchSize)
+.setCacheLevel(myFlow1MyJSpringJMSConsumerJmsConsumerCacheLevel)
+.setConcurrentConsumers(myFlow1MyJSpringJMSConsumerJmsConsumerConcurrentConsumers)
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("aToBConvertmyFlow1myJSpringJMSConsumer")
 .setConnectionFactory(myConnectionFactory)
-.setConnectionFactoryJndiProperties(key1value1key2value2)
+.setConnectionFactoryJndiProperties(studioStringMap("myflow1.myjspringjmsconsumer.jms.consumer.connectionFactoryJndiProperties"))
 .setConnectionFactoryJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyJSpringJMSConsumerConnectionFactoryJndiInitial)
 .setConnectionFactoryJndiPropertyProviderUrl(jmsAToBConvertMyFlow1MyJSpringJMSConsumerConnectionFactoryJndiProviderUrl)
-.setConnectionFactoryJndiPropertySecurityCredentials("myConnectionFactoryJndiPropertySecurityCredentials")
-.setConnectionFactoryJndiPropertySecurityPrincipal("myConnectionFactoryJndiPropertySecurityPrincipal")
-.setConnectionFactoryJndiPropertyUrlPkgPrefixes("myConnectionFactoryJndiPropertyUrlPkgPrefixes")
+.setConnectionFactoryJndiPropertySecurityCredentials(myFlow1MyJSpringJMSConsumerJmsConsumerConnectionFactoryJndiPropertySecurityCredentials)
+.setConnectionFactoryJndiPropertySecurityPrincipal(myFlow1MyJSpringJMSConsumerJmsConsumerConnectionFactoryJndiPropertySecurityPrincipal)
+.setConnectionFactoryJndiPropertyUrlPkgPrefixes(myFlow1MyJSpringJMSConsumerJmsConsumerConnectionFactoryJndiPropertyUrlPkgPrefixes)
 .setConnectionFactoryName(jmsAToBConvertMyFlow1MyJSpringJMSConsumerConnectionFactoryName)
 .setConnectionFactoryPassword(jmsAToBConvertMyFlow1MyJSpringJMSConsumerConnectionFactoryPassword)
 .setConnectionFactoryUsername(jmsAToBConvertMyFlow1MyJSpringJMSConsumerConnectionFactoryUser)
-.setConnectionPassword("myConnectionPassword")
-.setConnectionUsername("myConnectionUsername")
+.setConnectionPassword(myFlow1MyJSpringJMSConsumerJmsConsumerConnectionPassword)
+.setConnectionUsername(myFlow1MyJSpringJMSConsumerJmsConsumerConnectionUsername)
 .setDestinationJndiName(jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestination)
-.setDestinationJndiProperties(myDestinationJndiProperties)
+.setDestinationJndiProperties(studioStringMap("myflow1.myjspringjmsconsumer.jms.consumer.destinationJndiProperties"))
 .setDestinationJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestinationJndiInitial)
 .setDestinationJndiPropertyProviderUrl(jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestinationJndiProviderUrl)
 .setDestinationJndiPropertySecurityCredentials(jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestinationJndiPassword)
 .setDestinationJndiPropertySecurityPrincipal(jmsAToBConvertMyFlow1MyJSpringJMSConsumerDestinationJndiUser)
-.setDestinationJndiPropertyUrlPkgPrefixes("org.myapp")
-.setDurable(true)
-.setDurableSubscriptionName("myDurableSubscription")
+.setDestinationJndiPropertyUrlPkgPrefixes(myFlow1MyJSpringJMSConsumerJmsConsumerDestinationJndiPropertyUrlPkgPrefixes)
+.setDurable(myFlow1MyJSpringJMSConsumerJmsConsumerDurable)
+.setDurableSubscriptionName(myFlow1MyJSpringJMSConsumerJmsConsumerDurableSubscriptionName)
 .setEventFactory(orgIkasanMyflowMyEventFactory)
 .setManagedIdentifierService(orgIkasanSpecEventManagedRelatedEventIdentifierService)
-.setMaxConcurrentConsumers(1000)
+.setMaxConcurrentConsumers(myFlow1MyJSpringJMSConsumerJmsConsumerMaxConcurrentConsumers)
 .setMessageProvider(myMessageProviderClass)
-.setPubSubDomain(myPubSubDomain)
-.setReceiveTimeout(1000L)
-.setSessionAcknowledgeMode(1)
-.setSessionTransacted(true)
+.setPubSubDomain(myFlow1MyJSpringJMSConsumerJmsConsumerPubSubDomain)
+.setReceiveTimeout(myFlow1MyJSpringJMSConsumerJmsConsumerReceiveTimeout)
+.setSessionAcknowledgeMode(myFlow1MyJSpringJMSConsumerJmsConsumerSessionAcknowledgeMode)
+.setSessionTransacted(myFlow1MyJSpringJMSConsumerJmsConsumerSessionTransacted)
 .setTransactionManager(myTransactionManagerClass)
 .build();
 }}

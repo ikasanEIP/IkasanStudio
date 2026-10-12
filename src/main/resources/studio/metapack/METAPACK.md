@@ -290,3 +290,21 @@ expressions, or non-simple addresses leave recipient review guidance instead of 
 count. Clear configurations generate one expected body per recipient. These expectations
 are a generation-time snapshot, deliberately visible and editable in the developer's test;
 configuration changes do not silently update developer-owned assertions.
+
+
+## Environment-specific component settings
+
+Give built-in scalar and string-list/map setter properties a `propertyConfigFileLabel`
+so configured values are written to `application.properties` and injected into generated
+factories. New keys should identify both the flow and the component to avoid collisions
+between multiple instances. Preserve published keys when extending an existing pack.
+Unset optional values must remain absent, while explicit zero and false values must survive.
+
+Use `propertyDataType: java.util.Map` or `java.util.List` for string collections, as well as
+the corresponding generic `usageDataType`; this enables structured editing and property
+serialization. Do not encode Java expressions as collection values.
+
+Keep Java implementations, custom configuration beans, class literals and configuration
+resource identifiers as references/identity rather than property bindings. A custom
+configuration bean remains an explicit extension point for developer-owned fields and
+behaviour; exposing standard settings must not replace or overwrite it.

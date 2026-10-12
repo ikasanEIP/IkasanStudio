@@ -55,41 +55,88 @@ private java.util.Map<String, String> studioStringMap(String name) {
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.bccRecipient}")
+java.lang.String myFlow1MyEmailProducerEmailProducerBccRecipient;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.ccRecipient}")
+java.lang.String myFlow1MyEmailProducerEmailProducerCcRecipient;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.criticalOnStartup}")
+java.lang.Boolean myFlow1MyEmailProducerEmailProducerCriticalOnStartup;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.emailBody}")
+java.lang.String myFlow1MyEmailProducerEmailProducerEmailBody;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.emailFormat}")
+java.lang.String myFlow1MyEmailProducerEmailProducerEmailFormat;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.from}")
+java.lang.String myFlow1MyEmailProducerEmailProducerFrom;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.hasAttachments}")
+java.lang.Boolean myFlow1MyEmailProducerEmailProducerHasAttachments;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailDebug}")
+java.lang.Boolean myFlow1MyEmailProducerEmailProducerMailDebug;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailMimeAddressStrict}")
+java.lang.Boolean myFlow1MyEmailProducerEmailProducerMailMimeAddressStrict;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailPassword}")
+java.lang.String myFlow1MyEmailProducerEmailProducerMailPassword;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailPopClass}")
+java.lang.String myFlow1MyEmailProducerEmailProducerMailPopClass;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailPopPort}")
+java.lang.Integer myFlow1MyEmailProducerEmailProducerMailPopPort;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailPopUser}")
+java.lang.String myFlow1MyEmailProducerEmailProducerMailPopUser;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailRuntimeEnvironment}")
+java.lang.String myFlow1MyEmailProducerEmailProducerMailRuntimeEnvironment;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailSmtpClass}")
+java.lang.String myFlow1MyEmailProducerEmailProducerMailSmtpClass;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailSmtpHost}")
+java.lang.String myFlow1MyEmailProducerEmailProducerMailSmtpHost;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailSmtpPort}")
+java.lang.Integer myFlow1MyEmailProducerEmailProducerMailSmtpPort;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailSmtpUser}")
+java.lang.String myFlow1MyEmailProducerEmailProducerMailSmtpUser;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailStoreProtocol}")
+java.lang.String myFlow1MyEmailProducerEmailProducerMailStoreProtocol;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailSubject}")
+java.lang.String myFlow1MyEmailProducerEmailProducerMailSubject;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.mailhost}")
+java.lang.String myFlow1MyEmailProducerEmailProducerMailhost;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.toRecipient}")
+java.lang.String myFlow1MyEmailProducerEmailProducerToRecipient;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.transportProtocol}")
+java.lang.String myFlow1MyEmailProducerEmailProducerTransportProtocol;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myemailproducer.email.producer.user}")
+java.lang.String myFlow1MyEmailProducerEmailProducerUser;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration myConfigurationClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMyEmailProducer() {
 return builderFactory.getComponentBuilder().emailProducer()
-.setBccRecipient("myBccRecipient")
+.setBccRecipient(myFlow1MyEmailProducerEmailProducerBccRecipient)
 .setBccRecipients(studioStringList("myflow1.myemailproducer.email.producer.bccRecipients"))
-.setCcRecipient("myCcRecipient")
+.setCcRecipient(myFlow1MyEmailProducerEmailProducerCcRecipient)
 .setCcRecipients(studioStringList("myflow1.myemailproducer.email.producer.ccRecipients"))
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
-.setCriticalOnStartup(true)
-.setEmailBody("myEmailBody")
-.setEmailFormat("html")
-.setExtendedMailSessionProperties(new java.util.LinkedHashMap<String, String>(java.util.Map.ofEntries(java.util.Map.entry("key1", "value1"), java.util.Map.entry("key2", "value2"))))
-.setFrom("FromAddress")
-.setHasAttachment(true)
-.setMailDebug(true)
-.setMailMimeAddressStrict(true)
-.setPassword("myMailPassword")
-.setMailPopClass("myMailPopClass")
-.setMailPopPort(100)
-.setMailPopUser("myMailPopUser")
-.setRuntimeEnvironment("myMailRuntimeEnvironment")
-.setMailSmtpClass("myMailSmtpClass")
-.setMailSmtpHost("myMailSmtpHost")
-.setMailSmtpPort(101)
-.setMailSmtpUser("myMailSmtpUser")
-.setMailStoreProtocol("myMailStoreProtocol")
-.setMailSubject("myMailSubject")
-.setMailhost("myMailhostAddress")
-.setToRecipient("myToRecipient")
+.setCriticalOnStartup(myFlow1MyEmailProducerEmailProducerCriticalOnStartup)
+.setEmailBody(myFlow1MyEmailProducerEmailProducerEmailBody)
+.setEmailFormat(myFlow1MyEmailProducerEmailProducerEmailFormat)
+.setExtendedMailSessionProperties(studioStringMap("myflow1.myemailproducer.email.producer.extendedMailSessionProperties"))
+.setFrom(myFlow1MyEmailProducerEmailProducerFrom)
+.setHasAttachment(myFlow1MyEmailProducerEmailProducerHasAttachments)
+.setMailDebug(myFlow1MyEmailProducerEmailProducerMailDebug)
+.setMailMimeAddressStrict(myFlow1MyEmailProducerEmailProducerMailMimeAddressStrict)
+.setPassword(myFlow1MyEmailProducerEmailProducerMailPassword)
+.setMailPopClass(myFlow1MyEmailProducerEmailProducerMailPopClass)
+.setMailPopPort(myFlow1MyEmailProducerEmailProducerMailPopPort)
+.setMailPopUser(myFlow1MyEmailProducerEmailProducerMailPopUser)
+.setRuntimeEnvironment(myFlow1MyEmailProducerEmailProducerMailRuntimeEnvironment)
+.setMailSmtpClass(myFlow1MyEmailProducerEmailProducerMailSmtpClass)
+.setMailSmtpHost(myFlow1MyEmailProducerEmailProducerMailSmtpHost)
+.setMailSmtpPort(myFlow1MyEmailProducerEmailProducerMailSmtpPort)
+.setMailSmtpUser(myFlow1MyEmailProducerEmailProducerMailSmtpUser)
+.setMailStoreProtocol(myFlow1MyEmailProducerEmailProducerMailStoreProtocol)
+.setMailSubject(myFlow1MyEmailProducerEmailProducerMailSubject)
+.setMailhost(myFlow1MyEmailProducerEmailProducerMailhost)
+.setToRecipient(myFlow1MyEmailProducerEmailProducerToRecipient)
 .setToRecipients(studioStringList("myflow1.myemailproducer.email.producer.toRecipients"))
-.setTransportProtocol("myTransportProtocol")
-.setUser("myUser")
+.setTransportProtocol(myFlow1MyEmailProducerEmailProducerTransportProtocol)
+.setUser(myFlow1MyEmailProducerEmailProducerUser)
 .build();
 }}

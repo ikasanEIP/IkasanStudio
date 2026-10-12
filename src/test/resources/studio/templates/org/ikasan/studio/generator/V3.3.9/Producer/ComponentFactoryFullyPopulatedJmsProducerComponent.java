@@ -10,6 +10,47 @@ public class ComponentFactoryMyFlow1
 {
 @org.springframework.beans.factory.annotation.Value("${module.name}")
 private String moduleName;
+@org.springframework.beans.factory.annotation.Autowired
+private org.springframework.core.env.Environment studioEnvironment;
+
+private com.fasterxml.jackson.databind.JsonNode studioCollection(String name) {
+    try {
+        return new com.fasterxml.jackson.databind.ObjectMapper()
+            .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
+            .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .readTree(studioEnvironment.getRequiredProperty(name));
+    } catch (java.io.IOException failure) {
+        throw new IllegalArgumentException("Invalid collection configuration: " + name);
+    }
+}
+
+private java.util.List<String> studioStringList(String name) {
+    String raw = studioEnvironment.getRequiredProperty(name);
+    // Existing deployment overrides may still use comma-separated recipient lists.
+    if (!raw.stripLeading().startsWith("[")) {
+        return raw.isBlank() ? new java.util.ArrayList<>()
+            : new java.util.ArrayList<>(java.util.Arrays.asList(raw.split("\\s*,\\s*", -1)));
+    }
+    com.fasterxml.jackson.databind.JsonNode value = studioCollection(name);
+    if (!value.isArray()) throw new IllegalArgumentException("Expected string list: " + name);
+    java.util.List<String> result = new java.util.ArrayList<>();
+    for (com.fasterxml.jackson.databind.JsonNode entry : value) {
+        if (!entry.isTextual()) throw new IllegalArgumentException("Expected string entries: " + name);
+        result.add(entry.textValue());
+    }
+    return result;
+}
+
+private java.util.Map<String, String> studioStringMap(String name) {
+    com.fasterxml.jackson.databind.JsonNode value = studioCollection(name);
+    if (value == null || !value.isObject()) throw new IllegalArgumentException("Expected string map: " + name);
+    java.util.Map<String, String> result = new java.util.LinkedHashMap<>();
+    value.fields().forEachRemaining(entry -> {
+        if (!entry.getValue().isTextual()) throw new IllegalArgumentException("Expected string entries: " + name);
+        result.put(entry.getKey(), entry.getValue().textValue());
+    });
+    return result;
+}
 
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
@@ -18,12 +59,26 @@ org.ikasan.builder.BuilderFactory builderFactory;
 java.lang.String jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryJndiInitial;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjmsproducer.connection.factory.jndi.provider.url}")
 java.lang.String jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryJndiProviderUrl;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.connectionFactoryJndiPropertySecurityCredentials}")
+java.lang.String myFlow1MyJMSProducerJmsProducerConnectionFactoryJndiPropertySecurityCredentials;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.connectionFactoryJndiPropertySecurityPrincipal}")
+java.lang.String myFlow1MyJMSProducerJmsProducerConnectionFactoryJndiPropertySecurityPrincipal;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.connectionFactoryJndiPropertyUrlPkgPrefixes}")
+java.lang.String myFlow1MyJMSProducerJmsProducerConnectionFactoryJndiPropertyUrlPkgPrefixes;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjmsproducer.connection.factory.name}")
 java.lang.String jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryName;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjmsproducer.connection.factory.password}")
 java.lang.String jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryPassword;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjmsproducer.connection.factory.user}")
 java.lang.String jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryUser;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.connectionPassword}")
+java.lang.String myFlow1MyJMSProducerJmsProducerConnectionPassword;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.connectionUsername}")
+java.lang.String myFlow1MyJMSProducerJmsProducerConnectionUsername;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.deliveryMode}")
+java.lang.Integer myFlow1MyJMSProducerJmsProducerDeliveryMode;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.deliveryPersistent}")
+java.lang.Boolean myFlow1MyJMSProducerJmsProducerDeliveryPersistent;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjmsproducer.destination}")
 java.lang.String jmsAToBConvertMyFlow1MyJMSProducerDestination;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjmsproducer.destination.jndi.initial}")
@@ -34,6 +89,30 @@ java.lang.String jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiProviderUrl;
 java.lang.String jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiPassword;
 @org.springframework.beans.factory.annotation.Value("${jms.atobconvert.myflow1.myjmsproducer.destination.jndi.user}")
 java.lang.String jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiUser;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.destinationJndiPropertyUrlPkgPrefixes}")
+java.lang.String myFlow1MyJMSProducerJmsProducerDestinationJndiPropertyUrlPkgPrefixes;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.explicitQosEnabled}")
+java.lang.Boolean myFlow1MyJMSProducerJmsProducerExplicitQosEnabled;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.messageIdEnabled}")
+java.lang.Boolean myFlow1MyJMSProducerJmsProducerMessageIdEnabled;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.messageTimestampEnabled}")
+java.lang.Boolean myFlow1MyJMSProducerJmsProducerMessageTimestampEnabled;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.priority}")
+java.lang.Integer myFlow1MyJMSProducerJmsProducerPriority;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.pubSubDomain}")
+java.lang.Boolean myFlow1MyJMSProducerJmsProducerPubSubDomain;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.pubSubNoLocal}")
+java.lang.Boolean myFlow1MyJMSProducerJmsProducerPubSubNoLocal;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.receiveTimeout}")
+java.lang.Long myFlow1MyJMSProducerJmsProducerReceiveTimeout;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.sessionAcknowledgeMode}")
+java.lang.Integer myFlow1MyJMSProducerJmsProducerSessionAcknowledgeMode;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.sessionAcknowledgeModeName}")
+java.lang.String myFlow1MyJMSProducerJmsProducerSessionAcknowledgeModeName;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.sessionTransacted}")
+java.lang.Boolean myFlow1MyJMSProducerJmsProducerSessionTransacted;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myjmsproducer.jms.producer.timeToLive}")
+java.lang.Long myFlow1MyJMSProducerJmsProducerTimeToLive;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.jms.spring.producer.SpringMessageProducerConfiguration myConfigurationClass;
 @javax.annotation.Resource
@@ -50,39 +129,39 @@ return builderFactory.getComponentBuilder().jmsProducer()
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("aToBConvertMyFlow1MyJMSProducer")
 .setConnectionFactory(myConnectionFactory)
-.setConnectionFactoryJndiProperties(key1value1key2value2)
+.setConnectionFactoryJndiProperties(studioStringMap("myflow1.myjmsproducer.jms.producer.connectionFactoryJndiProperties"))
 .setConnectionFactoryJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryJndiInitial)
 .setConnectionFactoryJndiPropertyProviderUrl(jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryJndiProviderUrl)
-.setConnectionFactoryJndiPropertySecurityCredentials("myConnectionFactoryJndiPropertySecurityCredentials")
-.setConnectionFactoryJndiPropertySecurityPrincipal("myConnectionFactoryJndiPropertySecurityPrincipal")
-.setConnectionFactoryJndiPropertyUrlPkgPrefixes("myConnectionFactoryJndiPropertyUrlPkgPrefixes")
+.setConnectionFactoryJndiPropertySecurityCredentials(myFlow1MyJMSProducerJmsProducerConnectionFactoryJndiPropertySecurityCredentials)
+.setConnectionFactoryJndiPropertySecurityPrincipal(myFlow1MyJMSProducerJmsProducerConnectionFactoryJndiPropertySecurityPrincipal)
+.setConnectionFactoryJndiPropertyUrlPkgPrefixes(myFlow1MyJMSProducerJmsProducerConnectionFactoryJndiPropertyUrlPkgPrefixes)
 .setConnectionFactoryName(jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryName)
 .setConnectionFactoryPassword(jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryPassword)
 .setConnectionFactoryUsername(jmsAToBConvertMyFlow1MyJMSProducerConnectionFactoryUser)
-.setConnectionPassword("myConnectionPassword")
-.setConnectionUsername("myConnectionUsername")
-.setDeliveryMode(1)
-.setDeliveryPersistent(true)
+.setConnectionPassword(myFlow1MyJMSProducerJmsProducerConnectionPassword)
+.setConnectionUsername(myFlow1MyJMSProducerJmsProducerConnectionUsername)
+.setDeliveryMode(myFlow1MyJMSProducerJmsProducerDeliveryMode)
+.setDeliveryPersistent(myFlow1MyJMSProducerJmsProducerDeliveryPersistent)
 .setDestinationJndiName(jmsAToBConvertMyFlow1MyJMSProducerDestination)
-.setDestinationJndiProperties(myDestinationJndiProperties)
+.setDestinationJndiProperties(studioStringMap("myflow1.myjmsproducer.jms.producer.destinationJndiProperties"))
 .setDestinationJndiPropertyFactoryInitial(jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiInitial)
 .setDestinationJndiPropertyProviderUrl(jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiProviderUrl)
 .setDestinationJndiPropertySecurityCredentials(jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiPassword)
 .setDestinationJndiPropertySecurityPrincipal(jmsAToBConvertMyFlow1MyJMSProducerDestinationJndiUser)
-.setDestinationJndiPropertyUrlPkgPrefixes("org.myapp")
-.setExplicitQosEnabled(true)
+.setDestinationJndiPropertyUrlPkgPrefixes(myFlow1MyJMSProducerJmsProducerDestinationJndiPropertyUrlPkgPrefixes)
+.setExplicitQosEnabled(myFlow1MyJMSProducerJmsProducerExplicitQosEnabled)
 .setMessageConverter(myMessageConverter)
-.setMessageIdEnabled(true)
-.setMessageTimestampEnabled(true)
+.setMessageIdEnabled(myFlow1MyJMSProducerJmsProducerMessageIdEnabled)
+.setMessageTimestampEnabled(myFlow1MyJMSProducerJmsProducerMessageTimestampEnabled)
 .setPostProcessor(myPostProcessor)
-.setPriority(1)
-.setPubSubDomain(myPubSubDomain)
-.setPubSubNoLocal(true)
-.setReceiveTimeout(1000L)
-.setSessionAcknowledgeMode(1)
-.setSessionAcknowledgeModeName("AUTO_ACKNOWLEDGE")
-.setSessionTransacted(true)
-.setTimeToLive(100L)
+.setPriority(myFlow1MyJMSProducerJmsProducerPriority)
+.setPubSubDomain(myFlow1MyJMSProducerJmsProducerPubSubDomain)
+.setPubSubNoLocal(myFlow1MyJMSProducerJmsProducerPubSubNoLocal)
+.setReceiveTimeout(myFlow1MyJMSProducerJmsProducerReceiveTimeout)
+.setSessionAcknowledgeMode(myFlow1MyJMSProducerJmsProducerSessionAcknowledgeMode)
+.setSessionAcknowledgeModeName(myFlow1MyJMSProducerJmsProducerSessionAcknowledgeModeName)
+.setSessionTransacted(myFlow1MyJMSProducerJmsProducerSessionTransacted)
+.setTimeToLive(myFlow1MyJMSProducerJmsProducerTimeToLive)
 .setTransactionManager(myTransactionManagerClass)
 .build();
 }}

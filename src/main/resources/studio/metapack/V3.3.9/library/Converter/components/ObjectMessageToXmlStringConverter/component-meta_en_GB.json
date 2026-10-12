@@ -38,6 +38,7 @@
     },
     "rootClassName": {
       "propertyName": "rootClassName",
+      "propertyConfigFileLabel": "__flow.__component.xml.converter.rootClassName",
       "propertyGroup": "Namespace",
       "propertyDisplayOrder": 100,
       "helpText": "Override the root element's declared type (QName) - rarely needed unless you want the root tag to reflect a different type than objectClass's own @XmlRootElement.",
@@ -46,6 +47,7 @@
     },
     "rootName": {
       "propertyName": "rootName",
+      "propertyConfigFileLabel": "__flow.__component.xml.converter.rootName",
       "propertyGroup": "Namespace",
       "propertyDisplayOrder": 110,
       "helpText": "Override the root element's name (QName) - rarely needed unless you want a different root tag name than objectClass's own @XmlRootElement provides.",
@@ -54,6 +56,7 @@
     },
     "namespacePrefix": {
       "propertyName": "namespacePrefix",
+      "propertyConfigFileLabel": "__flow.__component.xml.converter.namespacePrefix",
       "propertyGroup": "Namespace",
       "propertyDisplayOrder": 120,
       "helpText": "Namespace prefix to use on the root element (see useNamespacePrefix below) - e.g. 'ns' to render <ns:root xmlns:ns=\"...\">.",
@@ -62,6 +65,7 @@
     },
     "namespaceURI": {
       "propertyName": "namespaceURI",
+      "propertyConfigFileLabel": "__flow.__component.xml.converter.namespaceURI",
       "propertyGroup": "Namespace",
       "propertyDisplayOrder": 130,
       "helpText": "Namespace URI for the root element's QName.",
@@ -70,6 +74,7 @@
     },
     "useNamespacePrefix": {
       "propertyName": "useNamespacePrefix",
+      "propertyConfigFileLabel": "__flow.__component.xml.converter.useNamespacePrefix",
       "propertyGroup": "Namespace",
       "propertyDisplayOrder": 140,
       "defaultValue": false,
@@ -79,6 +84,7 @@
     },
     "validate": {
       "propertyName": "validate",
+      "propertyConfigFileLabel": "__flow.__component.xml.converter.validate",
       "propertyGroup": "Schema Validation",
       "propertyDisplayOrder": 200,
       "defaultValue": false,
@@ -88,6 +94,7 @@
     },
     "schema": {
       "propertyName": "schema",
+      "propertyConfigFileLabel": "__flow.__component.xml.converter.schema",
       "propertyGroup": "Schema Validation",
       "propertyDisplayOrder": 210,
       "helpText": "An alternate schema to validate against, commonly used when the XSD is picked up from the classpath rather than an http resource URL.",
@@ -96,6 +103,7 @@
     },
     "schemaLocation": {
       "propertyName": "schemaLocation",
+      "propertyConfigFileLabel": "__flow.__component.xml.converter.schemaLocation",
       "propertyGroup": "Schema Validation",
       "propertyDisplayOrder": 220,
       "helpText": "Schema location URL written into the generated XML's root attribute (xsi:schemaLocation, or xsi:noNamespaceSchemaLocation if noNamespaceSchema below is set).",
@@ -104,6 +112,7 @@
     },
     "noNamespaceSchema": {
       "propertyName": "noNamespaceSchema",
+      "propertyConfigFileLabel": "__flow.__component.xml.converter.noNamespaceSchema",
       "propertyGroup": "Schema Validation",
       "propertyDisplayOrder": 230,
       "defaultValue": false,
@@ -113,6 +122,7 @@
     },
     "routeOnValidationException": {
       "propertyName": "routeOnValidationException",
+      "propertyConfigFileLabel": "__flow.__component.xml.converter.routeOnValidationException",
       "propertyGroup": "Schema Validation",
       "propertyDisplayOrder": 240,
       "defaultValue": false,
@@ -143,6 +153,7 @@
     },
     "fastFailOnConfigurationLoad": {
       "propertyName": "fastFailOnConfigurationLoad",
+      "propertyConfigFileLabel": "__flow.__component.xml.converter.fastFailOnConfigurationLoad",
       "propertyGroup": "advanced",
       "defaultValue": false,
       "helpText": "Default: false. Whether to let the component fail immediately if the initial loading of its configuration fails, rather than deferring the failure.",

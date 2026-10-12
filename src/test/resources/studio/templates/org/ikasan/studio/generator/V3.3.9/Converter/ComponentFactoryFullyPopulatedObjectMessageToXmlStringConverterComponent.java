@@ -14,7 +14,28 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
-
+@org.springframework.beans.factory.annotation.Value("${myflow1.myobjectmessagetoxmlstringconverter.xml.converter.fastFailOnConfigurationLoad}")
+java.lang.Boolean myFlow1MyObjectMessageToXMLStringConverterXmlConverterFastFailOnConfigurationLoad;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myobjectmessagetoxmlstringconverter.xml.converter.namespacePrefix}")
+java.lang.String myFlow1MyObjectMessageToXMLStringConverterXmlConverterNamespacePrefix;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myobjectmessagetoxmlstringconverter.xml.converter.namespaceURI}")
+java.lang.String myFlow1MyObjectMessageToXMLStringConverterXmlConverterNamespaceURI;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myobjectmessagetoxmlstringconverter.xml.converter.noNamespaceSchema}")
+java.lang.Boolean myFlow1MyObjectMessageToXMLStringConverterXmlConverterNoNamespaceSchema;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myobjectmessagetoxmlstringconverter.xml.converter.rootClassName}")
+java.lang.String myFlow1MyObjectMessageToXMLStringConverterXmlConverterRootClassName;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myobjectmessagetoxmlstringconverter.xml.converter.rootName}")
+java.lang.String myFlow1MyObjectMessageToXMLStringConverterXmlConverterRootName;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myobjectmessagetoxmlstringconverter.xml.converter.routeOnValidationException}")
+java.lang.Boolean myFlow1MyObjectMessageToXMLStringConverterXmlConverterRouteOnValidationException;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myobjectmessagetoxmlstringconverter.xml.converter.schema}")
+java.lang.String myFlow1MyObjectMessageToXMLStringConverterXmlConverterSchema;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myobjectmessagetoxmlstringconverter.xml.converter.schemaLocation}")
+java.lang.String myFlow1MyObjectMessageToXMLStringConverterXmlConverterSchemaLocation;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myobjectmessagetoxmlstringconverter.xml.converter.useNamespacePrefix}")
+java.lang.Boolean myFlow1MyObjectMessageToXMLStringConverterXmlConverterUseNamespacePrefix;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myobjectmessagetoxmlstringconverter.xml.converter.validate}")
+java.lang.Boolean myFlow1MyObjectMessageToXMLStringConverterXmlConverterValidate;
 @javax.annotation.Resource
 co.uk.test.myflow1.MyConfigurationClass myConfigurationClass;
 @javax.annotation.Resource
@@ -24,18 +45,18 @@ public org.ikasan.spec.component.transformation.Converter getMyObjectMessageToXM
 return builderFactory.getComponentBuilder().objectToXmlStringConverter()
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
-.setFastFailOnConfigurationLoad(true)
-.setNamespacePrefix("myNamespacePrefix")
-.setNamespaceURI("myNamespaceURI")
-.setNoNamespaceSchema(true)
+.setFastFailOnConfigurationLoad(myFlow1MyObjectMessageToXMLStringConverterXmlConverterFastFailOnConfigurationLoad)
+.setNamespacePrefix(myFlow1MyObjectMessageToXMLStringConverterXmlConverterNamespacePrefix)
+.setNamespaceURI(myFlow1MyObjectMessageToXMLStringConverterXmlConverterNamespaceURI)
+.setNoNamespaceSchema(myFlow1MyObjectMessageToXMLStringConverterXmlConverterNoNamespaceSchema)
 .setObjectClass(java.lang.String.class)
-.setRootClassName("java.lang.String")
-.setRootName("myRootName")
-.setRouteOnValidationException(true)
-.setSchema("mySchema")
-.setSchemaLocation("http://foo.com/domain example.xsd")
-.setUseNamespacePrefix(true)
-.setValidate(true)
+.setRootClassName(myFlow1MyObjectMessageToXMLStringConverterXmlConverterRootClassName)
+.setRootName(myFlow1MyObjectMessageToXMLStringConverterXmlConverterRootName)
+.setRouteOnValidationException(myFlow1MyObjectMessageToXMLStringConverterXmlConverterRouteOnValidationException)
+.setSchema(myFlow1MyObjectMessageToXMLStringConverterXmlConverterSchema)
+.setSchemaLocation(myFlow1MyObjectMessageToXMLStringConverterXmlConverterSchemaLocation)
+.setUseNamespacePrefix(myFlow1MyObjectMessageToXMLStringConverterXmlConverterUseNamespacePrefix)
+.setValidate(myFlow1MyObjectMessageToXMLStringConverterXmlConverterValidate)
 .setXmlAdapterMap(myXmlAdapterMap)
 .build();
 }}

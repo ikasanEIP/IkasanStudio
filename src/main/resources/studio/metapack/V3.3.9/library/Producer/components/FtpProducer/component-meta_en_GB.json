@@ -33,6 +33,7 @@
     },
     "active": {
       "propertyName": "active",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.active",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 200,
       "displayLabel": "Ftp Active/Passive",
@@ -45,6 +46,7 @@
     },
     "ageOfFiles": {
       "propertyName": "ageOfFiles",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.ageOfFiles",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 150,
       "displayLabel": "Age Of Files (days)",
@@ -55,6 +57,7 @@
     },
     "checksumDelivered": {
       "propertyName": "checksumDelivered",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.checksumDelivered",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 70,
       "defaultValue": false,
@@ -64,6 +67,7 @@
     },
     "cleanupJournalOnComplete": {
       "propertyName": "cleanupJournalOnComplete",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.cleanupJournalOnComplete",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 350,
       "defaultValue": true,
@@ -95,6 +99,7 @@
     },
     "connectionTimeout": {
       "propertyName": "connectionTimeout",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.connectionTimeout",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 240,
       "displayLabel": "Connection Timeout (ms)",
@@ -105,6 +110,7 @@
     },
     "createParentDirectory": {
       "propertyName": "createParentDirectory",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.createParentDirectory",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 20,
       "defaultValue": false,
@@ -114,6 +120,7 @@
     },
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.criticalOnStartup",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 380,
       "defaultValue": false,
@@ -123,6 +130,7 @@
     },
     "dataTimeout": {
       "propertyName": "dataTimeout",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.dataTimeout",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 260,
       "displayLabel": "Data Timeout (ms)",
@@ -133,6 +141,7 @@
     },
     "ftps": {
       "propertyName": "ftps",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.ftps",
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 270,
       "displayLabel": "Use ftps",
@@ -146,6 +155,7 @@
     },
     "ftpsIsImplicit": {
       "propertyName": "ftpsIsImplicit",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.ftpsIsImplicit",
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 290,
       "displayLabel": "Support legacy ftps",
@@ -158,6 +168,7 @@
     },
     "ftpsKeyStoreFilePassword": {
       "propertyName": "ftpsKeyStoreFilePassword",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.ftpsKeyStoreFilePassword",
       "preserveWhitespace": true,
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 320,
@@ -168,6 +179,7 @@
     },
     "ftpsKeyStoreFilePath": {
       "propertyName": "ftpsKeyStoreFilePath",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.ftpsKeyStoreFilePath",
       "propertyGroup": "ftps Support",
       "propertyDisplayOrder": 310,
       "helpText": "The path to the keystore file used to validate the server certificate. Mandatory once ftps is enabled - there is no fallback to a default Java keystore; the connection will fail to establish if this is left blank while ftps is true.",
@@ -216,6 +228,7 @@
     },
     "overwrite": {
       "propertyName": "overwrite",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.overwrite",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 30,
       "defaultValue": false,
@@ -257,6 +270,7 @@
     },
     "renameExtension": {
       "propertyName": "renameExtension",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.renameExtension",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 40,
       "helpText": "Default('.tmp') file delivery to remote location takes place in two stages, first a file is delivered with suffix equal to renameExtension, further file is renamed with suffix being removed.",
@@ -266,6 +280,7 @@
     },
     "socketTimeout": {
       "propertyName": "socketTimeout",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.socketTimeout",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 250,
       "displayLabel": "(S)FTP connector socket timeout (ms)",
@@ -285,6 +300,7 @@
     },
     "tempFileName": {
       "propertyName": "tempFileName",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.tempFileName",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 50,
       "helpText": "Temporary filename to use for incomplete transfer.",
@@ -305,6 +321,7 @@
     },
     "unzip": {
       "propertyName": "unzip",
+      "propertyConfigFileLabel": "__flow.__component.ftp.producer.unzip",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 60,
       "defaultValue": false,

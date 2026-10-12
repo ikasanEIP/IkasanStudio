@@ -188,14 +188,14 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
         new GeneratedProjectSynchronizer(myProject).initialisePsiFileHandles();
         com.intellij.openapi.application.impl.NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
 
-        // Component target: FtpConsumer's alphabetically-first externalized property is clientID.
+        // Component target: FtpConsumer's alphabetically-first externalized property is active.
         AbstractViewHandlerIntellij consumerViewHandler = ViewHandlerCache.getFlowComponentViewHandler(myProject, ftpConsumer);
         assertThat(consumerViewHandler.hasPropertiesNavigationTarget(), is(true));
         // Read back from the resolved PsiFile itself, not the pre-write local string - IntelliJ may reformat
         // the written file (e.g. line-ending/whitespace normalisation), which would shift offsets.
         String writtenText = consumerViewHandler.getPropertiesNavigationTarget().psiFile().getText();
         int consumerOffset = consumerViewHandler.getPropertiesNavigationTarget().offset();
-        String expectedConsumerKey = "myflow1.ftp.consumer.clientID=";
+        String expectedConsumerKey = "myflow1.myftpconsumer.ftp.consumer.active=";
         assertThat(writtenText.substring(consumerOffset, consumerOffset + expectedConsumerKey.length()), is(expectedConsumerKey));
 
         // Flow target: the bespoke ikasan.flow.configuration[...] block, keyed by flow identity.

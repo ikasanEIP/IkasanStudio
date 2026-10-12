@@ -92,6 +92,7 @@
     },
     "connectionFactoryJndiPropertySecurityPrincipal": {
       "propertyName": "connectionFactoryJndiPropertySecurityPrincipal",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.connectionFactoryJndiPropertySecurityPrincipal",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 150,
       "helpText": "The identity of the principal for authenticating the caller to the service. For more information, see the Java API documentation for javax.naming.Context.SECURITY_PRINCIPAL.",
@@ -100,6 +101,7 @@
     },
     "connectionFactoryJndiPropertySecurityCredentials": {
       "propertyName": "connectionFactoryJndiPropertySecurityCredentials",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.connectionFactoryJndiPropertySecurityCredentials",
       "preserveWhitespace": true,
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 160,
@@ -109,6 +111,7 @@
     },
     "connectionFactoryJndiPropertyUrlPkgPrefixes": {
       "propertyName": "connectionFactoryJndiPropertyUrlPkgPrefixes",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.connectionFactoryJndiPropertyUrlPkgPrefixes",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 170,
       "helpText": "This is the JMS standard URL_PKG_PREFIXES, a colon-separated list of package prefixes for the class name of the factory class that will create a URL context factory.",
@@ -117,6 +120,8 @@
     },
     "connectionFactoryJndiProperties": {
       "propertyName": "connectionFactoryJndiProperties",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.connectionFactoryJndiProperties",
+      "propertyDataType": "java.util.Map",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 180,
       "helpText": "JNDI parameters map used to look up the ConnectionFactory, as an alternative to the individual connectionFactoryJndiProperty* fields above. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
@@ -135,6 +140,7 @@
     },
     "connectionUsername": {
       "propertyName": "connectionUsername",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.connectionUsername",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 200,
       "helpText": "Authentication principal used only when connectionFactory (a directly-supplied bean) is also set - wraps that connection factory so each connection it opens authenticates with this username/connectionPassword. Has no effect if connectionFactory is left unset (i.e. when resolving via JNDI, use connectionFactoryUsername instead).",
@@ -143,6 +149,7 @@
     },
     "connectionPassword": {
       "propertyName": "connectionPassword",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.connectionPassword",
       "preserveWhitespace": true,
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 210,
@@ -152,6 +159,7 @@
     },
     "pubSubDomain": {
       "propertyName": "pubSubDomain",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.pubSubDomain",
       "displayLabel": "Queue/Topic",
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 300,
@@ -205,6 +213,7 @@
     },
     "destinationJndiPropertyUrlPkgPrefixes": {
       "propertyName": "destinationJndiPropertyUrlPkgPrefixes",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.destinationJndiPropertyUrlPkgPrefixes",
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 370,
       "helpText": "This is the JMS standard URL_PKG_PREFIXES, a colon-separated list of package prefixes for the class name of the factory class that will create a URL context factory.",
@@ -213,6 +222,8 @@
     },
     "destinationJndiProperties": {
       "propertyName": "destinationJndiProperties",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.destinationJndiProperties",
+      "propertyDataType": "java.util.Map",
       "propertyGroup": "Destination",
       "propertyDisplayOrder": 380,
       "helpText": "Optional JNDI parameters map used to look up the destination, as an alternative to the individual destinationJndiProperty* fields above. Typical map would include following keys : java.naming.provider.url, java.naming.factory.initial, java.naming.factory.url.pkgs, java.naming.security.credentials, java.naming.security.principle.",
@@ -221,6 +232,7 @@
     },
     "sessionTransacted": {
       "propertyName": "sessionTransacted",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.sessionTransacted",
       "propertyGroup": "Session",
       "propertyDisplayOrder": 400,
       "helpText": "Sets whether the session used to send messages should be part of a local JMS transaction - when true, the send is only committed to the broker when the session commits.",
@@ -229,6 +241,7 @@
     },
     "sessionAcknowledgeMode": {
       "propertyName": "sessionAcknowledgeMode",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.sessionAcknowledgeMode",
       "propertyGroup": "Session",
       "propertyDisplayOrder": 410,
       "helpText": "Ignored when sessionTransacted is true. The JMS acknowledgement mode that is used when creating a JMS Session to send a message, valid values are: SESSION_TRANSACTED = 0, AUTO_ACKNOWLEDGE = 1, CLIENT_ACKNOWLEDGE = 2, DUPS_OK_ACKNOWLEDGE = 3",
@@ -237,6 +250,7 @@
     },
     "sessionAcknowledgeModeName": {
       "propertyName": "sessionAcknowledgeModeName",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.sessionAcknowledgeModeName",
       "propertyGroup": "Session",
       "propertyDisplayOrder": 420,
       "helpText": "Alternative to sessionAcknowledgeMode - set the JMS acknowledgement mode by the name of the corresponding constant in the JMS Session interface, e.g. 'AUTO_ACKNOWLEDGE', 'CLIENT_ACKNOWLEDGE', 'DUPS_OK_ACKNOWLEDGE', 'SESSION_TRANSACTED'",
@@ -255,6 +269,7 @@
     },
     "deliveryMode": {
       "propertyName": "deliveryMode",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.deliveryMode",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 500,
       "helpText": "This maps onto javax.jms.DeliveryMode i.e. NON_PERSISTENT = 1, PERSISTENT = 2. Only applied when explicitQosEnabled is true.",
@@ -263,6 +278,7 @@
     },
     "deliveryPersistent": {
       "propertyName": "deliveryPersistent",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.deliveryPersistent",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 510,
       "helpText": "Flag indicating whether publishing messages are persisted on the broker or held in memory only.",
@@ -271,6 +287,7 @@
     },
     "explicitQosEnabled": {
       "propertyName": "explicitQosEnabled",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.explicitQosEnabled",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 520,
       "helpText": "Set to true if the deliveryMode, priority or timeToLive qualities of service should be used when sending messages; if false (the default), the broker's own defaults apply and those three properties are ignored.",
@@ -279,6 +296,7 @@
     },
     "priority": {
       "propertyName": "priority",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.priority",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 530,
       "helpText": "Optional allows to set message priority on the message. Only applied when explicitQosEnabled is true, and even then only works if the broker and/or consumer are configured to use priority when dispatching/consuming messages.",
@@ -287,6 +305,7 @@
     },
     "timeToLive": {
       "propertyName": "timeToLive",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.timeToLive",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 540,
       "helpText": "Optional the time-to-live of the message (in milliseconds) when sending. Only applied when explicitQosEnabled is true.",
@@ -295,6 +314,7 @@
     },
     "pubSubNoLocal": {
       "propertyName": "pubSubNoLocal",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.pubSubNoLocal",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 550,
       "helpText": "Flag indicating whether to inhibit the delivery of messages published by its own connection.",
@@ -303,6 +323,7 @@
     },
     "messageIdEnabled": {
       "propertyName": "messageIdEnabled",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.messageIdEnabled",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 560,
       "helpText": "See org.springframework.jms.core.JmsTemplate, provides a hint to the message producer to enable message IDs.",
@@ -311,6 +332,7 @@
     },
     "messageTimestampEnabled": {
       "propertyName": "messageTimestampEnabled",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.messageTimestampEnabled",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 570,
       "helpText": "See org.springframework.jms.core.JmsTemplate, provides a hint to the message producer to enable message timestamps.",
@@ -361,6 +383,7 @@
     },
     "receiveTimeout": {
       "propertyName": "receiveTimeout",
+      "propertyConfigFileLabel": "__flow.__component.jms.producer.receiveTimeout",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 720,
       "helpText": "Not currently applied by this producer implementation - stored on the configuration bean but never read by ArjunaJmsTemplateProducer. Left available for forward compatibility/custom configuration beans; setting it has no observable effect on send behaviour today.",

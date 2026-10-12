@@ -45,8 +45,18 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpproducer.sftp.producer.checksumDelivered}")
+java.lang.Boolean myFlow1MySFTPProducerSftpProducerChecksumDelivered;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpproducer.sftp.producer.cleanupChunks}")
+java.lang.Boolean myFlow1MySFTPProducerSftpProducerCleanupChunks;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpproducer.sftp.producer.cleanupJournalOnComplete}")
+java.lang.Boolean myFlow1MySFTPProducerSftpProducerCleanupJournalOnComplete;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.clientID}")
 java.lang.String myFlow1SftpProducerClientID;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpproducer.sftp.producer.createParentDirectory}")
+java.lang.Boolean myFlow1MySFTPProducerSftpProducerCreateParentDirectory;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpproducer.sftp.producer.criticalOnStartup}")
+java.lang.Boolean myFlow1MySFTPProducerSftpProducerCriticalOnStartup;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.producer.known-hosts-filename}")
 java.lang.String myFlow1SftpProducerKnownHostsFilename;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.max-retry-attempts}")
@@ -63,6 +73,12 @@ java.lang.String myFlow1SftpProducerPrivateKeyFilename;
 java.lang.String myFlow1SftpConsumerRemoteHost;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.remote-port}")
 java.lang.Integer myFlow1SftpConsumerRemotePort;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpproducer.sftp.producer.renameExtension}")
+java.lang.String myFlow1MySFTPProducerSftpProducerRenameExtension;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpproducer.sftp.producer.tempFileName}")
+java.lang.String myFlow1MySFTPProducerSftpProducerTempFileName;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpproducer.sftp.producer.unzip}")
+java.lang.Boolean myFlow1MySFTPProducerSftpProducerUnzip;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.username}")
 java.lang.String myFlow1SftpConsumerUsername;
 @javax.annotation.Resource
@@ -70,14 +86,14 @@ org.ikasan.endpoint.sftp.producer.SftpProducerConfiguration myConfigurationClass
 
 public org.ikasan.spec.component.endpoint.Producer getMySFTPProducer() {
 return studioLocalSftp(builderFactory.getComponentBuilder().sftpProducer()
-.setChecksumDelivered(true)
-.setCleanUpChunks(true)
-.setCleanupJournalOnComplete(true)
+.setChecksumDelivered(myFlow1MySFTPProducerSftpProducerChecksumDelivered)
+.setCleanUpChunks(myFlow1MySFTPProducerSftpProducerCleanupChunks)
+.setCleanupJournalOnComplete(myFlow1MySFTPProducerSftpProducerCleanupJournalOnComplete)
 .setClientID(myFlow1SftpProducerClientID)
 .setConfiguration(myConfigurationClass)
 .setConfiguredResourceId("myUniqueConfiguredResourceIdName")
-.setCreateParentDirectory(true)
-.setCriticalOnStartup(true)
+.setCreateParentDirectory(myFlow1MySFTPProducerSftpProducerCreateParentDirectory)
+.setCriticalOnStartup(myFlow1MySFTPProducerSftpProducerCriticalOnStartup)
 .setKnownHostsFilename(myFlow1SftpProducerKnownHostsFilename)
 .setMaxRetryAttempts(myFlow1SftpConsumerMaxRetryAttempts)
 .setOutputDirectory(myFlow1SftpProducerOutputDirectory)
@@ -86,9 +102,9 @@ return studioLocalSftp(builderFactory.getComponentBuilder().sftpProducer()
 .setPrivateKeyFilename(myFlow1SftpProducerPrivateKeyFilename)
 .setRemoteHost(myFlow1SftpConsumerRemoteHost)
 .setRemotePort(myFlow1SftpConsumerRemotePort)
-.setRenameExtension("tmp")
-.setTempFileName("myTempFiilename")
-.setUnzip(true)
+.setRenameExtension(myFlow1MySFTPProducerSftpProducerRenameExtension)
+.setTempFileName(myFlow1MySFTPProducerSftpProducerTempFileName)
+.setUnzip(myFlow1MySFTPProducerSftpProducerUnzip)
 .setUsername(myFlow1SftpConsumerUsername)
 .build(), "MyFlow1", "My SFTP Producer", false);
 }}

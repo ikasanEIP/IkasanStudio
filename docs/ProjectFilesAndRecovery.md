@@ -33,6 +33,38 @@ flowchart TB
 
 Existing user implementations are protected; replacing them requires explicit approval. Model backups and migration snapshots serve different recovery needs, described below.
 
+## Component settings per environment
+
+For both bundled Ikasan versions, configured scalar and string-map settings for email, JMS,
+FTP/SFTP, local-file and scheduled consumers, logging producers and the XML converter
+are generated into `generated/src/main/resources/application.properties`. Email settings
+include recipients (single addresses and lists), sender, subject, body/format and server
+connection settings. The component factory reads those values through Spring. Existing
+property keys are retained for compatibility; new keys include the flow and component names
+so different components can use different settings. For example:
+
+```properties
+routerflow.output2.email.producer.toRecipient=bar@bar.com
+routerflow.output2.email.producer.mailSmtpHost=smtp.example.com
+routerflow.output2.email.producer.mailSmtpPort=25
+```
+
+Use Studio properties for the generated defaults. Use an external Spring configuration file
+or a profile-specific configuration for deployment overrides; direct edits to generated
+defaults can be replaced on regeneration. Unset optional settings are not generated.
+To adopt this in an existing project, load the updated plugin and regenerate the application
+code and properties. Refresh flow-test support/properties if the tests need the new override
+keys; changing only the test scaffolding does not regenerate the application factory.
+
+Custom configuration beans, connection factories, message providers, adapters and other
+Java implementations remain bean/class references. Their behaviour and custom fields cannot
+be replaced by a scalar properties entry. Configuration resource identifiers also remain
+part of the model's identity. Studio does not overwrite these developer-owned classes.
+
+JMS JNDI maps use the structured string-map editor and JSON object values in the properties
+file, with one string value per key. Generated factories parse these maps before calling
+the builder; Java variable names or expressions are not map configuration values.
+
 ## Renaming a flow
 
 Change the flow name in Properties and choose **Update Code**. If its Java package changes, **Rename and refactor** shows the old/new package and affected files. Studio uses IntelliJ package refactoring to retain implementations, helper classes and subpackages, update Java references, and update its default Spring bean names and matching `@Resource`/`@Qualifier` references. Custom bean names are preserved. The model is saved before generated code and navigation are refreshed. Class names are retained; renaming a flow does not require renaming each implementation class.

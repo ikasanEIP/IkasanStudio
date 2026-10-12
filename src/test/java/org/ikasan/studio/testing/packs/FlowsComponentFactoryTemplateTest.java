@@ -50,6 +50,44 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         assertTrue(properties.contains("myflow1.output3.email.producer.toRecipients=[\"third@example.com\"]"), properties);
     }
 
+    @ParameterizedTest
+    @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
+    void emailEnvironmentSettingsAreExternalizedPerComponent(String pack) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
+        var flow = TestFixtures.getUnbuiltFlow(pack).build();
+        module.addFlow(flow);
+        for (String name : java.util.List.of("Output 1", "Output 2")) {
+            var producer = FlowElement.flowElementBuilder()
+                    .componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Email Producer"))
+                    .componentName(name).build();
+            producer.setPropertyValue("toRecipient", name.equals("Output 1") ? "first@example.com" : "second@example.com");
+            producer.setPropertyValue("from", "sender@example.com");
+            producer.setPropertyValue("mailSmtpHost", "smtp.example.com");
+            producer.setPropertyValue("mailSmtpPort", 2525);
+            producer.setPropertyValue("mailSubject", "Orders: " + name);
+            producer.setContainingFlowRoute(flow.getFlowRoute());
+            flow.getFlowRoute().getFlowElements().add(producer);
+        }
+        String factory = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
+        var properties = new java.util.Properties();
+        properties.load(new java.io.StringReader(PropertiesTemplate.create(module)));
+        for (int index = 1; index <= 2; index++) {
+            String prefix = "myflow1.output" + index + ".email.producer.";
+            String field = "myFlow1Output" + index + "EmailProducer";
+            assertEquals(index == 1 ? "first@example.com" : "second@example.com", properties.getProperty(prefix + "toRecipient"));
+            assertEquals("2525", properties.getProperty(prefix + "mailSmtpPort"));
+            assertEquals("Orders: Output " + index, properties.getProperty(prefix + "mailSubject"));
+            for (String property : java.util.List.of("toRecipient", "from", "mailSmtpHost", "mailSmtpPort", "mailSubject")) {
+                assertTrue(factory.contains("@org.springframework.beans.factory.annotation.Value(\"${" + prefix + property + "}\")"), factory);
+                String suffix = Character.toUpperCase(property.charAt(0)) + property.substring(1);
+                assertTrue(factory.contains(".set" + suffix + "(" + field + suffix + ")"), factory);
+            }
+            assertFalse(properties.containsKey(prefix + "ccRecipient"), "Unset optional recipients must remain absent");
+        }
+        assertFalse(factory.contains("first@example.com"));
+        assertFalse(factory.contains("smtp.example.com"));
+    }
+
     //  ------------------------------- BROKER ----------------------------------
     /**
      * See also resources/studio/templates/org/ikasan/studio/generator/ComponentFactoryFullyPopulatedBrokerComponent.java
@@ -354,7 +392,8 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         flowElement.setPropertyValue("toRecipient", "valid@example.com");
         flowElement.defaultUnsetMandatoryProperties();
         String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
-        assertTrue(templateString.contains(".setEmailFormat(\"text/plain\")"), "an unset emailFormat must default to a real MIME type, not be left out entirely:\n" + templateString);
+        assertTrue(PropertiesTemplate.create(module).contains("myflow1.myemailproducer.email.producer.emailFormat=text/plain"));
+        assertTrue(templateString.contains(".setEmailFormat(myFlow1MyEmailProducerEmailProducerEmailFormat)"), "an unset emailFormat must default to a real MIME type, not be left out entirely:\n" + templateString);
     }
 
     /**
@@ -383,7 +422,7 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         assertFalse(templateString.contains(".setToRecipients("), "a stale \"[]\" toRecipients must not be generated:\n" + templateString);
         assertFalse(templateString.contains(".setCcRecipients("), "a stale \"[]\" ccRecipients must not be generated:\n" + templateString);
         assertFalse(templateString.contains(".setBccRecipients("), "a stale \"[]\" bccRecipients must not be generated:\n" + templateString);
-        assertTrue(templateString.contains(".setToRecipient(\"valid@example.com\")"), "the valid singular toRecipient must still be generated:\n" + templateString);
+        assertTrue(templateString.contains(".setToRecipient(myFlow1MyEmailProducerEmailProducerToRecipient)"), "the valid singular toRecipient must still be generated:\n" + templateString);
     }
 
     /**
@@ -413,20 +452,23 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         assertEquals(GeneratorTestUtils.getExptectedFreemarkerOutputFromTestFile(metaPackVersion, flowElement, TEST_COMPONENT_FACTORY + "FullyPopulatedFtpProducerComponent.java"), templateString);
     }
 
-    /**
-     * String properties emitted as Java literals (e.g. a key store password) accept free text, so a backslash or
-     * quote - a Windows path, a password - must be escaped or the generated factory does not compile.
-     */
+    /** Externalized passwords and paths must survive Java properties escaping unchanged. */
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
-    public void stringPropertiesWithBackslashesAndQuotesAreEscapedInGeneratedJava(String metaPackVersion) throws Exception {
+    public void stringPropertiesWithBackslashesAndQuotesRoundTripThroughProperties(String metaPackVersion) throws Exception {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getFtpProducer(metaPackVersion);
-        flowElement.setPropertyValue("ftpsKeyStoreFilePassword", "pa\"ss\\word");
-        flowElement.setPropertyValue("ftpsKeyStoreFilePath", "C:\\keys\\store.jks");
-        String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
-        assertTrue(templateString.contains(".setFtpsKeyStoreFilePassword(\"pa\\\"ss\\\\word\")"), templateString);
-        assertTrue(templateString.contains(".setFtpsKeyStoreFilePath(\"C:\\\\keys\\\\store.jks\")"), templateString);
+        String password = "pa\"ss\\word";
+        String path = "C:\\keys\\store.jks";
+        flowElement.setPropertyValue("ftpsKeyStoreFilePassword", password);
+        flowElement.setPropertyValue("ftpsKeyStoreFilePath", path);
+        String factory = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
+        var properties = new java.util.Properties();
+        properties.load(new java.io.StringReader(PropertiesTemplate.create(module)));
+        assertEquals(password, properties.getProperty("myflow1.myftpproducer.ftp.producer.ftpsKeyStoreFilePassword"));
+        assertEquals(path, properties.getProperty("myflow1.myftpproducer.ftp.producer.ftpsKeyStoreFilePath"));
+        assertFalse(factory.contains(password));
+        assertTrue(factory.contains(".setFtpsKeyStoreFilePassword(myFlow1MyFTPProducerFtpProducerFtpsKeyStoreFilePassword)"), factory);
     }
 
     /**
@@ -451,7 +493,8 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
 
         String templateString = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
 
-        assertTrue(templateString.contains(".setOverwrite(true)"));
+        assertTrue(templateString.contains(".setOverwrite(myFlow1MySFTPProducerSftpProducerOverwrite)"), templateString);
+        assertTrue(PropertiesTemplate.create(module).contains("myflow1.mysftpproducer.sftp.producer.overwrite=true"));
     }
 
 

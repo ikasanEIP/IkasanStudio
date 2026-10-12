@@ -14,8 +14,18 @@ private String moduleName;
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
 
+@org.springframework.beans.factory.annotation.Value("${myflow1.myscheduledconsumer.scheduled.consumer.criticalOnStartup}")
+java.lang.Boolean myFlow1MyScheduledConsumerScheduledConsumerCriticalOnStartup;
 @org.springframework.beans.factory.annotation.Value("${myflow1.scheduled.consumer.cron-expression}")
 java.lang.String myFlow1ScheduledConsumerCronExpression;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myscheduledconsumer.scheduled.consumer.eager}")
+java.lang.Boolean myFlow1MyScheduledConsumerScheduledConsumerEager;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myscheduledconsumer.scheduled.consumer.ignoreMisfire}")
+java.lang.Boolean myFlow1MyScheduledConsumerScheduledConsumerIgnoreMisfire;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myscheduledconsumer.scheduled.consumer.maxEagerCallbacks}")
+java.lang.Integer myFlow1MyScheduledConsumerScheduledConsumerMaxEagerCallbacks;
+@org.springframework.beans.factory.annotation.Value("${myflow1.myscheduledconsumer.scheduled.consumer.timezone}")
+java.lang.String myFlow1MyScheduledConsumerScheduledConsumerTimezone;
 @javax.annotation.Resource
 org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumerConfiguration orgIkasanMyflowConfiguration;
 @javax.annotation.Resource
@@ -29,14 +39,14 @@ public org.ikasan.spec.component.endpoint.Consumer getMyScheduledConsumer() {
 return builderFactory.getComponentBuilder().scheduledConsumer()
 .setConfiguration(orgIkasanMyflowConfiguration)
 .setConfiguredResourceId("bob")
-.setCriticalOnStartup(true)
+.setCriticalOnStartup(myFlow1MyScheduledConsumerScheduledConsumerCriticalOnStartup)
 .setCronExpression(myFlow1ScheduledConsumerCronExpression)
-.setEager(true)
+.setEager(myFlow1MyScheduledConsumerScheduledConsumerEager)
 .setEventFactory(orgIkasanMyflowMyEventFactory)
-.setIgnoreMisfire(true)
+.setIgnoreMisfire(myFlow1MyScheduledConsumerScheduledConsumerIgnoreMisfire)
 .setManagedEventIdentifierService(orgIkasanMyflowMyEventService)
-.setMaxEagerCallbacks(10)
+.setMaxEagerCallbacks(myFlow1MyScheduledConsumerScheduledConsumerMaxEagerCallbacks)
 .setMessageProvider(orgIkasanMyflowMyMessageProvider)
-.setTimezone("UTC")
+.setTimezone(myFlow1MyScheduledConsumerScheduledConsumerTimezone)
 .build();
 }}

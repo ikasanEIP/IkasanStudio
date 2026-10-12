@@ -30,7 +30,8 @@ class DemoGenerationRegressionTest {
         consumer.setPropertyValue("minAge", 0L);
         flow.setConsumer(consumer);
         String factory = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
-        assertTrue(factory.contains(".setMinAge(0L)"), factory);
+        assertTrue(factory.contains(".setMinAge(myFlow1ReceiveSftpConsumerMinAge)"), factory);
+        assertTrue(PropertiesTemplate.create(module).contains("myflow1.receive.sftp.consumer.minAge=0"));
         consumer.setPropertyValue("minAge", null);
         assertFalse(FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow).contains(".setMinAge("));
         var local = FlowElementFactory.createFlowElement(pack,
@@ -96,11 +97,21 @@ class DemoGenerationRegressionTest {
         write("example/Factory.java", "package example; public class Factory { "
                 + "static class Builders { Builders getComponentBuilder() { return this; } "
                 + "org.ikasan.builder.component.endpoint.LogProducerBuilder logProducer() { return new org.ikasan.builder.component.endpoint.LogProducerBuilder(); }} "
-                + "Builders builderFactory = new Builders(); " + method + " }");
+                + "Builders builderFactory = new Builders(); "
+                + "String myFlow1OutputLogProducerRegExpPattern, myFlow1OutputLogProducerReplacementText; "
+                + method + " }");
         compile(pack);
         try (var loader = new URLClassLoader(new java.net.URL[]{temp.toUri().toURL()}, null)) {
             var type = loader.loadClass("example.Factory");
-            assertNotNull(type.getMethod("getOutput").invoke(type.getConstructor().newInstance()));
+            var instance = type.getConstructor().newInstance();
+            var properties = new Properties();
+            properties.load(new java.io.StringReader(PropertiesTemplate.create(module)));
+            for (String name : java.util.List.of("regExpPattern", "replacementText")) {
+                var field = type.getDeclaredField("myFlow1OutputLogProducer" + Character.toUpperCase(name.charAt(0)) + name.substring(1));
+                field.setAccessible(true);
+                field.set(instance, properties.getProperty("myflow1.output.log.producer." + name));
+            }
+            assertNotNull(type.getMethod("getOutput").invoke(instance));
         }
     }
 

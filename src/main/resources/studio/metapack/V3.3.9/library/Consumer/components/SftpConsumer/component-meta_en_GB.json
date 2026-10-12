@@ -39,6 +39,7 @@
     },
     "ageOfFiles": {
       "propertyName": "ageOfFiles",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.ageOfFiles",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 150,
       "displayLabel": "Age Of Files (days)",
@@ -49,6 +50,7 @@
     },
     "checksum": {
       "propertyName": "checksum",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.checksum",
       "propertyGroup": "File Transfer",
       "propertyDisplayOrder": 190,
       "defaultValue": false,
@@ -58,6 +60,7 @@
     },
     "chronological": {
       "propertyName": "chronological",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.chronological",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 60,
       "defaultValue": true,
@@ -67,6 +70,7 @@
     },
     "chunkSize": {
       "propertyName": "chunkSize",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.chunkSize",
       "propertyGroup": "File Transfer",
       "propertyDisplayOrder": 180,
       "displayLabel": "Chunk Size (bytes)",
@@ -77,6 +81,7 @@
     },
     "chunking": {
       "propertyName": "chunking",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.chunking",
       "propertyGroup": "File Transfer",
       "propertyDisplayOrder": 170,
       "defaultValue": false,
@@ -86,6 +91,7 @@
     },
     "cleanupJournalOnComplete": {
       "propertyName": "cleanupJournalOnComplete",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.cleanupJournalOnComplete",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 350,
       "defaultValue": true,
@@ -126,6 +132,7 @@
     },
     "connectionTimeout": {
       "propertyName": "connectionTimeout",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.connectionTimeout",
       "propertyGroup": "Connection",
       "propertyDisplayOrder": 240,
       "displayLabel": "Connection Timeout (ms)",
@@ -136,6 +143,7 @@
     },
     "criticalOnStartup": {
       "propertyName": "criticalOnStartup",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.criticalOnStartup",
       "propertyGroup": "advanced",
       "propertyDisplayOrder": 380,
       "defaultValue": false,
@@ -157,6 +165,7 @@
     },
     "destructive": {
       "propertyName": "destructive",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.destructive",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 50,
       "defaultValue": false,
@@ -166,6 +175,7 @@
     },
     "eager": {
       "propertyName": "eager",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.eager",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 80,
       "displayLabel": "Transfer multiple files",
@@ -200,6 +210,7 @@
     },
     "ignoreMisfire": {
       "propertyName": "ignoreMisfire",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.ignoreMisfire",
       "propertyGroup": "Scheduling",
       "propertyDisplayOrder": 330,
       "helpText": "Default: true. When true, ignore Quartz misfires (a missed scheduled cron fire time, e.g. due to scheduler downtime) and simply wait for the next scheduled time; if false, Quartz will fire the job once immediately to catch up on the missed run.",
@@ -209,6 +220,7 @@
     },
     "isRecursive": {
       "propertyName": "isRecursive",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.isRecursive",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 70,
       "defaultValue": false,
@@ -244,6 +256,7 @@
     },
     "maxEagerCallbacks": {
       "propertyName": "maxEagerCallbacks",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.maxEagerCallbacks",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 90,
       "defaultValue": 0,
@@ -263,6 +276,7 @@
     },
     "maxRows": {
       "propertyName": "maxRows",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.maxRows",
       "propertyGroup": "Duplicate Detection",
       "propertyDisplayOrder": 160,
       "defaultValue": -1,
@@ -284,6 +298,7 @@
     },
     "minAge": {
       "propertyName": "minAge",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.minAge",
       "propertyGroup": "File selection",
       "propertyDisplayOrder": 100,
       "displayLabel": "Minimum Age (secs)",
@@ -357,6 +372,7 @@
     },
     "renameOnSuccess": {
       "propertyName": "renameOnSuccess",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.renameOnSuccess",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 30,
       "helpText": "Default: false. Indicates indicating whether to rename the processed file after successful consumption.",
@@ -366,6 +382,7 @@
     },
     "renameOnSuccessExtension": {
       "propertyName": "renameOnSuccessExtension",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.renameOnSuccessExtension",
       "propertyGroup": "Post file transfer actions",
       "propertyDisplayOrder": 40,
       "helpText": "Requires renameOnSuccess to be true (in which case this MUST be set). This is the extension appended to the file on the remote system after successful processing, e.g. '.processed'. May include an embedded timestamp using /[dateFormat]/, e.g. '/yyyyMMddHHmmss/.complete'.",
@@ -397,6 +414,7 @@
     },
     "timezone": {
       "propertyName": "timezone",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.timezone",
       "propertyGroup": "Scheduling",
       "propertyDisplayOrder": 340,
       "helpText": "Optional. The timezone the cronExpression schedule is evaluated in, e.g. 'America/New_York' or 'Europe/London'. If left unset, the JVM's own default timezone is used — only set this if the schedule needs to run consistently in a specific timezone regardless of where the module is deployed.",
