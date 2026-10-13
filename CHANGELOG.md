@@ -5,6 +5,14 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Generate independent expected-output resource files for local-file flow-test scenarios with text expectations, and clarify that input strings name resource files. Preserve inferred business-object expectations.
+
+- Group generated flow-test names at the top of the class: flow, consumer (where applicable), then producer.
+
+- Open the selected flow-test scenario after generation or support refresh, rather than whichever shared support file was written first. For multiple flows, prefer the first newly generated scenario.
+
+- Include the flow-test class in scenario failures. Output-count errors now report producer-specific expected/observed counts and navigate to the actual batch definition, retaining the observation cause. Expected-path failures navigate to `defineExpectedPath`.
+
 - Validate saved flow-test `defineExpectedPath` references for unknown component names and incorrect roles, with source-line navigation and suggestions for spacing/case mistakes. Generated V3/V4 test support also rejects invalid path registrations before starting the flow, including dynamically supplied names.
 
 - Replace the collection editor’s unset checkbox with **Clear and use component default**. **OK** saves the entered collection, including an explicitly empty list or map; **Cancel** preserves the original value.

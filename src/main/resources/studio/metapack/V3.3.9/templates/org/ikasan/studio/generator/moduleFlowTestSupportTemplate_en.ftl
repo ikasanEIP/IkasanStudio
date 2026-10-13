@@ -415,6 +415,9 @@ public abstract class ModuleFlowTestSupport {
              AutoCloseable fixtures = () -> cleanupFixtures(context)) {
             prepareFixtures(context);
             scenario.run(context);
+        } catch (AssertionError | Exception failure) {
+            throw FlowTestFailureDiagnostics.contextualise(failure.getMessage() == null
+                    ? failure.getClass().getName() : failure.getMessage(), failure, getClass());
         }
     }
 

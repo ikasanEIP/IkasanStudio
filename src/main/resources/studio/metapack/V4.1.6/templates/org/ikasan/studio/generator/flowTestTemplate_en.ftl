@@ -69,6 +69,9 @@ public class ${className} extends ModuleFlowTestSupport {
     // Run from IntelliJ or from the project root:
     // mvn -pl user-flow-tests -am -Dtest=${className} -Dsurefire.failIfNoSpecifiedTests=false test
     private static final String FLOW_NAME = "${flowName?j_string}";
+<#if !objectMessageInput && !triggerOnly && (ftpInput || sftpInput || isolatedFiles)>
+    private static final String CONSUMER_NAME = "${consumerName?j_string}";
+</#if>
     // TODO 1: Confirm this is the producer to observe, then set the expected payloads below.
 <#if producers?size != 1>
     // Review expected outputs for each producer in createInputOutputBatches; omit only deliberately unchecked producers:
@@ -156,12 +159,12 @@ ${indent}}
     // TODO 3: Prepare the broker data in prepareFixtures if needed; each triggeredBatch fires once.
 <#elseif ftpInput || sftpInput || isolatedFiles>
     // TODO 3: Review the sample input files under user-flow-tests/src/test/resources (or change the paths).
+    // Input String values are classpath resource filenames, not the file contents.
     // Each resource is copied unchanged to the JUnit test input directory using only its filename.
     // Use distinct filenames; the test directory is configured automatically.
 <#if ftpInput || sftpInput>
     // Filenames must match the FTP/SFTP consumer's filenamePattern.
 </#if>
-    private static final String CONSUMER_NAME = "${consumerName?j_string}";
     // Resource directory names replace spaces with underscores; runtime names remain unchanged.
     private static final String FIRST_BATCH_INPUT_FILENAME = "/" + noSpaces(FLOW_NAME)
             + "/" + noSpaces(CONSUMER_NAME) + "/first.txt";
@@ -216,12 +219,12 @@ ${indent}}
 <#if producers?size gt 1>
                         Map.ofEntries(
 <#list producers as producer>
-                                Map.entry("${producer?j_string}", List.of(FIRST_EXPECTED_OUTPUT))<#sep>,</#sep>
+                                Map.entry("${producer?j_string}", List.of(<#if resourceExpectedOutputs>readTestResource("/" + noSpaces(FLOW_NAME) + "/" + noSpaces("${producer?j_string}") + "/first.txt")<#else>FIRST_EXPECTED_OUTPUT</#if>))<#sep>,</#sep>
 </#list>
                         )
 <#else>
                         Map.of(
-                                PRODUCER_NAME, List.of(<#if fileDelivery || smtpDelivery>readTestResource(FIRST_EXPECTED_OUTPUT_RESOURCE)<#else>FIRST_EXPECTED_OUTPUT</#if>)
+                                PRODUCER_NAME, List.of(<#if resourceExpectedOutputs>readTestResource(FIRST_EXPECTED_OUTPUT_RESOURCE)<#else>FIRST_EXPECTED_OUTPUT</#if>)
                         )
 </#if>
                 ),
@@ -230,12 +233,12 @@ ${indent}}
 <#if producers?size gt 1>
                         Map.ofEntries(
 <#list producers as producer>
-                                Map.entry("${producer?j_string}", List.of(SECOND_EXPECTED_OUTPUT))<#sep>,</#sep>
+                                Map.entry("${producer?j_string}", List.of(<#if resourceExpectedOutputs>readTestResource("/" + noSpaces(FLOW_NAME) + "/" + noSpaces("${producer?j_string}") + "/second.txt")<#else>SECOND_EXPECTED_OUTPUT</#if>))<#sep>,</#sep>
 </#list>
                         )
 <#else>
                         Map.of(
-                                PRODUCER_NAME, List.of(<#if fileDelivery || smtpDelivery>readTestResource(SECOND_EXPECTED_OUTPUT_RESOURCE)<#else>SECOND_EXPECTED_OUTPUT</#if>)
+                                PRODUCER_NAME, List.of(<#if resourceExpectedOutputs>readTestResource(SECOND_EXPECTED_OUTPUT_RESOURCE)<#else>SECOND_EXPECTED_OUTPUT</#if>)
                         )
 </#if>
                 )
@@ -269,14 +272,17 @@ ${indent}}
     // true decodes supported content as text; false uses toString(). Both modes compare text.
     private static final boolean DECODE_OUTPUT_CONTENT_AS_TEXT = true;
 
-<#if fileDelivery || smtpDelivery>
+<#if resourceExpectedOutputs>
     // Review the sample expected UTF-8 output files under src/test/resources/<flow>/<producer>/.
     // Replace spaces in the directory names with underscores, as for input resources.
+    // Keep expected-output fixtures independent of input fixtures; transformations may change the contents.
     // These resource names do not dictate the producer's delivered filenames.
+<#if producers?size == 1>
     private static final String FIRST_EXPECTED_OUTPUT_RESOURCE = "/" + noSpaces(FLOW_NAME)
             + "/" + noSpaces(PRODUCER_NAME) + "/first.txt";
     private static final String SECOND_EXPECTED_OUTPUT_RESOURCE = "/" + noSpaces(FLOW_NAME)
             + "/" + noSpaces(PRODUCER_NAME) + "/second.txt";
+</#if>
 <#else>
 <#if objectOutput>
     // Populate each expected business object with the values the producer should observe.

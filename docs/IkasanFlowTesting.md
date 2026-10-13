@@ -91,8 +91,14 @@ raw `actualAfterProducer` payload and the comparison value `actual`. String expe
 text adapter; business objects remain unchanged and use their `equals` implementation. Failures
 retain JUnit's Expected/Actual comparison. The reported failure starts at the actual captured
 `assertExpectedOutput` or `verifyReceivedOutput` frame in the developer-owned test, with flow/batch/producer context in its
-message and the original exception chain retained. Failures outside that assertion keep their
-original support location; no source line numbers are hard-coded. Refresh shared support to adopt
+message and the original exception chain retained. Scenario failures include the test class name.
+Expected-path registration failures point to `defineExpectedPath`. Output-count mismatches point to
+the captured construction line of the relevant `batch(...)` or `triggeredBatch(...)` in the test,
+usually in `createInputOutputBatches`. Excess outputs report the producer's expected count and
+an observed lower bound ("at least"), because further outputs may still arrive. Review the expected
+list or the flow implementation, depending on which count is intended. If no developer definition
+frame is available, the original support location is retained. Other setup/processing failures also
+retain their real location; no source line numbers are hard-coded. Refresh shared support to adopt
 this behaviour; generation creates the new `FlowTestFailureDiagnostics` utility if missing.
 
 Older `textOutput(...)` wrappers remain supported for compatibility.

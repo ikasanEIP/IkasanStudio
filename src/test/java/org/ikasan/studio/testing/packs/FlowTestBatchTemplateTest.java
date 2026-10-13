@@ -91,16 +91,21 @@ class FlowTestBatchTemplateTest {
                         var missing = batch.observe();
                         fails(()->missing.verify(WAIT,QUIET,()->{}), "Missing producer outputs");
                         var unexpected = batch.observe(); unexpected.accept("Silent","unexpected");
-                        fails(()->unexpected.verify(WAIT,QUIET,()->{}), "Unexpected output at producer 'Silent'");
+                        fails(()->unexpected.verify(WAIT,QUIET,()->{}), "Too many outputs at producer 'Silent'");
                         var zero = new FlowTestBatch<>(List.of("filtered"),Map.of("A",List.of()));
                         zero.observe().verify(WAIT,QUIET,()->{});
                         var duplicate = new FlowTestBatch<>(List.of(),Map.of("A",List.of(equal("a")))).observe();
                         duplicate.accept("A","a"); duplicate.accept("A","a");
-                        fails(()->duplicate.verify(WAIT,QUIET,()->{}), "Unexpected extra output");
+                        fails(()->duplicate.verify(WAIT,QUIET,()->{}), "Too many outputs");
+                        var independent = new FlowTestBatch<>(List.of(), Map.of("A", List.of("a"), "B", List.of("b", "c", "d"))).observe();
+                        independent.accept("A", "a"); independent.accept("A", "extra");
+                        fails(() -> independent.verify(WAIT, QUIET, () -> {}), "Expected: 1; observed: at least 2");
                         var flood = zero.observe(); flood.accept("A","a"); flood.accept("A","a");
-                        fails(()->flood.verify(WAIT,QUIET,()->{}), "Too many outputs");
+                        fails(()->flood.verify(WAIT,QUIET,()->{}), "Expected: 0; observed: at least 1");
+                        for (int i = 0; i < 10000; i++) flood.accept("A", "more");
+                        fails(flood::assertNoPending, "Expected: 0; observed: at least 1");
                         var late = zero.observe(); late.verify(WAIT,QUIET,()->{}); late.accept("A","late");
-                        fails(late::assertNoPending, "Unexpected extra output");
+                        fails(late::assertNoPending, "Too many outputs");
                         fails(()->zero.observe().verify(WAIT,QUIET,()->{throw new AssertionError("processing failed");}), "processing failed");
                         // A fresh observation must not inherit deliveries or counts from an earlier batch.
                         var fresh = batch.observe(); fresh.accept("A","a1"); fresh.accept("B","b"); fresh.accept("A","a2");

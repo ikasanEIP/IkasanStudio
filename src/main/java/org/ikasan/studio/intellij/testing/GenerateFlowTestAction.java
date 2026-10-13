@@ -203,6 +203,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                             try { scaffolds.add(FlowTestScaffold.render(module, flow, pom, applicationPom)); }
                             catch (Exception ex) { throw new IllegalArgumentException(choice + ": " + ex.getMessage(), ex); }
                         }
+                        List<String> scenarioPaths = scaffolds.stream().map(FlowTestScaffold.Scaffold::testPath).toList();
                         if (regenerateSupport) {
                             scaffolds.addAll(FlowTestFiles.supportRefreshPlans(scaffolds));
                         }
@@ -228,14 +229,16 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                             if (tests.isEmpty()) tests = List.of(properties);
                         }
                         created.set(tests);
-                        if (tests.isEmpty()) return;
-                        if (useLocalSftp) FlowTestFiles.enableLocalSftp(root);
-                        if (useLocalFtp) FlowTestFiles.enableLocalFtp(root);
-                        if (useLocalSmtp) FlowTestFiles.enableLocalSmtp(root);
-                        context.setIkasanPomModel(null);
+                        if (!tests.isEmpty()) {
+                            if (useLocalSftp) FlowTestFiles.enableLocalSftp(root);
+                            if (useLocalFtp) FlowTestFiles.enableLocalFtp(root);
+                            if (useLocalSmtp) FlowTestFiles.enableLocalSmtp(root);
+                            context.setIkasanPomModel(null);
+                        }
                         var base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root);
                         if (base != null) base.refresh(false, true);
-                        result.set(LocalFileSystem.getInstance().refreshAndFindFileByNioFile(tests.get(0)));
+                        Path focus = preferredTestToOpen(root, scenarioPaths, tests);
+                        result.set(focus == null ? null : LocalFileSystem.getInstance().refreshAndFindFileByNioFile(focus));
                     } catch (Exception ex) { failure.set(ex); }
                 }, title, false, project);
                 if (batchWrite && failure.get() instanceof FlowTestFiles.ExistingTestsException existing) {
@@ -297,6 +300,15 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
         Messages.showWarningDialog(project, StudioBundle.message("flowTest.filesStillUnsaved",
                 unsavedFileNames(manager, basePath, remaining)), title);
         return false;
+    }
+
+    /** Prefer a generated scenario, then a preserved selected scenario; shared support is only a fallback. */
+    static Path preferredTestToOpen(Path root, List<String> scenarioPaths, List<Path> written) {
+        List<Path> scenarios = scenarioPaths.stream().map(path -> root.resolve(path).toAbsolutePath().normalize()).toList();
+        var changed = written.stream().map(path -> path.toAbsolutePath().normalize()).collect(java.util.stream.Collectors.toSet());
+        for (Path scenario : scenarios) if (changed.contains(scenario) && Files.isRegularFile(scenario)) return scenario;
+        for (Path scenario : scenarios) if (Files.isRegularFile(scenario)) return scenario;
+        return written.stream().filter(Files::isRegularFile).findFirst().orElse(null);
     }
 
     private static List<com.intellij.openapi.editor.Document> unsavedProjectDocuments(

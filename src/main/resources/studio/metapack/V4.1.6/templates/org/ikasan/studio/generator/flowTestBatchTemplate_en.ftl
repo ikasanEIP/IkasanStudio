@@ -15,6 +15,20 @@ public final class FlowTestBatch<I> {
     @FunctionalInterface public interface OutputComparison {
         void verify(Object expected, Object actual) throws Exception;
     }
+    private final StackTraceElement[] definitionTrace = new Throwable().getStackTrace();
+    /** Carries the real batch construction location without replacing the observation failure's cause. */
+    public static final class OutputCountFailure extends AssertionError {
+        private final StackTraceElement[] definitionTrace;
+        private OutputCountFailure(String message, StackTraceElement[] definitionTrace) {
+            super(message + " Review this producer's expected-output list in createInputOutputBatches(),"
+                    + " or the flow implementation if the actual output count is unintended.");
+            this.definitionTrace = definitionTrace.clone();
+        }
+        public StackTraceElement[] definitionTrace() { return definitionTrace.clone(); }
+    }
+    private OutputCountFailure countFailure(String message) {
+        return new OutputCountFailure(message, definitionTrace);
+    }
     private final boolean triggered;
     private final List<I> inputs;
     private final Map<String, List<?>> outputs;
@@ -74,13 +88,15 @@ public final class FlowTestBatch<I> {
         private Observation(OutputComparison comparison) { this.comparison = comparison; }
         private final BlockingQueue<Delivery> deliveries = new LinkedBlockingQueue<>();
         private final Map<String, Integer> received = new HashMap<>();
+        private final Map<String, Integer> accepted = new LinkedHashMap<>();
         private volatile AssertionError overflow;
-        private final int capacity = outputs.values().stream().mapToInt(List::size).sum() + 1;
         public void accept(String producer, Object payload) {
             if (!outputs.containsKey(producer)) return;
             // Bound retained payloads even when a broken flow floods an observed producer.
             synchronized (deliveries) {
-                if (deliveries.size() >= capacity) overflow = new AssertionError("Too many outputs at producer '" + producer + "'");
+                if (overflow != null) return; // Preserve the first excess and bound retained payloads/counts.
+                int count = accepted.merge(producer, 1, Integer::sum);
+                if (count > expectedCount(producer)) overflow = excess(producer, count);
                 else deliveries.add(new Delivery(producer, payload));
             }
         }
@@ -97,22 +113,29 @@ public final class FlowTestBatch<I> {
                 check(ready);
                 Delivery delivery = deliveries.poll(20, TimeUnit.MILLISECONDS);
                 if (delivery != null) { verifyDelivery(delivery); remaining--; }
-                else if (System.nanoTime() >= deadline) throw new AssertionError("Missing producer outputs; expected counts "
-                        + counts() + ", observed counts " + received);
+                else if (System.nanoTime() >= deadline) throw countFailure("Missing producer outputs; expected counts "
+                        + counts() + ", observed counts " + observedCounts());
             }
             // Also checks explicit zero-output expectations and rejects duplicates after the expected outputs.
             deadline = System.nanoTime() + quietPeriod.toNanos();
             do {
                 check(ready);
                 Delivery extra = deliveries.poll(20, TimeUnit.MILLISECONDS);
-                if (extra != null) throw new AssertionError("Unexpected extra output at producer '" + extra.producer + "'");
+                if (extra != null) throw excess(extra.producer, observedCounts().getOrDefault(extra.producer, 0));
             } while (System.nanoTime() < deadline);
             check(ready);
         }
         public void assertNoPending() {
             if (overflow != null) throw overflow;
             Delivery extra = deliveries.poll();
-            if (extra != null) throw new AssertionError("Unexpected extra output at producer '" + extra.producer + "'");
+            if (extra != null) throw excess(extra.producer, observedCounts().getOrDefault(extra.producer, 0));
+        }
+        private OutputCountFailure excess(String producer, int observed) {
+            return countFailure("Too many outputs at producer '" + producer + "'. Expected: "
+                    + expectedCount(producer) + "; observed: at least " + observed + ".");
+        }
+        private Map<String, Integer> observedCounts() {
+            synchronized (deliveries) { return new LinkedHashMap<>(accepted); }
         }
         private Map<String, Integer> counts() {
             Map<String, Integer> counts = new LinkedHashMap<>();
@@ -122,7 +145,7 @@ public final class FlowTestBatch<I> {
         private void verifyDelivery(Delivery delivery) throws Exception {
             int index = received.getOrDefault(delivery.producer, 0);
             List<?> checks = outputs.get(delivery.producer);
-            if (index >= checks.size()) throw new AssertionError("Unexpected output at producer '" + delivery.producer + "'");
+            if (index >= checks.size()) throw excess(delivery.producer, observedCounts().getOrDefault(delivery.producer, index + 1));
             try {
                 Object expected = checks.get(index);
                 if (expected instanceof OutputCheck) ((OutputCheck) expected).verify(delivery.payload);

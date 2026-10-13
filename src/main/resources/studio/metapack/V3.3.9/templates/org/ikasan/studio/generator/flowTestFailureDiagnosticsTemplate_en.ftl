@@ -11,17 +11,23 @@ public final class FlowTestFailureDiagnostics {
     private FlowTestFailureDiagnostics() { }
 
     public static AssertionError contextualise(String context, Throwable failure, Class<?> testClass) {
+        String testPrefix = "Test '" + testClass.getName() + "': ";
+        if (!context.startsWith(testPrefix)) context = testPrefix + context;
+        StackTraceElement[] definition = null;
         Throwable assertion = null;
         int assertionFrame = -1;
         ComparisonFailure comparison = null;
         Set<Throwable> visited = Collections.newSetFromMap(new IdentityHashMap<>());
         for (Throwable cause = failure; cause != null && visited.add(cause); cause = cause.getCause()) {
+            if (cause instanceof FlowTestBatch.OutputCountFailure)
+                definition = ((FlowTestBatch.OutputCountFailure) cause).definitionTrace();
             if (cause instanceof ComparisonFailure) comparison = (ComparisonFailure) cause;
             if (!(cause instanceof AssertionError)) continue;
             StackTraceElement[] trace = cause.getStackTrace();
             for (int i = 0; i < trace.length; i++) {
                 if (("assertExpectedOutput".equals(trace[i].getMethodName())
-                        || "verifyReceivedOutput".equals(trace[i].getMethodName()))
+                        || "verifyReceivedOutput".equals(trace[i].getMethodName())
+                        || "defineExpectedPath".equals(trace[i].getMethodName()))
                         && isDeveloperClass(trace[i].getClassName(), testClass)) {
                     assertion = cause;
                     assertionFrame = i;
@@ -46,6 +52,14 @@ public final class FlowTestFailureDiagnostics {
         } else {
             // A timeout/setup/processing failure must retain its real location, not a test invocation frame.
             result.setStackTrace(failure.getStackTrace());
+        }
+        if (definition != null) {
+            for (int i = 0; i < definition.length; i++) {
+                if (isDeveloperClass(definition[i].getClassName(), testClass)) {
+                    result.setStackTrace(Arrays.copyOfRange(definition, i, definition.length));
+                    break;
+                }
+            }
         }
         return result;
     }
