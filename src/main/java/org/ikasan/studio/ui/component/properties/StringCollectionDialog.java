@@ -4,7 +4,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.ToolbarDecorator;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.JBTable;
 import org.ikasan.studio.core.model.StringCollectionValues;
@@ -23,7 +22,7 @@ final class StringCollectionDialog extends DialogWrapper {
     private final boolean map;
     private final DefaultTableModel rows;
     private final JBTable table;
-    private final JBCheckBox unset = new JBCheckBox(StudioBundle.message("collection.Unset"));
+    private boolean useComponentDefault;
 
     StringCollectionDialog(Project project, org.ikasan.studio.core.metapack.model.ComponentPropertyMeta meta, Object value) {
         super(project);
@@ -38,9 +37,6 @@ final class StringCollectionDialog extends DialogWrapper {
         table = new JBTable(rows);
         table.putClientProperty("terminateEditOnFocusLost", true);
         table.getAccessibleContext().setAccessibleName(name);
-        unset.setSelected(value == null);
-        unset.addActionListener(e -> table.setEnabled(!unset.isSelected()));
-        table.setEnabled(!unset.isSelected());
         init();
         if (value instanceof String) setErrorText(StudioBundle.message("collection.InvalidLegacy"));
     }
@@ -50,8 +46,6 @@ final class StringCollectionDialog extends DialogWrapper {
         panel.add(ToolbarDecorator.createDecorator(table)
                 .setAddAction(b -> {
                     finishEditing();
-                    unset.setSelected(false);
-                    table.setEnabled(true);
                     rows.addRow(map ? new Object[]{"", ""} : new Object[]{""});
                     int row = rows.getRowCount() - 1;
                     table.setRowSelectionInterval(row, row);
@@ -62,22 +56,32 @@ final class StringCollectionDialog extends DialogWrapper {
                     int[] selected = table.getSelectedRows();
                     for (int i = selected.length - 1; i >= 0; i--) rows.removeRow(selected[i]);
                 }).disableUpDownActions().createPanel(), BorderLayout.CENTER);
-        panel.add(unset, BorderLayout.SOUTH);
         panel.setPreferredSize(com.intellij.util.ui.JBUI.size(520, 260));
         return panel;
     }
+    @Override protected Action @org.jetbrains.annotations.NotNull [] createLeftSideActions() {
+        return new Action[]{new AbstractAction(StudioBundle.message("collection.ClearAndUseDefault")) {
+            @Override public void actionPerformed(java.awt.event.ActionEvent event) {
+                // Discard any draft, including invalid entries, without running list/map validation.
+                if (table.isEditing()) table.getCellEditor().cancelCellEditing();
+                useComponentDefault = true;
+                close(OK_EXIT_CODE);
+            }
+        }};
+    }
+
     private void finishEditing() {
         if (table.isEditing()) table.getCellEditor().stopCellEditing();
     }
     @Override protected ValidationInfo doValidate() {
         finishEditing();
-        if (!unset.isSelected() && map) {
+        if (map) {
             Set<String> keys = new HashSet<>();
             for (int i = 0; i < rows.getRowCount(); i++)
                 if (!keys.add((String) rows.getValueAt(i, 0)))
                     return new ValidationInfo(StudioBundle.message("collection.DuplicateKey"), table);
         }
-        if (!unset.isSelected() && !map) {
+        if (!map) {
             List<String> entries = new ArrayList<>();
             for (int i = 0; i < rows.getRowCount(); i++) entries.add((String) rows.getValueAt(i, 0));
             String problem = ComponentPropertyEditRow.patternValidationMessage(meta, entries);
@@ -86,8 +90,8 @@ final class StringCollectionDialog extends DialogWrapper {
         return null;
     }
     Object value() {
+        if (useComponentDefault) return null;
         finishEditing();
-        if (unset.isSelected()) return null;
         if (map) {
             Map<String, String> result = new LinkedHashMap<>();
             for (int i = 0; i < rows.getRowCount(); i++) result.put((String) rows.getValueAt(i, 0), (String) rows.getValueAt(i, 1));

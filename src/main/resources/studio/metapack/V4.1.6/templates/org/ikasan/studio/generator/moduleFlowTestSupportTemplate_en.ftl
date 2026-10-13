@@ -576,16 +576,73 @@ public abstract class ModuleFlowTestSupport {
         // Suppress scheduling ourselves through getComponent(), then bypass that unsafe cast.
         return new IkasanFlowTestRule(true) {
             private String timerConsumer;
+            private void validatePathComponent(String name, String role, Class<?> expectedType) {
+                var element = observedFlow.getFlowElement(name);
+                if (element == null) {
+                    String suggestion = "";
+                    for (Object candidate : observedFlow.getFlowElements()) {
+                        String candidateName = ((FlowElement) candidate).getComponentName();
+                        if (candidateName.replaceAll("\\s", "").equalsIgnoreCase(name == null ? "" : name.replaceAll("\\s", ""))) {
+                            suggestion = " Did you mean '" + candidateName + "'?";
+                            break;
+                        }
+                    }
+                    throw new AssertionError("Flow '" + getFlowName() + "': expected path references " + role
+                            + " '" + name + "', which does not exist." + suggestion + " Update defineExpectedPath; use the exact component name from the canvas.");
+                }
+                Object component = getComponent(name); // The harness unwraps Spring proxies.
+                if (!expectedType.isInstance(component)) {
+                    throw new AssertionError("Flow '" + getFlowName() + "': expected path uses " + role + "('" + name
+                            + "'), but the component does not implement " + expectedType.getSimpleName()
+                            + ". Update defineExpectedPath to use the correct component role.");
+                }
+            }
+            @Override public IkasanFlowTestRule producer(String name) {
+                validatePathComponent(name, "producer", org.ikasan.spec.component.endpoint.Producer.class);
+                return super.producer(name);
+            }
+            @Override public IkasanFlowTestRule splitter(String name) {
+                validatePathComponent(name, "splitter", org.ikasan.spec.component.splitting.Splitter.class);
+                return super.splitter(name);
+            }
+            @Override public IkasanFlowTestRule converter(String name) {
+                validatePathComponent(name, "converter", org.ikasan.spec.component.transformation.Converter.class);
+                return super.converter(name);
+            }
+            @Override public IkasanFlowTestRule router(String name) {
+                validatePathComponent(name, "router", org.ikasan.spec.component.routing.SingleRecipientRouter.class);
+                return super.router(name);
+            }
+            @Override public IkasanFlowTestRule multiRecipientRouter(String name) {
+                validatePathComponent(name, "multiRecipientRouter", org.ikasan.spec.component.routing.MultiRecipientRouter.class);
+                return super.multiRecipientRouter(name);
+            }
+            @Override public IkasanFlowTestRule translator(String name) {
+                validatePathComponent(name, "translator", org.ikasan.spec.component.transformation.Translator.class);
+                return super.translator(name);
+            }
+            @Override public IkasanFlowTestRule broker(String name) {
+                validatePathComponent(name, "broker", org.ikasan.spec.component.endpoint.Broker.class);
+                return super.broker(name);
+            }
+            @Override public IkasanFlowTestRule sequencer(String name) {
+                validatePathComponent(name, "sequencer", org.ikasan.spec.component.sequencing.Sequencer.class);
+                return super.sequencer(name);
+            }
+
             @Override public IkasanFlowTestRule scheduledConsumer(String name) {
+                validatePathComponent(name, "scheduledConsumer", org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer.class);
                 timerConsumer = name;
                 return super.scheduledConsumer(name);
             }
             @Override public IkasanFlowTestRule consumer(String name) {
+                validatePathComponent(name, "consumer", org.ikasan.spec.component.endpoint.Consumer.class);
                 if (getComponent(name) instanceof org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer)
                     timerConsumer = name;
                 return super.consumer(name);
             }
             @Override public IkasanFlowTestRule filter(String name) {
+                validatePathComponent(name, "filter", org.ikasan.spec.component.filter.Filter.class);
                 return debugComponents.contains(name) ? this : super.filter(name);
             }
             @Override public void startFlow() {

@@ -69,7 +69,8 @@ public final class ImplementationReadiness {
                 }
             }
         }
-        return new Report(java.time.Instant.now().toString(), "Saved model property rules and primary user implementation files; unsaved edits, external property overrides and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.", false, List.copyOf(findings));
+        findings.addAll(FlowTestPathValidation.scan(root, model));
+        return new Report(java.time.Instant.now().toString(), "Saved model property rules, primary user implementation files and simple saved flow-test expected paths; unsaved edits, external property overrides and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.", false, List.copyOf(findings));
     }
     public static Report scanProject(Path root) throws java.io.IOException {
         return scan(root.toAbsolutePath().normalize(), org.ikasan.studio.core.persistence.json.IkasanModelDocuments.toLegacy(StudioJson.newObjectMapper().readTree(

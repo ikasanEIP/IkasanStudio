@@ -5,6 +5,10 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Validate saved flow-test `defineExpectedPath` references for unknown component names and incorrect roles, with source-line navigation and suggestions for spacing/case mistakes. Generated V3/V4 test support also rejects invalid path registrations before starting the flow, including dynamically supplied names.
+
+- Replace the collection editor’s unset checkbox with **Clear and use component default**. **OK** saves the entered collection, including an explicitly empty list or map; **Cancel** preserves the original value.
+
 - Validate Module opens property findings in Studio, reveals the affected property and shows full explanations with safely displayed saved values. Source findings open at the reported line.
 - Validate Module now validates saved model property types, required and conditional values, choices and patterns, including recipient-list entries, and reports the flow, component and property to correct.
 

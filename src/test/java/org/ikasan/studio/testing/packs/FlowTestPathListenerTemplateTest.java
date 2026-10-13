@@ -19,6 +19,7 @@ class FlowTestPathListenerTemplateTest {
                 .replace("org.ikasan.testharness.flow.listener.FlowEventListenerSubject", "Subject")
                 .replace("org.ikasan.flow.event.DefaultReplicationFactory.getInstance()", "null")
                 .replace("org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer", "ScheduledConsumer");
+        method = method.replaceAll("org\\.ikasan\\.spec\\.component\\.[a-z]+\\.([A-Za-z]+)", "$1");
         String probe = """
                 import java.util.*;
                 import java.io.*;
@@ -40,12 +41,28 @@ class FlowTestPathListenerTemplateTest {
                         public void beforeFlowElement(String m, String f, FlowElement e, FlowEvent event) { calls.add(e.name); }
                         public void afterFlowElement(String m, String f, FlowElement e, FlowEvent event) { calls.add(e.name); }
                     }
+                    interface Consumer { }
+                    interface Producer { }
+                    interface Filter { }
+                    interface Converter { }
+                    interface Translator { }
+                    interface Broker { }
+                    interface Splitter { }
+                    interface Sequencer { }
+                    interface SingleRecipientRouter { }
+                    interface MultiRecipientRouter { }
+                    static class Mail implements Producer { }
+                    static class BusinessFilter implements Filter { }
                     static class Flow {
+                        FlowElement getFlowElement(String name) {
+                            return List.of("trace", "businessDebug", "timer", "output 2").contains(name) ? new FlowElement(name) : null;
+                        }
+                        List<FlowElement> getFlowElements() { return List.of(new FlowElement("output 2")); }
                         List<Subject> listeners = new ArrayList<>();
                         void addFlowListener(Subject s) { listeners.add(s); }
                         void removeFlowListener(Subject s) { listeners.remove(s); }
                     }
-                    static class ScheduledConsumer {
+                    static class ScheduledConsumer implements Consumer {
                         String cron; boolean eager = true;
                         ScheduledConsumer getConfiguration() { return this; }
                         void setCronExpression(String cron) { this.cron = cron; }
@@ -55,7 +72,15 @@ class FlowTestPathListenerTemplateTest {
                         final boolean allowSchedule;
                         final ScheduledConsumer target = new ScheduledConsumer();
                         IkasanFlowTestRule(boolean allowSchedule) { this.allowSchedule = allowSchedule; }
-                        public Object getComponent(String name) { return target; }
+                        public Object getComponent(String name) { return name.equals("output 2") ? new Mail() : name.equals("timer") ? target : new BusinessFilter(); }
+                        public IkasanFlowTestRule producer(String name) { return this; }
+                        public IkasanFlowTestRule splitter(String name) { return this; }
+                        public IkasanFlowTestRule converter(String name) { return this; }
+                        public IkasanFlowTestRule router(String name) { return this; }
+                        public IkasanFlowTestRule multiRecipientRouter(String name) { return this; }
+                        public IkasanFlowTestRule translator(String name) { return this; }
+                        public IkasanFlowTestRule broker(String name) { return this; }
+                        public IkasanFlowTestRule sequencer(String name) { return this; }
                         public IkasanFlowTestRule consumer(String name) { return this; }
                         public IkasanFlowTestRule scheduledConsumer(String name) { return this; }
                         List<String> filters = new ArrayList<>(); boolean failStart, failStop;
@@ -69,6 +94,17 @@ class FlowTestPathListenerTemplateTest {
                     public static void main(String[] args) throws Exception {
                         Flow flow = new Flow();
                         var harness = new Probe().testHarness(flow);
+                        try { harness.producer("output2"); throw new IllegalStateException("Typo accepted"); }
+                        catch (AssertionError expected) {
+                            if (!expected.getMessage().contains("Did you mean 'output 2'?")) throw expected;
+                            if (!expected.getMessage().contains("defineExpectedPath")) throw expected;
+                        }
+                        try { harness.converter("output 2"); throw new IllegalStateException("Wrong role accepted"); }
+                        catch (AssertionError expected) {
+                            if (!expected.getMessage().contains("correct component role")) throw expected;
+                        }
+                        if (!flow.listeners.isEmpty() || harness.target.cron != null) throw new AssertionError("Flow started before validation");
+                        harness.producer("output 2").producer("output 2"); // Repeated visits are legitimate.
                         harness.filter("trace").filter("businessDebug");
                         if (!harness.filters.equals(List.of("businessDebug"))) throw new AssertionError("Business filter lost");
                         harness.scheduledConsumer("timer");

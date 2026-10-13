@@ -7,7 +7,7 @@ This standalone Gradle build uses Java 17 and Maven libraries only. Running it d
 | Artifact | Responsibility | Production dependencies |
 | --- | --- | --- |
 | `studio-cli` | Standalone migration preview/apply distribution, with project verification script | Generator and bundled packs |
-| `org.ikasan.studio:studio-generator:0.1.0-SNAPSHOT` | Core model, JSON IO, metadata validation, migration and FreeMarker generators; shared schema resources | Jackson, Maven model, FreeMarker, Commons IO, SLF4J |
+| `org.ikasan.studio:studio-generator:0.1.0-SNAPSHOT` | Core model, JSON IO, metadata validation, migration and FreeMarker generators; shared schema resources | Jackson, JavaParser, Maven model, FreeMarker, Commons IO, SLF4J |
 | `org.ikasan.studio:studio-test-kit:0.1.0-SNAPSHOT` | Pack validation/rendering helpers and a reusable JUnit Jupiter contract | Generator and JUnit Jupiter API |
 | `org.ikasan.studio:studio-pack-v3:0.1.0-SNAPSHOT` | V3.3.9 descriptors, templates and images | None |
 | `org.ikasan.studio:studio-pack-v4:0.1.0-SNAPSHOT` | V4.1.6 descriptors, templates and images | None |

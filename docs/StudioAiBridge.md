@@ -304,6 +304,8 @@ to refresh. No user source is modified.
 
 The check validates saved module, flow and component properties against meta-pack rules: required and conditional values, scalar/collection types, fixed choices and validation patterns (including each list entry). Exception-action properties are checked too. Property findings direct developers to Studio rather than editing `model.json`. Saved recipient values, cron expressions, startup choices and numeric/boolean values appear in the details; credentials and other potentially sensitive values are hidden. Long values are truncated. External deployment property overrides are not inspected.
 
+Saved flow tests are also inspected for literal names and simple string constants in `defineExpectedPath`, associated with a flow through `getFlowName`. Unknown components and incorrect harness roles open at the test source line. Dynamic expressions, unparseable sources and files larger than 1 MiB are not statically checked. Refresh generated flow-test support to enable runtime checks of registered names and roles before flow startup. This does not require every route or component to appear in the expected path.
+
 It also covers primary user implementation files referenced by the model. It reports
 missing source, the known generated converter exception (`Conversion has not been implemented`),
 and selected generated implementation TODO markers. TODO findings require human/agent review:
