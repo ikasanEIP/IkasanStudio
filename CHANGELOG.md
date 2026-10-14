@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Start an isolated Ikasan 5 snapshot meta-pack with Java 26/BOM metadata, pinned development help, pack contracts and a generated application/flow-test compilation fixture. The initial generated flow compiles and runs on Java 26 after adapting resource injection to Jakarta annotations. It is not included in the released plugin or migration choices.
+
 - Validate Module and Check again save edited project documents before scanning, preventing stale disk contents from keeping resolved findings visible. Failed saves stop validation with an actionable message.
 
 - Restrict local-file test consumers to prefixed test fixtures so the scan directory cannot become an input payload. Directory text-decoding errors identify the path and point to `flowTestProperties`; decoding failures retain the developer assertion location.

@@ -1,0 +1,1 @@
+            return text(body, charset);

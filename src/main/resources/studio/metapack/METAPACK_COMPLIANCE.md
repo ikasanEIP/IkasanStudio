@@ -35,7 +35,8 @@ Every immediate child of `studio/metapack/` must contain `metapack.json` alongsi
 - `dependencyManagement` must contain the published BOM used by that Ikasan release.
 - An Ikasan BOM version must equal `ikasanVersion`.
 - Snapshot coordinates are allowed only in a deliberately snapshot-labelled development pack and must not be
-  shipped in a Marketplace release.
+  shipped in a Marketplace release. Snapshot development help links may use a full 40-character source
+  commit; released packs must use their exact Ikasan release tag.
 
 Studio imports each declared BOM into generated Maven projects and writes `version.ikasan` from the manifest.
 Direct `org.ikasan` dependencies are emitted without versions so Maven obtains one coherent set from the BOM.

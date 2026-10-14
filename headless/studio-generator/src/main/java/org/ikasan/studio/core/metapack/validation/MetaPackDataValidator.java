@@ -255,16 +255,24 @@ final class MetaPackDataValidator {
             if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) add(problems, path, "must be an absolute HTTPS URL");
             String release = pack.startsWith("V") ? pack.substring(1) : pack;
             if (pack.matches("V\\d.*") && "github.com".equalsIgnoreCase(uri.getHost()) && value.contains("/ikasanEIP/ikasan/blob/")
-                    && !value.contains("/blob/ikasaneip-" + release + "/")) {
+                    && !value.contains("/blob/ikasaneip-" + release + "/")
+                    && !isPinnedDevelopmentHelp(pack, uri.getPath())) {
                 add(problems, path, "must reference the exact Ikasan tag ikasaneip-" + release);
             }
         } catch (URISyntaxException e) { add(problems, path, "invalid URL: " + e.getMessage()); }
     }
 
+    // Snapshot releases have no immutable release tag yet. Permit a full source commit,
+    // never a moving branch or short SHA; released packs still require their exact tag.
+    static boolean isPinnedDevelopmentHelp(String pack, String path) {
+        return pack.endsWith("-SNAPSHOT") && path != null
+                && path.matches("/ikasanEIP/ikasan/blob/[0-9a-f]{40}/.+");
+    }
+
     private static void namespace(List<String> problems, String pack, String path, String value) {
         if (value == null) return;
-        if (pack.startsWith("V4") && (value.contains("javax.jms") || value.contains("javax.resource") || value.contains("javax.xml.bind")))
-            add(problems, path, "uses a pre-Jakarta class in an Ikasan 4 meta-pack: " + value);
+        if ((pack.startsWith("V4") || pack.startsWith("V5")) && (value.contains("javax.jms") || value.contains("javax.resource") || value.contains("javax.xml.bind")))
+            add(problems, path, "uses a pre-Jakarta class in an Ikasan 4/5 meta-pack: " + value);
         if (pack.startsWith("V3") && (value.contains("jakarta.jms") || value.contains("jakarta.resource") || value.contains("jakarta.xml.bind")))
             add(problems, path, "uses a Jakarta class in an Ikasan 3 meta-pack: " + value);
     }
