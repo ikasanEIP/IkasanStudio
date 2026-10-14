@@ -160,7 +160,11 @@ ${indent}}
 <#elseif ftpInput || sftpInput || isolatedFiles>
     // TODO 3: Review the sample input files under user-flow-tests/src/test/resources (or change the paths).
     // Input String values are classpath resource filenames, not the file contents.
+<#if isolatedFiles>
+    // Each resource's bytes are copied unchanged, with a studio-input- filename prefix for safe matching.
+<#else>
     // Each resource is copied unchanged to the JUnit test input directory using only its filename.
+</#if>
     // Use distinct filenames; the test directory is configured automatically.
 <#if ftpInput || sftpInput>
     // Filenames must match the FTP/SFTP consumer's filenamePattern.
@@ -258,7 +262,7 @@ ${indent}}
 <#if isolatedFiles>
         // JUnit creates and cleans this temporary input directory. No changes are needed here.
         properties.put("${filenameKey?j_string}",
-                inputDirectory.getRoot().toPath().toAbsolutePath().toString().replace('\\', '/') + "/.*");
+                FileInputFixture.localFixtureFilenames(inputDirectory.getRoot().toPath()));
 <#elseif localFile>
         // Set this consumer's filenames in Studio and regenerate so a temporary directory can be supplied.
         throw new UnsupportedOperationException("Configure isolated filenames before running this test");
@@ -425,9 +429,9 @@ ${indent}}
         context.getBean(${sampleConsumerClass}.class)
                 .submitNow(input);
 <#elseif isolatedFiles>
-        // Copy the resource's original bytes using its basename; remove only earlier batch fixtures.
+        // Publish original bytes with the reserved local-fixture prefix; remove only earlier batch fixtures.
         if (previousInputFile != null) java.nio.file.Files.deleteIfExists(previousInputFile);
-        previousInputFile = FileInputFixture.copyResource(inputDirectory.getRoot().toPath(), ".*", input);
+        previousInputFile = FileInputFixture.copyLocalResource(inputDirectory.getRoot().toPath(), input);
         harness.fireScheduledConsumer();
 <#elseif scheduledContext>
         // Fire the real scheduled consumer now; no waiting for its cron expression.

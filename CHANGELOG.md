@@ -5,6 +5,10 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Validate Module and Check again save edited project documents before scanning, preventing stale disk contents from keeping resolved findings visible. Failed saves stop validation with an actionable message.
+
+- Restrict local-file test consumers to prefixed test fixtures so the scan directory cannot become an input payload. Directory text-decoding errors identify the path and point to `flowTestProperties`; decoding failures retain the developer assertion location.
+
 - Generate independent expected-output resource files for local-file flow-test scenarios with text expectations, and clarify that input strings name resource files. Preserve inferred business-object expectations.
 
 - Group generated flow-test names at the top of the class: flow, consumer (where applicable), then producer.

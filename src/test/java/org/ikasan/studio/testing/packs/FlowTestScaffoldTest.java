@@ -189,6 +189,14 @@ class FlowTestScaffoldTest {
         assertTrue(code.contains("private static final Order SECOND_EXPECTED_OUTPUT = new Order();"));
         assertFalse(code.contains("private static final String FIRST_EXPECTED_OUTPUT"));
         assertTrue(code.contains("Business objects must implement equals"));
+        flow.setConsumer(org.ikasan.studio.core.TestFixtures.getLocalFileConsumer(version));
+        var local = FlowTestScaffold.render(module, flow,
+                Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
+                Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
+        String localCode = local.files().get(local.testPath());
+        assertTrue(localCode.contains("private static final Order FIRST_EXPECTED_OUTPUT = new Order();"));
+        assertFalse(localCode.contains("FIRST_EXPECTED_OUTPUT_RESOURCE"));
+        assertTrue(localCode.contains("FIRST_BATCH_INPUT_FILENAME"));
     }
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
@@ -464,10 +472,21 @@ class FlowTestScaffoldTest {
         assertTrue(localTest.contains("TemporaryFolder.builder().assureDeletion().build()"));
         assertTrue(localTest.contains("protected Map<String, String> flowTestProperties()"));
         assertTrue(localTest.contains("super.flowTestProperties()"));
-        assertTrue(localTest.contains("FileInputFixture.copyResource("));
-        assertTrue(localTest.contains("toAbsolutePath()"));
+        assertTrue(localTest.contains("FileInputFixture.copyLocalResource("));
+        assertTrue(localTest.contains("FileInputFixture.localFixtureFilenames(inputDirectory.getRoot().toPath())"));
         assertTrue(localTest.contains("noSpaces(CONSUMER_NAME)"));
         assertFalse(localTest.contains("FIRST_BATCH_INPUT ="));
+        assertTrue(localTest.contains("Input String values are classpath resource filenames, not the file contents."));
+        assertTrue(localTest.contains("readTestResource(FIRST_EXPECTED_OUTPUT_RESOURCE)"));
+        assertFalse(localTest.contains("private static final String FIRST_EXPECTED_OUTPUT ="));
+        for (var producer : module.getFlows().get(0).getFlowElementsNoExternalEndPoints()) {
+            if (!producer.getComponentMeta().isProducer()) continue;
+            String expectedDirectory = "user-flow-tests/src/test/resources/"
+                    + module.getFlows().get(0).getIdentity().replace(' ', '_') + "/" + producer.getIdentity().replace(' ', '_') + "/";
+            assertNotEquals(fixtureDirectory, expectedDirectory);
+            assertEquals("first expected payload", localScaffold.files().get(expectedDirectory + "first.txt"));
+            assertEquals("second expected payload", localScaffold.files().get(expectedDirectory + "second.txt"));
+        }
         assertTrue(localScaffold.files().containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/FileInputFixture.java"));
         assertTrue(support.contains("harness.assertIsSatisfied()"));
         assertTrue(localTest.contains(".repeat(expectedInputCount())"));

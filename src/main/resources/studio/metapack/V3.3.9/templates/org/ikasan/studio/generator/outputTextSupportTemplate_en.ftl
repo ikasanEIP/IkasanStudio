@@ -29,8 +29,8 @@ public final class OutputTextSupport {
             if (value instanceof CharSequence || value instanceof Number || value instanceof Boolean || value instanceof Character)
                 return value.toString();
             if (value instanceof byte[]) return decode((byte[]) value);
-            if (value instanceof File) return Files.readString(((File) value).toPath(), StandardCharsets.UTF_8);
-            if (value instanceof Path) return Files.readString((Path) value, StandardCharsets.UTF_8);
+            if (value instanceof File) return readFile(((File) value).toPath());
+            if (value instanceof Path) return readFile((Path) value);
             if (value instanceof List<?> && ((List<?>) value).stream().allMatch(item -> item instanceof File)) {
                 StringBuilder text = new StringBuilder();
                 for (Object file : (List<?>) value) text.append(stringify(file));
@@ -51,6 +51,14 @@ public final class OutputTextSupport {
         } catch (IOException | ReflectiveOperationException failure) {
             throw new IllegalArgumentException("Cannot decode output content; use UTF-8 text or override formatOutputText(Object)", failure);
         }
+    }
+
+    private static String readFile(Path file) throws IOException {
+        if (Files.isDirectory(file))
+            throw new IllegalArgumentException("Cannot read output text from directory '" + file
+                    + "'. Review the local-file consumer's filename selection in flowTestProperties();"
+                    + " it must match input files, not the temporary directory. Refresh or regenerate the local-file test setup.");
+        return Files.readString(file, StandardCharsets.UTF_8);
     }
 
     /** Reject malformed UTF-8 instead of silently replacing bytes and hiding a conversion defect. */

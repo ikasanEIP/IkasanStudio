@@ -76,6 +76,14 @@ class OutputTextSupportTemplateTest {
             });
             assertEquals("message body", stringify.invoke(null, jms));
             assertEquals(List.of("getText"), calls);
+            for (Object directoryPayload : List.of(root, root.toFile(), List.of(file.toFile(), root.toFile()))) {
+                var failure = assertThrows(InvocationTargetException.class, () -> stringify.invoke(null, directoryPayload));
+                assertInstanceOf(IllegalArgumentException.class, failure.getCause());
+                assertTrue(failure.getCause().getMessage().contains(root.toString()));
+                assertTrue(failure.getCause().getMessage().contains("directory"));
+                assertTrue(failure.getCause().getMessage().contains("flowTestProperties()"));
+                assertFalse(failure.getCause().getMessage().contains("use UTF-8"));
+            }
             fails(stringify, new Object());
             fails(stringify, new byte[]{(byte) 0xc3, (byte) 0x28});
             fails(stringify, root.resolve("missing"));

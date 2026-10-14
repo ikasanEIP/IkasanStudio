@@ -41,6 +41,11 @@ class FlowTestFailureDiagnosticsTemplateTest {
                         void receiverHelper() { Assert.assertEquals("SMTP mailbox delivery count", 1, 2); }
                     }
                     static class InheritedTest extends BusinessTest { }
+                    static class DecodeTest extends BusinessTest {
+                        @Override void assertExpectedOutput(Object expected, Object actual) {
+                            throw new IllegalArgumentException("Cannot read output text from directory; review flowTestProperties()");
+                        }
+                    }
                     public static void run() {
                         AssertionError original;
                         try {
@@ -80,6 +85,14 @@ class FlowTestFailureDiagnosticsTemplateTest {
                             Assert.assertTrue(result.getMessage().contains("expected:<1> but was:<2>"));
                             Assert.assertSame(receiver, result.getCause());
                             Assert.assertTrue(java.util.Arrays.asList(receiver.getStackTrace()).contains(result.getStackTrace()[0]));
+                        }
+                        try { new DecodeTest().assertExpectedOutput("text", null); }
+                        catch (IllegalArgumentException decoding) {
+                            var wrapped = new AssertionError("Producer output failed", decoding);
+                            var result = FlowTestFailureDiagnostics.contextualise(wrapped.getMessage(), wrapped, DecodeTest.class);
+                            Assert.assertEquals("assertExpectedOutput", result.getStackTrace()[0].getMethodName());
+                            Assert.assertEquals(DecodeTest.class.getName(), result.getStackTrace()[0].getClassName());
+                            Assert.assertSame(wrapped, result.getCause());
                         }
                         var timeout = new AssertionError("Missing output");
                         var fallback = FlowTestFailureDiagnostics.contextualise("Batch timed out", timeout, BusinessTest.class);

@@ -200,6 +200,10 @@ public final class FlowTestScaffold {
                     && !payloadType.startsWith("org.quartz.")) objectOutputType = payloadType;
         }
         values.put("objectOutputType", objectOutputType);
+        // File-input scenarios use independent text fixtures unless an actual business object was inferred.
+        boolean resourceExpectedOutputs = delivery.usesResources()
+                || (isolatedFiles && !jmsOutputs.isEmpty() && !(jmsOutputs.size() == 1 && !objectOutputType.isEmpty()));
+        values.put("resourceExpectedOutputs", resourceExpectedOutputs);
 
 
         values.put("jmsInputKey", jmsConsumer ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
@@ -231,8 +235,8 @@ public final class FlowTestScaffold {
         files.put(ModuleTestWiring.PATH, ModuleTestWiring.create(module));
         if (!observationOnly) {
             if (ftpInput || sftpInput || isolatedFiles) addSampleResources(files, flow.getIdentity(), flow.getConsumer().getIdentity());
-            if (delivery.usesResources()) {
-                addSampleResources(files, flow.getIdentity(), jmsOutputs.get(0).getIdentity());
+            if (resourceExpectedOutputs) {
+                for (var output : jmsOutputs) addSampleResources(files, flow.getIdentity(), output.getIdentity());
             }
         }
         if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/ModuleJmsTestConfig.java",

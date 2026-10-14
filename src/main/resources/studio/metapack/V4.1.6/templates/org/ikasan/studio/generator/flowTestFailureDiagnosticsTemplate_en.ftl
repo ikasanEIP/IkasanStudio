@@ -22,7 +22,7 @@ public final class FlowTestFailureDiagnostics {
             if (cause instanceof FlowTestBatch.OutputCountFailure)
                 definition = ((FlowTestBatch.OutputCountFailure) cause).definitionTrace();
             if (cause instanceof ComparisonFailure) comparison = (ComparisonFailure) cause;
-            if (!(cause instanceof AssertionError)) continue;
+            if (!(cause instanceof AssertionError) && !(cause instanceof Exception)) continue;
             StackTraceElement[] trace = cause.getStackTrace();
             for (int i = 0; i < trace.length; i++) {
                 if (("assertExpectedOutput".equals(trace[i].getMethodName())

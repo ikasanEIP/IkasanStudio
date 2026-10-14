@@ -11,6 +11,19 @@ import java.util.stream.Collectors;
 /** Classpath file fixtures shared by local-file and FTP consumer tests. Never modifies source resources. */
 public final class FileInputFixture {
     private FileInputFixture() { }
+    private static final String LOCAL_PREFIX = "studio-input-";
+
+    /** Match only files published by copyLocalResource, excluding the scan root itself. */
+    public static String localFixtureFilenames(Path directory) {
+        String rootName = Pattern.quote(directory.toAbsolutePath().getFileName().toString());
+        return directory.toAbsolutePath().toString().replace('\\', '/')
+                + "/(?!" + rootName + "$)" + LOCAL_PREFIX + ".+";
+    }
+
+    /** Publish any batch resource with a reserved prefix; no fixed batch count or extension is assumed. */
+    public static Path copyLocalResource(Path directory, String resourcePath) throws Exception {
+        return copyResource(directory, ".*", resourcePath, LOCAL_PREFIX + filename(resourcePath));
+    }
 
     /**
      * Returns the resource basename used when publishing input. Directory names are not copied.
@@ -51,7 +64,10 @@ public final class FileInputFixture {
      * @throws Exception if the resource is absent, filename does not match, destination exists or IO fails
      */
     public static Path copyResource(Path directory, String regex, String resourcePath) throws Exception {
-        String name = filename(resourcePath);
+        return copyResource(directory, regex, resourcePath, filename(resourcePath));
+    }
+
+    private static Path copyResource(Path directory, String regex, String resourcePath, String name) throws Exception {
         if (!Pattern.compile(regex).matcher(name).matches())
             throw new IllegalArgumentException("Input resource " + resourcePath
                     + " must have a filename matching the consumer pattern: " + regex);

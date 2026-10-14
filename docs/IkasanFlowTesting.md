@@ -101,6 +101,15 @@ frame is available, the original support location is retained. Other setup/proce
 retain their real location; no source line numbers are hard-coded. Refresh shared support to adopt
 this behaviour; generation creates the new `FlowTestFailureDiagnostics` utility if missing.
 
+For local-file input scenarios, input strings identify classpath resource files: the harness copies
+their bytes into a temporary consumer directory, adding a `studio-input-` filename prefix.
+The consumer matches only those fixtures and excludes the scan root itself; the number of batches
+and fixture extensions are unrestricted. Directory payload errors identify the directory and direct
+you to the filename selection in `flowTestProperties()`. Generated text expectations use separate UTF-8
+files under `src/test/resources/<flow>/<producer>/`, while inputs live under `<flow>/<consumer>/`.
+Edit the expected files independently to describe any transformation. Inferred business-object
+outputs retain object expectations instead of text fixtures.
+
 Older `textOutput(...)` wrappers remain supported for compatibility.
 When adopting value-based batches in an existing project, archive the old
 `support/utils/FlowTestBatch.java` as `.java.bak`, then generate tests with shared-support refresh

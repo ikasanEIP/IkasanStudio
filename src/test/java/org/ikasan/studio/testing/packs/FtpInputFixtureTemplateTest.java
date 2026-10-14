@@ -63,6 +63,25 @@ class FtpInputFixtureTemplateTest {
             }
             try (var files = Files.list(home)) { assertEquals(4, files.count()); }
             Class<?> sharedType = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FileInputFixture");
+            var fixturePattern = sharedType.getMethod("localFixtureFilenames", Path.class);
+            var publish = sharedType.getMethod("copyLocalResource", Path.class, String.class);
+            Path scanned = Files.createDirectory(root.resolve("studio-input-root"));
+            String selection = (String) fixturePattern.invoke(null, scanned);
+            var matcher = scanned.getFileSystem().getPathMatcher("regex:" + selection.substring(selection.lastIndexOf('/') + 1));
+            // Ikasan matches preVisitDirectory as well as visitFile: the root must not match.
+            assertFalse(matcher.matches(scanned.getFileName()));
+            Files.writeString(scanned.resolve("unrelated.txt"), "leave untouched");
+            Path published = (Path) publish.invoke(null, scanned, "input/orders-2.csv");
+            assertTrue(matcher.matches(published.getFileName()));
+            try (var scan = Files.walk(scanned)) {
+                assertEquals(java.util.List.of(published), scan.filter(path -> matcher.matches(path.getFileName())).toList());
+            }
+            assertArrayEquals(Files.readAllBytes(resources.resolve("orders-2.csv")), Files.readAllBytes(published));
+            Files.delete(published);
+            Files.writeString(resources.resolve("third-without-extension"), "third input");
+            Path later = (Path) publish.invoke(null, scanned, "input/third-without-extension");
+            assertTrue(matcher.matches(later.getFileName()));
+            assertEquals("third input", Files.readString(later));
             var pattern = sharedType.getMethod("localFilenames", Path.class, String[].class);
             var prepare = sharedType.getMethod("prepareLocalBatch", Path.class, int.class, String[].class);
             Path localHome = Files.createDirectory(root.resolve("local"));

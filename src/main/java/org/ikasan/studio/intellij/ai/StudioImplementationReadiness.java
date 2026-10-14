@@ -1,6 +1,8 @@
 package org.ikasan.studio.intellij.ai;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.wm.WindowManager;
@@ -19,12 +21,44 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.nio.file.*;
 
-/** Saved-model and source report; all disk work is off EDT. The dialog is advisory and never changes user code. */
+/** Saves editor documents through the platform before scanning on a worker. Never rewrites user code. */
 public final class StudioImplementationReadiness {
     private StudioImplementationReadiness() { }
     public static void check(Project project, boolean show) {
         String base = project.getBasePath();
         if (base == null || project.isDisposed()) return;
+        if (show) {
+            // Application.invokeLater supplies write-intent access even when called from a Swing callback.
+            // Background reports after generation must not save unrelated edits as a side effect.
+            Runnable saveAndCheck = () -> {
+                if (project.isDisposed()) return;
+                try {
+                    saveProjectDocuments(FileDocumentManager.getInstance(), Path.of(base));
+                    scan(project, base, true);
+                } catch (Exception failure) {
+                    com.intellij.openapi.diagnostic.Logger.getInstance(StudioImplementationReadiness.class)
+                            .warn("Could not save documents before module validation", failure);
+                    com.intellij.openapi.ui.Messages.showWarningDialog(project,
+                            StudioBundle.message("readiness.saveFailed"), StudioBundle.message("readiness.title"));
+                }
+            };
+            ApplicationManager.getApplication().invokeLater(saveAndCheck, ModalityState.defaultModalityState());
+        } else scan(project, base, false);
+    }
+
+    static void saveProjectDocuments(FileDocumentManager manager, Path root) {
+        Path normalized = root.toAbsolutePath().normalize();
+        for (var document : manager.getUnsavedDocuments()) {
+            var file = manager.getFile(document);
+            if (file != null && file.isInLocalFileSystem() && Path.of(file.getPath()).normalize().startsWith(normalized)) {
+                manager.saveDocument(document);
+                if (manager.isDocumentUnsaved(document))
+                    throw new IllegalStateException("Document remains unsaved: " + file.getPath());
+            }
+        }
+    }
+
+    private static void scan(Project project, String base, boolean show) {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
                 Path root = Path.of(base);
