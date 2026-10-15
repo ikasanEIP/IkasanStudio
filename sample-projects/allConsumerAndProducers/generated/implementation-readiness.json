@@ -1,0 +1,42 @@
+{
+  "checkedAt" : "2026-10-13T19:13:01.515097226Z",
+  "scope" : "Saved model property rules, primary user implementation files and simple saved flow-test expected paths; unsaved edits, external property overrides and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.",
+  "runtimeVerified" : false,
+  "findings" : [ {
+    "flow" : "Generic To FTP Flow",
+    "component" : "my generic consumer",
+    "file" : "user/src/main/java/org/example/acap/generictoftpflow/MyGenericConsumer.java",
+    "line" : 127,
+    "code" : "REVIEW_SCAFFOLD",
+    "target" : null,
+    "property" : null,
+    "displayValue" : null
+  }, {
+    "flow" : "Generic To FTP Flow",
+    "component" : "my generic consumer",
+    "file" : "user/src/main/java/org/example/acap/generictoftpflow/MyGenericConsumer.java",
+    "line" : 155,
+    "code" : "REVIEW_SCAFFOLD",
+    "target" : null,
+    "property" : null,
+    "displayValue" : null
+  }, {
+    "flow" : "Generic To FTP Flow",
+    "component" : "my generic consumer",
+    "file" : "user/src/main/java/org/example/acap/generictoftpflow/MyGenericConsumer.java",
+    "line" : 233,
+    "code" : "REVIEW_SCAFFOLD",
+    "target" : null,
+    "property" : null,
+    "displayValue" : null
+  }, {
+    "flow" : "Local File to Generic Flow",
+    "component" : "my generic producer",
+    "file" : "user/src/main/java/org/example/acap/localfiletogenericflow/MyGenericProducer.java",
+    "line" : 34,
+    "code" : "REVIEW_SCAFFOLD",
+    "target" : null,
+    "property" : null,
+    "displayValue" : null
+  } ]
+}

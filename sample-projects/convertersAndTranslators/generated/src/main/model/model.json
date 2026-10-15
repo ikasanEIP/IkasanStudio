@@ -1,0 +1,255 @@
+{
+  "modelFormat" : "ikasan-studio-documents",
+  "formatVersion" : 1,
+  "module" : {
+    "ikasanVersion" : "3.3.9",
+    "flows" : [ {
+      "flowElements" : [ {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "componentName" : "Poll for orders",
+        "configurationId" : "convertersAndTranslators_Create The New Order_Poll for orders_-946268323_C"
+      }, {
+        "componentType" : "org.ikasan.spec.component.endpoint.Broker",
+        "implementingClass" : "org.example.cat.createneworder.ArtificallyCreateOrder",
+        "componentName" : "Get order items"
+      }, {
+        "componentType" : "org.ikasan.spec.component.transformation.Translator",
+        "implementingClass" : "org.example.cat.createneworder.AddOrderNumber",
+        "componentName" : "Add order num"
+      }, {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer",
+        "componentName" : "Send for Processing",
+        "configurationId" : "convertersAndTranslators_Create The New Order_Send for Processing_-521770552_C"
+      } ],
+      "name" : "Create New Order",
+      "transitions" : [ {
+        "from" : "Poll for orders",
+        "to" : "Get order items",
+        "name" : "default"
+      }, {
+        "from" : "Get order items",
+        "to" : "Add order num",
+        "name" : "default"
+      }, {
+        "from" : "Add order num",
+        "to" : "Send for Processing",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "componentName" : "Poll for orders",
+        "configurationId" : "convertersAndTranslators_Create The New Order_Poll for orders_-946268323_C"
+      }
+    }, {
+      "flowElements" : [ {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+        "configurable" : true,
+        "componentName" : "Order consumer",
+        "configurationId" : "convertersAndTranslators_Transform The Order_Order consumer_-1381381888_C"
+      }, {
+        "componentType" : "org.ikasan.spec.component.filter.Filter",
+        "implementingClass" : "org.example.cat.transformtheorder.TransformTheOrderOrderConsumerDebug",
+        "componentName" : "Order consumerDebug"
+      }, {
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.ikasan.component.converter.jms.ObjectMessageToObjectConverter",
+        "componentName" : "Jms to OP order"
+      }, {
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder",
+        "componentName" : "XML converter"
+      }, {
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.example.cat.transformtheorder.StringToEmailConverter",
+        "componentName" : "Add to Email"
+      }, {
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducer",
+        "configurable" : true,
+        "componentName" : "Email to warehouse",
+        "configurationId" : "convertersAndTranslators_Transform The Order_Email to warehouse_477563693_C"
+      } ],
+      "name" : "Transform The Order",
+      "transitions" : [ {
+        "from" : "Order consumer",
+        "to" : "Order consumerDebug",
+        "name" : "default"
+      }, {
+        "from" : "Order consumerDebug",
+        "to" : "Jms to OP order",
+        "name" : "default"
+      }, {
+        "from" : "Jms to OP order",
+        "to" : "XML converter",
+        "name" : "default"
+      }, {
+        "from" : "XML converter",
+        "to" : "Add to Email",
+        "name" : "default"
+      }, {
+        "from" : "Add to Email",
+        "to" : "Email to warehouse",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+        "configurable" : true,
+        "componentName" : "Order consumer",
+        "configurationId" : "convertersAndTranslators_Transform The Order_Order consumer_-1381381888_C"
+      }
+    } ],
+    "name" : "convertersAndTranslators",
+    "port" : "12420"
+  },
+  "configuration" : [ {
+    "configurationId" : "convertersAndTranslators_Create The New Order_Poll for orders_-946268323_C",
+    "parameters" : [ {
+      "name" : "cronExpression",
+      "value" : "0 * * * * ? *",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumerConfiguration"
+  }, {
+    "configurationId" : "convertersAndTranslators_Create The New Order_Send for Processing_-521770552_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "order",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.SpringMessageProducerConfiguration"
+  }, {
+    "configurationId" : "convertersAndTranslators_Transform The Order_Order consumer_-1381381888_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "order",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.SpringMessageConsumerConfiguration"
+  }, {
+    "configurationId" : "convertersAndTranslators_Transform The Order_Email to warehouse_477563693_C",
+    "parameters" : [ {
+      "name" : "emailFormat",
+      "value" : "text/plain",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "mailSmtpPort",
+      "value" : 1025,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterIntegerImpl"
+    }, {
+      "name" : "toRecipients",
+      "value" : [ "foo@bar.com", "fee@bar.com" ],
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterListImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration"
+  } ],
+  "studio" : {
+    "metaPack" : "V3.3.9",
+    "properties" : {
+      "applicationPackageName" : "org.example.cat",
+      "flowStartupType" : "AUTOMATIC",
+      "h2DbPortNumber" : "12421",
+      "h2WebPortNumber" : "12422",
+      "useEmbeddedH2" : true
+    },
+    "flows" : {
+      "Create New Order" : {
+        "components" : {
+          "Poll for orders" : {
+            "component" : "Scheduled Consumer",
+            "properties" : { },
+            "configurationIdProperty" : "configurationId"
+          },
+          "Get order items" : {
+            "component" : "Broker",
+            "properties" : {
+              "fromType" : "org.quartz.JobExecutionContext",
+              "requiresStub" : true,
+              "toType" : "org.example.cat.domain.Order",
+              "userImplementedClassName" : "ArtificallyCreateOrder"
+            }
+          },
+          "Add order num" : {
+            "component" : "Translator",
+            "properties" : {
+              "requiresStub" : true,
+              "type" : "org.example.cat.domain.Order",
+              "userImplementedClassName" : "AddOrderNumber"
+            }
+          },
+          "Send for Processing" : {
+            "component" : "Spring JMS Producer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false"
+            },
+            "configurationIdProperty" : "configurationId"
+          }
+        },
+        "properties" : { }
+      },
+      "Transform The Order" : {
+        "components" : {
+          "Order consumer" : {
+            "component" : "Spring JMS Consumer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
+              "trustedObjectPackages" : "org.example.cat.domain"
+            },
+            "configurationIdProperty" : "configurationId"
+          },
+          "Order consumerDebug" : {
+            "component" : "Debug Transition",
+            "properties" : {
+              "fromType" : "java.lang.Object",
+              "userImplementedClassName" : "TransformTheOrderOrderConsumerDebug"
+            }
+          },
+          "Jms to OP order" : {
+            "component" : "JMS Object Message To Object Converter",
+            "properties" : { }
+          },
+          "XML converter" : {
+            "component" : "Object To XML String Converter",
+            "properties" : {
+              "objectClass" : "org.example.cat.domain.Order"
+            }
+          },
+          "Add to Email" : {
+            "component" : "Email Converter",
+            "properties" : {
+              "fromType" : "java.lang.String",
+              "requiresStub" : true,
+              "userImplementedClassName" : "StringToEmailConverter"
+            }
+          },
+          "Email to warehouse" : {
+            "component" : "Email Producer",
+            "properties" : {
+              "from" : "bill@ben.com",
+              "mailSubject" : "A test message from convertersAndTranslators"
+            },
+            "configurationIdProperty" : "configurationId"
+          }
+        },
+        "properties" : { }
+      }
+    }
+  }
+}

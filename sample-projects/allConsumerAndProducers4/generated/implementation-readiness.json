@@ -1,0 +1,6 @@
+{
+  "checkedAt" : "2026-10-13T20:32:48.860479886Z",
+  "scope" : "Saved model property rules, primary user implementation files and simple saved flow-test expected paths; unsaved edits, external property overrides and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.",
+  "runtimeVerified" : false,
+  "findings" : [ ]
+}

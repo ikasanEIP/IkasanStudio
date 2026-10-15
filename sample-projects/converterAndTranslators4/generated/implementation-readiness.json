@@ -1,0 +1,15 @@
+{
+  "checkedAt" : "2026-10-13T20:45:18.880178882Z",
+  "scope" : "Saved model property rules, primary user implementation files and simple saved flow-test expected paths; unsaved edits, external property overrides and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.",
+  "runtimeVerified" : false,
+  "findings" : [ {
+    "flow" : "move from Java Object to XML to String flow",
+    "component" : "String to email",
+    "file" : "user/src/main/java/org/example/cat4/movefromjavaobjecttoxmltostringflow/StringToEmail.java",
+    "line" : 33,
+    "code" : "REVIEW_SCAFFOLD",
+    "target" : null,
+    "property" : null,
+    "displayValue" : null
+  } ]
+}

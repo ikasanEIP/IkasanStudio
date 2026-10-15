@@ -1,0 +1,28 @@
+{
+  "sampleConsumerClasses" : [ ],
+  "testFlows" : {
+    "create an order flow" : {
+      "consumer" : "at a recurring",
+      "debugComponents" : [ "Artifically Create orderDebug" ],
+      "inputMode" : "scheduled-context"
+    },
+    "move from Java Object to XML to String flow" : {
+      "consumer" : "my order consumer",
+      "debugComponents" : [ ],
+      "inputMode" : ""
+    }
+  },
+  "ftpEndpoints" : [ ],
+  "smtpEndpoints" : [ {
+    "flow" : "move from Java Object to XML to String flow",
+    "component" : "Sent to email"
+  } ],
+  "sftpEndpoints" : [ ],
+  "modulePropertyKeys" : [ "createanorderflow.scheduled.consumer.cron-expression", "jms.converterandtranslators4.createanorderflow.myordergenerator.connection.factory.jndi.initial", "jms.converterandtranslators4.createanorderflow.myordergenerator.connection.factory.jndi.provider.url", "jms.converterandtranslators4.createanorderflow.myordergenerator.connection.factory.name", "jms.converterandtranslators4.createanorderflow.myordergenerator.destination", "jms.converterandtranslators4.movefromjavaobjecttoxmltostringflow.myorderconsumer.connection.factory.jndi.initial", "jms.converterandtranslators4.movefromjavaobjecttoxmltostringflow.myorderconsumer.connection.factory.jndi.provider.url", "jms.converterandtranslators4.movefromjavaobjecttoxmltostringflow.myorderconsumer.connection.factory.name", "jms.converterandtranslators4.movefromjavaobjecttoxmltostringflow.myorderconsumer.destination", "movefromjavaobjecttoxmltostringflow.senttoemail.email.producer.emailFormat", "movefromjavaobjecttoxmltostringflow.senttoemail.email.producer.from", "movefromjavaobjecttoxmltostringflow.senttoemail.email.producer.mailSmtpPort", "movefromjavaobjecttoxmltostringflow.senttoemail.email.producer.mailSubject", "movefromjavaobjecttoxmltostringflow.senttoemail.email.producer.toRecipients" ],
+  "jmsBrokerPropertyKey" : "jms.converterandtranslators4.movefromjavaobjecttoxmltostringflow.myorderconsumer.connection.factory.jndi.provider.url",
+  "jmsBrokerPropertyKeys" : [ "jms.converterandtranslators4.createanorderflow.myordergenerator.connection.factory.jndi.provider.url", "jms.converterandtranslators4.movefromjavaobjecttoxmltostringflow.myorderconsumer.connection.factory.jndi.provider.url" ],
+  "flowNames" : [ "create an order flow", "move from Java Object to XML to String flow" ],
+  "schemaVersion" : 1,
+  "modelFingerprint" : "b0276cf0fa794b4fa4bdf91ccffb8ef07ab6a29cd46ec8f2f40486043999b823",
+  "modelFields" : [ "autoContentConversion", "autoSplitBatch", "batchMode", "batchSize", "bccRecipient", "bccRecipients", "cacheLevel", "ccRecipient", "ccRecipients", "concurrentConsumers", "connectionFactoryJndiProperties", "connectionFactoryJndiPropertyFactoryInitial", "connectionFactoryJndiPropertyProviderUrl", "connectionFactoryJndiPropertySecurityCredentials", "connectionFactoryJndiPropertySecurityPrincipal", "connectionFactoryJndiPropertyUrlPkgPrefixes", "connectionFactoryName", "connectionFactoryPassword", "connectionFactoryUsername", "connectionPassword", "connectionUsername", "criticalOnStartup", "cronExpression", "deliveryMode", "deliveryPersistent", "destinationJndiName", "destinationJndiProperties", "destinationJndiPropertyFactoryInitial", "destinationJndiPropertyProviderUrl", "destinationJndiPropertySecurityCredentials", "destinationJndiPropertySecurityPrincipal", "destinationJndiPropertyUrlPkgPrefixes", "durable", "durableSubscriptionName", "eager", "emailBody", "emailFormat", "explicitQosEnabled", "extendedMailSessionProperties", "fastFailOnConfigurationLoad", "from", "hasAttachments", "ignoreMisfire", "mailDebug", "mailMimeAddressStrict", "mailPassword", "mailPopClass", "mailPopHost", "mailPopPort", "mailPopUser", "mailRuntimeEnvironment", "mailSmtpClass", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailStoreProtocol", "mailSubject", "mailhost", "maxConcurrentConsumers", "maxEagerCallbacks", "messageIdEnabled", "messageProvider", "messageTimestampEnabled", "namespacePrefix", "namespaceURI", "noNamespaceSchema", "priority", "pubSubDomain", "pubSubNoLocal", "receiveTimeout", "rootClassName", "rootName", "routeOnValidationException", "schema", "schemaLocation", "sessionAcknowledgeMode", "sessionAcknowledgeModeName", "sessionTransacted", "timeToLive", "timezone", "toRecipient", "toRecipients", "transportProtocol", "useNamespacePrefix", "user", "validate" ]
+}

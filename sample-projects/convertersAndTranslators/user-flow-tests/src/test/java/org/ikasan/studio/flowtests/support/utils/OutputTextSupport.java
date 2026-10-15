@@ -1,0 +1,79 @@
+package org.ikasan.studio.flowtests.support.utils;
+
+import java.lang.reflect.InvocationTargetException;
+import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
+import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+/** Content conversion for assertions; reads values without acknowledging messages or consuming streams. */
+public final class OutputTextSupport {
+    private OutputTextSupport() { }
+
+    /**
+     * Decodes UTF-8 bytes, Ikasan Payload content, local files/paths, file lists,
+     * EmailPayload bodies and JMS TextMessage bodies.
+     * File lists retain their existing order and concatenate contents without adding separators.
+     * Unsupported/binary objects require an explicit test override, never an identity-string comparison.
+     * @param value observed payload; null becomes the literal string {@code "null"}
+     * @return stable textual content with whitespace preserved
+     * @throws IllegalArgumentException if the type is unsupported or its content cannot be decoded
+     */
+    public static String stringify(Object value) {
+        try {
+            if (value == null) return "null";
+            if (value instanceof CharSequence || value instanceof Number || value instanceof Boolean || value instanceof Character)
+                return value.toString();
+            if (value instanceof byte[]) return decode((byte[]) value);
+            if (value instanceof File) return readFile(((File) value).toPath());
+            if (value instanceof Path) return readFile((Path) value);
+            if (value instanceof List<?> && ((List<?>) value).stream().allMatch(item -> item instanceof File)) {
+                StringBuilder text = new StringBuilder();
+                for (Object file : (List<?>) value) text.append(stringify(file));
+                return text.toString();
+            }
+            // Optional endpoint APIs need not be dependencies of modules which do not use them.
+            // Match the interface contract, including proxies/subclasses, rather than an implementation name.
+            Class<?> payload = findInterface(value.getClass(), "org.ikasan.filetransfer.Payload");
+            if (payload != null) return decode((byte[]) payload.getMethod("getContent").invoke(value));
+            Class<?> email = findInterface(value.getClass(), "org.ikasan.component.endpoint.email.producer.EmailPayload");
+            if (email != null) return String.valueOf(email.getMethod("getEmailBody").invoke(value));
+            Class<?> message = findInterface(value.getClass(), "javax.jms.TextMessage");
+            if (message != null) return String.valueOf(message.getMethod("getText").invoke(value));
+            throw new IllegalArgumentException("No text-content adapter for " + value.getClass().getName()
+                    + ". Override formatOutputText(Object) for this payload. JMS supports TextMessage only; binary/object messages need an explicit mapping.");
+        } catch (InvocationTargetException failure) {
+            throw new IllegalArgumentException("Cannot read output content from " + value.getClass().getName(), failure.getCause());
+        } catch (IOException | ReflectiveOperationException failure) {
+            throw new IllegalArgumentException("Cannot decode output content; use UTF-8 text or override formatOutputText(Object)", failure);
+        }
+    }
+
+    private static String readFile(Path file) throws IOException {
+        if (Files.isDirectory(file))
+            throw new IllegalArgumentException("Cannot read output text from directory '" + file
+                    + "'. Review the local-file consumer's filename selection in flowTestProperties();"
+                    + " it must match input files, not the temporary directory. Refresh or regenerate the local-file test setup.");
+        return Files.readString(file, StandardCharsets.UTF_8);
+    }
+
+    /** Reject malformed UTF-8 instead of silently replacing bytes and hiding a conversion defect. */
+    private static String decode(byte[] bytes) throws CharacterCodingException {
+        if (bytes == null) throw new IllegalArgumentException("Payload content is null; supply an explicit null-content assertion");
+        return StandardCharsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(bytes)).toString();
+    }
+
+    private static Class<?> findInterface(Class<?> type, String name) {
+        if (type == null) return null;
+        if (type.isInterface() && type.getName().equals(name)) return type;
+        for (Class<?> candidate : type.getInterfaces()) {
+            Class<?> match = findInterface(candidate, name);
+            if (match != null) return match;
+        }
+        return findInterface(type.getSuperclass(), name);
+    }
+}

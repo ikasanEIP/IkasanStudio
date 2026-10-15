@@ -1,0 +1,251 @@
+{
+  "modelFormat" : "ikasan-studio-documents",
+  "formatVersion" : 1,
+  "module" : {
+    "ikasanVersion" : "4.1.6",
+    "flows" : [ {
+      "flowElements" : [ {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "configurable" : true,
+        "componentName" : "at a recurring",
+        "configurationId" : "converterAndTranslators4_create an order flow_at a recurring_-946268323_C"
+      }, {
+        "componentType" : "org.ikasan.spec.component.endpoint.Broker",
+        "implementingClass" : "org.example.cat4.createanorderflow.ArtificallyCreateOrder",
+        "componentName" : "Artifically Create order"
+      }, {
+        "componentType" : "org.ikasan.spec.component.filter.Filter",
+        "implementingClass" : "org.example.cat4.createanorderflow.Flow0CreateAnOrderArtificallyCreateOrderDebug",
+        "componentName" : "Artifically Create orderDebug"
+      }, {
+        "componentType" : "org.ikasan.spec.component.transformation.Translator",
+        "implementingClass" : "org.example.cat4.createanorderflow.TranslatorAddOrderNum",
+        "componentName" : "Translator add order num"
+      }, {
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer",
+        "configurable" : true,
+        "componentName" : "My order generator",
+        "configurationId" : "converterAndTranslators4_create an order flow_My order generator_-521770552_C"
+      } ],
+      "name" : "create an order flow",
+      "transitions" : [ {
+        "from" : "at a recurring",
+        "to" : "Artifically Create order",
+        "name" : "default"
+      }, {
+        "from" : "Artifically Create order",
+        "to" : "Artifically Create orderDebug",
+        "name" : "default"
+      }, {
+        "from" : "Artifically Create orderDebug",
+        "to" : "Translator add order num",
+        "name" : "default"
+      }, {
+        "from" : "Translator add order num",
+        "to" : "My order generator",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "configurable" : true,
+        "componentName" : "at a recurring",
+        "configurationId" : "converterAndTranslators4_create an order flow_at a recurring_-946268323_C"
+      }
+    }, {
+      "flowElements" : [ {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+        "configurable" : true,
+        "componentName" : "my order consumer",
+        "configurationId" : "converterAndTranslators4_move from Java Object to XML to String flow_my order consumer_-1381381888_C"
+      }, {
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.ikasan.component.converter.jms.ObjectMessageToObjectConverter",
+        "componentName" : "From JMS Obj to Java Obj"
+      }, {
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder",
+        "componentName" : "Java Obj to String"
+      }, {
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.example.cat4.movefromjavaobjecttoxmltostringflow.StringToEmail",
+        "componentName" : "String to email"
+      }, {
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducer",
+        "configurable" : true,
+        "componentName" : "Sent to email",
+        "configurationId" : "converterAndTranslators4_move from Java Object to XML to String flow_Sent to email_477563693_C"
+      } ],
+      "name" : "move from Java Object to XML to String flow",
+      "transitions" : [ {
+        "from" : "my order consumer",
+        "to" : "From JMS Obj to Java Obj",
+        "name" : "default"
+      }, {
+        "from" : "From JMS Obj to Java Obj",
+        "to" : "Java Obj to String",
+        "name" : "default"
+      }, {
+        "from" : "Java Obj to String",
+        "to" : "String to email",
+        "name" : "default"
+      }, {
+        "from" : "String to email",
+        "to" : "Sent to email",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+        "configurable" : true,
+        "componentName" : "my order consumer",
+        "configurationId" : "converterAndTranslators4_move from Java Object to XML to String flow_my order consumer_-1381381888_C"
+      }
+    } ],
+    "name" : "converterAndTranslators4",
+    "port" : "12610"
+  },
+  "configuration" : [ {
+    "configurationId" : "converterAndTranslators4_create an order flow_at a recurring_-946268323_C",
+    "parameters" : [ {
+      "name" : "cronExpression",
+      "value" : "0 * * * * ? *",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumerConfiguration"
+  }, {
+    "configurationId" : "converterAndTranslators4_create an order flow_My order generator_-521770552_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "order",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.SpringMessageProducerConfiguration"
+  }, {
+    "configurationId" : "converterAndTranslators4_move from Java Object to XML to String flow_my order consumer_-1381381888_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "order",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.SpringMessageConsumerConfiguration"
+  }, {
+    "configurationId" : "converterAndTranslators4_move from Java Object to XML to String flow_Sent to email_477563693_C",
+    "parameters" : [ {
+      "name" : "toRecipients",
+      "value" : [ "foo@bar.com", "boo@far.com" ],
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterListImpl"
+    }, {
+      "name" : "emailFormat",
+      "value" : "text/plain",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "mailSmtpPort",
+      "value" : 1025,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterIntegerImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration"
+  } ],
+  "studio" : {
+    "metaPack" : "V4.1.6",
+    "properties" : {
+      "applicationPackageName" : "org.example.cat4",
+      "flowStartupType" : "AUTOMATIC",
+      "h2DbPortNumber" : "12611",
+      "h2WebPortNumber" : "12612",
+      "useEmbeddedH2" : true
+    },
+    "flows" : {
+      "create an order flow" : {
+        "components" : {
+          "at a recurring" : {
+            "component" : "Scheduled Consumer",
+            "properties" : { }
+          },
+          "Artifically Create order" : {
+            "component" : "Broker",
+            "properties" : {
+              "fromType" : "org.quartz.JobExecutionContext",
+              "requiresStub" : true,
+              "toType" : "org.example.cat4.domain.Order",
+              "userImplementedClassName" : "ArtificallyCreateOrder"
+            }
+          },
+          "Artifically Create orderDebug" : {
+            "component" : "Debug Transition",
+            "properties" : {
+              "fromType" : "java.lang.Object",
+              "userImplementedClassName" : "Flow0CreateAnOrderArtificallyCreateOrderDebug"
+            }
+          },
+          "Translator add order num" : {
+            "component" : "Translator",
+            "properties" : {
+              "requiresStub" : true,
+              "type" : "org.example.cat4.domain.Order",
+              "userImplementedClassName" : "TranslatorAddOrderNum"
+            }
+          },
+          "My order generator" : {
+            "component" : "Spring JMS Producer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false"
+            }
+          }
+        },
+        "properties" : { }
+      },
+      "move from Java Object to XML to String flow" : {
+        "components" : {
+          "my order consumer" : {
+            "component" : "Spring JMS Consumer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false",
+              "trustedObjectPackages" : "org.example.cat4.domain"
+            }
+          },
+          "From JMS Obj to Java Obj" : {
+            "component" : "JMS Object Message To Object Converter",
+            "properties" : { }
+          },
+          "Java Obj to String" : {
+            "component" : "Object To XML String Converter",
+            "properties" : {
+              "objectClass" : "org.example.cat4.domain.Order"
+            }
+          },
+          "String to email" : {
+            "component" : "Email Converter",
+            "properties" : {
+              "fromType" : "java.lang.String",
+              "requiresStub" : true,
+              "userImplementedClassName" : "StringToEmail"
+            }
+          },
+          "Sent to email" : {
+            "component" : "Email Producer",
+            "properties" : {
+              "from" : "may@you.com",
+              "mailSubject" : "From CAT 4"
+            }
+          }
+        },
+        "properties" : { }
+      }
+    }
+  }
+}

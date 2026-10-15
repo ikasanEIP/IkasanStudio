@@ -1,0 +1,611 @@
+{
+  "modelFormat" : "ikasan-studio-documents",
+  "formatVersion" : 1,
+  "module" : {
+    "ikasanVersion" : "3.3.9",
+    "flows" : [ {
+      "flowElements" : [ {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer",
+        "componentName" : "my egc"
+      }, {
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl",
+        "componentName" : "dev null producer"
+      } ],
+      "name" : "EGC To DevNull Flow",
+      "flowStartupType" : "AUTOMATIC",
+      "transitions" : [ {
+        "from" : "my egc",
+        "to" : "dev null producer",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer",
+        "componentName" : "my egc"
+      }
+    }, {
+      "flowElements" : [ {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.example.acap.generictoftpflow.MyGenericConsumer",
+        "componentName" : "my generic consumer"
+      }, {
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.example.acap.generictoftpflow.MyGenToFtpConverter",
+        "componentName" : "my gen to ftp converter"
+      }, {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.producer",
+        "componentName" : "my ftp producer",
+        "configurationId" : "routesAndBranches_flow 3_my ftp producer_38614044_C"
+      } ],
+      "name" : "Generic To FTP Flow",
+      "flowStartupType" : "AUTOMATIC",
+      "transitions" : [ {
+        "from" : "my generic consumer",
+        "to" : "my gen to ftp converter",
+        "name" : "default"
+      }, {
+        "from" : "my gen to ftp converter",
+        "to" : "my ftp producer",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.example.acap.generictoftpflow.MyGenericConsumer",
+        "componentName" : "my generic consumer"
+      }
+    }, {
+      "flowElements" : [ {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "componentName" : "my ftp consumer",
+        "configurationId" : "routesAndBranches_flow2_my ftp consumer_-1894644140_C"
+      }, {
+        "componentType" : "org.ikasan.spec.component.filter.Filter",
+        "implementingClass" : "org.example.acap.ftptoemailflow.Flow2MyFtpConsumerDebug",
+        "componentName" : "my ftp consumerDebug"
+      }, {
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.example.acap.ftptoemailflow.MyFrpToEmailConverter",
+        "componentName" : "my frp to email converter"
+      }, {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducer",
+        "componentName" : "my email producer",
+        "configurationId" : "routesAndBranches_flow2_my email producer_477563693_C"
+      } ],
+      "name" : "Ftp to Email Flow",
+      "flowStartupType" : "AUTOMATIC",
+      "transitions" : [ {
+        "from" : "my ftp consumer",
+        "to" : "my ftp consumerDebug",
+        "name" : "default"
+      }, {
+        "from" : "my ftp consumerDebug",
+        "to" : "my frp to email converter",
+        "name" : "default"
+      }, {
+        "from" : "my frp to email converter",
+        "to" : "my email producer",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "componentName" : "my ftp consumer",
+        "configurationId" : "routesAndBranches_flow2_my ftp consumer_-1894644140_C"
+      }
+    }, {
+      "flowElements" : [ {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "componentName" : "my local consumer",
+        "configurationId" : "routesAndBranches_flow4_my local consumer_1726705232_C"
+      }, {
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.example.acap.localfiletogenericflow.MyGenericProducer",
+        "componentName" : "my generic producer"
+      } ],
+      "name" : "Local File to Generic Flow",
+      "flowStartupType" : "AUTOMATIC",
+      "transitions" : [ {
+        "from" : "my local consumer",
+        "to" : "my generic producer",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "componentName" : "my local consumer",
+        "configurationId" : "routesAndBranches_flow4_my local consumer_1726705232_C"
+      }
+    }, {
+      "flowElements" : [ {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "componentName" : "my sftp consumer",
+        "configurationId" : "routesAndBranches_flow5_my sftp consumer_230235106_C"
+      }, {
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.example.acap.sftptojmsflow.MyConverter",
+        "componentName" : "my converter"
+      }, {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer",
+        "componentName" : "my JMS producer",
+        "configurationId" : "routesAndBranches_flow5_my JMS producer_-521770552_C"
+      } ],
+      "name" : "Sftp to JMS Flow",
+      "flowStartupType" : "AUTOMATIC",
+      "transitions" : [ {
+        "from" : "my sftp consumer",
+        "to" : "my converter",
+        "name" : "default"
+      }, {
+        "from" : "my converter",
+        "to" : "my JMS producer",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "componentName" : "my sftp consumer",
+        "configurationId" : "routesAndBranches_flow5_my sftp consumer_230235106_C"
+      }
+    }, {
+      "flowElements" : [ {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+        "componentName" : "my Spring consumer",
+        "configurationId" : "routesAndBranches_flow7_my Spring consumer_-1381381888_C"
+      }, {
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.example.acap.jmstosftpflow.MyConverter",
+        "componentName" : "my converter"
+      }, {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.producer",
+        "componentName" : "my sftp producer",
+        "configurationId" : "routesAndBranches_flow7_my sftp producer_660622946_C"
+      } ],
+      "name" : "JMS to SFTP flow",
+      "flowStartupType" : "AUTOMATIC",
+      "transitions" : [ {
+        "from" : "my Spring consumer",
+        "to" : "my converter",
+        "name" : "default"
+      }, {
+        "from" : "my converter",
+        "to" : "my sftp producer",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+        "componentName" : "my Spring consumer",
+        "configurationId" : "routesAndBranches_flow7_my Spring consumer_-1381381888_C"
+      }
+    }, {
+      "flowElements" : [ {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "componentName" : "my scheduled consumer",
+        "configurationId" : "routesAndBranches_flow6_my scheduled consumer_-946268323_C"
+      }, {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.util.producer.LogProducer",
+        "componentName" : "my logging producer",
+        "configurationId" : "routesAndBranches_flow6_my logging producer_729287509_C"
+      } ],
+      "name" : "Scheduled to Logging Flow",
+      "flowStartupType" : "AUTOMATIC",
+      "transitions" : [ {
+        "from" : "my scheduled consumer",
+        "to" : "my logging producer",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "configurable" : true,
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "componentName" : "my scheduled consumer",
+        "configurationId" : "routesAndBranches_flow6_my scheduled consumer_-946268323_C"
+      }
+    } ],
+    "name" : "routesAndBranches",
+    "port" : "12430"
+  },
+  "configuration" : [ {
+    "configurationId" : "routesAndBranches_flow 3_my ftp producer_38614044_C",
+    "parameters" : [ {
+      "name" : "clientID",
+      "value" : "Flow3",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "outputDirectory",
+      "value" : "/",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "password",
+      "value" : "ikasan",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "remoteHost",
+      "value" : "127.0.0.1",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "remotePort",
+      "value" : 2121,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterIntegerImpl"
+    }, {
+      "name" : "username",
+      "value" : "ikasan",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches_flow2_my ftp consumer_-1894644140_C",
+    "parameters" : [ {
+      "name" : "clientID",
+      "value" : "Flow2",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "cronExpression",
+      "value" : "0 * * * * ? *",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "filenamePattern",
+      "value" : ".*\\.txt",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "password",
+      "value" : "ikasan",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "remoteHost",
+      "value" : "127.0.0.1",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "remotePort",
+      "value" : 2121,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterIntegerImpl"
+    }, {
+      "name" : "sourceDirectory",
+      "value" : "/",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "username",
+      "value" : "ikasan",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches_flow2_my email producer_477563693_C",
+    "parameters" : [ {
+      "name" : "emailFormat",
+      "value" : "text/plain",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "mailSmtpPort",
+      "value" : 1025,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterIntegerImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches_flow4_my local consumer_1726705232_C",
+    "parameters" : [ {
+      "name" : "cronExpression",
+      "value" : "0 * * * * ? *",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches_flow5_my sftp consumer_230235106_C",
+    "parameters" : [ {
+      "name" : "clientID",
+      "value" : "Flow5",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "cronExpression",
+      "value" : "0 * * * * ? *",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "filenamePattern",
+      "value" : ".*\\.txt",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "privateKeyFilename",
+      "value" : "/home/hidavi/.ikasan-studio-sftp-test/id_ed25519",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "remoteHost",
+      "value" : "127.0.0.1",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "remotePort",
+      "value" : 22,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterIntegerImpl"
+    }, {
+      "name" : "sourceDirectory",
+      "value" : "/home/ikasanftptest/sftproot",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "username",
+      "value" : "ikasanftptest",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.endpoint.sftp.consumer.SftpConsumerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches_flow5_my JMS producer_-521770552_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "jmspayload",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.SpringMessageProducerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches_flow7_my Spring consumer_-1381381888_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "jmspayload",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.SpringMessageConsumerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches_flow7_my sftp producer_660622946_C",
+    "parameters" : [ {
+      "name" : "clientID",
+      "value" : "Flow7",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "outputDirectory",
+      "value" : "/home/ikasanftptest/sftproot",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "privateKeyFilename",
+      "value" : "/home/hidavi/.ikasan-studio-sftp-test/id_ed25519    ",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "remoteHost",
+      "value" : "127.0.0.1",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "remotePort",
+      "value" : 22,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterIntegerImpl"
+    }, {
+      "name" : "username",
+      "value" : "ikasanftptest",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.endpoint.sftp.producer.SftpProducerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches_flow6_my scheduled consumer_-946268323_C",
+    "parameters" : [ {
+      "name" : "cronExpression",
+      "value" : "0 * * * * ? *",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches_flow6_my logging producer_729287509_C",
+    "parameters" : [ ],
+    "implementingClass" : "org.ikasan.component.endpoint.util.producer.LogProducerConfiguration"
+  } ],
+  "studio" : {
+    "metaPack" : "V3.3.9",
+    "properties" : {
+      "applicationPackageName" : "org.example.acap",
+      "flowStartupType" : "AUTOMATIC",
+      "h2DbPortNumber" : "12431",
+      "h2WebPortNumber" : "12432",
+      "useEmbeddedH2" : true
+    },
+    "flows" : {
+      "EGC To DevNull Flow" : {
+        "components" : {
+          "my egc" : {
+            "component" : "Event Generating Consumer",
+            "properties" : { }
+          },
+          "dev null producer" : {
+            "component" : "Dev Null Producer",
+            "properties" : { }
+          }
+        },
+        "properties" : { }
+      },
+      "Generic To FTP Flow" : {
+        "components" : {
+          "my generic consumer" : {
+            "component" : "Generic Consumer",
+            "properties" : {
+              "requiresStub" : true,
+              "userImplementedClassName" : "MyGenericConsumer"
+            }
+          },
+          "my gen to ftp converter" : {
+            "component" : "Converter",
+            "properties" : {
+              "conversionRecipeId" : "string-to-file-transfer-payload",
+              "fromType" : "java.lang.String",
+              "recipeCharset" : "UTF-8",
+              "recipeEmailBody" : "Please see the attached file.",
+              "recipeMediaType" : "application/octet-stream",
+              "requiresStub" : true,
+              "toType" : "org.ikasan.filetransfer.Payload",
+              "userImplementedClassName" : "MyGenToFtpConverter"
+            }
+          },
+          "my ftp producer" : {
+            "component" : "FTP Producer",
+            "properties" : { },
+            "configurationIdProperty" : "configurationId"
+          }
+        },
+        "properties" : { }
+      },
+      "Ftp to Email Flow" : {
+        "components" : {
+          "my ftp consumer" : {
+            "component" : "FTP Consumer",
+            "properties" : { },
+            "configurationIdProperty" : "configurationId"
+          },
+          "my ftp consumerDebug" : {
+            "component" : "Debug Transition",
+            "properties" : {
+              "fromType" : "java.lang.Object",
+              "userImplementedClassName" : "Flow2MyFtpConsumerDebug"
+            }
+          },
+          "my frp to email converter" : {
+            "component" : "Converter",
+            "properties" : {
+              "conversionRecipeId" : "file-transfer-payload-to-email-payload",
+              "fromType" : "org.ikasan.filetransfer.Payload",
+              "recipeCharset" : "UTF-8",
+              "recipeMediaType" : "application/octet-stream",
+              "requiresStub" : true,
+              "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+              "userImplementedClassName" : "MyFrpToEmailConverter"
+            }
+          },
+          "my email producer" : {
+            "component" : "Email Producer",
+            "properties" : {
+              "toRecipient" : "david@bar.com"
+            },
+            "configurationIdProperty" : "configurationId"
+          }
+        },
+        "properties" : { }
+      },
+      "Local File to Generic Flow" : {
+        "components" : {
+          "my local consumer" : {
+            "component" : "Local File Consumer",
+            "properties" : {
+              "filenames" : "myFile\\.txt,anotherFile\\.txt"
+            },
+            "configurationIdProperty" : "configurationId"
+          },
+          "my generic producer" : {
+            "component" : "Generic Producer",
+            "properties" : {
+              "fromType" : "java.util.List<java.io.File>",
+              "requiresStub" : true,
+              "userImplementedClassName" : "MyGenericProducer"
+            }
+          }
+        },
+        "properties" : { }
+      },
+      "Sftp to JMS Flow" : {
+        "components" : {
+          "my sftp consumer" : {
+            "component" : "SFTP Consumer",
+            "properties" : {
+              "knownHostFilename" : "/home/hidavi/.ssh/known_hosts"
+            },
+            "configurationIdProperty" : "configurationId"
+          },
+          "my converter" : {
+            "component" : "Converter",
+            "properties" : {
+              "conversionRecipeId" : "file-transfer-payload-to-string",
+              "fromType" : "org.ikasan.filetransfer.Payload",
+              "recipeCharset" : "UTF-8",
+              "recipeEmailBody" : "Please see the attached file.",
+              "recipeFilename" : "message.dat",
+              "recipeMediaType" : "application/octet-stream",
+              "requiresStub" : true,
+              "toType" : "java.lang.String",
+              "userImplementedClassName" : "MyConverter"
+            }
+          },
+          "my JMS producer" : {
+            "component" : "Spring JMS Producer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false"
+            },
+            "configurationIdProperty" : "configurationId"
+          }
+        },
+        "properties" : { }
+      },
+      "JMS to SFTP flow" : {
+        "components" : {
+          "my Spring consumer" : {
+            "component" : "Spring JMS Consumer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false"
+            },
+            "configurationIdProperty" : "configurationId"
+          },
+          "my converter" : {
+            "component" : "Converter",
+            "properties" : {
+              "conversionRecipeId" : "jms-message-to-file-transfer-payload",
+              "fromType" : "javax.jms.Message",
+              "recipeCharset" : "UTF-8",
+              "recipeMediaType" : "application/octet-stream",
+              "requiresStub" : true,
+              "toType" : "org.ikasan.filetransfer.Payload",
+              "userImplementedClassName" : "MyConverter"
+            }
+          },
+          "my sftp producer" : {
+            "component" : "SFTP Producer",
+            "properties" : {
+              "knownHostFilename" : "/home/hidavi/.ssh/known_hosts"
+            },
+            "configurationIdProperty" : "configurationId"
+          }
+        },
+        "properties" : { }
+      },
+      "Scheduled to Logging Flow" : {
+        "components" : {
+          "my scheduled consumer" : {
+            "component" : "Scheduled Consumer",
+            "properties" : { },
+            "configurationIdProperty" : "configurationId"
+          },
+          "my logging producer" : {
+            "component" : "Logging Producer",
+            "properties" : { },
+            "configurationIdProperty" : "configurationId"
+          }
+        },
+        "properties" : { }
+      }
+    }
+  }
+}

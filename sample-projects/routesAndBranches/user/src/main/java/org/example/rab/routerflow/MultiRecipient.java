@@ -1,0 +1,39 @@
+package org.example.rab.routerflow;
+
+import org.ikasan.spec.component.routing.MultiRecipientRouter;
+import org.ikasan.spec.component.routing.RouterException;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+/**
+ * User Implemented Class for routing payloads.
+ *
+ * @author Ikasan Development Team
+ */
+
+@Component("org.example.rab.routerflow.MultiRecipient")
+
+public class MultiRecipient implements MultiRecipientRouter<String> {
+
+    public static final String ROUTE1 = "route1";
+    public static final String ROUTE2 = "route2";
+
+    /**
+     * <strong>Multi Recipient Router</strong><p>The router will allow the payload to be sent conditionally to one or many
+     * routes e.g. the logic could send the payload to routeA AND routeB.</p><p>Unlike the Single Recipient Router there
+     * is no "default" fallback - the router must always return at least one route name, it can never return zero.</p>
+     * <p>Each matched route runs to completion, in order, before the next one starts. By default the payload is cloned
+     * before being sent down each route (except the last) so routes cannot affect each other by mutating a shared payload.</p>
+     *
+     * @param payload to be evaluated to choose which of the routes above (see the constants above) payload should be sent to
+     * @return the route names (see the constants above) payload should be sent to, in any combination - null or an
+     * empty list is not valid, at least one route is always required (there is no "default" fallback for this
+     * router type - see org.ikasan.flow.visitorPattern.invoker.MultiRecipientRouterFlowElementInvoker)
+     * @throws RouterException if the routing decision cannot be evaluated from the payload
+     */
+    @Override
+    public List<String> route(String payload) throws RouterException {
+        return List.of(ROUTE1, ROUTE2);
+    }
+}

@@ -1,0 +1,15 @@
+{
+  "checkedAt" : "2026-10-13T18:42:26.474910166Z",
+  "scope" : "Saved model property rules, primary user implementation files and simple saved flow-test expected paths; unsaved edits, external property overrides and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.",
+  "runtimeVerified" : false,
+  "findings" : [ {
+    "flow" : "Router Flow",
+    "component" : "String to email 2",
+    "file" : "user/src/main/java/org/example/rab/routerflow/StringToEmail2.java",
+    "line" : 34,
+    "code" : "REVIEW_SCAFFOLD",
+    "target" : null,
+    "property" : null,
+    "displayValue" : null
+  } ]
+}

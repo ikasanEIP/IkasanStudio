@@ -1,0 +1,28 @@
+{
+  "sampleConsumerClasses" : [ ],
+  "testFlows" : {
+    "Create New Order" : {
+      "inputMode" : "scheduled-context",
+      "consumer" : "Poll for orders",
+      "debugComponents" : [ ]
+    },
+    "Transform The Order" : {
+      "inputMode" : "",
+      "consumer" : "Order consumer",
+      "debugComponents" : [ "Order consumerDebug" ]
+    }
+  },
+  "ftpEndpoints" : [ ],
+  "smtpEndpoints" : [ {
+    "component" : "Email to warehouse",
+    "flow" : "Transform The Order"
+  } ],
+  "sftpEndpoints" : [ ],
+  "modulePropertyKeys" : [ "createneworder.scheduled.consumer.cron-expression", "jms.convertersandtranslators.createneworder.sendforprocessing.connection.factory.jndi.initial", "jms.convertersandtranslators.createneworder.sendforprocessing.connection.factory.jndi.provider.url", "jms.convertersandtranslators.createneworder.sendforprocessing.connection.factory.name", "jms.convertersandtranslators.createneworder.sendforprocessing.destination", "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.jndi.initial", "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.jndi.provider.url", "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.name", "jms.convertersandtranslators.transformtheorder.orderconsumer.destination", "transformtheorder.emailtowarehouse.email.producer.emailFormat", "transformtheorder.emailtowarehouse.email.producer.from", "transformtheorder.emailtowarehouse.email.producer.mailSmtpPort", "transformtheorder.emailtowarehouse.email.producer.mailSubject", "transformtheorder.emailtowarehouse.email.producer.toRecipients" ],
+  "jmsBrokerPropertyKey" : "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.jndi.provider.url",
+  "jmsBrokerPropertyKeys" : [ "jms.convertersandtranslators.createneworder.sendforprocessing.connection.factory.jndi.provider.url", "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.jndi.provider.url" ],
+  "flowNames" : [ "Create New Order", "Transform The Order" ],
+  "schemaVersion" : 1,
+  "modelFingerprint" : "673174562199dfe27efd08f4df97acc3d6bf923611cf5b0f0191a24d7b10263a",
+  "modelFields" : [ "autoContentConversion", "autoSplitBatch", "batchMode", "batchSize", "bccRecipient", "bccRecipients", "cacheLevel", "ccRecipient", "ccRecipients", "concurrentConsumers", "connectionFactoryJndiProperties", "connectionFactoryJndiPropertyFactoryInitial", "connectionFactoryJndiPropertyProviderUrl", "connectionFactoryJndiPropertySecurityCredentials", "connectionFactoryJndiPropertySecurityPrincipal", "connectionFactoryJndiPropertyUrlPkgPrefixes", "connectionFactoryName", "connectionFactoryPassword", "connectionFactoryUsername", "connectionPassword", "connectionUsername", "criticalOnStartup", "cronExpression", "deliveryMode", "deliveryPersistent", "destinationJndiName", "destinationJndiProperties", "destinationJndiPropertyFactoryInitial", "destinationJndiPropertyProviderUrl", "destinationJndiPropertySecurityCredentials", "destinationJndiPropertySecurityPrincipal", "destinationJndiPropertyUrlPkgPrefixes", "durable", "durableSubscriptionName", "eager", "emailBody", "emailFormat", "explicitQosEnabled", "extendedMailSessionProperties", "fastFailOnConfigurationLoad", "from", "hasAttachments", "ignoreMisfire", "mailDebug", "mailMimeAddressStrict", "mailPassword", "mailPopClass", "mailPopHost", "mailPopPort", "mailPopUser", "mailRuntimeEnvironment", "mailSmtpClass", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailStoreProtocol", "mailSubject", "mailhost", "maxConcurrentConsumers", "maxEagerCallbacks", "messageIdEnabled", "messageProvider", "messageTimestampEnabled", "namespacePrefix", "namespaceURI", "noNamespaceSchema", "priority", "pubSubDomain", "pubSubNoLocal", "receiveTimeout", "rootClassName", "rootName", "routeOnValidationException", "schema", "schemaLocation", "sessionAcknowledgeMode", "sessionAcknowledgeModeName", "sessionTransacted", "timeToLive", "timezone", "toRecipient", "toRecipients", "transportProtocol", "useNamespacePrefix", "user", "validate" ]
+}
