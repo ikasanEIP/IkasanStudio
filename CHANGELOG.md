@@ -5,6 +5,30 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Add isolated V3/V4 → V5 migration rehearsals with explicit directional rules, model-preservation and rejection checks, and generated V5 runtime fixtures. Keep released IDE/CLI migration choices unchanged while the snapshot and developer-code upgrade paths remain under review.
+
+- Verify V5 generated custom configuration beans through real SMTP delivery, including scalar, list and map environment overrides, generated factory injection, idle readiness and later delivery. Include the scenario in the explicit V5 verification suite.
+
+- Add a V5 compatibility fixture using the real archetype Maven reactor (`user`, `generated`, `user-flow-tests`). Verify inherited build settings, a real flow test across module boundaries, resolved dependencies and archive ownership without installing fixture artifacts.
+
+- Enforce resolved Ikasan platform versions in the V5 verification command using structured Maven dependency trees for every reactor module. Reject missing evidence and mixed versions, preserve actionable audit reports, and document the exact independently versioned Ikasan DBCP fork without changing Maven dependencies.
+
+- Add an HTTP compatibility check for the V5 generated application's Blue Console: login-page rendering, anonymous-access protection, form login, session-cookie module/flow navigation and listener cleanup. Include it in the explicit V5 verification command.
+
+- Extend V5 JMS rollback diagnostics with receive/send and same-session/separate-session controls. Reproduce the XA resource-end warning without an Ikasan flow, while retaining strict rollback and redelivery assertions; document the minimal failing comparison for runtime investigation.
+
+- Add a V5 runtime fixture for the actual generated Email Converter and environment-specific email property overrides. Check delivered bodies, recipient lists and subjects, sender binding on the running producer, idle readiness, later delivery and local-server cleanup.
+
+- Add a single explicit Ikasan 5 development verification command that exports fresh fixtures, runs the compilation/runtime matrix, preserves test reports and dependency evidence, and fails on incomplete or failing runtime checks. Known rollback failures remain visible; no candidate runtime patch is applied automatically.
+
+- Expand Ikasan 5 development runtime coverage to ObjectMessage conversion, routing, filtering, splitting, broker/translator logic, Jakarta XML, scheduled input, local files and transparent debug components. Add standalone JMS XA controls and a separate candidate runtime patch that passes isolated FTP/SFTP rollback probes; the unmodified snapshot rollback gate remains failing.
+
+- Add explicit Ikasan 5 development fixtures for JMS XA and FTP/SFTP producer rollback, retry, idle readiness and later delivery after an injected commit failure. Document the XA connection-factory requirement and the limits of the rollback coverage. The strict runtime gate currently exposes XA resource-end and closed-connection rollback errors in the V5 snapshot; these remain unresolved.
+
+- Add isolated Ikasan 5 runtime fixtures for local JMS, SMTP, FTP and SFTP, with three deliveries per flow, idle-readiness checks, actual receiver assertions and transport cleanup checks. Run them explicitly with Maven and Java 26; the development pack remains unbundled.
+
+- Extend the unbundled Ikasan 5 development pack with a repeatable compilation fixture for all 27 runtime palette components, all five exception actions, generated business stubs and 27 flow tests. Catalogue additions without coverage fail the contract test; placeholder scenarios are not run by default.
+
 - Start an isolated Ikasan 5 snapshot meta-pack with Java 26/BOM metadata, pinned development help, pack contracts and a generated application/flow-test compilation fixture. The initial generated flow compiles and runs on Java 26 after adapting resource injection to Jakarta annotations. It is not included in the released plugin or migration choices.
 
 - Validate Module and Check again save edited project documents before scanning, preventing stale disk contents from keeping resolved findings visible. Failed saves stop validation with an actionable message.

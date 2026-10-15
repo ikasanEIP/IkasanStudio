@@ -1,0 +1,45 @@
+    @Test public void rollbackRetryAndLaterDelivery() throws Exception {
+        runTest(context -> {
+            try (var diagnostics = new RollbackDiagnostics()) {
+            var module = context.getBean(org.ikasan.spec.module.Module.class);
+            var flow = (org.ikasan.spec.flow.Flow) module.getFlow("Transport");
+            var probe = context.getBean(org.example.transport.transport.TransportConverter.class);
+            var input = context.getBean(org.example.transport.transport.InputFeed.class);
+            var directory = @DIRECTORY@;
+            flow.start();
+            try {
+                org.junit.Assert.assertEquals(org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
+                RuntimeException failure = org.junit.Assert.assertThrows(RuntimeException.class, () -> input.submitNow("first"));
+                org.junit.Assert.assertTrue("The injected commit failure must reach the caller",
+                        failure.toString().contains("Injected commit failure"));
+                org.junit.Assert.assertTrue(probe.rolledBack.await(10, java.util.concurrent.TimeUnit.SECONDS));
+                org.junit.Assert.assertEquals("Real transaction rollback", org.springframework.transaction.support.TransactionSynchronization.STATUS_ROLLED_BACK, probe.completionStatus);
+                assertDeliveredBatchContents(directory, "*.txt", 1);
+                org.junit.Assert.assertEquals("Ready while idle after rollback", org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
+                // Generic submitNow is synchronous and does not auto-retry; its caller retries the same input.
+                input.submitNow("first");
+                assertDeliveredBatchContents(directory, "*.txt", 2, "first");
+                org.junit.Assert.assertEquals("No duplicate attempt", 2, probe.attempts.get());
+                assertReadyWhileIdle(flow);
+                input.submitNow("later");
+                assertDeliveredBatchContents(directory, "*.txt", 3, "later");
+                org.junit.Assert.assertEquals(3, probe.attempts.get());
+                assertReadyWhileIdle(flow);
+            } finally { flow.stop(); }
+            org.junit.Assert.assertEquals(org.ikasan.spec.flow.Flow.STOPPED, flow.getState());
+            diagnostics.assertClean();
+            }
+        });
+        try (var socket = new java.net.Socket()) {
+            socket.connect(new java.net.InetSocketAddress("127.0.0.1", transportPort), 500);
+            org.junit.Assert.fail("Transport listener still open after teardown");
+        } catch (java.net.ConnectException expected) { /* Closed. */ }
+    }
+    private static void assertReadyWhileIdle(org.ikasan.spec.flow.Flow flow) throws Exception {
+        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(1);
+        do {
+            org.junit.Assert.assertEquals("Flow must remain ready while idle", org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
+            Thread.sleep(25);
+        } while (System.nanoTime() < deadline);
+    }
+}

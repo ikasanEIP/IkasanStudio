@@ -94,7 +94,24 @@ public final class ModelMigration {
             findings.add(new Finding(true, "/version", "Supported migration paths are V3.3.9 ↔ V4.1.6."));
             return plan(sourceVersion, targetVersion, sourceJson, target, findings);
         }
-        MigrationRules rules = MigrationRules.load(sourceVersion, targetVersion);
+        return analyseWithRules(sourceJson, MigrationRules.load(sourceVersion, targetVersion));
+    }
+
+    /**
+     * Non-mutating pack-authoring rehearsal with an explicit directional contract.
+     * This does not register a supported migration path or enable workspace/IDE migration.
+     */
+    public static Plan analyseWithRules(String sourceJson, MigrationRules rules) throws Exception {
+        JsonNode parsed = IkasanModelDocuments.toLegacy(JSON.readTree(sourceJson));
+        if (!(parsed instanceof ObjectNode source)) throw new StudioBuildException("The model must be a JSON object.");
+        String sourceVersion = source.path("version").asText();
+        String targetVersion = rules.targetVersion();
+        if (rules.schemaVersion() != 1 || !sourceVersion.equals(rules.sourceVersion())
+                || sourceVersion.equals(targetVersion)) {
+            throw new IllegalArgumentException("Migration rule identity does not match the source model.");
+        }
+        List<Finding> findings = new ArrayList<>();
+        ObjectNode target = source.deepCopy();
         validateTopology(source, findings);
         if (findings.stream().anyMatch(Finding::blocking)) return plan(sourceVersion, targetVersion, sourceJson, target, findings);
         Module sourceModule = ComponentIO.validatePersistedModuleJson(sourceJson, "migration source", false);

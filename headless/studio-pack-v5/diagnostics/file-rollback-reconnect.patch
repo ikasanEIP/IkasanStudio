@@ -1,0 +1,38 @@
+--- a/ikasaneip/component/endpoint/filetransfer/connector-basefiletransfer/src/main/java/org/ikasan/connector/basefiletransfer/outbound/command/DeliverFileCommand.java
++++ b/ikasaneip/component/endpoint/filetransfer/connector-basefiletransfer/src/main/java/org/ikasan/connector/basefiletransfer/outbound/command/DeliverFileCommand.java
+@@ -353,18 +353,23 @@
+         //only need to even try and do anything if an put was actually attempted
+         
+         logger.info("put attempted: [" +this.putAttempted + "]"); //$NON-NLS-1$ //$NON-NLS-2$
+-        if (this.putAttempted){
+-            String originalDirectory = FileUtil.windowsToUnixPathConverter(printWorkingDirectoryName());
+-            changeDirectory(this.outputDirectory);
+-
+-            ClientListEntry deliveredEntry = findFile(this.tempFileName);
+-            if (deliveredEntry!=null){
+-                deleteFile(this.tempFileName);
+-    
+-                // Log the output directory and change back to the working dir
+-                logFileList(listDirectory(CURRENT_DIRECTORY), this.outputDirectory);
+-    
+-                changeDirectory(originalDirectory);
++        if (this.putAttempted) {
++            FileTransferClient client = getClient();
++            client.ensureConnection();
++            try {
++                String originalDirectory = FileUtil.windowsToUnixPathConverter(printWorkingDirectoryName());
++                try {
++                    changeDirectory(this.outputDirectory);
++                    ClientListEntry deliveredEntry = findFile(this.tempFileName);
++                    if (deliveredEntry != null) {
++                        deleteFile(this.tempFileName);
++                        logFileList(listDirectory(CURRENT_DIRECTORY), this.outputDirectory);
++                    }
++                } finally {
++                    changeDirectory(originalDirectory);
++                }
++            } finally {
++                client.disconnect();
+             }
+         }
+         

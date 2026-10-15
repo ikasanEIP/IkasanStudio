@@ -1,0 +1,26 @@
+package org.ikasan.studio.flowtests;
+import java.util.*;
+import org.junit.Test;
+import org.ikasan.studio.flowtests.support.ModuleFlowTestSupport;
+import org.ikasan.testharness.flow.rule.IkasanFlowTestRule;
+
+public class InputTest extends ModuleFlowTestSupport {
+    @Override protected String getFlowName() { return "Inputs"; }
+    @Override protected void defineExpectedPath(IkasanFlowTestRule harness) {
+        for (int i = 0; i < expectedInputCount(); i++) {
+            // Debug components must remain transparent to path expectations.
+            harness.scheduledConsumer("Input"); harness.producer("Output");
+        }
+    }
+    @Override protected void assertExpectedOutput(Object expected, Object actual) {
+        org.junit.Assert.assertTrue(actual instanceof org.quartz.JobExecutionContext);
+        org.junit.Assert.assertEquals(expected, ((org.quartz.JobExecutionContext) actual).getFireTime().toInstant().toString());
+    }
+    @Test public void laterTimerEventsWithoutRestart() throws Exception {
+        runBatches(context -> List.of(
+                triggeredBatch(Map.of("Output", List.of("2000-01-01T00:00:00Z"))),
+                triggeredBatch(Map.of("Output", List.of("2000-01-01T00:00:00Z"))),
+                triggeredBatch(Map.of("Output", List.of("2000-01-01T00:00:00Z")))),
+                (context, harness, input) -> { throw new AssertionError("Timer-only batches must not supply business input"); });
+    }
+}

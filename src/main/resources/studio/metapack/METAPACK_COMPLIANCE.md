@@ -84,7 +84,10 @@ Before a meta-pack is released:
 2. Generate a maximal fixture module exercising every component in the pack.
 3. Run Maven dependency resolution and compile/test the generated project on `javaVersion`.
 4. Run Maven Enforcer dependency convergence (or inspect an equivalent dependency tree).
-5. Confirm no `org.ikasan` dependency resolves to a version other than `ikasanVersion`.
+5. Confirm every Ikasan platform dependency resolves to `ikasanVersion`. Independently versioned
+   artifacts published under `org.ikasan` (such as a third-party library fork) require a documented
+   exact coordinate/version and evidence from the corresponding platform dependency declarations.
+   Audit those exact versions too; do not exempt a whole group or add Maven pins to conceal mismatches.
 6. Test a minimal module as well as the maximal fixture so optional components do not hide missing basics.
 7. Run the Ikasan Studio Gradle test suite; manifest and metadata validation failures are release blockers.
 

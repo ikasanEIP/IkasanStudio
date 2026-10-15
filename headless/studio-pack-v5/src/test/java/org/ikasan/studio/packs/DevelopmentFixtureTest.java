@@ -27,6 +27,19 @@ class DevelopmentFixtureTest {
         var module = Module.moduleBuilder().version(PACK).name("Ikasan5Review")
                 .applicationPackageName("org.example").port("8080").h2PortNumber("8092")
                 .h2WebPortNumber("8093").flows(List.of(flow)).build();
+        var files = render(module);
+        try (var input = Objects.requireNonNull(getClass().getResourceAsStream("/application/console.java.txt"))) {
+            files.put("src/test/java/org/ikasan/studio/flowtests/BlueConsoleTest.java",
+                    new String(input.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+        }
+        Path destination = Path.of(System.getProperty("studio.v5.fixture", temporary.toString()));
+        for (var file : files.entrySet()) {
+            Path target = destination.resolve(file.getKey()); Files.createDirectories(target.getParent());
+            Files.writeString(target, file.getValue());
+        }
+    }
+
+    static Map<String, String> render(Module module) throws Exception {
         var manifest = ComponentLibrary.getMetaPackManifest(PACK);
         assertEquals("26", manifest.javaVersion());
         assertTrue(manifest.compatibilityOverrides().isEmpty(), "Do not downgrade the V5 BOM's ActiveMQ");
@@ -49,10 +62,12 @@ class DevelopmentFixtureTest {
         putJava(files, Generator.STUDIO_BOOT_PACKAGE, "Application", ApplicationTemplate.create(module));
         putJava(files, Generator.STUDIO_BOOT_PACKAGE, "ModuleConfig", ModuleConfigTemplate.create(module));
         putJava(files, Generator.STUDIO_BOOT_PACKAGE, "StudioInjectController", StudioInjectControllerTemplate.create(module));
-        String pkg = Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();
-        putJava(files, pkg, flow.getJavaClassName(), FlowTemplate.create(pkg, module, flow));
-        putJava(files, pkg, FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME + flow.getJavaClassName(),
-                FlowsComponentFactoryTemplate.create(pkg, module, flow));
+        for (var flow : module.getFlows()) {
+            String pkg = Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();
+            putJava(files, pkg, flow.getJavaClassName(), FlowTemplate.create(pkg, module, flow));
+            putJava(files, pkg, FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME + flow.getJavaClassName(),
+                    FlowsComponentFactoryTemplate.create(pkg, module, flow));
+        }
         files.put("src/main/resources/application.properties", PropertiesTemplate.create(module));
         files.put("generated/src/main/model/model.json", ModelTemplate.create(module));
         files.put("src/main/resources/studio-flow-test-wiring.json", ModuleTestWiring.create(module));
@@ -61,15 +76,18 @@ class DevelopmentFixtureTest {
                 + "<properties><version.ikasan>5.0.1-SNAPSHOT</version.ikasan></properties></project>";
         String application = "<project><modelVersion>4.0.0</modelVersion><groupId>org.ikasan.studio.probe</groupId>"
                 + "<artifactId>probe-application</artifactId><version>1.0-SNAPSHOT</version></project>";
-        var scaffold = FlowTestScaffold.render(module, flow, parent, application);
-        var tests = new MavenXpp3Reader().read(new StringReader(scaffold.files().get("user-flow-tests/pom.xml")));
-        for (var plugin : tests.getBuild().getPlugins()) build.addPlugin(plugin.clone());
-        for (var dependency : tests.getDependencies()) {
-            if (!"probe-application".equals(dependency.getArtifactId())) pom.checkIfDependancyAlreadyExists(dependency.clone());
-        }
-        for (var file : scaffold.files().entrySet()) {
-            if (file.getKey().startsWith("user-flow-tests/src/"))
-                files.put(file.getKey().substring("user-flow-tests/".length()), file.getValue());
+        for (var flow : module.getFlows()) {
+            var scaffold = FlowTestScaffold.render(module, flow, parent, application);
+            var tests = new MavenXpp3Reader().read(new StringReader(scaffold.files().get("user-flow-tests/pom.xml")));
+            if (build.getPlugins().size() == 1)
+                for (var plugin : tests.getBuild().getPlugins()) build.addPlugin(plugin.clone());
+            for (var dependency : tests.getDependencies()) {
+                if (!"probe-application".equals(dependency.getArtifactId())) pom.checkIfDependancyAlreadyExists(dependency.clone());
+            }
+            for (var file : scaffold.files().entrySet()) {
+                if (file.getKey().startsWith("user-flow-tests/src/"))
+                    files.put(file.getKey().substring("user-flow-tests/".length()), file.getValue());
+            }
         }
         files.computeIfPresent("src/test/resources/module-test.properties", (path, text) -> text + "\nserver.address=127.0.0.1\n");
         files.put("pom.xml", pom.getModelAsString());
@@ -78,20 +96,16 @@ class DevelopmentFixtureTest {
         assertTrue(files.get("src/main/java/org/ikasan/studio/boot/ModuleConfig.java").contains("jakarta.annotation.Resource"));
         assertTrue(files.get("pom.xml").contains("5.0.1-SNAPSHOT"));
         assertFalse(files.get("pom.xml").contains("6.2.4"));
-        Path destination = Path.of(System.getProperty("studio.v5.fixture", temporary.toString()));
-        for (var file : files.entrySet()) {
-            Path target = destination.resolve(file.getKey()); Files.createDirectories(target.getParent());
-            Files.writeString(target, file.getValue());
-        }
+        return files;
     }
 
-    private static FlowElement element(String key, String name) throws Exception {
+    static FlowElement element(String key, String name) throws Exception {
         var result = FlowElement.flowElementBuilder().componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(PACK, key))
                 .componentName(name).build();
         result.defaultUnsetMandatoryProperties();
         return result;
     }
-    private static void putJava(Map<String, String> files, String pkg, String name, String code) {
+    static void putJava(Map<String, String> files, String pkg, String name, String code) {
         files.put("src/main/java/" + pkg.replace('.', '/') + "/" + name + ".java", code);
     }
 }
