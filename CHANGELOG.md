@@ -75,6 +75,12 @@ release verification and outstanding checks are tracked separately in
 
 ### Added
 
+- Added **Install Meta-Pack…** under Tools → Ikasan Studio for complete custom pack JARs, with metadata, compatibility, resource and template-syntax validation before installation. Installed packs activate after an IDE restart.
+
+- Added **Manage Meta-Packs…** for reviewed external-pack updates, removal, cancellation and restoration of retained revisions. Changes activate after restart, with artifact integrity checks and recovery from interrupted operations. Component overlays and simultaneous revisions of the same pack ID remain unsupported.
+
+- Saved model documents now record the selected meta-pack revision and block loading when it differs from the available revision. Older unlocked models acquire a lock on save. **Adopt Installed Meta-Pack Revision…** provides explicit, validated adoption with a model backup; regenerate, review and test application output afterwards.
+
 - Flow-test scaffolds now share lifecycle/assertion helpers, support explicit filtering/routing scenarios and generate JMS queue input helpers with receiver-side text checks for simple queue-to-queue flows.
 
 - Generated flow tests load shared settings from a preserved, developer-owned `module-test.properties` file, with module property keys and environment-variable guidance.

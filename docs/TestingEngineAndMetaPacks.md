@@ -144,3 +144,6 @@ Individual pack smoke contracts supplement the combined regression suite; run th
 ActiveMQ ObjectMessage trust generation and provider runtime checks are documented in [JMS Object Messages](JmsObjectMessages.md). Run them with `./gradlew -p headless :studio-bundled-packs:test --tests '*Trusted*'`.
 
 See [Generated Java warning review](GeneratedCodeWarnings.md) for the template Javadoc checks, fixes, and remaining application-specific warning limits.
+
+
+External pack lifecycle coverage lives in `headless/studio-test-kit` (`ExternalMetaPackTest`): isolated restart activation, update/rollback, cancel/remove/restore, immutable revisions, fingerprints and model revision mismatches. `IkasanModelDocumentsTest` covers adding locks to older documents, rejecting mismatched/malformed locks, explicit adoption, original-file backups and stale/forged review rejection. Run the full headless suites after changes; focused selectors are development checks rather than release certification.

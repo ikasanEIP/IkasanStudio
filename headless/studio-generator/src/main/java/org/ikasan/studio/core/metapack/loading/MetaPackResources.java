@@ -26,6 +26,7 @@ public final class MetaPackResources {
         for (var provider : ServiceLoader.load(MetaPackDirectoryProvider.class, bundled())) {
             var directory = provider.directory();
             if (!Files.exists(directory)) continue;
+            problems.putAll(MetaPackStore.activatePending(directory));
             try (var files = Files.list(directory)) {
                 for (var file : files.filter(p -> p.getFileName().toString().endsWith(".jar")).sorted().toList()) {
                     try {
@@ -49,6 +50,8 @@ public final class MetaPackResources {
         }
         return new SourceIndex(Map.copyOf(result), Map.copyOf(problems));
     }
+
+    public static void initialize() { /* Class initialization fixes the sources for this session. */ }
 
     public static Map<String, String> installationProblems() { return SOURCES.problems(); }
 

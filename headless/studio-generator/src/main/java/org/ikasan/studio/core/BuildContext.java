@@ -15,6 +15,8 @@ public class BuildContext {
     public static Configuration getFreemarkerConfig(String version) {
         Configuration cfg = new Configuration(VERSION_2_3_31);
             cfg.setClassLoaderForTemplateLoading(org.ikasan.studio.core.metapack.loading.MetaPackResources.templateLoader(version), String.format(FREEMARKER_TEMPLATE_PATH_FORMAT, version));
+            // Release inspected JAR handles promptly, including on Windows before publishing a staged pack.
+            ((freemarker.cache.URLTemplateLoader) cfg.getTemplateLoader()).setURLConnectionUsesCaches(false);
             cfg.setIncompatibleImprovements(new Version(2, 3, 20));
             cfg.setDefaultEncoding("UTF-8");
             cfg.setWhitespaceStripping(true);

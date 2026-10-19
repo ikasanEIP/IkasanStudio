@@ -39,13 +39,24 @@ public final class MetaPackInstaller {
     }
 
     public static synchronized MetaPackManifest install(Path source, Path directory, Runnable checkCancelled) throws Exception {
-        Files.createDirectories(directory);
+        return install(source, directory, checkCancelled, null);
+    }
+
+    public static MetaPackManifest install(Path source, Path directory, Runnable checkCancelled, MetaPackStore.Candidate reviewed) throws Exception {
+        MetaPackResources.initialize();
+        return MetaPackStore.locked(directory, () -> installLocked(source, directory, checkCancelled, reviewed));
+    }
+
+    private static MetaPackManifest installLocked(Path source, Path directory, Runnable checkCancelled, MetaPackStore.Candidate reviewed) throws Exception {
         Path staged = Files.createTempFile(directory, ".install-", ".tmp");
         try {
             checkCancelled.run();
             Files.copy(source, staged, StandardCopyOption.REPLACE_EXISTING);
             var archive = MetaPackArchive.open(staged);
             var manifest = validate(archive);
+            if (reviewed != null && (!manifest.equals(reviewed.manifest()) || !MetaPackStore.sha256(staged).equals(reviewed.sha256())))
+                throw new IOException("The candidate changed after review; review again");
+            MetaPackStore.requireImmutableRevision(directory, manifest, MetaPackStore.sha256(staged));
             if (MetaPackResources.resource("studio/metapack/" + archive.id() + "/metapack.json") != null) {
                 throw new IOException("Pack ID " + archive.id() + " is already available; existing packs cannot be replaced");
             }

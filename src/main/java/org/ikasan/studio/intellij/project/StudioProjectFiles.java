@@ -402,7 +402,7 @@ public class StudioProjectFiles {
         }
     }
 
-    private static Path getModelJsonPath(Project project) {
+    public static Path getModelJsonPath(Project project) {
         VirtualFile baseDir = getProjectBaseDir(project);
         return baseDir == null ? null : baseDir.toNioPath().resolve(GENERATED_CONTENT_ROOT.substring(1))
                 .resolve(SRC_MAIN).resolve(JSON_MODEL_SUB_DIR).resolve(MODEL_JSON);

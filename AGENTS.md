@@ -120,6 +120,10 @@ Meta-pack sources live under `src/main/resources/studio/metapack/`. The bundled 
 
 `headless/studio-pack-v3` and `headless/studio-pack-v4` package the respective resource directories; `studio-bundled-packs` selects their exact revisions. The root plugin excludes these resources from its own resource source set to avoid duplicate packaging. Follow the [meta-pack authoring guide](src/main/resources/studio/metapack/METAPACK.md), [compliance requirements](src/main/resources/studio/metapack/METAPACK_COMPLIANCE.md), and [independent pack release guide](docs/IndependentMetaPackArtifacts.md) when changing or adding packs.
 
+Complete external pack JARs can be installed through **Tools → Ikasan Studio → Install Meta-Pack…**. **Manage Meta-Packs…** schedules external updates/removal for restart, cancels pending changes and restores retained artifacts. `core.metapack.loading.MetaPackStore` owns pending operations, integrity checks and immutable history; it never replaces a session's active JAR during a management operation. Bundled revisions remain controlled by plugin distribution.
+
+Saved document-format models record `studio.metaPackRevision` when revision metadata exists. `IkasanModelDocuments` rejects revision mismatches before restoring components; legacy/unlocked models acquire a lock on save. **Adopt Installed Meta-Pack Revision…** provides explicit, validated adoption with a model backup. One revision per ID is active in an IDE session; locks protect projects from silent upgrades but do not provide simultaneous per-project revision resolution. See [custom-pack handover](docs/CustomMetaPackHandover.md) for lifecycle and remaining limitations.
+
 The meta-pack layer is the compatibility boundary between the version-neutral Studio model and generated code for a particular Ikasan version. Do not leak meta-pack implementation complexity into the first-run UX unless a user must make a meaningful choice.
 
 ### Ancillary Maven projects

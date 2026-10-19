@@ -14,7 +14,9 @@ A teammate can develop and test a complete meta-pack in a separate Java/Gradle r
 | Remote artifact publication | Not configured; requires repository and release setup |
 | Custom component overlays / base-pack inheritance | Not implemented; supply a complete pack |
 | Installing an external JAR through Studio | Tools → Ikasan Studio → Install Meta-Pack…; activation after IDE restart |
-| Project-specific pack revision selection | Not implemented; saved models identify the pack ID |
+| Project revision guard | Saved documents record the revision; mismatches block loading until restoration or explicit adoption |
+| Managed lifecycle | Updates, removal, cancellation and restoring retained revisions through Manage Meta-Packs |
+| Concurrent revisions of the same ID | Not implemented; one active revision per ID in each IDE session |
 | Runtime certification | Must be performed separately; validation/rendering tests do not establish delivery |
 
 The supported bundled packs remain V3.3.9 and V4.1.6. An experimental directory alone does not establish support: it must be wired into packaging, contracts and plugin distribution.
@@ -126,7 +128,33 @@ Use a Studio build containing this installer implementation. The first implement
 
 Installation copies the validated JAR into `<IDE configuration directory>/ikasan-studio/meta-packs/<id>.jar`, outside the plugin installation. Plugin updates therefore do not overwrite the pack. Sources are fixed for the IDE session; installation does not change templates used by open projects. Duplicate IDs, including bundled IDs and pending installations, are rejected. Two manually supplied JARs with the same external ID make that ID unavailable, rather than selecting a revision by filename order. Invalid sources produce startup diagnostics and are excluded from the chooser.
 
-For removal or replacement in this initial implementation, close **all instances of that IDE configuration**, remove the old external JAR, and restart. Install the replacement through the action and restart again. Do not replace files while the IDE is running. Keep pack revisions immutable and retain a backup before replacing one; projects still identify only the pack ID, so the next session uses the installed revision for every project selecting it. A managed update/uninstall UI and project revision locking are not implemented.
+### Update, remove or restore an external pack
+
+Open **Tools → Ikasan Studio → Manage Meta-Packs…** with a project open. This lists external installations and their pending operations; bundled packs remain managed by plugin releases.
+
+- **Update from JAR…** validates the candidate and shows the installed and proposed revisions before scheduling it. The pack ID and target Ikasan runtime must remain the same; use a new pack ID and explicit migration for another runtime. The update must have a different `packVersion`. A previously retained revision cannot be reused with different artifact bytes.
+- **Remove after Restart…** schedules removal and explains the impact on projects using the pack.
+- **Cancel Pending Change** cancels a scheduled update or removal before restart.
+- **Restore Previous Revision…** selects a retained JAR and schedules rollback using the same review and validation path. Removed packs with retained backups also appear in this dialog; restoring one installs its retained JAR for activation after restart.
+
+Restart IntelliJ IDEA after scheduling a change. The current session keeps using its current JAR. Before activation, Studio checks the recorded SHA-256 values of the current and candidate files, saves the previous JAR under `.history/<id>/`, then applies the operation. A stale or altered pending artifact leaves the current pack in place and produces a diagnostic. `.pending/` contains operations awaiting activation; `.management.lock` coordinates filesystem changes across IDE instances. Use the UI rather than editing those files or replacing active JARs manually.
+
+Pending changes are processed when pack resources are first initialized in the next session. An IDE configuration shared by several running IDE processes must be restarted consistently; separate configurations remain independent. Filesystem checks catch changes made after review; this is not a mechanism for live pack replacement.
+
+### Project revision locks and deliberate adoption
+
+On the next normal save, a document-format model records `studio.metaPackRevision` alongside `studio.metaPack`. Older documents and legacy models without a lock remain readable and gain a lock when saved. Schema-1 packs without revision metadata remain unpinned. These new lock fields require a Studio build that supports them; older strict document readers may reject them.
+
+If the available pack revision differs from a saved lock, Studio rejects the model before reconstructing its components and keeps normal persistence blocked. It does not substitute the installed revision. This guard also applies to headless document loading. Existing models are not rewritten merely because Studio starts or a pack is installed.
+
+Two recovery routes are available:
+
+1. Restore the required pack revision in **Manage Meta-Packs…**, restart and reload the project. Reinstall an exact supplied artifact if there is no retained copy.
+2. After reviewing the pack change, choose **Tools → Ikasan Studio → Adopt Installed Meta-Pack Revision…**. Save open project files and apply/discard pending property edits first. Studio validates the existing model against the installed revision and shows the old/new lock for confirmation. Applying the review changes only the revision field semantically, retains the exact previous file as `model.json.bak.1` and reloads through normal background initialization. A changed source file or invalid model cancels adoption.
+
+Adoption does not regenerate application files. Regenerate and inspect the output, resolve dependencies, build and test against the real runtime before running it. Structural validation cannot establish business/API compatibility. Backups with an unavailable revision remain protected by the same loading guard; restore that pack revision before using such a model backup.
+
+There is still one active revision of a given pack ID per IDE session. Locks prevent an unintended upgrade; they do not let two projects use different revisions of that ID concurrently. Managed updates/removal and revision mismatch protection are implemented; simultaneous revision resolution, project-specific artifact provisioning, component overlays and automatic updates remain future work.
 
 The installation directory is local to an IntelliJ configuration; it is not a public marketplace or an automatic update service. Remote development/Split Mode installation and exporting installed packs with the offline migration tools have not been implemented or verified. The offline tools distribution still includes the official bundled packs only.
 

@@ -92,6 +92,13 @@ public final class StudioProjectInitialisationService implements Disposable {
                 .submit(AppExecutorUtil.getAppExecutorService());
     }
 
+    /** Restarts background loading after an explicit, validated revision-lock adoption. */
+    public void reloadModel() {
+        if (disposed || project.isDisposed() || inProgress.get()) return;
+        state = State.NOT_STARTED;
+        start();
+    }
+
     public void markReady() {
         inProgress.set(false);
         transition(State.READY, null);

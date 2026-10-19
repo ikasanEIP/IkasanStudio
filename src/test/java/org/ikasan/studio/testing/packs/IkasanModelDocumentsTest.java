@@ -23,6 +23,56 @@ class IkasanModelDocumentsTest {
         return Files.readString(Path.of("src/test/resources/org/ikasan/studio", name));
     }
 
+    @Test void savedDocumentsLockTheirPackRevisionAndOldDocumentsAcquireALockOnSave() throws Exception {
+        var module = ComponentIO.validatePersistedModuleJson(fixture("populated_module.json"), "legacy", false);
+        ObjectNode saved = (ObjectNode) json.readTree(ModelTemplate.create(module));
+        String current = org.ikasan.studio.core.metapack.ComponentLibrary.getMetaPackManifest(module.getVersion()).packVersion();
+        assertThat(saved.at("/studio/metaPackRevision").asText()).isEqualTo(current);
+        ((ObjectNode) saved.get("studio")).remove("metaPackRevision");
+        var olderDocument = ComponentIO.validatePersistedModuleJson(saved.toString(), "older document", false);
+        assertThat(json.readTree(ModelTemplate.create(olderDocument)).at("/studio/metaPackRevision").asText()).isEqualTo(current);
+    }
+
+    @Test void mismatchedRevisionIsRejectedAndExplicitAdoptionRetainsTheOriginal(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
+        var module = ComponentIO.validatePersistedModuleJson(fixture("populated_module.json"), "legacy", false);
+        ObjectNode original = (ObjectNode) json.readTree(ModelTemplate.create(module));
+        ((ObjectNode) original.get("studio")).put("metaPackRevision", "0.0.1");
+        String source = original.toString();
+        assertThatThrownBy(() -> ComponentIO.validatePersistedModuleJson(source, "locked", false))
+                .hasMessageContaining("locked to revision 0.0.1");
+        var plan = org.ikasan.studio.core.metapack.MetaPackRevisionLock.preview(source);
+        ObjectNode expected = original.deepCopy();
+        ((ObjectNode) expected.get("studio")).put("metaPackRevision", plan.availableRevision());
+        assertThat(json.readTree(plan.targetJson())).isEqualTo(expected);
+        Path model = directory.resolve("model.json");
+        Files.writeString(model, source);
+        org.ikasan.studio.core.metapack.MetaPackRevisionLock.apply(model, plan);
+        assertThat(Files.readString(model.resolveSibling("model.json.bak.1"))).isEqualTo(source);
+        assertThat(ComponentIO.validatePersistedModuleJson(Files.readString(model), "adopted", false).getVersion()).isEqualTo(module.getVersion());
+    }
+
+    @Test void revisionAdoptionRejectsStaleOrForgedReviews(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
+        ObjectNode original = (ObjectNode) json.readTree(ModelTemplate.create(ComponentIO.validatePersistedModuleJson(fixture("populated_module.json"), "legacy", false)));
+        ((ObjectNode) original.get("studio")).put("metaPackRevision", "0.0.1");
+        var plan = org.ikasan.studio.core.metapack.MetaPackRevisionLock.preview(original.toString());
+        Path model = directory.resolve("model.json");
+        Files.writeString(model, original + "\n");
+        assertThatThrownBy(() -> org.ikasan.studio.core.metapack.MetaPackRevisionLock.apply(model, plan)).hasMessageContaining("changed after review");
+        Files.writeString(model, original.toString());
+        var forged = new org.ikasan.studio.core.metapack.MetaPackRevisionLock.Plan(plan.packId(), plan.previousRevision(), plan.availableRevision(), plan.sourceJson(), "{}");
+        assertThatThrownBy(() -> org.ikasan.studio.core.metapack.MetaPackRevisionLock.apply(model, forged)).hasMessageContaining("stale");
+        assertThat(Files.readString(model)).isEqualTo(original.toString());
+        assertThat(Files.exists(model.resolveSibling("model.json.bak.1"))).isFalse();
+    }
+
+    @Test void malformedRevisionLocksAreRejected() throws Exception {
+        ObjectNode source = (ObjectNode) json.readTree(ModelTemplate.create(ComponentIO.validatePersistedModuleJson(fixture("populated_module.json"), "legacy", false)));
+        for (var value : java.util.List.of(json.nullNode(), json.getNodeFactory().numberNode(42), json.getNodeFactory().textNode(""))) {
+            ((ObjectNode) source.get("studio")).set("metaPackRevision", value);
+            assertThatThrownBy(() -> ComponentIO.validatePersistedModuleJson(source.toString(), "malformed lock", false)).hasMessageContaining("metaPackRevision");
+        }
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"populated_module.json", "populated_module_with_router.json", "populated_module_with_exception_resolver.json",
             "populated_module_just_consumer_and_null_properties.json", "populated_module_with_empty_elements.json"})

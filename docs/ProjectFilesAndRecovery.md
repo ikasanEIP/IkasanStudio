@@ -92,3 +92,10 @@ Studio validates the candidate and existing model, writes a temporary sibling an
 For a failed version migration, follow [migration snapshot restoration](IkasanVersionMigration.md#restore-versus-migrate-back). Do not replace only the model while leaving the project POM and generated Java on another Ikasan version.
 
 Models, adjacent backups and migration snapshots can contain entered credentials and endpoint details. Apply the same access controls and sharing review to backups as to the project. Use your team's secret-management conventions and do not commit actual credentials.
+
+
+## Meta-pack revision mismatch
+
+New saves of configured document-format models include `studio.metaPackRevision`. If the installed pack has another revision, Studio preserves the file and blocks loading/saving rather than silently changing its metadata and generation templates. Older documents without a lock are still accepted and gain one on save.
+
+Restore the required external revision through **Tools → Ikasan Studio → Manage Meta-Packs…** and restart, or review **Adopt Installed Meta-Pack Revision…** to explicitly update the model lock. Adoption validates the model with the installed revision, keeps the original as `model.json.bak.1`, and requires a fresh review if the file changes. Regenerate, inspect and test application output afterwards. A model backup locked to an unavailable revision also needs that revision restored. See [meta-pack lifecycle and locks](CustomMetaPackHandover.md#project-revision-locks-and-deliberate-adoption).

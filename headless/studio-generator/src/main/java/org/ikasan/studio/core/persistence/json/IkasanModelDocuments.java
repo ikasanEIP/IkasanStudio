@@ -57,6 +57,8 @@ public final class IkasanModelDocuments {
             root.set("module", module);
             root.set("configuration", configs);
             ObjectNode studio = root.putObject("studio").put("metaPack", pack);
+            String revision = ComponentLibrary.getMetaPackManifest(pack).packVersion();
+            if (revision != null) studio.put("metaPackRevision", revision);
             ObjectNode settings = legacy.deepCopy();
             settings.remove(List.of("version", "flows"));
             if (retained != null) module.remove(MODULE_FIELDS);
@@ -192,9 +194,16 @@ public final class IkasanModelDocuments {
         knownFields(object(input, "model"), Set.of("modelFormat", "formatVersion", "module", "configuration", "studio"));
         ObjectNode module = object(input.get("module"), "module");
         ObjectNode studio = object(input.get("studio"), "studio");
-        knownFields(studio, Set.of("metaPack", "properties", "flows"));
+        knownFields(studio, Set.of("metaPack", "metaPackRevision", "properties", "flows"));
         String pack = text(studio, "metaPack");
         try {
+            if (studio.has("metaPackRevision")) {
+                String requiredRevision = text(studio, "metaPackRevision");
+                String availableRevision = ComponentLibrary.getMetaPackManifest(pack).packVersion();
+                if (!requiredRevision.equals(availableRevision)) throw invalid("Meta-pack " + pack
+                        + " is locked to revision " + requiredRevision + ", but the available revision is " + availableRevision
+                        + ". Restore the required revision using Manage Meta-Packs, or review and explicitly adopt the available revision. The model is unchanged.");
+            }
             if (!ComponentLibrary.getMetaPackManifest(pack).ikasanVersion().equals(text(module, "ikasanVersion")))
                 throw invalid("module.ikasanVersion does not match studio.metaPack");
             Map<String, ObjectNode> configs = index(requiredArray(input.get("configuration"), "configuration"), "configurationId", "configuration");
