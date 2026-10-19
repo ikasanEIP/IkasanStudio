@@ -62,7 +62,7 @@ The existing `core.TestFixtures` remains shared by older model/UI integration te
 
 ## What passing means
 
-Pack tests currently verify metadata and rendered output. They do not certify compilation or startup against the target Ikasan BOM. Generated-project compilation, startup and independently published pack artifacts remain subsequent work. The split preserves existing assertions and makes that next extraction possible without treating template snapshots as engine correctness.
+Pack tests currently verify metadata and rendered output. They do not certify compilation or startup against the target Ikasan BOM. Generated-project compilation and startup remain separate acceptance checks. Independently versioned pack JARs and local publication are implemented; remote publication is not configured. The split preserves existing assertions and makes that next extraction possible without treating template snapshots as engine correctness.
 
 ## Focused tests and reports
 
@@ -132,7 +132,7 @@ Independent binary/source JARs and Maven publication metadata are now available 
 
 ## Independently versioned pack artifacts
 
-All artifacts remain in this repository and use the same CI job. `./gradlew -p headless test` runs the engine, test-kit, individual pack and combined official-pack suites; root `./gradlew check` also includes all five headless module checks.
+All artifacts remain in this repository and use the same CI job. `./gradlew -p headless test` runs the engine, test-kit, individual pack and combined official-pack suites; root `./gradlew check` also includes the headless module checks.
 
 - `./gradlew -p headless :studio-pack-v3:test` validates and renders V3 in isolation.
 - `./gradlew -p headless :studio-pack-v4:test` validates and renders V4 in isolation.

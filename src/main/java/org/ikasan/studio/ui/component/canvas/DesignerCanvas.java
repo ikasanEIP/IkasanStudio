@@ -165,6 +165,15 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         return ThemeAwareColors.getBackgroundColor();
     }
 
+    /** Called on the EDT after background initialization has validated the session's packs. */
+    public void setAvailableMetaPacks(List<String> packs) {
+        Object selected = metaDataVersionComboBox.getSelectedItem();
+        var sorted = new ArrayList<>(packs);
+        sorted.sort(String::compareToIgnoreCase);
+        metaDataVersionComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(sorted.toArray(String[]::new)));
+        if (selected instanceof String version && sorted.contains(version)) metaDataVersionComboBox.setSelectedItem(version);
+    }
+
     public DesignerCanvas(Project project) {
         this.project = project;
         this.flowClipboardActions = new FlowClipboardActions(project, this);
@@ -214,9 +223,8 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         }
         setTransferHandler(new CanvasImportTransferHandler( this));
 
-        List<String> installedMetapacks = ComponentLibrary.getMetapackList();
-        installedMetapacks.sort(String::compareToIgnoreCase);
-        metaDataVersionComboBox = new ComboBox<>(installedMetapacks.toArray(String[]::new));
+        // Discovery and validation belong to the background initialization service.
+        metaDataVersionComboBox = new ComboBox<>(new String[0]);
         metaDataVersionComboBox.getAccessibleContext().setAccessibleName(StudioBundle.message("label.IkasanVersion"));
         startButton.setToolTipText(StudioBundle.message("tooltip.ConfigureThisModuleUsingTheSelectedIkasanVersion"));
         newModulePanel = createNewModulePanel();

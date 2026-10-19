@@ -26,6 +26,26 @@ import static org.mockito.Mockito.when;
 class DesignerCanvasTest {
 
     @Test
+    void editorShellAndPublishedPackChoicesDoNotDiscoverResourcesOnTheEdt() throws Exception {
+        Project project = mock(Project.class);
+        var context = mock(org.ikasan.studio.ui.UiContext.class);
+        when(project.getService(org.ikasan.studio.ui.UiContext.class)).thenReturn(context);
+        when(context.getOptions()).thenReturn(new org.ikasan.studio.ui.state.StudioSessionOptions());
+        javax.swing.SwingUtilities.invokeAndWait(() -> {
+            try (var libraries = org.mockito.Mockito.mockStatic(org.ikasan.studio.core.metapack.ComponentLibrary.class);
+                 var resources = org.mockito.Mockito.mockStatic(org.ikasan.studio.core.metapack.loading.MetaPackResources.class)) {
+                var canvas = new DesignerCanvas(project);
+                try {
+                    canvas.setAvailableMetaPacks(List.of("V4.1.6", "AcmePack"));
+                    canvas.setSelectedMetapackVersion("AcmePack");
+                    libraries.verifyNoInteractions();
+                    resources.verifyNoInteractions();
+                } finally { canvas.disposeCanvas(); }
+            }
+        });
+    }
+
+    @Test
     void moduleActionsAreConfinedToTheCanvasBackgroundMenu() {
         Project project = mock(Project.class);
         var context = mock(org.ikasan.studio.ui.UiContext.class);

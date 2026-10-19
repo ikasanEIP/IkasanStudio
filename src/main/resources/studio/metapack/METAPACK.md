@@ -81,7 +81,9 @@ The manifest declares the pack's exact build platform:
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "packVersion": "0.1.0-SNAPSHOT",
+  "generatorApiVersion": 1,
   "id": "V4.1.6",
   "ikasanVersion": "4.1.6",
   "javaVersion": "17",
@@ -152,6 +154,9 @@ The usual process is:
 
 Use the corresponding Ikasan source tree when validating APIs and generated code. Do not infer compatibility
 from another major version.
+
+For a separate custom-pack project and the install/restart workflow, see the
+[custom meta-pack handover](../../../../../docs/CustomMetaPackHandover.md).
 
 ## Further requirements
 

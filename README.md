@@ -160,6 +160,7 @@ Studio validates proposals and applies them according to its approval settings. 
 | [Headless generator and test kit](headless/README.md)                             | Standalone modules, source ownership and build commands            |
 | [Meta-pack authoring](src/main/resources/studio/metapack/METAPACK.md)             | Manifests, descriptors, templates and pack lifecycle               |
 | [Meta-pack compliance](src/main/resources/studio/metapack/METAPACK_COMPLIANCE.md) | Required metadata, dependencies and verification                   |
+| [Custom meta-pack handover](docs/CustomMetaPackHandover.md) | Starting a separate pack project, acceptance and Studio delivery |
 | [Independent pack artifacts](docs/IndependentMetaPackArtifacts.md)                | Pack versioning, compatibility and publication commands            |
 | [Engine and meta-pack testing](docs/TestingEngineAndMetaPacks.md)                 | Test ownership, focused suites and expected outputs                |
 | [Architecture boundary tests](docs/ArchitectureBoundaryTests.md)                  | Dependency rules and how to address violations                     |
@@ -224,7 +225,7 @@ To package while another sandbox is running, use `./gradlew buildPlugin -Pstudio
 | `ikasan-studio-ancillary/`                             | Separately versioned Maven archetype and IDE mediator                          |
 | `src/test/java/`, `src/testHarness/java/`              | Root automated tests and the separate visual harness suite                     |
 
-The root Gradle build includes `headless/` as a composite build. Core generation is shared by the plugin and standalone consumers. Meta-packs adapt the version-neutral model to specific Ikasan APIs; adding a pack requires packaging and contract validation, not just a new resource directory. The standalone migration CLI shares this engine and can be exported through **Tools → Ikasan Studio → Export Offline Migration Tools…**; see [command-line migration and verification](docs/CommandLineMigration.md). A downloadable meta-pack marketplace is not currently provided.
+The root Gradle build includes `headless/` as a composite build. Core generation is shared by the plugin and standalone consumers. Meta-packs adapt the version-neutral model to specific Ikasan APIs; adding a pack requires packaging and contract validation, not just a new resource directory. The standalone migration CLI shares this engine and can be exported through **Tools → Ikasan Studio → Export Offline Migration Tools…**; see [command-line migration and verification](docs/CommandLineMigration.md). Complete custom meta-pack JARs can be installed through **Tools → Ikasan Studio → Install Meta-Pack…**, with activation after an IDE restart; see the [handover](docs/CustomMetaPackHandover.md#install-into-studio). A public meta-pack marketplace and component overlays are not currently provided.
 
 ### Manual archetype fallback
 

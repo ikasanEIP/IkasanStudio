@@ -60,9 +60,16 @@ public final class ComponentIconProvider {
         return loadUncached(pngPath, fallbackPngPath, description);
     }
 
+    private static URL resource(String path) {
+        // General UI artwork must not trigger archive discovery while the editor shell is constructed on the EDT.
+        return path.startsWith("studio/metapack/")
+                ? org.ikasan.studio.core.metapack.loading.MetaPackResources.resource(path)
+                : ComponentIconProvider.class.getClassLoader().getResource(path);
+    }
+
     private static Icon loadUncached(String pngPath, String fallbackPngPath, String description) {
         String svgPath = FilenameUtils.removeExtension(pngPath) + ".svg";
-        URL svgUrl = ComponentIconProvider.class.getClassLoader().getResource(svgPath);
+        URL svgUrl = resource(svgPath);
         if (svgUrl != null) {
             Icon svgIcon = IconLoader.findIcon(svgUrl);
             if (svgIcon != null) {
@@ -70,10 +77,10 @@ public final class ComponentIconProvider {
             }
             LOG.warn("STUDIO: Could not load SVG icon " + svgPath + ", using PNG fallback");
         }
-        URL pngUrl = ComponentIconProvider.class.getClassLoader().getResource(pngPath);
+        URL pngUrl = resource(pngPath);
         if (pngUrl == null && fallbackPngPath != null) {
             LOG.warn("STUDIO: Could not load icon " + pngPath + ", using default");
-            pngUrl = ComponentIconProvider.class.getClassLoader().getResource(fallbackPngPath);
+            pngUrl = resource(fallbackPngPath);
         }
         return new ImageIcon(pngUrl, description);
     }

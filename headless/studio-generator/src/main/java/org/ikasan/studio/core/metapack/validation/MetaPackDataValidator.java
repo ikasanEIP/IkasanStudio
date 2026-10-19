@@ -35,12 +35,12 @@ final class MetaPackDataValidator {
 
     private MetaPackDataValidator() { }
 
-    static void validate(String pack, Map<String, ComponentMeta> components) throws StudioBuildException {
+    static void validate(String pack, String ikasanVersion, Map<String, ComponentMeta> components) throws StudioBuildException {
         List<String> problems = new ArrayList<>();
         if (components == null || components.isEmpty()) {
             problems.add("library: contains no valid components");
         } else {
-            validateContents(pack, components, problems);
+            validateContents(pack, "V" + ikasanVersion, components, problems);
         }
         if (!problems.isEmpty()) {
             throw new StudioBuildException("Meta-pack " + pack + " contains invalid metadata:\n - "
@@ -48,7 +48,7 @@ final class MetaPackDataValidator {
         }
     }
 
-    private static void validateContents(String pack, Map<String, ComponentMeta> components, List<String> problems) {
+    private static void validateContents(String pack, String platform, Map<String, ComponentMeta> components, List<String> problems) {
         Set<ComponentTypeMeta> checkedTypes = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
         Map<Integer, String> paletteOrders = new HashMap<>();
         Map<String, String> identities = new HashMap<>();
@@ -66,9 +66,9 @@ final class MetaPackDataValidator {
             url(problems, pack, path + ".webHelpURL", component.getWebHelpURL());
             types(problems, path + ".expectedInputTypes", component.getExpectedInputTypes());
             type(problems, path + ".producedOutputType", component.getProducedOutputType());
-            namespace(problems, pack, path + ".implementingClass", component.getImplementingClass());
-            namespace(problems, pack, path + ".expectedInputTypes", component.getExpectedInputTypes());
-            namespace(problems, pack, path + ".producedOutputType", component.getProducedOutputType());
+            namespace(problems, platform, path + ".implementingClass", component.getImplementingClass());
+            namespace(problems, platform, path + ".expectedInputTypes", component.getExpectedInputTypes());
+            namespace(problems, platform, path + ".producedOutputType", component.getProducedOutputType());
             if (component.getRuntimeConfigurationProperties() == null) {
                 add(problems, path + ".runtimeConfigurationProperties", "must be an array, not null");
             } else if (!component.getRuntimeConfigurationProperties().isEmpty()) {
@@ -98,7 +98,7 @@ final class MetaPackDataValidator {
                 add(problems, path + ".endpointTextKey", "references unknown property " + component.getEndpointTextKey());
             }
             if (component.getImportConfigurationClasses() != null) {
-                for (String imported : component.getImportConfigurationClasses()) { javaName(problems, path + ".importConfigurationClasses", imported); namespace(problems, pack, path + ".importConfigurationClasses", imported); }
+                for (String imported : component.getImportConfigurationClasses()) { javaName(problems, path + ".importConfigurationClasses", imported); namespace(problems, platform, path + ".importConfigurationClasses", imported); }
             }
             if (component.getImportResources() != null) {
                 for (String imported : component.getImportResources()) if (imported == null || !imported.startsWith("classpath:")) add(problems, path + ".importResources", "must use a classpath: resource: " + imported);
@@ -112,7 +112,7 @@ final class MetaPackDataValidator {
             String previous = identities.putIfAbsent(identity, component.getName());
             if (previous != null) add(problems, path, "duplicates deserialisation identity of '" + previous + "': " + identity);
 
-            properties(pack, component, path, problems);
+            properties(pack, platform, component, path, problems);
             recipes(pack, component, path, problems);
             if (category != null && !component.isEndpoint()) {
                 resource(problems, path + ".smallIcon", component.getIconResourceDirectory() + "/small.png");
@@ -138,7 +138,7 @@ final class MetaPackDataValidator {
         help(problems, path + ".helpText", category.getHelpText());
     }
 
-    private static void properties(String pack, ComponentMeta component, String path, List<String> problems) {
+    private static void properties(String pack, String platform, ComponentMeta component, String path, List<String> problems) {
         Map<String, ComponentPropertyMeta> properties = component.getAllowableProperties();
         if (properties == null) { add(problems, path + ".allowableProperties", "is required"); return; }
         Map<String, String> displayOrders = new HashMap<>();
@@ -151,7 +151,7 @@ final class MetaPackDataValidator {
             help(problems, propertyPath + ".helpText", property.getHelpText());
             method(problems, propertyPath + ".setterMethod", property.getSetterMethod());
             type(problems, propertyPath + ".usageDataType", property.getUsageDataType());
-            namespace(problems, pack, propertyPath + ".usageDataType", property.getUsageDataType());
+            namespace(problems, platform, propertyPath + ".usageDataType", property.getUsageDataType());
             if (property.getValidation() != null && !property.getValidation().isBlank()) {
                 try { Pattern.compile(property.getValidation()); }
                 catch (PatternSyntaxException e) { add(problems, propertyPath + ".validation", "invalid regular expression: " + e.getMessage()); }
@@ -275,7 +275,7 @@ final class MetaPackDataValidator {
 
     private static boolean missing(String resource) {
         return resource == null || resource.startsWith("null/")
-                || MetaPackDataValidator.class.getClassLoader().getResource(resource) == null;
+                || org.ikasan.studio.core.metapack.loading.MetaPackResources.resource(resource) == null;
     }
 
     private static void required(List<String> problems, String path, String value) {

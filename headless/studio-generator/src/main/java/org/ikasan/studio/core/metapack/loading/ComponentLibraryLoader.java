@@ -30,7 +30,7 @@ public final class ComponentLibraryLoader {
 
     public boolean hasManifest(String version) {
         String path = METAPACK_BASE_DIRECTORY + "/" + version + "/metapack.json";
-        return ComponentLibraryLoader.class.getClassLoader().getResource(path) != null;
+        return MetaPackResources.resource(path) != null;
     }
 
     public MetaPackManifest loadManifest(String version) throws StudioBuildException {
@@ -111,7 +111,7 @@ public final class ComponentLibraryLoader {
 
     public String[] subdirectories(String directory) {
         try {
-            return ClasspathDirectoryScanner.getDirectories(directory);
+            return MetaPackResources.directories(directory);
         } catch (URISyntaxException | IOException e) {
             LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, e, null, null, null));
             return new String[0];

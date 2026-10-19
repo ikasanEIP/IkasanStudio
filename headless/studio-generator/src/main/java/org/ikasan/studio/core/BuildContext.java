@@ -14,7 +14,7 @@ public class BuildContext {
 
     public static Configuration getFreemarkerConfig(String version) {
         Configuration cfg = new Configuration(VERSION_2_3_31);
-            cfg.setClassForTemplateLoading(BuildContext.class, String.format(FREEMARKER_TEMPLATE_PATH_FORMAT, version));
+            cfg.setClassLoaderForTemplateLoading(org.ikasan.studio.core.metapack.loading.MetaPackResources.templateLoader(version), String.format(FREEMARKER_TEMPLATE_PATH_FORMAT, version));
             cfg.setIncompatibleImprovements(new Version(2, 3, 20));
             cfg.setDefaultEncoding("UTF-8");
             cfg.setWhitespaceStripping(true);

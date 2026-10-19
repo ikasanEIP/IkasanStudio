@@ -19,12 +19,9 @@ import org.ikasan.studio.core.persistence.json.IkasanModelDocuments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 public class ComponentIO {
     private static final ObjectMapper MAPPER = StudioJson.newObjectMapper()
@@ -108,13 +105,14 @@ public class ComponentIO {
     }
 
     private static String getJsonFromFile(final String path) throws StudioBuildException {
-        final InputStream inputStream = ComponentIO.class.getClassLoader().getResourceAsStream(path);
-        if (inputStream == null) {
-            throw new StudioBuildException("The serialised data in [" + path + "] could not be loaded, check the path is correct");
+        try (InputStream inputStream = org.ikasan.studio.core.metapack.loading.MetaPackResources.open(path)) {
+            if (inputStream == null) {
+                throw new StudioBuildException("The serialised data in [" + path + "] could not be loaded, check the path is correct");
+            }
+            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (java.io.IOException e) {
+            throw new StudioBuildException("Could not read metadata resource " + path, e);
         }
-        return new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                .lines()
-                .collect(Collectors.joining());
     }
 
     /**

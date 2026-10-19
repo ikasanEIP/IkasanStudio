@@ -65,6 +65,8 @@ Results are under `headless/<module>/build/reports/tests/test/index.html` and `h
 
 `./gradlew test` at the repository root retains the complete plugin test suite and its existing `studioTestSuite` selectors. `./gradlew check` additionally depends on all headless module checks. CI explicitly runs the standalone build as well, ensuring it does not accidentally start depending on IntelliJ configuration.
 
+See the [custom-pack handover](../docs/CustomMetaPackHandover.md) for a complete standalone project layout and delivery limitations.
+
 ## Using the kit in another Gradle project
 
 During development, reference this build in the consumer's `settings.gradle.kts`:
@@ -118,7 +120,7 @@ Imports for the example are `org.ikasan.studio.testkit.MetaPackContract` and `or
 
 ## Limits and next steps
 
-The current contract applies to complete packs that supply module and flow templates. Component-extension composition and downloadable pack installation are not introduced here.
+The current contract applies to complete packs that supply module and flow templates. Component-extension composition is not implemented. The IntelliJ install action accepts complete custom pack JARs and activates them after restart; see the [handover](../docs/CustomMetaPackHandover.md#install-into-studio).
 The [command-line migration utility](../docs/CommandLineMigration.md) provides preview/apply
 and reusable before/after project verification; build it with `:studio-cli:distZip`. The kit validates/renders using the same engine as the plugin; it does not compile or start the resulting Ikasan application. Add generated-project compilation against exact BOMs and startup/integration checks before treating a pack as certified.
 
@@ -127,3 +129,11 @@ The generator and metadata remain compatible with their existing public Java pac
 ```sh
 ./gradlew buildPlugin -PstudioSandboxDirectory=build/headless-verification-sandbox
 ```
+
+## External pack host integration
+
+`MetaPackResources` routes descriptors, templates and icons to a session-fixed resource archive for each installed ID. It does not add those JARs to the Java classpath. A host can supply an installation directory through the Java service-provider interface `MetaPackDirectoryProvider`; Studio supplies its IDE configuration directory. Plain headless consumers without a provider continue using classpath packs.
+
+`MetaPackInstaller.validate(MetaPackArchive.open(path))` inspects a complete external JAR without installing it. `install(source, directory, checkCancelled)` validates a staged copy and publishes it for the next session; it rejects existing IDs. Candidate resource lookup is confined to the inspection thread and is restored after failure. Hosts must run discovery, validation and installation outside UI threads. Inspection is synchronous: do not start asynchronous generation from its callback.
+
+`ExternalMetaPackTest` in `studio-test-kit` tests installation and fresh-session discovery using built artifacts, including rendering and icon lookup without IntelliJ. `MetaPackArchiveTest` covers archive/resource boundaries. These checks do not establish an interactive IDE workflow or runtime certification.

@@ -1,0 +1,135 @@
+# Custom meta-pack developer handover
+
+Reviewed against the source on 19 October 2026. This is a development handover, not release certification.
+
+## Current position
+
+A teammate can develop and test a complete meta-pack in a separate Java/Gradle repository today, without building or running IntelliJ. The generator and reusable test kit are separate artifacts. The two official packs are independently versioned, resource-only JARs, although their sources and CI remain in the Studio repository.
+
+| Capability | Current implementation |
+| --- | --- |
+| Separate generator and test kit | `studio-generator` and `studio-test-kit`; plain Java 17 |
+| Independent pack artifacts | `studio-pack-v3` and `studio-pack-v4`; revision read from each manifest |
+| Separate project consumption | Gradle composite build or locally published Maven artifacts |
+| Remote artifact publication | Not configured; requires repository and release setup |
+| Custom component overlays / base-pack inheritance | Not implemented; supply a complete pack |
+| Installing an external JAR through Studio | Tools → Ikasan Studio → Install Meta-Pack…; activation after IDE restart |
+| Project-specific pack revision selection | Not implemented; saved models identify the pack ID |
+| Runtime certification | Must be performed separately; validation/rendering tests do not establish delivery |
+
+The supported bundled packs remain V3.3.9 and V4.1.6. An experimental directory alone does not establish support: it must be wired into packaging, contracts and plugin distribution.
+
+## Recommended scope for the extended tool set
+
+Start by agreeing the exact Ikasan runtime release, Java baseline and custom component Maven coordinates with the Studio maintainer. Use the corresponding official pack as a complete starting point, retaining required shared templates and standard components. Give the custom pack a unique, stable ID such as `AcmeIkasan4`; do not reuse `V4.1.6` or place competing copies of that resource path on the classpath.
+
+There is currently no manifest declaration that means “extend V4.1.6”. Copying a complete pack also creates responsibility for reviewing and carrying forward upstream fixes. Record the source Studio commit and original pack revision in the custom repository, alongside a list of intentional differences. Adding descriptors to a pack is supported; inventing new engine behaviour or unsupported descriptor fields may require coordinated Studio changes.
+
+Use additive component identities. Verify builders, setters, payload types and dependencies against the actual extended tool set. Keep business implementation in runtime libraries or developer-owned stubs; pack JARs should contain metadata, templates and artwork. Generated applications need the runtime libraries in their own Maven dependencies: a dependency of the pack's test project does not add it to generated POMs.
+
+## Standalone project setup
+
+Use a Gradle wrapper, Java 17 and the following layout:
+
+```text
+custom-ikasan-pack/
+  settings.gradle.kts
+  build.gradle.kts
+  src/main/resources/studio/metapack/AcmeIkasan4/
+    metapack.json
+    library/                 # complete category/component descriptors and icons
+    templates/               # complete version-specific template set
+  src/test/java/com/acme/AcmePackTest.java
+  src/test/resources/samples/model.json
+```
+
+For initial development, use a local Studio checkout. Pin and record its commit because the current development artifacts use snapshot versions. In `settings.gradle.kts`:
+
+```kotlin
+rootProject.name = "acme-ikasan-pack"
+includeBuild("/path/to/IkasanStudio_main/headless")
+```
+
+In `build.gradle.kts`:
+
+```kotlin
+import groovy.json.JsonSlurper
+
+plugins {
+    `java-library`
+    `maven-publish`
+}
+group = "com.acme.ikasan"
+val manifest = JsonSlurper().parse(file(
+    "src/main/resources/studio/metapack/AcmeIkasan4/metapack.json"
+)) as Map<*, *>
+version = manifest["packVersion"] as String
+repositories { mavenCentral() }
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    withSourcesJar()
+}
+dependencies {
+    testImplementation("org.ikasan.studio:studio-test-kit:0.1.0-SNAPSHOT")
+    testImplementation(platform("org.junit:junit-bom:6.1.3"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+tasks.test {
+    useJUnitPlatform()
+    systemProperty("java.awt.headless", "true")
+}
+publishing {
+    publications.create<MavenPublication>("library") { from(components["java"]) }
+}
+```
+
+The composite supplies the test kit and generator; do not add the official pack bundle unless a test explicitly needs it. The custom pack's own main resources are already on its test classpath. No production generator dependency is needed for a resource-only pack. Install JDK 17 locally for this example; unlike the Studio build, this minimal settings file does not configure automatic toolchain downloads.
+
+Alternatively, run `./gradlew -p headless publishToMavenLocal` in Studio, remove `includeBuild`, and add `mavenLocal()` to the custom project's repositories. This explicitly writes to the local Maven repository. Remote consumption needs separately configured publication; these snapshot coordinates are not a promise of a public artifact service.
+
+## Manifest, metadata and tests
+
+Use schema 2, `generatorApiVersion: 1`, a `packVersion` such as `0.1.0-SNAPSHOT`, and an `id` matching the resource directory. Preserve the exact runtime `ikasanVersion`, Java baseline and BOM contract from the chosen platform. The custom ID does not change the runtime version. Declare justified explicit third-party dependency versions in `compatibilityOverrides` as required by the validator.
+
+Follow [meta-pack authoring](../src/main/resources/studio/metapack/METAPACK.md), the [schemas](../src/main/resources/studio/metapack/schema/) and [compliance requirements](../src/main/resources/studio/metapack/METAPACK_COMPLIANCE.md). Review copied compatibility overrides rather than dropping them or assuming they suit a different runtime.
+
+Create a representative Studio model fixture targeting `AcmeIkasan4`. The model's `version` identifies the pack, not the artifact revision or runtime release. Use a real configured model and include flows exercising custom components; an empty module is weak evidence. Extend `MetaPackContract` using the [working example in the headless guide](../headless/README.md#authoring-a-pack-contract). Do not depend on Studio's internal `TestFixtures`; those are not exported by the kit.
+
+The inherited contract validates metadata and checks model round-trip plus deterministic rendering of application/module configuration, properties and flow/component factories. It does not compile code, render every template, test custom stubs, or start flows. Add reviewed expected-output tests for the custom components and exercise further templates through public generator APIs. Keep expected files independent of the code under test.
+
+From the custom project, run:
+
+```sh
+./gradlew test jar generatePomFileForLibraryPublication
+jar tf build/libs/acme-ikasan-pack-0.1.0-SNAPSHOT.jar
+```
+
+Check that the JAR contains `studio/metapack/AcmeIkasan4/metapack.json`, the full library and templates, with no copied engine classes or unrelated pack resources. Inspect `build/publications/library/pom-default.xml` for unintended production dependencies. Reports are in `build/reports/tests/test/index.html`.
+
+## Acceptance and delivery to Studio
+
+Before handover, generate minimal and representative full applications, resolve the exact BOM, compile/test on the declared Java version and inspect dependency convergence. Test custom components' payload handling, property bindings, user-code preservation and failures. Verify first delivery, idle readiness and later delivery in the same running application without restart. Flows are long-lived services; exhausting demonstration input must not stop them. External prerequisites left unconfigured must be recorded as incomplete paths.
+
+`validateMetaPacks` is a Studio repository task for the packs on that build's test classpath; it is not installed into the standalone project by the example above. For the custom project, use the contract plus explicit BOM-resolution, generated-application and help-link checks. For inclusion in Studio, the maintainer must also run the repository checks with the custom pack actually included; passing the unchanged official suites says nothing about a separate JAR.
+
+### Install into Studio
+
+Use a Studio build containing this installer implementation. The first implementation accepts complete resource-only pack JARs, one pack per JAR, with schema-2 manifests. It rejects classes, service registrations, conflicting IDs, invalid metadata, missing baseline templates and template syntax errors. Standard JAR directory entries are optional.
+
+1. Build and test the custom pack, including generated-application checks above.
+2. In IntelliJ with a project open, choose **Tools → Ikasan Studio → Install Meta-Pack…** (also available in Find Action).
+3. Select the binary pack JAR, not its sources JAR. Only install packs from trusted authors: templates produce application code.
+4. Wait for validation and the installation notification, then restart IntelliJ IDEA.
+5. Configure a new Studio module and select the custom pack ID. Existing models retain their original pack ID. Merely installing a pack does not migrate projects.
+6. Exercise discovery, palette/icons, properties, generation and closing/reopening the project in the sandbox before distributing the pack to colleagues.
+
+Installation copies the validated JAR into `<IDE configuration directory>/ikasan-studio/meta-packs/<id>.jar`, outside the plugin installation. Plugin updates therefore do not overwrite the pack. Sources are fixed for the IDE session; installation does not change templates used by open projects. Duplicate IDs, including bundled IDs and pending installations, are rejected. Two manually supplied JARs with the same external ID make that ID unavailable, rather than selecting a revision by filename order. Invalid sources produce startup diagnostics and are excluded from the chooser.
+
+For removal or replacement in this initial implementation, close **all instances of that IDE configuration**, remove the old external JAR, and restart. Install the replacement through the action and restart again. Do not replace files while the IDE is running. Keep pack revisions immutable and retain a backup before replacing one; projects still identify only the pack ID, so the next session uses the installed revision for every project selecting it. A managed update/uninstall UI and project revision locking are not implemented.
+
+The installation directory is local to an IntelliJ configuration; it is not a public marketplace or an automatic update service. Remote development/Split Mode installation and exporting installed packs with the offline migration tools have not been implemented or verified. The offline tools distribution still includes the official bundled packs only.
+
+For an official bundled pack, the existing pack modules and `studio-bundled-packs` remain the packaging pattern. A plugin rebuild is needed when changing the bundled selection, but is no longer needed for each custom pack installation.
+
+The teammate's handover should include the repository and pinned Studio commit, build commands, pack ID/revision/runtime/BOM/Java versions, component inventory, upstream differences, generated-application evidence, external prerequisites and a list of anything requiring engine or UI changes. Independent releases and future installation work are described in [Independent pack artifacts](IndependentMetaPackArtifacts.md).

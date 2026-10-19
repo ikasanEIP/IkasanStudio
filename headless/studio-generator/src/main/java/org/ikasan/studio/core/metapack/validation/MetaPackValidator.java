@@ -100,7 +100,7 @@ public final class MetaPackValidator {
                 fail(directoryName, "declares unused compatibility override " + override);
             }
         }
-        MetaPackDataValidator.validate(directoryName, components);
+        MetaPackDataValidator.validate(directoryName, manifest.ikasanVersion(), components);
     }
 
     private static void require(String pack, String field, String value) throws StudioBuildException {

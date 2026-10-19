@@ -260,6 +260,7 @@ public class DesignerUI implements Disposable {
             return;
         }
         try {
+            uiContext.getDesignerCanvas().setAvailableMetaPacks(initialisationService.getAvailableMetaPacks());
             PaletteTabPanel paletteTabPanel = uiContext.getPalettePanel();
             if (paletteTabPanel == null) {
                 paletteTabPanel = new PaletteTabPanel(project);

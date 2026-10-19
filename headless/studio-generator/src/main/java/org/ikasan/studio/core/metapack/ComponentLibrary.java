@@ -30,8 +30,10 @@ public final class ComponentLibrary {
     private static final ComponentLibraryLoader LOADER = new ComponentLibraryLoader();
     private static final Set<String> mandatoryComponents = Set.of(
             ComponentMeta.MODULE_TYPE, ComponentMeta.FLOW_TYPE, ComponentMeta.EXCEPTION_RESOLVER_TYPE);
-    /** Immutable packaged-resource index. There is no active/global selected version and no runtime cache mutation. */
-    private static final Map<String, LibrarySnapshot> PACKAGED_LIBRARIES = loadPackagedLibraries();
+    /** Session-fixed source index. Pack selection belongs to each project; installed packs activate on restart. */
+    private static final class Libraries {
+        private static final Map<String, LibrarySnapshot> PACKAGED = loadPackagedLibraries();
+    }
 
     private record LibrarySnapshot(Map<String, ComponentMeta> byKey,
                                    Map<String, ComponentMeta> byDeserialisationKey,
@@ -42,13 +44,7 @@ public final class ComponentLibrary {
         return snapshot(version).manifest();
     }
 
-    /**
-     * Refresh the component library.
-     * By making this protected, we intend to limit that only the test can state an alternate root
-     * At some point we may need to key this by project or version since all open projects will share this.
-     *
-     * @param ikasanMetaDataPackVersion to search for components
-     */
+    /** Verifies the selected session snapshot without changing other projects' selections. */
     public static void refreshComponentLibrary(final String ikasanMetaDataPackVersion) throws StudioBuildException {
         if (ikasanMetaDataPackVersion == null) {
             LOG.warn("STUDIO: ikasanMetaDataPackVersion was set to null which is not allowed");
@@ -58,7 +54,8 @@ public final class ComponentLibrary {
     }
 
     public static boolean versionNotContained(String ikasanMetaDataPackVersion) {
-        return !PACKAGED_LIBRARIES.containsKey(ikasanMetaDataPackVersion);
+        return !Libraries.PACKAGED.containsKey(ikasanMetaDataPackVersion)
+                || Libraries.PACKAGED.get(ikasanMetaDataPackVersion).validationError() != null;
     }
 
     private static Map<String, LibrarySnapshot> loadPackagedLibraries() {
@@ -68,13 +65,13 @@ public final class ComponentLibrary {
             String version = FilenameUtils.getName(directory);
             if (!LOADER.hasManifest(version)) continue;
             LibrarySnapshot snapshot = loadSnapshot(version);
-            if (!snapshot.byKey().isEmpty()) libraries.put(version, snapshot);
+            libraries.put(version, snapshot);
         }
         return Collections.unmodifiableMap(libraries);
     }
 
     private static LibrarySnapshot snapshot(String version) throws StudioBuildException {
-        LibrarySnapshot packaged = PACKAGED_LIBRARIES.get(version);
+        LibrarySnapshot packaged = Libraries.PACKAGED.get(version);
         LibrarySnapshot selected = packaged != null ? packaged : loadSnapshot(version);
         if (selected.validationError() != null) {
             throw new StudioBuildException(selected.validationError());
@@ -93,22 +90,16 @@ public final class ComponentLibrary {
             loadMetapack(version, byKey);
             manifest = LOADER.loadManifest(version);
             MetaPackValidator.validate(version, manifest, byKey);
-        } catch (StudioBuildException e) {
+        } catch (StudioBuildException | RuntimeException e) {
             LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, e, null, null, null));
-            return new LibrarySnapshot(Map.of(), Map.of(), null, e.getMessage());
+            return new LibrarySnapshot(Map.of(), Map.of(), null, "Meta-pack " + version + " is unavailable: " + e.getMessage());
         }
         Map<String, ComponentMeta> byDeserialisationKey = generateDeserialisationKeyedMeta(byKey);
         return new LibrarySnapshot(Collections.unmodifiableMap(byKey),
                 Collections.unmodifiableMap(byDeserialisationKey), manifest, null);
     }
 
-    /**
-     * Refresh the component library.
-     * By making this protected, we intend to limit that only the test can state an alternate root
-     * At some point we may need to key this by project or version since all open projects will share this.
-     *
-     * @param ikasanMetaDataPackVersion to search for components
-     */
+    /** Loads component metadata from the source associated with this pack ID. */
     public static void loadMetapack(final String ikasanMetaDataPackVersion,
                                     Map<String, ComponentMeta> returnedIkasanComponentMetaMapByKey) {
         returnedIkasanComponentMetaMapByKey.putAll(LOADER.load(ikasanMetaDataPackVersion));
@@ -123,16 +114,18 @@ public final class ComponentLibrary {
      * List all metapack installed.
      */
     public static List<String> getMetapackList() {
-        String[] directroies = LOADER.subdirectories(ComponentLibraryLoader.METAPACK_BASE_DIRECTORY);
-        if (directroies != null) {
+        return Libraries.PACKAGED.entrySet().stream()
+                .filter(entry -> entry.getValue().validationError() == null)
+                .map(Map.Entry::getKey).collect(Collectors.toCollection(ArrayList::new));
+    }
 
-            return Arrays.stream(directroies)
-                    .map(FilenameUtils::getName)
-                    .filter(LOADER::hasManifest)
-                    .collect(Collectors.toList());
-        } else {
-            return Collections.emptyList();
-        }
+    /** Startup diagnostics for rejected sources; querying on a background thread also warms the session index. */
+    public static Map<String, String> getUnavailableMetaPacks() {
+        var problems = new LinkedHashMap<>(org.ikasan.studio.core.metapack.loading.MetaPackResources.installationProblems());
+        Libraries.PACKAGED.forEach((id, library) -> {
+            if (library.validationError() != null) problems.put(id, library.validationError());
+        });
+        return Collections.unmodifiableMap(problems);
     }
 
     /**
@@ -213,22 +206,12 @@ public final class ComponentLibrary {
         return componentMeta;
     }
 
-    /**
-     * Attempt to minimize the synchronized lock. We will guarantee the Map is valid and not in the process
-     * of being updated, but it is possible that by the time the consumer of this method returns, the map may have
-     * been updated. This must be the working assumption.
-     * @return the reference to the current component library
-     */
+    /** Returns the immutable index belonging to the requested session snapshot. */
     private static Map<String, ComponentMeta> getIkasanComponentMetaMapByKey(final String ikasanMetaDataPackVersion) throws StudioBuildException {
         return snapshot(ikasanMetaDataPackVersion).byKey();
     }
 
-    /**
-     * Attempt to minimize the synchronized lock. We will guarantee the Map is valid and not in the process
-     * of being updated, but it is possible that by the time the consumer of this method returns, the map may have
-     * been updated. This must be the working assumption.
-     * @return the reference to the current component library
-     */
+    /** Returns the immutable index belonging to the requested session snapshot. */
     private static Map<String, ComponentMeta> geIkasanComponentMetaMapByDeserialisationKey(final String ikasanMetaDataPackVersion) throws StudioBuildException {
         return snapshot(ikasanMetaDataPackVersion).byDeserialisationKey();
     }

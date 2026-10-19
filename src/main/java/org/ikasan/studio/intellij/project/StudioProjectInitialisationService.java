@@ -51,6 +51,9 @@ public final class StudioProjectInitialisationService implements Disposable {
 
     private volatile List<Integer> validModelBackupIndexes = List.of();
     private volatile boolean disposed;
+    private boolean packDiagnosticsShown;
+    @Getter
+    private volatile List<String> availableMetaPacks = List.of();
 
     public List<Integer> getValidModelBackupIndexes() {
         return validModelBackupIndexes;
@@ -117,6 +120,18 @@ public final class StudioProjectInitialisationService implements Disposable {
                     waitForProjectImport();
                     return;
                 }
+                if (!packDiagnosticsShown) {
+                    var problems = org.ikasan.studio.core.metapack.ComponentLibrary.getUnavailableMetaPacks();
+                    packDiagnosticsShown = true;
+                    if (!problems.isEmpty()) {
+                        String details = problems.entrySet().stream()
+                                .map(entry -> entry.getKey() + ": " + entry.getValue())
+                                .collect(java.util.stream.Collectors.joining("\n"));
+                        org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage(project,
+                                org.ikasan.studio.ui.StudioBundle.message("metaPack.Unavailable", details));
+                    }
+                }
+                availableMetaPacks = List.copyOf(org.ikasan.studio.core.metapack.ComponentLibrary.getMetapackList());
                 UiContext uiContext = project.getService(UiContext.class);
                 validModelBackupIndexes = List.of();
                 StudioProjectFiles.synchGenerateModelInstanceFromJSON(project);

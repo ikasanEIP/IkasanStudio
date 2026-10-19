@@ -74,6 +74,8 @@
             <action id="IkasanStudio.ReviewLatestAIProposal"
                     class="org.ikasan.studio.intellij.ai.StudioAiReviewLatestProposalAction"/>
             <separator/>
+            <action id="IkasanStudio.InstallMetaPack"
+                    class="org.ikasan.studio.intellij.metapack.InstallMetaPackAction"/>
             <action id="IkasanStudio.CollectDiagnostics"
                     class="org.ikasan.studio.intellij.diagnostics.CollectStudioDiagnosticsAction"/>
             <separator/>

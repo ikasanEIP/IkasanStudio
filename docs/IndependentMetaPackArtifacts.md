@@ -1,5 +1,7 @@
 # Independent pack artifacts and releases
 
+For a teammate starting a separate custom-pack project, begin with the [custom-pack handover](CustomMetaPackHandover.md).
+
 ## One repository, one CI project
 
 The IntelliJ plugin, generator, test kit and official packs remain in this repository. The existing Gradle wrapper and CI pipeline build them together; no additional Travis projects or repositories are required. Publication remains explicit, with no remote repository or credentials configured by this change.
@@ -43,7 +45,7 @@ Pack revisions use `major.minor.patch` with an optional qualifier. Snapshot pack
 
 The loader accepts legacy schema-1 manifests without inventing revision metadata. Schema 2 requires both new fields, and incompatible generator API requirements fail validation before a pack becomes usable. An old generator that supports only schema 1 cannot consume the new schema-2 packs.
 
-`model.json` continues to store its existing pack ID. This step does not introduce per-project pack revision locks or change the model format. The plugin distribution selects the tested revisions for all its projects. Use only one revision of each pack artifact on a classpath; installing competing revisions or arbitrary external packs is not a supported workflow yet.
+`model.json` continues to store its existing pack ID. This step does not introduce per-project pack revision locks or change the model format. The plugin distribution selects the tested revisions for all its projects. Use only one revision of each pack artifact on a classpath. Complete custom packs with unique IDs can also be installed through **Tools → Ikasan Studio → Install Meta-Pack…** and activated after an IDE restart. The installer rejects bundled or installed ID conflicts; it does not replace existing revisions. See the [handover](CustomMetaPackHandover.md#install-into-studio).
 
 ## Build, verify and inspect without publishing
 
@@ -73,7 +75,7 @@ JARs are in `headless/<project>/build/libs/`. POMs are in `headless/<project>/bu
 2. Run the complete headless build, including golden-output and packaged-JAR checks. Before calling a pack certified, also compile/run representative generated applications against its exact Ikasan BOM; the current test kit checks validation and rendering.
 3. Inspect the pack and bundle publication metadata. For a release of the bundle, advance the bundle artifact version when its selected pack revisions change. Its initial default is configured in `headless/build.gradle.kts`; it can be overridden in its own build file.
 4. Publish the selected pack using the repository's eventual release credentials and repository configuration. A pack-only publication does not require a plugin release.
-5. To deliver that revision to current plugin users, build/test/release a plugin containing the updated bundle selection. Independent downloads are a later feature.
+5. To deliver that revision to current plugin users, build/test/release a plugin containing the updated bundle selection. Custom complete packs with distinct IDs can be distributed separately and installed through the new install action; it cannot replace bundled IDs.
 
 For local consumer testing only (explicitly writes to the local Maven repository):
 
@@ -87,4 +89,4 @@ No remote publication task is configured. When one is configured, the existing s
 
 ## Deferred extension ecosystem
 
-Public component extensions, template overlays, external installation, dependency/conflict resolution and per-project revision locking remain future work. Start extensions with additive component identities and explicit base-pack compatibility; do not silently replace existing components. These features are not prerequisites for the first plugin release.
+Complete resource-only external pack installation is implemented with validation and activation after restart. Component-extension composition, template overlays, managed updates/removal, dependency resolution and per-project revision locking remain future work. Start extensions with additive component identities and explicit base-pack compatibility; do not silently replace existing components. These features are not prerequisites for the first plugin release.
