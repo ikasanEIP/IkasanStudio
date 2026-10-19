@@ -61,6 +61,18 @@ public final class MetaPackArchive {
         return new MetaPackArchive(file.toAbsolutePath().normalize(), id, names);
     }
 
+    /** IntelliJ supplies its own jar URLConnection, so identify the archive without casting connections. */
+    public static Path sourceFile(URL resource) throws IOException {
+        String location = resource.toExternalForm();
+        int separator = location.lastIndexOf("!/");
+        if (!"jar".equals(resource.getProtocol()) || separator < 4) throw new IOException("Pack source must be a local JAR");
+        try {
+            URI archive = URI.create(location.substring(4, separator));
+            if (!"file".equals(archive.getScheme())) throw new IOException("Pack source must be a local JAR");
+            return Path.of(archive);
+        } catch (IllegalArgumentException invalid) { throw new IOException("Invalid pack archive URL", invalid); }
+    }
+
     public java.util.List<String> templateNames(String prefix) {
         return entries.stream().filter(name -> name.startsWith(prefix) && name.endsWith(".ftl"))
                 .map(name -> name.substring(prefix.length())).sorted().toList();

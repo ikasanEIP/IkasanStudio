@@ -10,6 +10,19 @@ import static org.junit.jupiter.api.Assertions.*;
 class StudioMigrationCliTest {
     @TempDir Path project;
     private int run(String... args) { return StudioMigrationCli.run(args, System.out, System.err); }
+    @Test void writesHelpAndFailuresToSeparateStreams() {
+        var output = new ByteArrayOutputStream();
+        var errors = new ByteArrayOutputStream();
+        try (var out = new PrintStream(output); var err = new PrintStream(errors)) {
+            assertEquals(0, StudioMigrationCli.run(new String[]{"--help"}, out, err));
+            assertTrue(output.toString().contains("Studio migration CLI"));
+            assertEquals("", errors.toString());
+            output.reset();
+            assertEquals(1, StudioMigrationCli.run(new String[]{"unknown"}, out, err));
+            assertEquals("", output.toString());
+            assertTrue(errors.toString().contains("Unknown command: unknown"));
+        }
+    }
     private Path setup() throws Exception {
         Files.createDirectories(project.resolve("generated/src/main/model"));
         Files.createDirectories(project.resolve("user/src"));
@@ -21,6 +34,27 @@ class StudioMigrationCliTest {
     private int preview(Path plan, String target) {
         return run("preview", "--project", project.toString(), "--to", target, "--plan", plan.toString());
     }
+    @Test void validatesAndRendersWithoutChangingTheSourceProject(@TempDir Path previews) throws Exception {
+        setup();
+        Path model = project.resolve("generated/src/main/model/model.json");
+        String before = Files.readString(model), pom = Files.readString(project.resolve("pom.xml"));
+        assertEquals(0, run("validate", "--project", project.toString()));
+        Path output = previews.resolve("rendered");
+        assertEquals(0, run("render", "--project", project.toString(), "--output", output.toString()));
+        assertTrue(Files.exists(output.resolve("generated/src/main/java/org/ikasan/studio/boot/Application.java")));
+        assertTrue(Files.exists(output.resolve("pom.xml")));
+        assertEquals(before, Files.readString(model)); assertEquals(pom, Files.readString(project.resolve("pom.xml")));
+        assertEquals(1, run("render", "--project", project.toString(), "--output", output.toString()));
+        assertEquals(1, run("render", "--project", project.toString(), "--output", project.resolve("preview").toString()));
+        assertFalse(Files.exists(project.resolve("preview")));
+        assertEquals(1, run("validate", "--project", project.toString(), "--to", "V4.1.6"));
+        Path alias = previews.resolve("project-link");
+        try { Files.createSymbolicLink(alias, project); }
+        catch (UnsupportedOperationException | IOException | SecurityException unsupported) { return; }
+        assertEquals(1, run("render", "--project", project.toString(), "--output", alias.resolve("via-link").toString()));
+        assertFalse(Files.exists(project.resolve("via-link")));
+    }
+
     @Test void previewDoesNotMutateAndApplyUsesRecoveryTransaction() throws Exception {
         Path plan=setup(); String original=Files.readString(project.resolve("pom.xml"));
         assertEquals(0, preview(plan, "V4.1.6"));

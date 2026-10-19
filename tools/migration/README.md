@@ -2,11 +2,20 @@
 
 These tools are bundled with Ikasan Studio. Export them using
 **Tools → Ikasan Studio → Export Offline Migration Tools…**. No additional download is
-needed to export or perform migration. The `lib/` directory must stay alongside `bin/`.
+needed to export or perform migration. Keep `lib/`, `meta-packs/` and `meta-packs.json` alongside `bin/` in an IDE export. A configured project’s exact custom pack is included automatically, using the saved model selection.
 
 Requirements: Java 17+ for migration; Python 3.9+ and Maven for verification. Maven needs
 your application's dependencies in its local cache or an accessible corporate repository.
 Your own tests determine which services must be available and what behaviour is verified.
+
+For bundled or exported custom packs, first validate the model or inspect generated output in a fresh directory outside the project:
+
+```sh
+/path/to/tools/bin/studio-cli validate --project /path/to/project
+/path/to/tools/bin/studio-cli render --project /path/to/project --output /path/to/new-preview
+```
+
+These commands check metadata/revision locks and render an inspection preview; they do not run application tests or rewrite the project. Pack checksums and IDs/revisions are verified automatically. Custom JARs are resources, not executable classpath dependencies. Missing or altered artifacts require a fresh export. The tools folder is relocatable and needs no IntelliJ installation. Application dependencies and external services must still be supplied separately. Custom packs do not widen the supported V3.3.9 ↔ V4.1.6 migration paths.
 
 From your Studio project's directory (replace `/path/to/tools` with this folder):
 

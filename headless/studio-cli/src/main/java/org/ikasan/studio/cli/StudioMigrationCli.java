@@ -17,74 +17,120 @@ public final class StudioMigrationCli {
             if (args.length == 0 || args[0].equals("--help")) {
                 out.println("""
                         Studio migration CLI (Java 17+)
+                        validate --project PATH
+                        render --project PATH --output NEW_DIRECTORY
                         preview --project PATH --to V4.1.6 --plan NEW_FILE.json [--update-user-imports true]
                         apply --plan FILE.json
                         Close the project in IntelliJ and stop the module before apply.
                         Preview is read-only for the project. Apply uses the saved preview,
                         rejects stale files and writes a recovery snapshot. User code stays unchanged
                         unless import updates are explicitly selected and reviewed.
+                        Exported pack checksums/revisions are verified before commands run.
+                        Validate checks model/pack structure; render writes a fresh preview outside the project.
+                        These commands also support exported custom packs; migration paths remain V3.3.9 ↔ V4.1.6.
                         It does not change IDE SDK settings or run application tests.
                         """);
                 return 0;
             }
+            org.ikasan.studio.core.metapack.loading.OfflinePackBundle.verifyIfPresent(OfflinePackDirectoryProvider.toolsHome());
             Map<String,String> options = options(args);
             var json = strictJson();
-            if (args[0].equals("preview")) {
-                String importsOption = options.remove("--update-user-imports");
-                if (importsOption != null && !Set.of("true", "false").contains(importsOption))
-                    throw new IllegalArgumentException("--update-user-imports requires true or false");
-                boolean updateImports = "true".equals(importsOption);
-                requireKeys(options, Set.of("--project", "--to", "--plan"));
-                Path root = Path.of(options.get("--project")).toRealPath();
-                String source = Files.readString(root.resolve(MigrationArtifacts.MODEL));
-                String pom = Files.readString(root.resolve("pom.xml"));
-                var plan = ModelMigration.analyse(source, options.get("--to"));
-                out.println(plan.report());
-                if (!plan.canApply()) return 2;
-                var changes = new ArrayList<>(MigrationWorkspace.prepare(root, MigrationArtifacts.render(plan, pom)));
-                var importChanges = updateImports ? UserImportMigration.prepare(root, plan) : List.<MigrationWorkspace.Change>of();
-                changes.addAll(importChanges);
-                String report = updateImports ? UserImportMigration.report(plan.report(), importChanges) : plan.report();
-                if (updateImports) out.println(report);
-                // Detect source/POM edits during rendering as well as after the preview.
-                requireOriginal(changes, MigrationArtifacts.MODEL, source);
-                requireOriginal(changes, "pom.xml", pom);
-                var preview = new Preview(1, root.toString(), plan.targetVersion(), report, changes, userHashes(root), updateImports);
-                Path file = Path.of(options.get("--plan")).toAbsolutePath().normalize();
-                if (file.startsWith(root.resolve("generated")) || file.startsWith(root.resolve("user")))
-                    throw new IllegalArgumentException("Store the preview outside generated/ and user/.");
-                Path diff = file.resolveSibling(file.getFileName() + ".diff");
-                if (Files.exists(file) || Files.exists(diff)) throw new IllegalArgumentException("Choose a fresh preview filename.");
-                Files.writeString(diff, readableDiff(changes), StandardOpenOption.CREATE_NEW);
-                Files.writeString(file, json.writerWithDefaultPrettyPrinter().writeValueAsString(preview), StandardOpenOption.CREATE_NEW);
-                out.println("Preview saved: " + file + "\nReview file changes: " + diff);
-                for (var change : changes) if (!Objects.equals(change.before(), change.after())) out.println("CHANGE " + change.path());
-                return 0;
+            switch (args[0]) {
+                case "validate", "render" -> {
+                    boolean render = args[0].equals("render");
+                    requireKeys(options, render ? Set.of("--project", "--output") : Set.of("--project"));
+                    Path root = Path.of(options.get("--project")).toRealPath();
+                    var module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(
+                            Files.readString(root.resolve(MigrationArtifacts.MODEL)), "offline project model", false);
+                    var pack = org.ikasan.studio.core.metapack.ComponentLibrary.getMetaPackManifest(module.getVersion());
+                    if (render) {
+                        Path requested = Path.of(options.get("--output")).toAbsolutePath().normalize();
+                        if (requested.getParent() == null) throw new IllegalArgumentException("Choose a new render directory");
+                        Path output = requested.getParent().toRealPath().resolve(requested.getFileName());
+                        if (output.startsWith(root)) throw new IllegalArgumentException("Render output must be outside the source project");
+                        var artifacts = org.ikasan.studio.core.generator.ProjectArtifactRenderer.render(module, Files.readString(root.resolve("pom.xml")));
+                        writeRender(output, artifacts);
+                        out.println("Rendered preview: " + output);
+                    }
+                    out.println("Validated model and pack " + pack.id() + " (" + pack.packVersion() + "). Runtime behaviour is not verified.");
+                    return 0;
+                }
+                case "preview" -> {
+                    String importsOption = options.remove("--update-user-imports");
+                    if (importsOption != null && !Set.of("true", "false").contains(importsOption))
+                        throw new IllegalArgumentException("--update-user-imports requires true or false");
+                    boolean updateImports = "true".equals(importsOption);
+                    requireKeys(options, Set.of("--project", "--to", "--plan"));
+                    Path root = Path.of(options.get("--project")).toRealPath();
+                    String source = Files.readString(root.resolve(MigrationArtifacts.MODEL));
+                    String pom = Files.readString(root.resolve("pom.xml"));
+                    var plan = ModelMigration.analyse(source, options.get("--to"));
+                    out.println(plan.report());
+                    if (!plan.canApply()) return 2;
+                    var changes = new ArrayList<>(MigrationWorkspace.prepare(root, MigrationArtifacts.render(plan, pom)));
+                    var importChanges = updateImports ? UserImportMigration.prepare(root, plan) : List.<MigrationWorkspace.Change>of();
+                    changes.addAll(importChanges);
+                    String report = updateImports ? UserImportMigration.report(plan.report(), importChanges) : plan.report();
+                    if (updateImports) out.println(report);
+                    // Detect source/POM edits during rendering as well as after the preview.
+                    requireOriginal(changes, MigrationArtifacts.MODEL, source);
+                    requireOriginal(changes, "pom.xml", pom);
+                    var preview = new Preview(1, root.toString(), plan.targetVersion(), report, changes, userHashes(root), updateImports);
+                    Path file = Path.of(options.get("--plan")).toAbsolutePath().normalize();
+                    if (file.startsWith(root.resolve("generated")) || file.startsWith(root.resolve("user")))
+                        throw new IllegalArgumentException("Store the preview outside generated/ and user/.");
+                    Path diff = file.resolveSibling(file.getFileName() + ".diff");
+                    if (Files.exists(file) || Files.exists(diff)) throw new IllegalArgumentException("Choose a fresh preview filename.");
+                    Files.writeString(diff, readableDiff(changes), StandardOpenOption.CREATE_NEW);
+                    Files.writeString(file, json.writerWithDefaultPrettyPrinter().writeValueAsString(preview), StandardOpenOption.CREATE_NEW);
+                    out.println("Preview saved: " + file + "\nReview file changes: " + diff);
+                    for (var change : changes) if (!Objects.equals(change.before(), change.after())) out.println("CHANGE " + change.path());
+                    return 0;
+                }
+                case "apply" -> {
+                    requireKeys(options, Set.of("--plan"));
+                    var preview = json.readValue(Files.readString(Path.of(options.get("--plan"))), Preview.class);
+                    if (preview.formatVersion() != 1) throw new IllegalArgumentException("Unsupported preview format.");
+                    Path root = Path.of(preview.project()).toRealPath();
+                    if (!userHashes(root).equals(preview.userHashes())) throw new IllegalStateException("Developer files changed after preview; preview again.");
+                    var plan = ModelMigration.analyse(Files.readString(root.resolve(MigrationArtifacts.MODEL)), preview.targetVersion());
+                    if (!plan.canApply()) throw new IllegalStateException(plan.report());
+                    var current = new ArrayList<>(MigrationWorkspace.prepare(root, MigrationArtifacts.render(plan, Files.readString(root.resolve("pom.xml")))));
+                    var importChanges = preview.updateUserImports() ? UserImportMigration.prepare(root, plan) : List.<MigrationWorkspace.Change>of();
+                    current.addAll(importChanges);
+                    if (!sameChanges(current, preview.changes())) throw new IllegalStateException("Project or renderer changed after preview; preview again.");
+                    // Commit enforces permitted paths, rejects symlinks/concurrent edits and rolls back write failures.
+                    Path recovery = MigrationWorkspace.commit(root, preview.changes(), preview.updateUserImports() ? UserImportMigration.report(plan.report(), importChanges) : plan.report());
+                    out.println("Migration applied. Recovery snapshot: " + recovery);
+                    out.println("Select the target JDK for Maven/IntelliJ, reimport, then run after-upgrade verification.");
+                    return 0;
+                }
+                default -> throw new IllegalArgumentException("Unknown command: " + args[0]);
             }
-            if (args[0].equals("apply")) {
-                requireKeys(options, Set.of("--plan"));
-                var preview = json.readValue(Files.readString(Path.of(options.get("--plan"))), Preview.class);
-                if (preview.formatVersion() != 1) throw new IllegalArgumentException("Unsupported preview format.");
-                Path root = Path.of(preview.project()).toRealPath();
-                if (!userHashes(root).equals(preview.userHashes())) throw new IllegalStateException("Developer files changed after preview; preview again.");
-                var plan = ModelMigration.analyse(Files.readString(root.resolve(MigrationArtifacts.MODEL)), preview.targetVersion());
-                if (!plan.canApply()) throw new IllegalStateException(plan.report());
-                var current = new ArrayList<>(MigrationWorkspace.prepare(root, MigrationArtifacts.render(plan, Files.readString(root.resolve("pom.xml")))));
-                var importChanges = preview.updateUserImports() ? UserImportMigration.prepare(root, plan) : List.<MigrationWorkspace.Change>of();
-                current.addAll(importChanges);
-                if (!sameChanges(current, preview.changes())) throw new IllegalStateException("Project or renderer changed after preview; preview again.");
-                // Commit enforces permitted paths, rejects symlinks/concurrent edits and rolls back write failures.
-                Path recovery = MigrationWorkspace.commit(root, preview.changes(), preview.updateUserImports() ? UserImportMigration.report(plan.report(), importChanges) : plan.report());
-                out.println("Migration applied. Recovery snapshot: " + recovery);
-                out.println("Select the target JDK for Maven/IntelliJ, reimport, then run after-upgrade verification.");
-                return 0;
-            }
-            throw new IllegalArgumentException("Unknown command: " + args[0]);
         } catch (Exception failure) {
-            err.println("Migration failed: " + failure.getMessage());
+            err.println("Studio CLI failed: " + failure.getMessage());
             return 1;
         }
     }
+    private static void writeRender(Path output, Map<String, String> artifacts) throws Exception {
+        if (Files.exists(output, LinkOption.NOFOLLOW_LINKS)) throw new FileAlreadyExistsException(output.toString());
+        if (output.getParent() == null) throw new IllegalArgumentException("Choose a new render directory");
+        Path staging = Files.createTempDirectory(output.getParent(), ".studio-render-");
+        try {
+            for (var artifact : artifacts.entrySet()) {
+                Path target = staging.resolve(artifact.getKey()).normalize();
+                if (!target.startsWith(staging) || target.equals(staging)) throw new IllegalArgumentException("Unsafe rendered path: " + artifact.getKey());
+                Files.createDirectories(target.getParent());
+                Files.writeString(target, artifact.getValue(), StandardOpenOption.CREATE_NEW);
+            }
+            Files.move(staging, output);
+        } finally {
+            if (Files.exists(staging)) try (var files = Files.walk(staging)) {
+                for (Path file : files.sorted(Comparator.reverseOrder()).toList()) Files.deleteIfExists(file);
+            }
+        }
+    }
+
     private static com.fasterxml.jackson.databind.ObjectMapper strictJson() {
         return StudioJson.newObjectMapper()
                 .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)

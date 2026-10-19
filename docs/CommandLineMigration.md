@@ -4,8 +4,7 @@ These tools work with a developer's **existing Studio Maven project**. They do n
 our all-components regression fixture, its flow names or its local service harnesses.
 
 - `studio_upgrade.py` records before/after build, test, source and model evidence.
-- `studio-cli` previews and applies version migration using the **same engine, bundled
-  packs and recovery transaction as the IntelliJ plugin**.
+- `studio-cli` validates models, renders a fresh output preview, and previews/applies supported version migrations using the **same engine and recovery transaction as the IntelliJ plugin**. IDE exports also include the saved project’s required custom pack.
 
 A passing report means the existing tests passed and preservation checks passed. It is
 not certification that every flow works. Tests must explicitly assert real delivery,
@@ -17,7 +16,7 @@ No tests, all skipped tests or missing fresh test reports produce **INCOMPLETE**
 For Marketplace installations, choose **Tools → Ikasan Studio → Export Offline Migration
 Tools…**, select a local parent folder, and open `README.md` in the new
 `ikasan-studio-offline-tools` folder. It includes the launchers, verifier, dependencies and
-bundled packs shipped with that plugin build. No website access or extra download is
+bundled packs shipped with that plugin build. For a configured Studio project, it also includes the exact selected custom pack JAR and its revision/checksum inventory. No website access or extra download is
 needed. Export runs in the background and can be cancelled; existing folders are never
 replaced. Use a different parent folder when exporting another copy.
 
@@ -47,6 +46,37 @@ java -cp 'lib/*' org.ikasan.studio.cli.StudioMigrationCli --help
 Python 3.9+ and Maven are needed for verification. The single file
 `bin/studio_upgrade.py` can also be copied into the developer's project on its own.
 Its repository source is `tools/migration/studio_upgrade.py`.
+
+## Portable custom packs, validation and rendering
+
+Export from the project whose pack you need. The action reads the **saved** `generated/src/main/model/model.json`; apply/save model changes first if you want them reflected in the selection. A missing or empty bootstrap model still permits a generic bundled-only export. An invalid configured model, unavailable pack or revision mismatch prevents publishing the export, leaving no partial destination. Export does not rewrite the model or acquire a lock for an older unlocked project.
+
+Keep the complete tools folder together:
+
+```text
+ikasan-studio-offline-tools/
+  bin/
+  lib/                    # CLI, engine, dependencies and the two official packs
+  meta-packs/             # the selected custom resource-only JAR, if any
+  meta-packs.json         # required pack ID and ID/revision/file/SHA-256 inventory
+```
+
+The manifest records all included packs, including the bundled JARs already in `lib/`. A configured project’s required artifact must match the one used by Studio. The custom JAR is loaded as resources, without adding it to the Java classpath. Exported tools resolve packs relative to their own location, so the folder can be moved or handed to another developer without IntelliJ or the original pack installation directory.
+
+Before CLI commands use a model, they check the pack inventory, SHA-256 values, declared IDs/revisions, archive restrictions, metadata and template syntax. Missing, changed, duplicate or unlisted pack JARs are errors. The portable directory is read-only to pack discovery: IDE pending updates/removals are never activated there. Checksums detect changed artifacts; they do not authenticate a publisher. Use tools and packs from trusted sources.
+
+From a separate copy of your Studio project:
+
+```sh
+/path/to/tools/bin/studio-cli validate --project /path/to/project
+/path/to/tools/bin/studio-cli render --project /path/to/project --output /path/to/new-render-preview
+```
+
+`validate` checks the model/pack structure and revision lock. It does **not** compile the application, execute tests or certify runtime behaviour. `render` uses the shared Studio project renderer and writes Studio-owned artifacts, model/catalogue metadata and a proposed root POM into a **new directory outside the source project**. Existing output directories are rejected; failures clean up staging. The command leaves source-project files and developer implementations unchanged. It is an inspection preview, not an in-place regeneration command or a complete application copy. In particular, it does not copy `user/`, environment files or business tests.
+
+Custom pack validation/rendering does not enable arbitrary pack-to-pack migration. `preview`/`apply` still support only **V3.3.9 ↔ V4.1.6**. CLI errors return **1**; successful validation/rendering return **0**. Project revision guards still apply after moving the tools. To switch pack artifacts, produce a new reviewed export instead of editing the manifest or copying untracked JARs into it.
+
+Pack export includes descriptors/templates/artwork, not the application’s Maven dependencies or external services. Maven verification still needs those dependencies in a cache or accessible repository, and the application’s tests must establish real delivery, idle readiness and later delivery. Generic developer distributions built with `distZip` remain bundled-only until exported with a project selection; older generic distributions without a portable pack directory retain their existing CLI behaviour.
 
 ## Verify before and after an IDE upgrade
 

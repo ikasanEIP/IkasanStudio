@@ -26,7 +26,7 @@ public final class MetaPackResources {
         for (var provider : ServiceLoader.load(MetaPackDirectoryProvider.class, bundled())) {
             var directory = provider.directory();
             if (!Files.exists(directory)) continue;
-            problems.putAll(MetaPackStore.activatePending(directory));
+            if (provider.activatePendingChanges()) problems.putAll(MetaPackStore.activatePending(directory));
             try (var files = Files.list(directory)) {
                 for (var file : files.filter(p -> p.getFileName().toString().endsWith(".jar")).sorted().toList()) {
                     try {

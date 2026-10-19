@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.file.Path;
 
-/** Local-only export; does not require an initialized Studio module or network access. */
+/** Exports the saved project's required pack when configured; generic exports remain available. */
 public final class ExportOfflineToolsAction extends DumbAwareAction {
     private static final Logger LOG = Logger.getInstance(ExportOfflineToolsAction.class);
     @Override public @NotNull ActionUpdateThread getActionUpdateThread() { return ActionUpdateThread.BGT; }
@@ -32,7 +32,10 @@ public final class ExportOfflineToolsAction extends DumbAwareAction {
                 @Override public void run(@NotNull ProgressIndicator indicator) {
                     try (var input=ExportOfflineToolsAction.class.getResourceAsStream(OfflineToolsExporter.RESOURCE)) {
                         if (input==null) throw new IOException("Bundled offline tools archive is missing");
-                        exported=OfflineToolsExporter.export(input, parent, indicator::checkCanceled);
+                        Path model = com.intellij.openapi.application.ReadAction.compute(() ->
+                                org.ikasan.studio.intellij.project.StudioProjectFiles.getModelJsonPath(project));
+                        String savedModel = model != null && java.nio.file.Files.isRegularFile(model) ? java.nio.file.Files.readString(model) : null;
+                        exported=OfflineToolsExporter.export(input, parent, savedModel, indicator::checkCanceled);
                     } catch (IOException failure) { throw new IllegalStateException(failure.getMessage(), failure); }
                 }
                 @Override public void onSuccess() {

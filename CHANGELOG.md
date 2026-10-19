@@ -75,6 +75,8 @@ release verification and outstanding checks are tracked separately in
 
 ### Added
 
+- Offline tools exports now include the saved project’s required custom meta-pack and an ID/revision/SHA-256 inventory. Exported tools are relocatable and reject missing, changed or unlisted pack JARs. New CLI **validate** and **render** commands support custom-pack models, with rendered previews written to a new directory outside the project. Existing migration paths remain V3.3.9 ↔ V4.1.6.
+
 - Added **Install Meta-Pack…** under Tools → Ikasan Studio for complete custom pack JARs, with metadata, compatibility, resource and template-syntax validation before installation. Installed packs activate after an IDE restart.
 
 - Added **Manage Meta-Packs…** for reviewed external-pack updates, removal, cancellation and restoration of retained revisions. Changes activate after restart, with artifact integrity checks and recovery from interrupted operations. Component overlays and simultaneous revisions of the same pack ID remain unsupported.

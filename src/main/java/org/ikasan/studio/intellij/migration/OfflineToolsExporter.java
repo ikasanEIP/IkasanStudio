@@ -14,12 +14,20 @@ final class OfflineToolsExporter {
     private static final long MAX_BYTES = 256L * 1024 * 1024;
 
     static Path export(InputStream archive, Path parent, Runnable checkCancelled) throws IOException {
+        return export(archive, parent, null, checkCancelled);
+    }
+
+    static Path export(InputStream archive, Path parent, String savedModel, Runnable checkCancelled) throws IOException {
         Path target = parent.resolve(DIRECTORY);
         if (Files.exists(target, LinkOption.NOFOLLOW_LINKS))
             throw new FileAlreadyExistsException(target.toString());
         Path staging = Files.createTempDirectory(parent, ".ikasan-offline-");
         try {
             extract(archive, staging, checkCancelled);
+            try {
+                org.ikasan.studio.core.metapack.loading.OfflinePackBundle.write(staging, savedModel, checkCancelled);
+            } catch (RuntimeException failure) { throw failure; }
+            catch (Exception failure) { throw new IOException("Could not export the required meta-pack: " + failure.getMessage(), failure); }
             checkCancelled.run();
             // No REPLACE_EXISTING: another export or a user-created directory must win.
             Files.move(staging, target);

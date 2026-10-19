@@ -17,6 +17,7 @@ A teammate can develop and test a complete meta-pack in a separate Java/Gradle r
 | Project revision guard | Saved documents record the revision; mismatches block loading until restoration or explicit adoption |
 | Managed lifecycle | Updates, removal, cancellation and restoring retained revisions through Manage Meta-Packs |
 | Concurrent revisions of the same ID | Not implemented; one active revision per ID in each IDE session |
+| Offline project tools | Export includes the saved project’s exact custom pack, with a checked revision/checksum inventory and CLI validate/render commands |
 | Runtime certification | Must be performed separately; validation/rendering tests do not establish delivery |
 
 The supported bundled packs remain V3.3.9 and V4.1.6. An experimental directory alone does not establish support: it must be wired into packaging, contracts and plugin distribution.
@@ -156,7 +157,7 @@ Adoption does not regenerate application files. Regenerate and inspect the outpu
 
 There is still one active revision of a given pack ID per IDE session. Locks prevent an unintended upgrade; they do not let two projects use different revisions of that ID concurrently. Managed updates/removal and revision mismatch protection are implemented; simultaneous revision resolution, project-specific artifact provisioning, component overlays and automatic updates remain future work.
 
-The installation directory is local to an IntelliJ configuration; it is not a public marketplace or an automatic update service. Remote development/Split Mode installation and exporting installed packs with the offline migration tools have not been implemented or verified. The offline tools distribution still includes the official bundled packs only.
+The installation directory is local to an IntelliJ configuration; it is not a public marketplace or an automatic update service. Remote development/Split Mode installation remains unimplemented and unverified. Offline tools export now includes the saved project’s required custom pack; keep its `meta-packs/` folder and `meta-packs.json` together with the launchers and libraries. See [portable pack validation/rendering](CommandLineMigration.md#portable-custom-packs-validation-and-rendering). Migration support remains limited to the two documented official pack IDs.
 
 For an official bundled pack, the existing pack modules and `studio-bundled-packs` remain the packaging pattern. A plugin rebuild is needed when changing the bundled selection, but is no longer needed for each custom pack installation.
 

@@ -142,3 +142,10 @@ The generator and metadata remain compatible with their existing public Java pac
 `MetaPackStore` schedules external updates/removal for activation at the next session's discovery and retains immutable artifact history. Management callers can review artifact fingerprints, cancel pending work and restore retained JARs. It uses an installation-directory lock, checks before/after artifact hashes and keeps session resources unchanged. `ExternalMetaPackTest` exercises the lifecycle using isolated session classloaders.
 
 Saved model documents now include `studio.metaPackRevision` when the pack supplies revision metadata. `IkasanModelDocuments.toLegacy` rejects a mismatch before restoring component properties. Legacy/unlocked models remain readable. `MetaPackRevisionLock.preview/apply` provides deliberate adoption with full candidate-model validation, stale-review checks and the existing atomic/rotating-backup writer. See the [handover](../docs/CustomMetaPackHandover.md#project-revision-locks-and-deliberate-adoption) for workflow and the one-active-revision limitation.
+
+
+## Portable project-pack exports
+
+The IntelliJ exporter augments the CLI distribution with the saved project’s required custom artifact, preserving the two bundled pack JARs. `OfflinePackBundle` writes/verifies `meta-packs.json` (ID, artifact revision, relative file and SHA-256) and the resource-only `meta-packs/` directory. The CLI supplies a read-only `MetaPackDirectoryProvider` resolved relative to its own distribution; it neither reads an IDE pack store nor activates pending management operations.
+
+`studio-cli validate --project PATH` checks the model and its pack revision. `render --project PATH --output NEW_DIRECTORY` uses `ProjectArtifactRenderer`, shared with IDE migration rendering, to produce a fresh inspection preview outside the project. It does not copy developer code or run tests. The existing migration wrapper delegates to the same renderer and retains its supported version-pair restrictions. See [portable custom packs](../docs/CommandLineMigration.md#portable-custom-packs-validation-and-rendering).
