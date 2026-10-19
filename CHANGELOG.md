@@ -75,6 +75,9 @@ release verification and outstanding checks are tracked separately in
 
 ### Added
 
+- Add a Maven meta-pack example and authoring archetype under `ikasan-studio-ancillary`, with separate runtime components, a scheduled sample flow, descriptor/rendering and generated-factory compilation tests, and installer validation of the complete resource-only JAR. The archetype generates and builds the maintained example in its integration test.
+
+
 - Offline tools exports now include the saved project’s required custom meta-pack and an ID/revision/SHA-256 inventory. Exported tools are relocatable and reject missing, changed or unlisted pack JARs. New CLI **validate** and **render** commands support custom-pack models, with rendered previews written to a new directory outside the project. Existing migration paths remain V3.3.9 ↔ V4.1.6.
 
 - Added **Install Meta-Pack…** under Tools → Ikasan Studio for complete custom pack JARs, with metadata, compatibility, resource and template-syntax validation before installation. Installed packs activate after an IDE restart.

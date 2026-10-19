@@ -147,3 +147,20 @@ See [Generated Java warning review](GeneratedCodeWarnings.md) for the template J
 
 
 External pack lifecycle coverage lives in `headless/studio-test-kit` (`ExternalMetaPackTest`): isolated restart activation, update/rollback, cancel/remove/restore, immutable revisions, fingerprints and model revision mismatches. `IkasanModelDocumentsTest` covers adding locks to older documents, rejecting mismatched/malformed locks, explicit adoption, original-file backups and stale/forged review rejection. Run the full headless suites after changes; focused selectors are development checks rather than release certification.
+
+## Maven authoring starter
+
+Publish the local headless artifacts with `./gradlew -p headless publishToMavenLocal`, then run:
+
+```sh
+mvn -B -f ikasan-studio-ancillary/example-metapack/pom.xml clean verify
+mvn -B -f ikasan-studio-ancillary/ikasan-studio-metapack-archetype/pom.xml clean verify
+```
+
+The example tests the runtime converters, a configured sample model, descriptor and
+rendering contracts, compilation of the generated component factory against Ikasan
+4.1.6, and installer validation of the final resource-only JAR. The archetype test
+creates a fresh project, runs its Maven verification and checks its generated files.
+The Build workflow runs both commands after local artifact publication. These checks
+do not start an application or certify continued runtime delivery; follow the
+[example README](../ikasan-studio-ancillary/example-metapack/README.md) for that exercise.

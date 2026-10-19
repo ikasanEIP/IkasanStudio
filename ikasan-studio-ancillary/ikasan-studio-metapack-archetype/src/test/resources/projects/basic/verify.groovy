@@ -1,0 +1,6 @@
+File project = new File(basedir, 'project/generated-pack')
+assert new File(project, 'pom.xml').text.contains('<groupId>org.example.generated</groupId>')
+assert new File(project, '.gitignore').isFile()
+assert !new File(project, 'example-pack/target/classes/studio/metapack/V4.1.6').exists()
+assert new File(project, 'example-pack/target/samples/model.json').text.contains('ExampleIkasan4')
+assert new File(project, 'example-pack/target/example-pack-0.1.0-SNAPSHOT.jar').isFile()

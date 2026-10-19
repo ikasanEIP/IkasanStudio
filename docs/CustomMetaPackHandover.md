@@ -30,6 +30,21 @@ There is currently no manifest declaration that means “extend V4.1.6”. Copyi
 
 Use additive component identities. Verify builders, setters, payload types and dependencies against the actual extended tool set. Keep business implementation in runtime libraries or developer-owned stubs; pack JARs should contain metadata, templates and artwork. Generated applications need the runtime libraries in their own Maven dependencies: a dependency of the pack's test project does not add it to generated POMs.
 
+## Maven example and archetype
+
+For a working starter, read [the ancillary build and archetype instructions](../ikasan-studio-ancillary/README.md)
+and [the example README](../ikasan-studio-ancillary/example-metapack/README.md).
+The maintained Maven example builds a separate runtime library and a complete
+`ExampleIkasan4` resource pack. It includes a scheduled greeting flow, contract tests,
+compilation of its generated component factory against Ikasan 4.1.6 and installer
+validation of the packaged JAR. The archetype generates the same example and builds it
+in an integration test. Root coordinates are configurable; rename the documented
+example child coordinates and pack ID before publishing your own pack.
+
+This uses build-time assembly from the pinned official pack artifact, rather than
+runtime inheritance. Review and release baseline changes deliberately. Application
+startup and continued delivery still require separate runtime verification.
+
 ## Standalone project setup
 
 Use a Gradle wrapper, Java 17 and the following layout:

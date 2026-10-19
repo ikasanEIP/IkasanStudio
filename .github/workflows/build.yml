@@ -130,6 +130,12 @@ jobs:
       - name: Run Headless Tests
         run: ./gradlew -p headless test
 
+      - name: Test Maven Meta-Pack Example and Archetype
+        run: |
+          ./gradlew -p headless publishToMavenLocal
+          mvn -B -f ikasan-studio-ancillary/example-metapack/pom.xml clean verify
+          mvn -B -f ikasan-studio-ancillary/ikasan-studio-metapack-archetype/pom.xml clean verify
+
       - name: Test Project Upgrade Verifier
         run: python3 -m unittest discover -s tools/migration -v
 

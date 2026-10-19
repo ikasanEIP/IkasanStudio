@@ -1,0 +1,21 @@
+{
+  "name": "Example Logging Producer",
+  "helpText": "<p>Example runtime component supplied by the separate example-runtime Maven artifact.</p>",
+  "implementingClass": "org.example.metapack.LoggingProducer",
+  "usesBuilderInFactory": false,
+  "useImplementingClassInFactory": true,
+  "flowBuilderMethod": "producer",
+  "jarDependencies": [
+    {
+      "groupId": "org.example.metapack",
+      "artifactId": "example-runtime",
+      "version": "0.1.0-SNAPSHOT"
+    }
+  ],
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true
+    }
+  }
+}

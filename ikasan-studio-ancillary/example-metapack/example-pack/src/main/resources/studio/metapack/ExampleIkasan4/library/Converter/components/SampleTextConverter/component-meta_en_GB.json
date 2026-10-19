@@ -1,0 +1,23 @@
+{
+  "name": "Example Sample Text Converter",
+  "helpText": "<p>Example runtime component supplied by the separate example-runtime Maven artifact.</p>",
+  "implementingClass": "org.example.metapack.SampleTextConverter",
+  "usesBuilderInFactory": false,
+  "useImplementingClassInFactory": true,
+  "flowBuilderMethod": "converter",
+  "jarDependencies": [
+    {
+      "groupId": "org.example.metapack",
+      "artifactId": "example-runtime",
+      "version": "0.1.0-SNAPSHOT"
+    }
+  ],
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true
+    }
+  },
+  "expectedInputType": "java.lang.Object",
+  "producedOutputType": "java.lang.String"
+}
