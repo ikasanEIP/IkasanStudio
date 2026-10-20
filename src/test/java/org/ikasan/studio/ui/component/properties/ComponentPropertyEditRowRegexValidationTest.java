@@ -181,4 +181,26 @@ public class ComponentPropertyEditRowRegexValidationTest {
         }
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
+    void routerListsValidateTheWholeListAndRetainRouteOrder(String pack) throws Exception {
+        var single = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Single Recipient Router").getMetadata("routeNames");
+        var row = new ComponentPropertyEditRow(null, new ComponentProperty(single), false, () -> {}, new HashMap<>());
+        row.resetDataEntryComponentsWithNewValues();
+        for (String text : List.of("odd,even", "odd, even")) {
+            row.getOverridingInputField().setText(text);
+            org.junit.jupiter.api.Assertions.assertEquals(List.of("odd", "even"), row.getValue());
+            assertTrue(row.doValidateAll().isEmpty(), text);
+        }
+        for (String text : List.of("odd", "odd,", "odd,,even", "odd,bad-name")) {
+            row.getOverridingInputField().setText(text);
+            assertFalse(row.doValidateAll().isEmpty(), text);
+        }
+        org.junit.jupiter.api.Assertions.assertNotNull(ComponentPropertyEditRow.patternValidationMessage(single, List.of("odd", "odd")));
+        org.junit.jupiter.api.Assertions.assertNull(ComponentPropertyEditRow.patternValidationMessage(single, List.of("odd", "even", "odd")));
+        var multi = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Multi Recipient Router").getMetadata("routeNames");
+        org.junit.jupiter.api.Assertions.assertNull(ComponentPropertyEditRow.patternValidationMessage(multi, List.of("odd")));
+        org.junit.jupiter.api.Assertions.assertNotNull(ComponentPropertyEditRow.patternValidationMessage(multi, List.of("odd", "bad-name")));
+    }
+
 }

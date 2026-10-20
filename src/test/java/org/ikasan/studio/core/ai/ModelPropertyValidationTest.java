@@ -1,5 +1,7 @@
 package org.ikasan.studio.core.ai;
 
+import java.util.List;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.persistence.json.StudioJson;
@@ -121,6 +123,28 @@ class ModelPropertyValidationTest {
             assertThat(f.component()).isEqualTo("Unknown");
             assertThat(f.code()).isEqualTo("PROPERTIES_NOT_CHECKED");
         });
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
+    void routerListsAcceptSavedArraysAndLegacyTextButKeepCardinalityAndNameRules(String pack) throws Exception {
+        var model = model(pack);
+        var router = component(model, "Single Recipient Router", "Either or Router");
+        for (String text : List.of("odd,even", "odd, even", "route1,route2")) {
+            router.put("routeNames", text);
+            assertThat(ModelPropertyValidation.scan(model)).noneSatisfy(f -> assertThat(f.message()).startsWith("routeNames:"));
+        }
+        router.putArray("routeNames").add("odd").add("even");
+        assertThat(ModelPropertyValidation.scan(model)).noneSatisfy(f -> assertThat(f.message()).startsWith("routeNames:"));
+        for (List<String> names : List.of(List.of("odd"), List.of("odd", "odd"), List.of("odd", ""), List.of("odd", "bad-name"))) {
+            var array = router.putArray("routeNames");
+            names.forEach(array::add);
+            assertThat(ModelPropertyValidation.scan(model)).anySatisfy(f -> assertThat(f.message()).startsWith("routeNames:"));
+        }
+        var multi = component(model, "Multi Recipient Router", "Fan out");
+        // Keep the single-recipient router valid when checking one-route multi-recipient input.
+        router.putArray("routeNames").add("odd").add("even");
+        multi.putArray("routeNames").add("odd");
+        assertThat(ModelPropertyValidation.scan(model)).noneSatisfy(f -> assertThat(f.message()).startsWith("routeNames:"));
     }
 
 }

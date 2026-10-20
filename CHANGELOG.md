@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Fix router route-name validation rejecting valid lists such as `odd,even`. Validate legacy comma-separated patterns against the complete distinct list in the editor and saved-model checks, while preserving per-entry typed collection validation and route order.
+
 - Save affected unsaved flow-test documents before component/flow rename, then rebuild the reference-update plan while preserving developer edits and unrelated unsaved files. Report blocked saves as recoverable guidance.
 
 - Add **Run Flow Test** to the flow canvas context menu, using IntelliJ's normal test configuration and Run tool window for the existing flow-test class.

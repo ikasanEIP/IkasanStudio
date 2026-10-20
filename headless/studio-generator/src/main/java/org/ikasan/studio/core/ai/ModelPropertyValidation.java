@@ -85,11 +85,12 @@ final class ModelPropertyValidation {
                     && !meta.getChoices().contains(String.valueOf(value)))
                 add(findings, flow, name, target, node, key, "Choose one of: " + String.join(", ", meta.getChoices()) + ".");
             if (meta.getValidationPattern() != null) {
-                List<?> values = value instanceof List<?> entries ? entries : List.of(value);
+                Object patternValue = meta.patternValidationValue(value);
+                List<?> values = patternValue instanceof List<?> entries ? entries : List.of(patternValue);
                 for (int i = 0; i < values.size(); i++) {
                     if (!meta.getValidationPattern().matcher(String.valueOf(values.get(i))).matches()) {
                         String hint = meta.getValidationMessage();
-                        add(findings, flow, name, target, node, key, (value instanceof List<?> ? "Entry " + (i + 1) + ": " : "")
+                        add(findings, flow, name, target, node, key, (patternValue instanceof List<?> ? "Entry " + (i + 1) + ": " : "")
                                 + (hint == null || hint.isBlank() ? "Value does not match the validation rule." : hint));
                     }
                 }
@@ -113,6 +114,8 @@ final class ModelPropertyValidation {
             return null;
         }
         Class<?> type = meta.getPropertyDataType();
+        if (meta.isCommaSeparatedStringList())
+            return StringCollectionValues.normalize(List.class, StudioJson.newObjectMapper().convertValue(node, Object.class));
         if (StringCollectionValues.supports(type))
             return StringCollectionValues.normalize(type, StudioJson.newObjectMapper().convertValue(node, Object.class));
         if (node.isContainerNode()) throw new IllegalArgumentException();
