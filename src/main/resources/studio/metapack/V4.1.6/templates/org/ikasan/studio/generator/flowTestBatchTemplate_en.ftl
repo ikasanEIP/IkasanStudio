@@ -146,14 +146,24 @@ public final class FlowTestBatch<I> {
             int index = received.getOrDefault(delivery.producer, 0);
             List<?> checks = outputs.get(delivery.producer);
             if (index >= checks.size()) throw excess(delivery.producer, observedCounts().getOrDefault(delivery.producer, index + 1));
+            Object expected = checks.get(index);
             try {
-                Object expected = checks.get(index);
                 if (expected instanceof OutputCheck) ((OutputCheck) expected).verify(delivery.payload);
                 else comparison.verify(expected, delivery.payload);
             }
             catch (AssertionError | Exception failure) {
                 String detail = failure.getMessage();
                 if (detail == null || detail.isBlank()) detail = failure.getClass().getName();
+                if (expected instanceof String && delivery.payload != null
+                        && failure instanceof OutputTextSupport.UnsupportedOutputTypeException) {
+                    Class<?> actualType = delivery.payload.getClass();
+                    String actualName = actualType.getSimpleName();
+                    if (actualName.isEmpty()) actualName = actualType.getName();
+                    detail = "Expected: String (java.lang.String). Actual: " + actualName
+                            + " (" + actualType.getName() + "). No text mapping is defined for this output. "
+                            + "Override formatOutputText(Object) to map it to the expected text, "
+                            + "or compare its fields/objects in assertExpectedOutput(Object, Object).";
+                }
                 throw new AssertionError("Producer '" + delivery.producer + "', output " + (index + 1)
                         + " failed: " + detail, failure);
             }

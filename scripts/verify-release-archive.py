@@ -46,7 +46,7 @@ def audit(archive, root):
             for required in ("bin/studio-cli", "bin/studio-cli.bat", "bin/studio_upgrade.py", "README.md", "CommandLineMigration.md", "LICENSE.txt"):
                 if not any(name.endswith("/" + required) for name in entries):
                     errors.append("Missing offline tool: " + required)
-            for artifact in ("studio-cli-", "studio-generator-", "studio-pack-v3-", "studio-pack-v4-"):
+            for artifact in ("studio-cli-", "studio-generator-", "studio-pack-v3-", "studio-pack-v4-", "studio-pack-v5-"):
                 if not any("/lib/" + artifact in name and name.endswith(".jar") for name in entries):
                     errors.append("Missing offline runtime artifact: " + artifact)
             script = next((n for n in entries if n.endswith("/bin/studio_upgrade.py")), None)
@@ -100,6 +100,13 @@ def audit(archive, root):
     expected = [path for path in source.rglob("*") if path.is_file()
                 and path.relative_to(source).as_posix() != "META-INF/plugin.xml"
                 and not (path.parent == source / "studio/metapack" and path.suffix == ".md")]
+    # The development V5 pack owns its resources outside the plugin source tree.
+    v5_source = root / "headless/studio-pack-v5/src/main/resources"
+    for path in v5_source.rglob("*"):
+        if path.is_file():
+            name = path.relative_to(v5_source).as_posix()
+            if hashlib.sha256(path.read_bytes()).hexdigest() not in resources.get(name, []):
+                errors.append("Missing or changed V5 development resource: " + name)
     for path in expected:
         name = path.relative_to(source).as_posix()
         if hashlib.sha256(path.read_bytes()).hexdigest() not in resources.get(name, []):

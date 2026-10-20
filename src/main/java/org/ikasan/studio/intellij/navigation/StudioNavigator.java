@@ -5,21 +5,17 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.NavigatableFileEditor;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
 
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.function.Supplier;
 
 public final class StudioNavigator {
     private static final Logger LOG = Logger.getInstance("#Navigator");
@@ -68,15 +64,6 @@ public final class StudioNavigator {
     }
 
     /**
-     * Navigates to source of given class, at the element's own text offset.
-     * @param classToNavigateTo navigate to source of this class
-     */
-    public static void navigateToSource(Project project, PsiElement classToNavigateTo)
-    {
-        navigateToSourceAsync(project, classToNavigateTo, null);
-    }
-
-    /**
      * Navigates to a {@link NavigationTarget} resolved by a view handler - lets callers outside the
      * {@code intellij} package (e.g. NavigateToCodeAction/NavigateToPropertiesAction) trigger navigation without
      * themselves depending on {@code com.intellij.psi.*} (see
@@ -89,21 +76,8 @@ public final class StudioNavigator {
         if (target == null || !target.isPresent()) {
             return;
         }
-        if (preferOffset && target.offset() != 0) {
-            navigateToSource(project, target.elementToNavigateTo(), target.offset());
-        } else {
-            navigateToSource(project, target.elementToNavigateTo());
-        }
-    }
-
-    /**
-     * Navigates to source of given class at specified offset.
-     * @param classToNavigateTo navigate to source of this class
-     * @param offset navigate to this offset within source
-     */
-    public static void navigateToSource(Project project, PsiElement classToNavigateTo, int offset)
-    {
-        navigateToSourceAsync(project, classToNavigateTo, offset);
+        navigateToSourceAsync(project, target::elementToNavigateTo,
+                preferOffset && target.offset() != 0 ? target.offset() : null);
     }
 
     private record ResolvedNavigation(VirtualFile virtualFile, int offset) {}
@@ -121,8 +95,9 @@ public final class StudioNavigator {
      *               specific offset instead (both still resolved off the EDT, since PsiElement#getTextOffset()
      *               is itself PSI access).
      */
-    private static void navigateToSourceAsync(Project project, PsiElement classToNavigateTo, Integer offset) {
+    private static void navigateToSourceAsync(Project project, Supplier<PsiElement> resolve, Integer offset) {
         ReadAction.nonBlocking(() -> {
+                    PsiElement classToNavigateTo = resolve.get();
                     if (classToNavigateTo == null || !classToNavigateTo.isValid()) {
                         return null;
                     }
@@ -137,15 +112,11 @@ public final class StudioNavigator {
                 .expireWith(project.getService(StudioProjectInitialisationService.class))
                 .finishOnUiThread(ModalityState.defaultModalityState(), resolved -> {
                     if (resolved == null) {
-                        LOG.warn("STUDIO: WARNING, attempt to invoke navigator but the class to navigate to was null or invalid [" +
-                                classToNavigateTo + "], consider re-searching for file" + Arrays.toString(Thread.currentThread().getStackTrace()));
+                        LOG.debug("STUDIO: Navigation source is no longer available");
                         return;
                     }
-                    FileEditorManager manager = FileEditorManager.getInstance(project);
-                    FileEditor[] fileEditors = manager.openFile(resolved.virtualFile(), true);
-                    if (fileEditors.length > 0 && fileEditors[0] instanceof NavigatableFileEditor navigatableFileEditor) {
-                        Navigatable descriptor = new OpenFileDescriptor(project, resolved.virtualFile(), resolved.offset());
-                        navigatableFileEditor.navigateTo(descriptor);
+                    if (!project.isDisposed() && resolved.virtualFile().isValid()) {
+                        new OpenFileDescriptor(project, resolved.virtualFile(), resolved.offset()).navigate(true);
                     }
                 })
                 .submit(AppExecutorUtil.getAppExecutorService());

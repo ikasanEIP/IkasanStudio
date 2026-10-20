@@ -118,10 +118,10 @@ The root [settings.gradle.kts](settings.gradle.kts) includes `headless/` as a co
 
 Meta-pack sources live under `src/main/resources/studio/metapack/`. The bundled packs are `V3.3.9` and `V4.1.6`; each supplies `metapack.json`, a component library (JSON descriptors and icons), and version-specific FreeMarker templates. Shared schemas live under `schema/`. Historic VHS and older-version references do not identify currently bundled packs.
 
-An unbundled Ikasan 5 development pack lives in `headless/studio-pack-v5/src/main/resources/studio/metapack/V5.0.1-SNAPSHOT`.
-It targets the inspected Java 26 snapshot baseline and is not a supported palette or migration choice.
+On this feature branch, a bundled Ikasan 5 development pack lives in `headless/studio-pack-v5/src/main/resources/studio/metapack/V5.0.1-SNAPSHOT`.
+It targets the inspected Java 26 snapshot baseline and appears in the IDE version selector for development testing. Migration choices remain V3/V4 only.
 See [V5 development evidence and gates](headless/studio-pack-v5/README.md) before changing its status;
-keep it out of `studio-bundled-packs` and Marketplace archives until the formal release is verified.
+this branch includes it in `studio-bundled-packs` for fresh sandbox launches. This is not Marketplace release certification.
 
 `headless/studio-pack-v3` and `headless/studio-pack-v4` package the respective resource directories; `studio-bundled-packs` selects their exact revisions. The root plugin excludes these resources from its own resource source set to avoid duplicate packaging. Follow the [meta-pack authoring guide](src/main/resources/studio/metapack/METAPACK.md), [compliance requirements](src/main/resources/studio/metapack/METAPACK_COMPLIANCE.md), and [independent pack release guide](docs/IndependentMetaPackArtifacts.md) when changing or adding packs.
 

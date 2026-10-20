@@ -5,6 +5,10 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Explain unsupported flow-test text comparisons with expected and actual Java types, producer/output context and explicit mapping or object-assertion guidance. Preserve original causes and developer assertion navigation; keep decoding failures distinct.
+
+- Resolve component code-navigation targets from the current Java file after edits or regeneration, preventing double-click navigation from failing on an invalid cached PSI class.
+
 - Add isolated V3/V4 → V5 migration rehearsals with explicit directional rules, model-preservation and rejection checks, and generated V5 runtime fixtures. Keep released IDE/CLI migration choices unchanged while the snapshot and developer-code upgrade paths remain under review.
 
 - Verify V5 generated custom configuration beans through real SMTP delivery, including scalar, list and map environment overrides, generated factory injection, idle readiness and later delivery. Include the scenario in the explicit V5 verification suite.
@@ -100,6 +104,9 @@ release verification and outstanding checks are tracked separately in
 - In-place migrations now remove unmodified, unversioned source-component dependencies retired by the target pack, avoiding unmanaged legacy JAXB dependencies after upgrading to 4.1.6 while preserving explicit overrides.
 
 ### Added
+
+- Bundle the experimental V5.0.1-SNAPSHOT pack on the Ikasan 5 feature branch so fresh IDE sandboxes offer it without external installation. Generated V5 applications require JDK 26; V5 migration and release readiness remain separate.
+
 
 - Add a Maven meta-pack example and authoring archetype under `ikasan-studio-ancillary`, with separate runtime components, a scheduled sample flow, descriptor/rendering and generated-factory compilation tests, and installer validation of the complete resource-only JAR. The archetype generates and builds the maintained example in its integration test.
 

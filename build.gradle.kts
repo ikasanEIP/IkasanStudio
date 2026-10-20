@@ -334,6 +334,7 @@ tasks {
             gradle.includedBuild("studio-headless").task(":studio-bundled-packs:check"),
             gradle.includedBuild("studio-headless").task(":studio-pack-v3:check"),
             gradle.includedBuild("studio-headless").task(":studio-pack-v4:check"),
+            gradle.includedBuild("studio-headless").task(":studio-pack-v5:check"),
             gradle.includedBuild("studio-headless").task(":studio-cli:check"))
         dependsOn(validateMetaPacks)
     }

@@ -1,7 +1,11 @@
 # Ikasan 5 development pack
 
 This is an **unreleased development pack**, not a supported runtime or Marketplace deliverable.
-It is intentionally absent from `studio-bundled-packs`, the plugin palette and published migration paths.
+On `feature/ikasan-5-metapack` it is included in `studio-bundled-packs` so fresh IDE
+sandbox launches offer `V5.0.1-SNAPSHOT` without installing an external JAR. Use the
+normal **Run Plugin** configuration, then select that version when configuring a new
+module. Configure the application project SDK, Maven runner and Run/Debug JRE as JDK 26.
+This development inclusion does not certify a Marketplace release or enable V5 migrations.
 Resources live here rather than in the released-pack directory so normal plugin/BOM/help-link gates
 continue to describe only the supported V3 and V4 packs.
 
@@ -56,7 +60,7 @@ This checks platform-version consistency, not full third-party dependency conver
 Gradle retains the caller's JDK configuration; only Maven uses `--java-home`. Maven needs access
 to the matching dependencies. Each command has a 900-second timeout, adjustable with `--timeout`.
 Run one verification at a time: its fixture directories are shared with the individual export tasks.
-It starts only the disposable local test services and does not publish, enable V5 in Studio or
+It starts only the disposable local test services and does not publish or
 modify developer projects. To test the evidence collector itself:
 
 ```sh

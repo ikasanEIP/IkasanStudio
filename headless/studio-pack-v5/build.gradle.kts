@@ -2,7 +2,7 @@ import groovy.json.JsonSlurper
 
 plugins { `java-library` }
 
-// Deliberately not selected by studio-bundled-packs: this runtime is unreleased.
+// Bundled on the Ikasan 5 development branch for interactive sandbox testing.
 val metadata = JsonSlurper().parseText(providers.fileContents(layout.projectDirectory.file(
     "src/main/resources/studio/metapack/V5.0.1-SNAPSHOT/metapack.json")).asText.get()) as Map<*, *>
 version = metadata["packVersion"] as String
@@ -104,7 +104,7 @@ tasks.register<Test>("generateReactorFixture") {
 }
 
 // Keep the ordinary pack contracts isolated; only migration rehearsals load older packs.
-val migrationPacks by configurations.creating
+val migrationPacks = configurations.create("migrationPacks")
 dependencies {
     migrationPacks(project(":studio-pack-v3"))
     migrationPacks(project(":studio-pack-v4"))
