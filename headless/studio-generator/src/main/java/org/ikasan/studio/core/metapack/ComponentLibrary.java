@@ -119,6 +119,24 @@ public final class ComponentLibrary {
                 .map(Map.Entry::getKey).collect(Collectors.toCollection(ArrayList::new));
     }
 
+    /** Selection policy only: existing projects keep access to their recorded pack. */
+    public static List<String> getMetapackList(boolean allowSnapshots) {
+        return Libraries.PACKAGED.entrySet().stream()
+                .filter(entry -> entry.getValue().validationError() == null)
+                .filter(entry -> allowSnapshots || !isSnapshotRuntime(entry.getValue().manifest()))
+                .map(Map.Entry::getKey).toList();
+    }
+
+    public static boolean isSnapshotRuntime(MetaPackManifest manifest) {
+        // Released V3/V4 runtime packs also have development artifact revisions.
+        // Gate the targeted runtime rather than the independent pack revision.
+        return manifest != null && (snapshotVersion(manifest.id()) || snapshotVersion(manifest.ikasanVersion()));
+    }
+
+    private static boolean snapshotVersion(String value) {
+        return value != null && value.toUpperCase(Locale.ROOT).endsWith("-SNAPSHOT");
+    }
+
     /** Startup diagnostics for rejected sources; querying on a background thread also warms the session index. */
     public static Map<String, String> getUnavailableMetaPacks() {
         var problems = new LinkedHashMap<>(org.ikasan.studio.core.metapack.loading.MetaPackResources.installationProblems());

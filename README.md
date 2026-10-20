@@ -79,7 +79,7 @@ Studio helps with integration structure and repetitive implementation work. Appl
 | IntelliJ IDEA                  | Minimum 2024.2, platform build 242 |
 | Plugin compilation/test target | IDEA Community 2024.3.7            |
 | Configured binary verification | IDEA 2024.2, 2024.3.7 and 2026.2.2 |
-| Bundled Ikasan meta-packs      | V3.3.9 and V4.1.6                  |
+| Default Ikasan meta-packs      | V3.3.9 and V4.1.6; optional [V5 snapshot](docs/SnapshotMetaPacks.md) for developers |
 | Generated V3.3.9 application   | Java 11                            |
 | Generated V4.1.6 application   | Java 17                            |
 

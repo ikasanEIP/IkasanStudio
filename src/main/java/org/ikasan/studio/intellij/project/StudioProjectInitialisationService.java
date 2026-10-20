@@ -54,6 +54,8 @@ public final class StudioProjectInitialisationService implements Disposable {
     private boolean packDiagnosticsShown;
     @Getter
     private volatile List<String> availableMetaPacks = List.of();
+    @Getter
+    private volatile java.util.Set<String> snapshotMetaPacks = java.util.Set.of();
 
     public List<Integer> getValidModelBackupIndexes() {
         return validModelBackupIndexes;
@@ -139,6 +141,9 @@ public final class StudioProjectInitialisationService implements Disposable {
                     }
                 }
                 availableMetaPacks = List.copyOf(org.ikasan.studio.core.metapack.ComponentLibrary.getMetapackList());
+                var released = org.ikasan.studio.core.metapack.ComponentLibrary.getMetapackList(false);
+                snapshotMetaPacks = availableMetaPacks.stream().filter(id -> !released.contains(id))
+                        .collect(java.util.stream.Collectors.toUnmodifiableSet());
                 UiContext uiContext = project.getService(UiContext.class);
                 validModelBackupIndexes = List.of();
                 StudioProjectFiles.synchGenerateModelInstanceFromJSON(project);

@@ -59,6 +59,10 @@ public final class ModelImporter {
                 if (version == null || version.isBlank() || !ComponentLibrary.getMetapackList().contains(version)) {
                     throw new StudioBuildException(StudioBundle.message("message.ImportModelMetapackUnavailable", version));
                 }
+                if (!org.ikasan.studio.intellij.settings.IkasanStudioSettings.areSnapshotMetaPacksAllowed()
+                        && ComponentLibrary.isSnapshotRuntime(ComponentLibrary.getMetaPackManifest(version))) {
+                    throw new StudioBuildException(StudioBundle.message("metaPack.SnapshotsDisabled", version));
+                }
                 if (ComponentLibrary.versionNotContained(version)) ComponentLibrary.refreshComponentLibrary(version);
                 javaVersion.set(requiredJava(version));
                 validated.set(candidate);

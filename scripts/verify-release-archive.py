@@ -14,6 +14,7 @@ def audit(archive, root, include_snapshot_packs=False):
     errors, resources, jars, descriptors = [], {}, [], []
     bytecode_count = 0
     offline_archives = []
+    optional_snapshots = []
     with zipfile.ZipFile(archive) as distribution:
         for name in distribution.namelist():
             if not name.endswith(".jar"):
@@ -29,6 +30,8 @@ def audit(archive, root, include_snapshot_packs=False):
                         continue
                     data = jar.read(entry)
                     resources.setdefault(entry, []).append(hashlib.sha256(data).hexdigest())
+                    if entry == "studio/development-packs/studio-pack-v5.jar":
+                        optional_snapshots.append(data)
                     if entry == "studio/offline/studio-offline-tools.zip":
                         offline_archives.append(data)
                     if entry == "META-INF/plugin.xml":
@@ -37,6 +40,25 @@ def audit(archive, root, include_snapshot_packs=False):
                         bytecode_count += 1
                         if data[:4] != b"\xca\xfe\xba\xbe" or int.from_bytes(data[6:8], "big") > 61:
                             errors.append("Studio bytecode requires newer than Java 17: " + entry)
+
+    # The developer payload is data only; it must not enter normal discovery or the CLI classpath.
+    if len(optional_snapshots) != 1:
+        errors.append("Expected one optional V5 developer pack payload")
+    else:
+        with zipfile.ZipFile(io.BytesIO(optional_snapshots[0])) as payload:
+            prefix = "studio/metapack/V5.0.1-SNAPSHOT/"
+            names = {n for n in payload.namelist() if not n.endswith("/")}
+            if prefix + "metapack.json" not in names:
+                errors.append("Optional V5 payload has no manifest")
+            for name in names:
+                if name.endswith(".class") or name.startswith("META-INF/services/"):
+                    errors.append("Executable content in optional V5 payload: " + name)
+            source = root / "headless/studio-pack-v5/src/main/resources"
+            for path in source.rglob("*"):
+                if path.is_file():
+                    name = path.relative_to(source).as_posix()
+                    if name not in names or payload.read(name) != path.read_bytes():
+                        errors.append("Missing or changed optional V5 resource: " + name)
 
     if len(offline_archives) != 1:
         errors.append("Expected one bundled offline tools archive")
@@ -134,6 +156,7 @@ def audit(archive, root, include_snapshot_packs=False):
         errors.append("Unexpected packaged meta-packs: " + str(packs) + "; expected " + str(sorted(expected_packs)))
     return {"archive": str(archive), "sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
             "status": "FAIL" if errors else "PASS", "errors": errors, "meta_packs": packs,
+            "optional_snapshot_packs": ["V5.0.1-SNAPSHOT"] if len(optional_snapshots) == 1 else [],
             "source_resources_checked": len(expected), "studio_classes_checked": bytecode_count,
             "libraries": jars,
             "note": "Licence entries are an inventory, not legal clearance. UI installation and external harness processes require smoke tests."}

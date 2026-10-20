@@ -1414,7 +1414,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             return property;
         }
         ComponentPropertyMeta uiMeta = property.getMeta().toBuilder()
-                .choices(List.copyOf(ComponentLibrary.getMetapackList()))
+                .choices(componentInitialisation
+                        ? ComponentLibrary.getMetapackList(org.ikasan.studio.intellij.settings.IkasanStudioSettings.areSnapshotMetaPacksAllowed())
+                        : List.copyOf(ComponentLibrary.getMetapackList()))
                 .build();
         ComponentProperty uiProperty = new ComponentProperty(uiMeta, property.getValue());
         uiProperty.setOverwriteEnabled(property.isOverwriteEnabled());

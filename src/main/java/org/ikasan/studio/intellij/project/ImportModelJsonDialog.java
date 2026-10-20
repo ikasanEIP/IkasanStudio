@@ -35,6 +35,8 @@ import java.awt.*;
  * area, so the chosen content stays reviewable before Import is pressed). Import itself is delegated to
  * {@link ModelImporter#importFromText} - a failed validation keeps the dialog open for correction.
  */
+// Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
+@SuppressWarnings("SplitModeApiUsage")
 public class ImportModelJsonDialog extends DialogWrapper {
     private final Project project;
     private final JBTextArea jsonArea = new JBTextArea();
@@ -54,7 +56,7 @@ public class ImportModelJsonDialog extends DialogWrapper {
         init();
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
-                var packs = ComponentLibrary.getMetapackList();
+                var packs = ComponentLibrary.getMetapackList(org.ikasan.studio.intellij.settings.IkasanStudioSettings.areSnapshotMetaPacksAllowed());
                 ApplicationManager.getApplication().invokeLater(() -> {
                     if (isDisposed() || project.isDisposed()) return;
                     packs.forEach(runtimePack::addItem);

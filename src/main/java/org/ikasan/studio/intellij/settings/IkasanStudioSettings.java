@@ -28,6 +28,9 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
     public static final int MAXIMUM_FLOW_START_POINT = 800;
 
     public static class State {
+        /** Allow selecting packs targeting snapshot Ikasan runtimes. */
+        public boolean allowSnapshotMetaPacks = false;
+
         /** Show contextual instructions while a module or flow is empty. */
         public boolean gettingStartedHintsEnabled = true;
 
@@ -129,6 +132,11 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
     @Override
     public void loadState(@NotNull State state) {
         this.state = state;
+    }
+
+    public static boolean areSnapshotMetaPacksAllowed() {
+        var instance = getInstance();
+        return instance != null && instance.getState() != null && instance.getState().allowSnapshotMetaPacks;
     }
 
     public static boolean isConfirmAiDeletes() {

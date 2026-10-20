@@ -1,9 +1,10 @@
 # Ikasan 5 development pack
 
 This is an **unreleased development pack**, not a supported runtime or Marketplace deliverable.
-The pack is excluded from normal plugin/CLI distributions. Use **Run Plugin (Snapshot Packs)**
-or `./gradlew runIdeModern -PstudioIncludeSnapshotPacks=true` to include it in a fresh sandbox.
-The selector then offers `V5.0.1-SNAPSHOT` without an external installation. Configure the
+The plugin embeds an optional resource-only copy, outside the normal plugin/CLI classpaths.
+Enable **Settings → Tools → Ikasan Studio → Allow snapshot meta-packs**, apply and
+restart the IDE on first activation. The selector then offers `V5.0.1-SNAPSHOT` without
+an external installation. See [demo preparation](../../docs/SnapshotMetaPacks.md). Configure the
 application project SDK, Maven runner and Run/Debug JRE as JDK 26.
 This development inclusion does not certify a Marketplace release or enable V5 migrations.
 Resources live here rather than in the released-pack directory so normal plugin/BOM/help-link gates
@@ -469,8 +470,8 @@ The project owner reports completing Ikasan 5 testing of the routes/branches,
 converters/translators and all-consumers/producers demonstration modules. This supplied
 interactive evidence and exposed shared navigation, test diagnostics, flow-test execution,
 rename and route-validation fixes now included in Studio. It does not establish that the
-separate snapshot rollback gates have passed. A user-facing setting for snapshot packs
-remains future work; the current opt-in is a development build flag.
+separate snapshot rollback gates have passed. The merge initially provided a development build flag; the subsequent user-facing
+opt-in is documented in [snapshot meta-packs](../../docs/SnapshotMetaPacks.md).
 
 See the [20 October merge verification](../../docs/Ikasan5MergeVerification-2026-10-20.md)
 for passing distribution checks and the six remaining runtime rollback failures.

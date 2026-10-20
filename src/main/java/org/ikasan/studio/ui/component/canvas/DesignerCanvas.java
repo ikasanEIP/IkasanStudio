@@ -165,10 +165,22 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         return ThemeAwareColors.getBackgroundColor();
     }
 
-    /** Called on the EDT after background initialization has validated the session's packs. */
-    public void setAvailableMetaPacks(List<String> packs) {
+    private List<String> availableMetaPacks = List.of();
+    private java.util.Set<String> snapshotMetaPacks = java.util.Set.of();
+
+    /** Called on the EDT after background initialization validates and classifies the packs. */
+    public void setAvailableMetaPacks(List<String> packs, java.util.Set<String> snapshots) {
+        availableMetaPacks = List.copyOf(packs);
+        snapshotMetaPacks = java.util.Set.copyOf(snapshots);
+        refreshMetaPackChoices();
+    }
+
+    /** Uses the background-validated index; does no discovery on settings Apply. */
+    public void refreshMetaPackChoices() {
+        if (availableMetaPacks.isEmpty()) return;
+        boolean allowSnapshots = org.ikasan.studio.intellij.settings.IkasanStudioSettings.areSnapshotMetaPacksAllowed();
         Object selected = metaDataVersionComboBox.getSelectedItem();
-        var sorted = new ArrayList<>(packs);
+        var sorted = new ArrayList<>(availableMetaPacks.stream().filter(id -> allowSnapshots || !snapshotMetaPacks.contains(id)).toList());
         sorted.sort(String::compareToIgnoreCase);
         metaDataVersionComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(sorted.toArray(String[]::new)));
         if (selected instanceof String version && sorted.contains(version)) metaDataVersionComboBox.setSelectedItem(version);

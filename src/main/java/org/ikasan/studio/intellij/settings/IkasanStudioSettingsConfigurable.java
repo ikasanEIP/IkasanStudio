@@ -32,6 +32,7 @@ import java.awt.GridBagLayout;
 @SuppressWarnings("SplitModeApiUsage")
 public class IkasanStudioSettingsConfigurable implements Configurable {
 
+    private JCheckBox allowSnapshotMetaPacksCheckBox;
     private JCheckBox gettingStartedHintsCheckBox;
     private JCheckBox promptBeforeDeletingUserCodeCheckBox;
     private JCheckBox showAdvancedControlsCheckBox;
@@ -187,6 +188,11 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
                 testMailServerPanel, flowErrorMonitoringPanel);
 
         JPanel northPanel = new JPanel(new VerticalLayout(0, VerticalLayout.FILL));
+        allowSnapshotMetaPacksCheckBox = new JBCheckBox(StudioBundle.message("metaPack.AllowSnapshots"));
+        JPanel snapshotPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
+        snapshotPanel.add(allowSnapshotMetaPacksCheckBox, BorderLayout.NORTH);
+        snapshotPanel.add(wrappingNote("metaPack.SnapshotsNote"), BorderLayout.CENTER);
+        northPanel.add(settingsGroup("metaPack.SettingsHeading", snapshotPanel));
         northPanel.add(aiPanel);
         northPanel.add(userCodePanel);
         northPanel.add(viewPanel);
@@ -210,7 +216,8 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
 
     @Override
     public boolean isModified() {
-        return keepCanvasSelectedCheckBox.isSelected() != IkasanStudioSettings.isKeepCanvasSelectedAtDebugBreakpoints()
+        return allowSnapshotMetaPacksCheckBox.isSelected() != IkasanStudioSettings.areSnapshotMetaPacksAllowed()
+                || keepCanvasSelectedCheckBox.isSelected() != IkasanStudioSettings.isKeepCanvasSelectedAtDebugBreakpoints()
                 || gettingStartedHintsCheckBox.isSelected() != IkasanStudioSettings.areGettingStartedHintsEnabled()
                 || promptBeforeDeletingUserCodeCheckBox.isSelected() != IkasanStudioSettings.isPromptBeforeDeletingUserCode()
                 || showAdvancedControlsCheckBox.isSelected() != IkasanStudioSettings.isShowAdvancedControlsEnabled()
@@ -232,6 +239,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         IkasanStudioSettings instance = IkasanStudioSettings.getInstance();
         IkasanStudioSettings.State state = instance != null ? instance.getState() : null;
         if (state != null) {
+            state.allowSnapshotMetaPacks = allowSnapshotMetaPacksCheckBox.isSelected();
             state.keepCanvasSelectedAtDebugBreakpoints = keepCanvasSelectedCheckBox.isSelected();
             state.gettingStartedHintsEnabled = gettingStartedHintsCheckBox.isSelected();
             state.promptBeforeDeletingUserCode = promptBeforeDeletingUserCodeCheckBox.isSelected();
@@ -253,6 +261,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
 
     @Override
     public void reset() {
+        allowSnapshotMetaPacksCheckBox.setSelected(IkasanStudioSettings.areSnapshotMetaPacksAllowed());
         keepCanvasSelectedCheckBox.setSelected(IkasanStudioSettings.isKeepCanvasSelectedAtDebugBreakpoints());
         gettingStartedHintsCheckBox.setSelected(IkasanStudioSettings.areGettingStartedHintsEnabled());
         promptBeforeDeletingUserCodeCheckBox.setSelected(IkasanStudioSettings.isPromptBeforeDeletingUserCode());
@@ -279,6 +288,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         for (Project project : ProjectManager.getInstance().getOpenProjects()) {
             UiContext context = project.getService(UiContext.class);
             if (context != null && context.getDesignerCanvas() != null) {
+                context.getDesignerCanvas().refreshMetaPackChoices();
                 context.getDesignerCanvas().setShowSharedEndpoints(IkasanStudioSettings.areSharedEndpointsShown());
                 context.getDesignerCanvas().setInitialiseAllDimensions(true);
                 context.getDesignerCanvas().repaint();

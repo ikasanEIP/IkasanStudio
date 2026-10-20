@@ -2,7 +2,7 @@ import groovy.json.JsonSlurper
 
 plugins { `java-library` }
 
-// Included in development bundles only with -PstudioIncludeSnapshotPacks=true.
+// Active in explicit development bundles; also shipped as optional resource data by the plugin.
 val metadata = JsonSlurper().parseText(providers.fileContents(layout.projectDirectory.file(
     "src/main/resources/studio/metapack/V5.0.1-SNAPSHOT/metapack.json")).asText.get()) as Map<*, *>
 version = metadata["packVersion"] as String

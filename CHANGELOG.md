@@ -5,7 +5,9 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
-- Keep the V5 snapshot out of default plugin/CLI distributions; add **Run Plugin (Snapshot Packs)** and the explicit `studioIncludeSnapshotPacks` development build flag. Record interactive V5 module testing separately from runtime certification.
+- Add persistent **Allow snapshot meta-packs** under Studio settings. Embed Ikasan 5 as optional resource-only data activated after opt-in and IDE restart, filter new-module/import choices by snapshot runtime, and preserve existing snapshot projects after opt-out. Include JDK 26 and demo preparation guidance.
+
+- Retain **Run Plugin (Snapshot Packs)** and the explicit `studioIncludeSnapshotPacks` build flag for pack development. Normal classpaths contain released-runtime packs; the optional V5 payload now activates through the developer setting above. Record interactive V5 module testing separately from runtime certification.
 
 - Fix router route-name validation rejecting valid lists such as `odd,even`. Validate legacy comma-separated patterns against the complete distinct list in the editor and saved-model checks, while preserving per-entry typed collection validation and route order.
 

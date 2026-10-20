@@ -119,9 +119,9 @@ The root [settings.gradle.kts](settings.gradle.kts) includes `headless/` as a co
 Meta-pack sources live under `src/main/resources/studio/metapack/`. The bundled packs are `V3.3.9` and `V4.1.6`; each supplies `metapack.json`, a component library (JSON descriptors and icons), and version-specific FreeMarker templates. Shared schemas live under `schema/`. Historic VHS and older-version references do not identify currently bundled packs.
 
 An opt-in Ikasan 5 development pack lives in `headless/studio-pack-v5/src/main/resources/studio/metapack/V5.0.1-SNAPSHOT`.
-It targets the inspected Java 26 snapshot baseline and appears in the IDE version selector when snapshot development builds are enabled. Migration choices remain V3/V4 only.
+It targets the inspected Java 26 snapshot baseline and appears in the IDE version selector when **Allow snapshot meta-packs** is enabled in Studio settings. Migration choices remain V3/V4 only.
 See [V5 development evidence and gates](headless/studio-pack-v5/README.md) before changing its status;
-include it with **Run Plugin (Snapshot Packs)** or `-PstudioIncludeSnapshotPacks=true`. Normal plugin/CLI archives exclude it. This is not Marketplace release certification.
+the plugin embeds it as optional resource-only data and activates it after opt-in and IDE restart. Normal plugin/CLI classpaths retain V3/V4 only; previously activated resources remain available for existing projects after opt-out. See [snapshot meta-packs](docs/SnapshotMetaPacks.md). This is not Marketplace release certification.
 
 `headless/studio-pack-v3` and `headless/studio-pack-v4` package the respective resource directories; `studio-bundled-packs` selects their exact revisions. The root plugin excludes these resources from its own resource source set to avoid duplicate packaging. Follow the [meta-pack authoring guide](src/main/resources/studio/metapack/METAPACK.md), [compliance requirements](src/main/resources/studio/metapack/METAPACK_COMPLIANCE.md), and [independent pack release guide](docs/IndependentMetaPackArtifacts.md) when changing or adding packs.
 

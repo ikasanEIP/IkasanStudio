@@ -26,6 +26,39 @@ import static org.mockito.Mockito.when;
 class DesignerCanvasTest {
 
     @Test
+    void snapshotChoicesRefreshFromPublishedMetadataWithoutChangingReleasedSelection() throws Exception {
+        Project project = mock(Project.class);
+        var context = mock(org.ikasan.studio.ui.UiContext.class);
+        when(project.getService(org.ikasan.studio.ui.UiContext.class)).thenReturn(context);
+        when(context.getOptions()).thenReturn(new org.ikasan.studio.ui.state.StudioSessionOptions());
+        javax.swing.SwingUtilities.invokeAndWait(() -> {
+            try (var settings = org.mockito.Mockito.mockStatic(org.ikasan.studio.intellij.settings.IkasanStudioSettings.class)) {
+                var canvas = new DesignerCanvas(project);
+                try {
+                    var field = DesignerCanvas.class.getDeclaredField("metaDataVersionComboBox");
+                    field.setAccessible(true);
+                    var choices = (javax.swing.JComboBox<?>) field.get(canvas);
+                    canvas.setAvailableMetaPacks(List.of("V4.1.6", "V5.0.1-SNAPSHOT", "AcmePack"),
+                            java.util.Set.of("V5.0.1-SNAPSHOT", "AcmePack"));
+                    assertThat(choices.getItemCount()).isEqualTo(1);
+                    assertThat(choices.getSelectedItem()).isEqualTo("V4.1.6");
+                    settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::areSnapshotMetaPacksAllowed).thenReturn(true);
+                    canvas.refreshMetaPackChoices();
+                    assertThat(choices.getItemCount()).isEqualTo(3);
+                    assertThat(choices.getSelectedItem()).isEqualTo("V4.1.6");
+                    canvas.setSelectedMetapackVersion("V5.0.1-SNAPSHOT");
+                    settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::areSnapshotMetaPacksAllowed).thenReturn(false);
+                    canvas.refreshMetaPackChoices();
+                    assertThat(choices.getItemCount()).isEqualTo(1);
+                    assertThat(choices.getSelectedItem()).isEqualTo("V4.1.6");
+                } catch (ReflectiveOperationException failure) {
+                    throw new AssertionError(failure);
+                } finally { canvas.disposeCanvas(); }
+            }
+        });
+    }
+
+    @Test
     void editorShellAndPublishedPackChoicesDoNotDiscoverResourcesOnTheEdt() throws Exception {
         Project project = mock(Project.class);
         var context = mock(org.ikasan.studio.ui.UiContext.class);
@@ -36,7 +69,8 @@ class DesignerCanvasTest {
                  var resources = org.mockito.Mockito.mockStatic(org.ikasan.studio.core.metapack.loading.MetaPackResources.class)) {
                 var canvas = new DesignerCanvas(project);
                 try {
-                    canvas.setAvailableMetaPacks(List.of("V4.1.6", "AcmePack"));
+                    canvas.setAvailableMetaPacks(List.of("V4.1.6", "AcmePack"), java.util.Set.of());
+                    canvas.refreshMetaPackChoices();
                     canvas.setSelectedMetapackVersion("AcmePack");
                     libraries.verifyNoInteractions();
                     resources.verifyNoInteractions();
