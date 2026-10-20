@@ -83,6 +83,7 @@ dependencies {
     implementation("org.ikasan.studio:studio-generator:0.1.0-SNAPSHOT")
     implementation("org.ikasan.studio:studio-bundled-packs:0.1.0-SNAPSHOT")
     testImplementation("org.ikasan.studio:studio-test-kit:0.1.0-SNAPSHOT")
+    testRuntimeOnly("org.ikasan.studio:studio-pack-v5:0.1.0-SNAPSHOT")
     testImplementation(libs.junit)
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -334,6 +335,7 @@ tasks {
             gradle.includedBuild("studio-headless").task(":studio-bundled-packs:check"),
             gradle.includedBuild("studio-headless").task(":studio-pack-v3:check"),
             gradle.includedBuild("studio-headless").task(":studio-pack-v4:check"),
+            gradle.includedBuild("studio-headless").task(":studio-pack-v5:check"),
             gradle.includedBuild("studio-headless").task(":studio-cli:check"))
         dependsOn(validateMetaPacks)
     }
@@ -352,6 +354,7 @@ tasks {
         require(suite in setOf("all", "engine", "packs")) {
             "studioTestSuite must be all, engine, or packs"
         }
+        systemProperty("studio.includeSnapshotPacks", providers.gradleProperty("studioIncludeSnapshotPacks").orElse("false").get())
         useJUnitPlatform {
             if (suite != "all") includeTags(suite)
         }
@@ -529,12 +532,16 @@ tasks.register<Exec>("verifyReleaseArchive") {
     val archive = tasks.buildPlugin.flatMap { it.archiveFile }
     inputs.file(archive)
     inputs.file("scripts/verify-release-archive.py")
+    val snapshots = providers.gradleProperty("studioIncludeSnapshotPacks").orElse("false")
+    inputs.property("studioIncludeSnapshotPacks", snapshots)
+    if (snapshots.get() == "true") inputs.dir("headless/studio-pack-v5/src/main/resources")
     inputs.dir("src/main/resources")
     inputs.file("LICENSE.txt")
     val report = layout.buildDirectory.file("reports/release/archive.json")
     outputs.file(report)
     commandLine("python3", "scripts/verify-release-archive.py", "--zip", archive.get().asFile.absolutePath,
         "--report", report.get().asFile.absolutePath)
+    if (snapshots.get() == "true") args("--include-snapshot-packs")
 }
 
 // Optional duplication report; analysis dependencies never enter the plugin distribution.

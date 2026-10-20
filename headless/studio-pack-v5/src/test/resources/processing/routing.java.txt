@@ -1,0 +1,50 @@
+package org.ikasan.studio.flowtests;
+
+import java.util.*;
+import org.junit.Test;
+import org.ikasan.studio.flowtests.support.ModuleFlowTestSupport;
+import org.ikasan.studio.flowtests.support.utils.FlowTestBatch;
+import org.ikasan.testharness.flow.rule.IkasanFlowTestRule;
+
+public class ProcessingTest extends ModuleFlowTestSupport {
+    private static final boolean MULTI = @MULTI@;
+    private static final boolean DEFAULTS = @DEFAULT@;
+    @Override protected String getFlowName() { return "Processing"; }
+
+    @Override protected void defineExpectedPath(IkasanFlowTestRule harness) {
+        for (String input : List.of("first", "drop", "later")) {
+            harness.consumer("Input");
+            harness.broker("Lookup");
+            harness.translator("Enrich");
+            harness.filter("Gate");
+            if (input.equals("drop")) continue;
+            harness.splitter("Split");
+            for (String destination : List.of("Left", "Right")) {
+                if (MULTI) {
+                    harness.multiRecipientRouter("Route");
+                    harness.producer("Left");
+                    harness.producer("Right");
+                } else {
+                    harness.router("Route");
+                    harness.producer(destination);
+                }
+            }
+        }
+    }
+
+    private FlowTestBatch<String> delivered(String input) {
+        String first = DEFAULTS ? input : input + ":translated:one";
+        String second = DEFAULTS ? "translated" : input + ":translated:two";
+        return batch(List.of(input), MULTI
+                ? Map.of("Left", List.of(first, second), "Right", List.of(first, second))
+                : Map.of("Left", List.of(first), "Right", List.of(second)));
+    }
+
+    @Test public void routeFilterAndLaterDelivery() throws Exception {
+        runBatches(context -> List.of(
+                delivered("first"),
+                batch(List.of("drop"), Map.of("Left", List.of(), "Right", List.of())),
+                delivered("later")),
+                (context, harness, input) -> context.getBean(org.example.processing.processing.InputFeed.class).submitNow(input)@RECEIVER_CHECK@);
+    }
+}

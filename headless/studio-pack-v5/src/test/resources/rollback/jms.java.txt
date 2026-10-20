@@ -1,0 +1,44 @@
+    @Test public void rollbackRedeliveryAndLaterDelivery() throws Exception {
+        runTest(context -> {
+            try (var diagnostics = new RollbackDiagnostics()) {
+            var module = context.getBean(org.ikasan.spec.module.Module.class);
+            var flow = (org.ikasan.spec.flow.Flow) module.getFlow("Transport");
+            var probe = context.getBean(org.example.transport.transport.TransportConverter.class);
+            flow.start();
+            try {
+                org.junit.Assert.assertEquals(org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
+                client.sendText("input", "first");
+                org.junit.Assert.assertTrue("The first transaction must complete rollback",
+                        probe.rolledBack.await(10, java.util.concurrent.TimeUnit.SECONDS));
+                org.junit.Assert.assertEquals("Real transaction rollback", org.springframework.transaction.support.TransactionSynchronization.STATUS_ROLLED_BACK, probe.completionStatus);
+                // Retry is held at the converter: nothing from the failed attempt may escape.
+                client.assertNoMessage("output");
+                org.junit.Assert.assertEquals("Ready after rollback", org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
+                probe.allowRetry.countDown();
+                client.assertTexts("output", List.of("first"));
+                org.junit.Assert.assertTrue("Broker marks the retry as redelivered", probe.redelivered);
+                org.junit.Assert.assertEquals("Same message retried", probe.firstMessageId, probe.retryMessageId);
+                org.junit.Assert.assertEquals("Exactly one failed attempt and one retry", 2, probe.attempts.get());
+                assertReadyWhileIdle(flow);
+                client.sendText("input", "later");
+                client.assertTexts("output", List.of("later"));
+                org.junit.Assert.assertEquals(3, probe.attempts.get());
+                assertReadyWhileIdle(flow);
+            } finally {
+                probe.allowRetry.countDown();
+                flow.stop();
+            }
+            org.junit.Assert.assertEquals(org.ikasan.spec.flow.Flow.STOPPED, flow.getState());
+            diagnostics.assertClean();
+            }
+        });
+        org.junit.Assert.assertNull("Owned broker stopped", org.apache.activemq.broker.BrokerRegistry.getInstance().lookup("v5-probe"));
+    }
+    private static void assertReadyWhileIdle(org.ikasan.spec.flow.Flow flow) throws Exception {
+        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(1);
+        do {
+            org.junit.Assert.assertEquals("Flow must remain ready while idle", org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
+            Thread.sleep(25);
+        } while (System.nanoTime() < deadline);
+    }
+}

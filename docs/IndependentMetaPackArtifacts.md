@@ -11,6 +11,10 @@ The IntelliJ plugin, generator, test kit and official packs remain in this repos
 | `studio-pack-v3` | `studio-pack-v3` | `V3.3.9` | `3.3.9` | `0.1.0-SNAPSHOT` |
 | `studio-pack-v4` | `studio-pack-v4` | `V4.1.6` | `4.1.6` | `0.1.0-SNAPSHOT` |
 
+`studio-pack-v5` is a separate, unbundled development artifact targeting `V5.0.1-SNAPSHOT`.
+Its resources and verification instructions are under [headless/studio-pack-v5](../headless/studio-pack-v5/README.md).
+It must not be added to the release bundle until the formal runtime release passes compatibility gates.
+
 Each pack JAR contains only that pack's descriptors, templates and images. It has no production dependency on the generator, test kit, IntelliJ or another pack. `studio-bundled-packs` is a dependency bundle: its published POM/Gradle metadata selects both exact revisions. The plugin consumes this bundle, and its ZIP includes both pack JARs. Never copy the pack resources back into the bundle or plugin JAR.
 
 ### Component dependencies

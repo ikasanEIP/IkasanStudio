@@ -1,75 +1,69 @@
 package org.ikasan.studio.intellij.navigation;
 
-import com.intellij.psi.PsiClass;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 
 /**
- * Platform-neutral handle to a "jump to code"/"jump to properties" target - wraps whatever PSI state IntelliJ
- * needs to navigate there, so view handlers (which live outside the {@code intellij} package) can hold and pass
- * this around without depending on {@code com.intellij.psi.*} themselves (see
- * ArchUnitBoundaryTest#platformHeavyApisRemainBehindKnownAdapters). Only this class and {@link StudioNavigator}
- * unwrap the underlying PSI types.
+ * Navigation handle held by view handlers without exposing PSI to the UI package.
+ * Keep the file identity rather than a Java class: regeneration and document commits
+ * can replace the class's PSI while the canvas still holds this target.
  */
 public final class NavigationTarget {
-    private static final NavigationTarget NONE = new NavigationTarget(null, null, 0);
+    private static final NavigationTarget NONE = new NavigationTarget(null, null, null, 0);
 
-    private final PsiFile psiFile;
-    private final PsiClass psiClass;
+    private final Project project;
+    private final VirtualFile virtualFile;
+    private final SmartPsiElementPointer<PsiFile> filePointer;
     private final int offset;
 
-    private NavigationTarget(PsiFile psiFile, PsiClass psiClass, int offset) {
-        this.psiFile = psiFile;
-        this.psiClass = psiClass;
+    private NavigationTarget(Project project, VirtualFile virtualFile,
+                             SmartPsiElementPointer<PsiFile> filePointer, int offset) {
+        this.project = project;
+        this.virtualFile = virtualFile;
+        this.filePointer = filePointer;
         this.offset = offset;
     }
 
-    public static NavigationTarget none() {
-        return NONE;
-    }
+    public static NavigationTarget none() { return NONE; }
 
-    /**
-     * @param psiFile the file to navigate to, or null (yields {@link #none()})
-     * @return a target for {@code psiFile}, at offset 0, resolving its main class (for a Java file) up front so
-     * navigation lands on the class declaration rather than just the top of the file
-     */
+    /** Create under a read action; resolve the current class only when navigating. */
     public static NavigationTarget forFile(PsiFile psiFile) {
-        if (psiFile == null) {
-            return NONE;
-        }
-        PsiClass mainClass = null;
-        if (psiFile instanceof PsiJavaFile javaFile) {
-            PsiClass[] allClasses = javaFile.getClasses();
-            if (allClasses.length > 0) {
-                // for now, assume the main class is the first in the array
-                mainClass = allClasses[0];
-            }
-        }
-        return new NavigationTarget(psiFile, mainClass, 0);
+        if (psiFile == null || !psiFile.isValid()) return NONE;
+        return new NavigationTarget(psiFile.getProject(), psiFile.getVirtualFile(),
+                SmartPointerManager.getInstance(psiFile.getProject()).createSmartPsiElementPointer(psiFile), 0);
     }
 
-    /**
-     * @return a copy of this target at {@code offset}, or {@link #none()} unchanged if this target is already empty
-     */
     public NavigationTarget withOffset(int offset) {
-        return isPresent() ? new NavigationTarget(psiFile, psiClass, offset) : this;
+        return isPresent() ? new NavigationTarget(project, virtualFile, filePointer, offset) : this;
     }
 
-    public boolean isPresent() {
-        return psiFile != null;
-    }
+    /** Does not touch PSI; safe for canvas action availability on the EDT. */
+    public boolean isPresent() { return filePointer != null; }
 
-    public int offset() {
-        return offset;
-    }
+    public int offset() { return offset; }
 
+    /** Resolve under a read action, off the EDT in production. */
     public PsiFile psiFile() {
-        return psiFile;
+        if (!isPresent() || project.isDisposed()) return null;
+        PsiFile file = filePointer.getElement();
+        if (file != null && file.isValid()) return file;
+        return virtualFile != null && virtualFile.isValid()
+                ? PsiManager.getInstance(project).findFile(virtualFile) : null;
     }
 
-    /** @return the most specific element to navigate to - the resolved class if there is one, else the file itself */
+    /** Resolve the current Java declaration, falling back to the file if it has no class. */
     public PsiElement elementToNavigateTo() {
-        return psiClass != null ? psiClass : psiFile;
+        PsiFile file = psiFile();
+        if (file instanceof PsiJavaFile javaFile) {
+            var classes = javaFile.getClasses();
+            if (classes.length > 0) return classes[0];
+        }
+        return file;
     }
 }

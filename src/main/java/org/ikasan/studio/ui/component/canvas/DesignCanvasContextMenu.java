@@ -69,6 +69,9 @@ public class DesignCanvasContextMenu {
             JMenuItem jumpToTest = new JMenuItem(StudioBundle.message("menu.JumpToFlowTest"));
             jumpToTest.addActionListener(e -> org.ikasan.studio.intellij.testing.NavigateToFlowTestAction.open(project, flow));
             menu.add(jumpToTest);
+            JMenuItem runTest = new JMenuItem(StudioBundle.message("menu.RunFlowTest"));
+            runTest.addActionListener(e -> org.ikasan.studio.intellij.testing.RunFlowTestAction.run(project, flow));
+            menu.add(runTest);
             addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
 
         } else if (ikasanBasicElement instanceof FlowElement flowElement) {

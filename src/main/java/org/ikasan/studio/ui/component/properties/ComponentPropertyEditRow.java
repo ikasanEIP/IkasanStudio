@@ -740,8 +740,8 @@ public class ComponentPropertyEditRow {
             // the list out when there's really something there - a blank field leaves returnValue at its
             // already-null default.
             if (!rawValue.isBlank()) {
-                List<String> rawList = Arrays.asList(rawValue.split("\\s*,\\s*"));
-                Set<String> deduplicate = new HashSet<>(rawList);
+                List<String> rawList = Arrays.asList(rawValue.split("\\s*,\\s*", -1));
+                Set<String> deduplicate = new java.util.LinkedHashSet<>(rawList);
                 if (rawList.size() > deduplicate.size()) {
                     StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DuplicatesInTheListWillBeRemoved"));
                     returnValue = new ArrayList<>(deduplicate);
@@ -906,9 +906,10 @@ public class ComponentPropertyEditRow {
         return result;
     }
 
-    /** Metadata patterns apply to saved values as well as edits, and to each entry of a string list. */
+    /** Typed collection patterns apply per entry; legacy comma-separated patterns apply to the whole list. */
     static String patternValidationMessage(ComponentPropertyMeta meta, Object value) {
         if (meta.getValidationPattern() == null || value == null) return null;
+        value = meta.patternValidationValue(value);
         if (value instanceof List<?> entries) {
             for (int i = 0; i < entries.size(); i++) {
                 if (!(entries.get(i) instanceof String text) || !meta.getValidationPattern().matcher(text).matches()) {

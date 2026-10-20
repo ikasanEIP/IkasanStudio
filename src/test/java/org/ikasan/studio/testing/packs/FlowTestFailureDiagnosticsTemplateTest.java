@@ -11,18 +11,22 @@ import static org.junit.jupiter.api.Assertions.*;
 class FlowTestFailureDiagnosticsTemplateTest {
     @TempDir Path root;
 
-    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
     void preservesComparisonValuesCauseAndRealAssertionFrame(String version) throws Exception {
+        Path templates = version.equals("V5.0.1-SNAPSHOT")
+                ? Path.of("headless/studio-pack-v5/src/main/resources/studio/metapack", version, "templates/org/ikasan/studio/generator")
+                : Path.of("src/main/resources/studio/metapack", version, "templates/org/ikasan/studio/generator");
         Path source = root.resolve("FlowTestFailureDiagnostics.java");
-        Files.writeString(source, Files.readString(Path.of("src/main/resources/studio/metapack", version,
-                "templates/org/ikasan/studio/generator/flowTestFailureDiagnosticsTemplate_en.ftl")));
+        Files.writeString(source, Files.readString(templates.resolve("flowTestFailureDiagnosticsTemplate_en.ftl")));
         Path batchSource = root.resolve("FlowTestBatch.java");
-        Files.writeString(batchSource, Files.readString(Path.of("src/main/resources/studio/metapack", version,
-                "templates/org/ikasan/studio/generator/flowTestBatchTemplate_en.ftl")));
+        Files.writeString(batchSource, Files.readString(templates.resolve("flowTestBatchTemplate_en.ftl")));
+        Path textSource = root.resolve("OutputTextSupport.java");
+        Files.writeString(textSource, Files.readString(templates.resolve("outputTextSupportTemplate_en.ftl")));
         Path probe = root.resolve("Probe.java");
         Files.writeString(probe, """
                 import org.ikasan.studio.flowtests.support.utils.FlowTestFailureDiagnostics;
                 import org.ikasan.studio.flowtests.support.utils.FlowTestBatch;
+                import org.ikasan.studio.flowtests.support.utils.OutputTextSupport;
                 import java.util.*;
                 import java.time.Duration;
                 import org.junit.Assert;
@@ -46,7 +50,63 @@ class FlowTestFailureDiagnosticsTemplateTest {
                             throw new IllegalArgumentException("Cannot read output text from directory; review flowTestProperties()");
                         }
                     }
+                    static final class Order {
+                        @Override public String toString() { throw new AssertionError("Do not stringify business objects for diagnostics"); }
+                    }
+                    static class TextTest extends BusinessTest {
+                        @Override void assertExpectedOutput(Object expected, Object actual) {
+                            Assert.assertEquals(expected, OutputTextSupport.stringify(actual));
+                        }
+                    }
+                    static class MappedTextTest extends BusinessTest {
+                        @Override void assertExpectedOutput(Object expected, Object actual) {
+                            Assert.assertEquals(expected, actual instanceof Order ? "mapped order" : OutputTextSupport.stringify(actual));
+                        }
+                    }
+                    static void verifyMappingDiagnostics() {
+                        var test = new TextTest();
+                        var batch = new FlowTestBatch<>(List.of(), Map.of("Send for Processing", List.of("expected order")));
+                        var observation = batch.observe(test::assertExpectedOutput);
+                        observation.accept("Send for Processing", new Order());
+                        try {
+                            observation.verify(Duration.ofMillis(100), Duration.ofMillis(20), () -> {});
+                            throw new IllegalStateException("Expected unsupported mapping");
+                        } catch (AssertionError failure) {
+                            var report = FlowTestFailureDiagnostics.contextualise(
+                                    "Flow 'Create New Order', batch 1 of 2 failed: " + failure.getMessage(), failure, TextTest.class);
+                            Assert.assertTrue(report.getMessage().contains("Expected: String (java.lang.String). Actual: Order (" + Order.class.getName() + ")"));
+                            Assert.assertTrue(report.getMessage().contains("No text mapping is defined"));
+                            Assert.assertTrue(report.getMessage().contains("formatOutputText(Object)"));
+                            Assert.assertTrue(report.getMessage().contains("assertExpectedOutput(Object, Object)"));
+                            Assert.assertTrue(report.getMessage().contains("Send for Processing"));
+                            Assert.assertTrue(report.getMessage().contains("output 1"));
+                            Assert.assertTrue(report.getMessage().contains("batch 1 of 2"));
+                            Assert.assertSame(failure, report.getCause());
+                            Assert.assertTrue(failure.getCause() instanceof OutputTextSupport.UnsupportedOutputTypeException);
+                            Assert.assertEquals(TextTest.class.getName(), report.getStackTrace()[0].getClassName());
+                            Assert.assertEquals("assertExpectedOutput", report.getStackTrace()[0].getMethodName());
+                            Assert.assertTrue(Arrays.asList(failure.getCause().getStackTrace()).contains(report.getStackTrace()[0]));
+                        } catch (Exception failure) { throw new AssertionError(failure); }
+                        // Different Java types are valid when the developer supplies a text mapping.
+                        var mapped = new FlowTestBatch<>(List.of(), Map.of("P", List.of("mapped order")))
+                                .observe(new MappedTextTest()::assertExpectedOutput);
+                        mapped.accept("P", new Order());
+                        try { mapped.verify(Duration.ofMillis(100), Duration.ofMillis(20), () -> {}); }
+                        catch (Exception failure) { throw new AssertionError(failure); }
+                        // Malformed text is a decoding problem, not an unsupported business-object mapping.
+                        var malformed = batch.observe(test::assertExpectedOutput);
+                        malformed.accept("Send for Processing", new byte[]{(byte) 0xc3, (byte) 0x28});
+                        try {
+                            malformed.verify(Duration.ofMillis(100), Duration.ofMillis(20), () -> {});
+                            throw new IllegalStateException("Expected malformed text failure");
+                        } catch (AssertionError failure) {
+                            Assert.assertTrue(failure.getMessage().contains("Cannot decode output content"));
+                            Assert.assertFalse(failure.getMessage().contains("No text mapping is defined"));
+                            Assert.assertTrue(failure.getCause().getCause() instanceof java.nio.charset.CharacterCodingException);
+                        } catch (Exception failure) { throw new AssertionError(failure); }
+                    }
                     public static void run() {
+                        verifyMappingDiagnostics();
                         AssertionError original;
                         try {
                             new InheritedTest().assertExpectedOutput("expected", "actual");
@@ -148,7 +208,7 @@ class FlowTestFailureDiagnosticsTemplateTest {
         String junit = Path.of(URI.create(resource.substring(4, resource.indexOf("!/")))).toString();
         Path log = root.resolve("compile.log");
         Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
-                "--release", "11", "-cp", junit, "-d", root.toString(), source.toString(), batchSource.toString(), probe.toString())
+                "--release", "11", "-cp", junit, "-d", root.toString(), source.toString(), batchSource.toString(), textSource.toString(), probe.toString())
                 .redirectErrorStream(true).redirectOutput(log.toFile()).start();
         try {
             assertTrue(compiler.waitFor(20, TimeUnit.SECONDS));

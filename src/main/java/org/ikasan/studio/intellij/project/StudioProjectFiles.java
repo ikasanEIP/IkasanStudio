@@ -755,8 +755,8 @@ public class StudioProjectFiles {
 
     /**
      * Resolves a generated file's code-navigation target on a background read action. NavigationTarget.forFile
-     * calls PsiJavaFile.getClasses(), which for a freshly written Java file loads stub/index data through the
-     * workspace file index. Publish the target on the EDT, where the view handler is used, and expire pending
+     * captures a smart file pointer; navigating later resolves the current Java declaration rather than
+     * retaining PSI that regeneration or document commits can invalidate. Publish the target on the EDT, where the view handler is used, and expire pending
      * work with the project's initialization service.
      */
     private static void setCodeNavigationTargetAsync(AbstractViewHandlerIntellij componentViewHandler, PsiFile psiFile) {

@@ -1078,3 +1078,36 @@ in the same way. Visual route endpoints and Studio debug components are not runt
 The harness checks invocation order; this scaffold does not establish ordering for
 concurrently executed routes. Branches containing splitters, business filters, unsupported
 components or exception resolvers retain the manual guard.
+
+### When expected text meets a business object
+
+If an expected value is a `String` but the observed payload is an unsupported business
+object such as `Order`, batch verification reports both Java types and identifies the
+producer and output. For example: `Expected: String (java.lang.String). Actual: Order
+(com.example.Order). No text mapping is defined for this output.` Define the intended
+text mapping in `formatOutputText(Object)`, or compare the business object's fields or
+values in `assertExpectedOutput(Object, Object)`. A difference in Java types alone does
+not fail the test: supported or developer-provided text mappings still run normally.
+
+This diagnostic preserves the original cause and the captured assertion source location.
+Malformed text, missing files and custom assertion failures retain their own explanations.
+Existing scenarios receive it when Studio refreshes generated flow-test support files;
+developer-owned tests and expected business values do not need to be overwritten.
+
+### Run from the canvas
+
+Right-click a flow and choose **Run Flow Test** to run its existing generated test class
+in IntelliJ's Run tool window. Studio reuses a matching IDE run configuration when
+available, preserving its settings; otherwise IntelliJ creates a temporary configuration.
+The action waits for indexing and uses the test's owning module and SDK. Generate the
+test first, and allow Maven to import `user-flow-tests`. The action runs the saved test
+scenario; it does not regenerate code, replace expectations or start the normal module
+application. **Jump to Flow Test** remains available for editing the scenario.
+
+### Renaming with unsaved test edits
+
+When **Update Code** renames a component or flow, Studio saves affected test documents
+before preparing their reference updates. It then inspects the saved files again, so
+format-on-save changes are included in the plan. Developer-written assertions and edits
+are preserved; unrelated unsaved files are left alone. If an affected file cannot be
+saved, Studio cancels the rename with guidance before changing the model or references.

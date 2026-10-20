@@ -10,18 +10,19 @@ import static org.mockito.Mockito.*;
 class TestSftpServerServiceTest {
     @TempDir Path temporary;
     @Test void localModeRequiresProjectDirectory() {
-        Project project = mock(Project.class);
-        var service = new TestSftpServerService(project);
-        service.setLocal(true);
-        try {
-            for (String basePath : new String[]{null, "", " "}) {
-                when(project.getBasePath()).thenReturn(basePath);
+        for (String basePath : new String[]{null, "", " "}) {
+            // Configure each mock before publishing it to the service's EDT callbacks.
+            Project project = mock(Project.class);
+            when(project.getBasePath()).thenReturn(basePath);
+            var service = new TestSftpServerService(project);
+            service.setLocal(true);
+            try {
                 var failure = assertThrows(IllegalStateException.class, service::start);
                 assertEquals("Open a project with a directory before starting the local SFTP harness.", failure.getMessage());
                 assertFalse(service.isRunning());
                 assertThrows(IllegalStateException.class, service::launchProperties);
-            }
-        } finally { service.dispose(); }
+            } finally { service.dispose(); }
+        }
     }
     @Test void externalModeIsUntouchedAndLocalModeRequiresOwnedServer() throws Exception {
         Project project = mock(Project.class);
@@ -39,7 +40,9 @@ class TestSftpServerServiceTest {
             assertSame(server, service.start());
             assertEquals("true", service.launchProperties().get("studio.test.sftp.enabled"));
             var restored = new TestSftpServerService(project);
-            restored.loadState(service.getState());
+            var savedState = service.getState();
+            assertNotNull(savedState);
+            restored.loadState(savedState);
             assertTrue(restored.isLocal());
             service.setLocal(false);
             assertFalse(service.isRunning());

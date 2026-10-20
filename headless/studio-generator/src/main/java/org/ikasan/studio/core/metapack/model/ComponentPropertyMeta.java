@@ -195,6 +195,21 @@ public class ComponentPropertyMeta {
     private String validationMessage = "";  // Message to be displayed when the object fails validation
     private Pattern validationPattern;      // Set internally when first got, if validation attribute exists, this is the compiled pattern
 
+    /** Legacy list fields are edited as comma-separated text; their patterns describe the whole list. */
+    @JsonIgnore
+    public boolean isCommaSeparatedStringList() {
+        return propertyDataType == String.class && "java.util.List<String>".equals(usageDataType);
+    }
+
+    /** Typed collections retain entry validation (for example each email recipient). */
+    public Object patternValidationValue(Object value) {
+        if (isCommaSeparatedStringList() && value instanceof List<?> entries
+                && entries.stream().allMatch(String.class::isInstance)) {
+            return String.join(",", entries.stream().map(String.class::cast).distinct().toList());
+        }
+        return value;
+    }
+
     public boolean isVoid() {
         return propertyDataType == null;
     }

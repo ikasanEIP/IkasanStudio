@@ -590,8 +590,8 @@ public abstract class ModuleFlowTestSupport {
                             break;
                         }
                     }
-                    throw new AssertionError("Flow '" + getFlowName() + "': expected path references " + role
-                            + " '" + name + "', which does not exist." + suggestion + " Update defineExpectedPath; use the exact component name from the canvas.");
+                    throw new AssertionError("Flow '" + getFlowName() + "': contains a component named '" + name
+                            + "' which does not exist." + suggestion + " Update defineExpectedPath; use the exact component name from the canvas.");
                 }
                 Object component = getComponent(name); // The harness unwraps Spring proxies.
                 if (!expectedType.isInstance(component)) {

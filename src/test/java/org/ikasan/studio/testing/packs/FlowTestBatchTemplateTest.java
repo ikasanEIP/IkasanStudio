@@ -10,11 +10,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FlowTestBatchTemplateTest {
     @TempDir Path root;
-    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
     void verifiesPerProducerCountsOrderingSilenceAndIndependentBatchSizes(String version) throws Exception {
+        Path templates = version.equals("V5.0.1-SNAPSHOT")
+                ? Path.of("headless/studio-pack-v5/src/main/resources/studio/metapack", version, "templates/org/ikasan/studio/generator")
+                : Path.of("src/main/resources/studio/metapack", version, "templates/org/ikasan/studio/generator");
         Path source = root.resolve("FlowTestBatch.java");
-        Files.writeString(source, Files.readString(Path.of("src/main/resources/studio/metapack", version,
-                "templates/org/ikasan/studio/generator/flowTestBatchTemplate_en.ftl")));
+        Files.writeString(source, Files.readString(templates.resolve("flowTestBatchTemplate_en.ftl")));
+        Path textSource = root.resolve("OutputTextSupport.java");
+        Files.writeString(textSource, Files.readString(templates.resolve("outputTextSupportTemplate_en.ftl")));
         Path probe = root.resolve("Probe.java");
         Files.writeString(probe, """
                 import org.ikasan.studio.flowtests.support.utils.FlowTestBatch;
@@ -115,7 +119,7 @@ class FlowTestBatchTemplateTest {
                 """);
         Path diagnostics = root.resolve("javac.log");
         Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
-                "--release", "11", "-d", root.toString(), source.toString(), probe.toString())
+                "--release", "11", "-d", root.toString(), source.toString(), textSource.toString(), probe.toString())
                 .redirectErrorStream(true).redirectOutput(diagnostics.toFile()).start();
         try {
             assertTrue(compiler.waitFor(20, TimeUnit.SECONDS));

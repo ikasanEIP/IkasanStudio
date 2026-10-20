@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 
-def audit(archive, root):
+def audit(archive, root, include_snapshot_packs=False):
     errors, resources, jars, descriptors = [], {}, [], []
     bytecode_count = 0
     offline_archives = []
@@ -46,7 +46,10 @@ def audit(archive, root):
             for required in ("bin/studio-cli", "bin/studio-cli.bat", "bin/studio_upgrade.py", "README.md", "CommandLineMigration.md", "LICENSE.txt"):
                 if not any(name.endswith("/" + required) for name in entries):
                     errors.append("Missing offline tool: " + required)
-            for artifact in ("studio-cli-", "studio-generator-", "studio-pack-v3-", "studio-pack-v4-"):
+            required_artifacts = ["studio-cli-", "studio-generator-", "studio-pack-v3-", "studio-pack-v4-"]
+            if include_snapshot_packs:
+                required_artifacts.append("studio-pack-v5-")
+            for artifact in required_artifacts:
                 if not any("/lib/" + artifact in name and name.endswith(".jar") for name in entries):
                     errors.append("Missing offline runtime artifact: " + artifact)
             script = next((n for n in entries if n.endswith("/bin/studio_upgrade.py")), None)
@@ -100,6 +103,14 @@ def audit(archive, root):
     expected = [path for path in source.rglob("*") if path.is_file()
                 and path.relative_to(source).as_posix() != "META-INF/plugin.xml"
                 and not (path.parent == source / "studio/metapack" and path.suffix == ".md")]
+    if include_snapshot_packs:
+        # The development V5 pack owns its resources outside the plugin source tree.
+        v5_source = root / "headless/studio-pack-v5/src/main/resources"
+        for path in v5_source.rglob("*"):
+            if path.is_file():
+                name = path.relative_to(v5_source).as_posix()
+                if hashlib.sha256(path.read_bytes()).hexdigest() not in resources.get(name, []):
+                    errors.append("Missing or changed V5 development resource: " + name)
     for path in expected:
         name = path.relative_to(source).as_posix()
         if hashlib.sha256(path.read_bytes()).hexdigest() not in resources.get(name, []):
@@ -116,8 +127,11 @@ def audit(archive, root):
     if not bytecode_count:
         errors.append("No Studio bytecode found")
     packs = sorted(name.split("/")[-2] for name in resources if name.endswith("/metapack.json"))
-    if not packs:
-        errors.append("No packaged meta-packs")
+    expected_packs = {"V3.3.9", "V4.1.6"}
+    if include_snapshot_packs:
+        expected_packs.add("V5.0.1-SNAPSHOT")
+    if set(packs) != expected_packs:
+        errors.append("Unexpected packaged meta-packs: " + str(packs) + "; expected " + str(sorted(expected_packs)))
     return {"archive": str(archive), "sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
             "status": "FAIL" if errors else "PASS", "errors": errors, "meta_packs": packs,
             "source_resources_checked": len(expected), "studio_classes_checked": bytecode_count,
@@ -129,8 +143,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--zip", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--include-snapshot-packs", action="store_true", help="Audit an explicitly requested development snapshot build")
     args = parser.parse_args()
-    report = audit(args.zip, Path(__file__).resolve().parents[1])
+    report = audit(args.zip, Path(__file__).resolve().parents[1], args.include_snapshot_packs)
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + "\n")
     print(f"Release archive {report['status']}: {report['source_resources_checked']} resources, "

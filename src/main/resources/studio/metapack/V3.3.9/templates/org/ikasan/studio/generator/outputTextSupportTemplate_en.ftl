@@ -14,6 +14,14 @@ import java.util.List;
 public final class OutputTextSupport {
     private OutputTextSupport() { }
 
+    /** Distinguishes a missing mapping from decoding, IO and custom assertion failures. */
+    public static final class UnsupportedOutputTypeException extends IllegalArgumentException {
+        private UnsupportedOutputTypeException(Class<?> type) {
+            super("No text-content adapter for " + type.getName()
+                    + ". Override formatOutputText(Object) for this payload or compare its fields in assertExpectedOutput(Object, Object).");
+        }
+    }
+
     /**
      * Decodes UTF-8 bytes, Ikasan Payload content, local files/paths, file lists,
      * EmailPayload bodies and JMS TextMessage bodies.
@@ -44,8 +52,7 @@ public final class OutputTextSupport {
             if (email != null) return String.valueOf(email.getMethod("getEmailBody").invoke(value));
             Class<?> message = findInterface(value.getClass(), "javax.jms.TextMessage");
             if (message != null) return String.valueOf(message.getMethod("getText").invoke(value));
-            throw new IllegalArgumentException("No text-content adapter for " + value.getClass().getName()
-                    + ". Override formatOutputText(Object) for this payload. JMS supports TextMessage only; binary/object messages need an explicit mapping.");
+            throw new UnsupportedOutputTypeException(value.getClass());
         } catch (InvocationTargetException failure) {
             throw new IllegalArgumentException("Cannot read output content from " + value.getClass().getName(), failure.getCause());
         } catch (IOException | ReflectiveOperationException failure) {

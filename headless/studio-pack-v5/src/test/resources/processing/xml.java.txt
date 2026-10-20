@@ -1,0 +1,33 @@
+package org.ikasan.studio.flowtests;
+
+import java.util.*;
+import org.junit.Test;
+import org.ikasan.studio.flowtests.support.ModuleFlowTestSupport;
+import org.ikasan.testharness.flow.rule.IkasanFlowTestRule;
+
+public class ProcessingTest extends ModuleFlowTestSupport {
+    @Override protected String getFlowName() { return "Processing"; }
+    @Override protected void defineExpectedPath(IkasanFlowTestRule harness) {
+        for (int i = 0; i < expectedInputCount(); i++) {
+            harness.consumer("Input"); harness.converter("Create order"); harness.converter("XML"); harness.producer("Output");
+        }
+    }
+    @Override protected void assertExpectedOutput(Object expected, Object actual) {
+        org.junit.Assert.assertTrue("XML converter must return String", actual instanceof String);
+        try {
+            var factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            var document = factory.newDocumentBuilder().parse(new org.xml.sax.InputSource(new java.io.StringReader((String) actual)));
+            org.junit.Assert.assertEquals("order", document.getDocumentElement().getTagName());
+            org.junit.Assert.assertEquals(expected, document.getElementsByTagName("reference").item(0).getTextContent());
+            org.junit.Assert.assertEquals("3", document.getElementsByTagName("quantity").item(0).getTextContent());
+        } catch (Exception failure) { throw new AssertionError("Expected well-formed JAXB XML", failure); }
+    }
+    @Test public void jakartaXmlAndLaterDelivery() throws Exception {
+        runBatches(context -> List.of(
+                batch(List.of("ORDER-A"), Map.of("Output", List.of("ORDER-A"))),
+                batch(List.of("ORDER<&>"), Map.of("Output", List.of("ORDER<&>"))),
+                batch(List.of("ORDER-C"), Map.of("Output", List.of("ORDER-C")))),
+                (context, harness, input) -> context.getBean(org.example.processing.processing.InputFeed.class).submitNow(input));
+    }
+}

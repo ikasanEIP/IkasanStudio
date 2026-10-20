@@ -1,0 +1,26 @@
+package org.ikasan.studio.flowtests;
+
+/** A rolled-back completion callback alone can hide XA resource rollback failures. */
+final class RollbackDiagnostics extends ch.qos.logback.core.AppenderBase<ch.qos.logback.classic.spi.ILoggingEvent>
+        implements AutoCloseable {
+    private final java.util.Queue<String> failures = new java.util.concurrent.ConcurrentLinkedQueue<>();
+    private final ch.qos.logback.classic.Logger logger =
+            (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger("com.arjuna");
+
+    RollbackDiagnostics() { start(); logger.addAppender(this); }
+
+    @Override protected void append(ch.qos.logback.classic.spi.ILoggingEvent event) {
+        String message = event.getFormattedMessage();
+        if (message.contains("ARJUNA016129") || message.contains("ARJUNA016031")
+                || message.contains("FINISH_ERROR") || message.contains("HEURISTIC")) {
+            failures.add(message);
+        }
+    }
+
+    void assertClean() {
+        org.junit.Assert.assertTrue("Delivery recovered, but resource rollback was not clean. Review the V5 runtime transaction lifecycle: "
+                + failures, failures.isEmpty());
+    }
+
+    @Override public void close() { logger.detachAppender(this); stop(); }
+}
