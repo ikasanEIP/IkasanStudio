@@ -507,6 +507,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.renameComponentAndSave(
                     project, context.getIkasanModule(), element, name);
             return true;
+        } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+            throw cancelled;
+        } catch (org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.RenameBlockedException blocked) {
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("flowTest.renameFailed", blocked.getMessage()));
+            return false;
         } catch (RuntimeException failure) {
             LOG.warn("Component test refactoring failed", failure);
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("flowTest.renameFailed", failure.getMessage()));
@@ -536,6 +541,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             return org.ikasan.studio.intellij.psi.FlowPackageRefactoring.renameAndSave(plan, module, flow, name);
         } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
             throw cancelled;
+        } catch (org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.RenameBlockedException blocked) {
+            StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.FlowRenameFailed", blocked.getMessage()));
+            return false;
         } catch (RuntimeException failure) {
             LOG.warn("STUDIO: Flow package refactoring failed", failure);
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.FlowRenameFailed", failure.getMessage()));

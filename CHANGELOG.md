@@ -5,6 +5,10 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Save affected unsaved flow-test documents before component/flow rename, then rebuild the reference-update plan while preserving developer edits and unrelated unsaved files. Report blocked saves as recoverable guidance.
+
+- Add **Run Flow Test** to the flow canvas context menu, using IntelliJ's normal test configuration and Run tool window for the existing flow-test class.
+
 - Explain unsupported flow-test text comparisons with expected and actual Java types, producer/output context and explicit mapping or object-assertion guidance. Preserve original causes and developer assertion navigation; keep decoding failures distinct.
 
 - Resolve component code-navigation targets from the current Java file after edits or regeneration, preventing double-click navigation from failing on an invalid cached PSI class.
