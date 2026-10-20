@@ -17,7 +17,7 @@ These are initial development artifact versions, independent of the plugin versi
 
 The generator has no dependency on either the test kit or bundled packs. The test kit has no production dependency on bundled packs. Consumers supply their own pack resources on the application classpath using the existing `studio/metapack/<id>/...` structure. Resource discovery merges directories across engine and pack JARs.
 
-On this feature branch, `studio-bundled-packs` also selects the
+With `-PstudioIncludeSnapshotPacks=true`, `studio-bundled-packs` also selects the
 [Ikasan 5 development pack](studio-pack-v5/README.md) for fresh IDE sandbox launches.
 Its Java 26 runtime verification and snapshot readiness gates remain separate from
 released V3/V4 compatibility claims. V5 migration choices remain disabled.

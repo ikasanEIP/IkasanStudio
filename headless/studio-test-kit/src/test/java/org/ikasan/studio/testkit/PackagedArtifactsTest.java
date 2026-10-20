@@ -13,8 +13,10 @@ class PackagedArtifactsTest {
         assertThrows(ClassNotFoundException.class,
                 () -> Class.forName("com.intellij.openapi.application.ApplicationManager"));
         assertTrue(ApplicationTemplate.class.getProtectionDomain().getCodeSource().getLocation().getPath().endsWith(".jar"));
-        assertTrue(ComponentLibrary.getMetapackList().containsAll(List.of("V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT")));
-        for (String version : List.of("V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT")) {
+        var expected = Boolean.getBoolean("studio.includeSnapshotPacks")
+                ? List.of("V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT") : List.of("V3.3.9", "V4.1.6");
+        assertEquals(new java.util.HashSet<>(expected), new java.util.HashSet<>(ComponentLibrary.getMetapackList()));
+        for (String version : expected) {
             var resource = getClass().getClassLoader().getResource("studio/metapack/" + version + "/metapack.json");
             assertNotNull(resource);
             assertEquals("jar", resource.getProtocol());

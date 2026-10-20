@@ -2,7 +2,7 @@ import groovy.json.JsonSlurper
 
 plugins { `java-library` }
 
-// Bundled on the Ikasan 5 development branch for interactive sandbox testing.
+// Included in development bundles only with -PstudioIncludeSnapshotPacks=true.
 val metadata = JsonSlurper().parseText(providers.fileContents(layout.projectDirectory.file(
     "src/main/resources/studio/metapack/V5.0.1-SNAPSHOT/metapack.json")).asText.get()) as Map<*, *>
 version = metadata["packVersion"] as String

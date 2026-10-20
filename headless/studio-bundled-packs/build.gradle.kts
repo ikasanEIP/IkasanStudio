@@ -13,8 +13,11 @@ abstract class ActiveMqTestArguments : CommandLineArgumentProvider {
 dependencies {
     api(project(":studio-pack-v3"))
     api(project(":studio-pack-v4"))
-    // Development branch: make the snapshot available in fresh IDE sandboxes.
-    api(project(":studio-pack-v5"))
+    // Explicit development inclusion only; normal plugin/CLI distributions retain released packs.
+    if (providers.gradleProperty("studioIncludeSnapshotPacks").orNull == "true") {
+        api(project(":studio-pack-v5"))
+    }
+    testRuntimeOnly(project(":studio-pack-v5"))
     testImplementation(project(":studio-test-kit"))
     testImplementation("commons-io:commons-io:2.22.0")
     // The shared SMTP fixture compiles and runs the same javax.mail helper shipped by both packs.

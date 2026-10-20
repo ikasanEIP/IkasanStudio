@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Keep the V5 snapshot out of default plugin/CLI distributions; add **Run Plugin (Snapshot Packs)** and the explicit `studioIncludeSnapshotPacks` development build flag. Record interactive V5 module testing separately from runtime certification.
+
 - Fix router route-name validation rejecting valid lists such as `odd,even`. Validate legacy comma-separated patterns against the complete distinct list in the editor and saved-model checks, while preserving per-entry typed collection validation and route order.
 
 - Save affected unsaved flow-test documents before component/flow rename, then rebuild the reference-update plan while preserving developer edits and unrelated unsaved files. Report blocked saves as recoverable guidance.
@@ -111,7 +113,6 @@ release verification and outstanding checks are tracked separately in
 
 ### Added
 
-- Bundle the experimental V5.0.1-SNAPSHOT pack on the Ikasan 5 feature branch so fresh IDE sandboxes offer it without external installation. Generated V5 applications require JDK 26; V5 migration and release readiness remain separate.
 
 
 - Add a Maven meta-pack example and authoring archetype under `ikasan-studio-ancillary`, with separate runtime components, a scheduled sample flow, descriptor/rendering and generated-factory compilation tests, and installer validation of the complete resource-only JAR. The archetype generates and builds the maintained example in its integration test.

@@ -1,10 +1,10 @@
 # Ikasan 5 development pack
 
 This is an **unreleased development pack**, not a supported runtime or Marketplace deliverable.
-On `feature/ikasan-5-metapack` it is included in `studio-bundled-packs` so fresh IDE
-sandbox launches offer `V5.0.1-SNAPSHOT` without installing an external JAR. Use the
-normal **Run Plugin** configuration, then select that version when configuring a new
-module. Configure the application project SDK, Maven runner and Run/Debug JRE as JDK 26.
+The pack is excluded from normal plugin/CLI distributions. Use **Run Plugin (Snapshot Packs)**
+or `./gradlew runIdeModern -PstudioIncludeSnapshotPacks=true` to include it in a fresh sandbox.
+The selector then offers `V5.0.1-SNAPSHOT` without an external installation. Configure the
+application project SDK, Maven runner and Run/Debug JRE as JDK 26.
 This development inclusion does not certify a Marketplace release or enable V5 migrations.
 Resources live here rather than in the released-pack directory so normal plugin/BOM/help-link gates
 continue to describe only the supported V3 and V4 packs.
@@ -462,3 +462,15 @@ reviewable source/test changes and backup/restore acceptance checks against the 
   `studio-bundled-packs`. Do not ship snapshot coordinates in a Marketplace build.
 
 See [meta-pack compliance](../../src/main/resources/studio/metapack/METAPACK_COMPLIANCE.md).
+
+## Interactive module testing — 20 October 2026
+
+The project owner reports completing Ikasan 5 testing of the routes/branches,
+converters/translators and all-consumers/producers demonstration modules. This supplied
+interactive evidence and exposed shared navigation, test diagnostics, flow-test execution,
+rename and route-validation fixes now included in Studio. It does not establish that the
+separate snapshot rollback gates have passed. A user-facing setting for snapshot packs
+remains future work; the current opt-in is a development build flag.
+
+See the [20 October merge verification](../../docs/Ikasan5MergeVerification-2026-10-20.md)
+for passing distribution checks and the six remaining runtime rollback failures.

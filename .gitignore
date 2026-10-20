@@ -132,3 +132,5 @@ settings.gradle.kts
 
 # Local runtime and test data
 /temporary-files/
+
+!.run/Run Plugin (Snapshot Packs).run.xml
