@@ -5,9 +5,9 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
-- Add persistent **Allow snapshot meta-packs** under Studio settings. Embed Ikasan 5 as optional resource-only data activated after opt-in and IDE restart, filter new-module/import choices by snapshot runtime, and preserve existing snapshot projects after opt-out. Include JDK 26 and demo preparation guidance.
+- External-pack demo branch: remove the embedded V5 payload and activation provider; add standalone Maven `ikasan-studio-ancillary/ikasan5-metapack`, with resource-only packaging and installer/restart/render integration tests. V5 is now installed explicitly through Install Meta-Pack.
 
-- Retain **Run Plugin (Snapshot Packs)** and the explicit `studioIncludeSnapshotPacks` build flag for pack development. Normal classpaths contain released-runtime packs; the optional V5 payload now activates through the developer setting above. Record interactive V5 module testing separately from runtime certification.
+- Add persistent **Allow snapshot meta-packs** under Studio settings, filter new-module/import choices by snapshot runtime, and preserve installed packs for existing snapshot projects after opt-out. Include JDK 26 and external-pack demo preparation guidance.
 
 - Fix router route-name validation rejecting valid lists such as `odd,even`. Validate legacy comma-separated patterns against the complete distinct list in the editor and saved-model checks, while preserving per-entry typed collection validation and route order.
 

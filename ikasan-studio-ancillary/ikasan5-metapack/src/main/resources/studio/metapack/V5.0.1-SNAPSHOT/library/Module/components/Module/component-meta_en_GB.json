@@ -1,0 +1,93 @@
+{
+  "name": "Module",
+  "helpText": "",
+  "componentType": "org.ikasan.spec.module.Module",
+  "generatesUserImplementedClass": true,
+  "implementingClass": "",
+  "ikasanComponentFactoryMethod": "",
+  "usesBuilderInFactory" : true,
+  "jarDependencies": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-eip-standalone"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-h2-standalone-persistence"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-test-endpoint"
+    },
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-test",
+      "scope": "test"
+    }
+  ],
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties": {
+    "name": {
+      "propertyName": "name",
+      "affectsUserImplementedClass": true,
+      "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+    "applicationPackageName": {
+      "propertyName": "applicationPackageName",
+      "affectsUserImplementedClass": true,
+      "helpText": "The java package name for the new module.",
+      "mandatory": true,
+      "validation": "^(?!(?:.*\\.)?(?:abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|default|do|double|else|enum|extends|final|finally|float|for|goto|if|implements|import|instanceof|int|interface|long|native|new|package|private|protected|public|return|short|static|strictfp|super|switch|synchronized|this|throw|throws|transient|try|void|volatile|while|true|false|null|_)(?:\\..*)?$)[\\p{L}_$][\\p{L}\\p{N}_$]*(?:\\.[\\p{L}_$][\\p{L}\\p{N}_$]*)*$",
+      "validationMessage": "Provide a valid Java package name, e.g. com.mycompany.myapp: dot-separated words made of letters, digits, _ or $, none starting with a digit or being a Java keyword. Hyphens and spaces are not allowed."
+    },
+    "h2DbPortNumber": {
+      "propertyName": "h2DbPortNumber",
+      "helpText": "The port to be used by the embedded H2 database.",
+      "defaultValue": "12451",
+      "mandatory": true
+    },
+    "h2WebPortNumber": {
+      "propertyName": "h2WebPortNumber",
+      "helpText": "The port to be used by the embedded H2 database to expose its web interface.",
+      "defaultValue": "12452",
+      "mandatory": true
+    },
+    "host": {
+      "propertyName": "host",
+      "helpText": "<p>The host attribute is the hostname or IP address the module advertises to the Dashboard. Defaults to localhost if left unset:</p><ol type=\"1\"><li>public.service.address — externally advertised hostname (e.g. behind a proxy)</li><li>server.address — Spring Boot’s bind address</li><li>Defaults to “localhost” if neither is set</li></ol><p>So for a deployed module reachable at a real hostname:</p><p>public.service.address=my-module.example.com</p>"
+    },
+    "port": {
+      "propertyName": "port",
+      "helpText": "<p>The port attribute is the HTTP port number the module is listening on — used by the Dashboard to construct the module’s REST URL.</p><p>It is resolved in this order:</p><ol type=\"1\"><li>public.service.port — the externally advertised port (useful behind a reverse proxy/load balancer)</li><li>server.port — Spring Boot’s own port</li><li>Defaults to 8080 if neither is set</li></ol><p>So if your module runs internally on port 8443 but is exposed publicly on port 443 via a proxy, you’d set:</p><p>public.service.port=443</p><p>and the module will advertise port 443 to the Dashboard.</p>",
+      "defaultValue": "12450",
+      "mandatory": true
+    },
+    "protocol": {
+      "propertyName": "protocol",
+      "helpText": "<p>This is typically left as default / unset.</p><p>The protocol attribute on a Module is the HTTP scheme used to reach the module’s REST endpoint — i.e., “http” or “https”.</p><p>Together with host, port, and context, it forms the full base URL of the module so that the Ikasan Dashboard and other services know how to communicate with it.</p><p>How it gets set (in ModuleBuilder):</p><ol type=\"1\"><li>First checks the Spring property public.service.protocol (useful when behind a reverse proxy/load balancer that terminates TLS).</li><li>Falls back to server.protocol (Spring Boot’s own SSL setting).</li><li>Defaults to “http” if neither is set.</li></ol><p>So in practice, if your module is deployed behind HTTPS you’d set:</p><p>public.service.protocol=https</p><p>and the module will advertise itself as HTTPS to the Dashboard, even if the internal Spring Boot server is still plain HTTP.</p>",
+      "defaultValue": "https"
+    },
+    "useEmbeddedH2": {
+      "propertyName": "useEmbeddedH2",
+      "helpText": "If set to true, use an 'in memory' H2 database (used to store local property overrides, wiretaps, replay messages etc.). This will make development in the IDE easier but should not be used for production.",
+      "setterProperty": false,
+      "propertyDataType": "java.lang.Boolean",
+      "defaultValue": true,
+      "mandatory": true
+    },
+    "flowStartupType": {
+      "propertyName": "flowStartupType",
+      "helpText": "If set to true, the flows will be started automatically when the module starts, otherwise they must be started from either the 'blue' console, or from the dashboard.",
+      "defaultValue": "AUTOMATIC",
+      "choices": [ "AUTOMATIC", "MANUAL", "DISABLED" ]
+    },
+    "version": {
+      "propertyName": "version",
+      "choices": [ "V5.0.1-SNAPSHOT" ],
+      "affectsUserImplementedClass": true,
+      "helpText": "The ikasan version of the meta-pack used to build this module.",
+      "mandatory": true
+    }
+  }
+}

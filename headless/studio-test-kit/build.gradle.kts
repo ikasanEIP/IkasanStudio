@@ -5,7 +5,3 @@ dependencies {
     api("org.junit.jupiter:junit-jupiter-api")
     testRuntimeOnly(project(":studio-bundled-packs"))
 }
-
-tasks.test {
-    systemProperty("studio.includeSnapshotPacks", providers.gradleProperty("studioIncludeSnapshotPacks").orElse("false").get())
-}

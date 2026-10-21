@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "id": "V5.0.1-SNAPSHOT",
+  "ikasanVersion": "5.0.1-SNAPSHOT",
+  "javaVersion": "26",
+  "dependencyManagement": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-eip-standalone-bom",
+      "version": "5.0.1-SNAPSHOT"
+    }
+  ],
+  "compatibilityOverrides": [],
+  "packVersion": "0.1.0-SNAPSHOT",
+  "generatorApiVersion": 1
+}

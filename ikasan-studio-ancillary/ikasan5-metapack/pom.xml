@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.ikasan.metapack</groupId>
+  <artifactId>ikasan5-metapack</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <name>Ikasan 5 external Studio meta-pack</name>
+  <description>Complete resource-only Ikasan 5 snapshot pack, independently installable into Studio.</description>
+  <properties>
+    <maven.compiler.release>17</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  <!-- No runtime dependency on Studio, IntelliJ, or another pack. Java 26 is required
+       by generated V5 applications, not by this resource-only authoring project. -->
+  <dependencies>
+    <dependency>
+      <groupId>org.ikasan.studio</groupId><artifactId>studio-test-kit</artifactId>
+      <version>0.1.0-SNAPSHOT</version><scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId>
+      <version>6.1.3</version><scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin><artifactId>maven-compiler-plugin</artifactId><version>3.13.0</version></plugin>
+      <plugin><artifactId>maven-surefire-plugin</artifactId><version>3.5.4</version></plugin>
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId><version>3.5.4</version>
+        <executions><execution><goals><goal>integration-test</goal><goal>verify</goal></goals></execution></executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

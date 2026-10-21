@@ -1,0 +1,17 @@
+{
+  "name": "JMS Object Message To Object Converter",
+  "helpText": "<p>Unwraps a JMS ObjectMessage into the plain Java object serialised inside it by calling ObjectMessage.getObject() and passing that object on to the rest of the flow. Use this directly after a JMS consumer when the upstream sender put a serialized Java object on the queue (via ObjectMessage) rather than text/XML/JSON, so the flow works with the real object instead of the JMS message wrapper.</p>",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/811a14b1ee7c202868d4bfbcac505d5da6a5565e/ikasaneip/component/converter/ObjectMessageToObjectConverter.md",
+  "implementingClass": "org.ikasan.component.converter.jms.ObjectMessageToObjectConverter",
+  "useImplementingClassInFactory": true,
+  "expectedInputTypes": "jakarta.jms.ObjectMessage",
+  "flowBuilderMethod": "converter",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true,
+      "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created."
+    }
+  }
+}

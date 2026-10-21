@@ -1,0 +1,14 @@
+{
+  "componentType": "org.ikasan.spec.component.endpoint.Consumer",
+  "paletteDisplayOrder": 3,
+  "componentShortType": "Consumer",
+  "supportsGenericImplementation": true,
+  "helpText": "<p>Consumers are always at the start of a flow. They are the entry point for the payload into the flow.</p>",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties": {
+    "description": {
+      "propertyName": "description",
+      "helpText": "A more detailed description of the component that may assist in support."
+    }
+  }
+}

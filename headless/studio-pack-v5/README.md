@@ -1,11 +1,11 @@
 # Ikasan 5 development pack
 
 This is an **unreleased development pack**, not a supported runtime or Marketplace deliverable.
-The plugin embeds an optional resource-only copy, outside the normal plugin/CLI classpaths.
-Enable **Settings → Tools → Ikasan Studio → Allow snapshot meta-packs**, apply and
-restart the IDE on first activation. The selector then offers `V5.0.1-SNAPSHOT` without
-an external installation. See [demo preparation](../../docs/SnapshotMetaPacks.md). Configure the
-application project SDK, Maven runner and Run/Debug JRE as JDK 26.
+On the external-pack demo branch, the plugin contains no V5 payload. Build and install
+[the standalone Maven pack](../../ikasan-studio-ancillary/ikasan5-metapack/README.md), enable
+snapshot packs in Studio settings, then restart. This Gradle project remains a regression
+and runtime-verification fixture; it is not bundled into the plugin. Generated V5
+applications require JDK 26.
 This development inclusion does not certify a Marketplace release or enable V5 migrations.
 Resources live here rather than in the released-pack directory so normal plugin/BOM/help-link gates
 continue to describe only the supported V3 and V4 packs.

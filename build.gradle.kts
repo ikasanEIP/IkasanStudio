@@ -192,18 +192,6 @@ tasks.named<ProcessResources>("processResources") {
 
 // Ship the standalone tools as data, not on IntelliJ's plugin classpath.
 val offlineToolsArchive = layout.projectDirectory.file("headless/studio-cli/build/plugin-tools/studio-offline-tools.zip")
-// Optional developer pack is data, never a default plugin/CLI classpath dependency.
-val snapshotPackMetadata = JsonSlurper().parseText(providers.fileContents(layout.projectDirectory.file(
-    "headless/studio-pack-v5/src/main/resources/studio/metapack/V5.0.1-SNAPSHOT/metapack.json")).asText.get()) as Map<*, *>
-val snapshotPackArchive = layout.projectDirectory.file(
-    "headless/studio-pack-v5/build/libs/studio-pack-v5-${snapshotPackMetadata["packVersion"]}.jar")
-tasks.named<ProcessResources>("processResources") {
-    dependsOn(gradle.includedBuild("studio-headless").task(":studio-pack-v5:jar"))
-    from(snapshotPackArchive) {
-        into("studio/development-packs")
-        rename { "studio-pack-v5.jar" }
-    }
-}
 tasks.named<ProcessResources>("processResources") {
     dependsOn(gradle.includedBuild("studio-headless").task(":studio-cli:preparePluginTools"))
     from(offlineToolsArchive) {
@@ -366,7 +354,6 @@ tasks {
         require(suite in setOf("all", "engine", "packs")) {
             "studioTestSuite must be all, engine, or packs"
         }
-        systemProperty("studio.includeSnapshotPacks", providers.gradleProperty("studioIncludeSnapshotPacks").orElse("false").get())
         useJUnitPlatform {
             if (suite != "all") includeTags(suite)
         }
@@ -544,16 +531,12 @@ tasks.register<Exec>("verifyReleaseArchive") {
     val archive = tasks.buildPlugin.flatMap { it.archiveFile }
     inputs.file(archive)
     inputs.file("scripts/verify-release-archive.py")
-    val snapshots = providers.gradleProperty("studioIncludeSnapshotPacks").orElse("false")
-    inputs.property("studioIncludeSnapshotPacks", snapshots)
-    inputs.dir("headless/studio-pack-v5/src/main/resources")
     inputs.dir("src/main/resources")
     inputs.file("LICENSE.txt")
     val report = layout.buildDirectory.file("reports/release/archive.json")
     outputs.file(report)
     commandLine("python3", "scripts/verify-release-archive.py", "--zip", archive.get().asFile.absolutePath,
         "--report", report.get().asFile.absolutePath)
-    if (snapshots.get() == "true") args("--include-snapshot-packs")
 }
 
 // Optional duplication report; analysis dependencies never enter the plugin distribution.

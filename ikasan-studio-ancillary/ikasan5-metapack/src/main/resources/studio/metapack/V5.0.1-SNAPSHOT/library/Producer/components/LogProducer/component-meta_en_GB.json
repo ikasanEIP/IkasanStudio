@@ -1,0 +1,44 @@
+{
+  "runtimeConfigurationProperties": ["logEveryNth", "replacementText", "regExpPattern"],
+  "runtimeConfigurationClass": "org.ikasan.component.endpoint.util.producer.LogProducerConfiguration",
+  "name": "Logging Producer",
+  "builder": "",
+  "builderFactory": "org.ikasan.builder.BuilderFactory",
+  "flowBuilderMethod": "producer",
+  "helpText": "<p>Logs the result of calling <code>toString()</code> on any Java object. It produces no downstream payload.</p><p>Use this producer to log at a step in the flow. Your own Consumers, Converters, Brokers and Producers can also log directly through SLF4J; new custom component stubs include a logger and commented examples. See the project Readme.txt for log levels and enabling debug output.</p>",
+  "ikasanComponentFactoryMethod": "logProducer",
+  "implementingClass": "org.ikasan.component.endpoint.util.producer.LogProducer",
+  "usesBuilderInFactory": true,
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/811a14b1ee7c202868d4bfbcac505d5da6a5565e/ikasaneip/component/Readme.md",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+    "logEveryNth": {
+      "propertyName": "logEveryNth",
+      "propertyConfigFileLabel": "__flow.__component.log.producer.logEveryNth",
+      "helpText": "Only display every 'nth' log message.",
+      "propertyDataType": "java.lang.Long",
+      "setterProperty": true
+    },
+    "replacementText": {
+      "propertyName": "replacementText",
+      "propertyConfigFileLabel": "__flow.__component.log.producer.replacementText",
+      "preserveWhitespace": true,
+      "helpText": "Used in conjunction with regExpPattern, anything that matches regExpPattern will be replace with this replacementText.",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "regExpPattern": {
+      "propertyName": "regExpPattern",
+      "propertyConfigFileLabel": "__flow.__component.log.producer.regExpPattern",
+      "preserveWhitespace": true,
+      "helpText": "Used in conjunction with replacementText, anything matching this regexp pattern will be replace by replacementText.",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    }
+  }
+}

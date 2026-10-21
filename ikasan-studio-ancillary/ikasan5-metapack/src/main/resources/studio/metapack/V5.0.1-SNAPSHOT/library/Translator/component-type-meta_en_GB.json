@@ -1,0 +1,29 @@
+{
+  "componentType": "org.ikasan.spec.component.transformation.Translator",
+  "paletteDisplayOrder": 6,
+  "componentShortType": "Translator",
+  "helpText": "<p>A <b>Translator</b> modifies the supplied payload in place and does not replace it, so its Java type remains the same. A <b>Converter</b>, by contrast, returns a conversion result and may change the Java type or structure.</p>",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties": {
+    "description": {
+      "propertyName": "description",
+      "helpText": "A more detailed description of the component that may assist in support."
+    },
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true,
+      "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created."
+    },
+    "type": {
+      "propertyName": "type",
+      "propertyDisplayOrder": -40,
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lang.Object",
+      "helpText": "The type of data we expect to come into the translator. This must be a <b>mutable<b> instance that can be updated via its reference within the translator",
+      "mandatory": true,
+      "usageDataType": "classLiteral",
+      "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the translator."
+    }
+  }
+}

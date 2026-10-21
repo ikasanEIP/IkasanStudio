@@ -2,6 +2,16 @@
 
 For a teammate starting a separate custom-pack project, begin with the [custom-pack handover](CustomMetaPackHandover.md).
 
+## External Ikasan 5 demonstration
+
+On `demo/external-ikasan5-metapack`, the plugin ships only V3/V4 with no embedded V5 payload.
+The [standalone Maven project](../ikasan-studio-ancillary/ikasan5-metapack/README.md)
+contains the full V5 snapshot resource set and can be copied to its own repository.
+Its integration tests exercise real installation and restart discovery without V5 on
+its test host's classpath. Build it independently, enable snapshots, install its JAR
+through **Install Meta-Pack…**, then restart Studio. The Gradle V5 module remains a
+regression/reference fixture, not a production dependency on this branch.
+
 ## One repository, one CI project
 
 The IntelliJ plugin, generator, test kit and official packs remain in this repository. The existing Gradle wrapper and CI pipeline build them together; no additional Travis projects or repositories are required. Publication remains explicit, with no remote repository or credentials configured by this change.

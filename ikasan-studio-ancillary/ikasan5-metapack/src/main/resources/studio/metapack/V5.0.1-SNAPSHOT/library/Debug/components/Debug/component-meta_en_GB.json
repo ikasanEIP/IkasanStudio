@@ -1,0 +1,35 @@
+{
+  "name": "Debug Transition",
+  "flowTestPassThroughFilter": true,
+  "additionalKey":"DebugTransition",
+  "generatesUserImplementedClass": "true",
+  "helpText": "<p>Set a breakpoint on data as it moves between components.</p><p><strong>Note:</strong> debug elements are not saved when the project closes.</p>",
+  "implementingClass": "org.ikasan.studio.ui.component.debug.DebugComponent",
+  "flowBuilderMethod": "filter",
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "defaultValue": "setByIDEEndingInDebug",
+      "readOnlyProperty" : true,
+      "mandatory": true,
+      "helpText": "For a debug element, this will be the name of the component into which the debug flows."
+    },
+    "userImplementedClassName": {
+      "propertyName": "userImplementedClassName",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "__flow__component",
+      "mandatory": true,
+      "readOnlyProperty" : true,
+      "userImplementClassFtlTemplate": "debugTransitionTemplate.ftl"
+    },
+    "fromType": {
+      "propertyName": "fromType",
+      "usageDataType": "classLiteral",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lang.Object",
+      "hiddenProperty" : true,
+      "mandatory": true
+    }
+  }
+}

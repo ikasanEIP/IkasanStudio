@@ -43,3 +43,10 @@ No remote publication or Maven Central release is configured for the new artifac
 For the complete authoring contract and lifecycle, see the
 [custom pack handover](../docs/CustomMetaPackHandover.md) and
 [independent artifacts guide](../docs/IndependentMetaPackArtifacts.md).
+
+## External Ikasan 5 demo pack
+
+[`ikasan5-metapack/`](ikasan5-metapack/README.md) is a portable standalone Maven
+project with the complete V5 snapshot pack and installer/restart/render tests. On Studio
+branch `demo/external-ikasan5-metapack`, build this JAR and install it explicitly; Studio
+contains no embedded V5 payload. See its README for the demo and internal-library handover.

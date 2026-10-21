@@ -1,0 +1,31 @@
+package ${studioPackageTag};
+
+/**
+* Producers push a payload to a protocol endpoint, typically the last component of a flow or of a route
+* within it.
+*
+* @author Ikasan Development Team
+*
+*/
+
+@org.springframework.stereotype.Component("${studioPackageTag}.${flowElement.getPropertyValue("userImplementedClassName")}")
+
+public class ${flowElement.getPropertyValue("userImplementedClassName")} implements ${flowElement.getComponentMeta().getComponentType()}<${flowElement.getPropertyValue("fromType")}>
+{
+private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(${flowElement.getPropertyValue("userImplementedClassName")}.class);
+
+/**
+* Push the payload to your protocol endpoint.
+*
+* @param payload - the message payload to send to the endpoint
+* @throws org.ikasan.spec.component.endpoint.EndpointException if the payload cannot be delivered,
+* for example because the endpoint is unavailable or rejects the request
+*/
+@Override
+public void invoke(${flowElement.getPropertyValue("fromType")} payload) throws org.ikasan.spec.component.endpoint.EndpointException
+{
+// Enable DEBUG logging for this package to see arrivals without logging message contents.
+LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
+//@TODO implement your producer logic here e.g. push the payload to your protocol endpoint
+}
+}
