@@ -2,7 +2,6 @@ package org.ikasan.studio.intellij.metapack;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -10,6 +9,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.*;
 import com.intellij.util.ui.JBUI;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.core.metapack.loading.MetaPackStore;
 import org.ikasan.studio.ui.StudioBundle;
 import javax.swing.*;
@@ -87,7 +87,10 @@ final class MetaPackManagerDialog extends DialogWrapper {
         if (selected == null) return;
         var descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor("jar");
         descriptor.setTitle(StudioBundle.message("metaPack.Update"));
-        FileChooser.chooseFile(descriptor, project, null, file -> perform(() -> reviewUpdate(selected, Path.of(file.getPath()))));
+        StudioProjectFiles.chooseFilePaths(project, descriptor, files -> {
+            if (isDisposed() || project.isDisposed() || files == null || files.isEmpty()) return;
+            perform(() -> reviewUpdate(selected, Path.of(files.get(0))));
+        });
     }
     private void reviewUpdate(MetaPackStore.Entry selected, Path source) throws Exception {
         var candidate = MetaPackUiTasks.run(project, StudioBundle.message("metaPack.Progress"), () -> MetaPackStore.review(source));
