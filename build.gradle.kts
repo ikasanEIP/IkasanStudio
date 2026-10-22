@@ -172,7 +172,7 @@ sourceSets {
 // A standalone stdio process, deliberately independent of IntelliJ's classpath.
 val mcpAdapter = sourceSets.create("mcpAdapter")
 dependencies {
-    add(mcpAdapter.implementationConfigurationName, "com.fasterxml.jackson.core:jackson-databind:2.22.3")
+    add(mcpAdapter.implementationConfigurationName, "com.fasterxml.jackson.core:jackson-databind:2.22.4")
 }
 val mcpAdapterJar = tasks.register<Jar>("mcpAdapterJar") {
     archiveFileName.set("studio-mcp-adapter.jar")
