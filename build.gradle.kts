@@ -13,7 +13,7 @@ import java.time.Duration
 // placing them on the plugin runtime classpath or replacing IntelliJ-owned libraries.
 buildscript {
     dependencies {
-        classpath(platform("com.fasterxml.jackson:jackson-bom:2.22.3"))
+        classpath(platform("com.fasterxml.jackson:jackson-bom:2.22.4"))
         constraints {
             add("classpath", "org.jsoup:jsoup:1.23.2") {
                 because("GHSA-pmhh-3w7g-xqp8 and GHSA-65r4-943x-97jj affect build-tool XML parsing")
@@ -143,7 +143,7 @@ dependencies {
 // The platform fixtures resolve separately from testRuntimeClasspath. These are
 // test-only repairs; IntelliJ's installed libraries remain owned by JetBrains.
 dependencies {
-    add("intellijPlatformTestDependencies", platform("com.fasterxml.jackson:jackson-bom:2.22.3"))
+    add("intellijPlatformTestDependencies", platform("com.fasterxml.jackson:jackson-bom:2.22.4"))
     constraints {
         add("intellijPlatformTestDependencies", "org.assertj:assertj-core:3.27.7") {
             because("CVE-2026-24400: patch the platform fixture's XML assertions")
@@ -172,7 +172,7 @@ sourceSets {
 // A standalone stdio process, deliberately independent of IntelliJ's classpath.
 val mcpAdapter = sourceSets.create("mcpAdapter")
 dependencies {
-    add(mcpAdapter.implementationConfigurationName, "com.fasterxml.jackson.core:jackson-databind:2.22.3")
+    add(mcpAdapter.implementationConfigurationName, "com.fasterxml.jackson.core:jackson-databind:2.22.4")
 }
 val mcpAdapterJar = tasks.register<Jar>("mcpAdapterJar") {
     archiveFileName.set("studio-mcp-adapter.jar")
