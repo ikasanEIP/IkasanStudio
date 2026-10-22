@@ -1,6 +1,7 @@
 package org.ikasan.studio.intellij.project;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.components.JBCheckBox;
@@ -48,6 +49,11 @@ public class ImportModelJsonDialog extends DialogWrapper {
     private final JBTextArea configurationArea = new JBTextArea();
 
     public ImportModelJsonDialog(Project project) {
+        this(project, () -> ComponentLibrary.getMetapackList(
+                org.ikasan.studio.intellij.settings.IkasanStudioSettings.areSnapshotMetaPacksAllowed()));
+    }
+
+    ImportModelJsonDialog(Project project, java.util.function.Supplier<java.util.List<String>> loadPacks) {
         super(project, true);
         this.project = project;
         setTitle(StudioBundle.message("dialog.ImportModelJson"));
@@ -56,17 +62,18 @@ public class ImportModelJsonDialog extends DialogWrapper {
         init();
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
-                var packs = ComponentLibrary.getMetapackList(org.ikasan.studio.intellij.settings.IkasanStudioSettings.areSnapshotMetaPacksAllowed());
+                var packs = loadPacks.get();
+                // Pure UI publication must run inside the modal import dialog, without PSI/model writes.
                 ApplicationManager.getApplication().invokeLater(() -> {
                     if (isDisposed() || project.isDisposed()) return;
                     packs.forEach(runtimePack::addItem);
                     updateOkAction();
-                });
+                }, ModalityState.any());
             } catch (RuntimeException failure) {
                 ApplicationManager.getApplication().invokeLater(() -> {
                     if (!isDisposed() && !project.isDisposed()) Messages.showErrorDialog(project,
                             StudioBundle.message("import.runtime.packsUnavailable"), StudioBundle.message("dialog.ImportModelJson"));
-                });
+                }, ModalityState.any());
             }
         });
         runtimePack.addActionListener(event -> updateOkAction());
