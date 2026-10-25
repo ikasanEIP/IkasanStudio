@@ -68,6 +68,23 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
         }
     }
 
+    public void testFetchedDocumentsPopulateOnlyThePreviewAndEnableRuntimeMode() throws Exception {
+        var original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        try (var files = org.mockito.Mockito.mockStatic(StudioProjectFiles.class)) {
+            var documents = new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents(
+                    "{\"name\":\"Fetched\",\"flows\":[]}", "[]");
+            dialog.applyFetchedDocuments(documents);
+            assertTrue(((JCheckBox) field(dialog, "runtimeMode")).isSelected());
+            assertEquals(documents.moduleJson(), ((JTextArea) field(dialog, "jsonArea")).getText());
+            assertEquals("[]", ((JTextArea) field(dialog, "configurationArea")).getText());
+            assertSame(original, getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule());
+            files.verifyNoInteractions();
+            dialog.applyFetchedDocuments(null);
+            assertEquals(documents.moduleJson(), ((JTextArea) field(dialog, "jsonArea")).getText());
+        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
     private Object field(Object owner, String name) throws Exception {
         var field = owner.getClass().getDeclaredField(name);
         field.setAccessible(true);
