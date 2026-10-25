@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Fetch module metadata and flow-scoped component configuration from a running Ikasan module into the existing import preview. Add optional Basic authentication without credential persistence, cancellable bounded HTTP requests, actionable REST failures and the existing mapping/review gate before import.
+
 - Fix runtime-import version choices and pack-loading errors waiting until the modal import dialog closes. Publish background results while the dialog is open, preserving disposal guards.
 - Warm the VFS before opening meta-pack install/update file choosers, preserve their modal parent, and ignore selection callbacks after the owning project or manager closes.
 

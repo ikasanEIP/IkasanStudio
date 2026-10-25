@@ -15,7 +15,7 @@ The core Ikasan source trees expose these authenticated GET endpoints, relative 
 | `/rest/configuration/invokers` | Invoker configuration records |
 | `/rest/configuration/module` | The module's own configuration, when configurable; this is not an export of every component |
 
-The module controllers require appropriate authority (`ALL` or `WebServiceAdmin` in the inspected implementations). Use the deployment's normal authentication. Studio reads supplied files/text; it does not connect to a running module or change its configuration.
+The module controllers require appropriate authority (`ALL` or `WebServiceAdmin` in the inspected implementations). Use the deployment's normal authentication. Studio can read supplied files/text or fetch these documents from a running module. Fetch uses read-only endpoints and never changes the running module's configuration.
 
 The Dashboard's module visualisation download serializes `ModuleMetaData` to `<module-name>.json`. Its configuration dialog serializes `ConfigurationMetaData` to a file which may have a `.txt` extension. The importer accepts JSON content regardless of filename extension. The Dashboard and module-local Blue Console remain distinct products.
 
@@ -31,6 +31,43 @@ Source contracts inspected: `rest/rest-module/.../MetaDataApplication.java` and 
 6. Review the report before importing. Import replaces the destination project's model and uses the existing generation workflow. Use a new project when exploring an existing application.
 
 Imported flows use **MANUAL** startup settings. Project build settings and ports use Studio defaults. Bring across the original business implementations, dependencies and Spring wiring, review endpoint settings, then compile and test before starting flows. Importing metadata is not a promise of an immediately runnable reproduction of the original application.
+
+## Fetch from a running module
+
+In the import dialog, choose **Fetch from running module…**. Enter the application URL
+including its context path (for example `http://localhost:8080/orders`), the registered
+module name, and optional Basic authentication credentials. Empty credentials request
+anonymous access; the deployment must permit the REST calls. The inspected controllers
+require `ALL` or `WebServiceAdmin` authority. HTTPS uses normal JVM certificate trust;
+redirects are not followed. Enter the final application URL rather than a login page.
+
+Fetch reads `/rest/metadata/module/{moduleName}`, then
+`/rest/configuration/{moduleName}/{flowName}/components` for every returned flow.
+Names are encoded as individual path segments. The unqualified configuration endpoints
+select the first registered module in the inspected implementation, so Studio deliberately
+uses scoped component endpoints. It never invokes the older `createConfiguration` GETs,
+configuration writes or flow control endpoints.
+
+On success, the documents populate the existing editable preview and runtime import mode
+is selected. Choose the matching Ikasan meta-pack and destination package, resolve any
+component variant choices, then review before importing. Fetch alone does not modify
+project files or its live model. A failed/cancelled fetch leaves the existing preview
+unchanged. If component configuration is unavailable, explicitly uncheck **Fetch component
+configuration for each flow** and fetch topology only; settings then require manual review.
+
+Connection credentials are not saved in Studio settings, project files or import provenance;
+the password field is cleared after a fetch attempt. The fetched configuration itself can
+contain application credentials and is retained by the existing importer as provenance,
+so review it before sharing the project. Fetch has a five-second connection timeout,
+a twenty-second request timeout and an 8 MiB limit on metadata and combined configuration.
+Requests are cancellable while waiting for the server. No retry or partial configuration
+fallback happens silently. Conflicting records with the same configuration ID are rejected.
+
+The fetch is a sequence of read-only requests, not an atomic operational backup. Changes
+to the running module during acquisition can require a fresh fetch and review. Only
+component configuration is fetched in this first implementation; module/flow/invoker
+configuration, handwritten code, application dependencies and wiring still require review.
+Imported flows remain **MANUAL** as with file-based runtime import.
 
 ## Export three separate files
 

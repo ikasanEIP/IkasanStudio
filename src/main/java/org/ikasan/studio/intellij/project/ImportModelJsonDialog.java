@@ -155,6 +155,15 @@ public class ImportModelJsonDialog extends DialogWrapper {
         chooseFileButton.addActionListener(event -> chooseFile());
         chooseRow.add(chooseFileButton);
         chooseRow.add(Box.createHorizontalStrut(JBUI.scale(8)));
+        JButton fetch = new JButton(StudioBundle.message("import.remote.title"));
+        fetch.addActionListener(event -> {
+            var connection = new RuntimeImportConnectionDialog(project);
+            if (connection.showAndGet() && !isDisposed() && !project.isDisposed()) {
+                applyFetchedDocuments(connection.documents());
+            }
+        });
+        chooseRow.add(fetch);
+        chooseRow.add(Box.createHorizontalStrut(JBUI.scale(8)));
         chosenFilePathLabel.setForeground(com.intellij.util.ui.UIUtil.getLabelForeground());
         chooseRow.add(chosenFilePathLabel);
         panel.add(chooseRow, BorderLayout.SOUTH);
@@ -165,6 +174,17 @@ public class ImportModelJsonDialog extends DialogWrapper {
     @Override
     public @Nullable JComponent getPreferredFocusedComponent() {
         return jsonArea;
+    }
+
+    /** Acquisition changes only the editable preview; Import still performs mapping and explicit review. */
+    void applyFetchedDocuments(org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents documents) {
+        if (documents == null || isDisposed() || project.isDisposed()) return;
+        if (!runtimeMode.isSelected()) runtimeMode.doClick();
+        jsonArea.setText(documents.moduleJson());
+        configurationArea.setText(documents.configurationJson());
+        chosenFilePathLabel.setText(StudioBundle.message("import.remote.source"));
+        chosenFilePathLabel.setToolTipText(null);
+        updateOkAction();
     }
 
     private void chooseFile() {
