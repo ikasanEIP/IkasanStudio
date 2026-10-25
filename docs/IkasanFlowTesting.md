@@ -404,6 +404,17 @@ For a configured Spring JMS **queue** consumer, generation adds `JmsFlowTestSupp
 is also a configured Spring JMS queue producer, it additionally receives/asserts the actual output
 text for each batch. Otherwise, add external receiver checks where needed.
 
+When the initial processing component expects a JMS **MapMessage**, or narrows a raw JMS
+Message to MapMessage, the scaffold creates `Map<String, Object>` inputs and calls
+`jms.sendMap(queue, input)`. The helper creates a real JMS MapMessage with `setObject` entries.
+Review the sample `content`, `id` and `fileName` keys against the converter configuration.
+`sendText` creates a TextMessage; `sendObject(map)` creates an ObjectMessage. Neither substitutes
+for a MapMessage. Inference stops at the first non-pass-through processing component; it does
+not look through arbitrary conversions. Existing developer-owned scenarios and helpers are
+preserved: adopt `sendMap` through a reviewed helper update and adjust the scenario's input type,
+fixtures and sender together. The helper rejects null fixtures and propagates JMS errors for
+unsupported map values; JMS map entries support primitive wrappers, String and byte arrays.
+
 When the initial processing component is **JMS Object Message To Object Converter** (allowing
 metadata-declared pass-through debug filters before it), the scaffold instead calls
 `jms.sendObject(queue, input)`. Populate the input payloads directly in `createInputOutputBatches`,

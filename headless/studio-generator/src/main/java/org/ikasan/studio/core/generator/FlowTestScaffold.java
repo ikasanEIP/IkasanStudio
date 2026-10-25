@@ -165,12 +165,19 @@ public final class FlowTestScaffold {
         values.put("jmsOutputKey", jmsOutputKey);
         values.put("jmsConsumer", jmsConsumer);
         boolean objectMessageInput = false;
+        boolean mapMessageInput = false;
         String objectInputType = "java.io.Serializable";
         // Only infer along the initial linear route; do not look through arbitrary transformations/branches.
         if (jmsConsumer) {
             for (var element : flow.getFlowRoute().getFlowElements()) {
                 if (element.getComponentMeta().isFlowTestPassThroughFilter()) continue;
                 if (!objectMessageInput) {
+                    String input = element.getEffectiveInputTypeDescription();
+                    String output = element.getEffectiveOutputTypeDescription();
+                    mapMessageInput = input != null && input.matches("(javax|jakarta)\\.jms\\.MapMessage")
+                            || input != null && input.matches("(javax|jakarta)\\.jms\\.Message")
+                            && output != null && output.matches("(javax|jakarta)\\.jms\\.MapMessage");
+                    if (mapMessageInput) break;
                     objectMessageInput = "org.ikasan.component.converter.jms.ObjectMessageToObjectConverter"
                             .equals(element.getComponentMeta().getImplementingClass());
                     if (!objectMessageInput) break;
@@ -183,6 +190,7 @@ public final class FlowTestScaffold {
             }
         }
         values.put("objectMessageInput", objectMessageInput);
+        values.put("mapMessageInput", mapMessageInput);
         values.put("objectInputType", objectInputType);
         // Infer the observed payload from the last upstream component on an unambiguous linear path.
         // Producers are terminal in metadata, but afterFlowElement still observes their input payload.
@@ -285,6 +293,10 @@ public final class FlowTestScaffold {
                 Scenario tests use IkasanFlowTestRule; continuous-source observation tests use a bounded counting listener.
                 Standard scenarios surface component failures with the flow/component, incoming payload type and original cause.
                 This is a success-scenario check; deliberately expected failure/recovery paths need custom observation.
+                JMS MapMessage input is inferred from the first component's declared input, or an initial
+                Message-to-MapMessage guard. These tests use sendMap with Map fixtures; review the map keys
+                against the converter configuration. sendObject(map) creates the wrong JMS message kind.
+                Existing JMS helpers need a reviewed update if they lack sendMap; they are never overwritten automatically.
                 JMS input normally starts with text. An initial ObjectMessageToObjectConverter selects sendObject and
                 object payloads in createInputOutputBatches: populate its TODO with serializable business objects.
                 A downstream declared input class is a fixture hint, not automatically constructed business data.

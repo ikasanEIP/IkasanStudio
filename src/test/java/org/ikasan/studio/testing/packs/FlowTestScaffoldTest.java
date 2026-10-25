@@ -11,6 +11,51 @@ import java.io.StringReader;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FlowTestScaffoldTest {
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
+    void mapMessageFixturesFollowTheInitialJmsContract(String version) throws Exception {
+        var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
+        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
+        var consumer = org.ikasan.studio.core.TestFixtures.getSpringJmsConsumer(version);
+        consumer.setPropertyValue("destinationJndiName", "test.maps");
+        consumer.setPropertyValue("pubSubDomain", false);
+        flow.setConsumer(consumer);
+        var elements = flow.getFlowRoute().getFlowElements();
+        elements.clear();
+        var meta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(version,
+                "JMS Map Message To Payload Converter");
+        elements.add(org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(
+                version, meta, flow, flow.getFlowRoute(), "Restore payload"));
+        var sink = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(version, "Logging Producer");
+        elements.add(org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(
+                version, sink, flow, flow.getFlowRoute(), "Log"));
+        String parent = Files.readString(Path.of("regression-tests/migration/project/pom.xml"));
+        String app = Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml"));
+        var scaffold = FlowTestScaffold.render(module, flow, parent, app);
+        String code = scaffold.files().get(scaffold.testPath());
+        assertTrue(code.contains("FlowTestBatch<Map<String, Object>>"));
+        assertTrue(code.contains("jms.sendMap("));
+        assertTrue(code.contains("\"content\", \"first expected payload\""));
+        assertFalse(code.contains("jms.sendText("));
+        assertFalse(code.contains("jms.sendObject("));
+        String helper = scaffold.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/JmsFlowTestSupport.java");
+        assertTrue(helper.contains("session.createMapMessage()"));
+        assertTrue(helper.contains("message.setObject(entry.getKey(), entry.getValue())"));
+        var guardMeta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(version, "Converter");
+        var guard = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(
+                version, guardMeta, flow, flow.getFlowRoute(), "Check map message");
+        String namespace = version.equals("V3.3.9") ? "javax" : "jakarta";
+        guard.setPropertyValue("fromType", namespace + ".jms.Message");
+        guard.setPropertyValue("toType", namespace + ".jms.MapMessage");
+        elements.add(0, guard);
+        scaffold = FlowTestScaffold.render(module, flow, parent, app);
+        assertTrue(scaffold.files().get(scaffold.testPath()).contains("jms.sendMap("));
+        // An arbitrary transformation before the converter must not change the original JMS fixture kind.
+        guard.setPropertyValue("toType", "java.lang.String");
+        scaffold = FlowTestScaffold.render(module, flow, parent, app);
+        assertFalse(scaffold.files().get(scaffold.testPath()).contains("jms.sendMap("));
+        assertTrue(scaffold.files().get(scaffold.testPath()).contains("jms.sendText("));
+    }
+
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void nestedRoutersGenerateEditableExecutableBranches(String version,
             @org.junit.jupiter.api.io.TempDir Path temporary) throws Exception {
