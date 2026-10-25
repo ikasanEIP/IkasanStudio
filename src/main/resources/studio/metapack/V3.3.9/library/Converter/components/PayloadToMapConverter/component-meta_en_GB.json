@@ -1,0 +1,17 @@
+{
+  "name": "Payload To Map Converter",
+  "helpText": "<p>Uses Ikasan PayloadToMapConverter to convert an FTP/SFTP file-transfer Payload into a Map&lt;String, Object&gt;. The map contains content as text, id, and all payload attributes. Content is decoded using the runtime JVM default charset; this converter has no charset setting. Attributes named content or id override those entries. Use a custom converter when you need explicit character decoding, binary content or different field mappings.</p>",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/converter/src/main/java/org/ikasan/component/converter/filetransfer/PayloadToMapConverter.java",
+  "implementingClass": "org.ikasan.component.converter.filetransfer.PayloadToMapConverter",
+  "useImplementingClassInFactory": true,
+  "expectedInputTypes": "org.ikasan.filetransfer.Payload",
+  "producedOutputType": "java.util.Map",
+  "flowBuilderMethod": "converter",
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true,
+      "helpText": "The component name displayed on the canvas. It must be unique within the flow."
+    }
+  }
+}

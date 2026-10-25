@@ -124,6 +124,10 @@ org.ikasan.builder.BuilderFactory builderFactory;
         </#if>
     </#if>
 
+    <#if flowElement.componentMeta.implementingClass == "org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverter">
+        <#include "mapMessageToPayload_en.ftl">
+    </#if>
+    <#if flowElement.componentMeta.implementingClass != "org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverter">
     <#list flowElement.getStandardComponentProperties() as propKey, propValue>
         <#if !propValue.valueNotSet() && propValue.meta.isSetterProperty() >
             <#if nonFluentLog>logBuilder</#if>
@@ -152,6 +156,7 @@ org.ikasan.builder.BuilderFactory builderFactory;
             <#if nonFluentLog>;</#if>
         </#if>
     </#list>
+    </#if>
     <#if trustedPackages?has_content && !(flowElement.getPropertyValue("connectionFactory")!"")?has_content>
         .setConnectionFactoryJndiPropertyFactoryInitial(Trusted${flowElement.getJavaClassName()}ContextFactory.initialFactoryName(
         <#if (flowElement.getPropertyValue("connectionFactoryJndiPropertyFactoryInitial")!"")?has_content>

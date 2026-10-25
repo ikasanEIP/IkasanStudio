@@ -155,6 +155,12 @@ ${indent}}
 
 <#if objectMessageInput>
     // Construct a serializable business object for each batch (expected type: ${objectInputType?j_string}).
+<#elseif mapMessageInput>
+    // TODO 3: Review the JMS map entries against the converter's configured content/ID/filename keys.
+    private static final Map<String, Object> FIRST_BATCH_INPUT = Map.of(
+            "content", "first expected payload", "id", "demo-first", "fileName", "first.txt");
+    private static final Map<String, Object> SECOND_BATCH_INPUT = Map.of(
+            "content", "second expected payload", "id", "demo-second", "fileName", "second.txt");
 <#elseif triggerOnly>
     // TODO 3: Prepare the broker data in prepareFixtures if needed; each triggeredBatch fires once.
 <#elseif ftpInput || sftpInput || isolatedFiles>
@@ -205,7 +211,7 @@ ${indent}}
     // With no output checks, use Map.of().
     // Map.of() skips output checks; Map.of(PRODUCER_NAME, List.of()) asserts no output there.
     //
-    protected List<FlowTestBatch<<#if objectMessageInput>java.io.Serializable<#else>String</#if>>> createInputOutputBatches(ConfigurableApplicationContext context) throws Exception {
+    protected List<FlowTestBatch<<#if mapMessageInput>Map<String, Object><#elseif objectMessageInput>java.io.Serializable<#else>String</#if>>> createInputOutputBatches(ConfigurableApplicationContext context) throws Exception {
         // Runs after prepareFixtures(context), so inputs may use Spring beans or runtime fixtures.
 <#if objectMessageInput>
 <#if objectInputType != "java.io.Serializable">
@@ -408,13 +414,15 @@ ${indent}}
     }
 </#if>
 
-    protected void supplyInput(ConfigurableApplicationContext context, IkasanFlowTestRule harness, <#if objectMessageInput>java.io.Serializable<#else>String</#if> input) throws Exception {
+    protected void supplyInput(ConfigurableApplicationContext context, IkasanFlowTestRule harness, <#if mapMessageInput>Map<String, Object><#elseif objectMessageInput>java.io.Serializable<#else>String</#if> input) throws Exception {
         // Supply the configured input for this batch.
 <#if jmsConsumer>
         // ModuleJmsTestConfig supplies the test connection. Configure test.jms.broker-url
         // and matching isolated flow broker/destinations in module-test.properties.
         try (JmsFlowTestSupport jms = JmsFlowTestSupport.from(context)) {
-<#if objectMessageInput>
+<#if mapMessageInput>
+            jms.sendMap(context.getEnvironment().getRequiredProperty("${jmsInputKey?j_string}"), input);
+<#elseif objectMessageInput>
             jms.sendObject(context.getEnvironment().getRequiredProperty("${jmsInputKey?j_string}"), input);
 <#else>
             // Text is a starting fixture; review the first processing component's required JMS message type.
