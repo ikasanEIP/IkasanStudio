@@ -187,9 +187,9 @@ class ComponentLibraryTest {
 
         assertAll(
             "Check the module contains the expected values",
-            () -> assertEquals(39, ComponentLibrary.getNumberOfComponents(BASE_META_PACK)),
+            () -> assertEquals(40, ComponentLibrary.getNumberOfComponents(BASE_META_PACK)),
             () -> assertEquals(
-                    "[Broker, Channel Endpoint, Converter, DB Endpoint, Debug Transition, Default List Splitter, Default Message Filter, Dev Null Producer, Email Converter, Email Endpoint, Email Producer, Event Generating Consumer, Exception Resolver, FTP Consumer, FTP Endpoint, FTP Producer, File Endpoint, Flow, Generic Consumer, Generic Endpoint, Generic Producer, JMS Object Message To Object Converter, Local File Consumer, Logging Producer, Message Filter, Module, Multi Recipient Router, Object To XML String Converter, Router Endpoint, SFTP Consumer, SFTP Endpoint, SFTP Producer, Scheduled Consumer, Scheduler Endpoint, Single Recipient Router, Splitter, Spring JMS Consumer, Spring JMS Producer, Translator]",
+                    "[Broker, Channel Endpoint, Converter, DB Endpoint, Debug Transition, Default List Splitter, Default Message Filter, Dev Null Producer, Email Converter, Email Endpoint, Email Producer, Event Generating Consumer, Exception Resolver, FTP Consumer, FTP Endpoint, FTP Producer, File Endpoint, Flow, Generic Consumer, Generic Endpoint, Generic Producer, JMS Object Message To Object Converter, Local File Consumer, Logging Producer, Message Filter, Module, Multi Recipient Router, Object To XML String Converter, Payload To Map Converter, Router Endpoint, SFTP Consumer, SFTP Endpoint, SFTP Producer, Scheduled Consumer, Scheduler Endpoint, Single Recipient Router, Splitter, Spring JMS Consumer, Spring JMS Producer, Translator]",
                 new TreeSet<>(ComponentLibrary.getIkasanComponentNames(BASE_META_PACK)).toString())
         );
 
@@ -198,6 +198,7 @@ class ComponentLibraryTest {
         verifyDefaultFlowMeta(componentMetaList.get(ComponentMeta.FLOW_TYPE));
         verifyDefaultExceptionResolverMeta((ExceptionResolverMeta)componentMetaList.get(ComponentMeta.EXCEPTION_RESOLVER_TYPE));
         verifyComponentUsesSvg(componentMetaList.get("Converter"));
+        verifyComponentUsesSvg(componentMetaList.get("Payload To Map Converter"));
         verifyComponentUsesSvg(componentMetaList.get("Channel Endpoint"));
         verifyComponentUsesSvg(componentMetaList.get("Spring JMS Producer"));
         verifyComponentUsesSvg(componentMetaList.get("JMS Object Message To Object Converter"));

@@ -20,7 +20,7 @@ class ComponentCoverageTest {
             "Spring JMS Consumer", "FTP Consumer", "SFTP Consumer",
             "Dev Null Producer", "Generic Producer", "Logging Producer", "Spring JMS Producer",
             "Email Producer", "FTP Producer", "SFTP Producer",
-            "Converter", "Email Converter", "JMS Object Message To Object Converter", "Object To XML String Converter",
+            "Converter", "Payload To Map Converter", "Email Converter", "JMS Object Message To Object Converter", "Object To XML String Converter",
             "Broker", "Translator", "Message Filter", "Default Message Filter", "Splitter", "Default List Splitter",
             "Single Recipient Router", "Multi Recipient Router", "Debug Transition");
 
@@ -61,8 +61,8 @@ class ComponentCoverageTest {
             Path target = root.resolve(file.getKey()); Files.createDirectories(target.getParent());
             Files.writeString(target, file.getValue());
         }
-        assertEquals(27, flows.size());
-        assertEquals(27, files.keySet().stream().filter(p -> p.startsWith("src/test/java/org/ikasan/studio/flowtests/")
+        assertEquals(28, flows.size());
+        assertEquals(28, files.keySet().stream().filter(p -> p.startsWith("src/test/java/org/ikasan/studio/flowtests/")
                 && !p.contains("/support/")).count());
     }
 

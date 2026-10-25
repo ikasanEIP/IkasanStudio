@@ -72,3 +72,19 @@ python3 scripts/verify-conversion-recipes.py /tmp/studio-recipe-sources
 The script requires `java`, `javac` and the corresponding artifacts in `~/.m2/repository`; it never downloads dependencies. It checks every recipe, filename/content preservation, generated-filename shape and uniqueness under rapid and concurrent calls, email attachments, partial JMS byte reads, map forwarding, nulls, unsupported objects, malformed text and multi-file rejection. Generated code is compiled with `--release 11` for 3.3.9 and `--release 17` for 4.1.6.
 
 Before release, exercise insertion in a live IntelliJ editor, selection changes followed by Cancel/Apply, the regeneration confirmation, and keyboard navigation in both themes. Automated widget checks do not replace that IDE review.
+
+## File-transfer payload to map
+
+Use **Payload To Map Converter** for the standard Ikasan file-transfer mapping. It accepts
+`org.ikasan.filetransfer.Payload` (for example from FTP/SFTP consumers) and returns a
+`Map<String, Object>` containing `content` as text, `id`, and the payload attributes.
+Studio generates the real `org.ikasan.component.converter.filetransfer.PayloadToMapConverter`;
+no handwritten stub or extra configuration is required. The Converter type supplies the
+`ikasan-component-converter` dependency. This component is available in V3.3.9, V4.1.6
+and the V5.0.1-SNAPSHOT development pack.
+
+Ikasan decodes content using the runtime JVM's default charset and copies attributes
+after `content` and `id`, so attributes with those names override the original entries.
+Use the generic Converter with a custom mapping for explicit charset decoding or binary
+content. This produces a Java Map, not a JMS MapMessage or JSON string; configure any
+subsequent transport conversion separately.
