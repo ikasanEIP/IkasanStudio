@@ -1,0 +1,57 @@
+{
+  "name": "JMS Map Message To Payload Converter",
+  "helpText": "<p>Converts a JMS MapMessage into an FTP/SFTP Payload. This accepts a JMS message, not a plain Java Map. Content may be String (encoded with the runtime JVM default charset) or byte[] (preserved unchanged); missing or other content types fail conversion. By default content is read from content, and both payload ID and filename from fileName. Configure the ID field as id when using a sender that provides that key. Also reads referencePayload and relativePath; arbitrary message fields are not copied.</p>",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/converter/src/main/java/org/ikasan/component/converter/filetransfer/MapMessageToPayloadConverter.java",
+  "implementingClass": "org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverter",
+  "useImplementingClassInFactory": true,
+  "expectedInputTypes": "javax.jms.MapMessage",
+  "producedOutputType": "org.ikasan.filetransfer.Payload",
+  "flowBuilderMethod": "converter",
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true,
+      "helpText": "The component name displayed on the canvas. It must be unique within the flow."
+    },
+    "contentAttributeName": {
+      "propertyName": "contentAttributeName",
+      "mandatory": true,
+      "defaultValue": "content",
+      "usageDataType": "java.lang.String",
+      "propertyConfigFileLabel": "__flow.__component.map.converter.contentAttributeName",
+      "helpText": "Name of the JMS map entry holding String or byte[] content.",
+      "setterProperty": true
+    },
+    "idAttributeName": {
+      "propertyName": "idAttributeName",
+      "mandatory": true,
+      "defaultValue": "fileName",
+      "usageDataType": "java.lang.String",
+      "propertyConfigFileLabel": "__flow.__component.map.converter.idAttributeName",
+      "helpText": "Name of the JMS map entry used as the payload ID. Use id to read an explicit ID field.",
+      "setterProperty": true
+    },
+    "fileNameAttributeName": {
+      "propertyName": "fileNameAttributeName",
+      "mandatory": true,
+      "defaultValue": "fileName",
+      "usageDataType": "java.lang.String",
+      "propertyConfigFileLabel": "__flow.__component.map.converter.fileNameAttributeName",
+      "helpText": "Name of the JMS map entry used as the output fileName attribute.",
+      "setterProperty": true
+    },
+    "configurationId": {
+      "propertyName": "configurationId",
+      "mandatory": true,
+      "defaultValue": "__module-__flow-__component",
+      "usageDataType": "java.lang.String",
+      "helpText": "Configuration resource ID. Keep stable when reusing runtime configuration overrides."
+    }
+  },
+  "runtimeConfigurationClass": "org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverterConfiguration",
+  "runtimeConfigurationProperties": [
+    "contentAttributeName",
+    "idAttributeName",
+    "fileNameAttributeName"
+  ]
+}

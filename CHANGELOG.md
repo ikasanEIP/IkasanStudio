@@ -5,6 +5,7 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Add JMS Map Message To Payload Converter to the V3, V4 and V5 development palettes, with configurable content/ID/filename fields, runtime configuration import, and direct Ikasan runtime construction.
 - Add Payload To Map Converter to the V3, V4 and V5 development palettes, with direct Ikasan runtime construction, file-transfer input/Map output type guidance and documented charset/attribute precedence.
 
 - Fetch module metadata and flow-scoped component configuration from a running Ikasan module into the existing import preview. Add optional Basic authentication without credential persistence, cancellable bounded HTTP requests, actionable REST failures and the existing mapping/review gate before import.

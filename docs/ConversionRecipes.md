@@ -88,3 +88,29 @@ after `content` and `id`, so attributes with those names override the original e
 Use the generic Converter with a custom mapping for explicit charset decoding or binary
 content. This produces a Java Map, not a JMS MapMessage or JSON string; configure any
 subsequent transport conversion separately.
+
+## JMS map message to file-transfer payload
+
+Use **JMS Map Message To Payload Converter** to convert a JMS `MapMessage` into
+`org.ikasan.filetransfer.Payload`, for example before an FTP/SFTP producer.
+It is available in V3.3.9, V4.1.6 and the V5.0.1-SNAPSHOT development pack.
+V3 uses `javax.jms.MapMessage`; V4 and V5 use `jakarta.jms.MapMessage`.
+
+The configurable fields are:
+
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| contentAttributeName | content | Entry containing String or byte[] content |
+| idAttributeName | fileName | Entry used as the payload ID |
+| fileNameAttributeName | fileName | Entry copied into the payload's fileName attribute |
+
+Set **idAttributeName** to `id` when the sender uses the ID key produced by
+Payload To Map Converter. The input must still be transported as a JMS MapMessage;
+a plain Java Map is not accepted.
+
+String content uses the runtime JVM's default charset; byte arrays are preserved.
+Missing content or other content types fail conversion. The converter also copies
+`referencePayload` and `relativePath`; it does not copy arbitrary map entries.
+Studio generates the real Ikasan converter and its configuration setters, exposes
+the three settings in generated application properties, and assigns a configuration
+resource ID. Keep that ID stable when using runtime configuration overrides.
