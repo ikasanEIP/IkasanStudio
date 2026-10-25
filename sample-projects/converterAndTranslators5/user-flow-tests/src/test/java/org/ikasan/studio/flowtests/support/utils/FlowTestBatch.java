@@ -1,0 +1,177 @@
+package org.ikasan.studio.flowtests.support.utils;
+
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.*;
+
+/** One sequential batch: inputs and ordered expectations per producer, with no global output ordering. */
+public final class FlowTestBatch<I> {
+    /** Compatibility for older generated scenarios. */
+    @Deprecated
+    @FunctionalInterface public interface OutputCheck {
+        void verify(Object actualAfterProducer) throws Exception;
+        default String expectedText() { throw new IllegalStateException("Custom output assertion has no expected text; customise receiver verification"); }
+    }
+    @FunctionalInterface public interface OutputComparison {
+        void verify(Object expected, Object actual) throws Exception;
+    }
+    private final StackTraceElement[] definitionTrace = new Throwable().getStackTrace();
+    /** Carries the real batch construction location without replacing the observation failure's cause. */
+    public static final class OutputCountFailure extends AssertionError {
+        private final StackTraceElement[] definitionTrace;
+        private OutputCountFailure(String message, StackTraceElement[] definitionTrace) {
+            super(message + " Review this producer's expected-output list in createInputOutputBatches(),"
+                    + " or the flow implementation if the actual output count is unintended.");
+            this.definitionTrace = definitionTrace.clone();
+        }
+        public StackTraceElement[] definitionTrace() { return definitionTrace.clone(); }
+    }
+    private OutputCountFailure countFailure(String message) {
+        return new OutputCountFailure(message, definitionTrace);
+    }
+    private final boolean triggered;
+    private final List<I> inputs;
+    private final Map<String, List<?>> outputs;
+
+    public FlowTestBatch(List<I> inputs, Map<String, ? extends List<?>> outputs) {
+        this(inputs, outputs, false);
+    }
+    private FlowTestBatch(List<I> inputs, Map<String, ? extends List<?>> outputs, boolean triggered) {
+        this.triggered = triggered;
+        this.inputs = Collections.unmodifiableList(new ArrayList<>(Objects.requireNonNull(inputs)));
+        Map<String, List<?>> copy = new LinkedHashMap<>();
+        Objects.requireNonNull(outputs).forEach((producer, checks) -> {
+            if (producer == null || producer.isBlank()) throw new IllegalArgumentException("Name each observed producer");
+            copy.put(producer, List.copyOf(checks));
+        });
+        this.outputs = Collections.unmodifiableMap(copy);
+    }
+    public static <I> FlowTestBatch<I> triggered(Map<String, ? extends List<?>> outputs) {
+        return new FlowTestBatch<>(List.of(), outputs, true);
+    }
+    public boolean isTriggered() { return triggered; }
+    public int invocationCount() { return triggered ? 1 : inputs.size(); }
+    public List<I> inputs() { return inputs; }
+    public List<?> expectedOutputs(String producer) { return outputs.getOrDefault(producer, List.of()); }
+    public String expectedText(String producer, int outputIndex) {
+        List<?> values = outputs.get(producer);
+        if (values == null || outputIndex < 0 || outputIndex >= values.size())
+            throw new IllegalArgumentException("Producer '" + producer + "' has "
+                    + (values == null ? "no output checks" : values.size() + " expected outputs")
+                    + " in this batch, but the receiver check requested output " + (outputIndex + 1)
+                    + ". Update verifyReceivedOutput to handle the whole expected-output list, including empty lists.");
+        Object expected = values.get(outputIndex);
+        if (expected instanceof String) return (String) expected;
+        if (expected instanceof OutputCheck) return ((OutputCheck) expected).expectedText();
+        throw new IllegalStateException("Expected payload is not text; customise receiver verification");
+    }
+    /** Text expectations for a receiver; an empty list means no delivery is expected. */
+    public List<String> expectedTexts(String producer) {
+        List<String> texts = new ArrayList<>();
+        for (int i = 0; i < expectedCount(producer); i++) texts.add(expectedText(producer, i));
+        return Collections.unmodifiableList(texts);
+    }
+    public int expectedCount(String producer) { return outputs.getOrDefault(producer, List.of()).size(); }
+    public Set<String> producers() { return outputs.keySet(); }
+
+    /** Bounded observation, including empty expectations. Omitted producers are intentionally ignored. */
+    public Observation observe() {
+        return observe((expected, actual) -> {
+            if (!Objects.equals(expected, actual))
+                throw new AssertionError("Expected <" + expected + "> but was <" + actual
+                        + ">; business objects must implement equals");
+        });
+    }
+    public Observation observe(OutputComparison comparison) { return new Observation(Objects.requireNonNull(comparison)); }
+    public final class Observation {
+        private final OutputComparison comparison;
+        private Observation(OutputComparison comparison) { this.comparison = comparison; }
+        private final BlockingQueue<Delivery> deliveries = new LinkedBlockingQueue<>();
+        private final Map<String, Integer> received = new HashMap<>();
+        private final Map<String, Integer> accepted = new LinkedHashMap<>();
+        private volatile AssertionError overflow;
+        public void accept(String producer, Object payload) {
+            if (!outputs.containsKey(producer)) return;
+            // Bound retained payloads even when a broken flow floods an observed producer.
+            synchronized (deliveries) {
+                if (overflow != null) return; // Preserve the first excess and bound retained payloads/counts.
+                int count = accepted.merge(producer, 1, Integer::sum);
+                if (count > expectedCount(producer)) overflow = excess(producer, count);
+                else deliveries.add(new Delivery(producer, payload));
+            }
+        }
+        private void check(Runnable ready) {
+            ready.run();
+            if (overflow != null) throw overflow;
+        }
+        public void verify(Duration timeout, Duration quietPeriod, Runnable ready) throws Exception {
+            if (timeout.isZero() || timeout.isNegative() || quietPeriod.isZero() || quietPeriod.isNegative())
+                throw new IllegalArgumentException("Delivery and quiet periods must be positive");
+            int remaining = outputs.values().stream().mapToInt(List::size).sum();
+            long deadline = System.nanoTime() + timeout.toNanos();
+            while (remaining > 0) {
+                check(ready);
+                Delivery delivery = deliveries.poll(20, TimeUnit.MILLISECONDS);
+                if (delivery != null) { verifyDelivery(delivery); remaining--; }
+                else if (System.nanoTime() >= deadline) throw countFailure("Missing producer outputs; expected counts "
+                        + counts() + ", observed counts " + observedCounts());
+            }
+            // Also checks explicit zero-output expectations and rejects duplicates after the expected outputs.
+            deadline = System.nanoTime() + quietPeriod.toNanos();
+            do {
+                check(ready);
+                Delivery extra = deliveries.poll(20, TimeUnit.MILLISECONDS);
+                if (extra != null) throw excess(extra.producer, observedCounts().getOrDefault(extra.producer, 0));
+            } while (System.nanoTime() < deadline);
+            check(ready);
+        }
+        public void assertNoPending() {
+            if (overflow != null) throw overflow;
+            Delivery extra = deliveries.poll();
+            if (extra != null) throw excess(extra.producer, observedCounts().getOrDefault(extra.producer, 0));
+        }
+        private OutputCountFailure excess(String producer, int observed) {
+            return countFailure("Too many outputs at producer '" + producer + "'. Expected: "
+                    + expectedCount(producer) + "; observed: at least " + observed + ".");
+        }
+        private Map<String, Integer> observedCounts() {
+            synchronized (deliveries) { return new LinkedHashMap<>(accepted); }
+        }
+        private Map<String, Integer> counts() {
+            Map<String, Integer> counts = new LinkedHashMap<>();
+            outputs.forEach((name, checks) -> counts.put(name, checks.size()));
+            return counts;
+        }
+        private void verifyDelivery(Delivery delivery) throws Exception {
+            int index = received.getOrDefault(delivery.producer, 0);
+            List<?> checks = outputs.get(delivery.producer);
+            if (index >= checks.size()) throw excess(delivery.producer, observedCounts().getOrDefault(delivery.producer, index + 1));
+            Object expected = checks.get(index);
+            try {
+                if (expected instanceof OutputCheck) ((OutputCheck) expected).verify(delivery.payload);
+                else comparison.verify(expected, delivery.payload);
+            }
+            catch (AssertionError | Exception failure) {
+                String detail = failure.getMessage();
+                if (detail == null || detail.isBlank()) detail = failure.getClass().getName();
+                if (expected instanceof String && delivery.payload != null
+                        && failure instanceof OutputTextSupport.UnsupportedOutputTypeException) {
+                    Class<?> actualType = delivery.payload.getClass();
+                    String actualName = actualType.getSimpleName();
+                    if (actualName.isEmpty()) actualName = actualType.getName();
+                    detail = "Expected: String (java.lang.String). Actual: " + actualName
+                            + " (" + actualType.getName() + "). No text mapping is defined for this output. "
+                            + "Override formatOutputText(Object) to map it to the expected text, "
+                            + "or compare its fields/objects in assertExpectedOutput(Object, Object).";
+                }
+                throw new AssertionError("Producer '" + delivery.producer + "', output " + (index + 1)
+                        + " failed: " + detail, failure);
+            }
+            received.put(delivery.producer, index + 1);
+        }
+    }
+    private static final class Delivery {
+        final String producer; final Object payload;
+        Delivery(String producer, Object payload) { this.producer = producer; this.payload = payload; }
+    }
+}

@@ -184,6 +184,10 @@ public final class FlowTestSupportFingerprint {
                 .put("implementingClass", "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer");
         if ("Translator".equals(key)) return mapper.createObjectNode()
                 .put("implementingClass", "org.ikasan.spec.component.transformation.Translator.Custom");
+        if ("Payload To Map Converter".equals(key)) return mapper.createObjectNode()
+                .put("implementingClass", "org.ikasan.component.converter.filetransfer.PayloadToMapConverter");
+        if ("JMS Map Message To Payload Converter".equals(key)) return mapper.createObjectNode()
+                .put("implementingClass", "org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverter");
         throw new IOException("Unknown component variant; refresh shared flow-test support.");
     }
 

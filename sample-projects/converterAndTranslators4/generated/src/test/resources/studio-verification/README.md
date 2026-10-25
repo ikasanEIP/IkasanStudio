@@ -3,6 +3,7 @@
 Studio owns the verification package and resources/studio-verification under generated/src/test. Generate/refresh explicitly; running tests never regenerates them.
 Commit these files. Refresh replaces verification tests without retaining a backup by default.
 Select "Archive existing tests" in the IDE confirmation to preserve the previous test tree, including temporary developer corrections.
+There are no TODOs or developer enablement flags.
 
 This first version verifies flow/component factory signatures and declared user implementation interfaces.
 Classes are loaded without initialisation; Spring and external services are not started.

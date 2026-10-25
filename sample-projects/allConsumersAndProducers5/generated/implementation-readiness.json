@@ -1,0 +1,26 @@
+{
+  "checkedAt" : "2026-10-20T19:04:08.826048861Z",
+  "scope" : "Saved model property rules, primary user implementation files and simple saved flow-test expected paths; unsaved edits, external property overrides and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.",
+  "runtimeVerified" : false,
+  "findings" : [ {
+    "flow" : "Generic to FTP Flow",
+    "component" : "My generic Consumer",
+    "file" : "user/src/main/java/org/ikasan/studio/demo/cat/generictoftpflow/MyGenericConsumer.java",
+    "line" : 154,
+    "code" : "REVIEW_SCAFFOLD",
+    "message" : "A TODO marker remains in the implementation. Inspect the method; this warning alone does not prove it is unfinished.",
+    "target" : null,
+    "property" : null,
+    "displayValue" : null
+  }, {
+    "flow" : "Generic to FTP Flow",
+    "component" : "My generic Consumer",
+    "file" : "user/src/main/java/org/ikasan/studio/demo/cat/generictoftpflow/MyGenericConsumer.java",
+    "line" : 232,
+    "code" : "REVIEW_SCAFFOLD",
+    "message" : "A TODO marker remains in the implementation. Inspect the method; this warning alone does not prove it is unfinished.",
+    "target" : null,
+    "property" : null,
+    "displayValue" : null
+  } ]
+}

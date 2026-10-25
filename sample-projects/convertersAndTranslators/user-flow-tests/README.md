@@ -5,7 +5,9 @@ Flow tests live in org.ikasan.studio.flowtests; shared helpers live in org.ikasa
 Existing helpers in the old package are retained. Port custom setup before adopting the new support package.
 Scenario tests use IkasanFlowTestRule; continuous-source observation tests use a bounded counting listener.
 They deliberately FAIL before starting services until you complete the test scenario.
+Direct self-generating-source/discard-sink observation tests have only TODO 1–2: review settings, then enable.
 They check any meta-pack initial payload sequence, count later events, and stop the test flow only during teardown.
+Other scenarios follow TODO 1–5 in the Java test: isolate settings, supply two input batches, select output and expected results,
 review component-path expectations, then enable and run. Set TEST_REVIEWED only after completing the first four tasks.
 Configure shared test connections in src/test/resources/module-test.properties (UTF-8).
 For plain FTP endpoints, set test.ftp.enabled=true to start a disposable loopback FTP server per test.

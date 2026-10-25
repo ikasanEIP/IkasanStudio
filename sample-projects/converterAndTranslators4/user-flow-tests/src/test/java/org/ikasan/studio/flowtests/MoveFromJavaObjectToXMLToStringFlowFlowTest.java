@@ -14,10 +14,12 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * Developer-owned scenario for move from Java Object to XML to String flow.
+ * Complete the numbered TODOs below in order (IntelliJ's TODO view can locate them):
  * 1. Choose the output producer and review the expected payloads below.
  * 2. Review the expected component path and any branch/delivery assertions.
  * 3. Define input payloads or fixtures for the batches in createInputOutputBatches().
  * 4. Review test connections in module-test.properties.
+ * Run immediately to see what works; use the TODOs to refine inputs and assertions.
  * See user-flow-tests/README.md for details. Generated scaffolds are not completed tests.
  */
 public class MoveFromJavaObjectToXMLToStringFlowFlowTest extends ModuleFlowTestSupport {
@@ -93,9 +95,9 @@ public class MoveFromJavaObjectToXMLToStringFlowFlowTest extends ModuleFlowTestS
     // Keep expected-output fixtures independent of input fixtures; transformations may change the contents.
     // These resource names do not dictate the producer's delivered filenames.
     private static final String FIRST_EXPECTED_OUTPUT_RESOURCE = "/" + noSpaces(FLOW_NAME)
-            + "/" + noSpaces(PRODUCER_NAME) + "/first.txt";
+            + "/" + noSpaces(PRODUCER_NAME) + "/payload-map-demo-first.txt";
     private static final String SECOND_EXPECTED_OUTPUT_RESOURCE = "/" + noSpaces(FLOW_NAME)
-            + "/" + noSpaces(PRODUCER_NAME) + "/second.txt";
+            + "/" + noSpaces(PRODUCER_NAME) + "/payload-map-demo-second.txt";
 
     // Expected business objects must implement equals (and matching hashCode).
     // Only String expectations use formatOutputText; remove this override if no text checks remain.

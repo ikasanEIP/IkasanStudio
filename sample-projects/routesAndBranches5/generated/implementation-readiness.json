@@ -1,0 +1,46 @@
+{
+  "checkedAt" : "2026-10-20T20:02:25.275332324Z",
+  "scope" : "Saved model property rules, primary user implementation files and simple saved flow-test expected paths; unsaved edits, external property overrides and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.",
+  "runtimeVerified" : false,
+  "findings" : [ {
+    "flow" : "Router Flow",
+    "component" : "String to email 1",
+    "file" : "user/src/main/java/org/ikasan/studio/demo/cat/routerflow/StringToEmail1.java",
+    "line" : 34,
+    "code" : "REVIEW_SCAFFOLD",
+    "message" : "A TODO marker remains in the implementation. Inspect the method; this warning alone does not prove it is unfinished.",
+    "target" : null,
+    "property" : null,
+    "displayValue" : null
+  }, {
+    "flow" : "Router Flow",
+    "component" : "String to email 2",
+    "file" : "user/src/main/java/org/ikasan/studio/demo/cat/routerflow/StringToEmail2.java",
+    "line" : 34,
+    "code" : "REVIEW_SCAFFOLD",
+    "message" : "A TODO marker remains in the implementation. Inspect the method; this warning alone does not prove it is unfinished.",
+    "target" : null,
+    "property" : null,
+    "displayValue" : null
+  }, {
+    "flow" : "Router Flow",
+    "component" : "String to email 3",
+    "file" : "user/src/main/java/org/ikasan/studio/demo/cat/routerflow/StringToEmail3.java",
+    "line" : 34,
+    "code" : "REVIEW_SCAFFOLD",
+    "message" : "A TODO marker remains in the implementation. Inspect the method; this warning alone does not prove it is unfinished.",
+    "target" : null,
+    "property" : null,
+    "displayValue" : null
+  }, {
+    "flow" : "Router Flow",
+    "component" : "String to email3",
+    "file" : "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/RouterFlowFlowTest.java",
+    "line" : 63,
+    "code" : "INVALID_EXPECTED_PATH",
+    "message" : "Component 'String to email3' does not exist in this flow. Did you mean 'String to email 3'? Update defineExpectedPath.",
+    "target" : null,
+    "property" : null,
+    "displayValue" : null
+  } ]
+}

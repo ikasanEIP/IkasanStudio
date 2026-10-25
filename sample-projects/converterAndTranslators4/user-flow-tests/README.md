@@ -10,11 +10,15 @@ Scenario tests use IkasanFlowTestRule; continuous-source observation tests use a
 Standard scenarios surface component failures with the flow/component, incoming payload type and original cause.
 This is a success-scenario check; deliberately expected failure/recovery paths need custom observation.
 JMS input normally starts with text. An initial ObjectMessageToObjectConverter selects sendObject and
+object payloads in createInputOutputBatches: populate its TODO with serializable business objects.
 A downstream declared input class is a fixture hint, not automatically constructed business data.
 Existing utils/JmsFlowTestSupport.java is preserved. If it lacks sendObject, archive it outside the .java
 extension and generate again to recreate the missing helper; review/reapply customisations.
 New tests run immediately, starting the configured application and fixtures; no review flag is required.
+Direct self-generating-source/discard-sink observation tests have only TODO 1–2: review settings and observation expectations.
 They check any meta-pack initial payload sequence, count later events, and stop the test flow only during teardown.
+Other scenarios follow TODO 1–4 in the Java test: define input collections per batch, select producer outputs and expected results,
+review component-path expectations, and review shared test connections. Tests run immediately; use failures to guide completion of the TODOs.
 Configure shared test connections in src/test/resources/module-test.properties (UTF-8).
 Studio flow/component renames update recognised test names, property references and fixture directories.
 Business assertions, expected values and custom test class names are preserved.

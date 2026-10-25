@@ -1,0 +1,1 @@
+{"backupName":"flowtest_2faa302b-2613-4268-9b08-c3d4deeaaf50","failureMessage":"Database is not persistent; SQL statement:\nBACKUP TO './persistence/ESB/db-backup/flowtest_2faa302b-2613-4268-9b08-c3d4deeaaf50-backup-20261020-20-05-51.zip' [90126-240]","failureTimestamp":1792523151466,"retryCount":1}

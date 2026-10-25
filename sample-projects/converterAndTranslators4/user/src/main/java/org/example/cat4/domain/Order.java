@@ -6,9 +6,11 @@ import java.util.Objects;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "order")
 @XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {"reference", "quantity", "orderNumber"})
 public class Order implements Serializable {
     private static final long serialVersionUID = 1L;
 

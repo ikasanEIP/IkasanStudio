@@ -14,10 +14,12 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * Developer-owned scenario for Transform The Order.
+ * Complete the numbered TODOs below in order (IntelliJ's TODO view can locate them):
  * 1. Choose the output producer and review the expected payloads below.
  * 2. Review the expected component path and any branch/delivery assertions.
  * 3. Define input payloads or fixtures for the batches in createInputOutputBatches().
  * 4. Review test connections in module-test.properties.
+ * Run immediately to see what works; use the TODOs to refine inputs and assertions.
  * See user-flow-tests/README.md for details. Generated scaffolds are not completed tests.
  */
 public class TransformTheOrderFlowTest extends ModuleFlowTestSupport {

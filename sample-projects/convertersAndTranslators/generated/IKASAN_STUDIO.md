@@ -274,7 +274,9 @@ operator controls. Do not globally force allowDbOverwrite or erase runtime data 
 
 For each requested functional path:
 1. Confirm Studio applied the model and generation completed; reread the saved model and files.
+2. Inspect the relevant user/ classes for throwing stubs, TODO implementations, constant dummy
    results and no-op methods. Implement the required behaviour within the ownership rules above.
+   Explanatory TODO comments alone do not prove that a component is unfinished.
 3. Trace a representative payload from consumer through every transformation to producer and,
    where applicable, the receiving flow. Check payload types, actual output values, filename
    filters and transport settings. Locate every required implementation and Spring bean in code
@@ -479,6 +481,7 @@ Read implementationReadiness in studio_snapshot, or generated/implementation-rea
 after generation. Studio's module menu offers Validate Module to refresh saved-source
 findings and open affected files. Reports inspect primary user implementation files only; save
 edits before refreshing. Reports can become stale after edits and do not cover helper/provider beans.
+Resolve missing source and known throwing stubs. Review generated TODO warnings against actual
 method bodies; a leftover comment alone is not proof of missing logic. Do not merely remove markers
 to clear the report. No findings, applied status, compilation and running flow state are not proof
 of working behaviour. Exercise the actual component methods with representative input and verify

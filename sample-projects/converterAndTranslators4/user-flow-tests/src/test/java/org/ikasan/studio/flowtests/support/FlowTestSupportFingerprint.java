@@ -148,6 +148,8 @@ public final class FlowTestSupportFingerprint {
                 .put("implementingClass", "GenericEndpoint");
         if ("Generic Producer".equals(key)) return mapper.createObjectNode()
                 .put("implementingClass", "").put("additionalKey", "Generic");
+        if ("JMS Map Message To Payload Converter".equals(key)) return mapper.createObjectNode()
+                .put("implementingClass", "org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverter");
         if ("JMS Object Message To Object Converter".equals(key)) return mapper.createObjectNode()
                 .put("implementingClass", "org.ikasan.component.converter.jms.ObjectMessageToObjectConverter");
         if ("Local File Consumer".equals(key)) return mapper.createObjectNode()
@@ -162,6 +164,8 @@ public final class FlowTestSupportFingerprint {
                 .put("implementingClass", "org.ikasan.component.router.multirecipient.RecipientListRouter");
         if ("Object To XML String Converter".equals(key)) return mapper.createObjectNode()
                 .put("implementingClass", "org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder");
+        if ("Payload To Map Converter".equals(key)) return mapper.createObjectNode()
+                .put("implementingClass", "org.ikasan.component.converter.filetransfer.PayloadToMapConverter");
         if ("Router Endpoint".equals(key)) return mapper.createObjectNode()
                 .put("implementingClass", "RouterEndpoint");
         if ("SFTP Consumer".equals(key)) return mapper.createObjectNode()

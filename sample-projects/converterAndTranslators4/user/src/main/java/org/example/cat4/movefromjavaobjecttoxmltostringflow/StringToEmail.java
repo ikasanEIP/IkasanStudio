@@ -30,6 +30,7 @@ public class StringToEmail implements Converter<String, EmailPayload> {
         LOG.debug("Processing payload type {}", payload == null ? "null" : payload.getClass().getName());
         DefaultEmailPayload emailPayload = (DefaultEmailPayload) EmailPayload.newInstance();
         emailPayload.setEmailBody(payload.toString());
+// TODO review the default body above, and populate any attachments, from the incoming payload, e.g.
 // emailPayload.addAttachment("report.pdf", "application/pdf", attachmentBytes);
         return emailPayload;
     }

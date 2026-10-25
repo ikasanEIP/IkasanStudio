@@ -1,0 +1,1 @@
+{"backupName":"testdb","failureMessage":"Database is not persistent; SQL statement:\nBACKUP TO './persistence/ESB/db-backup/testdb-backup-20261020-20-02-20.zip' [90126-240]","failureTimestamp":1792522940979,"retryCount":1}

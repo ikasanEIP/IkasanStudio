@@ -34,6 +34,6 @@ public class ArtificallyCreateOrder implements Broker<JobExecutionContext, Order
     @Override
     public Order invoke(JobExecutionContext payload) throws EndpointException {
         payload.getJobDetail();
-        return new Order("mr-ref " + payload. getFireTime().toInstant(), counter, counter++);
+        return new Order("mr-ref " + payload.getFireTime().toInstant(), counter, counter++);
     }
 }

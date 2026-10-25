@@ -36,13 +36,21 @@ build/
 
 ### Mac OS ###
 .DS_Store
-# Local sample workspace and runtime state
+# Sample-local build, IDE, runtime and recovery data (recreated when needed).
 .idea/
 transaction-logs/
-temporary-files/
 scheduler-recovery/
+temporary-files/
 persistence/
-/generated/h2/
-*.log
+*.mv.db
+*.h2.db
+*.trace.db
+*.lock.db
 *.bak*
+*.backup
+*.proposed
+# Applied model changes are already represented by the checked-in Studio model.
+ai-proposals/
+# Regenerate current diagnostics in Studio rather than sharing stale local findings.
+/generated/implementation-readiness.json
 /LOCAL_TEST_ENVIRONMENT.md

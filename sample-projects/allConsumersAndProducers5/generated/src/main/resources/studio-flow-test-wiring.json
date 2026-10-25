@@ -1,0 +1,83 @@
+{
+  "sampleConsumerClasses" : [ "org.ikasan.studio.demo.cat.generictoftpflow.MyGenericConsumer" ],
+  "testFlows" : {
+    "ECG to DevNull Flow" : {
+      "inputMode" : "self-generating",
+      "consumer" : "My EGC Consumer",
+      "debugComponents" : [ ]
+    },
+    "Generic to FTP Flow" : {
+      "inputMode" : "sample-submission",
+      "consumer" : "My generic Consumer",
+      "debugComponents" : [ ]
+    },
+    "Ftp to Email Flow" : {
+      "inputMode" : "",
+      "consumer" : "My ftp consumer",
+      "debugComponents" : [ ]
+    },
+    "Local File to Generic Flow" : {
+      "inputMode" : "",
+      "consumer" : "my local file consumer",
+      "debugComponents" : [ "my local file consumerDebug" ]
+    },
+    "Sftp to JMS Flow" : {
+      "inputMode" : "",
+      "consumer" : "my sftp consumer",
+      "debugComponents" : [ ]
+    },
+    "JMS to SFTP Flow" : {
+      "inputMode" : "",
+      "consumer" : "my JSM consumer",
+      "debugComponents" : [ ]
+    },
+    "Scheduled to Logging Flow" : {
+      "inputMode" : "scheduled-context",
+      "consumer" : "my scheduled consumer",
+      "debugComponents" : [ ]
+    }
+  },
+  "ftpEndpoints" : [ {
+    "name" : "Generic to FTP Flow / my FTP Producer",
+    "flow" : "Generic to FTP Flow",
+    "component" : "my FTP Producer",
+    "consumer" : "false",
+    "secure" : "",
+    "remoteHost" : "generictoftpflow.ftp.consumer.remote-host",
+    "remotePort" : "generictoftpflow.ftp.consumer.remote-port",
+    "username" : "generictoftpflow.ftp.consumer.username",
+    "password" : "generictoftpflow.ftp.consumer.password",
+    "directory" : "generictoftpflow.ftp.producer.outputDirectory"
+  }, {
+    "name" : "Ftp to Email Flow / My ftp consumer",
+    "flow" : "Ftp to Email Flow",
+    "component" : "My ftp consumer",
+    "consumer" : "true",
+    "secure" : "",
+    "remoteHost" : "ftptoemailflow.ftp.consumer.remote-host",
+    "remotePort" : "ftptoemailflow.ftp.consumer.remote-port",
+    "username" : "ftptoemailflow.ftp.consumer.username",
+    "password" : "ftptoemailflow.ftp.consumer.password",
+    "directory" : "ftptoemailflow.ftp.consumer.source-directory"
+  } ],
+  "smtpEndpoints" : [ {
+    "component" : "My Email Producer",
+    "flow" : "Ftp to Email Flow"
+  } ],
+  "sftpEndpoints" : [ {
+    "component" : "my sftp consumer",
+    "flow" : "Sftp to JMS Flow",
+    "consumer" : "true"
+  }, {
+    "component" : "my sftp producer",
+    "flow" : "JMS to SFTP Flow",
+    "consumer" : "false"
+  } ],
+  "modulePropertyKeys" : [ "ftptoemailflow.ftp.consumer.clientID", "ftptoemailflow.ftp.consumer.cron-expression", "ftptoemailflow.ftp.consumer.filename-pattern", "ftptoemailflow.ftp.consumer.password", "ftptoemailflow.ftp.consumer.remote-host", "ftptoemailflow.ftp.consumer.remote-port", "ftptoemailflow.ftp.consumer.source-directory", "ftptoemailflow.ftp.consumer.username", "ftptoemailflow.myemailproducer.email.producer.emailFormat", "ftptoemailflow.myemailproducer.email.producer.mailSmtpHost", "ftptoemailflow.myemailproducer.email.producer.mailSmtpPort", "ftptoemailflow.myemailproducer.email.producer.toRecipient", "generictoftpflow.ftp.consumer.password", "generictoftpflow.ftp.consumer.remote-host", "generictoftpflow.ftp.consumer.remote-port", "generictoftpflow.ftp.consumer.username", "generictoftpflow.ftp.producer.clientID", "generictoftpflow.ftp.producer.outputDirectory", "jms.allconsumersandproducers5.jmstosftpflow.myjsmconsumer.connection.factory.jndi.initial", "jms.allconsumersandproducers5.jmstosftpflow.myjsmconsumer.connection.factory.jndi.provider.url", "jms.allconsumersandproducers5.jmstosftpflow.myjsmconsumer.connection.factory.name", "jms.allconsumersandproducers5.jmstosftpflow.myjsmconsumer.destination", "jms.allconsumersandproducers5.sftptojmsflow.myfileproducer.connection.factory.jndi.initial", "jms.allconsumersandproducers5.sftptojmsflow.myfileproducer.connection.factory.jndi.provider.url", "jms.allconsumersandproducers5.sftptojmsflow.myfileproducer.connection.factory.name", "jms.allconsumersandproducers5.sftptojmsflow.myfileproducer.destination", "jmstosftpflow.sftp.consumer.remote-host", "jmstosftpflow.sftp.consumer.remote-port", "jmstosftpflow.sftp.consumer.username", "jmstosftpflow.sftp.producer.clientID", "jmstosftpflow.sftp.producer.outputDirectory", "jmstosftpflow.sftp.producer.password", "localfiletogenericflow.file.consumer.cron-expression", "localfiletogenericflow.file.consumer.filenames", "scheduledtologgingflow.scheduled.consumer.cron-expression", "sftptojmsflow.sftp.consumer.clientID", "sftptojmsflow.sftp.consumer.cron-expression", "sftptojmsflow.sftp.consumer.filename-pattern", "sftptojmsflow.sftp.consumer.password", "sftptojmsflow.sftp.consumer.remote-host", "sftptojmsflow.sftp.consumer.remote-port", "sftptojmsflow.sftp.consumer.source-directory", "sftptojmsflow.sftp.consumer.username" ],
+  "jmsBrokerPropertyKey" : "jms.allconsumersandproducers5.jmstosftpflow.myjsmconsumer.connection.factory.jndi.provider.url",
+  "jmsBrokerPropertyKeys" : [ "jms.allconsumersandproducers5.sftptojmsflow.myfileproducer.connection.factory.jndi.provider.url", "jms.allconsumersandproducers5.jmstosftpflow.myjsmconsumer.connection.factory.jndi.provider.url" ],
+  "flowNames" : [ "ECG to DevNull Flow", "Generic to FTP Flow", "Ftp to Email Flow", "Local File to Generic Flow", "Sftp to JMS Flow", "JMS to SFTP Flow", "Scheduled to Logging Flow" ],
+  "schemaVersion" : 1,
+  "modelFingerprint" : "02190f83e95e4f747ab8778a9daab218477ae9607ff7379f3b101a706375ba28",
+  "modelFields" : [ "active", "ageOfFiles", "autoContentConversion", "autoSplitBatch", "batchMode", "batchSize", "bccRecipient", "bccRecipients", "cacheLevel", "ccRecipient", "ccRecipients", "checksum", "checksumDelivered", "chronological", "chunkSize", "chunking", "cleanupChunks", "cleanupJournalOnComplete", "clientID", "concurrentConsumers", "connectionFactoryJndiProperties", "connectionFactoryJndiPropertyFactoryInitial", "connectionFactoryJndiPropertyProviderUrl", "connectionFactoryJndiPropertySecurityCredentials", "connectionFactoryJndiPropertySecurityPrincipal", "connectionFactoryJndiPropertyUrlPkgPrefixes", "connectionFactoryName", "connectionFactoryPassword", "connectionFactoryUsername", "connectionPassword", "connectionTimeout", "connectionUsername", "createParentDirectory", "criticalOnStartup", "cronExpression", "dataTimeout", "deliveryMode", "deliveryPersistent", "destinationJndiName", "destinationJndiProperties", "destinationJndiPropertyFactoryInitial", "destinationJndiPropertyProviderUrl", "destinationJndiPropertySecurityCredentials", "destinationJndiPropertySecurityPrincipal", "destinationJndiPropertyUrlPkgPrefixes", "destructive", "directoryDepth", "durable", "durableSubscriptionName", "eager", "emailBody", "emailFormat", "encoding", "endpointEventProvider", "explicitQosEnabled", "extendedMailSessionProperties", "filenamePattern", "filenames", "filterDuplicates", "filterOnFilename", "filterOnLastModifiedDate", "from", "ftps", "ftpsIsImplicit", "ftpsKeyStoreFilePassword", "ftpsKeyStoreFilePath", "ftpsPort", "ftpsProtocol", "hasAttachments", "ignoreFileRenameWhilstScanning", "ignoreMisfire", "includeHeader", "includeTrailer", "isRecursive", "knownHostFilename", "logEveryNth", "logMatchedFilenames", "mailDebug", "mailMimeAddressStrict", "mailPassword", "mailPopClass", "mailPopHost", "mailPopPort", "mailPopUser", "mailRuntimeEnvironment", "mailSmtpClass", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailStoreProtocol", "mailSubject", "mailhost", "managedEventIdentifierService", "maxConcurrentConsumers", "maxEagerCallbacks", "maxRetryAttempts", "maxRows", "messageIdEnabled", "messageProvider", "messageTimestampEnabled", "minAge", "moveOnSuccess", "moveOnSuccessNewPath", "outputDirectory", "overwrite", "password", "passwordFilePath", "preferredKeyExchangeAlgorithm", "priority", "privateKeyFilename", "pubSubDomain", "pubSubNoLocal", "receiveTimeout", "regExpPattern", "remoteHost", "remotePort", "renameExtension", "renameOnSuccess", "renameOnSuccessExtension", "replacementText", "sessionAcknowledgeMode", "sessionAcknowledgeModeName", "sessionTransacted", "socketTimeout", "sortAscending", "sortByModifiedDateTime", "sourceDirectory", "systemKey", "tempFileName", "timeToLive", "timezone", "toRecipient", "toRecipients", "transportProtocol", "unzip", "user", "username" ]
+}

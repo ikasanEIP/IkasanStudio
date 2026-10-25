@@ -5,6 +5,8 @@ import org.ikasan.builder.ModuleBuilder;
 import org.ikasan.builder.component.ComponentBuilder;
 import org.ikasan.spec.module.Module;
 import org.ikasan.studio.boot.flow.createneworder.CreateNewOrder;
+import org.ikasan.studio.boot.flow.jmsmaptopayloaddemo.JMSMapToPayloadDemo;
+import org.ikasan.studio.boot.flow.payloadtojmsmapdemo.PayloadToJMSMapDemo;
 import org.ikasan.studio.boot.flow.transformtheorder.TransformTheOrder;
 import org.ikasan.wiretap.listener.JobAwareFlowEventListener;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +28,8 @@ import java.util.ArrayList;
 @Configuration("ModuleFactory")
 @ImportResource({
         "classpath:h2-datasource-conf.xml",
-        "classpath:ikasan-transaction-pointcut-ikasanMessageListener.xml"
+        "classpath:ikasan-transaction-pointcut-ikasanMessageListener.xml",
+        "classpath:filetransfer-service-conf.xml"
 })
 public class ModuleConfig {
     @Value("${module.name}")
@@ -38,6 +41,10 @@ public class ModuleConfig {
     CreateNewOrder createNewOrder;
     @Resource
     TransformTheOrder transformTheOrder;
+    @Resource
+    PayloadToJMSMapDemo payloadToJMSMapDemo;
+    @Resource
+    JMSMapToPayloadDemo jMSMapToPayloadDemo;
 
     @Bean
     public Module myModule() {
@@ -48,6 +55,8 @@ public class ModuleConfig {
         Module module = moduleBuilder
                 .addFlow(createNewOrder.getCreateNewOrder())
                 .addFlow(transformTheOrder.getTransformTheOrder())
+                .addFlow(payloadToJMSMapDemo.getPayloadToJMSMapDemo())
+                .addFlow(jMSMapToPayloadDemo.getJMSMapToPayloadDemo())
                 .build();
         return module;
     }

@@ -5,14 +5,13 @@ import org.ikasan.builder.ModuleBuilder;
 import org.ikasan.builder.component.ComponentBuilder;
 import org.ikasan.spec.module.Module;
 import org.ikasan.studio.boot.flow.createanorderflow.CreateAnOrderFlow;
+import org.ikasan.studio.boot.flow.jmsmaptopayloaddemo.JMSMapToPayloadDemo;
 import org.ikasan.studio.boot.flow.movefromjavaobjecttoxmltostringflow.MoveFromJavaObjectToXMLToStringFlow;
+import org.ikasan.studio.boot.flow.payloadtojmsmapdemo.PayloadToJMSMapDemo;
 import org.ikasan.wiretap.listener.JobAwareFlowEventListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -28,6 +27,9 @@ import java.util.ArrayList;
         "classpath:h2-datasource-conf.xml",
         "classpath:ikasan-transaction-pointcut-ikasanMessageListener.xml"
 })
+@Import({
+        org.ikasan.connector.basefiletransfer.BaseFileTransferAutoConfiguration.class
+})
 public class ModuleConfig {
     @Value("${module.name}")
     private String moduleName;
@@ -38,6 +40,10 @@ public class ModuleConfig {
     CreateAnOrderFlow createAnOrderFlow;
     @Resource
     MoveFromJavaObjectToXMLToStringFlow moveFromJavaObjectToXMLToStringFlow;
+    @Resource
+    PayloadToJMSMapDemo payloadToJMSMapDemo;
+    @Resource
+    JMSMapToPayloadDemo jMSMapToPayloadDemo;
 
     @Bean
     public Module myModule() {
@@ -48,6 +54,8 @@ public class ModuleConfig {
         Module module = moduleBuilder
                 .addFlow(createAnOrderFlow.getCreateAnOrderFlow())
                 .addFlow(moveFromJavaObjectToXMLToStringFlow.getMoveFromJavaObjectToXMLToStringFlow())
+                .addFlow(payloadToJMSMapDemo.getPayloadToJMSMapDemo())
+                .addFlow(jMSMapToPayloadDemo.getJMSMapToPayloadDemo())
                 .build();
         return module;
     }

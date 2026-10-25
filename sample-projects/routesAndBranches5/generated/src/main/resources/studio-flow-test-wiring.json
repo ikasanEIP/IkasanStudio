@@ -1,0 +1,39 @@
+{
+  "sampleConsumerClasses" : [ ],
+  "testFlows" : {
+    "Splitter Flow" : {
+      "debugComponents" : [ ],
+      "inputMode" : "scheduled-context",
+      "consumer" : "Message Trigger"
+    },
+    "Filters Flow" : {
+      "debugComponents" : [ ],
+      "inputMode" : "",
+      "consumer" : "connect to previous flow"
+    },
+    "Router Flow" : {
+      "debugComponents" : [ ],
+      "inputMode" : "",
+      "consumer" : "Connect to previous flow"
+    }
+  },
+  "ftpEndpoints" : [ ],
+  "smtpEndpoints" : [ {
+    "flow" : "Router Flow",
+    "component" : "output 1"
+  }, {
+    "flow" : "Router Flow",
+    "component" : "output 2"
+  }, {
+    "flow" : "Router Flow",
+    "component" : "output 3"
+  } ],
+  "sftpEndpoints" : [ ],
+  "modulePropertyKeys" : [ "filtersflow.connecttopreviousflow.jms.consumer.autoContentConversion", "jms.routesandbranches5.filtersflow.connecttonextflow.connection.factory.jndi.initial", "jms.routesandbranches5.filtersflow.connecttonextflow.connection.factory.jndi.provider.url", "jms.routesandbranches5.filtersflow.connecttonextflow.connection.factory.name", "jms.routesandbranches5.filtersflow.connecttonextflow.destination", "jms.routesandbranches5.filtersflow.connecttopreviousflow.connection.factory.jndi.initial", "jms.routesandbranches5.filtersflow.connecttopreviousflow.connection.factory.jndi.provider.url", "jms.routesandbranches5.filtersflow.connecttopreviousflow.connection.factory.name", "jms.routesandbranches5.filtersflow.connecttopreviousflow.destination", "jms.routesandbranches5.routerflow.connecttopreviousflow.connection.factory.jndi.initial", "jms.routesandbranches5.routerflow.connecttopreviousflow.connection.factory.jndi.provider.url", "jms.routesandbranches5.routerflow.connecttopreviousflow.connection.factory.name", "jms.routesandbranches5.routerflow.connecttopreviousflow.destination", "jms.routesandbranches5.splitterflow.connecttonextflow.connection.factory.jndi.initial", "jms.routesandbranches5.splitterflow.connecttonextflow.connection.factory.jndi.provider.url", "jms.routesandbranches5.splitterflow.connecttonextflow.connection.factory.name", "jms.routesandbranches5.splitterflow.connecttonextflow.destination", "routerflow.connecttopreviousflow.jms.consumer.autoContentConversion", "routerflow.output1.email.producer.emailFormat", "routerflow.output1.email.producer.toRecipient", "routerflow.output2.email.producer.emailFormat", "routerflow.output2.email.producer.toRecipient", "routerflow.output3.email.producer.emailFormat", "routerflow.output3.email.producer.toRecipients", "splitterflow.scheduled.consumer.cron-expression" ],
+  "jmsBrokerPropertyKey" : "jms.routesandbranches5.routerflow.connecttopreviousflow.connection.factory.jndi.provider.url",
+  "jmsBrokerPropertyKeys" : [ "jms.routesandbranches5.splitterflow.connecttonextflow.connection.factory.jndi.provider.url", "jms.routesandbranches5.filtersflow.connecttopreviousflow.connection.factory.jndi.provider.url", "jms.routesandbranches5.filtersflow.connecttonextflow.connection.factory.jndi.provider.url", "jms.routesandbranches5.routerflow.connecttopreviousflow.connection.factory.jndi.provider.url" ],
+  "flowNames" : [ "Splitter Flow", "Filters Flow", "Router Flow" ],
+  "schemaVersion" : 1,
+  "modelFingerprint" : "c9c6b51203e4a91b036bc47a40b21407fcd6900dc59548ab7717f36d47f9834b",
+  "modelFields" : [ "autoContentConversion", "autoSplitBatch", "batchMode", "batchSize", "bccRecipient", "bccRecipients", "cacheLevel", "ccRecipient", "ccRecipients", "concurrentConsumers", "connectionFactoryJndiProperties", "connectionFactoryJndiPropertyFactoryInitial", "connectionFactoryJndiPropertyProviderUrl", "connectionFactoryJndiPropertySecurityCredentials", "connectionFactoryJndiPropertySecurityPrincipal", "connectionFactoryJndiPropertyUrlPkgPrefixes", "connectionFactoryName", "connectionFactoryPassword", "connectionFactoryUsername", "connectionPassword", "connectionUsername", "criticalOnStartup", "cronExpression", "deliveryMode", "deliveryPersistent", "destinationJndiName", "destinationJndiProperties", "destinationJndiPropertyFactoryInitial", "destinationJndiPropertyProviderUrl", "destinationJndiPropertySecurityCredentials", "destinationJndiPropertySecurityPrincipal", "destinationJndiPropertyUrlPkgPrefixes", "durable", "durableSubscriptionName", "eager", "emailBody", "emailFormat", "explicitQosEnabled", "extendedMailSessionProperties", "from", "hasAttachments", "ignoreMisfire", "mailDebug", "mailMimeAddressStrict", "mailPassword", "mailPopClass", "mailPopHost", "mailPopPort", "mailPopUser", "mailRuntimeEnvironment", "mailSmtpClass", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailStoreProtocol", "mailSubject", "mailhost", "maxConcurrentConsumers", "maxEagerCallbacks", "messageIdEnabled", "messageProvider", "messageTimestampEnabled", "priority", "pubSubDomain", "pubSubNoLocal", "receiveTimeout", "sessionAcknowledgeMode", "sessionAcknowledgeModeName", "sessionTransacted", "timeToLive", "timezone", "toRecipient", "toRecipients", "transportProtocol", "user" ]
+}

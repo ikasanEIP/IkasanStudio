@@ -1,0 +1,58 @@
+{
+  "modelFormat" : "ikasan-studio-documents",
+  "formatVersion" : 1,
+  "module" : {
+    "name" : "allConsumersAndProducers5",
+    "port" : "12450",
+    "ikasanVersion" : "5.0.1-SNAPSHOT",
+    "flows" : [ {
+      "name" : "ECG to DevNull Flow",
+      "transitions" : [ {
+        "from" : "My EGC Consumer",
+        "to" : "dev null producer",
+        "name" : "default"
+      } ],
+      "flowElements" : [ {
+        "componentName" : "My EGC Consumer",
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer"
+      }, {
+        "componentName" : "dev null producer",
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.builder.component.endpoint.DevNullProducerBuilderImpl"
+      } ],
+      "consumer" : {
+        "componentName" : "My EGC Consumer",
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer"
+      }
+    } ]
+  },
+  "configuration" : [ ],
+  "studio" : {
+    "metaPack" : "V5.0.1-SNAPSHOT",
+    "metaPackRevision" : "0.1.0-SNAPSHOT",
+    "properties" : {
+      "applicationPackageName" : "org.ikasan.studio.demo.cat",
+      "flowStartupType" : "AUTOMATIC",
+      "h2DbPortNumber" : "12451",
+      "h2WebPortNumber" : "12452",
+      "useEmbeddedH2" : true
+    },
+    "flows" : {
+      "ECG to DevNull Flow" : {
+        "components" : {
+          "My EGC Consumer" : {
+            "component" : "Event Generating Consumer",
+            "properties" : { }
+          },
+          "dev null producer" : {
+            "component" : "Dev Null Producer",
+            "properties" : { }
+          }
+        },
+        "properties" : { }
+      }
+    }
+  }
+}

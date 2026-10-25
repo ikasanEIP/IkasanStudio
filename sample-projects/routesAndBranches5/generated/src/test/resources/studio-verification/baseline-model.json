@@ -1,0 +1,133 @@
+{
+  "modelFormat" : "ikasan-studio-documents",
+  "formatVersion" : 1,
+  "module" : {
+    "name" : "routesAndBranches5",
+    "port" : "12450",
+    "ikasanVersion" : "5.0.1-SNAPSHOT",
+    "flows" : [ {
+      "name" : "Splitter Flow",
+      "transitions" : [ {
+        "from" : "Message Trigger",
+        "to" : "Message for Batch Generator",
+        "name" : "default"
+      }, {
+        "from" : "Message for Batch Generator",
+        "to" : "Default Split List to Individual",
+        "name" : "default"
+      }, {
+        "from" : "Default Split List to Individual",
+        "to" : "Standard Splitter List to String",
+        "name" : "default"
+      }, {
+        "from" : "Standard Splitter List to String",
+        "to" : "Connect to next flow",
+        "name" : "default"
+      } ],
+      "flowElements" : [ {
+        "componentName" : "Message Trigger",
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "configurationId" : "routesAndBranches5_Splitter Flow_Message Trigger_-946268323_C",
+        "configurable" : true
+      }, {
+        "componentName" : "Message for Batch Generator",
+        "componentType" : "org.ikasan.spec.component.endpoint.Broker",
+        "implementingClass" : "org.ikasan.studio.demo.cat.splitterflow.MessageForBatchGenerator"
+      }, {
+        "componentName" : "Default Split List to Individual",
+        "componentType" : "org.ikasan.spec.component.splitting.Splitter",
+        "implementingClass" : "org.ikasan.component.splitter.DefaultListSplitter"
+      }, {
+        "componentName" : "Standard Splitter List to String",
+        "componentType" : "org.ikasan.spec.component.splitting.Splitter",
+        "implementingClass" : "org.ikasan.studio.demo.cat.splitterflow.StandardSplitterListToString"
+      }, {
+        "componentName" : "Connect to next flow",
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer",
+        "configurationId" : "routesAndBranches5_Splitter Flow_Connect to next flow_-521770552_C",
+        "configurable" : true
+      } ],
+      "consumer" : {
+        "componentName" : "Message Trigger",
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "configurationId" : "routesAndBranches5_Splitter Flow_Message Trigger_-946268323_C",
+        "configurable" : true
+      }
+    } ]
+  },
+  "configuration" : [ {
+    "configurationId" : "routesAndBranches5_Splitter Flow_Message Trigger_-946268323_C",
+    "parameters" : [ {
+      "name" : "cronExpression",
+      "value" : "0 * 0 * * ? *",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches5_Splitter Flow_Connect to next flow_-521770552_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "splitterflow",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.SpringMessageProducerConfiguration"
+  } ],
+  "studio" : {
+    "metaPack" : "V5.0.1-SNAPSHOT",
+    "metaPackRevision" : "0.1.0-SNAPSHOT",
+    "properties" : {
+      "applicationPackageName" : "org.ikasan.studio.demo.cat",
+      "flowStartupType" : "AUTOMATIC",
+      "h2DbPortNumber" : "12451",
+      "h2WebPortNumber" : "12452",
+      "useEmbeddedH2" : true
+    },
+    "flows" : {
+      "Splitter Flow" : {
+        "components" : {
+          "Message Trigger" : {
+            "component" : "Scheduled Consumer",
+            "properties" : { }
+          },
+          "Message for Batch Generator" : {
+            "component" : "Broker",
+            "properties" : {
+              "fromType" : "org.quartz.JobExecutionContext",
+              "requiresStub" : true,
+              "toType" : "java.lang.String",
+              "userImplementedClassName" : "MessageForBatchGenerator"
+            }
+          },
+          "Default Split List to Individual" : {
+            "component" : "Default List Splitter",
+            "properties" : { }
+          },
+          "Standard Splitter List to String" : {
+            "component" : "Splitter",
+            "properties" : {
+              "fromType" : "java.lang.String",
+              "requiresStub" : true,
+              "toType" : "java.lang.String",
+              "userImplementedClassName" : "StandardSplitterListToString"
+            }
+          },
+          "Connect to next flow" : {
+            "component" : "Spring JMS Producer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false"
+            }
+          }
+        },
+        "properties" : { }
+      }
+    }
+  }
+}

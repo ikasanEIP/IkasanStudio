@@ -1,0 +1,444 @@
+{
+  "modelFormat" : "ikasan-studio-documents",
+  "formatVersion" : 1,
+  "module" : {
+    "ikasanVersion" : "5.0.1-SNAPSHOT",
+    "flows" : [ {
+      "flowElements" : [ {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "configurable" : true,
+        "componentName" : "Message Trigger",
+        "configurationId" : "routesAndBranches5_Splitter Flow_Message Trigger_-946268323_C"
+      }, {
+        "componentType" : "org.ikasan.spec.component.endpoint.Broker",
+        "implementingClass" : "org.ikasan.studio.demo.cat.splitterflow.MessageForBatchGenerator",
+        "componentName" : "Message for Batch Generator"
+      }, {
+        "componentType" : "org.ikasan.spec.component.splitting.Splitter",
+        "implementingClass" : "org.ikasan.component.splitter.DefaultListSplitter",
+        "componentName" : "Default Split List to Individual"
+      }, {
+        "componentType" : "org.ikasan.spec.component.splitting.Splitter",
+        "implementingClass" : "org.ikasan.studio.demo.cat.splitterflow.StandardSplitterListToString",
+        "componentName" : "Standard Splitter List to String"
+      }, {
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer",
+        "configurable" : true,
+        "componentName" : "Connect to next flow",
+        "configurationId" : "routesAndBranches5_Splitter Flow_Connect to next flow_-521770552_C"
+      } ],
+      "name" : "Splitter Flow",
+      "transitions" : [ {
+        "from" : "Message Trigger",
+        "to" : "Message for Batch Generator",
+        "name" : "default"
+      }, {
+        "from" : "Message for Batch Generator",
+        "to" : "Default Split List to Individual",
+        "name" : "default"
+      }, {
+        "from" : "Default Split List to Individual",
+        "to" : "Standard Splitter List to String",
+        "name" : "default"
+      }, {
+        "from" : "Standard Splitter List to String",
+        "to" : "Connect to next flow",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "configurable" : true,
+        "componentName" : "Message Trigger",
+        "configurationId" : "routesAndBranches5_Splitter Flow_Message Trigger_-946268323_C"
+      }
+    }, {
+      "flowElements" : [ {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+        "configurable" : true,
+        "componentName" : "connect to previous flow",
+        "configurationId" : "routesAndBranches5_Filters Flow_connect to previous flow_-1381381888_C"
+      }, {
+        "componentType" : "org.ikasan.spec.component.filter.Filter",
+        "implementingClass" : "org.ikasan.filter.DefaultMessageFilter",
+        "componentName" : "Default filter every 5th"
+      }, {
+        "componentType" : "org.ikasan.spec.component.filter.Filter",
+        "implementingClass" : "org.ikasan.studio.demo.cat.filtersflow.MessageFilterEvery4th",
+        "componentName" : "filter every 4th"
+      }, {
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer",
+        "configurable" : true,
+        "componentName" : "connect to next flow",
+        "configurationId" : "routesAndBranches5_Filters Flow_connect to next flow_-521770552_C"
+      } ],
+      "name" : "Filters Flow",
+      "transitions" : [ {
+        "from" : "connect to previous flow",
+        "to" : "Default filter every 5th",
+        "name" : "default"
+      }, {
+        "from" : "Default filter every 5th",
+        "to" : "filter every 4th",
+        "name" : "default"
+      }, {
+        "from" : "filter every 4th",
+        "to" : "connect to next flow",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+        "configurable" : true,
+        "componentName" : "connect to previous flow",
+        "configurationId" : "routesAndBranches5_Filters Flow_connect to previous flow_-1381381888_C"
+      }
+    }, {
+      "flowElements" : [ {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+        "configurable" : true,
+        "componentName" : "Connect to previous flow",
+        "configurationId" : "routesAndBranches5_Router Flow_Connect to previous flow_-1381381888_C"
+      }, {
+        "componentName" : "Both routes get it",
+        "componentType" : "org.ikasan.spec.component.routing.MultiRecipientRouter",
+        "implementingClass" : "org.ikasan.studio.demo.cat.routerflow.BothRoutesGetIt"
+      }, {
+        "componentName" : "Either Or Router",
+        "componentType" : "org.ikasan.spec.component.routing.SingleRecipientRouter",
+        "implementingClass" : "org.ikasan.studio.demo.cat.routerflow.EitherOrRouter"
+      }, {
+        "componentName" : "String to email 1",
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.ikasan.studio.demo.cat.routerflow.StringToEmail1"
+      }, {
+        "componentName" : "output 1",
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducer",
+        "configurationId" : "routesAndBranches5_Router Flow_output 1_477563693_C",
+        "configurable" : true
+      }, {
+        "componentName" : "String to email 2",
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.ikasan.studio.demo.cat.routerflow.StringToEmail2"
+      }, {
+        "componentName" : "output 2",
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducer",
+        "configurationId" : "routesAndBranches5_Router Flow_output 2_477563693_C",
+        "configurable" : true
+      }, {
+        "componentName" : "String to email 3",
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.ikasan.studio.demo.cat.routerflow.StringToEmail3"
+      }, {
+        "componentName" : "output 3",
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducer",
+        "configurationId" : "routesAndBranches5_Router Flow_output 3_477563693_C",
+        "configurable" : true
+      } ],
+      "name" : "Router Flow",
+      "transitions" : [ {
+        "from" : "Connect to previous flow",
+        "to" : "Both routes get it",
+        "name" : "default"
+      }, {
+        "from" : "Both routes get it",
+        "to" : "Either Or Router",
+        "name" : "route1"
+      }, {
+        "from" : "Either Or Router",
+        "to" : "String to email 1",
+        "name" : "odd"
+      }, {
+        "from" : "String to email 1",
+        "to" : "output 1",
+        "name" : "default"
+      }, {
+        "from" : "Either Or Router",
+        "to" : "String to email 2",
+        "name" : "even"
+      }, {
+        "from" : "String to email 2",
+        "to" : "output 2",
+        "name" : "default"
+      }, {
+        "from" : "Both routes get it",
+        "to" : "String to email 3",
+        "name" : "route2"
+      }, {
+        "from" : "String to email 3",
+        "to" : "output 3",
+        "name" : "default"
+      } ],
+      "consumer" : {
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+        "configurable" : true,
+        "componentName" : "Connect to previous flow",
+        "configurationId" : "routesAndBranches5_Router Flow_Connect to previous flow_-1381381888_C"
+      }
+    } ],
+    "name" : "routesAndBranches5",
+    "port" : "12450"
+  },
+  "configuration" : [ {
+    "configurationId" : "routesAndBranches5_Splitter Flow_Message Trigger_-946268323_C",
+    "parameters" : [ {
+      "name" : "cronExpression",
+      "value" : "0 * 0 * * ? *",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches5_Splitter Flow_Connect to next flow_-521770552_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "splitterflow",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.SpringMessageProducerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches5_Filters Flow_connect to previous flow_-1381381888_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "splitterflow",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "autoContentConversion",
+      "value" : true,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterBooleanImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.SpringMessageConsumerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches5_Filters Flow_connect to next flow_-521770552_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "filtersflow",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.SpringMessageProducerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches5_Router Flow_Connect to previous flow_-1381381888_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "filtersflow",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "autoContentConversion",
+      "value" : true,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterBooleanImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.SpringMessageConsumerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches5_Router Flow_output 1_477563693_C",
+    "parameters" : [ {
+      "name" : "emailFormat",
+      "value" : "text/plain",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches5_Router Flow_output 2_477563693_C",
+    "parameters" : [ {
+      "name" : "emailFormat",
+      "value" : "text/plain",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration"
+  }, {
+    "configurationId" : "routesAndBranches5_Router Flow_output 3_477563693_C",
+    "parameters" : [ {
+      "name" : "toRecipients",
+      "value" : [ "x@yy.com" ],
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterListImpl"
+    }, {
+      "name" : "emailFormat",
+      "value" : "text/plain",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration"
+  } ],
+  "studio" : {
+    "metaPack" : "V5.0.1-SNAPSHOT",
+    "metaPackRevision" : "0.1.0-SNAPSHOT",
+    "properties" : {
+      "applicationPackageName" : "org.ikasan.studio.demo.cat",
+      "flowStartupType" : "AUTOMATIC",
+      "h2DbPortNumber" : "12451",
+      "h2WebPortNumber" : "12452",
+      "useEmbeddedH2" : true
+    },
+    "flows" : {
+      "Splitter Flow" : {
+        "components" : {
+          "Message Trigger" : {
+            "component" : "Scheduled Consumer",
+            "properties" : { }
+          },
+          "Message for Batch Generator" : {
+            "component" : "Broker",
+            "properties" : {
+              "fromType" : "org.quartz.JobExecutionContext",
+              "requiresStub" : true,
+              "toType" : "java.util.List<java.lang.String>",
+              "userImplementedClassName" : "MessageForBatchGenerator"
+            }
+          },
+          "Default Split List to Individual" : {
+            "component" : "Default List Splitter",
+            "properties" : { }
+          },
+          "Standard Splitter List to String" : {
+            "component" : "Splitter",
+            "properties" : {
+              "fromType" : "java.lang.String",
+              "requiresStub" : true,
+              "toType" : "java.lang.String",
+              "userImplementedClassName" : "StandardSplitterListToString"
+            }
+          },
+          "Connect to next flow" : {
+            "component" : "Spring JMS Producer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false"
+            }
+          }
+        },
+        "properties" : { }
+      },
+      "Filters Flow" : {
+        "components" : {
+          "connect to previous flow" : {
+            "component" : "Spring JMS Consumer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false"
+            }
+          },
+          "Default filter every 5th" : {
+            "component" : "Default Message Filter",
+            "properties" : {
+              "configuredResource" : false,
+              "fromType" : "java.lang.String",
+              "requiresStub" : true,
+              "userImplementedClassName" : "DefaultFilterEvery5th"
+            }
+          },
+          "filter every 4th" : {
+            "component" : "Message Filter",
+            "properties" : {
+              "configuredResource" : false,
+              "fromType" : "java.lang.String",
+              "requiresStub" : true,
+              "userImplementedClassName" : "MessageFilterEvery4th"
+            }
+          },
+          "connect to next flow" : {
+            "component" : "Spring JMS Producer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false"
+            }
+          }
+        },
+        "properties" : { }
+      },
+      "Router Flow" : {
+        "components" : {
+          "Connect to previous flow" : {
+            "component" : "Spring JMS Consumer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false"
+            }
+          },
+          "Both routes get it" : {
+            "component" : "Multi Recipient Router",
+            "properties" : {
+              "configuredResource" : false,
+              "fromType" : "java.lang.String",
+              "routeNames" : "route1,route2",
+              "toType" : "java.util.List<java.lang.String>",
+              "userImplementedClassName" : "BothRoutesGetIt"
+            }
+          },
+          "Either Or Router" : {
+            "component" : "Single Recipient Router",
+            "properties" : {
+              "configuredResource" : false,
+              "fromType" : "java.lang.String",
+              "routeNames" : "odd,even",
+              "toType" : "java.lang.String",
+              "userImplementedClassName" : "EitherOrRouter"
+            }
+          },
+          "String to email 1" : {
+            "component" : "Email Converter",
+            "properties" : {
+              "fromType" : "java.lang.String",
+              "requiresStub" : true,
+              "userImplementedClassName" : "StringToEmail1"
+            }
+          },
+          "output 1" : {
+            "component" : "Email Producer",
+            "properties" : {
+              "toRecipient" : "foor@bar.com"
+            }
+          },
+          "String to email 2" : {
+            "component" : "Email Converter",
+            "properties" : {
+              "fromType" : "java.lang.String",
+              "requiresStub" : true,
+              "userImplementedClassName" : "StringToEmail2"
+            }
+          },
+          "output 2" : {
+            "component" : "Email Producer",
+            "properties" : {
+              "toRecipient" : "bar@bar.com"
+            }
+          },
+          "String to email 3" : {
+            "component" : "Email Converter",
+            "properties" : {
+              "fromType" : "java.lang.String",
+              "requiresStub" : true,
+              "userImplementedClassName" : "StringToEmail3"
+            }
+          },
+          "output 3" : {
+            "component" : "Email Producer",
+            "properties" : { }
+          }
+        },
+        "properties" : { }
+      }
+    }
+  }
+}

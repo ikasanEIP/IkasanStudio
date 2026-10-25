@@ -8,25 +8,25 @@
     "releaseSource" : "https://github.com/ikasanEIP/ikasan/tree/ikasaneip-3.3.9",
     "versionPolicy" : "Use the exact resolved Ikasan version and dependency overrides. Never substitute the default branch or another major version. If no releaseSource is supplied, verify the release tag or use matching Maven sources.",
     "navigation" : {
-      "implementations" : [ "ikasaneip/component" ],
       "wiring" : [ "ikasaneip/builder", "ikasaneip/component-factory" ],
-      "runtime" : [ "ikasaneip/flow", "ikasaneip/module" ],
-      "failures" : [ "ikasaneip/recovery-manager", "ikasaneip/exclusion", "ikasaneip/hospital", "ikasaneip/replay" ],
-      "introduction" : [ "README.md", "QuickOverview.md" ],
-      "interfaces" : [ "ikasaneip/spec" ],
+      "implementations" : [ "ikasaneip/component" ],
+      "documentation" : [ "ikasaneip/documentation", "UpgradePath.md" ],
       "examples" : [ "ikasaneip/sample" ],
-      "documentation" : [ "ikasaneip/documentation", "UpgradePath.md" ]
+      "interfaces" : [ "ikasaneip/spec" ],
+      "introduction" : [ "README.md", "QuickOverview.md" ],
+      "failures" : [ "ikasaneip/recovery-manager", "ikasaneip/exclusion", "ikasaneip/hospital", "ikasaneip/replay" ],
+      "runtime" : [ "ikasaneip/flow", "ikasaneip/module" ]
     },
     "flowTesting" : {
       "testGeneration" : "Use Studio Generate Flow Test to create a version-appropriate scaffold for the selected flow, then complete its numbered tasks and verify actual delivery.",
-      "dependency" : "org.ikasan:ikasan-test:3.3.9",
+      "guidance" : "https://github.com/ikasanEIP/IkasanStudio/blob/main/docs/IkasanFlowTesting.md",
       "policy" : "Match the resolved application version. Bundled 3.3.9 and 4.1.6 use JUnit 4 IkasanFlowTestRule; enable Vintage when using JUnit Platform. Test actual final payloads, idle readiness and later delivery, not only invocation counts. Test isolated instances; do not stop the running developer module.",
-      "guidance" : "https://github.com/ikasanEIP/IkasanStudio/blob/main/docs/IkasanFlowTesting.md"
+      "dependency" : "org.ikasan:ikasan-test:3.3.9"
     },
     "researchWorkflow" : "Follow the catalogue implementingClass to the matching source. Read its interface, implementation, nearby src/test tests and a sample. Check units, defaults, transaction and lifecycle behaviour; cite the release/path. Layout may vary by release. Keep reference source read-only.",
     "offlineFallback" : "Use IntelliJ-attached or cached Maven sources for the resolved dependency version; inspect dependency overrides and class signatures when sources are unavailable. Source links do not grant network permissions. State uncertainty rather than guessing."
   },
-  "availableComponentKeys" : [ "Broker", "Channel Endpoint", "Converter", "DB Endpoint", "Debug Transition", "Default List Splitter", "Default Message Filter", "Dev Null Producer", "Email Converter", "Email Endpoint", "Email Producer", "Event Generating Consumer", "Exception Resolver", "FTP Consumer", "FTP Endpoint", "FTP Producer", "File Endpoint", "Flow", "Generic Consumer", "Generic Endpoint", "Generic Producer", "JMS Object Message To Object Converter", "Local File Consumer", "Logging Producer", "Message Filter", "Module", "Multi Recipient Router", "Object To XML String Converter", "Router Endpoint", "SFTP Consumer", "SFTP Endpoint", "SFTP Producer", "Scheduled Consumer", "Scheduler Endpoint", "Single Recipient Router", "Splitter", "Spring JMS Consumer", "Spring JMS Producer", "Translator" ],
+  "availableComponentKeys" : [ "Broker", "Channel Endpoint", "Converter", "DB Endpoint", "Debug Transition", "Default List Splitter", "Default Message Filter", "Dev Null Producer", "Email Converter", "Email Endpoint", "Email Producer", "Event Generating Consumer", "Exception Resolver", "FTP Consumer", "FTP Endpoint", "FTP Producer", "File Endpoint", "Flow", "Generic Consumer", "Generic Endpoint", "Generic Producer", "JMS Map Message To Payload Converter", "JMS Object Message To Object Converter", "Local File Consumer", "Logging Producer", "Message Filter", "Module", "Multi Recipient Router", "Object To XML String Converter", "Payload To Map Converter", "Router Endpoint", "SFTP Consumer", "SFTP Endpoint", "SFTP Producer", "Scheduled Consumer", "Scheduler Endpoint", "Single Recipient Router", "Splitter", "Spring JMS Consumer", "Spring JMS Producer", "Translator" ],
   "components" : [ {
     "key" : "Broker",
     "name" : "Broker",
@@ -477,120 +477,120 @@
     } ],
     "recipeConfigurations" : [ {
       "conversionRecipeId" : "string-to-file-transfer-payload",
-      "fromType" : "java.lang.String",
-      "toType" : "org.ikasan.filetransfer.Payload"
+      "toType" : "org.ikasan.filetransfer.Payload",
+      "fromType" : "java.lang.String"
     }, {
       "conversionRecipeId" : "string-to-email-payload",
-      "fromType" : "java.lang.String",
-      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload"
+      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "fromType" : "java.lang.String"
     }, {
       "conversionRecipeId" : "string-to-email-attachment",
-      "fromType" : "java.lang.String",
-      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload"
+      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "fromType" : "java.lang.String"
     }, {
       "conversionRecipeId" : "string-to-bytes",
-      "fromType" : "java.lang.String",
-      "toType" : "byte[]"
+      "toType" : "byte[]",
+      "fromType" : "java.lang.String"
     }, {
       "conversionRecipeId" : "bytes-to-file-transfer-payload",
-      "fromType" : "byte[]",
-      "toType" : "org.ikasan.filetransfer.Payload"
+      "toType" : "org.ikasan.filetransfer.Payload",
+      "fromType" : "byte[]"
     }, {
       "conversionRecipeId" : "bytes-to-email-payload",
-      "fromType" : "byte[]",
-      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload"
+      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "fromType" : "byte[]"
     }, {
       "conversionRecipeId" : "bytes-to-email-attachment",
-      "fromType" : "byte[]",
-      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload"
+      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "fromType" : "byte[]"
     }, {
       "conversionRecipeId" : "bytes-to-string",
-      "fromType" : "byte[]",
-      "toType" : "java.lang.String"
+      "toType" : "java.lang.String",
+      "fromType" : "byte[]"
     }, {
       "conversionRecipeId" : "file-transfer-payload-to-email-payload",
-      "fromType" : "org.ikasan.filetransfer.Payload",
-      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload"
+      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "fromType" : "org.ikasan.filetransfer.Payload"
     }, {
       "conversionRecipeId" : "file-transfer-payload-to-email-attachment",
-      "fromType" : "org.ikasan.filetransfer.Payload",
-      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload"
+      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "fromType" : "org.ikasan.filetransfer.Payload"
     }, {
       "conversionRecipeId" : "file-transfer-payload-to-bytes",
-      "fromType" : "org.ikasan.filetransfer.Payload",
-      "toType" : "byte[]"
+      "toType" : "byte[]",
+      "fromType" : "org.ikasan.filetransfer.Payload"
     }, {
       "conversionRecipeId" : "file-transfer-payload-to-string",
-      "fromType" : "org.ikasan.filetransfer.Payload",
-      "toType" : "java.lang.String"
+      "toType" : "java.lang.String",
+      "fromType" : "org.ikasan.filetransfer.Payload"
     }, {
       "conversionRecipeId" : "auto-converted-jms-content-to-file-transfer-payload",
-      "fromType" : "java.lang.Object",
-      "toType" : "org.ikasan.filetransfer.Payload"
+      "toType" : "org.ikasan.filetransfer.Payload",
+      "fromType" : "java.lang.Object"
     }, {
       "conversionRecipeId" : "auto-converted-jms-content-to-email-payload",
-      "fromType" : "java.lang.Object",
-      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload"
+      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "fromType" : "java.lang.Object"
     }, {
       "conversionRecipeId" : "auto-converted-jms-content-to-email-attachment",
-      "fromType" : "java.lang.Object",
-      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload"
+      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "fromType" : "java.lang.Object"
     }, {
       "conversionRecipeId" : "auto-converted-jms-content-to-bytes",
-      "fromType" : "java.lang.Object",
-      "toType" : "byte[]"
+      "toType" : "byte[]",
+      "fromType" : "java.lang.Object"
     }, {
       "conversionRecipeId" : "auto-converted-jms-content-to-string",
-      "fromType" : "java.lang.Object",
-      "toType" : "java.lang.String"
+      "toType" : "java.lang.String",
+      "fromType" : "java.lang.Object"
     }, {
       "conversionRecipeId" : "jms-message-to-file-transfer-payload",
-      "fromType" : "javax.jms.Message",
-      "toType" : "org.ikasan.filetransfer.Payload"
+      "toType" : "org.ikasan.filetransfer.Payload",
+      "fromType" : "javax.jms.Message"
     }, {
       "conversionRecipeId" : "jms-message-to-email-payload",
-      "fromType" : "javax.jms.Message",
-      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload"
+      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "fromType" : "javax.jms.Message"
     }, {
       "conversionRecipeId" : "jms-message-to-email-attachment",
-      "fromType" : "javax.jms.Message",
-      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload"
+      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "fromType" : "javax.jms.Message"
     }, {
       "conversionRecipeId" : "jms-message-to-bytes",
-      "fromType" : "javax.jms.Message",
-      "toType" : "byte[]"
+      "toType" : "byte[]",
+      "fromType" : "javax.jms.Message"
     }, {
       "conversionRecipeId" : "jms-message-to-string",
-      "fromType" : "javax.jms.Message",
-      "toType" : "java.lang.String"
+      "toType" : "java.lang.String",
+      "fromType" : "javax.jms.Message"
     }, {
       "conversionRecipeId" : "jms-message-to-map",
-      "fromType" : "javax.jms.Message",
-      "toType" : "java.util.Map"
+      "toType" : "java.util.Map",
+      "fromType" : "javax.jms.Message"
     }, {
       "conversionRecipeId" : "single-local-file-to-email-payload",
-      "fromType" : "java.util.List<java.io.File>",
-      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload"
+      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "fromType" : "java.util.List<java.io.File>"
     }, {
       "conversionRecipeId" : "single-local-file-to-email-attachment",
-      "fromType" : "java.util.List<java.io.File>",
-      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload"
+      "toType" : "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "fromType" : "java.util.List<java.io.File>"
     }, {
       "conversionRecipeId" : "single-local-file-to-bytes",
-      "fromType" : "java.util.List<java.io.File>",
-      "toType" : "byte[]"
+      "toType" : "byte[]",
+      "fromType" : "java.util.List<java.io.File>"
     }, {
       "conversionRecipeId" : "single-local-file-to-string",
-      "fromType" : "java.util.List<java.io.File>",
-      "toType" : "java.lang.String"
+      "toType" : "java.lang.String",
+      "fromType" : "java.util.List<java.io.File>"
     }, {
       "conversionRecipeId" : "single-local-file-to-file-transfer-payload",
-      "fromType" : "java.util.List<java.io.File>",
-      "toType" : "org.ikasan.filetransfer.Payload"
+      "toType" : "org.ikasan.filetransfer.Payload",
+      "fromType" : "java.util.List<java.io.File>"
     }, {
       "conversionRecipeId" : "auto-converted-jms-content-to-map",
-      "fromType" : "java.lang.Object",
-      "toType" : "java.util.Map"
+      "toType" : "java.util.Map",
+      "fromType" : "java.lang.Object"
     } ],
     "properties" : [ {
       "name" : "conversionRecipeId",
@@ -3146,6 +3146,92 @@
       "setPropertySupported" : true
     } ]
   }, {
+    "key" : "JMS Map Message To Payload Converter",
+    "name" : "JMS Map Message To Payload Converter",
+    "role" : "Converter",
+    "componentType" : "org.ikasan.spec.component.transformation.Converter",
+    "implementingClass" : "org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverter",
+    "helpText" : "<p>A <b>Converter</b> accepts a source payload and returns a conversion result. Its source and target types may differ, so use it when the Java type or structure must change. A <b>Translator</b>, by contrast, modifies the supplied payload in place and does not replace it.</p><p>Converts a JMS MapMessage into an FTP/SFTP Payload. This accepts a JMS message, not a plain Java Map. Content may be String (encoded with the runtime JVM default charset) or byte[] (preserved unchanged); missing or other content types fail conversion. By default content is read from content, and both payload ID and filename from fileName. Configure the ID field as id when using a sender that provides that key. Also reads referencePayload and relativePath; arbitrary message fields are not copied.</p>",
+    "documentation" : "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/converter/src/main/java/org/ikasan/component/converter/filetransfer/MapMessageToPayloadConverter.java",
+    "generatesUserImplementedClass" : false,
+    "implementationGuidance" : "Configure the component using its property help. Check userSuppliedClass properties for required implementation or bean references.",
+    "completionChecks" : [ "Trace a representative input through the component and test the expected output or side effect, including a relevant failure case.", "Implement the declared source-to-target transformation or verify the selected recipe. Test real output values and unsupported input; do not leave UnsupportedOperationException.", "Verify required beans and external resources independently of compilation. Report runtime delivery as unverified until exercised." ],
+    "proposalOperations" : [ "addComponent", "setProperty", "renameComponent", "deleteComponent", "replaceComponent", "connect" ],
+    "proposalSupport" : "Supported in root and named branch routes; routers terminate their parent route. Use route paths for addComponent/connect.",
+    "acceptedInputTypes" : "javax.jms.MapMessage",
+    "producedOutputType" : "org.ikasan.filetransfer.Payload",
+    "properties" : [ {
+      "name" : "componentName",
+      "required" : true,
+      "helpText" : "The component name displayed on the canvas. It must be unique within the flow.",
+      "userSuppliedClass" : false,
+      "protectFromOverwrite" : false,
+      "noStubRequired" : false,
+      "affectsUserImplementedClass" : false,
+      "type" : "java.lang.String",
+      "setPropertySupported" : false,
+      "editGuidance" : "Use a supported structural operation rather than setProperty."
+    }, {
+      "name" : "contentAttributeName",
+      "required" : true,
+      "helpText" : "Name of the JMS map entry holding String or byte[] content.",
+      "userSuppliedClass" : false,
+      "protectFromOverwrite" : false,
+      "noStubRequired" : false,
+      "affectsUserImplementedClass" : false,
+      "type" : "java.lang.String",
+      "usageType" : "java.lang.String",
+      "default" : "content",
+      "setPropertySupported" : true
+    }, {
+      "name" : "idAttributeName",
+      "required" : true,
+      "helpText" : "Name of the JMS map entry used as the payload ID. Use id to read an explicit ID field.",
+      "userSuppliedClass" : false,
+      "protectFromOverwrite" : false,
+      "noStubRequired" : false,
+      "affectsUserImplementedClass" : false,
+      "type" : "java.lang.String",
+      "usageType" : "java.lang.String",
+      "default" : "fileName",
+      "setPropertySupported" : true
+    }, {
+      "name" : "fileNameAttributeName",
+      "required" : true,
+      "helpText" : "Name of the JMS map entry used as the output fileName attribute.",
+      "userSuppliedClass" : false,
+      "protectFromOverwrite" : false,
+      "noStubRequired" : false,
+      "affectsUserImplementedClass" : false,
+      "type" : "java.lang.String",
+      "usageType" : "java.lang.String",
+      "default" : "fileName",
+      "setPropertySupported" : true
+    }, {
+      "name" : "configurationId",
+      "required" : true,
+      "helpText" : "Configuration resource ID. Keep stable when reusing runtime configuration overrides.",
+      "userSuppliedClass" : false,
+      "protectFromOverwrite" : false,
+      "noStubRequired" : false,
+      "affectsUserImplementedClass" : false,
+      "type" : "java.lang.String",
+      "usageType" : "java.lang.String",
+      "defaultExpression" : "__module-__flow-__component",
+      "defaultGuidance" : "Studio resolves this expression when creating a component. Omit the property or supply a concrete value; never copy the expression into a proposal as a literal.",
+      "setPropertySupported" : true
+    }, {
+      "name" : "description",
+      "required" : false,
+      "helpText" : "A more detailed description of the component that may assist in support.",
+      "userSuppliedClass" : false,
+      "protectFromOverwrite" : false,
+      "noStubRequired" : false,
+      "affectsUserImplementedClass" : false,
+      "type" : "java.lang.String",
+      "setPropertySupported" : true
+    } ]
+  }, {
     "key" : "JMS Object Message To Object Converter",
     "name" : "JMS Object Message To Object Converter",
     "role" : "Converter",
@@ -4154,6 +4240,43 @@
       "editGuidance" : "Choose this value in addComponent/replaceComponent properties. Existing implementation changes require Studio; preserve developer-owned code. A userImplementedClassName containing an unresolved __fieldName: expression can be repaired with setProperty and a concrete Java class name.",
       "validation" : "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage" : "Provide a java classname for the bean."
+    }, {
+      "name" : "description",
+      "required" : false,
+      "helpText" : "A more detailed description of the component that may assist in support.",
+      "userSuppliedClass" : false,
+      "protectFromOverwrite" : false,
+      "noStubRequired" : false,
+      "affectsUserImplementedClass" : false,
+      "type" : "java.lang.String",
+      "setPropertySupported" : true
+    } ]
+  }, {
+    "key" : "Payload To Map Converter",
+    "name" : "Payload To Map Converter",
+    "role" : "Converter",
+    "componentType" : "org.ikasan.spec.component.transformation.Converter",
+    "implementingClass" : "org.ikasan.component.converter.filetransfer.PayloadToMapConverter",
+    "helpText" : "<p>A <b>Converter</b> accepts a source payload and returns a conversion result. Its source and target types may differ, so use it when the Java type or structure must change. A <b>Translator</b>, by contrast, modifies the supplied payload in place and does not replace it.</p><p>Uses Ikasan PayloadToMapConverter to convert an FTP/SFTP file-transfer Payload into a Map&lt;String, Object&gt;. The map contains content as text, id, and all payload attributes. Content is decoded using the runtime JVM default charset; this converter has no charset setting. Attributes named content or id override those entries. Use a custom converter when you need explicit character decoding, binary content or different field mappings.</p>",
+    "documentation" : "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-3.3.9/ikasaneip/component/converter/src/main/java/org/ikasan/component/converter/filetransfer/PayloadToMapConverter.java",
+    "generatesUserImplementedClass" : false,
+    "implementationGuidance" : "Configure the component using its property help. Check userSuppliedClass properties for required implementation or bean references.",
+    "completionChecks" : [ "Trace a representative input through the component and test the expected output or side effect, including a relevant failure case.", "Implement the declared source-to-target transformation or verify the selected recipe. Test real output values and unsupported input; do not leave UnsupportedOperationException.", "Verify required beans and external resources independently of compilation. Report runtime delivery as unverified until exercised." ],
+    "proposalOperations" : [ "addComponent", "setProperty", "renameComponent", "deleteComponent", "replaceComponent", "connect" ],
+    "proposalSupport" : "Supported in root and named branch routes; routers terminate their parent route. Use route paths for addComponent/connect.",
+    "acceptedInputTypes" : "org.ikasan.filetransfer.Payload",
+    "producedOutputType" : "java.util.Map",
+    "properties" : [ {
+      "name" : "componentName",
+      "required" : true,
+      "helpText" : "The component name displayed on the canvas. It must be unique within the flow.",
+      "userSuppliedClass" : false,
+      "protectFromOverwrite" : false,
+      "noStubRequired" : false,
+      "affectsUserImplementedClass" : false,
+      "type" : "java.lang.String",
+      "setPropertySupported" : false,
+      "editGuidance" : "Use a supported structural operation rather than setProperty."
     }, {
       "name" : "description",
       "required" : false,

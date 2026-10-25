@@ -3,26 +3,47 @@
   "testFlows" : {
     "Create New Order" : {
       "inputMode" : "scheduled-context",
-      "consumer" : "Poll for orders",
-      "debugComponents" : [ ]
+      "debugComponents" : [ ],
+      "consumer" : "Poll for orders"
     },
     "Transform The Order" : {
       "inputMode" : "",
-      "consumer" : "Order consumer",
-      "debugComponents" : [ "Order consumerDebug" ]
+      "debugComponents" : [ "Order consumerDebug" ],
+      "consumer" : "Order consumer"
+    },
+    "Payload To JMS Map Demo" : {
+      "inputMode" : "",
+      "debugComponents" : [ ],
+      "consumer" : "Read Demo Files"
+    },
+    "JMS Map To Payload Demo" : {
+      "inputMode" : "",
+      "debugComponents" : [ ],
+      "consumer" : "Receive Map Message"
     }
   },
-  "ftpEndpoints" : [ ],
+  "ftpEndpoints" : [ {
+    "name" : "Payload To JMS Map Demo / Read Demo Files",
+    "flow" : "Payload To JMS Map Demo",
+    "component" : "Read Demo Files",
+    "consumer" : "true",
+    "secure" : "",
+    "remoteHost" : "payloadtojmsmapdemo.ftp.consumer.remote-host",
+    "remotePort" : "payloadtojmsmapdemo.ftp.consumer.remote-port",
+    "username" : "payloadtojmsmapdemo.ftp.consumer.username",
+    "password" : "payloadtojmsmapdemo.ftp.consumer.password",
+    "directory" : "payloadtojmsmapdemo.ftp.consumer.source-directory"
+  } ],
   "smtpEndpoints" : [ {
-    "component" : "Email to warehouse",
-    "flow" : "Transform The Order"
+    "flow" : "Transform The Order",
+    "component" : "Email to warehouse"
   } ],
   "sftpEndpoints" : [ ],
-  "modulePropertyKeys" : [ "createneworder.scheduled.consumer.cron-expression", "jms.convertersandtranslators.createneworder.sendforprocessing.connection.factory.jndi.initial", "jms.convertersandtranslators.createneworder.sendforprocessing.connection.factory.jndi.provider.url", "jms.convertersandtranslators.createneworder.sendforprocessing.connection.factory.name", "jms.convertersandtranslators.createneworder.sendforprocessing.destination", "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.jndi.initial", "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.jndi.provider.url", "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.name", "jms.convertersandtranslators.transformtheorder.orderconsumer.destination", "transformtheorder.emailtowarehouse.email.producer.emailFormat", "transformtheorder.emailtowarehouse.email.producer.from", "transformtheorder.emailtowarehouse.email.producer.mailSmtpPort", "transformtheorder.emailtowarehouse.email.producer.mailSubject", "transformtheorder.emailtowarehouse.email.producer.toRecipients" ],
-  "jmsBrokerPropertyKey" : "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.jndi.provider.url",
-  "jmsBrokerPropertyKeys" : [ "jms.convertersandtranslators.createneworder.sendforprocessing.connection.factory.jndi.provider.url", "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.jndi.provider.url" ],
-  "flowNames" : [ "Create New Order", "Transform The Order" ],
+  "modulePropertyKeys" : [ "createneworder.scheduled.consumer.cron-expression", "jms.convertersandtranslators.createneworder.sendforprocessing.connection.factory.jndi.initial", "jms.convertersandtranslators.createneworder.sendforprocessing.connection.factory.jndi.provider.url", "jms.convertersandtranslators.createneworder.sendforprocessing.connection.factory.name", "jms.convertersandtranslators.createneworder.sendforprocessing.destination", "jms.convertersandtranslators.jmsmaptopayloaddemo.receivemapmessage.connection.factory.jndi.initial", "jms.convertersandtranslators.jmsmaptopayloaddemo.receivemapmessage.connection.factory.jndi.provider.url", "jms.convertersandtranslators.jmsmaptopayloaddemo.receivemapmessage.connection.factory.name", "jms.convertersandtranslators.jmsmaptopayloaddemo.receivemapmessage.destination", "jms.convertersandtranslators.payloadtojmsmapdemo.sendmapmessage.connection.factory.jndi.initial", "jms.convertersandtranslators.payloadtojmsmapdemo.sendmapmessage.connection.factory.jndi.provider.url", "jms.convertersandtranslators.payloadtojmsmapdemo.sendmapmessage.connection.factory.name", "jms.convertersandtranslators.payloadtojmsmapdemo.sendmapmessage.destination", "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.jndi.initial", "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.jndi.provider.url", "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.name", "jms.convertersandtranslators.transformtheorder.orderconsumer.destination", "jmsmaptopayloaddemo.logrestoredpayload.log.producer.logEveryNth", "jmsmaptopayloaddemo.mapmessagetopayload.map.converter.contentAttributeName", "jmsmaptopayloaddemo.mapmessagetopayload.map.converter.fileNameAttributeName", "jmsmaptopayloaddemo.mapmessagetopayload.map.converter.idAttributeName", "jmsmaptopayloaddemo.receivemapmessage.jms.consumer.autoContentConversion", "payloadtojmsmapdemo.ftp.consumer.clientID", "payloadtojmsmapdemo.ftp.consumer.cron-expression", "payloadtojmsmapdemo.ftp.consumer.filename-pattern", "payloadtojmsmapdemo.ftp.consumer.password", "payloadtojmsmapdemo.ftp.consumer.remote-host", "payloadtojmsmapdemo.ftp.consumer.remote-port", "payloadtojmsmapdemo.ftp.consumer.source-directory", "payloadtojmsmapdemo.ftp.consumer.username", "payloadtojmsmapdemo.readdemofiles.ftp.consumer.destructive", "payloadtojmsmapdemo.readdemofiles.ftp.consumer.minAge", "payloadtojmsmapdemo.readdemofiles.ftp.consumer.renameOnSuccess", "payloadtojmsmapdemo.readdemofiles.ftp.consumer.renameOnSuccessExtension", "transformtheorder.emailtowarehouse.email.producer.emailFormat", "transformtheorder.emailtowarehouse.email.producer.from", "transformtheorder.emailtowarehouse.email.producer.mailSmtpPort", "transformtheorder.emailtowarehouse.email.producer.mailSubject", "transformtheorder.emailtowarehouse.email.producer.toRecipients" ],
+  "jmsBrokerPropertyKey" : "jms.convertersandtranslators.jmsmaptopayloaddemo.receivemapmessage.connection.factory.jndi.provider.url",
+  "jmsBrokerPropertyKeys" : [ "jms.convertersandtranslators.createneworder.sendforprocessing.connection.factory.jndi.provider.url", "jms.convertersandtranslators.transformtheorder.orderconsumer.connection.factory.jndi.provider.url", "jms.convertersandtranslators.payloadtojmsmapdemo.sendmapmessage.connection.factory.jndi.provider.url", "jms.convertersandtranslators.jmsmaptopayloaddemo.receivemapmessage.connection.factory.jndi.provider.url" ],
+  "flowNames" : [ "Create New Order", "Transform The Order", "Payload To JMS Map Demo", "JMS Map To Payload Demo" ],
   "schemaVersion" : 1,
-  "modelFingerprint" : "673174562199dfe27efd08f4df97acc3d6bf923611cf5b0f0191a24d7b10263a",
-  "modelFields" : [ "autoContentConversion", "autoSplitBatch", "batchMode", "batchSize", "bccRecipient", "bccRecipients", "cacheLevel", "ccRecipient", "ccRecipients", "concurrentConsumers", "connectionFactoryJndiProperties", "connectionFactoryJndiPropertyFactoryInitial", "connectionFactoryJndiPropertyProviderUrl", "connectionFactoryJndiPropertySecurityCredentials", "connectionFactoryJndiPropertySecurityPrincipal", "connectionFactoryJndiPropertyUrlPkgPrefixes", "connectionFactoryName", "connectionFactoryPassword", "connectionFactoryUsername", "connectionPassword", "connectionUsername", "criticalOnStartup", "cronExpression", "deliveryMode", "deliveryPersistent", "destinationJndiName", "destinationJndiProperties", "destinationJndiPropertyFactoryInitial", "destinationJndiPropertyProviderUrl", "destinationJndiPropertySecurityCredentials", "destinationJndiPropertySecurityPrincipal", "destinationJndiPropertyUrlPkgPrefixes", "durable", "durableSubscriptionName", "eager", "emailBody", "emailFormat", "explicitQosEnabled", "extendedMailSessionProperties", "fastFailOnConfigurationLoad", "from", "hasAttachments", "ignoreMisfire", "mailDebug", "mailMimeAddressStrict", "mailPassword", "mailPopClass", "mailPopHost", "mailPopPort", "mailPopUser", "mailRuntimeEnvironment", "mailSmtpClass", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailStoreProtocol", "mailSubject", "mailhost", "maxConcurrentConsumers", "maxEagerCallbacks", "messageIdEnabled", "messageProvider", "messageTimestampEnabled", "namespacePrefix", "namespaceURI", "noNamespaceSchema", "priority", "pubSubDomain", "pubSubNoLocal", "receiveTimeout", "rootClassName", "rootName", "routeOnValidationException", "schema", "schemaLocation", "sessionAcknowledgeMode", "sessionAcknowledgeModeName", "sessionTransacted", "timeToLive", "timezone", "toRecipient", "toRecipients", "transportProtocol", "useNamespacePrefix", "user", "validate" ]
+  "modelFingerprint" : "047d5a2f4cd47a4338cbcbc6bea475a0576e20adcec3ca074594ab810909db1b",
+  "modelFields" : [ "active", "ageOfFiles", "autoContentConversion", "autoSplitBatch", "batchMode", "batchSize", "bccRecipient", "bccRecipients", "cacheLevel", "ccRecipient", "ccRecipients", "checksum", "chronological", "chunkSize", "chunking", "cleanupJournalOnComplete", "clientID", "concurrentConsumers", "connectionFactoryJndiProperties", "connectionFactoryJndiPropertyFactoryInitial", "connectionFactoryJndiPropertyProviderUrl", "connectionFactoryJndiPropertySecurityCredentials", "connectionFactoryJndiPropertySecurityPrincipal", "connectionFactoryJndiPropertyUrlPkgPrefixes", "connectionFactoryName", "connectionFactoryPassword", "connectionFactoryUsername", "connectionPassword", "connectionTimeout", "connectionUsername", "contentAttributeName", "criticalOnStartup", "cronExpression", "dataTimeout", "deliveryMode", "deliveryPersistent", "destinationJndiName", "destinationJndiProperties", "destinationJndiPropertyFactoryInitial", "destinationJndiPropertyProviderUrl", "destinationJndiPropertySecurityCredentials", "destinationJndiPropertySecurityPrincipal", "destinationJndiPropertyUrlPkgPrefixes", "destructive", "durable", "durableSubscriptionName", "eager", "emailBody", "emailFormat", "explicitQosEnabled", "extendedMailSessionProperties", "fastFailOnConfigurationLoad", "fileNameAttributeName", "filenamePattern", "filterDuplicates", "filterOnFilename", "filterOnLastModifiedDate", "from", "ftps", "ftpsIsImplicit", "ftpsKeyStoreFilePassword", "ftpsKeyStoreFilePath", "ftpsPort", "ftpsProtocol", "hasAttachments", "idAttributeName", "ignoreMisfire", "isRecursive", "logEveryNth", "mailDebug", "mailMimeAddressStrict", "mailPassword", "mailPopClass", "mailPopHost", "mailPopPort", "mailPopUser", "mailRuntimeEnvironment", "mailSmtpClass", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailStoreProtocol", "mailSubject", "mailhost", "maxConcurrentConsumers", "maxEagerCallbacks", "maxRetryAttempts", "maxRows", "messageIdEnabled", "messageProvider", "messageTimestampEnabled", "minAge", "moveOnSuccess", "moveOnSuccessNewPath", "namespacePrefix", "namespaceURI", "noNamespaceSchema", "password", "passwordFilePath", "priority", "pubSubDomain", "pubSubNoLocal", "receiveTimeout", "regExpPattern", "remoteHost", "remotePort", "renameOnSuccess", "renameOnSuccessExtension", "replacementText", "rootClassName", "rootName", "routeOnValidationException", "schema", "schemaLocation", "sessionAcknowledgeMode", "sessionAcknowledgeModeName", "sessionTransacted", "socketTimeout", "sourceDirectory", "systemKey", "timeToLive", "timezone", "toRecipient", "toRecipients", "transportProtocol", "useNamespacePrefix", "user", "username", "validate" ]
 }

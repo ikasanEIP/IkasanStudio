@@ -110,6 +110,7 @@ public abstract class ModuleFlowTestSupport {
      * Reloads shared test settings from the UTF-8 properties file into a fresh map.
      * Fails if the file is missing rather than silently using application connection defaults.
      *
+     * TODO: Review module-wide connections in src/test/resources/module-test.properties.
      * Consult LOCAL_TEST_ENVIRONMENT.md for test values.
      * The whole module's Spring context is loaded. Other components may connect to external
      * services during startup even when their flows are MANUAL. Do not use production endpoints.
@@ -589,8 +590,8 @@ public abstract class ModuleFlowTestSupport {
                             break;
                         }
                     }
-                    throw new AssertionError("Flow '" + getFlowName() + "': expected path references " + role
-                            + " '" + name + "', which does not exist." + suggestion + " Update defineExpectedPath; use the exact component name from the canvas.");
+                    throw new AssertionError("Flow '" + getFlowName() + "': contains a component named '" + name
+                            + "' which does not exist." + suggestion + " Update defineExpectedPath; use the exact component name from the canvas.");
                 }
                 Object component = getComponent(name); // The harness unwraps Spring proxies.
                 if (!expectedType.isInstance(component)) {

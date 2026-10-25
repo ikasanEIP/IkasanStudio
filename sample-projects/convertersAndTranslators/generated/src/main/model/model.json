@@ -105,6 +105,86 @@
         "componentName" : "Order consumer",
         "configurationId" : "convertersAndTranslators_Transform The Order_Order consumer_-1381381888_C"
       }
+    }, {
+      "name" : "Payload To JMS Map Demo",
+      "transitions" : [ {
+        "from" : "Read Demo Files",
+        "to" : "Payload To Map",
+        "name" : "default"
+      }, {
+        "from" : "Payload To Map",
+        "to" : "Send Map Message",
+        "name" : "default"
+      } ],
+      "flowElements" : [ {
+        "componentName" : "Read Demo Files",
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "configurationId" : "convertersAndTranslators_Payload To JMS Map Demo_Read Demo Files_-1894644140_C",
+        "configurable" : true
+      }, {
+        "componentName" : "Payload To Map",
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.ikasan.component.converter.filetransfer.PayloadToMapConverter"
+      }, {
+        "componentName" : "Send Map Message",
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer",
+        "configurationId" : "convertersAndTranslators_Payload To JMS Map Demo_Send Map Message_-521770552_C",
+        "configurable" : true
+      } ],
+      "consumer" : {
+        "componentName" : "Read Demo Files",
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+        "configurationId" : "convertersAndTranslators_Payload To JMS Map Demo_Read Demo Files_-1894644140_C",
+        "configurable" : true
+      }
+    }, {
+      "name" : "JMS Map To Payload Demo",
+      "transitions" : [ {
+        "from" : "Receive Map Message",
+        "to" : "Require Map Message",
+        "name" : "default"
+      }, {
+        "from" : "Require Map Message",
+        "to" : "Map Message To Payload",
+        "name" : "default"
+      }, {
+        "from" : "Map Message To Payload",
+        "to" : "Log Restored Payload",
+        "name" : "default"
+      } ],
+      "flowElements" : [ {
+        "componentName" : "Receive Map Message",
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+        "configurationId" : "convertersAndTranslators_JMS Map To Payload Demo_Receive Map Message_-1381381888_C",
+        "configurable" : true
+      }, {
+        "componentName" : "Require Map Message",
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.example.cat.jmsmaptopayloaddemo.RequireMapMessage"
+      }, {
+        "componentName" : "Map Message To Payload",
+        "configurationId" : "studioPayloadMapDemoRestorev3",
+        "componentType" : "org.ikasan.spec.component.transformation.Converter",
+        "implementingClass" : "org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverter",
+        "configurable" : true
+      }, {
+        "componentName" : "Log Restored Payload",
+        "componentType" : "org.ikasan.spec.component.endpoint.Producer",
+        "implementingClass" : "org.ikasan.component.endpoint.util.producer.LogProducer",
+        "configurationId" : "convertersAndTranslators_JMS Map To Payload Demo_Log Restored Payload_729287509_C",
+        "configurable" : true
+      } ],
+      "consumer" : {
+        "componentName" : "Receive Map Message",
+        "componentType" : "org.ikasan.spec.component.endpoint.Consumer",
+        "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer",
+        "configurationId" : "convertersAndTranslators_JMS Map To Payload Demo_Receive Map Message_-1381381888_C",
+        "configurable" : true
+      }
     } ],
     "name" : "convertersAndTranslators",
     "port" : "12420"
@@ -157,9 +237,114 @@
       "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterListImpl"
     } ],
     "implementingClass" : "org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration"
+  }, {
+    "configurationId" : "convertersAndTranslators_Payload To JMS Map Demo_Read Demo Files_-1894644140_C",
+    "parameters" : [ {
+      "name" : "clientID",
+      "value" : "studioPayloadMapDemoFtpv3",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "cronExpression",
+      "value" : "0/5 * * * * ?",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "destructive",
+      "value" : false,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterBooleanImpl"
+    }, {
+      "name" : "filenamePattern",
+      "value" : "payload-map-demo-.*\\.txt",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "minAge",
+      "value" : 0,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterLongImpl"
+    }, {
+      "name" : "password",
+      "value" : "ikasan",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "remoteHost",
+      "value" : "127.0.0.1",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "remotePort",
+      "value" : 2121,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterIntegerImpl"
+    }, {
+      "name" : "renameOnSuccess",
+      "value" : true,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterBooleanImpl"
+    }, {
+      "name" : "renameOnSuccessExtension",
+      "value" : ".done",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "sourceDirectory",
+      "value" : "/",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "username",
+      "value" : "ikasan",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.endpoint.ftp.consumer.FtpConsumerConfiguration"
+  }, {
+    "configurationId" : "convertersAndTranslators_Payload To JMS Map Demo_Send Map Message_-521770552_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "studio.payload.map.demo.v3",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.producer.SpringMessageProducerConfiguration"
+  }, {
+    "configurationId" : "convertersAndTranslators_JMS Map To Payload Demo_Receive Map Message_-1381381888_C",
+    "parameters" : [ {
+      "name" : "destinationJndiName",
+      "value" : "studio.payload.map.demo.v3",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "autoContentConversion",
+      "value" : false,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterBooleanImpl"
+    }, {
+      "name" : "connectionFactoryName",
+      "value" : "ConnectionFactory",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.jms.spring.consumer.SpringMessageConsumerConfiguration"
+  }, {
+    "configurationId" : "studioPayloadMapDemoRestorev3",
+    "parameters" : [ {
+      "name" : "contentAttributeName",
+      "value" : "content",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "idAttributeName",
+      "value" : "id",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    }, {
+      "name" : "fileNameAttributeName",
+      "value" : "fileName",
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterStringImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverterConfiguration"
+  }, {
+    "configurationId" : "convertersAndTranslators_JMS Map To Payload Demo_Log Restored Payload_729287509_C",
+    "parameters" : [ {
+      "name" : "logEveryNth",
+      "value" : 1,
+      "implementingClass" : "org.ikasan.configurationService.model.ConfigurationParameterLongImpl"
+    } ],
+    "implementingClass" : "org.ikasan.component.endpoint.util.producer.LogProducerConfiguration"
   } ],
   "studio" : {
     "metaPack" : "V3.3.9",
+    "metaPackRevision" : "0.1.0-SNAPSHOT",
     "properties" : {
       "applicationPackageName" : "org.example.cat",
       "flowStartupType" : "AUTOMATIC",
@@ -246,6 +431,56 @@
               "mailSubject" : "A test message from convertersAndTranslators"
             },
             "configurationIdProperty" : "configurationId"
+          }
+        },
+        "properties" : { }
+      },
+      "Payload To JMS Map Demo" : {
+        "components" : {
+          "Read Demo Files" : {
+            "component" : "FTP Consumer",
+            "properties" : { }
+          },
+          "Payload To Map" : {
+            "component" : "Payload To Map Converter",
+            "properties" : { }
+          },
+          "Send Map Message" : {
+            "component" : "Spring JMS Producer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false"
+            }
+          }
+        },
+        "properties" : { }
+      },
+      "JMS Map To Payload Demo" : {
+        "components" : {
+          "Receive Map Message" : {
+            "component" : "Spring JMS Consumer",
+            "properties" : {
+              "connectionFactoryJndiPropertyFactoryInitial" : "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
+              "connectionFactoryJndiPropertyProviderUrl" : "vm://embedded-broker?create=true&broker.persistent=false&broker.useJmx=false"
+            }
+          },
+          "Require Map Message" : {
+            "component" : "Converter",
+            "properties" : {
+              "fromType" : "javax.jms.Message",
+              "requiresStub" : true,
+              "toType" : "javax.jms.MapMessage",
+              "userImplementedClassName" : "RequireMapMessage"
+            }
+          },
+          "Map Message To Payload" : {
+            "component" : "JMS Map Message To Payload Converter",
+            "properties" : { },
+            "configurationIdProperty" : "configurationId"
+          },
+          "Log Restored Payload" : {
+            "component" : "Logging Producer",
+            "properties" : { }
           }
         },
         "properties" : { }
