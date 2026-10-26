@@ -12,13 +12,58 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
         exerciseFetch(200, "{\"name\":\"Demo\",\"flows\":[]}", true);
     }
 
-    public void testFailedFetchClearsPasswordAndLeavesDialogOpenForCorrection() throws Exception {
+    public void testFailedFetchKeepsPasswordAndLeavesDialogOpenForCorrection() throws Exception {
         exerciseFetch(403, "sensitive server response", false);
     }
 
     public void testSwaggerPageUsesAndDisplaysTheNormalizedContext() throws Exception {
         exerciseFetch(200, "{\"name\":\"Demo\",\"flows\":[]}", true,
                 "/ctx/swagger-ui/index.html?token=private-query#/module");
+    }
+
+    public void testRetryReusesPasswordWithoutReentryAndClearsItOnSuccess() throws Exception {
+        var headers = new java.util.concurrent.CopyOnWriteArrayList<String>();
+        var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/", exchange -> {
+            headers.add(exchange.getRequestHeaders().getFirst("Authorization"));
+            byte[] body = "{\"name\":\"Demo\",\"flows\":[]}".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(headers.size() == 1 ? 500 : 200, body.length);
+            try (var output = exchange.getResponseBody()) { output.write(body); }
+        });
+        server.start();
+        var dialog = new RuntimeImportConnectionDialog(getProject());
+        try {
+            ((JTextField) field(dialog, "url")).setText("http://127.0.0.1:" + server.getAddress().getPort());
+            ((JTextField) field(dialog, "module")).setText("Demo");
+            ((JTextField) field(dialog, "username")).setText("demo-user");
+            var password = (JPasswordField) field(dialog, "password");
+            password.setText("temporary-secret");
+            dialog.doOKAction();
+            assertFalse(dialog.isDisposed());
+            assertEquals("temporary-secret".length(), password.getPassword().length);
+            // Retry without setting the password again: both HTTP requests must authenticate identically.
+            dialog.doOKAction();
+            String expected = "Basic " + java.util.Base64.getEncoder().encodeToString(
+                    "demo-user:temporary-secret".getBytes(StandardCharsets.UTF_8));
+            assertEquals(java.util.List.of(expected, expected), headers);
+            assertNotNull(dialog.documents());
+            assertTrue(dialog.isDisposed());
+            assertEquals(0, password.getPassword().length);
+        } finally {
+            if (!dialog.isDisposed()) dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+            server.stop(0);
+        }
+    }
+
+    public void testCancelClearsPasswordWithoutPersistingItToANewDialog() throws Exception {
+        var dialog = new RuntimeImportConnectionDialog(getProject());
+        var password = (JPasswordField) field(dialog, "password");
+        password.setText("temporary-secret");
+        dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+        assertEquals(0, password.getPassword().length);
+        var reopened = new RuntimeImportConnectionDialog(getProject());
+        try { assertEquals(0, ((JPasswordField) field(reopened, "password")).getPassword().length); }
+        finally { reopened.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
     }
 
     private void exerciseFetch(int status, String body, boolean success) throws Exception {
@@ -47,7 +92,7 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
             assertEquals(context + "/rest/metadata/module/Demo", requested.get());
             assertEquals("http://127.0.0.1:" + server.getAddress().getPort() + context,
                     ((JTextField) field(dialog, "url")).getText());
-            assertEquals(0, password.getPassword().length);
+            assertEquals(success ? 0 : "temporary-secret".length(), password.getPassword().length);
             if (success) {
                 assertNotNull(dialog.documents());
                 assertEquals(body, dialog.documents().moduleJson());

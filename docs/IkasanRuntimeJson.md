@@ -68,7 +68,10 @@ unchanged. If component configuration is unavailable, explicitly uncheck **Fetch
 configuration for each flow** and fetch topology only; settings then require manual review.
 
 Connection credentials are not saved in Studio settings, project files or import provenance;
-the password field is cleared after a fetch attempt. The fetched configuration itself can
+the password field remains populated while the fetch dialog stays open, so failed or cancelled
+fetch attempts can be retried without re-entry. Closing the dialog (including success or Cancel)
+clears the field; a newly opened dialog starts blank. Temporary request password arrays are
+cleared after every attempt. The fetched configuration itself can
 contain application credentials and is retained by the existing importer as provenance,
 so review it before sharing the project. Fetch has a five-second connection timeout,
 a twenty-second request timeout and an 8 MiB limit on metadata and combined configuration.

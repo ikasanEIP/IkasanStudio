@@ -81,7 +81,6 @@ final class RuntimeImportConnectionDialog extends DialogWrapper {
         String name = module.getText().trim();
         String user = username.getText();
         char[] secret = password.getPassword();
-        password.setText("");
         boolean include = configuration.isSelected();
         var fetched = new AtomicReference<RuntimeImportClient.Documents>();
         var failure = new AtomicReference<IOException>();
@@ -102,6 +101,11 @@ final class RuntimeImportConnectionDialog extends DialogWrapper {
             documents = fetched.get();
             if (documents != null) close(OK_EXIT_CODE);
         } finally { java.util.Arrays.fill(secret, '\0'); }
+    }
+
+    @Override protected void dispose() {
+        password.setText("");
+        super.dispose();
     }
 
     RuntimeImportClient.Documents documents() { return documents; }
