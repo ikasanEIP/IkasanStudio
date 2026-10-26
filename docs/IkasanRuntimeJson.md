@@ -36,7 +36,12 @@ Imported flows use **MANUAL** startup settings. Project build settings and ports
 
 In the import dialog, choose **Fetch from running module…**. Enter the application URL
 including its context path (for example `http://localhost:8080/orders`), the registered
-module name, and optional Basic authentication credentials. Empty credentials request
+module name, and optional Basic authentication credentials. The registered module name is
+case-sensitive (`module.name`) and may differ from the lowercase URL context: for example,
+URL `http://localhost:12450/converterandtranslators5` with module `converterAndTranslators5`.
+Recognized `/swagger-ui/index.html`, `/swagger-ui/` and `/swagger-ui.html` suffixes are removed
+automatically (including their UI query/fragment). Other application URL queries/fragments
+are rejected. The dialog displays the normalized application URL after Fetch. Empty credentials request
 anonymous access; the deployment must permit the REST calls. The inspected controllers
 require `ALL` or `WebServiceAdmin` authority. HTTPS uses normal JVM certificate trust;
 redirects are not followed. Enter the final application URL rather than a login page.
@@ -50,7 +55,14 @@ configuration writes or flow control endpoints.
 
 On success, the documents populate the existing editable preview and runtime import mode
 is selected. Choose the matching Ikasan meta-pack and destination package, resolve any
-component variant choices, then review before importing. Fetch alone does not modify
+component variant choices, then review before importing. If the selected pack is unsuitable,
+Studio recommends an exact available version first, otherwise the nearest newer stable patch
+in the same major/minor line (for example 4.1.3 → 4.1.6). Changing packs or using a newer patch
+requires confirmation. A patch import targets the selected pack's dependencies, adds an upgrade
+warning to the review and retains the original export/version as provenance. It is not a
+compatibility guarantee: compile and test before starting flows. Downgrades, cross-minor/major
+changes and non-exact snapshot/prerelease substitutions are rejected; use separate migration
+work for those cases. Fetch alone does not modify
 project files or its live model. A failed/cancelled fetch leaves the existing preview
 unchanged. If component configuration is unavailable, explicitly uncheck **Fetch component
 configuration for each flow** and fetch topology only; settings then require manual review.
@@ -60,6 +72,11 @@ the password field is cleared after a fetch attempt. The fetched configuration i
 contain application credentials and is retained by the existing importer as provenance,
 so review it before sharing the project. Fetch has a five-second connection timeout,
 a twenty-second request timeout and an 8 MiB limit on metadata and combined configuration.
+The IDE log records each actual GET endpoint, acquisition stage and HTTP status, making wrong
+context paths and module-name casing visible. Request credentials, authorization headers,
+Swagger query/fragment values and response bodies are not logged. HTTP 404/500 guidance asks
+the developer to check the exact registered module name as well as context/endpoint availability;
+HTTP 500 can also require checking the module server log.
 Requests are cancellable while waiting for the server. No retry or partial configuration
 fallback happens silently. Conflicting records with the same configuration ID are rejected.
 

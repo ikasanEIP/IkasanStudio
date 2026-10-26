@@ -149,6 +149,50 @@ class RuntimeImportClientTest {
         assertFalse(failure.getMessage().contains("secret"));
     }
 
+    @ParameterizedTest @ValueSource(strings = {
+            "/swagger-ui/index.html", "/swagger-ui/", "/swagger-ui", "/swagger-ui.html",
+            "/swagger-ui/index.html?configUrl=/api-docs#/module"})
+    void normalizesSwaggerLandingPagesWithoutChangingTheContext(String suffix) {
+        assertEquals("http://localhost:8080/My%20Module",
+                RuntimeImportClient.baseUri("http://localhost:8080/My%20Module" + suffix).toString());
+        assertEquals("http://localhost:8080",
+                RuntimeImportClient.baseUri("http://localhost:8080/swagger-ui/index.html").toString());
+    }
+
+    @Test void swaggerUrlFetchUsesApplicationRestPath() throws Exception {
+        withServer(exchange -> {
+            assertEquals("/ctx/rest/metadata/module/Demo%20module", exchange.getRequestURI().getRawPath());
+            respond(exchange, 200, MODULE);
+        }, base -> assertEquals(MODULE, RuntimeImportClient.fetch(
+                URI.create(base + "swagger-ui/index.html"), "Demo module", "", new char[0], false, () -> {}).moduleJson()));
+    }
+
+    @ParameterizedTest @ValueSource(ints = {404, 500})
+    void moduleLookupFailuresExplainCaseSensitiveRegisteredNames(int status) throws Exception {
+        withServer(exchange -> respond(exchange, status, "private response"), base -> {
+            var failure = assertThrows(IOException.class, () -> RuntimeImportClient.fetch(base,
+                    "wrongcase", "", new char[0], false, () -> {}));
+            assertTrue(failure.getMessage().contains("case-sensitive registered module name (module.name)"));
+            assertFalse(failure.getMessage().contains("private response"));
+        });
+    }
+
+    @Test void diagnosticsShowTheActualRestUrlAndStatusWithoutCredentialsOrResponseBodies() throws Exception {
+        var logs = new ArrayList<String>();
+        withServer(exchange -> respond(exchange, 500, "private response password=private-body"), base -> {
+            assertThrows(IOException.class, () -> RuntimeImportClient.fetch(
+                    URI.create(base + "swagger-ui/index.html?token=private-query#/module"),
+                    "Demo module", "private-user", "private-password".toCharArray(), false, () -> {}, logs::add));
+            assertEquals(2, logs.size());
+            assertTrue(logs.get(0).contains("module metadata via GET " + base.toString().replaceAll("/+$", "")
+                    + "/rest/metadata/module/Demo%20module"));
+            assertTrue(logs.get(1).contains("returned HTTP 500"));
+            String combined = String.join("\n", logs);
+            for (String forbidden : List.of("private-user", "private-password", "private-query", "private-body", "Authorization", "swagger-ui"))
+                assertFalse(combined.contains(forbidden), forbidden);
+        });
+    }
+
     private interface Check { void run(URI base) throws Exception; }
     private static void withServer(com.sun.net.httpserver.HttpHandler handler, Check check) throws Exception {
         var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);

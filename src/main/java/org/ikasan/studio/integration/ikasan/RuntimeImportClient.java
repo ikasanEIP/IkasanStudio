@@ -17,6 +17,7 @@ import java.util.concurrent.Flow;
 
 /** Read-only acquisition of the documents accepted by the existing runtime importer. */
 public final class RuntimeImportClient {
+    private static final java.util.logging.Logger LOG = java.util.logging.Logger.getLogger(RuntimeImportClient.class.getName());
     static final int MAX_BYTES = 8 * 1024 * 1024;
     private static final ObjectMapper JSON = StudioJson.newObjectMapper()
             .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
@@ -42,14 +43,28 @@ public final class RuntimeImportClient {
         try { uri = URI.create(value.trim()); }
         catch (IllegalArgumentException failure) { throw new IllegalArgumentException("Enter a valid module application URL."); }
         if (!("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))
-                || uri.getHost() == null || uri.getPort() > 65535 || uri.getPort() == 0 || uri.getRawUserInfo() != null || uri.getRawQuery() != null || uri.getRawFragment() != null) {
-            throw new IllegalArgumentException("Use an HTTP(S) application URL including its context path, without credentials, query or fragment.");
+                || uri.getHost() == null || uri.getPort() > 65535 || uri.getPort() == 0 || uri.getRawUserInfo() != null) {
+            throw new IllegalArgumentException("Use an HTTP(S) application URL including its context path, without credentials.");
         }
-        return URI.create(uri.toASCIIString().replaceAll("/+$", ""));
+        String path = uri.getRawPath().replaceAll("/+$", "");
+        String applicationPath = path.replaceFirst("(?i)/(?:swagger-ui(?:/index\\.html)?|swagger-ui\\.html)$", "");
+        boolean swagger = !applicationPath.equals(path);
+        if (!swagger && (uri.getRawQuery() != null || uri.getRawFragment() != null))
+            throw new IllegalArgumentException("Use an application URL without query or fragment.");
+        // Strip only recognized Swagger landing pages, preserving the context's original case and encoding.
+        return URI.create(uri.getScheme() + "://" + uri.getRawAuthority() + applicationPath);
     }
 
     public static Documents fetch(URI base, String module, String username, char[] password,
                                   boolean includeConfiguration, Runnable cancelled) throws IOException, InterruptedException {
+        return fetch(base, module, username, password, includeConfiguration, cancelled, LOG::info);
+    }
+
+    /** The IDE supplies its logger at the integration boundary; only sanitized request diagnostics are emitted. */
+    public static Documents fetch(URI base, String module, String username, char[] password,
+                                  boolean includeConfiguration, Runnable cancelled,
+                                  java.util.function.Consumer<String> diagnostics) throws IOException, InterruptedException {
+        Objects.requireNonNull(diagnostics);
         base = baseUri(base.toString());
         if (module == null || module.isBlank()) throw new IllegalArgumentException("Enter the running module name.");
         if (username == null) username = "";
@@ -57,11 +72,11 @@ public final class RuntimeImportClient {
         if (username.isBlank() && password.length != 0) throw new IllegalArgumentException("Enter a username or clear the password for anonymous access.");
         String authorization = username.isBlank() ? null : "Basic " + Base64.getEncoder().encodeToString(
                 (username + ":" + new String(password)).getBytes(StandardCharsets.UTF_8));
-        String metadata = get(base, "/rest/metadata/module/" + segment(module), authorization, cancelled);
+        String metadata = get(base, "/rest/metadata/module/" + segment(module), authorization, cancelled, diagnostics);
         JsonNode topology = parse(metadata, "Module metadata");
         if (!topology.isObject() || !topology.path("flows").isArray()
                 || !topology.path("name").isTextual() || !module.equals(topology.path("name").asText())) {
-            throw new IOException("Module metadata must describe the requested module and contain a flows array.");
+            throw new IOException("Module metadata must describe the requested module and contain a flows array. Verify the exact case-sensitive registered module name (module.name).");
         }
         if (topology.path("flows").size() > 1000) throw new IOException("Import supports at most 1,000 flows.");
         var names = new LinkedHashSet<String>();
@@ -73,7 +88,7 @@ public final class RuntimeImportClient {
         int total = 0;
         if (includeConfiguration) for (String flow : names) {
             // The unqualified /configuration/components endpoint selects the first module. Always scope it.
-            String text = get(base, "/rest/configuration/" + segment(module) + "/" + segment(flow) + "/components", authorization, cancelled);
+            String text = get(base, "/rest/configuration/" + segment(module) + "/" + segment(flow) + "/components", authorization, cancelled, diagnostics);
             total += text.getBytes(StandardCharsets.UTF_8).length;
             if (total > MAX_BYTES) throw new IOException("Combined component configuration exceeds the 8 MiB import limit.");
             JsonNode array = parse(text, "Component configuration");
@@ -107,9 +122,14 @@ public final class RuntimeImportClient {
         }
     }
 
-    private static String get(URI base, String path, String authorization, Runnable cancelled) throws IOException, InterruptedException {
+    private static String get(URI base, String path, String authorization, Runnable cancelled,
+                              java.util.function.Consumer<String> diagnostics) throws IOException, InterruptedException {
         cancelled.run();
-        var request = HttpRequest.newBuilder(URI.create(base.toASCIIString() + path))
+        URI endpoint = URI.create(base.toASCIIString() + path);
+        String stage = path.startsWith("/rest/metadata/") ? "module metadata" : "component configuration";
+        // Endpoint contains no user-info, query or fragment. Never log headers, credentials or response bodies.
+        diagnostics.accept("Runtime import: fetching " + stage + " via GET " + endpoint);
+        var request = HttpRequest.newBuilder(endpoint)
                 .timeout(Duration.ofSeconds(20)).header("Accept", "application/json").GET();
         if (authorization != null) request.header("Authorization", authorization);
         var future = HTTP.sendAsync(request.build(), ignored -> new LimitedBody());
@@ -123,13 +143,15 @@ public final class RuntimeImportClient {
                 catch (TimeoutException waiting) { /* Check platform cancellation while the HTTP operation is pending. */ }
                 catch (ExecutionException failure) {
                     if (failure.getCause() instanceof HttpTimeoutException) throw new IOException("The module REST request timed out.");
+                    diagnostics.accept("Runtime import: failed reading " + stage + " from " + endpoint);
                     throw new IOException("Could not read the module REST response. Check connectivity, TLS trust and response size.");
                 }
             }
             int status = response.statusCode();
+            diagnostics.accept("Runtime import: " + stage + " GET " + endpoint + " returned HTTP " + status);
             if (status == 401 || status == 403) throw new IOException("REST access was denied (HTTP " + status + "). Check credentials and ALL or WebServiceAdmin authority.");
             if (status >= 300 && status < 400) throw new IOException("The module redirected the REST request. Enter its final application URL; redirects are not followed.");
-            if (status != 200) throw new IOException("Module REST request returned HTTP " + status + ". Check the context path, module name and REST endpoint availability.");
+            if (status != 200) throw new IOException("Module REST request returned HTTP " + status + ". Verify the application context path and the exact case-sensitive registered module name (module.name), which may differ from the lowercase URL context. Also check REST endpoint availability and, for HTTP 500, the module server log.");
             return new String(response.body(), StandardCharsets.UTF_8);
         } finally { future.cancel(true); }
     }

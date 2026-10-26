@@ -60,6 +60,37 @@ class IkasanRuntimeImportTest {
         assertThat(result.review().toString()).contains("customSecret", "without applying").doesNotContain("do-not-show-in-report");
     }
 
+    @Test void importsAnOlderPatchWithExplicitReviewAndKeepsTheSourceVersion() throws Exception {
+        var input = topology("V4.1.6").put("ikasanVersion", "4.1.3");
+        var result = IkasanRuntimeImport.convert(input.toString(), "", "V4.1.6", "org.example", mappings());
+        var module = ComponentIO.validatePersistedModuleJson(result.studioJson(), "patch import", false);
+        assertThat(module.getVersion()).isEqualTo("V4.1.6");
+        assertThat(module.getFlows().get(0).getPropertyValue("flowStartupType")).isEqualTo("MANUAL");
+        assertThat(result.review().toString()).contains("Patch upgrade", "4.1.3", "4.1.6", "compatibility is not guaranteed");
+        var saved = JSON.readTree(ComponentIO.toValidatedModuleJson(module));
+        assertThat(saved.path(IkasanRuntimeImport.SOURCE_FIELD).path("module").path("ikasanVersion").asText()).isEqualTo("4.1.3");
+        var choice = IkasanRuntimeImport.recommendPack(input.toString(), java.util.List.of("V3.3.9", "V4.1.6")).orElseThrow();
+        assertThat(choice.pack()).isEqualTo("V4.1.6");
+        assertThat(choice.exact()).isFalse();
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"4.1.7", "4.1.10", "4.0.9", "4.2.0", "3.3.9", "4.1.3-SNAPSHOT"})
+    void rejectsDowngradesCrossMinorMajorAndNonExactPrereleases(String source) throws Exception {
+        var input = topology("V4.1.6").put("ikasanVersion", source);
+        assertThatThrownBy(() -> IkasanRuntimeImport.convert(input.toString(), "", "V4.1.6", "org.example", mappings()))
+                .hasMessageContaining("matching meta-pack");
+        assertThat(IkasanRuntimeImport.recommendPack(input.toString(), java.util.List.of("V4.1.6"))).isEmpty();
+    }
+
+    @Test void recommendsExactVersionsBeforeOtherPacksAndDoesNotGuessMissingVersions() throws Exception {
+        var input = topology("V3.3.9");
+        var choice = IkasanRuntimeImport.recommendPack(input.toString(), java.util.List.of("V4.1.6", "V3.3.9")).orElseThrow();
+        assertThat(choice.pack()).isEqualTo("V3.3.9");
+        assertThat(choice.exact()).isTrue();
+        input.remove("ikasanVersion");
+        assertThat(IkasanRuntimeImport.recommendPack(input.toString(), java.util.List.of("V3.3.9", "V4.1.6"))).isEmpty();
+    }
+
     @Test void rejectsMismatchedPack() {
         assertThatThrownBy(() -> IkasanRuntimeImport.convert(topology("V3.3.9").toString(), "", "V4.1.6", "org.example"))
                 .hasMessageContaining("matching meta-pack");

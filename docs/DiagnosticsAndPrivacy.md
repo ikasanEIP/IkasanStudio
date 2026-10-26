@@ -104,9 +104,22 @@ Warning/error notification helpers record a safe event instead of copying their 
 
 These changes do not erase existing IDE logs, and the plugin cannot control logging performed by the generated application, dependencies or other installed plugins. The collector's strict export boundary protects the bundle from older free-text logs; it does not certify the entire IDE log as credential-free.
 
+## Running-module import request tracing
+
+For troubleshooting an explicitly requested running-module fetch, local `idea.log` records the
+actual REST GET endpoint, metadata/configuration stage and HTTP result. These operational
+messages expose the application host/context and encoded module/flow names, so the URL and
+case-sensitive lookup can be checked. They omit URL user-info, queries/fragments, authentication
+headers, passwords and response bodies. Recognized Swagger UI suffixes and their query/fragment
+are removed before requests and tracing. Other credential-bearing or query/fragment URLs are rejected.
+
+These are local operational messages, not `STUDIO-DIAG` events. The strict diagnostics collector
+does not include them in its ZIP. Review the original IDE log before sharing it separately.
+See [runtime JSON import](IkasanRuntimeJson.md#fetch-from-a-running-module).
+
 ## Maintenance and verification
 
-Never log maps, model `toString()` output, entered property values, payloads, tokens, connection URLs or raw exception messages in new diagnostic events. Add a fixed enum event when a new operation needs diagnosis; include only the narrow context needed. Keep English and Japanese action/message resources synchronized. Re-run privacy tests whenever changing the export grammar or archive entries.
+Never log maps, model `toString()` output, entered property values, payloads, tokens, connection URLs or raw exception messages in new structured diagnostic events. The bounded operational request tracing described above is separate from the export grammar. Add a fixed enum event when a new operation needs diagnosis; include only the narrow context needed. Keep English and Japanese action/message resources synchronized. Re-run privacy tests whenever changing the export grammar or archive entries.
 
 ```sh
 ./gradlew test --tests '*StudioDiagnosticBundleTest' --tests '*CollectStudioDiagnosticsActionHeavyTest' --tests '*GeneratorFailureInjectionTest' --tests '*StudioBuildUtilsTest'

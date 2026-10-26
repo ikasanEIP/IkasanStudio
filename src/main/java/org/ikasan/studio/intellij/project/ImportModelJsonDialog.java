@@ -219,9 +219,38 @@ public class ImportModelJsonDialog extends DialogWrapper {
                 });
     }
 
+    String selectRuntimePack(String json) throws StudioBuildException {
+        String selected = (String) runtimePack.getSelectedItem();
+        var available = new java.util.ArrayList<String>();
+        for (int i = 0; i < runtimePack.getItemCount(); i++) available.add(runtimePack.getItemAt(i));
+        var recommendation = new AtomicReference<IkasanRuntimeImport.PackRecommendation>();
+        var failure = new AtomicReference<StudioBuildException>();
+        boolean completed = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
+            try {
+                // Honor a suitable explicit selection, otherwise suggest the closest available pack.
+                var chosen = IkasanRuntimeImport.recommendPack(json, java.util.List.of(selected));
+                recommendation.set(chosen.isPresent() ? chosen.get()
+                        : IkasanRuntimeImport.recommendPack(json, available).orElse(null));
+            } catch (StudioBuildException problem) { failure.set(problem); }
+        }, StudioBundle.message("import.runtime.reviewTitle"), true, project);
+        if (!completed || project.isDisposed()) throw new com.intellij.openapi.progress.ProcessCanceledException();
+        if (failure.get() != null) throw failure.get();
+        var choice = recommendation.get();
+        if (choice == null) return selected; // Conversion reports the unsupported version with actionable guidance.
+        if (!choice.pack().equals(selected) || !choice.exact()) {
+            int answer = Messages.showYesNoDialog(project,
+                    StudioBundle.message(choice.exact() ? "import.runtime.versionExact" : "import.runtime.versionPatch",
+                            choice.sourceVersion(), choice.pack(), choice.targetVersion()),
+                    StudioBundle.message("import.runtime.versionTitle"), Messages.getQuestionIcon());
+            if (answer != Messages.YES) throw new com.intellij.openapi.progress.ProcessCanceledException();
+            runtimePack.setSelectedItem(choice.pack());
+        }
+        return choice.pack();
+    }
+
     private IkasanRuntimeImport.Result convertRuntime(String json) throws StudioBuildException {
         String config = configurationArea.getText();
-        String pack = (String) runtimePack.getSelectedItem();
+        String pack = selectRuntimePack(json);
         String packageName = applicationPackage.getText().trim();
         AtomicReference<java.util.List<IkasanRuntimeImport.MappingChoice>> choices = new AtomicReference<>();
         AtomicReference<StudioBuildException> inspectionFailure = new AtomicReference<>();

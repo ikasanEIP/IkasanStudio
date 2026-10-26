@@ -34,6 +34,39 @@ public final class IkasanRuntimeImport {
     public record ComponentRef(String flow, String component) { }
     public record MappingChoice(ComponentRef component, List<String> variants) { }
 
+    public record PackRecommendation(String pack, String sourceVersion, String targetVersion) {
+        public boolean exact() { return sourceVersion.equals(targetVersion); }
+    }
+
+    /** Exact version first, otherwise the nearest newer stable patch in the same major/minor line. */
+    public static Optional<PackRecommendation> recommendPack(String moduleJson, List<String> packs)
+            throws StudioBuildException {
+        try {
+            String source = read(moduleJson).path("ikasanVersion").asText("");
+            if (source.isBlank()) return Optional.empty();
+            PackRecommendation nearest = null;
+            for (String pack : packs) {
+                String target = ComponentLibrary.getMetaPackManifest(pack).ikasanVersion();
+                var candidate = new PackRecommendation(pack, source, target);
+                if (candidate.exact()) return Optional.of(candidate);
+                if (forwardPatch(source, target) && (nearest == null
+                        || patch(target).compareTo(patch(nearest.targetVersion())) < 0)) nearest = candidate;
+            }
+            return Optional.ofNullable(nearest);
+        } catch (StudioBuildException failure) { throw failure; }
+        catch (Exception failure) { throw new StudioBuildException("Cannot inspect the export's Ikasan version.", failure); }
+    }
+
+    private static boolean forwardPatch(String source, String target) {
+        if (!source.matches("[0-9]+\\.[0-9]+\\.[0-9]+") || !target.matches("[0-9]+\\.[0-9]+\\.[0-9]+")) return false;
+        String[] from = source.split("\\."), to = target.split("\\.");
+        return from[0].equals(to[0]) && from[1].equals(to[1]) && patch(target).compareTo(patch(source)) >= 0;
+    }
+
+    private static java.math.BigInteger patch(String version) {
+        return new java.math.BigInteger(version.substring(version.lastIndexOf('.') + 1));
+    }
+
     /** Returns variants requiring an explicit choice; configuration classes alone cannot identify message providers. */
     public static List<MappingChoice> mappingChoices(String moduleJson, String pack) throws StudioBuildException {
         try {
@@ -78,8 +111,9 @@ public final class IkasanRuntimeImport {
                 throw problem("Supply a valid application Java package.");
             var manifest = ComponentLibrary.getMetaPackManifest(pack);
             String runtimeVersion = topology.path("ikasanVersion").asText("");
-            if (!runtimeVersion.isBlank() && !runtimeVersion.equals(manifest.ikasanVersion()))
-                throw problem("The export uses Ikasan " + runtimeVersion + "; select its matching meta-pack. Import before migrating.");
+            if (!runtimeVersion.isBlank() && !runtimeVersion.equals(manifest.ikasanVersion())
+                    && !forwardPatch(runtimeVersion, manifest.ikasanVersion()))
+                throw problem("The export uses Ikasan " + runtimeVersion + "; select its matching meta-pack or a newer patch in the same major/minor line. Downgrades and cross-minor/major imports require a separate migration.");
             JsonNode configuration = configurationJson == null || configurationJson.isBlank()
                     ? JSON.createArrayNode() : read(configurationJson);
             Map<String, JsonNode> configurations = configurations(configuration);
@@ -87,6 +121,10 @@ public final class IkasanRuntimeImport {
             review.add("Runtime JSON does not include Java implementations, dependencies, Spring wiring or all builder settings. Review these before building or running.");
             review.add("Project ports and build settings use Studio defaults. Module, flow and invoker configuration is retained for reference, not automatically applied.");
             review.add("Flows are imported MANUAL. Original topology and configuration are retained in model.json under " + SOURCE_FIELD + ". They may contain credentials; review before sharing.");
+            if (!runtimeVersion.isBlank() && !runtimeVersion.equals(manifest.ikasanVersion()))
+                review.add("Patch upgrade: export Ikasan " + runtimeVersion + " imported using " + pack
+                        + " (Ikasan " + manifest.ikasanVersion() + "). Generated dependencies target the newer patch."
+                        + " Review API/configuration differences and compile and test before starting flows; compatibility is not guaranteed.");
             if (runtimeVersion.isBlank()) review.add("The export has no ikasanVersion; verify the selected meta-pack against the original application.");
             Module base = new Module(pack);
             base.setName(required(topology, "name"));

@@ -85,6 +85,36 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
         } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
     }
 
+    public void testPatchRecommendationRequiresConsentBeforeChangingSelection() throws Exception {
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
+        var packs = (JComboBox<?>) field(dialog, "runtimePack");
+        var original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
+        var messages = new java.util.ArrayList<String>();
+        var previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> {
+            messages.add(message);
+            return com.intellij.openapi.ui.Messages.NO;
+        });
+        try {
+            PlatformTestUtil.waitWithEventsDispatching("Pack choices not loaded", () -> packs.getItemCount() == 2, 10);
+            String json = "{\"name\":\"Demo\",\"ikasanVersion\":\"4.1.3\",\"flows\":[]}";
+            try {
+                dialog.selectRuntimePack(json);
+                fail("Patch upgrade needs explicit acceptance");
+            } catch (com.intellij.openapi.progress.ProcessCanceledException expected) { }
+            assertEquals("V3.3.9", packs.getSelectedItem());
+            assertSame(original, getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule());
+            assertEquals(1, messages.size());
+            assertTrue(messages.get(0).contains("4.1.3"));
+            assertTrue(messages.get(0).contains("4.1.6"));
+            com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> com.intellij.openapi.ui.Messages.YES);
+            assertEquals("V4.1.6", dialog.selectRuntimePack(json));
+            assertEquals("V4.1.6", packs.getSelectedItem());
+        } finally {
+            dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+            com.intellij.openapi.ui.TestDialogManager.setTestDialog(previous);
+        }
+    }
+
     private Object field(Object owner, String name) throws Exception {
         var field = owner.getClass().getDeclaredField(name);
         field.setAccessible(true);

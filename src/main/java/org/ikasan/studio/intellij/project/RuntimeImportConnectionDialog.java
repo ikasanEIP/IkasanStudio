@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /** Fetches into memory only. The parent import dialog still owns conversion, review and import. */
 final class RuntimeImportConnectionDialog extends DialogWrapper {
+    private static final com.intellij.openapi.diagnostic.Logger LOG = com.intellij.openapi.diagnostic.Logger.getInstance(RuntimeImportConnectionDialog.class);
     private final Project project;
     private final JBTextField url = new JBTextField("http://localhost:8080/");
     private final JBTextField module = new JBTextField();
@@ -35,7 +36,7 @@ final class RuntimeImportConnectionDialog extends DialogWrapper {
 
     @Override protected JComponent createCenterPanel() {
         var panel = new JPanel(new BorderLayout(0, JBUI.scale(10)));
-        var note = new JBTextArea(StudioBundle.message("import.remote.help"), 4, 60);
+        var note = new JBTextArea(StudioBundle.message("import.remote.help"), 6, 60);
         note.setEditable(false); note.setLineWrap(true); note.setWrapStyleWord(true);
         note.setOpaque(false); note.setFont(UIManager.getFont("Label.font"));
         panel.add(note, BorderLayout.NORTH);
@@ -76,6 +77,7 @@ final class RuntimeImportConnectionDialog extends DialogWrapper {
     @Override protected void doOKAction() {
         if (doValidate() != null) { initValidation(); return; }
         var base = RuntimeImportClient.baseUri(url.getText());
+        url.setText(base.toString());
         String name = module.getText().trim();
         String user = username.getText();
         char[] secret = password.getPassword();
@@ -87,7 +89,7 @@ final class RuntimeImportConnectionDialog extends DialogWrapper {
             boolean completed = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
                 try {
                     fetched.set(RuntimeImportClient.fetch(base, name, user, secret, include,
-                            () -> { ProgressManager.checkCanceled(); if (project.isDisposed()) throw new ProcessCanceledException(); }));
+                            () -> { ProgressManager.checkCanceled(); if (project.isDisposed()) throw new ProcessCanceledException(); }, LOG::info));
                 } catch (InterruptedException interrupted) {
                     Thread.currentThread().interrupt(); throw new ProcessCanceledException();
                 } catch (IOException problem) { failure.set(problem); }

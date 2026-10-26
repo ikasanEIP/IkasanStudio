@@ -5,6 +5,7 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Normalize Swagger URLs during running-module import, clarify case-sensitive module names, and log safe REST endpoints/statuses. Offer reviewed exact-version or newer same-line patch pack selection while rejecting downgrades and cross-version migrations.
 - Generate JMS MapMessage flow-test fixtures for map consumers and message-kind guards; add sendMap support to the V3, V4 and V5 test helpers.
 - Add JMS Map Message To Payload Converter to the V3, V4 and V5 development palettes, with configurable content/ID/filename fields, runtime configuration import, and direct Ikasan runtime construction.
 - Add Payload To Map Converter to the V3, V4 and V5 development palettes, with direct Ikasan runtime construction, file-transfer input/Map output type guidance and documented charset/attribute precedence.
