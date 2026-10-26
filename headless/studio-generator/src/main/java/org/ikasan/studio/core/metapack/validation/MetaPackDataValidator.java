@@ -69,6 +69,50 @@ final class MetaPackDataValidator {
             namespace(problems, platform, path + ".implementingClass", component.getImplementingClass());
             namespace(problems, platform, path + ".expectedInputTypes", component.getExpectedInputTypes());
             namespace(problems, platform, path + ".producedOutputType", component.getProducedOutputType());
+            if (component.getRuntimeConfigurationMappings() == null) {
+                add(problems, path + ".runtimeConfigurationMappings", "must be an object, not null");
+            } else {
+                Set<String> mappedProperties = new HashSet<>();
+                for (var mapping : component.getRuntimeConfigurationMappings().entrySet()) {
+                    if (mapping.getKey() == null || !JAVA_IDENTIFIER.matcher(mapping.getKey()).matches()
+                            || mapping.getValue() == null || mapping.getKey().equals(mapping.getValue())
+                            || component.getRuntimeConfigurationProperties() == null
+                            || !component.getRuntimeConfigurationProperties().contains(mapping.getValue())
+                            || !mappedProperties.add(mapping.getValue()))
+                        add(problems, path + ".runtimeConfigurationMappings", "must map differing REST names one-to-one to declared runtimeConfigurationProperties");
+                }
+                if (component.getRuntimeConfigurationProperties() != null
+                        && component.getRuntimeConfigurationMappings().values().stream().allMatch(Objects::nonNull)) {
+                    Set<String> names = new HashSet<>();
+                    for (String property : component.getRuntimeConfigurationProperties())
+                        if (!names.add(component.runtimeConfigurationName(property)))
+                            add(problems, path + ".runtimeConfigurationMappings", "must not shadow an exact runtime parameter name");
+                }
+            }
+            if (component.getLegacyPropertyAliases() == null) {
+                add(problems, path + ".legacyPropertyAliases", "must be an object, not null");
+            } else for (var alias : component.getLegacyPropertyAliases().entrySet()) {
+                var properties = component.getAllowableProperties();
+                if (alias.getKey() == null || !JAVA_IDENTIFIER.matcher(alias.getKey()).matches()
+                        || properties == null || properties.containsKey(alias.getKey())
+                        || alias.getValue() == null || !properties.containsKey(alias.getValue()))
+                    add(problems, path + ".legacyPropertyAliases", "must map historical names to existing canonical properties without shadowing properties or alias chains");
+            }
+            if (component.getRuntimeConfigurationDefaults() == null) {
+                add(problems, path + ".runtimeConfigurationDefaults", "must be an object, not null");
+            } else {
+                for (var entryDefault : component.getRuntimeConfigurationDefaults().entrySet()) {
+                    if (entryDefault.getKey() == null || !JAVA_IDENTIFIER.matcher(entryDefault.getKey()).matches()
+                            || entryDefault.getValue() == null || entryDefault.getValue().isNull())
+                        add(problems, path + ".runtimeConfigurationDefaults", "requires parameter names and non-null JSON defaults");
+                }
+                if (!component.getRuntimeConfigurationDefaults().isEmpty()) {
+                    var configuration = component.getAllowableProperties() == null ? null : component.getAllowableProperties().get("configuration");
+                    if ((component.getRuntimeConfigurationClass() == null || component.getRuntimeConfigurationClass().isBlank())
+                            && (configuration == null || configuration.getUsageDataType() == null || configuration.getUsageDataType().isBlank()))
+                        add(problems, path + ".runtimeConfigurationDefaults", "requires runtimeConfigurationClass or the configuration property's usageDataType");
+                }
+            }
             if (component.getRuntimeConfigurationProperties() == null) {
                 add(problems, path + ".runtimeConfigurationProperties", "must be an array, not null");
             } else if (!component.getRuntimeConfigurationProperties().isEmpty()) {

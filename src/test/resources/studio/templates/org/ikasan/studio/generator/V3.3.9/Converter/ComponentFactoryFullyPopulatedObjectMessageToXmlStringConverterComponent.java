@@ -37,7 +37,7 @@ java.lang.Boolean myFlow1MyObjectMessageToXMLStringConverterXmlConverterUseNames
 @org.springframework.beans.factory.annotation.Value("${myflow1.myobjectmessagetoxmlstringconverter.xml.converter.validate}")
 java.lang.Boolean myFlow1MyObjectMessageToXMLStringConverterXmlConverterValidate;
 @javax.annotation.Resource
-co.uk.test.myflow1.MyConfigurationClass myConfigurationClass;
+org.ikasan.component.converter.xml.XmlConfiguration myConfigurationClass;
 @javax.annotation.Resource
 java.util.Map<Class, javax.xml.bind.annotation.adapters.XmlAdapter> myXmlAdapterMap;
 

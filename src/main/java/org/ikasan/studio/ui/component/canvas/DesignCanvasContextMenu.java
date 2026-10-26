@@ -202,7 +202,7 @@ public class DesignCanvasContextMenu {
             JMenuItem importModel = new JMenuItem(StudioBundle.message("button.ImportModelJson"));
             importModel.setToolTipText(StudioBundle.message("tooltip.ImportModelJson"));
             importModel.addActionListener(event ->
-                    org.ikasan.studio.intellij.project.ModelImporter.openImportDialog(project));
+                    org.ikasan.studio.intellij.project.ModelImporter.openImportDialog(project, canvas));
             menu.add(importModel);
             JMenuItem migrate = new JMenuItem(StudioBundle.message("action.IkasanStudio.MigrateVersion.text"));
             migrate.setToolTipText(StudioBundle.message("action.IkasanStudio.MigrateVersion.description"));

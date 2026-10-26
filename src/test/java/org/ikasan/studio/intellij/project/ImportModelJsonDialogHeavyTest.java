@@ -85,6 +85,87 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
         } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
     }
 
+    public void testImportModeShowsOnlyRelevantDocumentsAndPreservesPreviewOnSwitch() throws Exception {
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        try {
+            var json = (JTextArea) field(dialog, "jsonArea");
+            var configuration = (JTextArea) field(dialog, "configurationArea");
+            var mode = (JCheckBox) field(dialog, "runtimeMode");
+            var tabs = (javax.swing.JTabbedPane) javax.swing.SwingUtilities.getAncestorOfClass(
+                    javax.swing.JTabbedPane.class, json);
+            assertNotNull(tabs);
+            assertEquals(1, tabs.getTabCount());
+            assertEquals(org.ikasan.studio.ui.StudioBundle.message("import.runtime.studioTab"), tabs.getTitleAt(0));
+            json.setText("module preview");
+            configuration.setText("configuration preview");
+            mode.doClick();
+            assertEquals(2, tabs.getTabCount());
+            assertEquals(org.ikasan.studio.ui.StudioBundle.message("import.runtime.moduleTab"), tabs.getTitleAt(0));
+            tabs.setSelectedIndex(1);
+            mode.doClick();
+            assertEquals(1, tabs.getTabCount());
+            assertEquals(0, tabs.getSelectedIndex());
+            mode.doClick();
+            assertEquals(2, tabs.getTabCount());
+            assertEquals("module preview", json.getText());
+            assertEquals("configuration preview", configuration.getText());
+        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testLargeFetchedJsonDoesNotGrowDialogAndOpensAtTheStart() throws Exception {
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        try {
+            var module = (JTextArea) field(dialog, "jsonArea");
+            var configuration = (JTextArea) field(dialog, "configurationArea");
+            var tabs = (javax.swing.JTabbedPane) javax.swing.SwingUtilities.getAncestorOfClass(javax.swing.JTabbedPane.class, module);
+            var panel = tabs.getParent();
+            var before = panel.getPreferredSize();
+            var viewportBefore = module.getPreferredScrollableViewportSize();
+            var configurationBefore = configuration.getPreferredScrollableViewportSize();
+            String large = "{\"description\":\"" + "x".repeat(30000) + "\",\"flows\":[" + "{} ,\n".repeat(3000) + "{}]}";
+            dialog.applyFetchedDocuments(new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents(large, large));
+            assertEquals(before, panel.getPreferredSize());
+            assertEquals(viewportBefore, module.getPreferredScrollableViewportSize());
+            assertEquals(configurationBefore, configuration.getPreferredScrollableViewportSize());
+            assertEquals(0, module.getCaretPosition());
+            assertEquals(0, configuration.getCaretPosition());
+            assertEquals(large, module.getText());
+            assertEquals(large, configuration.getText());
+            assertTrue(module.getColumns() > 0);
+            assertTrue(configuration.getColumns() > 0);
+        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testPatchRecommendationRequiresConsentBeforeChangingSelection() throws Exception {
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
+        var packs = (JComboBox<?>) field(dialog, "runtimePack");
+        var original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
+        var messages = new java.util.ArrayList<String>();
+        var previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> {
+            messages.add(message);
+            return com.intellij.openapi.ui.Messages.NO;
+        });
+        try {
+            PlatformTestUtil.waitWithEventsDispatching("Pack choices not loaded", () -> packs.getItemCount() == 2, 10);
+            String json = "{\"name\":\"Demo\",\"ikasanVersion\":\"4.1.3\",\"flows\":[]}";
+            try {
+                dialog.selectRuntimePack(json);
+                fail("Patch upgrade needs explicit acceptance");
+            } catch (com.intellij.openapi.progress.ProcessCanceledException expected) { }
+            assertEquals("V3.3.9", packs.getSelectedItem());
+            assertSame(original, getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule());
+            assertEquals(1, messages.size());
+            assertTrue(messages.get(0).contains("4.1.3"));
+            assertTrue(messages.get(0).contains("4.1.6"));
+            com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> com.intellij.openapi.ui.Messages.YES);
+            assertEquals("V4.1.6", dialog.selectRuntimePack(json));
+            assertEquals("V4.1.6", packs.getSelectedItem());
+        } finally {
+            dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+            com.intellij.openapi.ui.TestDialogManager.setTestDialog(previous);
+        }
+    }
+
     private Object field(Object owner, String name) throws Exception {
         var field = owner.getClass().getDeclaredField(name);
         field.setAccessible(true);

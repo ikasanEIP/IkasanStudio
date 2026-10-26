@@ -115,10 +115,11 @@ public final class IkasanModelDocuments {
         if (extras.has(name)) throw invalid("Duplicate component: " + name);
         var entry = ComponentLibrary.getIkasanComponents(pack).entrySet().stream().filter(e ->
                 Objects.equals(e.getValue().getComponentType(), input.path("componentType").asText(null))
-                && Objects.equals(e.getValue().getImplementingClass(), input.path("implementingClass").asText(null))
+                && Objects.equals(e.getValue().getImplementingClass(), ComponentImplementationAliases.canonical(input.path("implementingClass").asText(null)))
                 && Objects.equals(e.getValue().getAdditionalKey(), input.path("additionalKey").asText(null)))
                 .findFirst().orElseThrow(() -> invalid("No component mapping for " + name));
         ComponentMeta meta = entry.getValue();
+        properties = ComponentPropertyAliases.normalize(properties, meta);
         ObjectNode nativeComponent = originals.containsKey(name) ? originals.get(name).deepCopy() : JSON.createObjectNode();
         JsonNode componentExtensions = properties.remove(COMPONENT_RETAINED);
         if (componentExtensions != null) nativeComponent.setAll(object(componentExtensions, "component extensions"));
@@ -149,7 +150,7 @@ public final class IkasanModelDocuments {
             if (id.isBlank()) id = identifier(moduleName, flowName, name, configClass);
             nativeComponent.put("configurationId", id).put("configurable", true);
             ObjectNode valuesToWrite = JSON.createObjectNode().put("implementingClass", configClass);
-            for (String key : meta.getRuntimeConfigurationProperties()) if (properties.has(key)) valuesToWrite.set(key, properties.get(key));
+            for (String key : meta.getRuntimeConfigurationProperties()) if (properties.has(key)) valuesToWrite.set(meta.runtimeConfigurationName(key), properties.get(key));
             ObjectNode previous = written.putIfAbsent(id, valuesToWrite);
             if (previous != null && !previous.equals(valuesToWrite))
                 throw invalid("Components sharing configuration " + id + " have different settings; use distinct configuration IDs or matching values");
@@ -165,18 +166,19 @@ public final class IkasanModelDocuments {
             record.put("implementingClass", configClass);
             Map<String, ObjectNode> parameters = index(arrayOrEmpty(record.get("parameters"), "parameters"), "name", "parameters");
             for (String key : meta.getRuntimeConfigurationProperties()) {
+                String runtimeName = meta.runtimeConfigurationName(key);
                 JsonNode value = properties.remove(key);
-                if (value == null) { parameters.remove(key); continue; }
+                if (value == null) { parameters.remove(runtimeName); continue; }
                 try {
                     value = scalarValue(meta, key, value);
                     checkValue(meta, key, value);
                 } catch (IOException incompleteSetting) {
                     // A designer must be able to save unfinished values without presenting them as valid runtime configuration.
                     settings.withObject("/pendingConfiguration").set(key, value);
-                    parameters.remove(key);
+                    parameters.remove(runtimeName);
                     continue;
                 }
-                ObjectNode parameter = parameters.computeIfAbsent(key, ignored -> JSON.createObjectNode().put("name", key));
+                ObjectNode parameter = parameters.computeIfAbsent(runtimeName, ignored -> JSON.createObjectNode().put("name", runtimeName));
                 parameter.set("value", value);
                 parameter.put("implementingClass", parameterClass(meta.getAllowableProperties().get(key).getPropertyDataType()));
             }
@@ -271,13 +273,17 @@ public final class IkasanModelDocuments {
         ComponentMeta meta = ComponentLibrary.getIkasanComponents(pack).get(text(extra, "component"));
         if (meta == null) throw invalid("Unknown component variant for " + name);
         if (!meta.getComponentType().equals(text(raw, "componentType"))) throw invalid("Component type disagrees with variant for " + name);
-        ObjectNode result = object(extra.get("properties"), "component properties").deepCopy();
+        ObjectNode result = ComponentPropertyAliases.normalize(object(extra.get("properties"), "component properties"), meta);
         rejectFields(result, COMPONENT_FIELDS, "component properties");
-        // Collection settings lived in studio.properties before native List/Map support.
-        // Keep those legacy values for ComponentProperty to normalize, but never silently
-        // choose between a legacy setting and a native configuration value below.
+        // Newly mapped settings may still live in studio.properties in older documents.
+        // Preserve their values for normalization, but never silently choose between
+        // a Studio setting and a native configuration value below.
         for (String key : meta.getRuntimeConfigurationProperties()) {
-            if (!org.ikasan.studio.core.model.StringCollectionValues.supports(
+            if (!meta.getLegacyPropertyAliases().containsValue(key)
+                    && !meta.getRuntimeConfigurationMappings().containsValue(key)
+                    // These XML settings lived in Studio properties before runtime mapping was corrected.
+                    && !"org.ikasan.component.converter.xml.ObjectToXMLStringConverter".equals(meta.getImplementingClass())
+                    && !org.ikasan.studio.core.model.StringCollectionValues.supports(
                     meta.getAllowableProperties().get(key).getPropertyDataType())) {
                 rejectFields(result, List.of(key), "component properties");
             }
@@ -291,7 +297,7 @@ public final class IkasanModelDocuments {
         result.put("componentType", meta.getComponentType()).put("implementingClass", meta.getImplementingClass());
         if (meta.getAdditionalKey() != null) result.put("additionalKey", meta.getAdditionalKey());
         String implementation = text(raw, "implementingClass");
-        if (!meta.isGeneratesUserImplementedClass() && !meta.getImplementingClass().equals(implementation))
+        if (!meta.isGeneratesUserImplementedClass() && !meta.getImplementingClass().equals(ComponentImplementationAliases.canonical(implementation)))
             throw invalid("Runtime implementation disagrees with variant for " + name);
         if (meta.isGeneratesUserImplementedClass() && !result.path("requiresStub").asBoolean(true)) {
             result.put("userImplementedClassName", implementation).put("requiresStub", false);
@@ -320,8 +326,8 @@ public final class IkasanModelDocuments {
             if (config == null) throw invalid("Missing configuration " + id + " for " + name);
             if (!configurationClass(meta).equals(text(config, "implementingClass"))) throw invalid("Configuration class does not match " + name);
             for (JsonNode p : requiredArray(config.get("parameters"), "parameters")) {
-                String key = text(p, "name");
-                if (meta.getRuntimeConfigurationProperties().contains(key)) {
+                String key = meta.runtimeConfigurationProperty(text(p, "name"));
+                if (key != null) {
                     if (result.has(key)) throw invalid("Conflicting Studio and runtime configuration field " + key + " for " + name);
                     if (!p.has("value")) throw invalid("Missing configuration value for " + key);
                     checkValue(meta, key, p.get("value"));

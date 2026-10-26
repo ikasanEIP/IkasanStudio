@@ -78,7 +78,7 @@ class StudioBundleLocalisationTest {
 
         assertEquals("Import model.json...", english.getProperty("button.ImportModelJson"));
         assertEquals("Choose file...", english.getProperty("button.ChooseModelJsonFile"));
-        assertTrue(english.getProperty("message.ImportModelJsonExplanation").contains("Paste a Studio model.json"));
+        assertTrue(english.getProperty("message.ImportModelJsonExplanation").contains("Paste JSON or choose a file"));
         assertTrue(english.getProperty("message.ImportModelSuccess").contains("{0}"));
         assertTrue(english.getProperty("message.ImportModelJdkNotConfigured").contains("Project Structure"));
         assertTrue(english.getProperty("message.LoadJsonModelFromFile").contains("model.json"));
@@ -86,6 +86,12 @@ class StudioBundleLocalisationTest {
         for (String key : List.of(
                 "button.ImportModelJson",
                 "button.ChooseModelJsonFile",
+                "import.runtime.studioTab",
+                "import.runtime.moduleTab",
+                "import.runtime.configurationTab",
+                "import.runtime.modeHelp",
+                "import.runtime.defaultsHelp",
+                "import.runtime.configurationHelp",
                 "dialog.ImportModelJson",
                 "dialog.ChooseModelJsonFile",
                 "message.ImportModelJsonExplanation",

@@ -37,10 +37,10 @@ class RuntimeImportClientTest {
     }
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
-    void fetchedDocumentsUseTheExistingImporterAndPreserveManualStartup(String pack) throws Exception {
+    void fetchedDocumentsUseTheExistingImporterAndPreserveDeclaredStartup(String pack) throws Exception {
         var json = new com.fasterxml.jackson.databind.ObjectMapper();
         var topology = json.createObjectNode().put("name", "Demo module").put("ikasanVersion", pack.substring(1));
-        var flow = topology.putArray("flows").addObject().put("name", "Orders");
+        var flow = topology.putArray("flows").addObject().put("name", "Orders").put("flowStartupType", "AUTOMATIC");
         var consumerMeta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Scheduled Consumer");
         var producerMeta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Logging Producer");
         var consumer = json.createObjectNode().put("componentName", "Poll").put("componentType", consumerMeta.getComponentType())
@@ -56,9 +56,98 @@ class RuntimeImportClientTest {
             var converted = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(documents.moduleJson(), documents.configurationJson(), pack,
                     "org.example.imported", Map.of(new org.ikasan.studio.core.importer.IkasanRuntimeImport.ComponentRef("Orders", "Poll"), "Scheduled Consumer"));
             var module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(converted.studioJson(), "REST test", false);
-            assertEquals("MANUAL", module.getFlows().get(0).getPropertyValue("flowStartupType"));
+            assertEquals("AUTOMATIC", module.getFlows().get(0).getPropertyValue("flowStartupType"));
             assertEquals("0/10 * * * * ?", module.getFlows().get(0).getConsumer().getPropertyValue("cronExpression"));
         });
+    }
+
+    /** REST-only fixture: deliberately different from every Studio broker default. */
+    private String[] jmsDocuments(String pack) throws Exception {
+        var json = new com.fasterxml.jackson.databind.ObjectMapper();
+        var module = json.createObjectNode().put("name", "Demo module").put("ikasanVersion", pack.substring(1));
+        var flow = module.putArray("flows").addObject().put("name", "REST JMS").put("flowStartupType", "AUTOMATIC");
+        var elements = flow.putArray("flowElements");
+        var configs = json.createArrayNode();
+        for (String variant : List.of("Spring JMS Consumer", "Spring JMS Producer")) {
+            boolean consumer = variant.endsWith("Consumer");
+            String name = consumer ? "Receive" : "Send";
+            var meta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, variant);
+            var element = elements.addObject().put("componentName", name).put("componentType", meta.getComponentType())
+                    .put("implementingClass", meta.getImplementingClass()).put("configurationId", name + "-config");
+            if (consumer) flow.set("consumer", element.deepCopy());
+            String type = meta.getRuntimeConfigurationClass();
+            if (type == null) type = meta.getAllowableProperties().get("configuration").getUsageDataType();
+            var config = configs.addObject().put("configurationId", name + "-config").put("implementingClass", type);
+            var parameters = config.putArray("parameters");
+            parameters.addObject().put("name", "destinationJndiName").put("value", "queue/rest-import");
+            var factory = parameters.addObject().put("name", "connectionFactoryJndiProperties").putObject("value");
+            factory.put("java.naming.factory.initial", "example.CustomInitialContextFactory")
+                    .put("java.naming.provider.url", "tcp://remote-broker.example:61618")
+                    .put("java.naming.security.principal", "rest-user")
+                    .put("java.naming.security.credentials", "private-jndi-password")
+                    .put("custom.provider.option", "keep-me");
+            var destination = parameters.addObject().put("name", "destinationJndiProperties").putObject("value");
+            if (consumer) destination.put("java.naming.provider.url", "tcp://destination.example:61619");
+        }
+        flow.putArray("transitions").addObject().put("from", "Receive").put("to", "Send").put("name", "default");
+        return new String[]{module.toString(), configs.toString()};
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
+    void restOnlyJndiMapsSurviveImportReloadAndGenerationWithoutDefaultOverrides(String pack) throws Exception {
+        var fixture = jmsDocuments(pack);
+        withServer(exchange -> respond(exchange, 200,
+                exchange.getRequestURI().getPath().contains("/metadata/") ? fixture[0] : fixture[1]), base -> {
+            var documents = RuntimeImportClient.fetch(base, "Demo module", "", new char[0], true, () -> {});
+            var converted = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(
+                    documents.moduleJson(), documents.configurationJson(), pack, "org.example.imported");
+            assertFalse(converted.review().toString().contains("configuration fields not applied"));
+            assertFalse(converted.review().toString().contains("private-jndi-password"));
+            var module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(converted.studioJson(), "REST JMS", false);
+            module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(
+                    org.ikasan.studio.core.generator.ModelTemplate.create(module), "REST JMS reload", false);
+            var flow = module.getFlows().get(0);
+            var endpoints = List.of(flow.getConsumer(), flow.getFlowRoute().getFlowElements().get(0));
+            var properties = new Properties();
+            properties.load(new java.io.StringReader(org.ikasan.studio.core.generator.PropertiesTemplate.create(module)));
+            var json = new com.fasterxml.jackson.databind.ObjectMapper();
+            for (var endpoint : endpoints) {
+                var factory = (Map<?, ?>) endpoint.getPropertyValue("connectionFactoryJndiProperties");
+                assertEquals("tcp://remote-broker.example:61618", factory.get("java.naming.provider.url"));
+                assertEquals("private-jndi-password", factory.get("java.naming.security.credentials"));
+                assertEquals("keep-me", factory.get("custom.provider.option"));
+                for (String field : List.of("connectionFactoryJndiProperties", "destinationJndiProperties")) {
+                    String key = org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
+                            module, flow, endpoint, endpoint.getProperty(field).getMeta().getPropertyConfigFileLabel());
+                    assertEquals(endpoint.getPropertyValue(field), json.readValue(properties.getProperty(key), Map.class));
+                }
+            }
+            assertEquals(Map.of(), endpoints.get(1).getPropertyValue("destinationJndiProperties"));
+            String generated = org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.create("org.example.imported", module, flow);
+            assertTrue(generated.contains(".setConnectionFactoryJndiProperties(studioStringMap("));
+            assertTrue(generated.contains(".setDestinationJndiProperties(studioStringMap("));
+            for (String prefix : List.of("ConnectionFactoryJndiProperty", "DestinationJndiProperty"))
+                for (String suffix : List.of("ProviderUrl", "FactoryInitial", "SecurityPrincipal", "SecurityCredentials", "UrlPkgPrefixes"))
+                    assertFalse(generated.contains(".set" + prefix + suffix + "("), "Individual field must not overwrite the map");
+        });
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
+    void invalidJndiMapsAndMismatchedClassesRemainUnappliedAndFlagged(String pack) throws Exception {
+        var fixture = jmsDocuments(pack);
+        var json = new com.fasterxml.jackson.databind.ObjectMapper();
+        var configs = json.readTree(fixture[1]);
+        var producer = (com.fasterxml.jackson.databind.node.ObjectNode) configs.get(1);
+        ((com.fasterxml.jackson.databind.node.ObjectNode) producer.path("parameters").get(1).path("value"))
+                .putObject("unsupported.nested.option").put("value", "private-value");
+        var invalid = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(fixture[0], configs.toString(), pack, "org.example");
+        assertTrue(invalid.review().toString().contains("Send: review configuration fields not applied: connectionFactoryJndiProperties"));
+        assertFalse(invalid.review().toString().contains("private-value"));
+        var module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(invalid.studioJson(), "invalid map", false);
+        assertNull(module.getFlows().get(0).getFlowRoute().getFlowElements().get(0).getPropertyValue("connectionFactoryJndiProperties"));
+        producer.put("implementingClass", "example.DifferentConfiguration");
+        var mismatch = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(fixture[0], configs.toString(), pack, "org.example");
+        assertTrue(mismatch.review().toString().contains("destinationJndiProperties"));
     }
 
     @Test void explicitTopologyOnlyFetchMakesNoConfigurationRequestsOrAuthenticationAssumptions() throws Exception {
@@ -147,6 +236,50 @@ class RuntimeImportClientTest {
     void rejectsAmbiguousOrCredentialBearingUrls(String url) {
         var failure = assertThrows(IllegalArgumentException.class, () -> RuntimeImportClient.baseUri(url));
         assertFalse(failure.getMessage().contains("secret"));
+    }
+
+    @ParameterizedTest @ValueSource(strings = {
+            "/swagger-ui/index.html", "/swagger-ui/", "/swagger-ui", "/swagger-ui.html",
+            "/swagger-ui/index.html?configUrl=/api-docs#/module"})
+    void normalizesSwaggerLandingPagesWithoutChangingTheContext(String suffix) {
+        assertEquals("http://localhost:8080/My%20Module",
+                RuntimeImportClient.baseUri("http://localhost:8080/My%20Module" + suffix).toString());
+        assertEquals("http://localhost:8080",
+                RuntimeImportClient.baseUri("http://localhost:8080/swagger-ui/index.html").toString());
+    }
+
+    @Test void swaggerUrlFetchUsesApplicationRestPath() throws Exception {
+        withServer(exchange -> {
+            assertEquals("/ctx/rest/metadata/module/Demo%20module", exchange.getRequestURI().getRawPath());
+            respond(exchange, 200, MODULE);
+        }, base -> assertEquals(MODULE, RuntimeImportClient.fetch(
+                URI.create(base + "swagger-ui/index.html"), "Demo module", "", new char[0], false, () -> {}).moduleJson()));
+    }
+
+    @ParameterizedTest @ValueSource(ints = {404, 500})
+    void moduleLookupFailuresExplainCaseSensitiveRegisteredNames(int status) throws Exception {
+        withServer(exchange -> respond(exchange, status, "private response"), base -> {
+            var failure = assertThrows(IOException.class, () -> RuntimeImportClient.fetch(base,
+                    "wrongcase", "", new char[0], false, () -> {}));
+            assertTrue(failure.getMessage().contains("case-sensitive registered module name (module.name)"));
+            assertFalse(failure.getMessage().contains("private response"));
+        });
+    }
+
+    @Test void diagnosticsShowTheActualRestUrlAndStatusWithoutCredentialsOrResponseBodies() throws Exception {
+        var logs = new ArrayList<String>();
+        withServer(exchange -> respond(exchange, 500, "private response password=private-body"), base -> {
+            assertThrows(IOException.class, () -> RuntimeImportClient.fetch(
+                    URI.create(base + "swagger-ui/index.html?token=private-query#/module"),
+                    "Demo module", "private-user", "private-password".toCharArray(), false, () -> {}, logs::add));
+            assertEquals(2, logs.size());
+            assertTrue(logs.get(0).contains("module metadata via GET " + base.toString().replaceAll("/+$", "")
+                    + "/rest/metadata/module/Demo%20module"));
+            assertTrue(logs.get(1).contains("returned HTTP 500"));
+            String combined = String.join("\n", logs);
+            for (String forbidden : List.of("private-user", "private-password", "private-query", "private-body", "Authorization", "swagger-ui"))
+                assertFalse(combined.contains(forbidden), forbidden);
+        });
     }
 
     private interface Check { void run(URI base) throws Exception; }

@@ -27,7 +27,7 @@ import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 /**
  * SFTP Producer's Mandatory Properties mixes flat rows (componentName, remoteHost, outputDirectory) with
  * mandatorySectionHeading sub-panels ("Provide password or" holding password; "Provide key and hosts" holding
- * privateKeyFilename and knownHostFilename) - see ComponentPropertiesPanel#populatePropertiesEditorPanel.
+ * privateKeyFilename and knownHostsFilename) - see ComponentPropertiesPanel#populatePropertiesEditorPanel.
  * -
  * Two separate defects made the sub-panels' fields not line up with the flat rows', both reported by the user
  * with annotated screenshots:
@@ -100,7 +100,7 @@ class ComponentPropertiesPanelLabelAlignmentTest {
         // "Provide key and hosts" - a two-property heading sub-panel, likewise independent.
         List<ComponentPropertyEditRow> keyGroup = List.of(
                 rowFor(flowElement, "privateKeyFilename", sharedRowMap),
-                rowFor(flowElement, "knownHostFilename", sharedRowMap));
+                rowFor(flowElement, "knownHostsFilename", sharedRowMap));
         gridy = addHeadingGroup(mandatoryPanel, "Provide key and hosts", keyGroup, headingGc, rowGc, gridy, groups);
 
         // Flat row below the groups.

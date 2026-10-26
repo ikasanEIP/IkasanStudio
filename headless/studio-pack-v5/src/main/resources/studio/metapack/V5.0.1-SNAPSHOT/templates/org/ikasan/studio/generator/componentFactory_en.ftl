@@ -129,7 +129,9 @@ org.ikasan.builder.BuilderFactory builderFactory;
     </#if>
     <#if flowElement.componentMeta.implementingClass != "org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverter">
     <#list flowElement.getStandardComponentProperties() as propKey, propValue>
-        <#if !propValue.valueNotSet() && propValue.meta.isSetterProperty() >
+        <#-- Complete JNDI maps take precedence over individual setters and their Studio defaults. -->
+        <#assign jndiMapOverrides = (propKey?starts_with("connectionFactoryJndiProperty") && flowElement.getPropertyValue("connectionFactoryJndiProperties")??) || (propKey?starts_with("destinationJndiProperty") && flowElement.getPropertyValue("destinationJndiProperties")??)>
+        <#if !propValue.valueNotSet() && propValue.meta.isSetterProperty() && !jndiMapOverrides >
             <#if nonFluentLog>logBuilder</#if>
             <#if propValue.meta.getSetterMethod()?? && propValue.meta.getSetterMethod()!= "">
                 <#assign setter="${propValue.meta.getSetterMethod()}">

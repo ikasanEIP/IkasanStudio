@@ -1,7 +1,9 @@
 {
+  "runtimeConfigurationMappings": {"mailHost": "mailhost", "password": "mailPassword", "runtimeEnvironment": "mailRuntimeEnvironment", "subject": "mailSubject", "mailFrom": "from", "mailTransportProtocol": "transportProtocol"},
+  "legacyPropertyAliases": {"hasAttachments": "hasAttachment"},
   "flowTestDeliveryStrategy": "smtp",
   "flowTestRecipientProperties": [["toRecipient", "toRecipients"], ["ccRecipient", "ccRecipients"], ["bccRecipient", "bccRecipients"]],
-  "runtimeConfigurationProperties": ["toRecipients", "ccRecipients", "bccRecipients", "extendedMailSessionProperties", "emailBody", "emailFormat", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailSmtpClass", "user", "mailPopHost", "mailPopPort", "mailPopUser", "mailPopClass", "mailStoreProtocol", "mailDebug", "mailMimeAddressStrict"],
+  "runtimeConfigurationProperties": ["toRecipients", "ccRecipients", "bccRecipients", "extendedMailSessionProperties", "emailBody", "emailFormat", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailSmtpClass", "user", "mailPopHost", "mailPopPort", "mailPopUser", "mailPopClass", "mailStoreProtocol", "mailDebug", "mailMimeAddressStrict", "hasAttachment", "mailhost", "mailPassword", "mailRuntimeEnvironment", "mailSubject", "from", "transportProtocol"],
   "name": "Email Producer",
   "supportsTestMailServer": true,
   "builderFactory": "org.ikasan.builder.BuilderFactory",
@@ -143,8 +145,8 @@
       "usageDataType": "java.util.List<String>",
       "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipient", "ccRecipients", "bccRecipient"]
     },
-    "hasAttachments": {
-      "propertyName": "hasAttachments",
+    "hasAttachment": {
+      "propertyName": "hasAttachment",
       "propertyConfigFileLabel": "__flow.__component.email.producer.hasAttachments",
       "defaultValue": false,
       "helpText": "Default: false. Set to true if the email includes attachments. This only opens the gate to send them - the attachment bytes themselves must be added to the EmailPayload by the upstream <strong>Email Converter</strong> (via addAttachment), this flag does not attach anything by itself.",

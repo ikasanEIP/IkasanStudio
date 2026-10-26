@@ -269,6 +269,40 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         } finally { pool.shutdownNow(); }
     }
 
+    public void testIndexAccessFailureDuringShorteningKeepsOriginalJavaSource() throws Exception {
+        var style = org.mockito.Mockito.mock(com.intellij.psi.codeStyle.JavaCodeStyleManager.class);
+        org.mockito.Mockito.when(style.shortenClassReferences(org.mockito.ArgumentMatchers.any(com.intellij.psi.PsiElement.class)))
+                .thenThrow(com.intellij.openapi.project.IndexNotReadyException.create());
+        try (var styles = org.mockito.Mockito.mockStatic(com.intellij.psi.codeStyle.JavaCodeStyleManager.class)) {
+            styles.when(() -> com.intellij.psi.codeStyle.JavaCodeStyleManager.getInstance(myProject)).thenReturn(style);
+            String path = "generated/src/main/java/example/IndexRace.java";
+            String source = "package example; public class IndexRace { java.util.List<String> values; }";
+            GenerationTransactionManager.begin();
+            StudioProjectFiles.createFileWithDirectories(myProject, path, source, null);
+            assertEquals(1, GenerationTransactionManager.commit(myProject).created());
+            assertEquals(source, read(StudioProjectFiles.getProjectBaseDir(myProject), path));
+            org.mockito.Mockito.verify(style).shortenClassReferences(org.mockito.ArgumentMatchers.any(com.intellij.psi.PsiElement.class));
+        }
+    }
+
+    public void testJavaGenerationCommitsWhileIndexingWithoutChangingSource() throws Exception {
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base);
+        String path = "generated/src/main/java/example/Imported.java";
+        String source = "package example; public class Imported { java.util.List<String> values; }";
+        StudioProjectFiles.createFileWithDirectories(myProject, "generated/import-state.txt", "before", null);
+        com.intellij.testFramework.DumbModeTestUtils.runInDumbModeSynchronously(myProject, () -> {
+            GenerationTransactionManager.begin();
+            StudioProjectFiles.createFileWithDirectories(myProject, "generated/import-state.txt", "after", null);
+            StudioProjectFiles.createFileWithDirectories(myProject, path, source, null);
+            GenerationTransactionManager.Summary summary = GenerationTransactionManager.commit(myProject);
+            assertEquals(1, summary.created());
+            assertEquals(1, summary.updated());
+            assertEquals(source, read(base, path));
+            assertEquals("after", read(base, "generated/import-state.txt"));
+        });
+    }
+
     public void testFormattedGenerationIsReusedOnlyWhileTemplateAndDiskStillMatch() throws Exception {
         VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);

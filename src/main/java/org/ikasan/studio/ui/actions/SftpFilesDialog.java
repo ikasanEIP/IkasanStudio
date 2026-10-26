@@ -241,7 +241,7 @@ public final class SftpFilesDialog extends DialogWrapper {
             host.setText(value(component, "remoteHost")); port.setText(value(component, "remotePort"));
             if (port.getText().isBlank()) port.setText("22");
             username.setText(value(component, "username")); password.setText(value(component, "password"));
-            key.setText(value(component, "privateKeyFilename")); hosts.setText(value(component, "knownHostFilename"));
+            key.setText(value(component, "privateKeyFilename")); hosts.setText(value(component, "knownHostsFilename"));
             if (hosts.getText().isBlank()) hosts.setText("~/.ssh/known_hosts");
             remote.setText(value(component, component.getComponentMeta().isConsumer() ? "sourceDirectory" : "outputDirectory"));
             setTitle(StudioBundle.message("sftpBrowser.connectTitle")); setOKButtonText(StudioBundle.message("sftpBrowser.connect")); init();

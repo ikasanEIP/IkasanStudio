@@ -1,6 +1,7 @@
 {
+  "runtimeConfigurationMappings": {"FTPS": "ftps"},
   "flowTestDeliveryStrategy": "ftp",
-  "runtimeConfigurationProperties": ["active", "checksumDelivered", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "createParentDirectory", "dataTimeout", "ftpsIsImplicit", "ftpsKeyStoreFilePassword", "ftpsKeyStoreFilePath", "ftpsPort", "ftpsProtocol", "maxRetryAttempts", "outputDirectory", "overwrite", "password", "remoteHost", "remotePort", "renameExtension", "socketTimeout", "systemKey", "tempFileName", "unzip", "username"],
+  "runtimeConfigurationProperties": ["active", "checksumDelivered", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "createParentDirectory", "dataTimeout", "ftpsIsImplicit", "ftpsKeyStoreFilePassword", "ftpsKeyStoreFilePath", "ftpsPort", "ftpsProtocol", "maxRetryAttempts", "outputDirectory", "overwrite", "password", "remoteHost", "remotePort", "renameExtension", "socketTimeout", "systemKey", "tempFileName", "unzip", "username", "ftps"],
   "flowTestFileDelivery": true,
   "name": "FTP Producer",
   "helpText": "<p>Delivers files to a remote FTP or SFTP server. A persistent store records metadata about delivered files.</p>",
