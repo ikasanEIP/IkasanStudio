@@ -10,15 +10,15 @@
 <#if flowElement.getPropertyValue('recipeEmailBody')??>
             result.setEmailBody("${flowElement.getPropertyValue('recipeEmailBody')?j_string}");
 <#else>
-            // No attachment is actually sent below unless the Email Producer's own "hasAttachments" property is
+            // No attachment is actually sent below unless the Email Producer's own "hasAttachment" property is
             // also enabled - see the warning further down - so the body only names the file, it never claims one
             // is attached.
             result.setEmailBody("Source file: " + filename);
 </#if>
-            // WARNING: the Email Producer's "hasAttachments" property defaults to false and is the ONLY thing
+            // WARNING: the Email Producer's "hasAttachment" property defaults to false and is the ONLY thing
             // that gates whether an attachment is actually sent - it is independent of this Converter, so leaving
             // it false while this line is active would silently send the email without the attachment, no error
-            // raised anywhere. Uncomment the line below AND set "hasAttachments" to true on the Email Producer
+            // raised anywhere. Uncomment the line below AND set "hasAttachment" to true on the Email Producer
             // component for the attachment to actually be delivered.
             // result.addAttachment(filename, "${((flowElement.getPropertyValue('recipeMediaType'))!'application/octet-stream')?j_string}", attachmentContent);
             return result;

@@ -12,6 +12,7 @@ import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 import org.ikasan.studio.core.persistence.json.IkasanModelDocuments;
+import org.ikasan.studio.core.persistence.json.ComponentImplementationAliases;
 
 import java.util.*;
 
@@ -180,7 +181,7 @@ public final class ModelMigration {
         // Do not use the deserializer's generic fallback for an unrecognised built-in component.
         ComponentMeta sourceMeta = from.values().stream().filter(meta ->
                 Objects.equals(meta.getComponentType(), component.path("componentType").asText(null))
-                && Objects.equals(meta.getImplementingClass(), component.path("implementingClass").asText(null))
+                && Objects.equals(meta.getImplementingClass(), ComponentImplementationAliases.canonical(component.path("implementingClass").asText(null)))
                 && Objects.equals(meta.getAdditionalKey(), component.path("additionalKey").asText(null)))
                 .findFirst().orElse(null);
         if (sourceMeta == null) {

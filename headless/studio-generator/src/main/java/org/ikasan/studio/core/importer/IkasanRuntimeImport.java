@@ -127,8 +127,7 @@ public final class IkasanRuntimeImport {
             Map<String, JsonNode> configurations = configurations(configuration);
             List<String> review = new ArrayList<>();
             review.add("Runtime JSON does not include Java implementations, dependencies, Spring wiring or all builder settings. Review these before building or running.");
-            review.add("Project ports and build settings use Studio defaults. Module, flow and invoker configuration is retained for reference, not automatically applied.");
-            review.add("Flows are imported MANUAL. Original topology and configuration are retained in model.json under " + SOURCE_FIELD + ". They may contain credentials; review before sharing.");
+            review.add("Compare the generated Maven POM with the original project: restore any custom dependencies, repositories, plugins and build profiles needed by your application.");
             if (!runtimeVersion.isBlank() && !runtimeVersion.equals(manifest.ikasanVersion()))
                 review.add("Patch upgrade: export Ikasan " + runtimeVersion + " imported using " + pack
                         + " (Ikasan " + manifest.ikasanVersion() + "). Generated dependencies target the newer patch."
@@ -138,7 +137,20 @@ public final class IkasanRuntimeImport {
             base.setName(required(topology, "name"));
             base.setApplicationPackageName(packageName);
             base.defaultUnsetMandatoryProperties();
+            JsonNode port = topology.get("port");
+            if (port != null && !port.isNull()) {
+                String supplied = port.asText();
+                if (!(port.isIntegralNumber() || port.isTextual()) || !supplied.matches("[0-9]{1,5}")
+                        || Integer.parseInt(supplied) < 1 || Integer.parseInt(supplied) > 65535)
+                    throw problem("The module metadata port must be an integer from 1 to 65535. Correct the export before importing.");
+                base.setPort(Integer.toString(Integer.parseInt(supplied)));
+            } else {
+                review.add("Application HTTP port was not supplied in the module metadata. Verify Studio's default port "
+                        + base.getPort() + " against the original application before running.");
+            }
             ObjectNode design = (ObjectNode) JSON.readTree(ComponentIO.toJson(base));
+            // Runtime metadata supplies per-flow startup controls, not a module-wide default.
+            // All imported flows receive an explicit setting below.
             design.put("flowStartupType", "MANUAL");
             if (topology.hasNonNull("description")) design.set("description", topology.get("description"));
             // Runtime module 'version' is the application's version, not Studio's meta-pack ID.
@@ -207,7 +219,18 @@ public final class IkasanRuntimeImport {
             for (JsonNode edge : outgoing.getOrDefault(node, List.of())) pending.add(required(edge, "to"));
         }
         if (reached.size() != components.size()) throw problem("Flow " + flowName + ": disconnected components are not imported silently.");
-        ObjectNode result = JSON.createObjectNode().put("name", flowName).put("flowStartupType", "MANUAL");
+        JsonNode declaredStartup = input.get("flowStartupType");
+        String startup;
+        if (declaredStartup == null || declaredStartup.isNull()) {
+            startup = "MANUAL";
+            review.add("Flow '" + flowName + "': startup type was not supplied. Imported as MANUAL; verify the original startup setting before running.");
+        } else if (declaredStartup.isTextual()
+                && Set.of("AUTOMATIC", "MANUAL", "DISABLED").contains(declaredStartup.textValue())) {
+            startup = declaredStartup.textValue();
+        } else {
+            throw problem("Flow '" + flowName + "': unrecognised startup type. Expected AUTOMATIC, MANUAL or DISABLED; correct the export before importing.");
+        }
+        ObjectNode result = JSON.createObjectNode().put("name", flowName).put("flowStartupType", startup);
         if (input.hasNonNull("configurationId")) result.set("configurationId", input.get("configurationId"));
         result.set("transitions", input.get("transitions").deepCopy());
         ArrayNode elements = result.putArray("flowElements");
@@ -219,7 +242,6 @@ public final class IkasanRuntimeImport {
                 review.add(flowName + " → " + entry.getKey() + ": inferred variant " + meta.getName()
                         + " from its linked configuration class " + configurationClass(meta)
                         + ". Review the original message-provider wiring before running.");
-            if (mappings.containsKey(ref)) review.add(flowName + " → " + entry.getKey() + ": selected variant " + meta.getName() + ".");
             if (entry.getKey().equals(consumer) != meta.isConsumer()) throw problem("Flow " + flowName + ": invalid consumer placement.");
             List<JsonNode> routes = outgoing.getOrDefault(entry.getKey(), List.of());
             if (routes.size() > 1 && !meta.isRouter()) throw problem("Flow " + flowName + ": branching component is not a supported router.");
@@ -238,7 +260,7 @@ public final class IkasanRuntimeImport {
                 for (String typeProperty : List.of("fromType", "toType")) {
                     if (meta.getAllowableProperties().containsKey(typeProperty)) target.put(typeProperty, "java.lang.Object");
                 }
-                review.add(flowName + " → " + entry.getKey() + ": supply existing implementation " + required(raw, "implementingClass") + " and its Spring bean/wiring; no replacement stub requested.");
+                review.add(flowName + " → " + entry.getKey() + ": supply existing implementation " + required(raw, "implementingClass") + " and its Spring bean/wiring.");
             }
             if (meta.isRouter()) {
                 if (routes.stream().anyMatch(e -> e.path("name").asText().contains(",")))
@@ -256,6 +278,11 @@ public final class IkasanRuntimeImport {
                     applyConfiguration(target, config, meta, flowName, review);
                 }
             }
+            String inputTypeProperty = meta.getExpectedInputTypeProperty();
+            var inputType = inputTypeProperty == null ? null : meta.getAllowableProperties().get(inputTypeProperty);
+            if (inputType != null && inputType.isMandatory() && !target.hasNonNull(inputTypeProperty))
+                review.add(flowName + " → " + entry.getKey() + ": supply " + inputTypeProperty
+                        + " (the input Java class); runtime metadata does not include this builder setting.");
             if (entry.getKey().equals(consumer)) result.set("consumer", target); else elements.add(target);
         }
         return result;
@@ -317,16 +344,26 @@ public final class IkasanRuntimeImport {
                                            String flowName, List<String> review) throws StudioBuildException {
         String configurationClass = configurationClass(meta);
         boolean matchingClass = config.path("implementingClass").asText().equals(configurationClass);
+        List<String> unapplied = new ArrayList<>();
         for (JsonNode parameter : config.path("parameters")) {
             String name = required(parameter, "name");
-            var property = meta.getAllowableProperties().get(name);
+            String studioProperty = meta.runtimeConfigurationProperty(name);
+            var property = studioProperty == null ? null : meta.getAllowableProperties().get(studioProperty);
             JsonNode value = parameter.get("value");
-            if (matchingClass && meta.getRuntimeConfigurationProperties().contains(name) && property != null
-                    && value != null && !value.isNull() && compatible(value, property.getPropertyDataType())) {
-                target.set(name, value.deepCopy());
-                review.add(flowName + " → " + target.path("componentName").asText() + ": applied configuration field " + name + ".");
-            } else review.add(flowName + " → " + target.path("componentName").asText() + ": retained configuration field " + name + " without applying it; review original configuration.");
+            // Unset REST parameters are provenance, not work for the developer to resolve.
+            if (value == null || value.isNull()) continue;
+            if (matchingClass && studioProperty != null && property != null
+                    && compatible(value, property.getPropertyDataType())) {
+                target.set(studioProperty, value.deepCopy());
+            } else if (!matchingClass || !value.equals(meta.getRuntimeConfigurationDefaults().get(name))) {
+                // Match typed JSON against a default verified for this exact pack/component construction.
+                // Unknown fields, changed defaults and mismatched configuration classes still need review.
+                unapplied.add(name);
+            }
         }
+        if (!unapplied.isEmpty()) review.add(flowName + " → " + target.path("componentName").asText()
+                + ": review configuration fields not applied: " + String.join(", ", unapplied)
+                + ". Compare with the original configuration before running.");
     }
 
     private static boolean compatible(JsonNode value, Class<?> type) {

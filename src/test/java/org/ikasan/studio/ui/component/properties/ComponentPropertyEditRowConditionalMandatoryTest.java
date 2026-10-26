@@ -113,11 +113,11 @@ public class ComponentPropertyEditRowConditionalMandatoryTest {
     }
 
     /**
-     * password/privateKeyFilename/knownHostFilename are grouped under two mandatorySectionHeadings ("Provide
+     * password/privateKeyFilename/knownHostsFilename are grouped under two mandatorySectionHeadings ("Provide
      * password or" / "Provide key and hosts" - see ComponentPropertiesPanel#flushMandatoryHeadingGroup) rather
      * than each carrying the plain pairwise "(or ...)" label cue: with three fields across two alternatives
-     * (password alone, or privateKeyFilename together with knownHostFilename), a per-row "(or a / b)" suffix
-     * would suggest all three are interchangeable, which they aren't - knownHostFilename is only ever useful
+     * (password alone, or privateKeyFilename together with knownHostsFilename), a per-row "(or a / b)" suffix
+     * would suggest all three are interchangeable, which they aren't - knownHostsFilename is only ever useful
      * alongside privateKeyFilename, not as a substitute for it.
      */
     @Test
@@ -125,7 +125,7 @@ public class ComponentPropertyEditRowConditionalMandatoryTest {
         FlowElement flowElement = newSftpConsumer();
         ComponentPropertyEditRow passwordRow = rowFor(flowElement, "password", new HashMap<>());
         ComponentPropertyEditRow privateKeyRow = rowFor(flowElement, "privateKeyFilename", new HashMap<>());
-        ComponentPropertyEditRow knownHostRow = rowFor(flowElement, "knownHostFilename", new HashMap<>());
+        ComponentPropertyEditRow knownHostRow = rowFor(flowElement, "knownHostsFilename", new HashMap<>());
 
         assertEquals("Password", passwordRow.getPropertyTitleField().getText());
         assertEquals("Private Key Filename", privateKeyRow.getPropertyTitleField().getText());
@@ -137,49 +137,49 @@ public class ComponentPropertyEditRowConditionalMandatoryTest {
     }
 
     @Test
-    public void knownHostFilenameIsFlaggedWhenNeitherCredentialIsSet() {
-        // knownHostFilename is only actually read by the JCA connector when password is null (key-based auth) -
+    public void knownHostsFilenameIsFlaggedWhenNeitherCredentialIsSet() {
+        // knownHostsFilename is only actually read by the JCA connector when password is null (key-based auth) -
         // see SFTPManagedConnection.java:221-239 in ik3/ik4 core - so it shares password's "not yet decided which
         // auth mechanism" unset state here too.
         Map<String, ComponentPropertyEditRow> sharedRowMap = new HashMap<>();
         FlowElement flowElement = newSftpConsumer();
-        ComponentPropertyEditRow knownHostRow = rowFor(flowElement, "knownHostFilename", sharedRowMap);
+        ComponentPropertyEditRow knownHostRow = rowFor(flowElement, "knownHostsFilename", sharedRowMap);
         rowFor(flowElement, "password", sharedRowMap);
         knownHostRow.resetDataEntryComponentsWithNewValues();
 
-        assertFalse(knownHostRow.doValidateAll().isEmpty(), "knownHostFilename must be flagged - password is unset, so key-based auth (which needs it) is implied");
+        assertFalse(knownHostRow.doValidateAll().isEmpty(), "knownHostsFilename must be flagged - password is unset, so key-based auth (which needs it) is implied");
     }
 
     @Test
     public void settingPasswordExemptsKnownHostFilename() {
         // Password auth explicitly disables host-key checking (SFTPClient.java's doConnect() sets
-        // StrictHostKeyChecking=no on that path) - knownHostFilename genuinely isn't read at all once password
+        // StrictHostKeyChecking=no on that path) - knownHostsFilename genuinely isn't read at all once password
         // is supplied, so it must stop being required the moment password is.
         Map<String, ComponentPropertyEditRow> sharedRowMap = new HashMap<>();
         FlowElement flowElement = newSftpConsumer();
         flowElement.setPropertyValue("password", "secret");
-        ComponentPropertyEditRow knownHostRow = rowFor(flowElement, "knownHostFilename", sharedRowMap);
+        ComponentPropertyEditRow knownHostRow = rowFor(flowElement, "knownHostsFilename", sharedRowMap);
         rowFor(flowElement, "password", sharedRowMap);
         knownHostRow.resetDataEntryComponentsWithNewValues();
 
-        assertTrue(knownHostRow.doValidateAll().isEmpty(), "knownHostFilename should not be required once password auth is in use");
+        assertTrue(knownHostRow.doValidateAll().isEmpty(), "knownHostsFilename should not be required once password auth is in use");
     }
 
     @Test
-    public void knownHostFilenameAloneDoesNotSatisfyPassword() {
+    public void knownHostsFilenameAloneDoesNotSatisfyPassword() {
         // The relationship is one-directional: password is only satisfied by privateKeyFilename, not by
-        // knownHostFilename - setting knownHostFilename alone must not silently unblock password's own check.
+        // knownHostsFilename - setting knownHostsFilename alone must not silently unblock password's own check.
         Map<String, ComponentPropertyEditRow> sharedRowMap = new HashMap<>();
         FlowElement flowElement = newSftpConsumer();
-        flowElement.setPropertyValue("knownHostFilename", "~/.ssh/known_hosts");
+        flowElement.setPropertyValue("knownHostsFilename", "~/.ssh/known_hosts");
         ComponentPropertyEditRow passwordRow = rowFor(flowElement, "password", sharedRowMap);
         ComponentPropertyEditRow privateKeyRow = rowFor(flowElement, "privateKeyFilename", sharedRowMap);
-        rowFor(flowElement, "knownHostFilename", sharedRowMap);
+        rowFor(flowElement, "knownHostsFilename", sharedRowMap);
         passwordRow.resetDataEntryComponentsWithNewValues();
         privateKeyRow.resetDataEntryComponentsWithNewValues();
 
-        assertFalse(passwordRow.doValidateAll().isEmpty(), "knownHostFilename alone must not satisfy password's requirement");
-        assertFalse(privateKeyRow.doValidateAll().isEmpty(), "knownHostFilename alone must not satisfy privateKeyFilename's requirement either");
+        assertFalse(passwordRow.doValidateAll().isEmpty(), "knownHostsFilename alone must not satisfy password's requirement");
+        assertFalse(privateKeyRow.doValidateAll().isEmpty(), "knownHostsFilename alone must not satisfy privateKeyFilename's requirement either");
     }
 
     @Test

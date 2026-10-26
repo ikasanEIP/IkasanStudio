@@ -3,7 +3,6 @@ package org.ikasan.studio.intellij.project;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.*;
 import com.intellij.util.ui.JBUI;
@@ -16,7 +15,7 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /** Fetches into memory only. The parent import dialog still owns conversion, review and import. */
-final class RuntimeImportConnectionDialog extends DialogWrapper {
+final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
     private static final com.intellij.openapi.diagnostic.Logger LOG = com.intellij.openapi.diagnostic.Logger.getInstance(RuntimeImportConnectionDialog.class);
     private final Project project;
     private final JBTextField url = new JBTextField("http://localhost:8080/");
@@ -27,8 +26,17 @@ final class RuntimeImportConnectionDialog extends DialogWrapper {
     private RuntimeImportClient.Documents documents;
 
     RuntimeImportConnectionDialog(Project project) {
-        super(project, true);
+        this(project, null);
+    }
+
+    RuntimeImportConnectionDialog(Project project, Component parent) {
+        super(project, parent);
         this.project = project;
+        var saved = project.getService(RuntimeImportConnectionSettings.class).getState();
+        url.setText(saved.applicationUrl);
+        module.setText(saved.moduleName);
+        username.setText(saved.username);
+        configuration.setSelected(saved.includeConfiguration);
         setTitle(StudioBundle.message("import.remote.title"));
         setOKButtonText(StudioBundle.message("import.remote.fetch"));
         init();
@@ -82,6 +90,7 @@ final class RuntimeImportConnectionDialog extends DialogWrapper {
         String user = username.getText();
         char[] secret = password.getPassword();
         boolean include = configuration.isSelected();
+        rememberConnection();
         var fetched = new AtomicReference<RuntimeImportClient.Documents>();
         var failure = new AtomicReference<IOException>();
         try {
@@ -103,7 +112,15 @@ final class RuntimeImportConnectionDialog extends DialogWrapper {
         } finally { java.util.Arrays.fill(secret, '\0'); }
     }
 
+    private void rememberConnection() {
+        if (!project.isDisposed()) {
+            project.getService(RuntimeImportConnectionSettings.class).remember(
+                    url.getText(), module.getText(), username.getText(), configuration.isSelected());
+        }
+    }
+
     @Override protected void dispose() {
+        rememberConnection();
         password.setText("");
         super.dispose();
     }

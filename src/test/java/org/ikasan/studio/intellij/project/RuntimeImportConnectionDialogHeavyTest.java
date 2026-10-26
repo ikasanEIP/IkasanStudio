@@ -66,6 +66,42 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
         finally { reopened.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
     }
 
+    public void testClosingAndReopeningRemembersConnectionWithoutPassword() throws Exception {
+        var dialog = new RuntimeImportConnectionDialog(getProject());
+        ((JTextField) field(dialog, "url")).setText("http://localhost:12450/demo/swagger-ui/index.html?token=discard#/module");
+        ((JTextField) field(dialog, "module")).setText(" Demo ");
+        ((JTextField) field(dialog, "username")).setText("demo-user");
+        ((javax.swing.JCheckBox) field(dialog, "configuration")).setSelected(false);
+        ((JPasswordField) field(dialog, "password")).setText("never-persist-this");
+        dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+
+        // Round-trip through the platform serializer, as when the workspace is reopened.
+        var service = getProject().getService(RuntimeImportConnectionSettings.class);
+        var xml = com.intellij.util.xmlb.XmlSerializer.serialize(service.getState());
+        String serialized = new org.jdom.output.XMLOutputter().outputString(xml);
+        assertFalse(serialized.contains("never-persist-this"));
+        assertFalse(serialized.contains("token"));
+        service.loadState(com.intellij.util.xmlb.XmlSerializer.deserialize(xml,
+                RuntimeImportConnectionSettings.Settings.class));
+        var reopened = new RuntimeImportConnectionDialog(getProject());
+        try {
+            assertEquals("http://localhost:12450/demo", ((JTextField) field(reopened, "url")).getText());
+            assertEquals("Demo", ((JTextField) field(reopened, "module")).getText());
+            assertEquals("demo-user", ((JTextField) field(reopened, "username")).getText());
+            assertFalse(((javax.swing.JCheckBox) field(reopened, "configuration")).isSelected());
+            assertEquals(0, ((JPasswordField) field(reopened, "password")).getPassword().length);
+        } finally { reopened.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testInvalidUrlCannotOverwriteLastUsableConnection() {
+        var settings = new RuntimeImportConnectionSettings();
+        settings.remember("https://localhost:8443/demo", "Demo", "user", false);
+        settings.remember("https://user:secret@localhost/demo", "Other", "", true);
+        assertEquals("https://localhost:8443/demo", settings.getState().applicationUrl);
+        assertEquals("Other", settings.getState().moduleName);
+        assertEquals("http://localhost:8080/", new RuntimeImportConnectionSettings().getState().applicationUrl);
+    }
+
     private void exerciseFetch(int status, String body, boolean success) throws Exception {
         exerciseFetch(status, body, success, "");
     }
@@ -88,6 +124,8 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
             var password = (JPasswordField) field(dialog, "password"); password.setText("temporary-secret");
             assertNull(dialog.doValidate());
             dialog.doOKAction();
+            assertEquals("Demo", getProject().getService(RuntimeImportConnectionSettings.class).getState().moduleName);
+            assertEquals("demo-user", getProject().getService(RuntimeImportConnectionSettings.class).getState().username);
             String context = suffix.isEmpty() ? "" : "/ctx";
             assertEquals(context + "/rest/metadata/module/Demo", requested.get());
             assertEquals("http://127.0.0.1:" + server.getAddress().getPort() + context,

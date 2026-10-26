@@ -740,10 +740,15 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             String additionalKey = jsonNode.get(ComponentMeta.ADDITIONAL_KEY) != null ? jsonNode.get(ComponentMeta.ADDITIONAL_KEY).asText() : null;
 
             ComponentMeta componentMeta = ComponentLibrary.getIkasanComponentByDeserialisationKey(
-                    metapackVersion, implementingClass, componentType, additionalKey);
+                    metapackVersion, ComponentImplementationAliases.canonical(implementingClass), componentType, additionalKey);
             if (componentMeta == null)
                 LOG.warn("Studio: Serious: Could not create a flow element using implementingClass [" + implementingClass + "] componentType [" + componentType + "] additionalKey [" + additionalKey + "] ignoring element.");
             else {
+                try {
+                    jsonNode = ComponentPropertyAliases.normalize((com.fasterxml.jackson.databind.node.ObjectNode) jsonNode, componentMeta);
+                } catch (IOException invalidAliases) {
+                    throw new StudioBuildException(invalidAliases.getMessage(), invalidAliases);
+                }
                 if (componentMeta.isGeneratesUserImplementedClass()) {
                     flowElement = FlowUserImplementedElement.flowUserImplementedElementBuilder()
                             .componentMeta(componentMeta)

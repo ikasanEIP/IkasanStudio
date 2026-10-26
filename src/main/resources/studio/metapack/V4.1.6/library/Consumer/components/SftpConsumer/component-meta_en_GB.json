@@ -1,5 +1,6 @@
 {
-  "runtimeConfigurationProperties": ["ageOfFiles", "checksum", "chronological", "chunkSize", "chunking", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "cronExpression", "destructive", "eager", "filenamePattern", "ignoreMisfire", "isRecursive", "maxEagerCallbacks", "maxRetryAttempts", "maxRows", "minAge", "moveOnSuccessNewPath", "password", "preferredKeyExchangeAlgorithm", "privateKeyFilename", "remoteHost", "remotePort", "renameOnSuccess", "renameOnSuccessExtension", "sourceDirectory", "timezone", "username"],
+  "legacyPropertyAliases": {"knownHostFilename": "knownHostsFilename"},
+  "runtimeConfigurationProperties": ["ageOfFiles", "checksum", "chronological", "chunkSize", "chunking", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "cronExpression", "destructive", "eager", "filenamePattern", "ignoreMisfire", "isRecursive", "maxEagerCallbacks", "maxRetryAttempts", "maxRows", "minAge", "moveOnSuccessNewPath", "password", "preferredKeyExchangeAlgorithm", "privateKeyFilename", "remoteHost", "remotePort", "renameOnSuccess", "renameOnSuccessExtension", "sourceDirectory", "timezone", "username", "knownHostsFilename"],
   "supportsTestSftpServer": true,
   "name": "SFTP Consumer",
   "producedOutputType": "org.ikasan.filetransfer.Payload",
@@ -221,8 +222,8 @@
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
-    "knownHostFilename": {
-      "propertyName": "knownHostFilename",
+    "knownHostsFilename": {
+      "propertyName": "knownHostsFilename",
       "propertyDisplayOrder": -22,
       "displayLabel": "Known Hosts Filename",
       "mandatoryUnlessAnyOf": [

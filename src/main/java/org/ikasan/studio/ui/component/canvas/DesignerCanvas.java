@@ -354,7 +354,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         JButton importModelJsonButton = new JButton(StudioBundle.message("button.ImportModelJson"));
         importModelJsonButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         importModelJsonButton.addActionListener(event ->
-                org.ikasan.studio.intellij.project.ModelImporter.openImportDialog(this.project));
+                org.ikasan.studio.intellij.project.ModelImporter.openImportDialog(this.project, this));
         panel.add(importModelJsonButton);
 
         panel.add(Box.createVerticalStrut(JBUI.scale(24)));

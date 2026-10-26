@@ -744,13 +744,23 @@ public class StudioProjectFiles {
         if (!fileName.endsWith(".java")) {
             return content;
         }
-        PsiFile inMemoryFile = PsiFileFactory.getInstance(project)
-                .createFileFromText(fileName, JavaFileType.INSTANCE, content);
-        return WriteAction.compute(() -> {
-            JavaCodeStyleManager.getInstance(project).shortenClassReferences(inMemoryFile);
-            CodeStyleManager.getInstance(project).reformat(inMemoryFile);
-            return inMemoryFile.getText();
-        });
+        // Import can trigger indexing between successive artifact writes. Import shortening
+        // resolves types even for an in-memory file; it must not abort a valid generation batch.
+        if (com.intellij.openapi.project.DumbService.isDumb(project)) return content;
+        try {
+            PsiFile inMemoryFile = PsiFileFactory.getInstance(project)
+                    .createFileFromText(fileName, JavaFileType.INSTANCE, content);
+            return WriteAction.compute(() -> {
+                JavaCodeStyleManager.getInstance(project).shortenClassReferences(inMemoryFile);
+                CodeStyleManager.getInstance(project).reformat(inMemoryFile);
+                return inMemoryFile.getText();
+            });
+        } catch (com.intellij.openapi.project.IndexNotReadyException indexing) {
+            // Index access can also become unavailable before DumbService reports dumb mode.
+            // Return the original, validated source, never partially shortened in-memory text.
+            LOG.info("STUDIO: Preserving generated Java source while indexes are unavailable");
+            return content;
+        }
     }
 
     /**

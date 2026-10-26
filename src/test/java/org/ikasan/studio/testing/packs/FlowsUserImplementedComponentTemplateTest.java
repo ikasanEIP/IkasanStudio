@@ -134,12 +134,12 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         converter.setPropertyValue("conversionRecipeId", matches.stream().filter(r -> r.getId().equals("file-transfer-payload-to-email-attachment")).findFirst().orElseThrow().getId());
         String generated = generateUserImplementedComponentTemplate(metaPackVersion, module, converter);
         assertTrue(generated.contains("implements Converter<org.ikasan.filetransfer.Payload, org.ikasan.component.endpoint.email.producer.EmailPayload>"));
-        // Attachment is generated commented out - the Email Producer's own "hasAttachments" property, not this
+        // Attachment is generated commented out - the Email Producer's own "hasAttachment" property, not this
         // Converter, gates whether an attachment is actually sent (see construct-email-attachment.ftl) - and the
         // default body only names the file rather than claiming one is attached.
         assertTrue(generated.contains("// result.addAttachment(filename, \"application/octet-stream\", attachmentContent)"));
         assertFalse(generated.contains("\n            result.addAttachment("));
-        assertTrue(generated.contains("hasAttachments"));
+        assertTrue(generated.contains("hasAttachment"));
         assertTrue(generated.contains("result.setEmailBody(\"Source file: \" + filename)"));
         assertFalse(generated.toLowerCase().contains("please see the attached file"));
         assertTrue(generated.contains("payload.getAttribute(\"fileName\")"));

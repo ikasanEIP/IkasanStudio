@@ -1,6 +1,7 @@
 {
+  "legacyPropertyAliases": {"knownHostFilename": "knownHostsFilename", "cleanupChunks": "cleanUpChunks"},
   "flowTestDeliveryStrategy": "sftp",
-  "runtimeConfigurationProperties": ["checksumDelivered", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "createParentDirectory", "maxRetryAttempts", "outputDirectory", "overwrite", "password", "preferredKeyExchangeAlgorithm", "privateKeyFilename", "remoteHost", "remotePort", "renameExtension", "tempFileName", "unzip", "username"],
+  "runtimeConfigurationProperties": ["checksumDelivered", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "createParentDirectory", "maxRetryAttempts", "outputDirectory", "overwrite", "password", "preferredKeyExchangeAlgorithm", "privateKeyFilename", "remoteHost", "remotePort", "renameExtension", "tempFileName", "unzip", "username", "knownHostsFilename", "cleanUpChunks"],
   "flowTestFileDelivery": true,
   "supportsTestSftpServer": true,
   "name": "SFTP Producer",
@@ -41,8 +42,8 @@
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
-    "cleanupChunks": {
-      "propertyName": "cleanupChunks",
+    "cleanUpChunks": {
+      "propertyName": "cleanUpChunks",
       "propertyConfigFileLabel": "__flow.__component.sftp.producer.cleanupChunks",
       "propertyGroup": "Delivery",
       "propertyDisplayOrder": 80,
@@ -115,8 +116,8 @@
       "setterProperty": true,
       "propertyDataType": "java.lang.Boolean"
     },
-    "knownHostFilename": {
-      "propertyName": "knownHostFilename",
+    "knownHostsFilename": {
+      "propertyName": "knownHostsFilename",
       "propertyDisplayOrder": -22,
       "displayLabel": "Known Hosts Filename",
       "mandatoryUnlessAnyOf": [

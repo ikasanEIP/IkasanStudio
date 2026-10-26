@@ -34,7 +34,7 @@ sftp.directory=
 sftp.password=
 # For key authentication, omit password and supply these existing local files instead:
 # sftp.privateKeyFilename=/home/your-user/.ssh/id_rsa
-# sftp.knownHostFilename=/home/your-user/.ssh/known_hosts
+# sftp.knownHostsFilename=/home/your-user/.ssh/known_hosts
 
 # FTP (optional)
 ftp.remoteHost=

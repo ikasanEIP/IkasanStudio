@@ -5,6 +5,34 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Recognise the runtime XML string converter and import its verified XML configuration fields; identify its missing input class for review. Preserve loading and version migration of existing XML components saved with the old builder identifier. Suppress FTP Consumer warnings only for verified unchanged scheduling/recovery and relative-path defaults across V3, V4 and V5 packs.
+
+- Remember running-module fetch connection details and the configuration checkbox per project across IDE restarts; keep passwords limited to retries within the open dialog.
+
+- Keep import/fetch/review dialogs on the invoking Studio window’s monitor, cap their initial bounds to its usable screen area, and prevent large JSON responses from expanding the preview beyond the screen.
+
+- Add explicit REST-to-Studio name mappings only for verified Email/FTP discrepancies; use them consistently for import, native model save/load and export. Validate mappings for collisions and keep historical Studio aliases separate, with their removal scheduled for the next release.
+
+- Correct Email Producer `hasAttachment`, SFTP `knownHostsFilename` and SFTP Producer `cleanUpChunks` property names in all three packs. Load historical names through declared aliases, preserve existing application-property keys, and import the corrected settings from REST configuration.
+
+- Simplify runtime-import implementation guidance by removing the internal “no replacement stub requested” wording.
+
+- Import complete JMS connection-factory and destination JNDI maps from REST configuration for V3, V4 and V5 producers/consumers. Preserve provider-specific string entries and empty maps, and prevent individual-field defaults from overwriting them during generation.
+
+- Explain in runtime-import guidance why implicit defaults can become explicit imported settings, including timezones and generated configuration IDs.
+
+- Omit runtime-import review warnings for settings matching verified defaults declared by the selected meta-pack; cover Scheduled Consumer schedule/recovery defaults in V3, V4 and V5 while retaining warnings for changed or unknown values.
+
+- Preserve declared AUTOMATIC, MANUAL and DISABLED flow startup settings during runtime import; use MANUAL with flow-specific review guidance only for missing settings and reject unknown values.
+
+- Preserve the original application HTTP port from runtime module metadata; flag missing ports for review and reject invalid supplied ports. Clarify which Maven build settings need comparison with the original project.
+
+- Compact the model import dialog, clarify Studio versus runtime JSON modes, and show the optional component configuration tab only for runtime imports.
+
+- Focus runtime-import review on developer actions: omit applied and unset configuration fields, group populated unapplied fields per component, and omit confirmation of already selected variants. Keep routine provenance and credential-handling information in the documentation rather than the review report.
+
+- Keep valid generated Java source when IntelliJ indexes are unavailable during import, preventing optional import shortening from rolling back the code update.
+
 - Infer runtime-import component variants from uniquely linked, pack-declared configuration classes; retain clarification for missing or ambiguous evidence and show inferred choices in the import review.
 - Accept configuration parameters whose null values are omitted by the Ikasan REST serializer, preserving them as unset in import provenance.
 - Retain the running-module import password for retries within the open fetch dialog; clear it on close without persisting it.
@@ -13,7 +41,7 @@ version's notes, or the Unreleased notes while that version is being prepared.
 - Add JMS Map Message To Payload Converter to the V3, V4 and V5 development palettes, with configurable content/ID/filename fields, runtime configuration import, and direct Ikasan runtime construction.
 - Add Payload To Map Converter to the V3, V4 and V5 development palettes, with direct Ikasan runtime construction, file-transfer input/Map output type guidance and documented charset/attribute precedence.
 
-- Fetch module metadata and flow-scoped component configuration from a running Ikasan module into the existing import preview. Add optional Basic authentication without credential persistence, cancellable bounded HTTP requests, actionable REST failures and the existing mapping/review gate before import.
+- Fetch module metadata and flow-scoped component configuration from a running Ikasan module into the existing import preview. Add optional Basic authentication without password persistence, cancellable bounded HTTP requests, actionable REST failures and the existing mapping/review gate before import.
 
 - Fix runtime-import version choices and pack-loading errors waiting until the modal import dialog closes. Publish background results while the dialog is open, preserving disposal guards.
 - Warm the VFS before opening meta-pack install/update file choosers, preserve their modal parent, and ignore selection callbacks after the owning project or manager closes.

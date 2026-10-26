@@ -33,7 +33,11 @@ public final class ModelImporter {
     private ModelImporter() { }
 
     public static void openImportDialog(Project project) {
-        new ImportModelJsonDialog(project).show();
+        openImportDialog(project, project.getService(UiContext.class).getDesignerCanvas());
+    }
+
+    public static void openImportDialog(Project project, java.awt.Component parent) {
+        new ImportModelJsonDialog(project, parent).show();
     }
 
     /**
