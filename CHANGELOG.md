@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Infer runtime-import component variants from uniquely linked, pack-declared configuration classes; retain clarification for missing or ambiguous evidence and show inferred choices in the import review.
+- Accept configuration parameters whose null values are omitted by the Ikasan REST serializer, preserving them as unset in import provenance.
 - Retain the running-module import password for retries within the open fetch dialog; clear it on close without persisting it.
 - Normalize Swagger URLs during running-module import, clarify case-sensitive module names, and log safe REST endpoints/statuses. Offer reviewed exact-version or newer same-line patch pack selection while rejecting downgrades and cross-version migrations.
 - Generate JMS MapMessage flow-test fixtures for map consumers and message-kind guards; add sendMap support to the V3, V4 and V5 test helpers.

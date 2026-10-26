@@ -27,7 +27,15 @@ Source contracts inspected: `rest/rest-module/.../MetaDataApplication.java` and 
 2. Select **Import Ikasan runtime metadata and configuration JSON**. Paste or choose the module metadata document.
 3. Select the original Ikasan version and enter the destination application's Java package. The runtime module's `version` is an application version, not a Studio meta-pack identifier; `ikasanVersion`, when present, is checked separately.
 4. In **Ikasan configuration (optional)**, paste or choose the component configuration export. A single configuration object or an array of objects is accepted. Records are matched by `configurationId`, not position or component display name.
-5. Select component variants if prompted. Some variants share a runtime implementation class: a scheduled consumer's metadata, for example, does not identify every possible message provider. Consult the original application rather than guessing.
+5. Select component variants only if prompted. For shared runtime classes, Studio links the component's
+   configurationId to its supplied configuration record and matches the exact configuration class against
+   the selected pack. A unique match selects the variant automatically and records the evidence in the
+   import review. This distinguishes Scheduled, FTP, SFTP and Local File consumers without relying on
+   component names or cron expressions. Missing/unlinked records, unknown classes or multiple matching
+   variants still require clarification. Duplicate configuration IDs are rejected. Original
+   message-provider wiring still needs review; no Java classes are loaded to guess inheritance. REST
+   parameters with omitted/null values are retained as unset rather than applied or rejected; duplicate
+   parameter names remain invalid.
 6. Review the report before importing. Import replaces the destination project's model and uses the existing generation workflow. Use a new project when exploring an existing application.
 
 Imported flows use **MANUAL** startup settings. Project build settings and ports use Studio defaults. Bring across the original business implementations, dependencies and Spring wiring, review endpoint settings, then compile and test before starting flows. Importing metadata is not a promise of an immediately runnable reproduction of the original application.

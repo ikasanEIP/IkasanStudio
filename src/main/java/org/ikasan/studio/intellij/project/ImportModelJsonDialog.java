@@ -255,7 +255,7 @@ public class ImportModelJsonDialog extends DialogWrapper {
         AtomicReference<java.util.List<IkasanRuntimeImport.MappingChoice>> choices = new AtomicReference<>();
         AtomicReference<StudioBuildException> inspectionFailure = new AtomicReference<>();
         boolean inspected = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
-            try { choices.set(IkasanRuntimeImport.mappingChoices(json, pack)); }
+            try { choices.set(IkasanRuntimeImport.mappingChoices(json, config, pack)); }
             catch (StudioBuildException problem) { inspectionFailure.set(problem); }
         }, StudioBundle.message("import.runtime.reviewTitle"), true, project);
         if (!inspected || project.isDisposed()) throw new com.intellij.openapi.progress.ProcessCanceledException();

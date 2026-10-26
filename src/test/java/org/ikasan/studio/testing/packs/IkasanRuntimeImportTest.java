@@ -113,11 +113,71 @@ class IkasanRuntimeImportTest {
         assertThatThrownBy(() -> convert(tree)).hasMessageContaining("duplicate component");
     }
 
-    @Test void requiresExplicitChoiceForSharedRuntimeClassEvenWithConfiguration() throws Exception {
-        assertThat(IkasanRuntimeImport.mappingChoices(topology("V3.3.9").toString(), "V3.3.9"))
-                .singleElement().satisfies(choice -> assertThat(choice.variants()).contains("Scheduled Consumer", "Local File Consumer"));
-        assertThatThrownBy(() -> IkasanRuntimeImport.convert(topology("V3.3.9").toString(), configuration().toString(), "V3.3.9", "org.example"))
-                .hasMessageContaining("select a variant explicitly");
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
+    void linkedConfigurationClassesResolveAllFourScheduledConsumerVariants(String pack) throws Exception {
+        for (String variant : java.util.List.of("Scheduled Consumer", "FTP Consumer", "SFTP Consumer", "Local File Consumer")) {
+            var input = topology(pack);
+            var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, variant);
+            String configClass = meta.getRuntimeConfigurationClass();
+            if (configClass == null) configClass = meta.getAllowableProperties().get("configuration").getUsageDataType();
+            var config = configuration().put("implementingClass", configClass);
+            // Unmapped/custom fields are retained for review, never used to guess the variant.
+            assertThat(IkasanRuntimeImport.mappingChoices(input.toString(), config.toString(), pack)).isEmpty();
+            var result = IkasanRuntimeImport.convert(input.toString(), config.toString(), pack, "org.example");
+            var module = ComponentIO.validatePersistedModuleJson(result.studioJson(), "inferred import", false);
+            assertThat(module.getFlows().get(0).getConsumer().getComponentMeta().getName()).isEqualTo(variant);
+            assertThat(module.getFlows().get(0).getConsumer().getPropertyValue("cronExpression")).isEqualTo("0/10 * * * * ?");
+            assertThat(module.getFlows().get(0).getPropertyValue("flowStartupType")).isEqualTo("MANUAL");
+            assertThat(result.review().toString()).contains("inferred variant " + variant, configClass)
+                    .doesNotContain("do-not-show-in-report");
+        }
+    }
+
+    @Test void missingUnknownAndUnlinkedConfigurationStillRequireExplicitChoices() throws Exception {
+        String pack = "V3.3.9";
+        var input = topology(pack);
+        for (String config : java.util.List.of("", "[]",
+                configuration().put("implementingClass", "custom.UnknownConfiguration").toString(),
+                configuration().put("configurationId", "another-component").toString())) {
+            assertThat(IkasanRuntimeImport.mappingChoices(input.toString(), config, pack))
+                    .singleElement().satisfies(choice -> assertThat(choice.variants()).contains("Scheduled Consumer", "Local File Consumer"));
+            assertThatThrownBy(() -> IkasanRuntimeImport.convert(input.toString(), config, pack, "org.example"))
+                    .hasMessageContaining("select a variant explicitly");
+        }
+        assertThat(IkasanRuntimeImport.mappingChoices(input.toString(), pack)).hasSize(1);
+    }
+
+    @Test void duplicateConfigurationEvidenceIsRejectedAndExplicitChoiceRemainsAuthoritative() throws Exception {
+        String pack = "V4.1.6";
+        var input = topology(pack);
+        var config = configuration();
+        assertThatThrownBy(() -> IkasanRuntimeImport.mappingChoices(input.toString(),
+                "[" + config + "," + config + "]", pack)).hasMessageContaining("Duplicate configurationId");
+        var result = IkasanRuntimeImport.convert(input.toString(), config.toString(), pack, "org.example",
+                java.util.Map.of(new IkasanRuntimeImport.ComponentRef("Orders", "Poll"), "Local File Consumer"));
+        var module = ComponentIO.validatePersistedModuleJson(result.studioJson(), "explicit import", false);
+        assertThat(module.getFlows().get(0).getConsumer().getComponentMeta().getName()).isEqualTo("Local File Consumer");
+        assertThat(result.review().toString()).contains("selected variant Local File Consumer").doesNotContain("inferred variant");
+    }
+
+    @Test void restOmittedNullValuesRemainUnsetAndDoNotBlockInference() throws Exception {
+        String pack = "V4.1.6";
+        var input = topology(pack);
+        var config = configuration();
+        var parameters = (com.fasterxml.jackson.databind.node.ArrayNode) config.path("parameters");
+        parameters.addObject().put("name", "jobName")
+                .put("implementingClass", "org.ikasan.configurationService.model.ConfigurationParameterStringImpl");
+        parameters.addObject().put("name", "timezone").putNull("value");
+        assertThat(IkasanRuntimeImport.mappingChoices(input.toString(), config.toString(), pack)).isEmpty();
+        var result = IkasanRuntimeImport.convert(input.toString(), config.toString(), pack, "org.example");
+        var module = ComponentIO.validatePersistedModuleJson(result.studioJson(), "unset REST values", false);
+        assertThat(module.getFlows().get(0).getConsumer().getPropertyValue("timezone")).isNull();
+        var saved = JSON.readTree(ComponentIO.toValidatedModuleJson(module));
+        assertThat(saved.path(IkasanRuntimeImport.SOURCE_FIELD).path("configuration")).isEqualTo(config);
+        assertThat(result.review().toString()).contains("retained configuration field jobName", "retained configuration field timezone");
+        parameters.addObject().put("name", "jobName");
+        assertThatThrownBy(() -> IkasanRuntimeImport.mappingChoices(input.toString(), config.toString(), pack))
+                .hasMessageContaining("duplicate parameter");
     }
 
     @Test void rejectsDuplicateConfigurationsAndMalformedParameters() throws Exception {
