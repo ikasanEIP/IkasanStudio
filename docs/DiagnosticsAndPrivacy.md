@@ -47,6 +47,12 @@ See [JetBrains Exception Analyzer](https://plugins.jetbrains.com/docs/marketplac
 
 Use the [bug report form](https://github.com/IkasanEIP/IkasanStudio/issues/new?template=bug_report.yml) with your Studio version, IntelliJ IDEA version/edition and build, operating system, selected Ikasan version and reproduction steps. Describe expected and actual behaviour. If setup failed before selecting a version, say so. Attach only reviewed, sanitised diagnostics; report vulnerabilities through [SECURITY.md](../SECURITY.md).
 
+## Screenshot-friendly import reports
+
+For running-module import investigations, use [import diagnostic reports](RuntimeImportDiagnostics.md).
+These provide numbered summary/detail pages without requiring the original JSON or the diagnostics ZIP.
+The latest attempt is project-scoped and memory-only; no automatic upload or model attachment occurs.
+
 ## Collecting diagnostics
 
 Use **Tools → Ikasan Studio → Collect Ikasan Studio Diagnostics…**, or search for the same action in IntelliJ Find Action. It remains available during indexing and does not require the designer tab to be open. Choose a local `.zip` destination; collection runs in the background. Nothing is uploaded or sent to another application.

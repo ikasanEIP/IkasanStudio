@@ -3,6 +3,9 @@ import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import groovy.json.JsonSlurper
+import java.nio.file.Path
+import java.security.MessageDigest
+import java.util.HexFormat
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -189,6 +192,32 @@ val mcpAdapterJar = tasks.register<Jar>("mcpAdapterJar") {
 tasks.named<ProcessResources>("processResources") {
     from(mcpAdapterJar) { into("studio/ai") }
 }
+
+// A reproducible source fingerprint distinguishes nightly/local builds sharing a version number.
+val diagnosticIdentityFile = layout.buildDirectory.file("generated/import-diagnostics/studio-import-build-id.txt")
+val generateImportDiagnosticIdentity = tasks.register("generateImportDiagnosticIdentity") {
+    val sourceRootPath = layout.projectDirectory.asFile.absolutePath
+    inputs.files(fileTree("src/main"), fileTree("native-mcp/src/main"),
+        fileTree("headless") { include("*/src/main/**", "*/build.gradle.kts", "build.gradle.kts") },
+        files("build.gradle.kts", "gradle.properties", "settings.gradle.kts",
+            "gradle/libs.versions.toml", "gradle/wrapper/gradle-wrapper.properties",
+            "native-mcp/build.gradle.kts", "headless/settings.gradle.kts"))
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.file(diagnosticIdentityFile)
+    doLast {
+        val diagnosticSourceRoot = Path.of(sourceRootPath)
+        val digest = MessageDigest.getInstance("SHA-256")
+        inputs.files.files.filter { it.isFile }.sortedBy { diagnosticSourceRoot.relativize(it.toPath()).toString() }.forEach {
+            val name = diagnosticSourceRoot.relativize(it.toPath()).toString().replace('\\', '/')
+            digest.update(name.toByteArray(Charsets.UTF_8)); digest.update(0.toByte())
+            digest.update(it.readBytes()); digest.update(0.toByte())
+        }
+        val target = outputs.files.singleFile
+        target.parentFile.mkdirs()
+        target.writeText(HexFormat.of().formatHex(digest.digest()) + "\n")
+    }
+}
+tasks.named<ProcessResources>("processResources") { from(generateImportDiagnosticIdentity) { into("studio/diagnostics") } }
 
 // Ship the standalone tools as data, not on IntelliJ's plugin classpath.
 val offlineToolsArchive = layout.projectDirectory.file("headless/studio-cli/build/plugin-tools/studio-offline-tools.zip")

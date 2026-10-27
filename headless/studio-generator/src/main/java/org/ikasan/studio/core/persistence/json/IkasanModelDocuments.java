@@ -168,7 +168,13 @@ public final class IkasanModelDocuments {
             for (String key : meta.getRuntimeConfigurationProperties()) {
                 String runtimeName = meta.runtimeConfigurationName(key);
                 JsonNode value = properties.remove(key);
-                if (value == null) { parameters.remove(runtimeName); continue; }
+                if (value == null) {
+                    // Retain REST's unset parameter records (including their IDs/type metadata).
+                    // Clearing a previously populated setting still removes its active runtime value.
+                    ObjectNode existing = parameters.get(runtimeName);
+                    if (existing == null || existing.hasNonNull("value")) parameters.remove(runtimeName);
+                    continue;
+                }
                 try {
                     value = scalarValue(meta, key, value);
                     checkValue(meta, key, value);
@@ -193,9 +199,12 @@ public final class IkasanModelDocuments {
         if (!isDocumentContainer(input)) return input;
         if (!FORMAT.equals(input.path("modelFormat").asText()) || !input.path("formatVersion").isInt()
                 || input.path("formatVersion").asInt() != VERSION) throw invalid("Unsupported Studio model document format");
+        // Compatibility normalization is in-memory; reading must never rewrite the caller's document.
+        input = input.deepCopy();
         knownFields(object(input, "model"), Set.of("modelFormat", "formatVersion", "module", "configuration", "studio"));
         ObjectNode module = object(input.get("module"), "module");
         ObjectNode studio = object(input.get("studio"), "studio");
+        StudioDocumentMetadata.normalize(studio);
         knownFields(studio, Set.of("metaPack", "metaPackRevision", "properties", "flows"));
         String pack = text(studio, "metaPack");
         try {
@@ -329,9 +338,11 @@ public final class IkasanModelDocuments {
                 String key = meta.runtimeConfigurationProperty(text(p, "name"));
                 if (key != null) {
                     if (result.has(key)) throw invalid("Conflicting Studio and runtime configuration field " + key + " for " + name);
-                    if (!p.has("value")) throw invalid("Missing configuration value for " + key);
-                    checkValue(meta, key, p.get("value"));
-                    result.set(key, p.get("value").deepCopy());
+                    // Ikasan REST may omit null-valued members entirely. Missing and explicit null
+                    // both mean unset; neither supplies a generated setter or an invented default.
+                    JsonNode value = p.has("value") ? p.get("value") : JSON.nullNode();
+                    checkValue(meta, key, value);
+                    result.set(key, value.deepCopy());
                 }
             }
         }

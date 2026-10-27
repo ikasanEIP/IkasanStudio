@@ -5,6 +5,16 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Add screenshot-friendly import diagnostic reports with numbered summary/detail pages, per-project attempt IDs, reproducible source-build fingerprints, REST stage/status, topology checks, actual meta-pack matching and configuration-type diagnostics. Retain the latest report in memory after import/generation failures; exclude application names, values, URLs, private implementation classes and raw exception messages.
+
+- Add a reproducible VDI meta-pack authoring kit with a complete Ikasan 4.1.6 starter, pinned Studio artifacts, schemas/API sources, Copilot guidance and a curated Maven repository. Verify an isolated bootstrap and offline build, compile the generated factory, validate the pack JAR and include a matching development plugin ZIP. Keep maintained sources in Git and generated distributions under build output.
+
+- Normalize recognised Studio wrapper variations on load: resolve uniquely matching pack-ID casing, move known misplaced project settings into `studio.properties`, and retain top-level import reviews in provenance. Reject conflicting values and preserve unknown-field, runtime-version and revision checks. Save in the standard structure without rewriting the source on load.
+
+- Accept REST configuration parameters with an omitted `value` when reopening saved models. Preserve unset parameter metadata across saves without generating setter values; retain type checks for populated values.
+
+- Keep router branches named `default` distinct from the primary flow route so consumers are positioned once and branched flows retain correct bounds. Wrap long canvas labels and endpoint identifiers to their measured font width.
+
 - Recognise the runtime XML string converter and import its verified XML configuration fields; identify its missing input class for review. Preserve loading and version migration of existing XML components saved with the old builder identifier. Suppress FTP Consumer warnings only for verified unchanged scheduling/recovery and relative-path defaults across V3, V4 and V5 packs.
 
 - Remember running-module fetch connection details and the configuration checkbox per project across IDE restarts; keep passwords limited to retries within the open dialog.

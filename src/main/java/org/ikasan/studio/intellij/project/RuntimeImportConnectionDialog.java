@@ -54,7 +54,12 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
         add(fields, 2, "import.remote.username", username);
         add(fields, 3, "import.remote.password", password);
         panel.add(fields, BorderLayout.CENTER);
-        panel.add(configuration, BorderLayout.SOUTH);
+        var bottom = new JPanel(new BorderLayout());
+        bottom.add(configuration, BorderLayout.CENTER);
+        var reportButton = new JButton(StudioBundle.message("import.diagnostics.title"));
+        reportButton.addActionListener(event -> new RuntimeImportReportDialog(project, getContentPane()).show());
+        bottom.add(reportButton, BorderLayout.SOUTH);
+        panel.add(bottom, BorderLayout.SOUTH);
         return panel;
     }
 
@@ -91,24 +96,35 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
         char[] secret = password.getPassword();
         boolean include = configuration.isSelected();
         rememberConnection();
+        var report = org.ikasan.studio.intellij.diagnostics.RuntimeImportDiagnostics.get(project).start();
+        report.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.FETCH);
         var fetched = new AtomicReference<RuntimeImportClient.Documents>();
         var failure = new AtomicReference<IOException>();
         try {
             boolean completed = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
                 try {
                     fetched.set(RuntimeImportClient.fetch(base, name, user, secret, include,
-                            () -> { ProgressManager.checkCanceled(); if (project.isDisposed()) throw new ProcessCanceledException(); }, LOG::info));
+                            () -> { ProgressManager.checkCanceled(); if (project.isDisposed()) throw new ProcessCanceledException(); }, LOG::info, (stage, status) -> {
+                                report.request(stage == RuntimeImportClient.RequestStage.METADATA
+                                        ? org.ikasan.studio.core.diagnostics.RuntimeImportReport.Endpoint.METADATA
+                                        : org.ikasan.studio.core.diagnostics.RuntimeImportReport.Endpoint.CONFIGURATION, status);
+                                if (status > 0 && status != 200) report.issue("DOCUMENT", stage.name() + "_HTTP_" + status);
+                            }));
                 } catch (InterruptedException interrupted) {
                     Thread.currentThread().interrupt(); throw new ProcessCanceledException();
                 } catch (IOException problem) { failure.set(problem); }
             }, StudioBundle.message("import.remote.progress"), true, project);
-            if (!completed || project.isDisposed() || isDisposed()) return;
+            if (!completed || project.isDisposed() || isDisposed()) { report.cancelled(); return; }
             if (failure.get() != null) {
+                report.failure(failure.get());
                 setErrorText(StudioBundle.message("import.remote.failed", failure.get().getMessage()));
                 return;
             }
+            report.complete();
             documents = fetched.get();
             if (documents != null) close(OK_EXIT_CODE);
+        } catch (ProcessCanceledException cancelled) {
+            report.cancelled(); throw cancelled;
         } finally { java.util.Arrays.fill(secret, '\0'); }
     }
 

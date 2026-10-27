@@ -288,8 +288,7 @@ public class StudioUIUtils {
                 g.setFont(font);
             }
              stringHeight = StudioUIUtils.getTextHeight(g);
-            int stringWidth = StudioUIUtils.getTextWidth(g, text);
-            List<String> textToDisplay = StudioUIUtils.splitStringIntoMultipleRows(text, (stringWidth/maxWidth)+1);
+            List<String> textToDisplay = wrapTextToWidth(g.getFontMetrics(), text, maxWidth);
             textY = topY + stringHeight;  // remember the y co-ord for drawstring is the baseline, not the top of the string.
 
             for (String subString : textToDisplay) {
@@ -304,6 +303,38 @@ public class StudioUIUtils {
         }
 
         return numberOfLines > 0 ? textY - stringHeight : topY;
+    }
+
+    /** Wrap using the actual font, splitting long identifiers without discarding text. */
+    public static List<String> wrapTextToWidth(FontMetrics metrics, String text, int maxWidth) {
+        List<String> lines = new ArrayList<>();
+        if (text == null || text.isBlank()) return lines;
+        int limit = Math.max(1, maxWidth);
+        StringBuilder line = new StringBuilder();
+        for (String word : text.strip().split("\\s+")) {
+            String candidate = line.isEmpty() ? word : line + " " + word;
+            if (metrics.stringWidth(candidate) <= limit) {
+                line.setLength(0);
+                line.append(candidate);
+                continue;
+            }
+            if (!line.isEmpty()) {
+                lines.add(line.toString());
+                line.setLength(0);
+            }
+            for (int offset = 0; offset < word.length();) {
+                int codePoint = word.codePointAt(offset);
+                String character = new String(Character.toChars(codePoint));
+                if (!line.isEmpty() && metrics.stringWidth(line + character) > limit) {
+                    lines.add(line.toString());
+                    line.setLength(0);
+                }
+                line.append(character);
+                offset += Character.charCount(codePoint);
+            }
+        }
+        if (!line.isEmpty()) lines.add(line.toString());
+        return lines;
     }
 
     public static List<String> splitStringIntoMultipleRows(String text, int numberOfRows) {

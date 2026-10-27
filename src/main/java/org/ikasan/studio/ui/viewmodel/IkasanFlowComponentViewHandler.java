@@ -161,7 +161,7 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         flowchartSymbolHeight = getCanvasIcon().getIconHeight();
         flowchartSymbolWidth = getCanvasIcon().getIconWidth();
         int bottomY = StudioUIUtils.drawCenteredStringFromTopCentre(g, paintMode, getText(),
-                getBottomConnectorPoint().x, getBottomConnectorPoint().y + TEXT_VERTICAL_SPACE, flowchartSymbolWidth, null);
+                getBottomConnectorPoint().x, getBottomConnectorPoint().y + TEXT_VERTICAL_SPACE, Math.max(FLOWCHART_SYMBOL_DEFAULT_WIDTH, flowchartSymbolWidth), null);
         setHeight(bottomY - getTopY());
         return bottomY;
     }
@@ -179,6 +179,8 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
         setLeftX(x);
         setTopY(y);
         setWidth(getCanvasIcon().getIconWidth());
+        // Small routing dots still need a readable label and real horizontal clearance for it.
+        int labelOverhang = Math.max(0, (FLOWCHART_SYMBOL_DEFAULT_WIDTH - getWidth() + 1) / 2);
         int numberOfBeforeDecorators = flowElement.getBeforeDecorators().size();
         int numberOfAfterDecorators = flowElement.getAfterDecorators().size();
 
@@ -187,17 +189,18 @@ public class IkasanFlowComponentViewHandler extends AbstractViewHandlerIntellij 
             // getLeadingGap()/getTrailingGap() (floor-clamped to getMinimumGap()) in the layout accumulation -
             // adding getMinimumGap() again here double-counted it, pushing the decorator an extra gap-width
             // away from the preceding component instead of sitting at the normal spacing.
-            int beforeWidth = numberOfBeforeDecorators * (ComponentIconProvider.getWiretapIcon().getIconWidth() + WIRETAP_HORIZONTAL_SPACE);
+            int beforeWidth = Math.max(labelOverhang, numberOfBeforeDecorators * (ComponentIconProvider.getWiretapIcon().getIconWidth() + WIRETAP_HORIZONTAL_SPACE));
             setLeadingGap(beforeWidth);
             setLeftX(getLeftX() + beforeWidth);
         } else {
-            setLeadingGap(0);
+            setLeadingGap(labelOverhang);
+            setLeftX(getLeftX() + labelOverhang);
         }
         if (numberOfAfterDecorators > 0) {
             int afterWidth = numberOfAfterDecorators * (ComponentIconProvider.getWiretapIcon().getIconWidth() + WIRETAP_HORIZONTAL_SPACE);
-            setTrailingGap(afterWidth);
+            setTrailingGap(Math.max(labelOverhang, afterWidth));
         } else {
-            setTrailingGap(0);
+            setTrailingGap(labelOverhang);
         }
 
         if (getWidth() < -10) {

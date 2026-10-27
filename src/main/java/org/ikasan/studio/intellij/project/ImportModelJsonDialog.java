@@ -40,6 +40,7 @@ import java.awt.*;
 @SuppressWarnings("SplitModeApiUsage")
 public class ImportModelJsonDialog extends ImportDialogWrapper {
     private final Project project;
+    private org.ikasan.studio.core.diagnostics.RuntimeImportReport activeReport;
     private final JBTextArea jsonArea = new JBTextArea();
     private final JBLabel chosenFilePathLabel = new JBLabel();
 
@@ -201,6 +202,10 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
             }
         });
         chooseRow.add(fetch);
+        JButton diagnostics = new JButton(StudioBundle.message("import.diagnostics.title"));
+        diagnostics.addActionListener(event -> new RuntimeImportReportDialog(project, getContentPane()).show());
+        chooseRow.add(Box.createHorizontalStrut(JBUI.scale(8)));
+        chooseRow.add(diagnostics);
         chooseRow.add(Box.createHorizontalStrut(JBUI.scale(8)));
         chosenFilePathLabel.setForeground(com.intellij.util.ui.UIUtil.getLabelForeground());
         chooseRow.add(chosenFilePathLabel);
@@ -294,10 +299,16 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         String selected = (String) runtimePack.getSelectedItem();
         var available = new java.util.ArrayList<String>();
         for (int i = 0; i < runtimePack.getItemCount(); i++) available.add(runtimePack.getItemAt(i));
+        String configurationAreaText = configurationArea.getText();
         var recommendation = new AtomicReference<IkasanRuntimeImport.PackRecommendation>();
         var failure = new AtomicReference<StudioBuildException>();
         boolean completed = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
             try {
+                if (activeReport != null) {
+                    activeReport.inspect(json, configurationAreaText);
+                    activeReport.pack(selected);
+                    activeReport.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.MATCHING);
+                }
                 // Honor a suitable explicit selection, otherwise suggest the closest available pack.
                 var chosen = IkasanRuntimeImport.recommendPack(json, java.util.List.of(selected));
                 recommendation.set(chosen.isPresent() ? chosen.get()
@@ -323,10 +334,14 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         String config = configurationArea.getText();
         String pack = selectRuntimePack(json);
         String packageName = applicationPackage.getText().trim();
+        activeReport.pack(pack);
         AtomicReference<java.util.List<IkasanRuntimeImport.MappingChoice>> choices = new AtomicReference<>();
         AtomicReference<StudioBuildException> inspectionFailure = new AtomicReference<>();
         boolean inspected = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
-            try { choices.set(IkasanRuntimeImport.mappingChoices(json, config, pack)); }
+            try {
+                IkasanRuntimeImport.diagnose(json, config, pack, activeReport);
+                choices.set(IkasanRuntimeImport.mappingChoices(json, config, pack));
+            }
             catch (StudioBuildException problem) { inspectionFailure.set(problem); }
         }, StudioBundle.message("import.runtime.reviewTitle"), true, project);
         if (!inspected || project.isDisposed()) throw new com.intellij.openapi.progress.ProcessCanceledException();
@@ -335,7 +350,10 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         AtomicReference<IkasanRuntimeImport.Result> converted = new AtomicReference<>();
         AtomicReference<StudioBuildException> failure = new AtomicReference<>();
         boolean completed = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
-            try { converted.set(IkasanRuntimeImport.convert(json, config, pack, packageName, mappings)); }
+            try {
+                activeReport.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.CONVERSION);
+                converted.set(IkasanRuntimeImport.convert(json, config, pack, packageName, mappings));
+            }
             catch (StudioBuildException problem) { failure.set(problem); }
         }, StudioBundle.message("import.runtime.reviewTitle"), true, project);
         if (!completed || project.isDisposed()) throw new com.intellij.openapi.progress.ProcessCanceledException();
@@ -408,17 +426,21 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
                     StudioBundle.message("dialog.ImportModelJson"));
             return;
         }
+        activeReport = org.ikasan.studio.intellij.diagnostics.RuntimeImportDiagnostics.get(project).start();
+        activeReport.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.PARSE);
         try {
             if (runtimeMode.isSelected()) {
                 IkasanRuntimeImport.Result converted = convertRuntime(json);
-                if (!reviewRuntimeImport(converted)) return;
+                if (!reviewRuntimeImport(converted)) { activeReport.cancelled(); return; }
                 json = converted.studioJson();
             }
             ModelImporter.importFromText(project, json, chosenFilePathLabel.getText().isBlank()
-                    ? StudioBundle.message("label.PastedModelJson") : chosenFilePathLabel.getText());
+                    ? StudioBundle.message("label.PastedModelJson") : chosenFilePathLabel.getText(), activeReport);
         } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+            activeReport.cancelled();
             throw cancelled;
         } catch (StudioBuildException | RuntimeException e) {
+            activeReport.failure(e);
             Messages.showErrorDialog(messageParent(),
                     StudioBundle.message("message.ImportModelFailed", e.getMessage()),
                     StudioBundle.message("dialog.ImportModelJson"));

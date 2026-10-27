@@ -64,7 +64,17 @@ public final class RuntimeImportClient {
     public static Documents fetch(URI base, String module, String username, char[] password,
                                   boolean includeConfiguration, Runnable cancelled,
                                   java.util.function.Consumer<String> diagnostics) throws IOException, InterruptedException {
+        return fetch(base, module, username, password, includeConfiguration, cancelled, diagnostics, (stage, status) -> { });
+    }
+
+    public enum RequestStage { METADATA, CONFIGURATION }
+
+    public static Documents fetch(URI base, String module, String username, char[] password,
+                                  boolean includeConfiguration, Runnable cancelled,
+                                  java.util.function.Consumer<String> diagnostics,
+                                  java.util.function.BiConsumer<RequestStage, Integer> responseStatus) throws IOException, InterruptedException {
         Objects.requireNonNull(diagnostics);
+        Objects.requireNonNull(responseStatus);
         base = baseUri(base.toString());
         if (module == null || module.isBlank()) throw new IllegalArgumentException("Enter the running module name.");
         if (username == null) username = "";
@@ -72,7 +82,7 @@ public final class RuntimeImportClient {
         if (username.isBlank() && password.length != 0) throw new IllegalArgumentException("Enter a username or clear the password for anonymous access.");
         String authorization = username.isBlank() ? null : "Basic " + Base64.getEncoder().encodeToString(
                 (username + ":" + new String(password)).getBytes(StandardCharsets.UTF_8));
-        String metadata = get(base, "/rest/metadata/module/" + segment(module), authorization, cancelled, diagnostics);
+        String metadata = get(base, "/rest/metadata/module/" + segment(module), authorization, cancelled, diagnostics, responseStatus);
         JsonNode topology = parse(metadata, "Module metadata");
         if (!topology.isObject() || !topology.path("flows").isArray()
                 || !topology.path("name").isTextual() || !module.equals(topology.path("name").asText())) {
@@ -88,7 +98,7 @@ public final class RuntimeImportClient {
         int total = 0;
         if (includeConfiguration) for (String flow : names) {
             // The unqualified /configuration/components endpoint selects the first module. Always scope it.
-            String text = get(base, "/rest/configuration/" + segment(module) + "/" + segment(flow) + "/components", authorization, cancelled, diagnostics);
+            String text = get(base, "/rest/configuration/" + segment(module) + "/" + segment(flow) + "/components", authorization, cancelled, diagnostics, responseStatus);
             total += text.getBytes(StandardCharsets.UTF_8).length;
             if (total > MAX_BYTES) throw new IOException("Combined component configuration exceeds the 8 MiB import limit.");
             JsonNode array = parse(text, "Component configuration");
@@ -123,9 +133,11 @@ public final class RuntimeImportClient {
     }
 
     private static String get(URI base, String path, String authorization, Runnable cancelled,
-                              java.util.function.Consumer<String> diagnostics) throws IOException, InterruptedException {
+                              java.util.function.Consumer<String> diagnostics,
+                              java.util.function.BiConsumer<RequestStage, Integer> responseStatus) throws IOException, InterruptedException {
         cancelled.run();
         URI endpoint = URI.create(base.toASCIIString() + path);
+        responseStatus.accept(path.startsWith("/rest/metadata/") ? RequestStage.METADATA : RequestStage.CONFIGURATION, 0);
         String stage = path.startsWith("/rest/metadata/") ? "module metadata" : "component configuration";
         // Endpoint contains no user-info, query or fragment. Never log headers, credentials or response bodies.
         diagnostics.accept("Runtime import: fetching " + stage + " via GET " + endpoint);
@@ -148,6 +160,7 @@ public final class RuntimeImportClient {
                 }
             }
             int status = response.statusCode();
+            responseStatus.accept(path.startsWith("/rest/metadata/") ? RequestStage.METADATA : RequestStage.CONFIGURATION, status);
             diagnostics.accept("Runtime import: " + stage + " GET " + endpoint + " returned HTTP " + status);
             if (status == 401 || status == 403) throw new IOException("REST access was denied (HTTP " + status + "). Check credentials and ALL or WebServiceAdmin authority.");
             if (status >= 300 && status < 400) throw new IOException("The module redirected the REST request. Enter its final application URL; redirects are not followed.");
