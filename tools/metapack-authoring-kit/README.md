@@ -5,6 +5,12 @@ the maintained Maven example and the Studio changes it depends on. Generated ZIP
 repositories, logs and reports live under ignored `build/metapack-authoring-kit/`.
 Do not add private shared-component sources, JARs, descriptors, configuration or credentials here.
 
+For GitHub-only transfer to a restricted VDI, use the two prebuilt ZIPs in
+[`downloads/metapack-authoring-kit/`](../../downloads/metapack-authoring-kit/README.md).
+Download both and extract into the same directory. These are intentional versioned distribution
+copies; normal kit builds still write only to `build/`. The single combined kit exceeds GitHub's
+100 MiB regular Git file limit.
+
 The kit starts from `ikasan-studio-ancillary/example-metapack`, targets Ikasan **4.1.6 / JDK 17**,
 and assembles a complete `SharedIkasan4` resource pack from a pinned V4 baseline. The examples
 are public teaching components, **not** implementations of any organisation's shared library.
