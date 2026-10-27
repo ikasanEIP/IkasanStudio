@@ -1,0 +1,2 @@
+component_label,fully_qualified_runtime_class,ikasan_contract,input_type,output_type,maven_coordinates,source_revision,construction_method,configuration_class,required_spring_dependencies,evidence_file_and_lines,unresolved_questions
+PUBLIC EXAMPLE,org.example.metapack.UppercaseConverter,Converter,java.lang.String,java.lang.String,org.example.metapack:example-runtime:0.1.0-SNAPSHOT,kit receipt,public no-argument constructor,none,none,starter/example-runtime source,none

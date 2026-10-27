@@ -162,6 +162,153 @@ class IkasanModelDocumentsTest {
         assertThatThrownBy(() -> ComponentIO.validatePersistedModuleJson(docs.toString(), "test", false)).hasMessageContaining("value type");
     }
 
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
+    void omittedRuntimeValuesStayUnsetAcrossImportSaveReloadAndGeneration(String pack) throws Exception {
+        var topology = json.createObjectNode().put("name", "Imported JMS").put("ikasanVersion", pack.substring(1));
+        var flow = topology.putArray("flows").addObject().put("name", "Orders").put("flowStartupType", "AUTOMATIC");
+        var elements = flow.putArray("flowElements");
+        var configuration = json.createArrayNode();
+        for (String variant : java.util.List.of("Spring JMS Consumer", "Spring JMS Producer")) {
+            var meta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, variant);
+            String name = meta.isConsumer() ? "Receive" : "Send";
+            var element = elements.addObject().put("componentName", name).put("componentType", meta.getComponentType())
+                    .put("implementingClass", meta.getImplementingClass()).put("configurationId", name + "-config");
+            if (meta.isConsumer()) flow.set("consumer", element.deepCopy());
+            String type = meta.getRuntimeConfigurationClass();
+            if (type == null) type = meta.getAllowableProperties().get("configuration").getUsageDataType();
+            var parameters = configuration.addObject().put("configurationId", name + "-config")
+                    .put("implementingClass", type).putArray("parameters");
+            parameters.addObject().put("name", "destinationJndiName").put("value", "queue/orders");
+            if (!meta.isConsumer()) {
+                parameters.addObject().put("id", 12).put("name", "priority")
+                        .put("implementingClass", "org.ikasan.configurationService.model.ConfigurationParameterIntegerImpl");
+                parameters.addObject().put("name", "receiveTimeout").putNull("value");
+                parameters.addObject().put("name", "deliveryPersistent").put("value", false);
+                parameters.addObject().put("name", "timeToLive").put("value", 0L);
+            }
+        }
+        flow.putArray("transitions").addObject().put("from", "Receive").put("to", "Send").put("name", "default");
+        var imported = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(
+                topology.toString(), configuration.toString(), pack, "org.example");
+        var module = ComponentIO.validatePersistedModuleJson(imported.studioJson(), "REST import", false);
+        ObjectNode saved = (ObjectNode) json.readTree(ModelTemplate.create(module));
+        // Exercise loading a native saved document with the exact REST shape, independently of the writer.
+        saved.set("configuration", configuration.deepCopy());
+        for (int pass = 0; pass < 3; pass++) {
+            module = ComponentIO.validatePersistedModuleJson(saved.toString(), "REST-shaped native model", false);
+            var importedFlow = module.getFlows().get(0);
+            var producer = importedFlow.getFlowRoute().getFlowElements().get(0);
+            assertThat(producer.getPropertyValue("priority")).isNull();
+            assertThat(producer.getPropertyValue("receiveTimeout")).isNull();
+            assertThat(producer.getPropertyValue("deliveryPersistent")).isEqualTo(false);
+            assertThat(producer.getPropertyValue("timeToLive")).isEqualTo(0L);
+            assertThat(FlowsComponentFactoryTemplate.create("org.example", module, importedFlow))
+                    .doesNotContain(".setPriority(", ".setReceiveTimeout(")
+                    .contains(".setDeliveryPersistent(", ".setTimeToLive(");
+            saved = (ObjectNode) json.readTree(ModelTemplate.create(module));
+            var record = java.util.stream.StreamSupport.stream(saved.path("configuration").spliterator(), false)
+                    .filter(node -> node.path("configurationId").asText().equals("Send-config")).findFirst().orElseThrow();
+            var priority = java.util.stream.StreamSupport.stream(record.path("parameters").spliterator(), false)
+                    .filter(node -> node.path("name").asText().equals("priority")).findFirst().orElseThrow();
+            assertThat(priority.has("value")).isFalse();
+            assertThat(priority.path("id").asInt()).isEqualTo(12);
+            assertThat(saved.path("studio").path("properties").path("ikasanRuntimeImport").path("configuration"))
+                    .isEqualTo(json.readTree(configuration.toString()));
+        }
+        var activeProducer = module.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
+        activeProducer.setPropertyValue("priority", 7);
+        var configured = json.readTree(ModelTemplate.create(module));
+        assertThat(configured.path("configuration").get(1).path("parameters"))
+                .anySatisfy(parameter -> {
+                    assertThat(parameter.path("name").asText()).isEqualTo("priority");
+                    assertThat(parameter.path("value").asInt()).isEqualTo(7);
+                });
+        var configuredModule = ComponentIO.validatePersistedModuleJson(configured.toString(), "configured priority", false);
+        configuredModule.getFlows().get(0).getFlowRoute().getFlowElements().get(0).setPropertyValue("priority", null);
+        var cleared = json.readTree(ModelTemplate.create(configuredModule));
+        assertThat(cleared.path("configuration").get(1).path("parameters"))
+                .noneSatisfy(parameter -> {
+                    assertThat(parameter.path("name").asText()).isEqualTo("priority");
+                    assertThat(parameter.hasNonNull("value")).isTrue();
+                });
+        var producerRecord = (ObjectNode) saved.path("configuration").get(1);
+        var priority = (ObjectNode) java.util.stream.StreamSupport.stream(producerRecord.path("parameters").spliterator(), false)
+                .filter(node -> node.path("name").asText().equals("priority")).findFirst().orElseThrow();
+        priority.put("value", "not-an-integer");
+        String invalid = saved.toString();
+        assertThatThrownBy(() -> ComponentIO.validatePersistedModuleJson(invalid, "wrong type", false))
+                .hasMessageContaining("Invalid configuration value type for priority");
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
+    void recognisedWrapperVariationsNormalizeWithoutChangingSettingsOrInput(String pack) throws Exception {
+        ObjectNode legacy = (ObjectNode) json.readTree(fixture("populated_module.json"));
+        legacy.put("version", pack).put("applicationPackageName", "org.example.imported");
+        ObjectNode canonical = (ObjectNode) json.readTree(ModelTemplate.create(
+                ComponentIO.validatePersistedModuleJson(legacy.toString(), "wrapper baseline", false)));
+        ObjectNode properties = (ObjectNode) canonical.path("studio").path("properties");
+        properties.put("applicationPackageName", "org.example.imported").put("flowStartupType", "AUTOMATIC")
+                .put("h2DbPortNumber", "12451").put("h2WebPortNumber", "12452").put("useEmbeddedH2", true);
+        var report = json.createArrayNode().add("Review existing integration wiring.");
+        properties.withObject("/ikasanRuntimeImport").put("referenceMarker", "preserve-me").set("review", report);
+        var expectedModule = ComponentIO.validatePersistedModuleJson(canonical.toString(), "standard wrapper", false);
+        var expected = json.readTree(ModelTemplate.create(expectedModule));
+        ObjectNode reconstructed = canonical.deepCopy();
+        ObjectNode studio = (ObjectNode) reconstructed.path("studio");
+        ObjectNode settings = (ObjectNode) studio.path("properties");
+        studio.put("metaPack", pack.toLowerCase(java.util.Locale.ROOT));
+        for (String key : java.util.List.of("applicationPackageName", "flowStartupType", "h2DbPortNumber", "h2WebPortNumber", "useEmbeddedH2"))
+            studio.set(key, settings.remove(key));
+        studio.set("review", ((ObjectNode) settings.path("ikasanRuntimeImport")).remove("review"));
+        String source = reconstructed.toString();
+        IkasanModelDocuments.toLegacy(reconstructed);
+        assertThat(reconstructed.toString()).isEqualTo(source);
+        var loaded = ComponentIO.validatePersistedModuleJson(source, "reconstructed wrapper", false);
+        assertThat(json.readTree(ModelTemplate.create(loaded))).isEqualTo(expected);
+        assertThat(PropertiesTemplate.create(loaded)).isEqualTo(PropertiesTemplate.create(expectedModule));
+        assertThat(loaded.getVersion()).isEqualTo(pack);
+        assertThat(loaded.getApplicationPackageName()).isEqualTo("org.example.imported");
+        var saved = json.readTree(ModelTemplate.create(loaded));
+        assertThat(saved.at("/studio/properties/ikasanRuntimeImport/review")).isEqualTo(report);
+        assertThat(saved.at("/studio/properties/ikasanRuntimeImport/referenceMarker").asText()).isEqualTo("preserve-me");
+        assertThat(json.readTree(ModelTemplate.create(ComponentIO.validatePersistedModuleJson(saved.toString(), "normalized reload", false))))
+                .isEqualTo(saved);
+    }
+
+    @Test void wrapperNormalizationRejectsConflictsAndUnknownFieldsWithoutOverwriting() throws Exception {
+        ObjectNode baseline = (ObjectNode) json.readTree(ModelTemplate.create(
+                ComponentIO.validatePersistedModuleJson(fixture("populated_module.json"), "baseline", false)));
+        for (String key : java.util.List.of("applicationPackageName", "flowStartupType", "h2DbPortNumber", "h2WebPortNumber", "useEmbeddedH2")) {
+            ObjectNode input = baseline.deepCopy();
+            ((ObjectNode) input.path("studio").path("properties")).put(key, "existing-setting");
+            ((ObjectNode) input.path("studio")).put(key, "different-setting");
+            String source = input.toString();
+            assertThatThrownBy(() -> IkasanModelDocuments.toLegacy(input)).hasMessageContaining("Conflicting Studio metadata field " + key)
+                    .hasMessageNotContaining("existing-setting").hasMessageNotContaining("different-setting");
+            assertThat(input.toString()).isEqualTo(source);
+        }
+        ObjectNode equalSettings = baseline.deepCopy();
+        ((ObjectNode) equalSettings.path("studio").path("properties")).put("h2DbPortNumber", "12451");
+        ((ObjectNode) equalSettings.path("studio")).put("h2DbPortNumber", "12451");
+        assertThat(IkasanModelDocuments.toLegacy(equalSettings).path("h2DbPortNumber").asText()).isEqualTo("12451");
+        ObjectNode input = baseline.deepCopy();
+        var studio = (ObjectNode) input.path("studio");
+        var properties = (ObjectNode) studio.path("properties");
+        var report = json.createArrayNode().add("existing-report");
+        properties.withObject("/ikasanRuntimeImport").set("review", report);
+        studio.set("review", report.deepCopy());
+        // Equal duplicates are safe; differing reports must never overwrite each other.
+        assertThat(IkasanModelDocuments.toLegacy(input).path("ikasanRuntimeImport").path("review")).isEqualTo(report);
+        studio.putArray("review").add("different-report");
+        assertThatThrownBy(() -> IkasanModelDocuments.toLegacy(input)).hasMessageContaining("Conflicting Studio metadata field review");
+        studio.remove("review");
+        studio.put("unknownFutureMetadata", true);
+        assertThatThrownBy(() -> IkasanModelDocuments.toLegacy(input)).hasMessageContaining("Unknown document metadata field unknownFutureMetadata");
+        studio.remove("unknownFutureMetadata");
+        studio.put("metaPack", "v4.1.3");
+        assertThatThrownBy(() -> IkasanModelDocuments.toLegacy(input)).hasMessageContaining("selected meta-pack");
+    }
+
     @Test void nativeExtensionsFollowRenamesAndStayOutOfStudioProperties() throws Exception {
         ObjectNode docs = (ObjectNode) json.readTree(ModelTemplate.create(
                 ComponentIO.validatePersistedModuleJson(fixture("populated_module.json"), "test", false)));

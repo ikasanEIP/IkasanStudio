@@ -49,6 +49,12 @@ public final class ModelImporter {
      *         recorded meta-pack is not installed
      */
     public static void importFromText(Project project, String json, String sourceDescription) throws StudioBuildException {
+        importFromText(project, json, sourceDescription, null);
+    }
+
+    static void importFromText(Project project, String json, String sourceDescription,
+                               org.ikasan.studio.core.diagnostics.RuntimeImportReport report) throws StudioBuildException {
+        if (report != null) report.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.VALIDATION);
         if (project.isDisposed()) {
             throw new StudioBuildException("The project is closing; import was not started.");
         }
@@ -88,6 +94,7 @@ public final class ModelImporter {
         }
         java.util.concurrent.CompletableFuture<Void> generation;
         try {
+            if (report != null) report.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.GENERATION);
             generation = StudioProjectFiles.refreshCodeFromModel(project,
                     org.ikasan.studio.core.generation.GenerationRequest.full());
         } catch (RuntimeException failure) {
@@ -104,10 +111,12 @@ public final class ModelImporter {
         generation.whenComplete((ignored, failure) -> ApplicationManager.getApplication().invokeLater(() -> {
                     if (project.isDisposed() || uiContext.getIkasanModule() != module) return;
                     if (failure != null) {
+                        if (report != null) report.failure(failure);
                         StudioUIUtils.displayIdeaWarnMessage(project,
                                 StudioBundle.message("message.ImportModelFailed", failure.getMessage()));
                         return;
                     }
+                    if (report != null) report.complete();
                     try {
                         applyMatchingJdk(project, requiredJava);
                     } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {

@@ -30,6 +30,21 @@ There is currently no manifest declaration that means “extend V4.1.6”. Copyi
 
 Use additive component identities. Verify builders, setters, payload types and dependencies against the actual extended tool set. Keep business implementation in runtime libraries or developer-owned stubs; pack JARs should contain metadata, templates and artwork. Generated applications need the runtime libraries in their own Maven dependencies: a dependency of the pack's test project does not add it to generated POMs.
 
+## Restricted-network / VDI authoring kit
+
+The tracked [kit source and build instructions](../tools/metapack-authoring-kit/README.md) assemble a
+transferable ZIP for Ikasan 4.1.6/JDK 17 without requiring a Studio/Ikasan/Dashboard checkout on the VDI.
+It includes the maintained Maven starter, complete pinned baseline pack, generator/test-kit artifacts and
+public API sources, schemas, Copilot instructions/prompts, inventory worksheets and a curated offline
+Maven repository. The builder validates an isolated-repository bootstrap and offline rebuild, including
+generated-factory compilation and packaged-JAR installer validation. A matching development plugin ZIP
+is included by default. Generated ZIPs/logs stay under ignored `build/metapack-authoring-kit/`; the
+instructions and reproducible builder are committed under `tools/metapack-authoring-kit/`.
+
+The kit contains no private shared components and does not provision future private dependencies or
+certify runtime delivery. Private adaptations and packs stay inside work; use Copilot on private code
+only under the organisation's approved processing policy. A local IDE is not a local-inference guarantee.
+
 ## Maven example and archetype
 
 For a working starter, read [the ancillary build and archetype instructions](../ikasan-studio-ancillary/README.md)

@@ -19,6 +19,15 @@ class RuntimeImportClientTest {
     private static final String MODULE = "{\"name\":\"Demo module\",\"flows\":[{\"name\":\"Flow 1\"},{\"name\":\"Flow/2\"}]}";
     private static final String RECORD = "{\"configurationId\":\"shared\",\"implementingClass\":\"Example\",\"parameters\":[]}";
 
+    @Test void reportsTypedHttpStageAndStatusWithoutPassingUrlsOrResponseBodies() throws Exception {
+        var events = new ArrayList<String>();
+        withServer(exchange -> respond(exchange, 500, "PRIVATE_RESPONSE"), base -> {
+            assertThrows(IOException.class, () -> RuntimeImportClient.fetch(base, "PRIVATE_MODULE", "", new char[0], false,
+                    () -> {}, ignored -> {}, (stage, status) -> events.add(stage + ":" + status)));
+            assertEquals(List.of("METADATA:0", "METADATA:500"), events);
+        });
+    }
+
     @Test void fetchesScopedConfigurationEncodesNamesAndDeduplicatesSharedRecords() throws Exception {
         var paths = new CopyOnWriteArrayList<String>();
         withServer(exchange -> {

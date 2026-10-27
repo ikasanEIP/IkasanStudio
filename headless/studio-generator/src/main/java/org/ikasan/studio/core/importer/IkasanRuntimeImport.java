@@ -38,6 +38,91 @@ public final class IkasanRuntimeImport {
         public boolean exact() { return sourceVersion.equals(targetVersion); }
     }
 
+    /** Value-free inspection using the importer's actual matching rules; no input survives this call. */
+    public static void diagnose(String moduleJson, String configurationJson, String pack,
+                                org.ikasan.studio.core.diagnostics.RuntimeImportReport report) {
+        report.pack(pack);
+        report.inspect(moduleJson, configurationJson);
+        report.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.MATCHING);
+        try {
+            report.revision(ComponentLibrary.getMetaPackManifest(pack).packVersion());
+            JsonNode root = read(moduleJson);
+            if (!root.path("flows").isArray() || root.path("flows").size() > 1000) return;
+            Map<String, JsonNode> configs = configurationJson.isBlank() ? Map.of() : configurations(read(configurationJson));
+            int f = 0;
+            for (var flow : root.path("flows")) {
+                f++;
+                var nodes = new LinkedHashMap<String, JsonNode>();
+                if (flow.path("consumer").isObject()) nodes.put(flow.path("consumer").path("componentName").asText(), flow.path("consumer"));
+                for (var node : flow.path("flowElements")) {
+                    if (nodes.size() > 500) break;
+                    nodes.putIfAbsent(node.path("componentName").asText(), node);
+                }
+                int c = 0;
+                for (var raw : nodes.values()) {
+                    String location = "F" + f + "/C" + ++c;
+                    var candidates = exactCandidates(raw, pack);
+                    ComponentMeta meta;
+                    try { meta = resolve(raw, pack, null, configs); }
+                    catch (StudioBuildException ambiguous) {
+                        report.issue(location, candidates.size() > 1 ? "VARIANT_CLARIFICATION_REQUIRED" : "COMPONENT_MAPPING_UNAVAILABLE");
+                        continue;
+                    }
+                    if (candidates.isEmpty()) report.issue(location, "CUSTOM_IMPLEMENTATION_AND_WIRING_REQUIRED");
+                    else {
+                        report.matched();
+                        report.publicContext(location, meta.getImplementingClass(), null);
+                    }
+                    String id = raw.path("configurationId").asText("");
+                    var config = configs.get(id);
+                    if (config == null) {
+                        if (!id.isBlank()) report.issue(location, "CONFIGURATION_NOT_SUPPLIED");
+                        continue;
+                    }
+                    boolean matchingClass = config.path("implementingClass").asText().equals(configurationClass(meta));
+                    if (!matchingClass) report.issue(location, "CONFIGURATION_CLASS_MISMATCH");
+                    int p = 0;
+                    for (var parameter : config.path("parameters")) {
+                        p++;
+                        var value = parameter.get("value");
+                        if (value == null || value.isNull()) continue;
+                        String name = parameter.path("name").asText();
+                        String mapped = meta.runtimeConfigurationProperty(name);
+                        var property = mapped == null ? null : meta.getAllowableProperties().get(mapped);
+                        if (matchingClass && property != null && compatible(value, property.getPropertyDataType())) continue;
+                        if (matchingClass && value.equals(meta.getRuntimeConfigurationDefaults().get(name))) continue;
+                        String field = location + "/P" + p;
+                        if (property != null && !candidates.isEmpty()) report.publicContext(field, meta.getImplementingClass(), mapped);
+                        if (!matchingClass) continue; // The class issue already explains why its fields were not applied.
+                        if (property == null) report.issue(field, "CONFIGURATION_PROPERTY_UNMAPPED");
+                        else report.issue(field, "CONFIGURATION_TYPE_" + actualType(value, property.getPropertyDataType())
+                                + "_EXPECTED_" + expectedType(property.getPropertyDataType()));
+                    }
+                }
+            }
+        } catch (Exception failure) { report.failure(failure); }
+    }
+
+    private static String actualType(JsonNode value, Class<?> expected) {
+        if (expected == List.class && value.isArray()) return "NON_STRING_LIST_ENTRIES";
+        if (expected == Map.class && value.isObject()) return "NON_STRING_MAP_VALUES";
+        if ((expected == Integer.class || expected == int.class || expected == Long.class || expected == long.class) && value.isNumber()) {
+            if (!value.isIntegralNumber()) return "FRACTIONAL_NUMBER";
+            if ((expected == Integer.class || expected == int.class) && !value.canConvertToInt()
+                    || (expected == Long.class || expected == long.class) && !value.canConvertToLong()) return "INTEGER_OUT_OF_RANGE";
+        }
+        return value.getNodeType().name();
+    }
+
+    private static String expectedType(Class<?> type) {
+        if (type == String.class) return "STRING";
+        if (type == Boolean.class || type == boolean.class) return "BOOLEAN";
+        if (type == Integer.class || type == int.class || type == Long.class || type == long.class) return "INTEGER";
+        if (type == List.class) return "STRING_LIST";
+        if (type == Map.class) return "STRING_MAP";
+        return "OTHER";
+    }
+
     /** Exact version first, otherwise the nearest newer stable patch in the same major/minor line. */
     public static Optional<PackRecommendation> recommendPack(String moduleJson, List<String> packs)
             throws StudioBuildException {

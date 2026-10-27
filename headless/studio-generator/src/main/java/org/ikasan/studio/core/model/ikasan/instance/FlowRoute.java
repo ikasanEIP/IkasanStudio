@@ -223,8 +223,8 @@ public class FlowRoute  implements IkasanComponent {
      */
     public List<FlowElement> getConsumerAndFlowRouteElements() {
         List<FlowElement> allElements = new LinkedList<>();
-        // Only the default (primary) flowRoute includes the consumer
-        if (flow != null && flow.hasConsumer() && DEFAULT_TRANSITION_NAME.equals(getRouteName())) {
+        // Only the primary route includes the consumer; router branches may also be named "default".
+        if (flow != null && flow.hasConsumer() && flow.getFlowRoute() == this) {
             allElements.add(flow.getConsumer());
         }
         allElements.addAll(getFlowElementsNoExternalEndPoints());

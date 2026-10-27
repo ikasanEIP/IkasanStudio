@@ -44,6 +44,19 @@ class IkasanRuntimeImportTest {
                 """);
     }
 
+    @Test void diagnosticsUseActualPackMatchingAndTypedConfigurationWithoutLeakingUnknownNames() throws Exception {
+        String pack = "V4.1.6";
+        var report = new org.ikasan.studio.core.diagnostics.RuntimeImportReport();
+        var config = configuration();
+        ((ObjectNode) config.withArray("parameters").get(0)).put("value", true);
+        IkasanRuntimeImport.diagnose(topology(pack).toString(), config.toString(), pack, report);
+        String text = report.render("1.0.0-beta.1", "262.123.4");
+        assertThat(text).contains("F1/C1/P1", "CONFIGURATION_TYPE_BOOLEAN_EXPECTED_STRING",
+                "Studio property: cronExpression", "org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer",
+                "CONFIGURATION_PROPERTY_UNMAPPED");
+        assertThat(text).doesNotContain("customSecret", "do-not-show-in-report", "Imported Orders", "poll-config");
+    }
+
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void importsSeparateContractsAndPreservesOriginalsWithoutTreatingApplicationVersionAsPack(String pack) throws Exception {
         var input = topology(pack);

@@ -43,6 +43,18 @@ class FlowRouteTest {
     }
 
     @Test
+    void aBranchNamedDefaultMustNotIncludeTheFlowConsumer() throws Exception {
+        Flow flow = TestFixtures.getEventGeneratingConsumerRouterFlow(BASE_META_PACK);
+        FlowRoute branch = flow.getFlowRoute().getChildRoutes().get(1);
+        branch.setRouteName(Transition.DEFAULT_TRANSITION_NAME);
+        assertThat(flow.getFlowRoute().getConsumerAndFlowRouteElements()).contains(flow.getConsumer());
+        assertThat(branch.getConsumerAndFlowRouteElements()).doesNotContain(flow.getConsumer());
+        FlowRoute nested = FlowRoute.flowRouteBuilder().flow(flow).routeName("default").build();
+        branch.getChildRoutes().add(nested);
+        assertThat(nested.getConsumerAndFlowRouteElements()).isEmpty();
+    }
+
+    @Test
     public void test_flow_route_instantiation() throws StudioBuildException {
         Flow testFlow = TestFixtures.getUnbuiltFlow(BASE_META_PACK).build();
         String routeName = "route1";
@@ -361,6 +373,7 @@ class FlowRouteTest {
                 .flowElements(flowElements)
                 .build();
 
+        flow.setFlowRoute(flowRoute);
         List<FlowElement> result = flowRoute.getConsumerAndFlowRouteElements();
 
         assertTrue(result.contains(consumer));
@@ -402,6 +415,7 @@ class FlowRouteTest {
                 .flowElements(flowElements)
                 .build();
 
+        testFlow.setFlowRoute(flowRoute);
         List<FlowElement> result = flowRoute.ftlGetConsumerAndFlowElementsNoEndPoints();
 
         assertNotNull(result);

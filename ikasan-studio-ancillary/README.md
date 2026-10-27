@@ -8,6 +8,10 @@ These Maven projects have a release lifecycle separate from the Gradle IntelliJ 
 - `ikasan-studio-metapack-archetype` generates that authoring project. Its build copies
   the maintained example directly; FreeMarker templates and Java sources are unfiltered.
 
+For restricted-network/VDI use, the [public authoring kit](../tools/metapack-authoring-kit/README.md)
+packages this maintained example, pinned Studio artifacts, public API sources, schemas, Copilot prompts
+and a verified offline Maven repository into a transferable ZIP. No source clone is needed on the VDI.
+
 ## Build the meta-pack starter
 
 From the Studio repository root:
