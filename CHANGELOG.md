@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Read the import diagnostic report’s plugin version from build-generated metadata instead of an internal IntelliJ plugin-manager API, preserving the strict compatibility-verifier gate on supported IDEs.
+
 - Add screenshot-friendly import diagnostic reports with numbered summary/detail pages, per-project attempt IDs, reproducible source-build fingerprints, REST stage/status, topology checks, actual meta-pack matching and configuration-type diagnostics. Retain the latest report in memory after import/generation failures; exclude application names, values, URLs, private implementation classes and raw exception messages.
 
 - Add a reproducible VDI meta-pack authoring kit with a complete Ikasan 4.1.6 starter, pinned Studio artifacts, schemas/API sources, Copilot guidance and a curated Maven repository. Verify an isolated bootstrap and offline build, compile the generated factory, validate the pack JAR and include a matching development plugin ZIP. Keep maintained sources in Git and generated distributions under build output.

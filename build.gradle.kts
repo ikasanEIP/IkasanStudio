@@ -16,7 +16,7 @@ import java.time.Duration
 // placing them on the plugin runtime classpath or replacing IntelliJ-owned libraries.
 buildscript {
     dependencies {
-        classpath(platform("com.fasterxml.jackson:jackson-bom:2.22.3"))
+        classpath(platform("com.fasterxml.jackson:jackson-bom:2.22.4"))
         constraints {
             add("classpath", "org.jsoup:jsoup:1.23.2") {
                 because("GHSA-pmhh-3w7g-xqp8 and GHSA-65r4-943x-97jj affect build-tool XML parsing")
@@ -146,7 +146,7 @@ dependencies {
 // The platform fixtures resolve separately from testRuntimeClasspath. These are
 // test-only repairs; IntelliJ's installed libraries remain owned by JetBrains.
 dependencies {
-    add("intellijPlatformTestDependencies", platform("com.fasterxml.jackson:jackson-bom:2.22.3"))
+    add("intellijPlatformTestDependencies", platform("com.fasterxml.jackson:jackson-bom:2.22.4"))
     constraints {
         add("intellijPlatformTestDependencies", "org.assertj:assertj-core:3.27.7") {
             because("CVE-2026-24400: patch the platform fixture's XML assertions")
@@ -175,7 +175,7 @@ sourceSets {
 // A standalone stdio process, deliberately independent of IntelliJ's classpath.
 val mcpAdapter = sourceSets.create("mcpAdapter")
 dependencies {
-    add(mcpAdapter.implementationConfigurationName, "com.fasterxml.jackson.core:jackson-databind:2.22.3")
+    add(mcpAdapter.implementationConfigurationName, "com.fasterxml.jackson.core:jackson-databind:2.22.4")
 }
 val mcpAdapterJar = tasks.register<Jar>("mcpAdapterJar") {
     archiveFileName.set("studio-mcp-adapter.jar")
@@ -195,26 +195,31 @@ tasks.named<ProcessResources>("processResources") {
 
 // A reproducible source fingerprint distinguishes nightly/local builds sharing a version number.
 val diagnosticIdentityFile = layout.buildDirectory.file("generated/import-diagnostics/studio-import-build-id.txt")
+val diagnosticPluginVersionFile = layout.buildDirectory.file("generated/import-diagnostics/studio-plugin-version.txt")
 val generateImportDiagnosticIdentity = tasks.register("generateImportDiagnosticIdentity") {
     val sourceRootPath = layout.projectDirectory.asFile.absolutePath
+    val configuredPluginVersion = providers.gradleProperty("pluginVersion").get()
+    inputs.property("pluginVersion", configuredPluginVersion)
     inputs.files(fileTree("src/main"), fileTree("native-mcp/src/main"),
         fileTree("headless") { include("*/src/main/**", "*/build.gradle.kts", "build.gradle.kts") },
         files("build.gradle.kts", "gradle.properties", "settings.gradle.kts",
             "gradle/libs.versions.toml", "gradle/wrapper/gradle-wrapper.properties",
             "native-mcp/build.gradle.kts", "headless/settings.gradle.kts"))
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.file(diagnosticIdentityFile)
+    outputs.files(diagnosticIdentityFile, diagnosticPluginVersionFile)
     doLast {
         val diagnosticSourceRoot = Path.of(sourceRootPath)
         val digest = MessageDigest.getInstance("SHA-256")
+        digest.update(configuredPluginVersion.toByteArray(Charsets.UTF_8)); digest.update(0.toByte())
         inputs.files.files.filter { it.isFile }.sortedBy { diagnosticSourceRoot.relativize(it.toPath()).toString() }.forEach {
             val name = diagnosticSourceRoot.relativize(it.toPath()).toString().replace('\\', '/')
             digest.update(name.toByteArray(Charsets.UTF_8)); digest.update(0.toByte())
             digest.update(it.readBytes()); digest.update(0.toByte())
         }
-        val target = outputs.files.singleFile
+        val target = outputs.files.files.single { it.name == "studio-import-build-id.txt" }
         target.parentFile.mkdirs()
         target.writeText(HexFormat.of().formatHex(digest.digest()) + "\n")
+        outputs.files.files.single { it.name == "studio-plugin-version.txt" }.writeText(configuredPluginVersion + "\n")
     }
 }
 tasks.named<ProcessResources>("processResources") { from(generateImportDiagnosticIdentity) { into("studio/diagnostics") } }

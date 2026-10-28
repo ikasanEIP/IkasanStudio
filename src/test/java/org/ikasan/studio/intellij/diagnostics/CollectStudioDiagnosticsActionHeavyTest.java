@@ -6,6 +6,14 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.project.DumbAware;
 
 public class CollectStudioDiagnosticsActionHeavyTest extends HeavyPlatformTestCase {
+    public void testImportReportDisplaysTheBuildGeneratedVersionWithoutPluginManagerLookup() throws Exception {
+        try (var stream = RuntimeImportDiagnostics.class.getResourceAsStream("/studio/diagnostics/studio-plugin-version.txt")) {
+            assertNotNull("Plugin version metadata must be packaged", stream);
+            String version = new String(stream.readAllBytes(), java.nio.charset.StandardCharsets.US_ASCII).trim();
+            assertTrue("Expected a version, not missing metadata", version.matches("[0-9]+[.][0-9]+[.][0-9]+(?:-[A-Za-z0-9.]+)?"));
+            assertTrue(RuntimeImportDiagnostics.get(getProject()).text().contains("Plugin: " + version + "; IDE build:"));
+        }
+    }
     public void testImportReportIsProjectScopedAndRegisteredDuringIndexing() {
         var action = ActionManager.getInstance().getAction("IkasanStudio.ImportReport");
         assertInstanceOf(action, ShowRuntimeImportReportAction.class);
