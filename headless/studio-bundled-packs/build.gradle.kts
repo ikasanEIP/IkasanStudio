@@ -29,7 +29,7 @@ dependencies {
     // The same shared source set also compiles and exercises the local FTP fixture.
     testImplementation("org.apache.ftpserver:ftpserver-core:1.2.1")
     constraints {
-        testImplementation("org.apache.mina:mina-core:2.2.9")
+        testImplementation("org.apache.mina:mina-core:2.2.10")
     }
 }
 // Give this module its own source root. Sharing the plugin's entire test root with
