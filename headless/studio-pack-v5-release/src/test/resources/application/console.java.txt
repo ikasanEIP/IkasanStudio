@@ -1,0 +1,60 @@
+package org.ikasan.studio.flowtests;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import org.junit.Test;
+import static org.junit.Assert.*;
+import org.ikasan.studio.flowtests.support.ModuleFlowTestSupport;
+
+/** Real HTTP/JSP checks against the generated application, not mocked MVC. */
+public class BlueConsoleTest extends ModuleFlowTestSupport {
+    @Override protected String getFlowName() { return "Example Flow"; }
+
+    @Test(timeout = 90000) public void loginAndModuleListing() throws Exception {
+        int[] port = {0};
+        try (var client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5))
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .cookieHandler(new java.net.CookieManager(null, java.net.CookiePolicy.ACCEPT_ALL)).build()) {
+            runTest(context -> {
+                port[0] = context.getEnvironment().getRequiredProperty("local.server.port", Integer.class);
+                String path = context.getEnvironment().getProperty("server.servlet.context-path", "");
+                String base = "http://127.0.0.1:" + port[0] + path;
+                var login = get(client, base + "/login.jsp");
+                assertEquals("Blue Console login page must render", 200, login.statusCode());
+                assertTrue("Login form must be present, not an error page", login.body().contains("j_username"));
+                var anonymous = get(client, base + "/modules/list.htm");
+                assertTrue("Anonymous module access must require authentication; status=" + anonymous.statusCode(),
+                        anonymous.statusCode() == 401 || anonymous.statusCode() == 302);
+                if (anonymous.statusCode() == 302)
+                    assertTrue("Redirect must point to login", anonymous.headers().firstValue("location").orElse("").contains("login.jsp"));
+                var authentication = client.send(HttpRequest.newBuilder(URI.create(base + "/j_spring_security_check"))
+                        .timeout(Duration.ofSeconds(10))
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString("j_username=admin&j_password=admin")).build(),
+                        HttpResponse.BodyHandlers.ofString());
+                assertEquals("Form login must redirect after authentication", 302, authentication.statusCode());
+                assertTrue("Successful login must lead to the console home page",
+                        authentication.headers().firstValue("location").orElse("").endsWith("/home.htm"));
+                // No Authorization header: these requests must use the authenticated session cookie.
+                var modules = get(client, base + "/modules/list.htm");
+                assertEquals("Authenticated Blue Console module list must render", 200, modules.statusCode());
+                assertTrue("Generated module must be visible", modules.body().contains("Ikasan5Review"));
+                var flow = get(client, base + "/modules/view.htm?moduleName=Ikasan5Review");
+                assertEquals("Module details must render", 200, flow.statusCode());
+                assertTrue("Generated flow must be visible", flow.body().contains("Example Flow"));
+            });
+        }
+        try (var socket = new java.net.Socket()) {
+            socket.connect(new java.net.InetSocketAddress("127.0.0.1", port[0]), 500);
+            fail("Application HTTP listener still open after context teardown");
+        } catch (java.net.ConnectException expected) { /* Application closed its owned port. */ }
+    }
+
+    private static HttpResponse<String> get(HttpClient client, String url) throws Exception {
+        var request = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(10)).header("Accept", "text/html");
+        return client.send(request.GET().build(), HttpResponse.BodyHandlers.ofString());
+    }
+}

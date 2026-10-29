@@ -116,14 +116,14 @@ The root [settings.gradle.kts](settings.gradle.kts) includes `headless/` as a co
 
 ### Meta-packs
 
-Meta-pack sources live under `src/main/resources/studio/metapack/`. The bundled packs are `V3.3.9` and `V4.1.6`; each supplies `metapack.json`, a component library (JSON descriptors and icons), and version-specific FreeMarker templates. Shared schemas live under `schema/`. Historic VHS and older-version references do not identify currently bundled packs.
+Meta-pack sources live under `src/main/resources/studio/metapack/`. The bundled packs are `V3.3.9`, `V4.1.6` and `V5.1.0` (the latter under `headless/studio-pack-v5-release/src/main/resources/`); each supplies `metapack.json`, a component library (JSON descriptors and icons), and version-specific FreeMarker templates. Shared schemas live under `schema/`. Historic VHS and older-version references do not identify currently bundled packs.
 
 An opt-in Ikasan 5 development pack lives in `headless/studio-pack-v5/src/main/resources/studio/metapack/V5.0.1-SNAPSHOT`.
 It targets the inspected Java 26 snapshot baseline and appears in the IDE version selector when **Allow snapshot meta-packs** is enabled in Studio settings. Migration choices remain V3/V4 only.
 See [V5 development evidence and gates](headless/studio-pack-v5/README.md) before changing its status;
-the plugin embeds it as optional resource-only data and activates it after opt-in and IDE restart. Normal plugin/CLI classpaths retain V3/V4 only; previously activated resources remain available for existing projects after opt-out. See [snapshot meta-packs](docs/SnapshotMetaPacks.md). This is not Marketplace release certification.
+the plugin embeds it as optional resource-only data and activates it after opt-in and IDE restart. Normal plugin/CLI classpaths contain the released V3/V4/V5 packs; previously activated resources remain available for existing projects after opt-out. See [snapshot meta-packs](docs/SnapshotMetaPacks.md). This is not Marketplace release certification.
 
-`headless/studio-pack-v3` and `headless/studio-pack-v4` package the respective resource directories; `studio-bundled-packs` selects their exact revisions. The root plugin excludes these resources from its own resource source set to avoid duplicate packaging. Follow the [meta-pack authoring guide](src/main/resources/studio/metapack/METAPACK.md), [compliance requirements](src/main/resources/studio/metapack/METAPACK_COMPLIANCE.md), and [independent pack release guide](docs/IndependentMetaPackArtifacts.md) when changing or adding packs.
+`headless/studio-pack-v3` and `headless/studio-pack-v4` package the respective resource directories; `headless/studio-pack-v5-release` packages the released Ikasan 5.1.0 adapter; `studio-bundled-packs` selects all three exact revisions. The independent Maven example `ikasan-studio-ancillary/ikasan5-metapack` uses `ExampleIkasan5` so it can coexist with the bundled pack. The root plugin excludes these resources from its own resource source set to avoid duplicate packaging. Follow the [meta-pack authoring guide](src/main/resources/studio/metapack/METAPACK.md), [compliance requirements](src/main/resources/studio/metapack/METAPACK_COMPLIANCE.md), and [independent pack release guide](docs/IndependentMetaPackArtifacts.md) when changing or adding packs.
 
 Complete external pack JARs can be installed through **Tools → Ikasan Studio → Install Meta-Pack…**. **Manage Meta-Packs…** schedules external updates/removal for restart, cancels pending changes and restores retained artifacts. `core.metapack.loading.MetaPackStore` owns pending operations, integrity checks and immutable history; it never replaces a session's active JAR during a management operation. Bundled revisions remain controlled by plugin distribution.
 
@@ -229,3 +229,7 @@ Use this file as the primary tool-neutral project context. For exact package pat
 - [Ancillary README](ikasan-studio-ancillary/README.md) describes the separately versioned Maven archetype and IDE mediator. The [archetype AGENTS.md](ikasan-studio-ancillary/ikasan-studio-project-archetype/src/main/resources/archetype-resources/AGENTS.md) is shipped into generated applications; its instructions govern those applications, while this root file governs Studio development, including archetype templates. Keep both filenames so agents can discover the instructions in each resulting project.
 
 Keep user-facing terminology and screenshots aligned with the supported plugin and Ikasan versions. Whenever `src/main/resources/messages/studioBundle.properties` changes, update `src/main/resources/messages/studioBundle_ja.properties` in the same change, preserving keys, format placeholders, HTML markup and user-facing meaning.
+
+### Ikasan 5 Java baseline
+
+New Ikasan 5 work targets JDK 25 LTS. Do not use Java 26-specific APIs, language features or preview features. Released V5.1.0 and the independent ExampleIkasan5 pack target Java 25; plugin and pack-authoring compilation remains Java 17. The retained historical 5.0.1 snapshot and dated Java 26 evidence do not establish the baseline for new work.

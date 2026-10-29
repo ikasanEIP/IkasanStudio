@@ -43,3 +43,10 @@ all-consumers/producers demonstration modules. V5 remains experimental: the
 [20 October verification](Ikasan5MergeVerification-2026-10-20.md) records six
 transaction rollback failures. Successful normal deliveries do not certify
 rollback or production readiness. Supported migration choices remain V3/V4.
+
+## Released Ikasan 5
+
+**V5.1.0** is bundled normally and requires no snapshot setting. The old V5.0.1-SNAPSHOT
+pack remains available for existing projects and explicit snapshot testing; it is not silently
+upgraded to 5.1.0. See the [released pack](../headless/studio-pack-v5-release/README.md) and
+[independent authoring example](../ikasan-studio-ancillary/ikasan5-metapack/README.md).

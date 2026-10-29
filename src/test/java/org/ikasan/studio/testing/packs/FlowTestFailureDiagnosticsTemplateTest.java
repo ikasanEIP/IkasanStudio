@@ -11,9 +11,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class FlowTestFailureDiagnosticsTemplateTest {
     @TempDir Path root;
 
-    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT", "V5.1.0"})
     void preservesComparisonValuesCauseAndRealAssertionFrame(String version) throws Exception {
-        Path templates = version.equals("V5.0.1-SNAPSHOT")
+        Path templates = version.equals("V5.1.0")
+                ? Path.of("headless/studio-pack-v5-release/src/main/resources/studio/metapack", version, "templates/org/ikasan/studio/generator")
+                : version.equals("V5.0.1-SNAPSHOT")
                 ? Path.of("headless/studio-pack-v5/src/main/resources/studio/metapack", version, "templates/org/ikasan/studio/generator")
                 : Path.of("src/main/resources/studio/metapack", version, "templates/org/ikasan/studio/generator");
         Path source = root.resolve("FlowTestFailureDiagnostics.java");

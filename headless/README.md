@@ -11,23 +11,24 @@ This standalone Gradle build uses Java 17 and Maven libraries only. Running it d
 | `org.ikasan.studio:studio-test-kit:0.1.0-SNAPSHOT` | Pack validation/rendering helpers and a reusable JUnit Jupiter contract | Generator and JUnit Jupiter API |
 | `org.ikasan.studio:studio-pack-v3:0.1.0-SNAPSHOT` | V3.3.9 descriptors, templates and images | None |
 | `org.ikasan.studio:studio-pack-v4:0.1.0-SNAPSHOT` | V4.1.6 descriptors, templates and images | None |
-| `org.ikasan.studio:studio-bundled-packs:0.1.0-SNAPSHOT` | Bundle selecting exact official pack revisions | Both pack artifacts |
+| `org.ikasan.studio:studio-pack-v5-release:1.0.0` | V5.1.0 released descriptors, templates and images; generated applications use JDK 25 | None |
+| `org.ikasan.studio:studio-bundled-packs:0.1.0-SNAPSHOT` | Bundle selecting exact official pack revisions | All three released pack artifacts |
 
-These are initial development artifact versions, independent of the plugin version. Nothing is automatically published remotely. Each official pack takes its artifact version from its own `metapack.json`. The bundled-packs artifact has no pack resources; its dependency metadata selects both exact pack revisions. See [Independent pack releases](../docs/IndependentMetaPackArtifacts.md) for versioning and release commands.
+These are initial development artifact versions, independent of the plugin version. Nothing is automatically published remotely. Each official pack takes its artifact version from its own `metapack.json`. The bundled-packs artifact has no pack resources; its dependency metadata selects all three exact released pack revisions. See [Independent pack releases](../docs/IndependentMetaPackArtifacts.md) for versioning and release commands.
 
 The generator has no dependency on either the test kit or bundled packs. The test kit has no production dependency on bundled packs. Consumers supply their own pack resources on the application classpath using the existing `studio/metapack/<id>/...` structure. Resource discovery merges directories across engine and pack JARs.
 
 With `-PstudioIncludeSnapshotPacks=true`, `studio-bundled-packs` also selects the
 [Ikasan 5 development pack](studio-pack-v5/README.md) for fresh IDE sandbox launches.
 Its Java 26 runtime verification and snapshot readiness gates remain separate from
-released V3/V4 compatibility claims. V5 migration choices remain disabled.
+released V3/V4/V5 compatibility claims. V5 migration choices remain disabled.
 
 ## Source ownership
 
 Production Java sources have their own module source root so IntelliJ and Gradle agree on ownership. Resources and existing tests still use their repository locations:
 
 - `studio-generator` owns `headless/studio-generator/src/main/java/`, containing `org/ikasan/studio/core/**` and `StudioRuntimeException.java`, and packages `studio/metapack/schema/**`.
-- `studio-pack-v3` and `studio-pack-v4` each package only their own directory under `src/main/resources/studio/metapack/`. `studio-bundled-packs` selects them and hosts the combined official-pack regression suite.
+- `studio-pack-v3` and `studio-pack-v4` each package only their own directory under `src/main/resources/studio/metapack/`. `studio-pack-v5-release` owns its V5.1.0 resources under its own module. `studio-bundled-packs` selects all three and hosts the combined official-pack regression suite.
 - The root IntelliJ build excludes those resources and depends on these artifacts through a composite build in `settings.gradle.kts`.
 - The headless engine and pack test tasks reuse the corresponding tests from `src/test/java/org/ikasan/studio/testing`. Official test fixtures stay in the repository's test sources; they are not exported in the test-kit JAR.
 

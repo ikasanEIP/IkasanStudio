@@ -96,7 +96,7 @@ class IkasanModelDocumentsTest {
         assertThat(json.readTree(ModelTemplate.create(loaded))).isEqualTo(docs);
     }
 
-    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void inferredConfigurationIdsDoNotBecomeExplicitPropertiesOnReload(String pack) throws Exception {
         ObjectNode legacy = (ObjectNode) json.readTree(fixture("populated_module.json"));
         legacy.put("version", pack);
@@ -136,7 +136,7 @@ class IkasanModelDocumentsTest {
                 .isEqualTo(json.readTree(source));
     }
 
-    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void configurationIsAuthoritativeAndUnknownParametersSurvive(String pack) throws Exception {
         ObjectNode legacy = (ObjectNode) json.readTree(fixture("populated_module.json"));
         legacy.put("version", pack);
@@ -162,7 +162,7 @@ class IkasanModelDocumentsTest {
         assertThatThrownBy(() -> ComponentIO.validatePersistedModuleJson(docs.toString(), "test", false)).hasMessageContaining("value type");
     }
 
-    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT", "V5.1.0"})
     void omittedRuntimeValuesStayUnsetAcrossImportSaveReloadAndGeneration(String pack) throws Exception {
         var topology = json.createObjectNode().put("name", "Imported JMS").put("ikasanVersion", pack.substring(1));
         var flow = topology.putArray("flows").addObject().put("name", "Orders").put("flowStartupType", "AUTOMATIC");
@@ -240,7 +240,7 @@ class IkasanModelDocumentsTest {
                 .hasMessageContaining("Invalid configuration value type for priority");
     }
 
-    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT"})
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT", "V5.1.0"})
     void recognisedWrapperVariationsNormalizeWithoutChangingSettingsOrInput(String pack) throws Exception {
         ObjectNode legacy = (ObjectNode) json.readTree(fixture("populated_module.json"));
         legacy.put("version", pack).put("applicationPackageName", "org.example.imported");

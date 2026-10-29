@@ -1,0 +1,91 @@
+{
+  "name": "Multi Recipient Router",
+  "componentType": "org.ikasan.spec.component.routing.MultiRecipientRouter",
+  "helpText": "<p>Use this router to send a payload to one or more routes, such as both routeA and routeB.</p><p>Unlike the Single Recipient Router there is no \"default\" fallback - the router must always return at least one route name, it can never return zero.</p><p>Each matched route runs to completion, in order, before the next one starts. By default, the payload is cloned before being sent down each route (except the last) so routes cannot affect each other by mutating a shared payload.</p>",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-5.1.0/ikasaneip/component/Readme.md",
+  "implementingClass": "org.ikasan.component.router.multirecipient.RecipientListRouter",
+  "flowBuilderMethod": "multiRecipientRouter",
+  "endpointKey": "Router Endpoint",
+  "generatesUserImplementedClass": "true",
+  "routesToMultipleTargets": "true",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties": {
+    "requiresStub": {
+      "propertyName": "requiresStub",
+      "propertyDataType": "java.lang.Boolean",
+      "usageDataType": "java.lang.Boolean",
+      "defaultValue": true,
+      "mandatory": false,
+      "helpText": "Generate a new implementation stub. Disable when supplying an existing fully qualified class and Spring bean, for example after importing runtime metadata."
+    },
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+    "userImplementedClassName": {
+      "propertyName": "userImplementedClassName",
+      "defaultValue": "__fieldName:componentName",
+      "userImplementClassFtlTemplate": "routerTemplate.ftl",
+      "affectsUserImplementedClass": "true",
+      "helpText": "The name of the class that contain the logic to decide which route a payload will be delivered to, the IDE will create a template for this class, the user  must provide the implementation.",
+      "mandatory": true,
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a valid java classname for the router e.g. starting with upper case, followed by number/characters etc."
+    },
+    "configuration": {
+      "propertyName": "configuration",
+      "helpText": "Provide the bean type that contains bespoke configurations for this component.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
+      "protectFromOverwrite": true,
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean.",
+      "usageDataType": "configurationDefined"
+    },
+    "configuredResource": {
+      "propertyName": "configuredResource",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": false,
+      "helpText": "Default: false. Allows the configuration to be exposed in the Ikasan console.",
+      "propertyDataType": "java.lang.Boolean",
+      "usageDataType": "java.lang.Boolean"
+    },
+    "configurationId": {
+      "propertyName": "configurationId",
+      "defaultValue": "__module-__flow-__component",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
+      "setterProperty": true,
+      "setterMethod": "setConfiguredResourceId",
+      "usageDataType": "java.lang.String"
+    },
+    "fromType": {
+      "propertyName": "fromType",
+      "usageDataType": "classLiteral",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lang.String",
+      "helpText": "The type of data we expect to come into the converter. This can be any Java class.",
+      "mandatory": true,
+      "validation": "([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?",
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the converter."
+    },
+    "toType": {
+      "propertyName": "toType",
+      "usageDataType": "classLiteral",
+      "defaultValue": "java.util.List<java.lang.String>",
+      "hiddenProperty": true,
+      "mandatory": true
+    },
+    "routeNames": {
+      "propertyName": "routeNames",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "route1,route2",
+      "helpText": "A comma-separated list of route names your router logic (see the generated class) selects from per message - it must choose at least one, but may choose several (e.g. return two of them together to fan the payload out to both).",
+      "mandatory": true,
+      "usageDataType": "java.util.List<String>",
+      "validation": "^[0-9a-zA-Z]+(,[ ]*[0-9a-zA-Z]+)*$",
+      "validationMessage": "Provide a comma-separated list of route names (duplicates will be ignored)."
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Generic Endpoint",
+  "implementingClass": "GenericEndpoint",
+  "helpText": "This generic endpoint is shown when the underlying technology is supplied by the user's own implementation, rather than a built-in Ikasan component.",
+  "isEndpoint": true,
+  "allowableProperties_comment" : "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "Text displayed for the endpoint, such as a host, database name or filename. The owning flow element normally supplies it through <code>endpointTextKey</code>.",
+      "mandatory": true
+    }
+  }
+}

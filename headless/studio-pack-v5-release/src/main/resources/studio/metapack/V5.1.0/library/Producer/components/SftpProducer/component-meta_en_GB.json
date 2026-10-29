@@ -1,0 +1,256 @@
+{
+  "legacyPropertyAliases": {"knownHostFilename": "knownHostsFilename", "cleanupChunks": "cleanUpChunks"},
+  "flowTestDeliveryStrategy": "sftp",
+  "runtimeConfigurationProperties": ["checksumDelivered", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "createParentDirectory", "maxRetryAttempts", "outputDirectory", "overwrite", "password", "preferredKeyExchangeAlgorithm", "privateKeyFilename", "remoteHost", "remotePort", "renameExtension", "tempFileName", "unzip", "username", "knownHostsFilename", "cleanUpChunks"],
+  "flowTestFileDelivery": true,
+  "supportsTestSftpServer": true,
+  "name": "SFTP Producer",
+  "helpText": "<p>Delivers files to a remote FTP or SFTP server. A persistent store records metadata about delivered files.</p>",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-5.1.0/ikasaneip/component/Readme.md",
+  "builderFactory": "org.ikasan.builder.BuilderFactory",
+  "implementingClass": "org.ikasan.component.endpoint.quartz.producer",
+  "expectedInputTypes": "org.ikasan.filetransfer.Payload",
+  "jarDependencies": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-sftp-endpoint"
+    }
+  ],
+  "importConfigurationClasses": [
+    "org.ikasan.connector.basefiletransfer.BaseFileTransferAutoConfiguration"
+  ],
+  "additionalKey": "SFTP Producer",
+  "usesBuilderInFactory": true,
+  "flowBuilderMethod": "producer",
+  "ikasanComponentFactoryMethod": "sftpProducer",
+  "endpointKey": "SFTP Endpoint",
+  "endpointTextKey": "remoteHost",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+    "checksumDelivered": {
+      "propertyName": "checksumDelivered",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.checksumDelivered",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 70,
+      "defaultValue": false,
+      "helpText": "Default(false) Flag indicating whether producer should generate and deliver a checksum md5 hash file to remote server.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "cleanUpChunks": {
+      "propertyName": "cleanUpChunks",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.cleanupChunks",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 80,
+      "defaultValue": true,
+      "setterMethod": "setCleanUpChunks",
+      "helpText": "Default(true) Flag indicating whether chunk file information persisted in DB should be removed by producer after successful file delivery aka. successful file assembling from chunks.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "cleanupJournalOnComplete": {
+      "propertyName": "cleanupJournalOnComplete",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.cleanupJournalOnComplete",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 350,
+      "defaultValue": true,
+      "helpText": "Only set to false when debugging. When true (default) the journal information is deleted when the file is processed successfully. The journal is a durable log of in-progress FTP operations, letting the connector detect and safely replay/resolve transactions interrupted by a crash — instead of losing or duplicating file processing.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "clientID": {
+      "propertyName": "clientID",
+      "propertyDisplayOrder": 20,
+      "defaultValue": "__flow",
+      "helpText": "ClientID is used in the persisted metadata to identify this component uniquely in the context of the module. Since a flow can have only one consumer, the flow name makes for a good, default, client ID.",
+      "mandatory": true,
+      "propertyConfigFileLabel": "__flow.sftp.producer.clientID",
+      "setterProperty": true
+    },
+    "configuration": {
+      "propertyName": "configuration",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 360,
+      "helpText": "If you don't want to use properties files, you can supply a configuration bean that encapsulates all the properties here which gets bound via Spring @ConfigurationProperties. This might also be useful if you want to extend the configuration with fields the builder doesn't expose. Using it will reduce your ability to configure the component within this tool.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
+      "protectFromOverwrite": true,
+      "usageDataType": "org.ikasan.endpoint.sftp.producer.SftpProducerConfiguration",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "connectionTimeout": {
+      "propertyName": "connectionTimeout",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.connectionTimeout",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 240,
+      "displayLabel": "Connection Timeout (ms)",
+      "defaultValue": 60000,
+      "helpText": "Internal (S)FTP connector connection timeout value in milliseconds. Default is 60000 (1 minute).",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "createParentDirectory": {
+      "propertyName": "createParentDirectory",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.createParentDirectory",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 20,
+      "defaultValue": false,
+      "helpText": "Default(false) Flag indicating whether outputDirectory should be created if it does not exist.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "criticalOnStartup": {
+      "propertyName": "criticalOnStartup",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.criticalOnStartup",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 380,
+      "defaultValue": false,
+      "helpText": "Default: false. Identifies this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "knownHostsFilename": {
+      "propertyName": "knownHostsFilename",
+      "propertyDisplayOrder": -22,
+      "displayLabel": "Known Hosts Filename",
+      "mandatoryUnlessAnyOf": [
+        "password"
+      ],
+      "mandatorySectionHeading": "Provide key and hosts",
+      "helpText": "Known-hosts file used for SFTP server identity verification with key-based authentication. A common location is ~/.ssh/known_hosts; select an existing readable file and use its resolved absolute path rather than assuming Java expands ~. Verify the host and port entry and fingerprint through a trusted source. ssh-keyscan can collect a key but does not authenticate it. Do not blindly trust a scanned key or disable verification to make a demonstration work. Password-based connections do not read this field in this connector.",
+      "propertyConfigFileLabel": "__flow.sftp.producer.known-hosts-filename",
+      "setterMethod": "setKnownHostsFilename",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "maxRetryAttempts": {
+      "propertyName": "maxRetryAttempts",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 230,
+      "defaultValue": 3,
+      "helpText": "Default(3) internal (S)FTP connector retry count.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer",
+      "propertyConfigFileLabel": "__flow.sftp.consumer.max-retry-attempts"
+    },
+    "outputDirectory": {
+      "propertyName": "outputDirectory",
+      "propertyDisplayOrder": 10,
+      "defaultValue": ".",
+      "mandatory": true,
+      "helpText": "Remote directory where to deliver the file.",
+      "setterProperty": true,
+      "propertyConfigFileLabel": "__flow.sftp.producer.outputDirectory"
+    },
+    "overwrite": {
+      "propertyName": "overwrite",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.overwrite",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 30,
+      "defaultValue": false,
+      "helpText": "Default: false. When enabled, an existing remote file with the same name may be replaced. The remote SFTP server must permit deletion or replacement of the destination.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "password": {
+      "propertyName": "password",
+      "preserveWhitespace": true,
+      "propertyDisplayOrder": -35,
+      "displayLabel": "Password",
+      "mandatoryUnlessAnyOf": [
+        "privateKeyFilename"
+      ],
+      "mandatorySectionHeading": "Provide password or",
+      "helpText": "Password to login to the SFTP server. Optional if privateKeyFilename is set instead for key-based authentication - provide one or the other. If both are supplied, password takes precedence and the private key is ignored. username is always required regardless of which method is used.",
+      "propertyConfigFileLabel": "__flow.sftp.producer.password",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "preferredKeyExchangeAlgorithm": {
+      "propertyName": "preferredKeyExchangeAlgorithm",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 280,
+      "helpText": "The preferred SSH key exchange algorithm to use when negotiating the SFTP connection, e.g. 'diffie-hellman-group14-sha256'. Optional — if left unset, the client and server negotiate automatically.",
+      "setterProperty": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.preferred-key-exchange-algorithm"
+    },
+    "privateKeyFilename": {
+      "propertyName": "privateKeyFilename",
+      "propertyDisplayOrder": -25,
+      "displayLabel": "Private Key Filename",
+      "mandatoryUnlessAnyOf": [
+        "password"
+      ],
+      "mandatorySectionHeading": "Provide key and hosts",
+      "helpText": "Private key file for SFTP public-key authentication; optional when using password authentication. Existing keys commonly live in the operating-system user home under .ssh, for example ~/.ssh/id_rsa or ~/.ssh/id_ed25519. These are examples, not guaranteed files or supported key formats: confirm the chosen key exists, is readable by the module process, is supported by the selected connector, and its public key is authorized by the server. Use a resolved absolute path; do not assume Java expands ~. Ask which existing key to use rather than inventing a project-local demo/ssh path. Never copy private key contents into the model, chat or source repository.",
+      "setterProperty": true,
+      "propertyConfigFileLabel": "__flow.sftp.producer.private-key-filename"
+    },
+    "remoteHost": {
+      "propertyName": "remoteHost",
+      "propertyDisplayOrder": -60,
+      "defaultValue": "127.0.0.1",
+      "helpText": "Default('127.0.0.1') host name of the remote (S)FTP server where producer needs to deliver the file.",
+      "mandatory": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.remote-host",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "remotePort": {
+      "propertyName": "remotePort",
+      "propertyDisplayOrder": -50,
+      "defaultValue": 22,
+      "helpText": "Default(22) port of the remote (S)FTP server where consumer needs to connect.",
+      "mandatory": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.remote-port",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer",
+      "usageDataType": "java.lang.Integer"
+    },
+    "renameExtension": {
+      "propertyName": "renameExtension",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.renameExtension",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 40,
+      "helpText": "Default('.tmp') file delivery to remote location takes place in two stages, first a file is delivered with suffix equal to renameExtension, further file is renamed with suffix being removed.",
+      "setterProperty": true,
+      "defaultValue": ".tmp",
+      "usageDataType": "java.lang.String"
+    },
+    "tempFileName": {
+      "propertyName": "tempFileName",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.tempFileName",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 50,
+      "helpText": "Temporary filename to use for incomplete transfer.",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "unzip": {
+      "propertyName": "unzip",
+      "propertyConfigFileLabel": "__flow.__component.sftp.producer.unzip",
+      "propertyGroup": "Delivery",
+      "propertyDisplayOrder": 60,
+      "defaultValue": false,
+      "helpText": "Default(false) Flag indicating whether the file should be unzipped on remote server as post delivery task. This makes an assumption that delivered stream is zipped.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "username": {
+      "propertyName": "username",
+      "propertyDisplayOrder": -40,
+      "helpText": "User name used to login to (S)FTP server where consumer needs to connect.",
+      "mandatory": true,
+      "propertyConfigFileLabel": "__flow.sftp.consumer.username",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    }
+  }
+}

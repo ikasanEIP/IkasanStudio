@@ -1,0 +1,39 @@
+package org.ikasan.studio.flowtests;
+import java.util.*;
+import org.junit.Test;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+import org.ikasan.studio.flowtests.support.ModuleFlowTestSupport;
+import org.ikasan.studio.flowtests.support.utils.FileInputFixture;
+import org.ikasan.testharness.flow.rule.IkasanFlowTestRule;
+
+public class InputTest extends ModuleFlowTestSupport {
+    @Rule public TemporaryFolder directory = TemporaryFolder.builder().assureDeletion().build();
+    private java.nio.file.Path previous;
+    @Override protected String getFlowName() { return "Inputs"; }
+    @Override protected Map<String, String> flowTestProperties() {
+        var properties = super.flowTestProperties();
+        properties.put("inputs.file.consumer.filenames", FileInputFixture.localFixtureFilenames(directory.getRoot().toPath()));
+        return properties;
+    }
+    @Override protected void defineExpectedPath(IkasanFlowTestRule harness) {
+        for (int i = 0; i < expectedInputCount(); i++) {
+            harness.scheduledConsumer("Input"); harness.producer("Output");
+        }
+    }
+    @Override protected String formatOutputText(Object actual) { return formatOutputText(actual, true); }
+    @Test public void firstAndLaterFilesWithoutRestart() throws Exception {
+        // Unrelated files and directories must not accidentally become input payloads.
+        java.nio.file.Files.createDirectory(directory.getRoot().toPath().resolve("unrelated"));
+        java.nio.file.Files.writeString(directory.getRoot().toPath().resolve("ignore.txt"), "not a fixture");
+        runBatches(context -> List.of(
+                batch(List.of("/input/first.txt"), Map.of("Output", List.of("first"))),
+                batch(List.of("/input/later.txt"), Map.of("Output", List.of("later"))),
+                batch(List.of("/input/third.txt"), Map.of("Output", List.of("third")))),
+                (context, harness, input) -> {
+                    if (previous != null) java.nio.file.Files.deleteIfExists(previous);
+                    previous = FileInputFixture.copyLocalResource(directory.getRoot().toPath(), input);
+                    harness.fireScheduledConsumer();
+                });
+    }
+}

@@ -1,0 +1,43 @@
+{
+  "flowTestExpectedInitialOutputs": ["Test Message 1", "Test Message 2", "Test Message 3"],
+  "flowTestInputMode": "self-generating",
+  "flowTestInputModeInvalidatedByProperties": ["endpointEventProvider", "managedEventIdentifierService"],
+  "name": "Event Generating Consumer",
+  "helpText": "<p>The endpointEventProvider supplies payloads; Studio cannot infer their type. Returning null from getEvent() terminates this consumer; it is not an idle signal. A short finite list is unsuitable for a normal ESB demonstration.</p><p>ESB flows, including demos, must remain running and ready for later input after the initial sample batch. Prefer correctly scheduled, polling or listener-based input. Use the Event Generating Consumer built-in provider unless the requested payload behaviour requires a custom provider. Add a paced provider only when the developer explicitly requests one; component coverage alone does not require it. Custom sources must honour cancellation, rollback and stop/start against the selected framework version. Do not fake isRunning, busy-spin, suppress failures or flood output.</p><p>Verify first delivery, continued readiness during idle time, and a later batch in the same running application without bean reset or flow/application restart. Finite completion is only appropriate for explicitly requested batch examples or bounded tests; a README or completion message does not excuse an unexpectedly Stopped ESB flow.</p>",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-5.1.0/ikasaneip/component/Readme.md",
+  "builderFactory": "org.ikasan.builder.BuilderFactory",
+  "implementingClass": "org.ikasan.component.endpoint.consumer.EventGeneratingConsumer",
+  "usesBuilderInFactory": true,
+  "flowBuilderMethod": "consumer",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+    "endpointEventProvider": {
+      "propertyName": "endpointEventProvider",
+      "helpText": "Provide the class that supplies the events this consumer generates: implement getEvent() to return each event in turn and rollback() to handle retry of the current event. EventGeneratingConsumer is typically used to provision test or demonstration flows quickly, so this is usually a small bespoke class you write yourself - there is no meaningful pre-built implementation to reuse.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
+      "propertyGroup": "advanced",
+      "protectFromOverwrite": true,
+      "usageDataType": "org.ikasan.component.endpoint.consumer.api.spec.EndpointEventProvider",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the endpoint event provider bean."
+    },
+    "managedEventIdentifierService": {
+      "propertyName": "managedEventIdentifierService",
+      "helpText": "Optional, and safe to leave unset for most flows. Ikasan gives every message a tracking ID as it processes it - used to correlate a message in the audit trail/dashboard, and to recognise the same message again if a flow error 'parks' it for later retry. By default this ID is just a raw hash of the message content (functional, but not human-readable). Setting this property lets you supply your own class to derive a more meaningful ID instead, e.g. from a business key in the message payload.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
+      "propertyGroup": "advanced",
+      "usageDataType": "org.ikasan.spec.event.ManagedEventIdentifierService",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the endpoint event provider bean."
+    }
+  }
+}

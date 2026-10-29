@@ -50,6 +50,14 @@ public class SnapshotMetaPacksHeavyTest extends HeavyPlatformTestCase {
         assertEquals("26", ComponentLibrary.getMetaPackManifest("V5.0.1-SNAPSHOT").javaVersion());
     }
 
+    public void testReleasedIkasan5IsAvailableWithoutSnapshotOptIn() throws Exception {
+        assertTrue(ComponentLibrary.getMetapackList(false).contains("V5.1.0"));
+        var manifest = ComponentLibrary.getMetaPackManifest("V5.1.0");
+        assertEquals("5.1.0", manifest.ikasanVersion());
+        assertEquals("25", manifest.javaVersion());
+        assertFalse(ComponentLibrary.isSnapshotRuntime(manifest));
+    }
+
     public void testSnapshotDetectionUsesRuntimeRatherThanPackArtifactRevision() {
         var released = new org.ikasan.studio.core.metapack.model.MetaPackManifest(
                 2, "custom-pack", "4.1.6", "17", null, null, "0.1.0-SNAPSHOT", 1);

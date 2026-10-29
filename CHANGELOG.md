@@ -5,6 +5,10 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Standardise new Ikasan 5 work on JDK 25 LTS, including released pack metadata, generated project/compiler settings, the developer example and runtime verification tooling. Preserve historical snapshot compatibility metadata and dated evidence.
+
+- Bundle the released Ikasan 5.1.0 meta-pack (`V5.1.0`, pack revision 1.0.0, JDK 25) without snapshot opt-in, with release-tag help links and released BOM dependencies. Keep the previous snapshot pack available for existing projects. Bring the independent Ikasan 5 Maven authoring example onto main as `ExampleIkasan5`, targeting 5.1.0 with archive installation/restart tests and a distinct ID that coexists with the bundled pack. Apply declared REST-to-Studio mappings in its generated test fingerprint helper so saved email configuration does not falsely invalidate test wiring. Retain and document the upstream runtime transaction rollback failures.
+
 - Read the import diagnostic report’s plugin version from build-generated metadata instead of an internal IntelliJ plugin-manager API, preserving the strict compatibility-verifier gate on supported IDEs.
 
 - Add screenshot-friendly import diagnostic reports with numbered summary/detail pages, per-project attempt IDs, reproducible source-build fingerprints, REST stage/status, topology checks, actual meta-pack matching and configuration-type diagnostics. Retain the latest report in memory after import/generation failures; exclude application names, values, URLs, private implementation classes and raw exception messages.

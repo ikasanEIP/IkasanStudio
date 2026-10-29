@@ -4,12 +4,12 @@ Reviewed against the source on 19 October 2026. This is a development handover, 
 
 ## Current position
 
-A teammate can develop and test a complete meta-pack in a separate Java/Gradle repository today, without building or running IntelliJ. The generator and reusable test kit are separate artifacts. The two official packs are independently versioned, resource-only JARs, although their sources and CI remain in the Studio repository.
+A teammate can develop and test a complete meta-pack in a separate Java/Gradle repository today, without building or running IntelliJ. The generator and reusable test kit are separate artifacts. The three released official packs are independently versioned, resource-only JARs, although their sources and CI remain in the Studio repository.
 
 | Capability | Current implementation |
 | --- | --- |
 | Separate generator and test kit | `studio-generator` and `studio-test-kit`; plain Java 17 |
-| Independent pack artifacts | `studio-pack-v3` and `studio-pack-v4`; revision read from each manifest |
+| Independent pack artifacts | `studio-pack-v3`, `studio-pack-v4` and `studio-pack-v5-release`; revision read from each manifest |
 | Separate project consumption | Gradle composite build or locally published Maven artifacts |
 | Remote artifact publication | Not configured; requires repository and release setup |
 | Custom component overlays / base-pack inheritance | Not implemented; supply a complete pack |
@@ -20,7 +20,7 @@ A teammate can develop and test a complete meta-pack in a separate Java/Gradle r
 | Offline project tools | Export includes the saved project’s exact custom pack, with a checked revision/checksum inventory and CLI validate/render commands |
 | Runtime certification | Must be performed separately; validation/rendering tests do not establish delivery |
 
-The supported bundled packs remain V3.3.9 and V4.1.6. An experimental directory alone does not establish support: it must be wired into packaging, contracts and plugin distribution.
+The bundled packs are V3.3.9, V4.1.6 and V5.1.0 (JDK 25 for V5). The [standalone Ikasan 5.1.0 example](../ikasan-studio-ancillary/ikasan5-metapack/README.md) demonstrates independent installation with its own `ExampleIkasan5` ID. An experimental directory alone does not establish support: it must be wired into packaging, contracts and plugin distribution.
 
 ## Recommended scope for the extended tool set
 

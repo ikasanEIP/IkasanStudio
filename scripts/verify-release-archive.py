@@ -125,6 +125,13 @@ def audit(archive, root, include_snapshot_packs=False):
     expected = [path for path in source.rglob("*") if path.is_file()
                 and path.relative_to(source).as_posix() != "META-INF/plugin.xml"
                 and not (path.parent == source / "studio/metapack" and path.suffix == ".md")]
+    release_source = root / "headless/studio-pack-v5-release/src/main/resources"
+    release_expected = [path for path in release_source.rglob("*") if path.is_file()]
+    for path in release_expected:
+        if path.is_file():
+            name = path.relative_to(release_source).as_posix()
+            if hashlib.sha256(path.read_bytes()).hexdigest() not in resources.get(name, []):
+                errors.append("Missing or changed Ikasan 5.1.0 release resource: " + name)
     if include_snapshot_packs:
         # The development V5 pack owns its resources outside the plugin source tree.
         v5_source = root / "headless/studio-pack-v5/src/main/resources"
@@ -149,7 +156,7 @@ def audit(archive, root, include_snapshot_packs=False):
     if not bytecode_count:
         errors.append("No Studio bytecode found")
     packs = sorted(name.split("/")[-2] for name in resources if name.endswith("/metapack.json"))
-    expected_packs = {"V3.3.9", "V4.1.6"}
+    expected_packs = {"V3.3.9", "V4.1.6", "V5.1.0"}
     if include_snapshot_packs:
         expected_packs.add("V5.0.1-SNAPSHOT")
     if set(packs) != expected_packs:
@@ -157,7 +164,7 @@ def audit(archive, root, include_snapshot_packs=False):
     return {"archive": str(archive), "sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
             "status": "FAIL" if errors else "PASS", "errors": errors, "meta_packs": packs,
             "optional_snapshot_packs": ["V5.0.1-SNAPSHOT"] if len(optional_snapshots) == 1 else [],
-            "source_resources_checked": len(expected), "studio_classes_checked": bytecode_count,
+            "source_resources_checked": len(expected) + len(release_expected), "studio_classes_checked": bytecode_count,
             "libraries": jars,
             "note": "Licence entries are an inventory, not legal clearance. UI installation and external harness processes require smoke tests."}
 

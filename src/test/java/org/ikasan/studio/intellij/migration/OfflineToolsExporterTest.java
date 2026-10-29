@@ -127,7 +127,7 @@ class OfflineToolsExporterTest {
         var manifest = org.ikasan.studio.core.metapack.loading.OfflinePackBundle.verify(exported, () -> { });
         assertEquals("V4.1.6", manifest.requiredPackId());
         var expectedPacks = Boolean.getBoolean("studio.includeSnapshotPacks")
-                ? java.util.Set.of("V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT") : java.util.Set.of("V3.3.9", "V4.1.6");
+                ? java.util.Set.of("V3.3.9", "V4.1.6", "V5.1.0", "V5.0.1-SNAPSHOT") : java.util.Set.of("V3.3.9", "V4.1.6", "V5.1.0");
         assertEquals(expectedPacks,
                 manifest.packs().stream().map(org.ikasan.studio.core.metapack.loading.OfflinePackBundle.Pack::id).collect(java.util.stream.Collectors.toSet()));
         var required = manifest.packs().stream().filter(pack -> pack.id().equals(manifest.requiredPackId())).findFirst().orElseThrow();

@@ -1,0 +1,345 @@
+{
+  "runtimeConfigurationMappings": {"mailHost": "mailhost", "password": "mailPassword", "runtimeEnvironment": "mailRuntimeEnvironment", "subject": "mailSubject", "mailFrom": "from", "mailTransportProtocol": "transportProtocol"},
+  "legacyPropertyAliases": {"hasAttachments": "hasAttachment"},
+  "flowTestDeliveryStrategy": "smtp",
+  "flowTestRecipientProperties": [["toRecipient", "toRecipients"], ["ccRecipient", "ccRecipients"], ["bccRecipient", "bccRecipients"]],
+  "runtimeConfigurationProperties": ["toRecipients", "ccRecipients", "bccRecipients", "extendedMailSessionProperties", "emailBody", "emailFormat", "mailSmtpHost", "mailSmtpPort", "mailSmtpUser", "mailSmtpClass", "user", "mailPopHost", "mailPopPort", "mailPopUser", "mailPopClass", "mailStoreProtocol", "mailDebug", "mailMimeAddressStrict", "hasAttachment", "mailhost", "mailPassword", "mailRuntimeEnvironment", "mailSubject", "from", "transportProtocol"],
+  "name": "Email Producer",
+  "supportsTestMailServer": true,
+  "builderFactory": "org.ikasan.builder.BuilderFactory",
+  "flowBuilderMethod": "producer",
+  "helpText": "<p>Sends an email from an incoming EmailPayload. Place an <strong>Email Converter</strong> upstream to build that EmailPayload from the preceding payload.</p>",
+  "implementingClass": "org.ikasan.component.endpoint.email.producer.EmailProducer",
+  "expectedInputTypes": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+  "usesBuilderInFactory": true,
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-5.1.0/ikasaneip/component/Readme.md",
+  "jarDependencies": [
+    {
+      "groupId": "org.ikasan",
+      "artifactId": "ikasan-email-endpoint"
+    }
+  ],
+  "endpointKey": "Email Endpoint",
+  "endpointTextKey": "toRecipient",
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties": {
+    "componentName": {
+      "propertyName": "componentName",
+      "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created.",
+      "mandatory": true
+    },
+    "toRecipient": {
+      "propertyName": "toRecipient",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.toRecipient",
+      "helpText": "A single To recipient. At least one recipient must be provided across To, CC or BCC.",
+      "propertyDisplayOrder": -100,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen.",
+      "mandatoryUnlessAnyOf": ["toRecipients", "ccRecipient", "ccRecipients", "bccRecipient", "bccRecipients"],
+      "mandatorySectionHeading": "At least one of..."
+    },
+    "toRecipients": {
+      "propertyName": "toRecipients",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen.",
+      "propertyDataType": "java.util.List",
+      "helpText": "The list of To recipients, use Edit entries to enter one address per row.",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.toRecipients",
+      "propertyDisplayOrder": -95,
+      "setterProperty": true,
+      "usageDataType": "java.util.List<String>",
+      "mandatoryUnlessAnyOf": ["toRecipient", "ccRecipient", "ccRecipients", "bccRecipient", "bccRecipients"],
+      "mandatorySectionHeading": "At least one of..."
+    },
+    "mailSubject": {
+      "propertyName": "mailSubject",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailSubject",
+      "helpText": "Email subject line.",
+      "propertyGroup": "Popular",
+      "propertyDisplayOrder": -40,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "emailBody": {
+      "propertyName": "emailBody",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.emailBody",
+      "preserveWhitespace": true,
+      "helpText": "Text body for the email, used only as a fallback - if the upstream <strong>Email Converter</strong> has already set a body on the EmailPayload, that value is sent instead of this one.",
+      "propertyGroup": "Popular",
+      "propertyDisplayOrder": -30,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "emailFormat": {
+      "propertyName": "emailFormat",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.emailFormat",
+      "helpText": "The MIME content type for the email body, e.g. text/plain or text/html. Unlike emailBody, this is always used as the sent message's MIME content type, even when the upstream <strong>Email Converter</strong> supplies the body text itself. Pick one of the suggestions, or type any other MIME type directly (e.g. with a charset, such as text/plain; charset=utf-8). Unconditionally mandatory - unlike most other properties here, EmailProducerConfiguration has no Java-level default for this one, so leaving it unset sends null through to javax.mail's MimeBodyPart, which throws \"ParseException: Expected MIME type, got null\" at send time rather than falling back to anything sensible.",
+      "propertyDisplayOrder": -70,
+      "mandatory": true,
+      "defaultValue": "text/plain",
+      "setterProperty": true,
+      "usageDataType": "java.lang.String",
+      "choices": ["text/plain", "text/html"],
+      "choicesEditable": true
+    },
+    "from": {
+      "propertyName": "from",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.from",
+      "helpText": "Email address of the sender.",
+      "propertyGroup": "Popular",
+      "propertyDisplayOrder": -10,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen."
+    },
+    "ccRecipient": {
+      "propertyName": "ccRecipient",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.ccRecipient",
+      "helpText": "The CC recipient. At least one recipient must be provided across To, CC or BCC.",
+      "propertyDisplayOrder": -90,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen.",
+      "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipients", "bccRecipient", "bccRecipients"],
+      "mandatorySectionHeading": "At least one of..."
+    },
+    "ccRecipients": {
+      "propertyName": "ccRecipients",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen.",
+      "propertyDataType": "java.util.List",
+      "helpText": "The list of CC recipient, use Edit entries to enter one address per row. At least one recipient must be provided across To, CC or BCC.",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.ccRecipients",
+      "propertyDisplayOrder": -85,
+      "setterProperty": true,
+      "usageDataType": "java.util.List<String>",
+      "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipient", "bccRecipient", "bccRecipients"],
+      "mandatorySectionHeading": "At least one of..."
+    },
+    "bccRecipient": {
+      "propertyName": "bccRecipient",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.bccRecipient",
+      "helpText": "The Bcc recipient. At least one recipient must be provided across To, CC or BCC.",
+      "propertyDisplayOrder": -80,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen.",
+      "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipient", "ccRecipients", "bccRecipients"],
+      "mandatorySectionHeading": "At least one of..."
+    },
+    "bccRecipients": {
+      "propertyName": "bccRecipients",
+      "validation": "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$",
+      "validationMessage": "Enter an address such as name@example.com. Dots cannot start or end the part before @ or appear consecutively; domain labels cannot start or end with a hyphen.",
+      "propertyDataType": "java.util.List",
+      "helpText": "The list of BCC recipient, use Edit entries to enter one address per row. At least one recipient must be provided across To, CC or BCC.",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.bccRecipients",
+      "propertyDisplayOrder": -75,
+      "mandatorySectionHeading": "At least one of...",
+      "setterProperty": true,
+      "usageDataType": "java.util.List<String>",
+      "mandatoryUnlessAnyOf": ["toRecipient", "toRecipients", "ccRecipient", "ccRecipients", "bccRecipient"]
+    },
+    "hasAttachment": {
+      "propertyName": "hasAttachment",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.hasAttachments",
+      "defaultValue": false,
+      "helpText": "Default: false. Set to true if the email includes attachments. This only opens the gate to send them - the attachment bytes themselves must be added to the EmailPayload by the upstream <strong>Email Converter</strong> (via addAttachment), this flag does not attach anything by itself.",
+      "propertyGroup": "Attachments",
+      "propertyDisplayOrder": 200,
+      "setterProperty": true,
+      "setterMethod": "setHasAttachment",
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "mailhost": {
+      "propertyName": "mailhost",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailhost",
+      "defaultValue": "localhost",
+      "helpText": "Default(localhost). The default host name of the mail server for both Stores and Transports. Used if a protocol-specific host (e.g. mailSmtpHost) isn't set.",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 300,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "mailSmtpHost": {
+      "propertyName": "mailSmtpHost",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailSmtpHost",
+      "helpText": "The host name of the mail server for the SMTP protocol. Overrides mailhost.",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 310,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "mailSmtpPort": {
+      "propertyName": "mailSmtpPort",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailSmtpPort",
+      "defaultValue": 25,
+      "helpText": "Default(25). The port number of the mail server for the SMTP protocol. If not specified the protocol's default port number is used.",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 320,
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "mailSmtpUser": {
+      "propertyName": "mailSmtpUser",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailSmtpUser",
+      "helpText": "The user name to use when connecting to the mail server using the SMTP protocol. Overrides the user property.",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 330,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "mailSmtpClass": {
+      "propertyName": "mailSmtpClass",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailSmtpClass",
+      "helpText": "Specifies the fully qualified class name of the mail provider for the SMTP protocol. Only needed if more than one provider for SMTP exists and you need to choose which one to use by default.",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 340,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "user": {
+      "propertyName": "user",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.user",
+      "helpText": "The default user name to use when connecting to the mail server. Used if a protocol-specific user (e.g. mailSmtpUser) isn't set.",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 350,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "mailPassword": {
+      "propertyName": "mailPassword",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailPassword",
+      "preserveWhitespace": true,
+      "helpText": "Password for the mail server.",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 360,
+      "setterProperty": true,
+      "setterMethod": "setPassword",
+      "usageDataType": "java.lang.String"
+    },
+    "transportProtocol": {
+      "propertyName": "transportProtocol",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.transportProtocol",
+      "helpText": "Specifies the default message transport protocol, e.g. smtp.",
+      "propertyGroup": "Connection",
+      "propertyDisplayOrder": 370,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "mailPopHost": {
+      "propertyName": "mailPopHost",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailPopHost",
+      "helpText": "The host name of the mail server for the POP protocol. Overrides mailhost.",
+      "propertyGroup": "POP",
+      "propertyDisplayOrder": 400,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "mailPopPort": {
+      "propertyName": "mailPopPort",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailPopPort",
+      "defaultValue": 25,
+      "helpText": "Default(25). The port number of the mail server for the POP protocol. If not specified the protocol's default port number is used.",
+      "propertyGroup": "POP",
+      "propertyDisplayOrder": 410,
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Integer"
+    },
+    "mailPopUser": {
+      "propertyName": "mailPopUser",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailPopUser",
+      "helpText": "The user name to use when connecting to the mail server using the POP protocol. Overrides the user property.",
+      "propertyGroup": "POP",
+      "propertyDisplayOrder": 420,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "mailPopClass": {
+      "propertyName": "mailPopClass",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailPopClass",
+      "helpText": "Specifies the fully qualified class name of the mail provider for the POP protocol. Only needed if more than one provider for POP exists and you need to choose which one to use by default.",
+      "propertyGroup": "POP",
+      "propertyDisplayOrder": 430,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "mailStoreProtocol": {
+      "propertyName": "mailStoreProtocol",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailStoreProtocol",
+      "helpText": "Specifies the default message access (store) protocol, e.g. pop3.",
+      "propertyGroup": "POP",
+      "propertyDisplayOrder": 440,
+      "setterProperty": true,
+      "usageDataType": "java.lang.String"
+    },
+    "mailDebug": {
+      "propertyName": "mailDebug",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailDebug",
+      "defaultValue": false,
+      "helpText": "Default: false. Enable JavaMail session debug logging, useful when troubleshooting mail delivery issues.",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 700,
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "mailMimeAddressStrict": {
+      "propertyName": "mailMimeAddressStrict",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailMimeAddressStrict",
+      "defaultValue": true,
+      "helpText": "Default: true. The MimeMessage class uses the InternetAddress method parseHeader to parse headers in messages. This property controls the strict flag passed to the parseHeader method.",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 710,
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "mailRuntimeEnvironment": {
+      "propertyName": "mailRuntimeEnvironment",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.mailRuntimeEnvironment",
+      "helpText": "Additional property which may be specified to denote the runtime instance generating the email, e.g. dev, uat.",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 720,
+      "setterProperty": true,
+      "setterMethod": "setRuntimeEnvironment",
+      "usageDataType": "java.lang.String"
+    },
+    "extendedMailSessionProperties": {
+      "propertyName": "extendedMailSessionProperties",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.extendedMailSessionProperties",
+      "propertyDataType": "java.util.Map",
+      "helpText": "Extended set of email properties, for any JavaMail session property not otherwise exposed here.",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 730,
+      "setterProperty": true,
+      "usageDataType": "java.util.Map<String, String>"
+    },
+    "configuration": {
+      "propertyName": "configuration",
+      "helpText": "If you don't want to use properties files, you can supply a configuration bean that encapsulates all the properties here which gets bound via Spring @ConfigurationProperties. This might also be useful if you want to extend the configuration with fields the builder doesn't expose. Using it will reduce your ability to configure the component within this tool.",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 740,
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
+      "protectFromOverwrite": true,
+      "usageDataType": "org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "criticalOnStartup": {
+      "propertyName": "criticalOnStartup",
+      "propertyConfigFileLabel": "__flow.__component.email.producer.criticalOnStartup",
+      "defaultValue": false,
+      "helpText": "Default: false. Identifies this component as being critical for starting the flow i.e. if the component fails to start, the whole flow will not start.",
+      "propertyGroup": "advanced",
+      "propertyDisplayOrder": 750,
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    }
+  }
+}

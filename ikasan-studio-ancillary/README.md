@@ -47,3 +47,9 @@ No remote publication or Maven Central release is configured for the new artifac
 For the complete authoring contract and lifecycle, see the
 [custom pack handover](../docs/CustomMetaPackHandover.md) and
 [independent artifacts guide](../docs/IndependentMetaPackArtifacts.md).
+
+## Released Ikasan 5 meta-pack authoring example
+
+[`ikasan5-metapack/`](ikasan5-metapack/README.md) is a standalone resource-only Maven project
+for runtime 5.1.0, with its own `ExampleIkasan5` pack ID and installation/restart probes.
+Generated applications need JDK 25; authoring uses JDK 17.

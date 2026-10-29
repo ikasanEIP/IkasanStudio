@@ -13,6 +13,7 @@ abstract class ActiveMqTestArguments : CommandLineArgumentProvider {
 dependencies {
     api(project(":studio-pack-v3"))
     api(project(":studio-pack-v4"))
+    api(project(":studio-pack-v5-release"))
     // Explicit development inclusion only; normal plugin/CLI distributions retain released packs.
     if (providers.gradleProperty("studioIncludeSnapshotPacks").orNull == "true") {
         api(project(":studio-pack-v5"))

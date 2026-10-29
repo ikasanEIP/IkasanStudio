@@ -37,9 +37,11 @@ plugins {
 group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
 
-val metaPackBomCoordinates = fileTree("src/main/resources/studio/metapack") {
-    include("*/metapack.json")
-}.files.flatMap { manifestFile ->
+val releasedMetaPackResourceRoots = listOf("src/main/resources/studio/metapack",
+    "headless/studio-pack-v5-release/src/main/resources/studio/metapack")
+val metaPackBomCoordinates = releasedMetaPackResourceRoots.flatMap { resourceRoot ->
+    fileTree(resourceRoot) { include("*/metapack.json") }.files
+}.flatMap { manifestFile ->
     @Suppress("UNCHECKED_CAST")
     val manifest = JsonSlurper().parse(manifestFile) as Map<String, Any?>
     @Suppress("UNCHECKED_CAST")
@@ -47,9 +49,9 @@ val metaPackBomCoordinates = fileTree("src/main/resources/studio/metapack") {
     imports.map { "${it.getValue("groupId")}:${it.getValue("artifactId")}:${it.getValue("version")}@pom" }
 }.toSortedSet()
 
-val metaPackHelpUrls = fileTree("src/main/resources/studio/metapack") {
-    include("*/library/**/component-meta_en_GB.json")
-}.files.mapNotNull { metadataFile ->
+val metaPackHelpUrls = releasedMetaPackResourceRoots.flatMap { resourceRoot ->
+    fileTree(resourceRoot) { include("*/library/**/component-meta_en_GB.json") }.files
+}.mapNotNull { metadataFile ->
     @Suppress("UNCHECKED_CAST")
     val metadata = JsonSlurper().parse(metadataFile) as Map<String, Any?>
     (metadata["webHelpURL"] as? String)?.takeIf { it.startsWith("https://") }
@@ -382,6 +384,7 @@ tasks {
             gradle.includedBuild("studio-headless").task(":studio-pack-v3:check"),
             gradle.includedBuild("studio-headless").task(":studio-pack-v4:check"),
             gradle.includedBuild("studio-headless").task(":studio-pack-v5:check"),
+            gradle.includedBuild("studio-headless").task(":studio-pack-v5-release:check"),
             gradle.includedBuild("studio-headless").task(":studio-cli:check"))
         dependsOn(validateMetaPacks)
     }
@@ -581,6 +584,7 @@ tasks.register<Exec>("verifyReleaseArchive") {
     val snapshots = providers.gradleProperty("studioIncludeSnapshotPacks").orElse("false")
     inputs.property("studioIncludeSnapshotPacks", snapshots)
     inputs.dir("headless/studio-pack-v5/src/main/resources")
+    inputs.dir("headless/studio-pack-v5-release/src/main/resources")
     inputs.dir("src/main/resources")
     inputs.file("LICENSE.txt")
     val report = layout.buildDirectory.file("reports/release/archive.json")

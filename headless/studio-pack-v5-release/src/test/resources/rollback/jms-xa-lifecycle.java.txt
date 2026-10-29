@@ -1,0 +1,141 @@
+package org.ikasan.studio.flowtests;
+
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+/** Controls isolate XA resource lifetime from Ikasan flows and generated application startup. */
+public class JmsXaLifecycleTest {
+    @Test public void directJtaRollback() throws Exception { verifyRollback(0); }
+    @Test public void springTransactionRollback() throws Exception { verifyRollback(1); }
+    @Test public void springJmsTemplateRollback() throws Exception { verifyRollback(2); }
+
+    @Test public void receiveAndSendClosingBeforeRollback() throws Exception { verifyRollback(3); }
+    @Test public void receiveAndSendClosingAfterRollback() throws Exception { verifyRollback(4); }
+
+    @Test public void twoSendSessionsRollback() throws Exception { verifyRollback(5); }
+
+    @Test public void twoSendsOnOneSessionRollback() throws Exception { verifyRollback(6); }
+
+    private void verifyRollback(int mode) throws Exception {
+        var broker = new org.apache.activemq.broker.BrokerService();
+        broker.setBrokerName("v5-xa-lifecycle");
+        broker.setPersistent(false);
+        broker.setUseJmx(false);
+        broker.setUseShutdownHook(false);
+        com.arjuna.ats.arjuna.common.arjPropertyManager.getCoreEnvironmentBean().setNodeIdentifier("v5-xa-probe");
+        var manager = new com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionManagerImple();
+        broker.start();
+        try (var diagnostics = new RollbackDiagnostics()) {
+            var xa = new org.apache.activemq.ActiveMQXAConnectionFactory("vm://v5-xa-lifecycle?create=false");
+            var factory = new org.jboss.narayana.jta.jms.ConnectionFactoryProxy(xa,
+                    new org.jboss.narayana.jta.jms.TransactionHelperImpl(manager));
+            var receiver = new org.apache.activemq.ActiveMQConnectionFactory("vm://v5-xa-lifecycle?create=false");
+            if ((mode == 3 || mode == 4)) new org.springframework.jms.core.JmsTemplate(receiver).convertAndSend("input", "original input");
+            var heldReceiver = new java.util.concurrent.atomic.AtomicReference<ReceivingSession>();
+            if (mode == 0) {
+                manager.begin();
+                send(factory);
+                manager.rollback();
+            } else {
+                var spring = new org.springframework.transaction.jta.JtaTransactionManager();
+                spring.setTransactionManager(manager);
+                spring.setUserTransaction(new com.arjuna.ats.internal.jta.transaction.arjunacore.UserTransactionImple());
+                spring.afterPropertiesSet();
+                try {
+                var failure = assertThrows(IllegalStateException.class, () ->
+                    new org.springframework.transaction.support.TransactionTemplate(spring).execute(status -> {
+                        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                            new org.springframework.transaction.support.TransactionSynchronization() {
+                                @Override public void beforeCommit(boolean readOnly) {
+                                    throw new IllegalStateException("Injected control failure");
+                                }
+                            });
+                        if ((mode == 3 || mode == 4)) {
+                            var receiving = new ReceivingSession(factory);
+                            heldReceiver.set(receiving);
+                            receiving.assertInput();
+                            if (mode == 3) { receiving.close(); heldReceiver.set(null); }
+                        }
+                        if (mode == 5) { send(factory); send(factory); }
+                        else if (mode == 6) send(factory, 2);
+                        else if (mode == 1) send(factory);
+                        else new org.springframework.jms.core.JmsTemplate(factory).convertAndSend("output", "must roll back");
+                        return null;
+                    }));
+                assertEquals("Injected control failure", failure.getMessage());
+                } finally {
+                    if (heldReceiver.get() != null) heldReceiver.get().close();
+                }
+            }
+            try (var connection = receiver.createConnection();
+                 var session = connection.createSession(false, jakarta.jms.Session.AUTO_ACKNOWLEDGE);
+                 var consumer = session.createConsumer(session.createQueue("output"))) {
+                connection.start();
+                assertNull("Rolled-back output must not be delivered", consumer.receive(500));
+            }
+            if ((mode == 3 || mode == 4)) {
+                try (var connection = receiver.createConnection();
+                     var session = connection.createSession(false, jakarta.jms.Session.AUTO_ACKNOWLEDGE);
+                     var consumer = session.createConsumer(session.createQueue("input"))) {
+                    connection.start();
+                    var message = consumer.receive(3000);
+                    assertNotNull("Input must return to the queue after rollback", message);
+                    assertTrue("Input must be marked redelivered", message.getJMSRedelivered());
+                    assertEquals("original input", ((jakarta.jms.TextMessage) message).getText());
+                    assertNull("Input must not be duplicated", consumer.receive(250));
+                }
+            }
+            diagnostics.assertClean();
+        } finally {
+            try { if (manager.getTransaction() != null) manager.rollback(); }
+            finally { broker.stop(); broker.waitUntilStopped(); }
+        }
+    }
+
+    private static final class ReceivingSession implements AutoCloseable {
+        private final jakarta.jms.Connection connection;
+        private final jakarta.jms.Session session;
+        private final jakarta.jms.MessageConsumer consumer;
+
+        ReceivingSession(jakarta.jms.ConnectionFactory factory) {
+            try {
+                connection = factory.createConnection();
+                session = connection.createSession(false, jakarta.jms.Session.AUTO_ACKNOWLEDGE);
+                consumer = session.createConsumer(session.createQueue("input"));
+                connection.start();
+            } catch (jakarta.jms.JMSException failure) { throw new RuntimeException(failure); }
+        }
+
+        void assertInput() {
+            try {
+                var message = consumer.receive(3000);
+                assertNotNull("Expected seeded input inside the transaction", message);
+                assertEquals("original input", ((jakarta.jms.TextMessage) message).getText());
+                assertFalse(message.getJMSRedelivered());
+            } catch (jakarta.jms.JMSException failure) { throw new RuntimeException(failure); }
+        }
+
+        @Override public void close() {
+            try { consumer.close(); }
+            catch (jakarta.jms.JMSException failure) { throw new RuntimeException(failure); }
+            finally {
+                try { session.close(); }
+                catch (jakarta.jms.JMSException failure) { throw new RuntimeException(failure); }
+                finally {
+                    try { connection.close(); }
+                    catch (jakarta.jms.JMSException failure) { throw new RuntimeException(failure); }
+                }
+            }
+        }
+    }
+
+    private static void send(jakarta.jms.ConnectionFactory factory) { send(factory, 1); }
+
+    private static void send(jakarta.jms.ConnectionFactory factory, int count) {
+        try (var connection = factory.createConnection();
+             var session = connection.createSession(false, jakarta.jms.Session.AUTO_ACKNOWLEDGE);
+             var producer = session.createProducer(session.createQueue("output"))) {
+            for (int i = 0; i < count; i++) producer.send(session.createTextMessage("must roll back"));
+        } catch (jakarta.jms.JMSException failure) { throw new RuntimeException(failure); }
+    }
+}

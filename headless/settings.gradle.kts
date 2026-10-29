@@ -6,6 +6,6 @@ plugins {
 rootProject.name = "studio-headless"
 include("studio-generator", "studio-test-kit", "studio-bundled-packs")
 
-include("studio-pack-v3", "studio-pack-v4", "studio-pack-v5")
+include("studio-pack-v3", "studio-pack-v4", "studio-pack-v5", "studio-pack-v5-release")
 
 include("studio-cli")

@@ -1,0 +1,549 @@
+{
+  "name": "Converter",
+  "flowBuilderMethod": "converter",
+  "generatesUserImplementedClass": "true",
+  "helpText": "<p>Implement the required transformation in the generated converter class. Configure its source and target Java types through the component properties.</p>",
+  "implementingClass": "org.ikasan.spec.component.transformation.Converter.Custom",
+  "webHelpURL": "https://github.com/ikasanEIP/ikasan/blob/ikasaneip-5.1.0/ikasaneip/component/converter/Readme.md",
+  "conversionRecipes": [
+    {
+      "id": "string-to-file-transfer-payload",
+      "displayName": "String to FTP/SFTP Payload",
+      "sourceType": "java.lang.String",
+      "targetType": "org.ikasan.filetransfer.Payload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-file.ftl",
+      "configurationProperties": [
+        "recipeCharset",
+        "recipeFilename"
+      ],
+      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique .dat filename (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Ensure the receiving consumer filenamePattern accepts .dat. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "string-to-email-payload",
+      "displayName": "String to Email body",
+      "sourceType": "java.lang.String",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-email-body.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct Email body. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "string-to-email-attachment",
+      "displayName": "String to Email attachment",
+      "sourceType": "java.lang.String",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-email-attachment.ftl",
+      "configurationProperties": [
+        "recipeCharset",
+        "recipeFilename",
+        "recipeMediaType",
+        "recipeEmailBody"
+      ],
+      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body. The attachment call itself is generated commented out - see the Email Producer's hasAttachment property."
+    },
+    {
+      "id": "string-to-bytes",
+      "displayName": "String to byte[]",
+      "sourceType": "java.lang.String",
+      "targetType": "byte[]",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-bytes.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct byte[]. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "bytes-to-file-transfer-payload",
+      "displayName": "byte[] to FTP/SFTP Payload",
+      "sourceType": "byte[]",
+      "targetType": "org.ikasan.filetransfer.Payload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-file.ftl",
+      "configurationProperties": [
+        "recipeCharset",
+        "recipeFilename"
+      ],
+      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique .dat filename (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Ensure the receiving consumer filenamePattern accepts .dat. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "bytes-to-email-payload",
+      "displayName": "byte[] to Email body",
+      "sourceType": "byte[]",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-email-body.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct Email body. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "bytes-to-email-attachment",
+      "displayName": "byte[] to Email attachment",
+      "sourceType": "byte[]",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-email-attachment.ftl",
+      "configurationProperties": [
+        "recipeCharset",
+        "recipeFilename",
+        "recipeMediaType",
+        "recipeEmailBody"
+      ],
+      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body. The attachment call itself is generated commented out - see the Email Producer's hasAttachment property."
+    },
+    {
+      "id": "bytes-to-string",
+      "displayName": "byte[] to String",
+      "sourceType": "byte[]",
+      "targetType": "java.lang.String",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-string.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct String. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "file-transfer-payload-to-email-payload",
+      "displayName": "FTP/SFTP Payload to Email body",
+      "sourceType": "org.ikasan.filetransfer.Payload",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-file.ftl",
+      "constructionTemplate": "construct-email-body.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct Email body. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "file-transfer-payload-to-email-attachment",
+      "displayName": "FTP/SFTP Payload to Email attachment",
+      "sourceType": "org.ikasan.filetransfer.Payload",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-file.ftl",
+      "constructionTemplate": "construct-email-attachment.ftl",
+      "configurationProperties": [
+        "recipeCharset",
+        "recipeFilename",
+        "recipeMediaType",
+        "recipeEmailBody"
+      ],
+      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body. The attachment call itself is generated commented out - see the Email Producer's hasAttachment property."
+    },
+    {
+      "id": "file-transfer-payload-to-bytes",
+      "displayName": "FTP/SFTP Payload to byte[]",
+      "sourceType": "org.ikasan.filetransfer.Payload",
+      "targetType": "byte[]",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-file.ftl",
+      "constructionTemplate": "construct-bytes.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct byte[]. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "file-transfer-payload-to-string",
+      "displayName": "FTP/SFTP Payload to String",
+      "sourceType": "org.ikasan.filetransfer.Payload",
+      "targetType": "java.lang.String",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-file.ftl",
+      "constructionTemplate": "construct-string.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct String. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "auto-converted-jms-content-to-file-transfer-payload",
+      "displayName": "Extracted JMS content to FTP/SFTP Payload",
+      "sourceType": "java.lang.Object",
+      "targetType": "org.ikasan.filetransfer.Payload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-file.ftl",
+      "configurationProperties": [
+        "recipeCharset",
+        "recipeFilename"
+      ],
+      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique .dat filename (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Ensure the receiving consumer filenamePattern accepts .dat. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "auto-converted-jms-content-to-email-payload",
+      "displayName": "Extracted JMS content to Email body",
+      "sourceType": "java.lang.Object",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-email-body.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct Email body. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "auto-converted-jms-content-to-email-attachment",
+      "displayName": "Extracted JMS content to Email attachment",
+      "sourceType": "java.lang.Object",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-email-attachment.ftl",
+      "configurationProperties": [
+        "recipeCharset",
+        "recipeFilename",
+        "recipeMediaType",
+        "recipeEmailBody"
+      ],
+      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body. The attachment call itself is generated commented out - see the Email Producer's hasAttachment property."
+    },
+    {
+      "id": "auto-converted-jms-content-to-bytes",
+      "displayName": "Extracted JMS content to byte[]",
+      "sourceType": "java.lang.Object",
+      "targetType": "byte[]",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-bytes.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct byte[]. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "auto-converted-jms-content-to-string",
+      "displayName": "Extracted JMS content to String",
+      "sourceType": "java.lang.Object",
+      "targetType": "java.lang.String",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-string.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct String. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "jms-message-to-file-transfer-payload",
+      "displayName": "JMS Message to FTP/SFTP Payload",
+      "sourceType": "jakarta.jms.Message",
+      "targetType": "org.ikasan.filetransfer.Payload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-jms.ftl",
+      "constructionTemplate": "construct-file.ftl",
+      "configurationProperties": [
+        "recipeCharset",
+        "recipeFilename"
+      ],
+      "helpText": "Extract content, then construct FTP/SFTP Payload. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured Fallback filename if set; otherwise generates a unique .dat filename (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file the server already has. Ensure the receiving consumer filenamePattern accepts .dat. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "jms-message-to-email-payload",
+      "displayName": "JMS Message to Email body",
+      "sourceType": "jakarta.jms.Message",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-jms.ftl",
+      "constructionTemplate": "construct-email-body.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct Email body. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "jms-message-to-email-attachment",
+      "displayName": "JMS Message to Email attachment",
+      "sourceType": "jakarta.jms.Message",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-jms.ftl",
+      "constructionTemplate": "construct-email-attachment.ftl",
+      "configurationProperties": [
+        "recipeCharset",
+        "recipeFilename",
+        "recipeMediaType",
+        "recipeEmailBody"
+      ],
+      "helpText": "Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body. The attachment call itself is generated commented out - see the Email Producer's hasAttachment property."
+    },
+    {
+      "id": "jms-message-to-bytes",
+      "displayName": "JMS Message to byte[]",
+      "sourceType": "jakarta.jms.Message",
+      "targetType": "byte[]",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-jms.ftl",
+      "constructionTemplate": "construct-bytes.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct byte[]. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "jms-message-to-string",
+      "displayName": "JMS Message to String",
+      "sourceType": "jakarta.jms.Message",
+      "targetType": "java.lang.String",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-jms.ftl",
+      "constructionTemplate": "construct-string.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Extract content, then construct String. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "jms-message-to-map",
+      "displayName": "JMS MapMessage to Map",
+      "sourceType": "jakarta.jms.Message",
+      "targetType": "java.util.Map",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-jms.ftl",
+      "constructionTemplate": "construct-map.ftl",
+      "configurationProperties": [],
+      "helpText": "Preserves JMS MapMessage entries for a JMS producer. Rejects other message bodies; no implicit object serialization."
+    },
+    {
+      "id": "single-local-file-to-email-payload",
+      "displayName": "Single local file to Email body",
+      "sourceType": "java.util.List<java.io.File>",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-local-file.ftl",
+      "constructionTemplate": "construct-email-body.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Requires exactly one file from the Local File Consumer; rejects larger batches instead of dropping files. Extract content, then construct Email body. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "single-local-file-to-email-attachment",
+      "displayName": "Single local file to Email attachment",
+      "sourceType": "java.util.List<java.io.File>",
+      "targetType": "org.ikasan.component.endpoint.email.producer.EmailPayload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-local-file.ftl",
+      "constructionTemplate": "construct-email-attachment.ftl",
+      "configurationProperties": [
+        "recipeCharset",
+        "recipeFilename",
+        "recipeMediaType",
+        "recipeEmailBody"
+      ],
+      "helpText": "Requires exactly one file from the Local File Consumer; rejects larger batches instead of dropping files. Extract content, then construct Email attachment. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Preserves an incoming fileName; otherwise uses the configured filename (default message.dat). Attachment media type defaults to application/octet-stream; configure the accompanying email body. The attachment call itself is generated commented out - see the Email Producer's hasAttachment property."
+    },
+    {
+      "id": "single-local-file-to-bytes",
+      "displayName": "Single local file to byte[]",
+      "sourceType": "java.util.List<java.io.File>",
+      "targetType": "byte[]",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-local-file.ftl",
+      "constructionTemplate": "construct-bytes.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Requires exactly one file from the Local File Consumer; rejects larger batches instead of dropping files. Extract content, then construct byte[]. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "single-local-file-to-string",
+      "displayName": "Single local file to String",
+      "sourceType": "java.util.List<java.io.File>",
+      "targetType": "java.lang.String",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-local-file.ftl",
+      "constructionTemplate": "construct-string.ftl",
+      "configurationProperties": [
+        "recipeCharset"
+      ],
+      "helpText": "Requires exactly one file from the Local File Consumer; rejects larger batches instead of dropping files. Extract content, then construct String. String and byte[] content only; structured objects require a custom mapping. Charset defaults to UTF-8. Malformed text is rejected rather than replaced."
+    },
+    {
+      "id": "single-local-file-to-file-transfer-payload",
+      "displayName": "Single local file to FTP/SFTP Payload",
+      "sourceType": "java.util.List<java.io.File>",
+      "targetType": "org.ikasan.filetransfer.Payload",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-local-file.ftl",
+      "constructionTemplate": "construct-file.ftl",
+      "configurationProperties": [
+        "recipeCharset",
+        "recipeFilename"
+      ],
+      "helpText": "Requires exactly one local file; preserves its filename and bytes in a file-transfer Payload. Rejects larger batches and files over 16 MiB. Split batches or use a streaming custom converter when needed."
+    },
+    {
+      "id": "auto-converted-jms-content-to-map",
+      "displayName": "Extracted JMS Map to Map",
+      "sourceType": "java.lang.Object",
+      "targetType": "java.util.Map",
+      "template": "composedConverter.ftl",
+      "extractionTemplate": "extract-content.ftl",
+      "constructionTemplate": "construct-map.ftl",
+      "configurationProperties": [],
+      "helpText": "Forwards an already extracted JMS MapMessage body to a JMS producer. Rejects non-Map content; no serialization is guessed."
+    }
+  ],
+  "allowableProperties_comment": "Note that the order of properties in this file dictates the order displayed on screen, unless propertyDisplayOrder is set, which will be used as the primary key",
+  "allowableProperties": {
+    "conversionRecipeId": {
+      "propertyName": "conversionRecipeId",
+      "hiddenProperty": false,
+      "affectsUserImplementedClass": true,
+      "propertyDisplayOrder": -50,
+      "choices": [
+        "string-to-file-transfer-payload",
+        "string-to-email-payload",
+        "string-to-email-attachment",
+        "string-to-bytes",
+        "bytes-to-file-transfer-payload",
+        "bytes-to-email-payload",
+        "bytes-to-email-attachment",
+        "bytes-to-string",
+        "file-transfer-payload-to-email-payload",
+        "file-transfer-payload-to-email-attachment",
+        "file-transfer-payload-to-bytes",
+        "file-transfer-payload-to-string",
+        "auto-converted-jms-content-to-file-transfer-payload",
+        "auto-converted-jms-content-to-email-payload",
+        "auto-converted-jms-content-to-email-attachment",
+        "auto-converted-jms-content-to-bytes",
+        "auto-converted-jms-content-to-string",
+        "jms-message-to-file-transfer-payload",
+        "jms-message-to-email-payload",
+        "jms-message-to-email-attachment",
+        "jms-message-to-bytes",
+        "jms-message-to-string",
+        "jms-message-to-map",
+        "single-local-file-to-email-payload",
+        "single-local-file-to-email-attachment",
+        "single-local-file-to-bytes",
+        "single-local-file-to-string",
+        "single-local-file-to-file-transfer-payload",
+        "auto-converted-jms-content-to-map"
+      ],
+      "displayLabel": "Conversion recipe",
+      "helpText": "Select a recipe to set its source and target types. Leave empty for a custom converter. Recipe and configuration changes require approval before replacing existing implementation code."
+    },
+    "componentName": {
+      "propertyName": "componentName",
+      "mandatory": true,
+      "helpText": "The name of the component as displayed on diagrams. The name should be unique for the flow. The name will be used internally to reflect the bean created."
+    },
+    "fromType": {
+      "propertyName": "fromType",
+      "propertyDisplayOrder": -40,
+      "usageDataType": "classLiteral",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lang.String",
+      "helpText": "The type of data we expect to come into the converter, e.g. java.lang.Object or java.lang.String - enter just the plain class name. If the upstream component's own Output: text ends with an annotation like '(auto-converted)', that's an explanatory note, not part of the type - do not paste it in here.",
+      "mandatory": true,
+      "validation": "(?:byte\\[\\]|([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?)",
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the input to the converter."
+    },
+    "toType": {
+      "propertyName": "toType",
+      "propertyDisplayOrder": -30,
+      "usageDataType": "classLiteral",
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "java.lang.String",
+      "helpText": "The type of data we expect to be the output of the converter. This can be any Java class.",
+      "mandatory": true,
+      "validation": "(?:byte\\[\\]|([a-zA-Z_][\\w]*\\.)*([A-Z][\\w]*)(\\$[A-Z][\\w]*)*(<.*>)?)",
+      "validationMessage": "Provide a fully qualified Java class name to be used as the type for the output of the converter."
+    },
+    "requiresStub": {
+      "propertyName": "requiresStub",
+      "propertyDisplayOrder": -20,
+      "helpText": "Does this component require a stub to be generated by Studio, if not, it is assumed the user will provide the instance from its own factory class.",
+      "propertyDataType": "java.lang.Boolean",
+      "usageDataType": "java.lang.Boolean",
+      "mandatory": true,
+      "defaultValue": true
+    },
+    "userImplementedClassName": {
+      "propertyName": "userImplementedClassName",
+      "propertyDisplayOrder": -10,
+      "affectsUserImplementedClass": "true",
+      "defaultValue": "__fieldName:componentName",
+      "helpText": "The name of the class that contain the custom conversion, the IDE will create a template for this class, the user  must provide the implementation.",
+      "mandatory": true,
+      "userImplementClassFtlTemplate": "converterTemplate.ftl",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a valid java classname for the converter e.g. starting with upper case, followed by number/characters etc."
+    },
+    "configuration": {
+      "propertyName": "configuration",
+      "helpText": "Provide the bean type that contains bespoke configurations for this component.",
+      "setterProperty": true,
+      "userSuppliedClass": true,
+      "affectsUserImplementedClass": true,
+      "protectFromOverwrite": true,
+      "usageDataType": "configurationDefined",
+      "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
+      "validationMessage": "Provide a java classname for the Configuration bean."
+    },
+    "configurationId": {
+      "propertyName": "configurationId",
+      "defaultValue": "__module-__flow-__component",
+      "helpText": "By default, the configuration ID is moduleName + flowName + componentName + componentType. Override it when multiple flows should share a configuration, or when renaming a flow without changing configuration already stored in the override-properties database.",
+      "setterProperty": true,
+      "setterMethod": "setConfiguredResourceId",
+      "usageDataType": "java.lang.String"
+    },
+    "recipeCharset": {
+      "propertyName": "recipeCharset",
+      "displayLabel": "Content charset",
+      "propertyDisplayOrder": 10,
+      "affectsUserImplementedClass": true,
+      "defaultValue": "UTF-8",
+      "helpText": "Charset for text encoding and decoding. Used by recipes only; default UTF-8. Invalid text is rejected.",
+      "usageDataType": "java.lang.String"
+    },
+    "recipeFilename": {
+      "propertyName": "recipeFilename",
+      "displayLabel": "Fallback filename",
+      "propertyDisplayOrder": 11,
+      "affectsUserImplementedClass": true,
+      "helpText": "Filename to use when the incoming payload has no fileName attribute. Leave blank for automatic naming: FTP/SFTP output gets a unique name (flow, converter, timestamp and a UUID) so repeat deliveries never collide with a file already on the server; email attachments use message.dat. Set a value here to use a fixed name instead. If this component already has a value here from before automatic naming existed, it is kept as-is (including message.dat) and used as a fixed name - clear it to switch to automatic naming.",
+      "usageDataType": "java.lang.String"
+    },
+    "recipeMediaType": {
+      "propertyName": "recipeMediaType",
+      "displayLabel": "Attachment media type",
+      "propertyDisplayOrder": 12,
+      "affectsUserImplementedClass": true,
+      "defaultValue": "application/octet-stream",
+      "helpText": "MIME media type for an email attachment. Default application/octet-stream.",
+      "usageDataType": "java.lang.String"
+    },
+    "recipeEmailBody": {
+      "propertyName": "recipeEmailBody",
+      "preserveWhitespace": true,
+      "displayLabel": "Attachment email body",
+      "propertyDisplayOrder": 13,
+      "affectsUserImplementedClass": true,
+      "helpText": "Email body accompanying an attachment; the actual filename is appended automatically when left unset (deliberately no static default here - affectsUserImplementedClass properties are auto-filled with their default the moment a component is first configured, and a literal default couldn't contain the real, only-known-at-runtime filename anyway). Not used by the email-body recipe. Deliberately doesn't claim a file is attached - by default the generated attachment code is commented out (see the Email Producer's <strong>hasAttachment</strong> property), so a body implying one always exists would send developers chasing a bug that isn't there.",
+      "usageDataType": "java.lang.String"
+    }
+  }
+}

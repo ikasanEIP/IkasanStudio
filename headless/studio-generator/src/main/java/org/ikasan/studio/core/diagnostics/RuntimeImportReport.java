@@ -25,7 +25,7 @@ public final class RuntimeImportReport {
     public synchronized void pack(String value) { pack = safeVersion(value); }
     /** Call only with an exactly matched bundled metadata descriptor, never a raw REST class/name. */
     public synchronized void publicContext(String location, String standardClass, String property) {
-        if (!Set.of("V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT").contains(pack)) return;
+        if (!Set.of("V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT", "V5.1.0").contains(pack)) return;
         if (publicContext.size() >= 1000 || !location.matches("F[0-9]+/C[0-9]+(?:/P[0-9]+)?")) return;
         if (standardClass == null || !standardClass.matches("org[.]ikasan[.]component[.][a-zA-Z0-9_.$]+")) return;
         if (property != null && !property.matches("[a-zA-Z][a-zA-Z0-9_]{0,79}")) return;
@@ -36,7 +36,7 @@ public final class RuntimeImportReport {
     public synchronized void complete() { outcome = "Completed"; }
     public synchronized void issue(String location, String code) {
         // Only program-owned codes and positional identifiers may cross this boundary.
-        if (!location.matches("(?:F[0-9]+(?:/C[0-9]+(?:/P[0-9]+)?)?|CONFIG[0-9]+|DOCUMENT)")
+        if (!location.matches("F[0-9]+(?:/C[0-9]+(?:/P[0-9]+)?)?|CONFIG[0-9]+|DOCUMENT")
                 || !code.matches("[A-Z_][A-Z_0-9]*")) throw new IllegalArgumentException("Invalid diagnostic code");
         if (issues.size() < 200) issues.add(location + " — " + code); else omitted++;
     }
