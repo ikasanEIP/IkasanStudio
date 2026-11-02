@@ -1125,6 +1125,23 @@ public class StudioProjectFiles {
     /** Result of {@link #chooseFileAndReadText} - on success path+content are set, on failure only errorMessage. */
     public record TextFileReadResult(String path, String content, String errorMessage) {}
 
+    /** Flush only affected editor buffers before previewing or replacing developer-owned configuration. */
+    public static void saveConfigurationDocuments(Project project, java.util.List<String> paths) {
+        var manager = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
+        for (String path : paths) {
+            var file = getVirtualFile(project, path);
+            if (file == null) continue;
+            var document = manager.getCachedDocument(file);
+            if (document != null && manager.isDocumentUnsaved(document)) manager.saveDocument(document);
+        }
+    }
+
+    public static void refreshConfigurationDirectory(Project project) {
+        String base = project.getBasePath();
+        if (base != null) com.intellij.openapi.vfs.LocalFileSystem.getInstance()
+                .refreshIoFiles(java.util.List.of(new java.io.File(base)), true, true, null);
+    }
+
     /**
      * Shows an async file-choose dialog and hands back the chosen file's text content (decoded as UTF-8 via
      * the VirtualFile's own API rather than java.nio.file, so this also works when the file lives on a
@@ -1134,6 +1151,16 @@ public class StudioProjectFiles {
      * @param callback receives the file's path+content, or a read-failure detail message; never called on cancel
      */
     public static void chooseFileAndReadText(Project project, FileChooserDescriptor descriptor, Consumer<TextFileReadResult> callback) {
+        chooseFileAndReadText(project, descriptor, StandardCharsets.UTF_8, callback);
+    }
+
+    /** Matches Spring Boot's Java-properties decoding, preserving even non-UTF-8 source bytes. */
+    public static void chooseFileAndReadProperties(Project project, FileChooserDescriptor descriptor, Consumer<TextFileReadResult> callback) {
+        chooseFileAndReadText(project, descriptor, StandardCharsets.ISO_8859_1, callback);
+    }
+
+    private static void chooseFileAndReadText(Project project, FileChooserDescriptor descriptor,
+                                            java.nio.charset.Charset encoding, Consumer<TextFileReadResult> callback) {
         openChooserWarmed(project, activeWindowOrNull(), (parent, toSelect) ->
                 FileChooser.chooseFile(descriptor, project, parent, toSelect, virtualFile -> {
                     ModalityState modality = ModalityState.current();
@@ -1141,7 +1168,7 @@ public class StudioProjectFiles {
                         TextFileReadResult result;
                         try {
                             result = new TextFileReadResult(virtualFile.getPath(),
-                                    new String(readBytes(virtualFile), StandardCharsets.UTF_8), null);
+                                    new String(readBytes(virtualFile), encoding), null);
                         } catch (IOException failure) {
                             result = new TextFileReadResult(null, null, failure.getMessage());
                         }

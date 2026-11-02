@@ -2,6 +2,8 @@
 
 Studio can import the module metadata JSON exported by core Ikasan or the Dashboard, with a separate, optional configuration JSON document. Existing Studio `model.json` imports continue to work.
 
+For a guided runtime → local source → environment workflow, use **Tools → Ikasan Studio → Import Module…**. See [source-assisted module import](SourceAssistedModuleImport.md) for bespoke-class selection, bean contracts, dependency review and remaining verification.
+
 ## Where the documents come from
 
 The core Ikasan source trees expose these authenticated GET endpoints, relative to the application's context path:
@@ -102,6 +104,17 @@ to the running module during acquisition can require a fresh fetch and review. O
 component configuration is fetched in this first implementation; module/flow/invoker
 configuration, handwritten code, application dependencies and wiring still require review.
 Fetched imports preserve declared flow startup settings, just like file-based runtime imports. Missing/null settings fall back to **MANUAL** with review guidance.
+
+## Import application properties alongside runtime metadata
+
+Runtime REST imports do not fetch the original application properties or discover every
+key used by bespoke classes. Select **Import properties files after the model has been
+generated** in the import dialog, or use **Tools → Ikasan Studio → Import Configuration…**
+later. Supply the original properties files, review their changes, and assign shared or
+named environment settings. Files are preserved outside `generated/`; local-only import
+is the default. See [configuration import and environments](ProjectFilesAndRecovery.md#import-configuration-and-select-an-environment)
+for precedence, Run/Debug configuration selection, value comparison and replacement rules.
+The Java implementations and Spring wiring still need to be supplied separately.
 
 ## Export three separate files
 

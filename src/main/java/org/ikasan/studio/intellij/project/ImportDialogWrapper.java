@@ -14,10 +14,12 @@ import java.awt.Rectangle;
 import java.awt.Window;
 
 /** Import dialogs stay with their invoking window and fit its monitor's usable bounds. */
-abstract class ImportDialogWrapper extends DialogWrapper {
+// Studio currently runs in the local IDE; backend classification comes from transitive plugin dependencies.
+@SuppressWarnings("SplitModeApiUsage")
+public abstract class ImportDialogWrapper extends DialogWrapper {
     private final Component parent;
 
-    ImportDialogWrapper(Project project, Component parent) {
+    protected ImportDialogWrapper(Project project, Component parent) {
         super(project, parent != null ? parent : WindowManager.getInstance().getFrame(project), true, IdeModalityType.IDE);
         this.parent = parent;
     }

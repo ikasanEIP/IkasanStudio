@@ -23,6 +23,9 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 
 import java.util.Objects;
+import java.util.List;
+import com.intellij.util.execution.ParametersListUtil;
+import org.ikasan.studio.core.configuration.EnvironmentProperties;
 import java.util.function.Consumer;
 
 /**
@@ -92,7 +95,13 @@ public final class IkasanRunConfigurationService implements Disposable {
 
     private boolean selectAndRunOnEdt(Module module, Executor executor) {
         boolean debug = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId());
-        RunnerAndConfigurationSettings settings = findOrCreateConfiguration(module, debug);
+        var selected = RunManager.getInstance(project).getSelectedConfiguration();
+        String environment = selected != null && selected.getConfiguration() instanceof ApplicationConfiguration configuration
+                && MAIN_CLASS_NAME.equals(configuration.getMainClassName())
+                && Objects.equals(configuration.getConfigurationModule().getModule(), module)
+                ? environmentOf(configuration.getProgramParameters()) : null;
+        RunnerAndConfigurationSettings settings = environment == null ? findOrCreateConfiguration(module, debug)
+                : findOrCreateEnvironmentConfiguration(module, debug, environment);
         RunManager.getInstance(project).setSelectedConfiguration(settings);
         try {
             ExecutionEnvironmentBuilder.create(executor, settings).buildAndExecute();
@@ -149,7 +158,77 @@ public final class IkasanRunConfigurationService implements Disposable {
         boolean hasDebugProfile = STUDIO_DEBUG_PROGRAM_PARAMETERS.equals(configuration.getProgramParameters());
         return MAIN_CLASS_NAME.equals(configuration.getMainClassName())
                 && Objects.equals(configuration.getConfigurationModule().getModule(), module)
+                && environmentOf(configuration.getProgramParameters()) == null
                 && hasDebugProfile == debug;
+    }
+
+    /** Creates local workspace Run/Debug configurations without starting the application. */
+    public void prepareEnvironments(List<String> environments, Consumer<Boolean> completion) {
+        if (project.isDisposed()) return;
+        if (environments.isEmpty()) { completion.accept(false); return; }
+        var file = StudioProjectFiles.getVirtualFile(project,
+                "generated/src/main/java/org/ikasan/studio/boot/Application.java");
+        if (file == null) { completion.accept(false); return; }
+        ReadAction.nonBlocking(() -> ModuleUtilCore.findModuleForFile(file, project))
+                .inSmartMode(project).expireWith(this)
+                .finishOnUiThread(ModalityState.nonModal(), module -> {
+                    if (project.isDisposed()) return;
+                    if (module == null) { completion.accept(false); return; }
+                    for (String environment : environments) {
+                        findOrCreateEnvironmentConfiguration(module, false, environment);
+                        findOrCreateEnvironmentConfiguration(module, true, environment);
+                    }
+                    RunManager.getInstance(project).setSelectedConfiguration(
+                            findOrCreateEnvironmentConfiguration(module, false, environments.get(0)));
+                    completion.accept(true);
+                }).submit(AppExecutorUtil.getAppExecutorService());
+    }
+
+    RunnerAndConfigurationSettings findOrCreateEnvironmentConfiguration(Module module, boolean debug, String environment) {
+        String parameters = environmentParameters(Objects.requireNonNull(project.getBasePath(), "Environment configurations require a project directory"), environment, debug);
+        var manager = RunManager.getInstance(project);
+        var existing = manager.getAllSettings().stream()
+                .filter(s -> s.getConfiguration() instanceof ApplicationConfiguration c
+                        && MAIN_CLASS_NAME.equals(c.getMainClassName())
+                        && Objects.equals(c.getConfigurationModule().getModule(), module)
+                        && parameters.equals(c.getProgramParameters()))
+                .findFirst();
+        if (existing.isPresent()) return existing.get();
+        var type = ApplicationConfigurationType.getInstance();
+        var settings = manager.createConfiguration(manager.suggestUniqueName("Ikasan: " + project.getName()
+                + " — " + (environment.isEmpty() ? "Shared" : environment) + (debug ? " (Debug)" : ""), type),
+                type.getConfigurationFactories()[0]);
+        var configuration = (ApplicationConfiguration) settings.getConfiguration();
+        configuration.setMainClassName(MAIN_CLASS_NAME);
+        configuration.getConfigurationModule().setModule(module);
+        configuration.setWorkingDirectory(project.getBasePath());
+        configuration.setProgramParameters(parameters);
+        settings.storeInLocalWorkspace();
+        manager.addConfiguration(settings);
+        return settings;
+    }
+
+    static String environmentParameters(String basePath, String environment, boolean debug) {
+        // Validate even when called independently of the import UI.
+        environment = new EnvironmentProperties.Selection("", environment, false).environment();
+        String base = basePath.replace('\\', '/');
+        List<String> arguments = new java.util.ArrayList<>();
+        arguments.add("--spring.config.additional-location=optional:file:" + base + "/config/,optional:file:" + base + "/config/local/");
+        String profiles = environment + (debug ? (environment.isEmpty() ? "" : ",") + "studio-debug" : "");
+        if (!profiles.isEmpty()) arguments.add("--spring.profiles.active=" + profiles);
+        return ParametersListUtil.join(arguments);
+    }
+
+    /** Recognizes only configurations carrying our explicit external configuration argument. */
+    static String environmentOf(String parameters) {
+        if (parameters == null) return null;
+        var arguments = ParametersListUtil.parse(parameters);
+        if (arguments.stream().noneMatch(p -> p.startsWith("--spring.config.additional-location=optional:file:")
+                && p.contains("/config/,optional:file:") && p.endsWith("/config/local/"))) return null;
+        String profiles = arguments.stream().filter(p -> p.startsWith("--spring.profiles.active="))
+                .map(p -> p.substring("--spring.profiles.active=".length())).findFirst().orElse("");
+        return java.util.Arrays.stream(profiles.split(",")).filter(p -> !p.equals("studio-debug"))
+                .findFirst().orElse("");
     }
 
     @Override

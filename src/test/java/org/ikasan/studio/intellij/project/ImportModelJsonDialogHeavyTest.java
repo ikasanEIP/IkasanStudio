@@ -11,7 +11,20 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+// Test-only modality simulation: LaterInvocator is never included in the distributed plugin.
+@SuppressWarnings("UnstableApiUsage")
 public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
+    public void testWizardSelectsRuntimeAndPostGenerationSourceReviewWithoutChangingTheModel() throws Exception {
+        var original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        try {
+            dialog.enableSourceWizard();
+            assertTrue(((JCheckBox) field(dialog, "runtimeMode")).isSelected());
+            assertTrue(((JCheckBox) field(dialog, "importSource")).isSelected());
+            assertSame(original, getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule());
+        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
     public void testRuntimePackChoicesArriveWhileImportDialogIsModal() throws Exception {
         var release = new CountDownLatch(1);
         var dialog = new ImportModelJsonDialog(getProject(), () -> {

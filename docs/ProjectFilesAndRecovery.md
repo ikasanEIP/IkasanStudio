@@ -65,6 +65,73 @@ JMS JNDI maps use the structured string-map editor and JSON object values in the
 file, with one string value per key. Generated factories parse these maps before calling
 the builder; Java variable names or expressions are not map configuration values.
 
+## Import configuration and select an environment
+
+Choose **Tools → Ikasan Studio → Import Configuration…** to bring across properties that
+runtime metadata does not expose, including keys used by bespoke classes. During model
+import, **Import properties files after the model has been generated** opens the same dialog
+once generation succeeds. Cancelling configuration import leaves the imported model intact.
+
+1. Choose a `.properties` file or paste its contents. Files use Java properties encoding
+   (ISO-8859-1 with Unicode escapes); pasted Unicode is escaped for Spring Boot.
+2. Enter an environment such as `dev` or `int`, or leave it blank for shared settings.
+   `application-dev.properties` automatically suggests `dev`. Names start with a letter
+   and contain letters, digits, underscores or hyphens; `studio-debug` is reserved.
+3. Leave **Local only** selected for machine-specific settings or credentials. Clear it
+   when the file should be available for version control.
+4. Choose **Add File for Review**. Repeat for additional files. The review lists added,
+   changed and removed keys, and overlaps with generated defaults and shared settings.
+   Select a staged file and choose **Compare Values…** for IntelliJ's native diff. For a
+   new file, generated defaults are reference material and are retained during import.
+5. Existing destination files require **Replace existing destination files with the
+   reviewed contents**. Replacement uses the entire imported file; it does not merge
+   missing keys. A destination changed after preview blocks the import. Choose
+   **Clear Reviewed Files** and review again to refresh the preview.
+6. Choose **Import Reviewed Files**, then select the environment in IntelliJ's standard
+   Run/Debug configuration selector. Import does not start or stop a module.
+
+Shareable files live in `config/application.properties` and
+`config/application-<environment>.properties`; local files use the same names beneath
+`config/local/`. They retain comments, placeholders, custom keys and line endings and
+are outside generation ownership. Local import appends `/config/local/` to `.gitignore`;
+this does not untrack files already committed to Git. Run configurations are stored in
+IntelliJ's local workspace and contain configuration paths and profile names, not copied
+property values. Move neither sensitive files nor their values into `model.json`.
+
+The generated application and its IntelliJ module must be available to create launch
+configurations. If they are unavailable, the files remain imported; finish generation
+and Maven import and repeat configuration import to create the configurations.
+Configurations load `config/` followed by `config/local/`, with local settings taking
+precedence. Spring loads the selected profile's settings over shared settings within
+each directory. Environment variables and command-line overrides still follow normal
+Spring Boot precedence. **Run module** and **Debug module** use the environment of the
+currently selected Studio environment configuration. Debug variants additionally activate
+`studio-debug`; normal Run variants do not. Switching environments takes effect on the
+next launch, without changing the canvas defaults or a running application.
+
+For launching outside IntelliJ, use the same configuration directories, for example from
+the project root:
+
+```shell
+java -jar generated/target/your-module.jar --spring.profiles.active=dev \
+  --spring.config.additional-location=optional:file:./config/,optional:file:./config/local/
+```
+
+Use the application's actual built JAR path. Deployment must supply these external files;
+they are not packaged into the generated JAR. Resolve secrets through deployment-managed
+environment variables or local files as appropriate.
+
+Import rejects duplicate keys, malformed escapes, multi-document properties and
+`spring.profiles.*` / `spring.config.*` controls rather than silently flattening or
+redirecting configuration. Split multi-document input into environment files and keep
+profile/location activation in the run configuration. Placeholder values remain unresolved
+in Studio, including when they refer to environment variables.
+
+Properties do not reconstruct bespoke Java implementations, dependencies or Spring wiring,
+and choosing an environment does not clear Ikasan's persisted configuration-service
+settings. Console navigation still uses the module settings: align its configured port
+and context path when overriding those values externally.
+
 ## Renaming a flow
 
 Change the flow name in Properties and choose **Update Code**. If its Java package changes, **Rename and refactor** shows the old/new package and affected files. Studio uses IntelliJ package refactoring to retain implementations, helper classes and subpackages, update Java references, and update its default Spring bean names and matching `@Resource`/`@Qualifier` references. Custom bean names are preserved. The model is saved before generated code and navigation are refreshed. Class names are retained; renaming a flow does not require renaming each implementation class.

@@ -59,6 +59,12 @@
                     class="org.ikasan.studio.intellij.migration.MigrateIkasanVersionAction"/>
             <action id="IkasanStudio.ExportModelDocuments"
                     class="org.ikasan.studio.intellij.project.ExportIkasanModelAction"/>
+            <action id="IkasanStudio.ImportModuleWizard"
+                    class="org.ikasan.studio.intellij.importer.ImportModuleWizardAction"/>
+            <action id="IkasanStudio.ImportSourceModule"
+                    class="org.ikasan.studio.intellij.importer.ImportSourceModuleAction"/>
+            <action id="IkasanStudio.ImportEnvironmentProperties"
+                    class="org.ikasan.studio.intellij.configuration.ImportEnvironmentPropertiesAction"/>
             <action id="IkasanStudio.RestoreMigration"
                     class="org.ikasan.studio.intellij.migration.RestoreIkasanMigrationAction"/>
             <action id="IkasanStudio.ExportOfflineTools"

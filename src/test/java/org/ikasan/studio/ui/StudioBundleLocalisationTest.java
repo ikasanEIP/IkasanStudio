@@ -26,6 +26,22 @@ class StudioBundleLocalisationTest {
     }
 
     @Test
+    void environmentConfigurationTextAndPlaceholdersAreLocalised() throws Exception {
+        Properties english = load(ENGLISH);
+        Properties japanese = load(JAPANESE);
+        for (String key : english.stringPropertyNames()) {
+            if (key.startsWith("environment.") || key.startsWith("sourceImport.")
+                    || key.startsWith("action.IkasanStudio.ImportModuleWizard.") || key.startsWith("action.IkasanStudio.ImportSourceModule.")
+                    || key.startsWith("action.IkasanStudio.ImportEnvironmentProperties.")) {
+                assertLocalised(japanese, key);
+                var tokens = java.util.regex.Pattern.compile("\\{[0-9]+}");
+                assertEquals(tokens.matcher(english.getProperty(key)).results().map(java.util.regex.MatchResult::group).toList(),
+                        tokens.matcher(japanese.getProperty(key)).results().map(java.util.regex.MatchResult::group).toList(), key);
+            }
+        }
+    }
+
+    @Test
     void updateCodeRestartWarningIsLocalised() throws Exception {
         Properties english = load(ENGLISH);
         Properties japanese = load(JAPANESE);

@@ -37,7 +37,6 @@ import java.awt.*;
  * {@link ModelImporter#importFromText} - a failed validation keeps the dialog open for correction.
  */
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
-@SuppressWarnings("SplitModeApiUsage")
 public class ImportModelJsonDialog extends ImportDialogWrapper {
     private final Project project;
     private org.ikasan.studio.core.diagnostics.RuntimeImportReport activeReport;
@@ -48,6 +47,8 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
     private final ComboBox<String> runtimePack = new ComboBox<>();
     private final JBTextField applicationPackage = new JBTextField();
     private final JBTextArea configurationArea = new JBTextArea();
+    private final JBCheckBox importSource = new JBCheckBox(StudioBundle.message("sourceImport.afterModel"));
+    private final JBCheckBox importProperties = new JBCheckBox(StudioBundle.message("environment.afterImport"));
 
     public ImportModelJsonDialog(Project project) {
         this(project, (Component) null);
@@ -107,6 +108,13 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         });
     }
 
+    /** Runtime acquisition is stage one; source review starts only after successful generation. */
+    public void enableSourceWizard() {
+        setTitle(StudioBundle.message("sourceImport.wizardTitle"));
+        if (!runtimeMode.isSelected()) runtimeMode.doClick();
+        importSource.setSelected(true);
+    }
+
     private void updateOkAction() {
         String text = jsonArea.getText();
         setOKActionEnabled(text != null && !text.isBlank()
@@ -124,6 +132,8 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         runtimeMode.setAlignmentX(Component.LEFT_ALIGNMENT);
         runtimeMode.setToolTipText(StudioBundle.message("import.runtime.modeHelp"));
         options.add(runtimeMode);
+        options.add(importSource);
+        options.add(importProperties);
         options.add(Box.createVerticalStrut(JBUI.scale(4)));
         JPanel runtimeOptions = new JPanel(new GridBagLayout());
         runtimeOptions.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -310,7 +320,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
                     activeReport.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.MATCHING);
                 }
                 // Honor a suitable explicit selection, otherwise suggest the closest available pack.
-                var chosen = IkasanRuntimeImport.recommendPack(json, java.util.List.of(selected));
+                var chosen = IkasanRuntimeImport.recommendPack(json, selected == null ? java.util.List.of() : java.util.List.of(selected));
                 recommendation.set(chosen.isPresent() ? chosen.get()
                         : IkasanRuntimeImport.recommendPack(json, available).orElse(null));
             } catch (StudioBuildException problem) { failure.set(problem); }
@@ -435,7 +445,9 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
                 json = converted.studioJson();
             }
             ModelImporter.importFromText(project, json, chosenFilePathLabel.getText().isBlank()
-                    ? StudioBundle.message("label.PastedModelJson") : chosenFilePathLabel.getText(), activeReport);
+                    ? StudioBundle.message("label.PastedModelJson") : chosenFilePathLabel.getText(), activeReport,
+                    importSource.isSelected() ? () -> new org.ikasan.studio.intellij.importer.ImportSourceModuleDialog(project).show()
+                            : importProperties.isSelected() ? () -> new org.ikasan.studio.intellij.configuration.ImportEnvironmentPropertiesDialog(project).show() : null);
         } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
             activeReport.cancelled();
             throw cancelled;

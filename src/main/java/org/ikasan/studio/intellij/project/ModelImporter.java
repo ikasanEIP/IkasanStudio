@@ -32,10 +32,6 @@ public final class ModelImporter {
 
     private ModelImporter() { }
 
-    public static void openImportDialog(Project project) {
-        openImportDialog(project, project.getService(UiContext.class).getDesignerCanvas());
-    }
-
     public static void openImportDialog(Project project, java.awt.Component parent) {
         new ImportModelJsonDialog(project, parent).show();
     }
@@ -54,6 +50,12 @@ public final class ModelImporter {
 
     static void importFromText(Project project, String json, String sourceDescription,
                                org.ikasan.studio.core.diagnostics.RuntimeImportReport report) throws StudioBuildException {
+        importFromText(project, json, sourceDescription, report, null);
+    }
+
+    static void importFromText(Project project, String json, String sourceDescription,
+                               org.ikasan.studio.core.diagnostics.RuntimeImportReport report,
+                               Runnable afterGeneration) throws StudioBuildException {
         if (report != null) report.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.VALIDATION);
         if (project.isDisposed()) {
             throw new StudioBuildException("The project is closing; import was not started.");
@@ -128,6 +130,7 @@ public final class ModelImporter {
                     }
                     StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.ImportModelSuccess",
                             version, requiredJava > 0 ? String.valueOf(requiredJava) : StudioBundle.message("label.Unknown")));
+                    if (afterGeneration != null) afterGeneration.run();
                 }));
 
         // Render the imported instance; reloading from disk would replace its identity while generation is pending.
