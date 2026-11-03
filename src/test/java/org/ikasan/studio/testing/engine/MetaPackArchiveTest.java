@@ -15,7 +15,10 @@ class MetaPackArchiveTest {
     @Test
     void rejectsExecutableOrAmbiguousArchives() throws Exception {
         for (String entry : new String[]{"Example.class", "META-INF/services/example.Provider",
-                "studio/metapack/Other/metapack.json", "studio/metapack/Example/../outside.json"}) {
+                "studio/metapack/Other/metapack.json", "studio/metapack/Example/../outside.json",
+                "../outside.json", "studio/metapack/Example/.. /outside.json", "studio/metapack/Example./metapack.json", "/absolute.json", "C:/outside.json", "C:outside.json",
+                "studio/metapack/Example/./inside.json", "studio/metapack/Example//inside.json",
+                "studio/metapack/Example/unsafe\\file.json", "studio/metapack/Example/unsafe\nfile.json"}) {
             Path file = temporary.resolve("invalid.jar");
             try (var jar = new JarOutputStream(Files.newOutputStream(file))) {
                 write(jar, "studio/metapack/Example/metapack.json");

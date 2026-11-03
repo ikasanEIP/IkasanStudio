@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @org.junit.jupiter.api.Tag("packs")
 public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
-    @org.junit.jupiter.params.provider.CsvSource({"V3.3.9,5.19.5", "V4.1.6,6.2.4"})
+    @org.junit.jupiter.params.provider.CsvSource({"V3.3.9,5.19.12", "V4.1.6,6.3.3", "V5.1.0,6.3.3"})
     void regenerationRepairsExistingJmsClientAndBrokerVersions(String pack, String patchedVersion) throws Exception {
         var flow = TestFixtures.getUnbuiltFlow(pack)
                 .consumer(TrustedObjectPackagesTemplateTest.jms(pack, "Consumer")).build();

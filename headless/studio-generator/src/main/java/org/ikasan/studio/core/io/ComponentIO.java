@@ -79,11 +79,19 @@ public class ComponentIO {
     /*
      * Deserialize a module
      * @param path to the file containing the JSON to deserializes
+     * Bundled model resources may live outside the meta-pack namespace; pack metadata uses the confined loader.
      * @return the deserialized Module
-     * @throws StudioBuildException  to wrap JsonProcessingException
+     * @throws StudioBuildException to wrap malformed resource names or JSON
      */
     public static Module deserializeModuleInstance(final String path) throws StudioBuildException {
-        return deserializeModuleInstanceString(getJsonFromFile(path), path);
+        String resource = org.ikasan.studio.core.metapack.loading.ClasspathResourcePaths.canonicalRelative(path, false);
+        if (resource == null) throw new StudioBuildException("Model resource must be a canonical relative classpath name");
+        try (InputStream input = ComponentIO.class.getClassLoader().getResourceAsStream(resource)) {
+            if (input == null) throw new StudioBuildException("Model resource could not be loaded: " + path);
+            return deserializeModuleInstanceString(new String(input.readAllBytes(), StandardCharsets.UTF_8), path);
+        } catch (java.io.IOException failure) {
+            throw new StudioBuildException("Could not read model resource " + path, failure);
+        }
     }
     // This interface is easier to test generically
     public static Module deserializeModuleInstanceString(final String jsonString, final String source) throws StudioBuildException {

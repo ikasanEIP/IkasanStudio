@@ -17,7 +17,7 @@ public final class StringCollectionValues {
             if (text.isBlank()) return null;
             // Compatibility with Studio's older comma-separated list properties.
             if (type == List.class && !text.stripLeading().startsWith("["))
-                value = Arrays.asList(text.split("\\s*,\\s*", -1));
+                value = legacyList(text);
             else {
                 try {
                     var mapper = new ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
@@ -27,7 +27,7 @@ public final class StringCollectionValues {
                     // Old Studio versions wrote List.toString() text for recipient lists.
                     if (type == List.class && text.startsWith("[") && text.endsWith("]") && !text.contains("\"")) {
                         String contents = text.substring(1, text.length() - 1);
-                        value = contents.isEmpty() ? List.of() : Arrays.asList(contents.split("\\s*,\\s*", -1));
+                        value = contents.isEmpty() ? List.of() : legacyList(contents);
                     } else throw new IllegalArgumentException("Expected a JSON string list or string map; map keys must be unique.");
                 }
             }
@@ -39,6 +39,26 @@ public final class StringCollectionValues {
             return new LinkedHashMap<>(map);
         throw new IllegalArgumentException("Collection entries must be strings; null entries and nested objects are not supported.");
     }
+    /** Match the historical ASCII-whitespace comma split in one pass, retaining edge whitespace and empty entries. */
+    private static List<String> legacyList(String text) {
+        List<String> result = new ArrayList<>();
+        int start = 0;
+        int comma;
+        while ((comma = text.indexOf(',', start)) >= 0) {
+            int end = comma;
+            while (end > start && separatorWhitespace(text.charAt(end - 1))) end--;
+            result.add(text.substring(start, end));
+            start = comma + 1;
+            while (start < text.length() && separatorWhitespace(text.charAt(start))) start++;
+        }
+        result.add(text.substring(start));
+        return result;
+    }
+
+    private static boolean separatorWhitespace(char character) {
+        return character == ' ' || character >= '\t' && character <= '\r';
+    }
+
     public static boolean compatible(Class<?> type, JsonNode value) {
         if (type == List.class && !value.isArray() || type == Map.class && !value.isObject() || !supports(type)) return false;
         for (JsonNode entry : value) if (!entry.isTextual()) return false;

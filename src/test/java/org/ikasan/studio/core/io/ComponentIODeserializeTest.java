@@ -60,6 +60,13 @@ class ComponentIODeserializeTest {
     }
 
     @Test
+    public void modelResourceNamesCannotTraverseTheClasspath() {
+        for (String path : java.util.List.of("../org/ikasan/studio/model.json", "org/../model.json",
+                "/org/ikasan/studio/model.json", "C:outside.json", "org\\ikasan\\studio\\model.json"))
+            assertThrows(StudioBuildException.class, () -> ComponentIO.deserializeModuleInstance(path));
+    }
+
+    @Test
     public void testNullPropertiesDoesNotGetSet() throws StudioBuildException {
         Module module = ComponentIO.deserializeModuleInstance("org/ikasan/studio/populated_module_just_consumer_and_null_properties.json");
         FlowElement consumer = module.getFlows().get(0).getConsumer();

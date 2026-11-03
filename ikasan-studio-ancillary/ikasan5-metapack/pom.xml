@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ikasan.metapack</groupId>
   <artifactId>ikasan5-metapack</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <name>Ikasan 5 external Studio meta-pack</name>
   <description>Complete resource-only Ikasan 5.1.0 release pack, independently installable into Studio.</description>
   <properties>

@@ -17,12 +17,12 @@
     {
       "groupId": "org.apache.activemq",
       "artifactId": "activemq-client",
-      "version": "5.19.5"
+      "version": "5.19.12"
     },
     {
       "groupId": "org.apache.activemq",
       "artifactId": "activemq-broker",
-      "version": "5.19.5"
+      "version": "5.19.12"
     }
   ],
   "usesBuilderInFactory": true,

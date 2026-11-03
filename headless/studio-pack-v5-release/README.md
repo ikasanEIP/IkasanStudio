@@ -1,7 +1,7 @@
 # Ikasan 5.1.0 released meta-pack
 
 `studio-pack-v5-release` supplies **V5.1.0**, runtime **5.1.0**, independent pack revision
-**1.0.0** and generator API **1**. It is included in normal Studio plugin and CLI distributions.
+**1.0.1** and generator API **1**. It is included in normal Studio plugin and CLI distributions.
 It requires no snapshot setting or separate installation. Generated applications require
 **JDK 25**; the Studio plugin, generator and resource-only pack authoring build use JDK 17.
 
@@ -9,7 +9,8 @@ The baseline is the published `org.ikasan:ikasan-eip-standalone-bom:5.1.0`, rele
 [`ikasaneip-5.1.0`](https://github.com/ikasanEIP/ikasan/tree/ikasaneip-5.1.0)
 (commit `565c8f854e5b5ca0e690c78a0ba6112b89af8ff7`). Help links use that exact tag.
 The complete library/templates were carried forward from the V5 snapshot adapter and are
-verified separately against released dependencies; no runtime dependency is silently downgraded.
+verified separately against released dependencies; no runtime dependency is silently downgraded. Revision 1.0.1 declares the tested ActiveMQ
+client/broker 6.3.3 security override; H2 continues to follow the Ikasan core baseline.
 
 The old `studio-pack-v5` / `V5.0.1-SNAPSHOT` remains an opt-in compatibility pack for existing
 snapshot models. It is not an alias for V5.1.0, and existing projects are not silently relabelled

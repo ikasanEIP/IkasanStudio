@@ -45,6 +45,15 @@ class ModelPropertyValidationTest {
         return value;
     }
 
+    @org.junit.jupiter.api.Test
+    void sensitiveKeysIncludingLongRepeatedNamesAreRedactedWithoutBacktracking() {
+        org.junit.jupiter.api.Assertions.assertTimeoutPreemptively(java.time.Duration.ofSeconds(2), () -> {
+            var value = new com.fasterxml.jackson.databind.node.TextNode("never-display-this");
+            for (String key : List.of("apiTOKEN", "customerSecret", "PASSWORD", "credentials", "key".repeat(50_000) + "\n"))
+                assertThat(ModelPropertyValidation.safeDisplayValue(key, value)).isEqualTo("(hidden)");
+        });
+    }
+
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void reportsSavedInvalidRecipientsWithNavigationAndSafeValues(String pack) throws Exception {
         var model = model(pack);

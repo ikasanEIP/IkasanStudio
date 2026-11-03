@@ -19,9 +19,9 @@ class ActiveMqTrustedPackagesRuntimeTest {
     @TempDir Path temporary;
 
     @ParameterizedTest
-    @ValueSource(strings = {"v3", "v4"})
+    @ValueSource(strings = {"v3", "v4", "v5"})
     void generatedFactoryPreservesJndiAndXaAndRestrictsDeserialization(String variant) throws Exception {
-        String pack = variant.equals("v3") ? "V3.3.9" : "V4.1.6";
+        String pack = variant.equals("v3") ? "V3.3.9" : variant.equals("v4") ? "V4.1.6" : "V5.1.0";
         String classpath = Objects.requireNonNull(System.getProperty("studio.activemq." + variant + ".classpath"));
         var component = TrustedObjectPackagesTemplateTest.jms(pack, "Consumer");
         String helper = FreemarkerUtils.generateFromTemplate(pack, "trustedObjectPackages_en.ftl",

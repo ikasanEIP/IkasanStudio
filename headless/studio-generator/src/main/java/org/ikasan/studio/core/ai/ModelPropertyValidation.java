@@ -8,6 +8,7 @@ import org.ikasan.studio.core.model.StringCollectionValues;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 
 import java.util.*;
+import java.util.stream.Stream;
 import static org.ikasan.studio.core.ai.ImplementationReadiness.Target;
 
 /** Validates saved values without instantiating components, changing the model or revealing credentials. */
@@ -139,7 +140,8 @@ final class ModelPropertyValidation {
 
     static String safeDisplayValue(String key, JsonNode value) {
         if (value.isMissingNode() || value.isNull()) return "(not set)";
-        if (key.toLowerCase(Locale.ROOT).matches(".*(password|secret|token|credential|key).*")) return "(hidden)";
+        String lowerKey = key.toLowerCase(Locale.ROOT);
+        if (Stream.of("password", "secret", "token", "credential", "key").anyMatch(lowerKey::contains)) return "(hidden)";
         boolean address = Set.of("toRecipient", "toRecipients", "ccRecipient", "ccRecipients",
                 "bccRecipient", "bccRecipients", "from").contains(key);
         boolean visible = value.isNumber() || value.isBoolean() || address

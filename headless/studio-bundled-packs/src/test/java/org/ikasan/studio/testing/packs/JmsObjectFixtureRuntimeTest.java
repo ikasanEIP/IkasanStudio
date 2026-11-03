@@ -12,9 +12,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class JmsObjectFixtureRuntimeTest {
     @TempDir Path root;
 
-    @ParameterizedTest @ValueSource(strings = {"v3", "v4"})
+    @ParameterizedTest @ValueSource(strings = {"v3", "v4", "v5"})
     void sendsObjectMessageAndClosesProducerOnSuccessAndFailure(String variant) throws Exception {
-        String pack = variant.equals("v3") ? "V3.3.9" : "V4.1.6";
+        String pack = variant.equals("v3") ? "V3.3.9" : variant.equals("v4") ? "V4.1.6" : "V5.1.0";
         String namespace = variant.equals("v3") ? "javax.jms" : "jakarta.jms";
         String classpath = Objects.requireNonNull(System.getProperty("studio.activemq." + variant + ".classpath"));
         List<Path> sources = new ArrayList<>();

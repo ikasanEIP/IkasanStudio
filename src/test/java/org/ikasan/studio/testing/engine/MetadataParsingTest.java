@@ -10,9 +10,9 @@ class MetadataParsingTest {
     @Test
     void duplicateJsonKeysAreRejectedWithAnActionableSource() {
         StudioBuildException exception = assertThrows(StudioBuildException.class,
-                () -> ComponentIO.deserializeMetaComponent("studio/validation/duplicate-component-key.json"));
+                () -> ComponentIO.deserializeMetaComponent("studio/metapack/FailureInjection/duplicate-component-key.json"));
 
         assertTrue(exception.getMessage().contains("duplicate-component-key.json"));
-        assertTrue(exception.getMessage().toLowerCase().contains("duplicate"));
+        assertTrue(exception.getMessage().contains("Duplicate field"));
     }
 }

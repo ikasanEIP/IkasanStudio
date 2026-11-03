@@ -64,6 +64,8 @@ public final class MetaPackResources {
     }
 
     public static URL resource(String path) {
+        path = ClasspathResourcePaths.metaPackResource(path);
+        if (path == null) return null;
         var archive = archive(path);
         return archive == null ? bundled().getResource(path) : archive.resource(path);
     }
@@ -77,17 +79,20 @@ public final class MetaPackResources {
     }
 
     public static String[] directories(String path) throws IOException, java.net.URISyntaxException {
+        path = ClasspathResourcePaths.metaPackResource(path);
+        if (path == null) throw new IOException("Meta-pack directory must be a canonical path beneath studio/metapack");
         var archive = archive(path);
         if (archive != null) return archive.directories(path);
         var result = new TreeSet<>(Arrays.asList(ClasspathDirectoryScanner.getDirectories(path)));
         if (path.equals("studio/metapack")) {
-            SOURCES.archives().keySet().forEach(id -> result.add(path + "/" + id));
+            for (String id : SOURCES.archives().keySet()) result.add(path + "/" + id);
         }
         return result.toArray(String[]::new);
     }
 
     /** Resource lookup only: never adds the pack JAR to the Java classpath. */
     public static ClassLoader templateLoader(String id) {
+        if (!ClasspathResourcePaths.packId(id)) throw new IllegalArgumentException("Invalid meta-pack ID");
         // Capture the source so a FreeMarker configuration remains bound to the candidate after validation scope ends.
         var source = archive("studio/metapack/" + id + "/metapack.json");
         if (source == null) return bundled();

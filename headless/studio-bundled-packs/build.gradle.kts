@@ -53,20 +53,23 @@ sourceSets {
 
 // Isolated provider classpaths let the generated helper be compiled and exercised against
 // both javax.jms (V3) and jakarta.jms (V4), without leaking broker dependencies into the kit.
-for ((suffix, packVersion) in mapOf("v3" to "3.3.9", "v4" to "4.1.6")) {
+for ((suffix, packVersion) in mapOf("v3" to "3.3.9", "v4" to "4.1.6", "v5" to "5.1.0")) {
     val providerClasspath = configurations.create("activeMqTestRuntime$suffix") {
         isCanBeConsumed = false
         isCanBeResolved = true
     }
     dependencies.add(providerClasspath.name, dependencies.platform("org.ikasan:ikasan-eip-standalone-bom:$packVersion"))
     // Use the same explicit security overrides as generated JMS applications.
-    val manifest = groovy.json.JsonSlurper().parse(
-        file("../../src/main/resources/studio/metapack/V$packVersion/metapack.json")) as Map<*, *>
+    val manifestFile = if (suffix == "v5") file("../studio-pack-v5-release/src/main/resources/studio/metapack/V$packVersion/metapack.json")
+        else file("../../src/main/resources/studio/metapack/V$packVersion/metapack.json")
+    val manifest = groovy.json.JsonSlurper().parse(manifestFile) as Map<*, *>
     val overrides = manifest["compatibilityOverrides"] as List<*>
-    val client = overrides.map { it as Map<*, *> }.single {
-        it["groupId"] == "org.apache.activemq" && it["artifactId"] == "activemq-client"
+    for (artifact in listOf("activemq-client", "activemq-broker")) {
+        val override = overrides.map { it as Map<*, *> }.single {
+            it["groupId"] == "org.apache.activemq" && it["artifactId"] == artifact
+        }
+        dependencies.add(providerClasspath.name, "${override["groupId"]}:${override["artifactId"]}:${override["version"]}")
     }
-    dependencies.add(providerClasspath.name, "${client["groupId"]}:${client["artifactId"]}:${client["version"]}")
     val arguments = objects.newInstance<ActiveMqTestArguments>().apply {
         variant.set(suffix)
         providerFiles.from(providerClasspath)

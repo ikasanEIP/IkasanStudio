@@ -72,7 +72,7 @@ public final class MetaPackInstaller {
             // Same-filesystem move publishes only the fully validated file. No REPLACE_EXISTING.
             Path installationDirectory = directory.toAbsolutePath().normalize();
             Path destination = installationDirectory.resolve(archive.id() + ".jar").normalize();
-            if (!installationDirectory.equals(destination.getParent())) {
+            if (!destination.startsWith(installationDirectory) || !installationDirectory.equals(destination.getParent())) {
                 throw new IOException("Pack destination must be directly inside the installation directory");
             }
             Files.move(staged, destination);

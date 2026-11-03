@@ -16,6 +16,8 @@ public final class ClasspathDirectoryScanner {
 
     /** Explicit loader also allows pack tooling to inspect isolated classpaths. */
     public static String[] getDirectories(String directory, ClassLoader loader) throws URISyntaxException, IOException {
+        if (ClasspathResourcePaths.canonicalRelative(directory, false) == null)
+            throw new IOException("Classpath directory must be a canonical relative resource path");
         var directories = new TreeSet<String>();
         for (var url : Collections.list(loader.getResources(directory))) {
             var uri = url.toURI();

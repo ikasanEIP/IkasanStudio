@@ -42,7 +42,10 @@ class DevelopmentFixtureTest {
     static Map<String, String> render(Module module) throws Exception {
         var manifest = ComponentLibrary.getMetaPackManifest(PACK);
         assertEquals("25", manifest.javaVersion());
-        assertTrue(manifest.compatibilityOverrides().isEmpty(), "Do not downgrade the V5 BOM's ActiveMQ");
+        assertEquals(2, manifest.compatibilityOverrides().size());
+        assertTrue(manifest.compatibilityOverrides().stream().allMatch(override ->
+                "org.apache.activemq".equals(override.groupId()) && "6.3.3".equals(override.version())),
+                "V5 keeps its runtime BOM and adds only the verified ActiveMQ security upgrade");
         Model model = new Model();
         model.setModelVersion("4.0.0"); model.setGroupId("org.ikasan.studio.probe");
         model.setArtifactId("ikasan5-review"); model.setVersion("1.0-SNAPSHOT");

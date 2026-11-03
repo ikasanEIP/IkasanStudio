@@ -14,14 +14,14 @@
     {
       "groupId": "org.apache.activemq",
       "artifactId": "activemq-client",
-      "version": "6.2.4",
-      "reason": "Security override for CVE-2023-46604, CVE-2025-27533, CVE-2026-33227 and CVE-2026-39304; retain the jakarta.jms / Java 17 contract. Remove when the matching Ikasan BOM manages a patched version."
+      "version": "6.3.3",
+      "reason": "Security override including CVE-2026-40466, CVE-2026-41044, CVE-2026-42588, CVE-2026-45505 and CVE-2026-74761; retain the jakarta.jms / Java 17 contract. Remove when the matching Ikasan BOM manages this patched release or a newer compatible version."
     },
     {
       "groupId": "org.apache.activemq",
       "artifactId": "activemq-broker",
-      "version": "6.2.4",
-      "reason": "Security override for CVE-2023-46604, CVE-2025-27533, CVE-2026-33227 and CVE-2026-39304; retain the jakarta.jms / Java 17 contract. Remove when the matching Ikasan BOM manages a patched version."
+      "version": "6.3.3",
+      "reason": "Security override including CVE-2026-40466, CVE-2026-41044, CVE-2026-42588, CVE-2026-45505 and CVE-2026-74761; retain the jakarta.jms / Java 17 contract. Remove when the matching Ikasan BOM manages this patched release or a newer compatible version."
     }
   ],
   "packVersion": "0.1.0-SNAPSHOT",

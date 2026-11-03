@@ -29,9 +29,7 @@ public final class MetaPackArchive {
             while (entries.hasMoreElements()) {
                 var entry = entries.nextElement();
                 String name = entry.getName();
-                if (name.startsWith("/") || name.contains("\\")
-                        || Arrays.asList(name.split("/")).contains("..")
-                        || Arrays.asList(name.split("/")).contains(".") || !names.add(name)) {
+                if (ClasspathResourcePaths.canonicalRelative(name, entry.isDirectory()) == null || !names.add(name)) {
                     throw new IOException("Unsafe or duplicate archive entry: " + name);
                 }
                 if (names.size() > 20000 || entry.getSize() > 64L * 1024 * 1024
@@ -50,7 +48,7 @@ public final class MetaPackArchive {
                     int slash = relative.indexOf('/');
                     if (slash <= 0) throw new IOException("Resource outside a pack directory: " + name);
                     String id = relative.substring(0, slash);
-                    if (!id.matches("[A-Za-z0-9][A-Za-z0-9._-]*")) throw new IOException("Invalid pack ID: " + id);
+                    if (!ClasspathResourcePaths.packId(id)) throw new IOException("Invalid pack ID: " + id);
                     ids.add(id);
                 }
             }
@@ -82,7 +80,7 @@ public final class MetaPackArchive {
     public Path file() { return file; }
 
     public URL resource(String name) {
-        if (!entries.contains(name)) return null;
+        if (ClasspathResourcePaths.canonicalRelative(name, false) == null || !entries.contains(name)) return null;
         try {
             String encoded = new URI(null, null, "/" + name, null).getRawPath().substring(1);
             return URI.create("jar:" + file.toUri().toASCIIString() + "!/" + encoded).toURL();
