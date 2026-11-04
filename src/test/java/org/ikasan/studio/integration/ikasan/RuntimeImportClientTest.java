@@ -227,8 +227,8 @@ class RuntimeImportClientTest {
         try {
             withServer(exchange -> {
                 entered.countDown();
-                try { release.await(5, TimeUnit.SECONDS); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
-                try { respond(exchange, 200, MODULE); } catch (IOException cancelled) { }
+                try { if (!release.await(5, TimeUnit.SECONDS)) throw new AssertionError("Cancellation test did not release the server"); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+                try { respond(exchange, 200, MODULE); } catch (IOException cancelled) { /* The cancelled client may close the connection before the response. */ }
             }, base -> {
                 var task = executor.submit(() -> RuntimeImportClient.fetch(base, "Demo module", "", new char[0], false,
                         () -> { if (cancel.get()) throw new CancellationException(); }));
@@ -257,12 +257,23 @@ class RuntimeImportClientTest {
                 RuntimeImportClient.baseUri("http://localhost:8080/swagger-ui/index.html").toString());
     }
 
-    @Test void swaggerUrlFetchUsesApplicationRestPath() throws Exception {
+    @ParameterizedTest @ValueSource(strings = {"/home.htm", "/home.htm/", "/HOME.HTM?view=flows#selected"})
+    void normalizesBlueConsoleHomePagesWithoutChangingTheContext(String suffix) {
+        assertEquals("http://localhost:12450/converterandtranslators5",
+                RuntimeImportClient.baseUri("http://localhost:12450/converterandtranslators5" + suffix).toString());
+        assertEquals("https://localhost:8443/My%20Module",
+                RuntimeImportClient.baseUri("https://localhost:8443/My%20Module" + suffix).toString());
+        assertEquals("http://localhost:8080", RuntimeImportClient.baseUri("http://localhost:8080/home.htm").toString());
+        assertEquals("http://localhost:8080/home.htm/context", RuntimeImportClient.baseUri("http://localhost:8080/home.htm/context").toString());
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"swagger-ui/index.html", "home.htm", "home.htm?view=flows#selected"})
+    void landingPageUrlFetchUsesApplicationRestPath(String suffix) throws Exception {
         withServer(exchange -> {
             assertEquals("/ctx/rest/metadata/module/Demo%20module", exchange.getRequestURI().getRawPath());
             respond(exchange, 200, MODULE);
         }, base -> assertEquals(MODULE, RuntimeImportClient.fetch(
-                URI.create(base + "swagger-ui/index.html"), "Demo module", "", new char[0], false, () -> {}).moduleJson()));
+                URI.create(base + suffix), "Demo module", "", new char[0], false, () -> {}).moduleJson()));
     }
 
     @ParameterizedTest @ValueSource(ints = {404, 500})
@@ -275,18 +286,19 @@ class RuntimeImportClientTest {
         });
     }
 
-    @Test void diagnosticsShowTheActualRestUrlAndStatusWithoutCredentialsOrResponseBodies() throws Exception {
+    @ParameterizedTest @ValueSource(strings = {"swagger-ui/index.html", "home.htm"})
+    void diagnosticsShowTheActualRestUrlAndStatusWithoutCredentialsOrResponseBodies(String page) throws Exception {
         var logs = new ArrayList<String>();
         withServer(exchange -> respond(exchange, 500, "private response password=private-body"), base -> {
             assertThrows(IOException.class, () -> RuntimeImportClient.fetch(
-                    URI.create(base + "swagger-ui/index.html?token=private-query#/module"),
+                    URI.create(base + page + "?token=private-query#/module"),
                     "Demo module", "private-user", "private-password".toCharArray(), false, () -> {}, logs::add));
             assertEquals(2, logs.size());
             assertTrue(logs.get(0).contains("module metadata via GET " + base.toString().replaceAll("/+$", "")
                     + "/rest/metadata/module/Demo%20module"));
             assertTrue(logs.get(1).contains("returned HTTP 500"));
             String combined = String.join("\n", logs);
-            for (String forbidden : List.of("private-user", "private-password", "private-query", "private-body", "Authorization", "swagger-ui"))
+            for (String forbidden : List.of("private-user", "private-password", "private-query", "private-body", "Authorization", "swagger-ui", "home.htm"))
                 assertFalse(combined.contains(forbidden), forbidden);
         });
     }

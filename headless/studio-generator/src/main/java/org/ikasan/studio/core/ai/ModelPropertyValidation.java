@@ -85,11 +85,11 @@ final class ModelPropertyValidation {
             if (meta.getChoices() != null && !meta.getChoices().isEmpty() && !meta.isChoicesEditable()
                     && !meta.getChoices().contains(String.valueOf(value)))
                 add(findings, flow, name, target, node, key, "Choose one of: " + String.join(", ", meta.getChoices()) + ".");
-            if (meta.getValidationPattern() != null) {
+            if (meta.hasValidation()) {
                 Object patternValue = meta.patternValidationValue(value);
                 List<?> values = patternValue instanceof List<?> entries ? entries : List.of(patternValue);
                 for (int i = 0; i < values.size(); i++) {
-                    if (!meta.getValidationPattern().matcher(String.valueOf(values.get(i))).matches()) {
+                    if (!meta.matchesValidation(String.valueOf(values.get(i)))) {
                         String hint = meta.getValidationMessage();
                         add(findings, flow, name, target, node, key, (patternValue instanceof List<?> ? "Entry " + (i + 1) + ": " : "")
                                 + (hint == null || hint.isBlank() ? "Value does not match the validation rule." : hint));

@@ -13,7 +13,7 @@ import java.util.Set;
 /** Enforces the version contract before a meta-pack can be exposed to Studio. */
 public final class MetaPackValidator {
     /** Increment only when the pack-facing generator contract changes incompatibly. */
-    public static final int GENERATOR_API_VERSION = 1;
+    public static final int GENERATOR_API_VERSION = 2;
     private MetaPackValidator() { }
 
     public static void validate(String directoryName, MetaPackManifest manifest,
@@ -29,9 +29,10 @@ public final class MetaPackValidator {
             }
         }
         if (manifest.schemaVersion() == 2 || manifest.generatorApiVersion() != null) {
-            if (!Integer.valueOf(GENERATOR_API_VERSION).equals(manifest.generatorApiVersion())) {
+            if (manifest.generatorApiVersion() == null || manifest.generatorApiVersion() < 1
+                    || manifest.generatorApiVersion() > GENERATOR_API_VERSION) {
                 fail(directoryName, "requires generatorApiVersion " + manifest.generatorApiVersion()
-                        + "; this generator supports " + GENERATOR_API_VERSION);
+                        + "; this generator supports 1 through " + GENERATOR_API_VERSION);
             }
         }
         require(directoryName, "id", manifest.id());
@@ -100,7 +101,7 @@ public final class MetaPackValidator {
                 fail(directoryName, "declares unused compatibility override " + override);
             }
         }
-        MetaPackDataValidator.validate(directoryName, manifest.ikasanVersion(), components);
+        MetaPackDataValidator.validate(directoryName, manifest.ikasanVersion(), components, manifest.generatorApiVersion() == null ? 1 : manifest.generatorApiVersion());
     }
 
     private static void require(String pack, String field, String value) throws StudioBuildException {

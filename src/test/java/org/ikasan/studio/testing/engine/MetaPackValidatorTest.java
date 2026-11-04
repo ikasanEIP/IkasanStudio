@@ -27,7 +27,7 @@ class MetaPackValidatorTest {
         var components = validComponents();
         var component = components.values().iterator().next();
         component.setProducedOutputType(type);
-        MetaPackValidator.validate("SyntheticValidator", manifest("SyntheticValidator"), components);
+        MetaPackValidator.validate("SyntheticValidator", manifest(), components);
     }
 
     @org.junit.jupiter.params.ParameterizedTest
@@ -53,7 +53,7 @@ class MetaPackValidatorTest {
         var component = components.values().iterator().next();
         component.setImplementingClass(type);
         component.setProducedOutputType(type);
-        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest("SyntheticValidator"), components))
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), components))
                 .isInstanceOf(org.ikasan.studio.core.StudioBuildException.class)
                 .hasMessageContaining("invalid qualified Java name")
                 .hasMessageContaining("invalid Java type declaration");
@@ -65,7 +65,7 @@ class MetaPackValidatorTest {
         component.setName("Broken");
         component.setJarDependencies(Set.of(dependency("org.ikasan", "ikasan-ftp-endpoint", "9.8.6")));
 
-        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest("SyntheticValidator"), Map.of("Broken", component)))
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), Map.of("Broken", component)))
                 .hasMessageContaining("instead of 9.8.7");
     }
 
@@ -75,7 +75,7 @@ class MetaPackValidatorTest {
         component.setName("Broken");
         component.setJarDependencies(Set.of(dependency("example", "library", "1.2.3")));
 
-        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest("SyntheticValidator"), Map.of("Broken", component)))
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), Map.of("Broken", component)))
                 .hasMessageContaining("without a matching compatibilityOverrides entry");
     }
 
@@ -89,7 +89,7 @@ class MetaPackValidatorTest {
         ComponentMeta component = new ComponentMeta();
         component.setName("Broken");
 
-        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest("SyntheticValidator"), Map.of("Broken", component)))
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), Map.of("Broken", component)))
                 .hasMessageContaining("implementingClass")
                 .hasMessageContaining("is required");
     }
@@ -121,10 +121,68 @@ class MetaPackValidatorTest {
 
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.NullSource
-    @org.junit.jupiter.params.provider.ValueSource(ints = {0, 2})
+    @org.junit.jupiter.params.provider.ValueSource(ints = {0, 3})
     void rejectsMissingOrIncompatibleGeneratorApi(Integer api) {
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", revisionManifest("1.0.0", api), Map.of()))
                 .hasMessageContaining("generatorApiVersion");
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"(?=a)a", "(a)\\1", "a++", "["})
+    void rejectsUnsupportedExternalPackExpressionsWithPropertyContext(String expression) {
+        var components = validComponents();
+        var property = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
+                .propertyName("customerRule").validation(expression).build();
+        components.values().iterator().next().setAllowableProperties(Map.of("customerRule", property));
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), components))
+                .hasMessageContaining("customerRule.validation")
+                .hasMessageContaining("RE2/J")
+                .hasMessageContaining("without lookaround, backreferences or possessive quantifiers");
+    }
+
+    @Test
+    void semanticValidationRequiresApiTwoAndUnknownRulesAreRejected() throws Exception {
+        var components = validComponents();
+        var property = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
+                .propertyName("packageName").validationKind("JAVA_PACKAGE").build();
+        components.values().iterator().next().setAllowableProperties(Map.of("packageName", property));
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", revisionManifest("1.0.0", 1), components))
+                .hasMessageContaining("packageName.validationKind").hasMessageContaining("requires generatorApiVersion 2");
+        MetaPackValidator.validate("SyntheticValidator", revisionManifest("1.0.0", 2), components);
+        property.setValidationKind("TYPO");
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", revisionManifest("1.0.0", 2), components))
+                .hasMessageContaining("packageName.validationKind").hasMessageContaining("supported value is JAVA_PACKAGE");
+    }
+
+    @Test
+    void checksCategoryAndExceptionActionExpressionsBeforeEditorUse() {
+        var components = validComponents();
+        var component = components.values().iterator().next();
+        var property = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
+                .propertyName("nestedRule").validation("(?=a)a").build();
+        component.getComponentTypeMeta().setAllowableProperties(Map.of("nestedRule", property));
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), components))
+                .hasMessageContaining("category.allowableProperties.nestedRule.validation");
+        component.getComponentTypeMeta().setAllowableProperties(Map.of());
+        var action = org.ikasan.studio.core.metapack.model.ExceptionActionMeta.builder()
+                .actionName("retry").actionProperties(Map.of("nestedRule", property)).build();
+        var resolver = org.ikasan.studio.core.metapack.model.ExceptionResolverMeta.builder()
+                .name(component.getName()).componentType("End Point").implementingClass("")
+                .componentTypeMeta(component.getComponentTypeMeta()).allowableProperties(Map.of())
+                .actionList(List.of(action)).build();
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), Map.of(resolver.getName(), resolver)))
+                .hasMessageContaining("actionList[0].actionProperties.nestedRule.validation");
+    }
+
+    @Test
+    void missingPropertiesReportEndpointTextKeyInsteadOfThrowingNullPointer() {
+        var components = validComponents();
+        var component = components.values().iterator().next();
+        component.setAllowableProperties(null);
+        component.setEndpointTextKey("missing");
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), components))
+                .hasMessageContaining("endpointTextKey")
+                .hasMessageContaining("references unknown property missing");
     }
 
     private static Map<String, ComponentMeta> validComponents() {
@@ -140,13 +198,13 @@ class MetaPackValidatorTest {
     }
 
     private static MetaPackManifest revisionManifest(String revision, Integer api) {
-        var legacy = manifest("SyntheticValidator");
+        var legacy = manifest();
         return new MetaPackManifest(2, legacy.id(), legacy.ikasanVersion(), legacy.javaVersion(),
                 legacy.dependencyManagement(), legacy.compatibilityOverrides(), revision, api);
     }
 
-    private static MetaPackManifest manifest(String id) {
-        return new MetaPackManifest(1, id, "9.8.7", "17",
+    private static MetaPackManifest manifest() {
+        return new MetaPackManifest(1, "SyntheticValidator", "9.8.7", "17",
                 List.of(new MetaPackManifest.BomImport(
                         "org.ikasan", "ikasan-eip-standalone-bom", "9.8.7")), List.of());
     }

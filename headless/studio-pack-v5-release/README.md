@@ -1,7 +1,7 @@
 # Ikasan 5.1.0 released meta-pack
 
 `studio-pack-v5-release` supplies **V5.1.0**, runtime **5.1.0**, independent pack revision
-**1.0.1** and generator API **1**. It is included in normal Studio plugin and CLI distributions.
+**1.0.2** and generator API **2**. It is included in normal Studio plugin and CLI distributions.
 It requires no snapshot setting or separate installation. Generated applications require
 **JDK 25**; the Studio plugin, generator and resource-only pack authoring build use JDK 17.
 
@@ -41,3 +41,5 @@ The unmodified 5.1.0 runtime still reproduces XA resource-end/rollback errors in
 JMS, FTP and SFTP transaction-failure scenarios. Successful later delivery does not count
 as clean rollback. These checks stay failing; no candidate runtime patch or dependency
 downgrade is applied. See the [dated release verification](../../docs/Ikasan510Verification-2026-10-29.md).
+
+Revision 1.0.2 adopts the [RE2/J property-validation policy](../../src/main/resources/studio/metapack/METAPACK.md#property-validation-safety-generator-api-2) and semantic Java package-name checks. Existing 1.0.1 model locks require explicit revision adoption.

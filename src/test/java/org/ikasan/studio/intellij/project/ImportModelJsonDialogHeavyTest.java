@@ -12,8 +12,57 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 // Test-only modality simulation: LaterInvocator is never included in the distributed plugin.
-@SuppressWarnings("UnstableApiUsage")
+@SuppressWarnings("JetBrainsInternalApiUsage")
 public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
+    public void testAcquisitionAndFollowUpStepsAppearOnlyWhenApplicable() throws Exception {
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        try {
+            var mode = (JCheckBox) field(dialog, "runtimeMode");
+            var json = (JTextArea) field(dialog, "jsonArea");
+            var configuration = (JTextArea) field(dialog, "configurationArea");
+            var row = (javax.swing.JPanel) field(dialog, "acquisitionRow");
+            var documents = (javax.swing.JPanel) field(dialog, "documentPanel");
+            var followUp = (javax.swing.JPanel) field(dialog, "optionalSteps");
+            var pasteConfig = (javax.swing.JButton) field(dialog, "pasteConfiguration");
+            assertFalse(row.isVisible()); assertTrue(documents.isVisible()); assertFalse(followUp.isVisible());
+            assertTrue(json.isEditable());
+            json.setText("studio model preview");
+            assertTrue(followUp.isVisible());
+            ((JCheckBox) field(dialog, "importSource")).setSelected(true);
+            ((JCheckBox) field(dialog, "importProperties")).setSelected(true);
+            mode.doClick();
+            assertTrue(row.isVisible()); assertFalse(documents.isVisible()); assertFalse(followUp.isVisible());
+            assertFalse(dialog.isOKActionEnabled()); assertFalse(pasteConfig.isEnabled());
+            ((javax.swing.JButton) field(dialog, "pasteMetadata")).doClick();
+            assertTrue(documents.isVisible()); assertTrue(json.isEditable()); assertTrue(followUp.isVisible());
+            assertTrue(pasteConfig.isEnabled());
+            pasteConfig.doClick();
+            assertTrue(configuration.isEditable());
+            assertEquals(1, ((javax.swing.JTabbedPane) field(dialog, "documents")).getSelectedIndex());
+            json.setText("");
+            assertFalse(pasteConfig.isEnabled()); assertFalse(followUp.isVisible()); assertFalse(dialog.isOKActionEnabled());
+            assertEquals(0, ((javax.swing.JTabbedPane) field(dialog, "documents")).getSelectedIndex());
+            mode.doClick(); json.setText("studio model preview");
+            assertFalse(row.isVisible()); assertTrue(followUp.isVisible());
+            assertTrue(((JCheckBox) field(dialog, "importSource")).isSelected());
+            assertTrue(((JCheckBox) field(dialog, "importProperties")).isSelected());
+        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testFetchedDocumentsAreReadOnlyUntilManualInputIsChosen() throws Exception {
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        try {
+            dialog.applyFetchedDocuments(new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents("metadata", "configuration"));
+            var json = (JTextArea) field(dialog, "jsonArea");
+            var configuration = (JTextArea) field(dialog, "configurationArea");
+            assertFalse(json.isEditable()); assertFalse(configuration.isEditable());
+            assertTrue(((javax.swing.JPanel) field(dialog, "documentPanel")).isVisible());
+            ((javax.swing.JButton) field(dialog, "pasteMetadata")).doClick();
+            assertTrue(json.isEditable()); assertTrue(configuration.isEditable());
+            assertEquals("metadata", json.getText()); assertEquals("configuration", configuration.getText());
+        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
     public void testWizardSelectsRuntimeAndPostGenerationSourceReviewWithoutChangingTheModel() throws Exception {
         var original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
         var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
@@ -35,7 +84,8 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
         });
         var marker = new Object();
         var packs = (JComboBox<?>) field(dialog, "runtimePack");
-        ((JCheckBox) field(dialog, "runtimeMode")).setSelected(true);
+        ((JCheckBox) field(dialog, "runtimeMode")).doClick();
+        ((javax.swing.JButton) field(dialog, "pasteMetadata")).doClick();
         ((JTextArea) field(dialog, "jsonArea")).setText("{\"module\":{}}");
         assertFalse(dialog.isOKActionEnabled());
         LaterInvocator.enterModal(marker);
@@ -104,11 +154,10 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
             var json = (JTextArea) field(dialog, "jsonArea");
             var configuration = (JTextArea) field(dialog, "configurationArea");
             var mode = (JCheckBox) field(dialog, "runtimeMode");
-            var tabs = (javax.swing.JTabbedPane) javax.swing.SwingUtilities.getAncestorOfClass(
-                    javax.swing.JTabbedPane.class, json);
+            var tabs = (javax.swing.JTabbedPane) field(dialog, "documents");
             assertNotNull(tabs);
-            assertEquals(1, tabs.getTabCount());
-            assertEquals(org.ikasan.studio.ui.StudioBundle.message("import.runtime.studioTab"), tabs.getTitleAt(0));
+            assertEquals(0, tabs.getTabCount());
+            assertNull(javax.swing.SwingUtilities.getAncestorOfClass(javax.swing.JTabbedPane.class, json));
             json.setText("module preview");
             configuration.setText("configuration preview");
             mode.doClick();
@@ -116,8 +165,8 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
             assertEquals(org.ikasan.studio.ui.StudioBundle.message("import.runtime.moduleTab"), tabs.getTitleAt(0));
             tabs.setSelectedIndex(1);
             mode.doClick();
-            assertEquals(1, tabs.getTabCount());
-            assertEquals(0, tabs.getSelectedIndex());
+            assertEquals(0, tabs.getTabCount());
+            assertNull(javax.swing.SwingUtilities.getAncestorOfClass(javax.swing.JTabbedPane.class, json));
             mode.doClick();
             assertEquals(2, tabs.getTabCount());
             assertEquals("module preview", json.getText());
@@ -130,7 +179,8 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
         try {
             var module = (JTextArea) field(dialog, "jsonArea");
             var configuration = (JTextArea) field(dialog, "configurationArea");
-            var tabs = (javax.swing.JTabbedPane) javax.swing.SwingUtilities.getAncestorOfClass(javax.swing.JTabbedPane.class, module);
+            var tabs = (javax.swing.JTabbedPane) field(dialog, "documents");
+            dialog.applyFetchedDocuments(new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents("{}", "[]"));
             var panel = tabs.getParent();
             var before = panel.getPreferredSize();
             var viewportBefore = module.getPreferredScrollableViewportSize();

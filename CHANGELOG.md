@@ -5,6 +5,18 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Separate Studio-managed debug support files from selectable source imports, verify their destination templates, and provide a read-only comparison/review tab for differing originals. Put original-source evidence before destinations and open original-left diffs with double-click or Enter, preserving import selections and sorted-row mapping. Compare selected dependency declarations even when they require manual resolution. Preselect new implementation/helper sources and ordinary additional dependencies, preserving inherited Maven versions and optional flags; leave existing code, wiring and manual-only declarations unselected.
+
+- Make Studio model import choices explicit above the editor: choose a model.json file OR paste its contents below, without a redundant single Studio tab.
+
+- Replace dynamic meta-pack Java regex validation with RE2/J, bound expression size, and reject unsupported rules with actionable diagnostics. Share semantic Java package-name validation across the editor and AI/readiness paths, migrate bundled FTP rules, and introduce generator API 2 while retaining compatible API 1 packs. Advance released V5.1.0 and ExampleIkasan5 pack revisions to 1.0.2; existing revision locks require explicit adoption.
+
+- Guide module imports through an explicit fetch OR manual JSON choice, enable optional configuration after metadata, and reveal applicable source/properties follow-up steps for both Studio and Ikasan imports. Preserve previews while switching paths and honour the selected properties step after source review.
+
+- Label canvas context-menu actions Blue Console and Launch independent H2. Accept pasted Blue Console home.htm URLs during runtime import, preserving the application context and module-name case while removing landing-page query/fragment data.
+
+- Restore older Studio document-format models containing XML converters saved with the historical builder identifier and no native configuration record. Preserve their JAXB class and XML settings, normalise on the next save, and keep missing-record checks for modern or explicitly configured components.
+
 -
 - Add a source-assisted module import wizard combining runtime metadata, local Java/helper discovery, generated bean-contract review, selectable Maven dependency additions and discovered environment properties. Preserve original source bytes and packages, require explicit selection of original Spring configuration and conflicting replacements, detect stale reviews, and save a local completion checklist without claiming runtime verification.
 

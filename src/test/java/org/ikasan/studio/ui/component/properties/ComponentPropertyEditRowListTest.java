@@ -8,6 +8,15 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ComponentPropertyEditRowListTest {
+    @Test
+    void editorEnforcesSemanticPackageValidationWithoutAnExpression() {
+        var meta = ComponentPropertyMeta.builder().propertyName("applicationPackageName")
+                .validationKind(ComponentPropertyMeta.JAVA_PACKAGE).validationMessage("Use a Java package name").build();
+        assertNull(ComponentPropertyEditRow.patternValidationMessage(meta, "org.example"));
+        assertEquals("applicationPackageName: Use a Java package name",
+                ComponentPropertyEditRow.patternValidationMessage(meta, "org.class.app"));
+    }
+
     private ComponentPropertyEditRow row(Object value) {
         var meta = ComponentPropertyMeta.builder().propertyName("filenames")
                 .usageDataType("java.util.List<String>").build();

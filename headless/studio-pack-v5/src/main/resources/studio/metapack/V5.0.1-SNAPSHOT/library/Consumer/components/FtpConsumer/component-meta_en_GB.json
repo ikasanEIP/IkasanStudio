@@ -225,7 +225,7 @@
       "propertyConfigFileLabel": "__flow.ftp.consumer.filename-pattern",
       "setterProperty": true,
       "usageDataType": "java.lang.String",
-      "validation": "^(?![*+?]).*$",
+      "validation": "^([^*+?\\n\\r\\x{85}\\x{2028}\\x{2029}][^\\n\\r\\x{85}\\x{2028}\\x{2029}]*)?$",
       "validationMessage": "This must be a Java regular expression, not a shell glob - a bare *, + or ? at the very start has nothing to repeat and fails at runtime with a PatternSyntaxException. Did you mean '.*' instead of '*'? e.g. '.*\\.txt' matches any .txt file."
     },
     "filterDuplicates": {

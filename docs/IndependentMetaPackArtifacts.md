@@ -10,9 +10,9 @@ The IntelliJ plugin, generator, test kit and official packs remain in this repos
 | --- | --- | --- | --- | --- |
 | `studio-pack-v3` | `studio-pack-v3` | `V3.3.9` | `3.3.9` | `0.1.0-SNAPSHOT` |
 | `studio-pack-v4` | `studio-pack-v4` | `V4.1.6` | `4.1.6` | `0.1.0-SNAPSHOT` |
-| `studio-pack-v5-release` | `studio-pack-v5-release` | `V5.1.0` | `5.1.0` | `1.0.1` |
+| `studio-pack-v5-release` | `studio-pack-v5-release` | `V5.1.0` | `5.1.0` | `1.0.2` |
 
-`studio-pack-v5-release:1.0.1` is the normally bundled released adapter for `V5.1.0`.
+`studio-pack-v5-release:1.0.2` is the normally bundled released adapter for `V5.1.0`.
 `studio-pack-v5` remains a separate, opt-in development artifact targeting `V5.0.1-SNAPSHOT`.
 The standalone Maven [Ikasan 5 authoring example](../ikasan-studio-ancillary/ikasan5-metapack/README.md)
 targets runtime 5.1.0 with the distinct ID `ExampleIkasan5`.
@@ -43,10 +43,10 @@ The pack's `src/main/resources/studio/metapack/<id>/metapack.json` is the source
 | Field | Meaning |
 | --- | --- |
 | `id` | Existing resource/model identity, preserved for saved-project compatibility |
-| `packVersion` | Independent artifact revision, such as `0.1.0-SNAPSHOT` or `1.0.1` |
+| `packVersion` | Independent artifact revision, such as `0.1.0-SNAPSHOT` or `1.0.2` |
 | `ikasanVersion` | Target runtime release and corresponding Ikasan BOM version |
 | `schemaVersion` | Manifest format; new official manifests use version 2 |
-| `generatorApiVersion` | Required pack-facing generator contract; currently exactly 1 |
+| `generatorApiVersion` | Required pack-facing generator contract; 1 or 2; `validationKind` requires 2 |
 | `javaVersion` | Java requirement of the generated application |
 
 Pack revisions use `major.minor.patch` with an optional qualifier. Snapshot pack builds are permitted, but dynamic selectors such as `latest`, `1.+` and version ranges are rejected. Released revisions must be immutable; replace `-SNAPSHOT` before publishing a release. Changing a template or descriptor can advance one pack revision without changing the Ikasan version, other pack revision, generator artifact version or plugin version. Increment the generator API contract only for an incompatible change to the pack-facing model/template contract; it is separate from the generator's Maven artifact version.
@@ -98,3 +98,10 @@ No remote publication task is configured. When one is configured, the existing s
 ## Deferred extension ecosystem
 
 Complete resource-only external pack installation is implemented with validation and activation after restart. Managed external updates/removal/rollback and saved-project revision guards are implemented. Component-extension composition, template overlays, dependency resolution, simultaneous revisions of the same ID and automatic project artifact provisioning remain future work. Start extensions with additive component identities and explicit base-pack compatibility; do not silently replace existing components. These features are not prerequisites for the first plugin release.
+
+
+Property validation now follows the [RE2/J policy](../src/main/resources/studio/metapack/METAPACK.md#property-validation-safety-generator-api-2).
+API 1 packs remain loadable when their expressions are supported. Migrate unsupported
+expressions before installing them; never suppress their validation failures. API 2
+adds semantic Java package-name validation. Released V5.1.0 revision 1.0.2 contains
+this change; saved revision locks require explicit adoption with backup.

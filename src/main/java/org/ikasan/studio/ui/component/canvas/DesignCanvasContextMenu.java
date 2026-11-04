@@ -211,7 +211,7 @@ public class DesignCanvasContextMenu {
             menu.add(migrate);
             menu.addSeparator();
 
-            menu.add(createLaunchDashboardMenuItem(project));
+            menu.add(createLaunchBlueConsoleMenuItem(project));
             menu.add(createLaunchH2MenuItem(project));
             menu.add(createDebugMenuItem(project));
             menu.addSeparator();
@@ -604,8 +604,8 @@ public class DesignCanvasContextMenu {
         return item;
     }
 
-    private static JMenuItem createLaunchDashboardMenuItem(Project project) {
-        JMenuItem item = new JMenuItem(StudioBundle.message("label.Console"));
+    private static JMenuItem createLaunchBlueConsoleMenuItem(Project project) {
+        JMenuItem item = new JMenuItem(StudioBundle.message("menu.BlueConsole"));
         item.addActionListener(new LaunchBlueAction(project));
         return item;
     }

@@ -29,7 +29,7 @@ The Ikasan Blue Console and the Ikasan Dashboard are distinct products and must 
 - The **Blue Console** is shipped with every Ikasan module and operates independently of the Dashboard. It is a developer-facing, module-local console used to start and stop flows, identify flows in stopped or error states, examine the module REST API, and perform administrative tasks.
 - The **Ikasan Dashboard** is a central control point for multiple modules. It provides an aggregate view of running modules and their error states, supports replaying rejected messages, and lets operators interact with remote modules through their REST interfaces.
 
-In space-constrained Studio navigation, the agreed button label is **Console**. Its tooltip and guidance must identify it as the module-local **Blue Console** and must never describe it as the **Ikasan Dashboard**.
+In space-constrained Studio navigation, the agreed button label is **Console**. Its tooltip and guidance must identify it as the module-local **Blue Console** and must never describe it as the **Ikasan Dashboard**. The canvas context-menu action uses the fuller label **Blue Console**; its H2 action is **Launch independent H2**.
 
 ## User Journey
 
@@ -150,6 +150,7 @@ The main plugin itself uses Gradle and the IntelliJ Platform Gradle Plugin.
 - `./gradlew -p headless test` runs the standalone engine, test-kit and pack suites without configuring the IntelliJ build.
 - `./gradlew check` includes headless checks and meta-pack validation; BOM/help-URL checks require network access. See [engine and meta-pack testing](docs/TestingEngineAndMetaPacks.md) for focused suite selection.
 - `./gradlew runHarness` runs the separate visual Swing harness.
+- For ordinary local development, the project owner launches the plugin from this repository. Skip ZIP generation unless a distributable or release-packaging verification is requested.
 - `./gradlew buildPlugin` builds the distributable plugin ZIP; `./gradlew verifyReleaseArchive` audits its contents. If another sandbox is running, use an isolated directory, for example `-PstudioSandboxDirectory=build/verification-sandbox`.
 - `./gradlew runIdeModern` launches the newer IntelliJ IDEA sandbox (version selected by `sandboxIdeVersion`); the shared **Run Plugin** configuration uses this task.
 - `./gradlew runIde` launches the Community 2024.3.7 regression sandbox; the shared **Run Plugin (2024.3.7 Regression)** configuration uses this task. Compilation and automated tests retain the 2024.3.7 target.

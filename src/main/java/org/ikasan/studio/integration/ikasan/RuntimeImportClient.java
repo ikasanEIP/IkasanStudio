@@ -47,11 +47,11 @@ public final class RuntimeImportClient {
             throw new IllegalArgumentException("Use an HTTP(S) application URL including its context path, without credentials.");
         }
         String path = uri.getRawPath().replaceAll("/+$", "");
-        String applicationPath = path.replaceFirst("(?i)/(?:swagger-ui(?:/index\\.html)?|swagger-ui\\.html)$", "");
-        boolean swagger = !applicationPath.equals(path);
-        if (!swagger && (uri.getRawQuery() != null || uri.getRawFragment() != null))
+        String applicationPath = path.replaceFirst("(?i)/(?:swagger-ui(?:/index\\.html)?|swagger-ui\\.html|home\\.htm)$", "");
+        boolean landingPage = !applicationPath.equals(path);
+        if (!landingPage && (uri.getRawQuery() != null || uri.getRawFragment() != null))
             throw new IllegalArgumentException("Use an application URL without query or fragment.");
-        // Strip only recognized Swagger landing pages, preserving the context's original case and encoding.
+        // Strip only recognized Swagger/Blue Console landing pages, preserving context case and encoding.
         return URI.create(uri.getScheme() + "://" + uri.getRawAuthority() + applicationPath);
     }
 

@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /** Structural and referential validation for the contents of a loaded meta-pack. */
 final class MetaPackDataValidator {
@@ -35,12 +34,12 @@ final class MetaPackDataValidator {
 
     private MetaPackDataValidator() { }
 
-    static void validate(String pack, String ikasanVersion, Map<String, ComponentMeta> components) throws StudioBuildException {
+    static void validate(String pack, String ikasanVersion, Map<String, ComponentMeta> components, int generatorApi) throws StudioBuildException {
         List<String> problems = new ArrayList<>();
         if (components == null || components.isEmpty()) {
             problems.add("library: contains no valid components");
         } else {
-            validateContents(pack, "V" + ikasanVersion, components, problems);
+            validateContents(pack, "V" + ikasanVersion, components, problems, generatorApi);
         }
         if (!problems.isEmpty()) {
             throw new StudioBuildException("Meta-pack " + pack + " contains invalid metadata:\n - "
@@ -48,7 +47,7 @@ final class MetaPackDataValidator {
         }
     }
 
-    private static void validateContents(String pack, String platform, Map<String, ComponentMeta> components, List<String> problems) {
+    private static void validateContents(String pack, String platform, Map<String, ComponentMeta> components, List<String> problems, int generatorApi) {
         Set<ComponentTypeMeta> checkedTypes = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
         Map<Integer, String> paletteOrders = new HashMap<>();
         Map<String, String> identities = new HashMap<>();
@@ -138,7 +137,7 @@ final class MetaPackDataValidator {
             if (component.getEndpointKey() != null && !component.getEndpointKey().isBlank() && !components.containsKey(component.getEndpointKey())) {
                 add(problems, path + ".endpointKey", "references unknown component " + component.getEndpointKey());
             }
-            if (component.getEndpointTextKey() != null && !component.getEndpointTextKey().isBlank() && !component.getAllowableProperties().containsKey(component.getEndpointTextKey())) {
+            if (component.getEndpointTextKey() != null && !component.getEndpointTextKey().isBlank() && (component.getAllowableProperties() == null || !component.getAllowableProperties().containsKey(component.getEndpointTextKey()))) {
                 add(problems, path + ".endpointTextKey", "references unknown property " + component.getEndpointTextKey());
             }
             if (component.getImportConfigurationClasses() != null) {
@@ -150,13 +149,24 @@ final class MetaPackDataValidator {
 
             ComponentTypeMeta category = component.getComponentTypeMeta();
             if (category == null) add(problems, path, "has no component category");
-            else if (checkedTypes.add(category)) category(category, path, paletteOrders, problems);
+            else if (checkedTypes.add(category)) category(category, path, paletteOrders, problems, generatorApi);
 
             String identity = ComponentLibrary.getDeserialisationKey(component);
             String previous = identities.putIfAbsent(identity, component.getName());
             if (previous != null) add(problems, path, "duplicates deserialisation identity of '" + previous + "': " + identity);
 
-            properties(pack, platform, component, path, problems);
+            properties(pack, platform, component, path, problems, generatorApi);
+            if (component instanceof org.ikasan.studio.core.metapack.model.ExceptionResolverMeta resolver
+                    && resolver.getActionList() != null) {
+                for (int i = 0; i < resolver.getActionList().size(); i++) {
+                    var action = resolver.getActionList().get(i);
+                    if (action == null || action.getActionProperties() == null) continue;
+                    for (var property : action.getActionProperties().entrySet()) {
+                        if (property.getValue() != null) validationRule(property.getValue(),
+                                path + ".actionList[" + i + "].actionProperties." + property.getKey(), problems, generatorApi);
+                    }
+                }
+            }
             recipes(pack, component, path, problems);
             if (category != null && !component.isEndpoint()) {
                 resource(problems, path + ".smallIcon", component.getIconResourceDirectory() + "/small.png");
@@ -166,7 +176,7 @@ final class MetaPackDataValidator {
     }
 
     private static void category(ComponentTypeMeta category, String owner, Map<Integer, String> orders,
-                                 List<String> problems) {
+                                 List<String> problems, int generatorApi) {
         String path = owner + " category";
         required(problems, path + ".componentShortType", category.getComponentShortType());
 
@@ -180,9 +190,32 @@ final class MetaPackDataValidator {
             }
         }
         help(problems, path + ".helpText", category.getHelpText());
+        if (category.getAllowableProperties() != null) {
+            for (var property : category.getAllowableProperties().entrySet()) {
+                if (property.getValue() != null) validationRule(property.getValue(),
+                        path + ".allowableProperties." + property.getKey(), problems, generatorApi);
+            }
+        }
     }
 
-    private static void properties(String pack, String platform, ComponentMeta component, String path, List<String> problems) {
+    private static void validationRule(ComponentPropertyMeta property, String propertyPath,
+                                       List<String> problems, int generatorApi) {
+        if (property.getValidation() != null && !property.getValidation().isBlank()) {
+            try {
+                property.getValidationPattern();
+            } catch (IllegalArgumentException e) {
+                add(problems, propertyPath + ".validation", "unsupported RE2/J validation expression: " + e.getMessage()
+                        + ". Use RE2/J syntax without lookaround, backreferences or possessive quantifiers; use validationKind JAVA_PACKAGE for Java package names.");
+            }
+        }
+        if (property.getValidationKind() != null && !property.getValidationKind().isBlank() && generatorApi < 2)
+            add(problems, propertyPath + ".validationKind", "requires generatorApiVersion 2 in metapack.json");
+        if (property.getValidationKind() != null && !property.getValidationKind().isBlank()
+                && !ComponentPropertyMeta.JAVA_PACKAGE.equals(property.getValidationKind()))
+            add(problems, propertyPath + ".validationKind", "unsupported rule; supported value is JAVA_PACKAGE");
+    }
+
+    private static void properties(String pack, String platform, ComponentMeta component, String path, List<String> problems, int generatorApi) {
         Map<String, ComponentPropertyMeta> properties = component.getAllowableProperties();
         if (properties == null) { add(problems, path + ".allowableProperties", "is required"); return; }
         Map<String, String> displayOrders = new HashMap<>();
@@ -196,10 +229,7 @@ final class MetaPackDataValidator {
             method(problems, propertyPath + ".setterMethod", property.getSetterMethod());
             type(problems, propertyPath + ".usageDataType", property.getUsageDataType());
             namespace(problems, platform, propertyPath + ".usageDataType", property.getUsageDataType());
-            if (property.getValidation() != null && !property.getValidation().isBlank()) {
-                try { Pattern.compile(property.getValidation()); }
-                catch (PatternSyntaxException e) { add(problems, propertyPath + ".validation", "invalid regular expression: " + e.getMessage()); }
-            }
+            validationRule(property, propertyPath, problems, generatorApi);
             references(properties, propertyPath + ".mandatoryUnlessAnyOf", property.getMandatoryUnlessAnyOf(), problems);
             references(properties, propertyPath + ".mandatoryIfTrue",
                     property.getMandatoryIfTrue() == null ? List.of() : List.of(property.getMandatoryIfTrue()), problems);

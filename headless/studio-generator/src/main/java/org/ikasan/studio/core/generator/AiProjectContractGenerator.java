@@ -854,6 +854,7 @@ public final class AiProjectContractGenerator {
         Map<String, Object> catalogue = new LinkedHashMap<>();
         catalogue.put("contractVersion", CONTRACT_VERSION);
         catalogue.put("metapackVersion", metapackVersion);
+        catalogue.put("validationEngine", "RE2/J (full match); validationKind applies in addition to validation");
         String ikasanVersion = ComponentLibrary.getMetaPackManifest(metapackVersion).ikasanVersion();
         catalogue.put("ikasanVersion", ikasanVersion);
         catalogue.put("frameworkReference", frameworkReference(ikasanVersion));
@@ -1012,6 +1013,7 @@ public final class AiProjectContractGenerator {
         if (meta.isHiddenProperty()) result.put("hidden", true);
         if (meta.isChoicesEditable()) result.put("choicesEditable", true);
         if (meta.getValidation() != null && !meta.getValidation().isBlank()) result.put("validation", meta.getValidation());
+        if (meta.getValidationKind() != null && !meta.getValidationKind().isBlank()) result.put("validationKind", meta.getValidationKind());
         if (meta.getValidationMessage() != null && !meta.getValidationMessage().isBlank()) result.put("validationMessage", meta.getValidationMessage());
         if (meta.getMandatoryIfTrue() != null) result.put("mandatoryIfTrue", meta.getMandatoryIfTrue());
         if (meta.getMandatoryUnlessAnyOf() != null) result.put("mandatoryUnlessAnyOf", meta.getMandatoryUnlessAnyOf());

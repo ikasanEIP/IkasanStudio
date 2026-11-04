@@ -7,11 +7,10 @@ source analysis. Use a fresh destination project when evaluating an existing app
 
 ## 1. Fetch and review the runtime model
 
-Choose **Fetch from running module…**, supply its URL and registered module name, then
+Select **Import an Ikasan module**, then choose **Fetch from running module…**, supply its URL and registered module name, then
 select the matching meta-pack and application package. Review the topology/configuration
 import as usual. See [runtime JSON import](IkasanRuntimeJson.md) for endpoints, credentials
-and version matching. The wizard enables **Review an original source checkout after
-generation**. Source review opens only after model validation and generation succeed.
+and version matching. The wizard enables **Review source code from the original project**. This optional step also applies when importing a Studio model. **Import properties for shared settings or environments** is a separate optional follow-up for either import type; when both are selected, properties follow source review. Source review opens only after model validation and generation succeed.
 
 Runtime import commits the model and generates Studio-owned files. Cancelling a later
 source or configuration stage does not undo that model import. No stage starts or stops
@@ -23,29 +22,53 @@ Select the original Maven project or reactor directory containing `src/main/java
 choose **Analyse Source**. The checkout stays unchanged. The analysis reads local files;
 it does not execute application classes, Maven plugins, builds or scripts.
 
-The **Classes and Dependencies** table shows proposed destination paths and evidence:
+The **Classes and Dependencies** table shows original-source evidence on the left and proposed destination paths on the right:
 
 - Exact implementation types referenced by generated `@Resource` fields and matching
   original `@Bean` methods seed the recommendations. Explicit imports, AST type references,
   same-package helpers, used wildcard imports and static imports extend the source set.
   This is conservative static analysis, not complete Java symbol or dependency resolution.
 - Java files retain their package, original bytes, comments and line endings beneath
-  `user/src/main/java`. Additional classes are available for explicit selection.
+  `user/src/main/java`. New non-wiring implementation/helper sources are selected by
+  default, including domain classes not proven necessary by static analysis. Existing
+  destination files, ambiguous duplicates, original Spring wiring and flow debug
+  subclasses require explicit selection. Review the defaults and deselect unrelated code.
 - Original Spring configuration and classes containing `@Bean` methods are unselected by
   default. The original Spring Boot application is excluded because Studio supplies startup.
   Copying an old configuration wholesale can duplicate Studio's native components and beans.
 - Literal `@PropertySource("classpath:…properties")` resources on recommended source classes
   are offered at the same path beneath `user/src/main/resources`. Canonical application
   properties remain separate environment configuration choices.
-- Additional direct Maven dependencies are unselected by default. Select only those the
-  transferred implementation needs. Resolved pinned versions and exclusions are retained.
-  Unresolved inherited/managed versions, conflicting source-module versions, platform
-  dependencies and special declarations require manual resolution. Original parents,
-  BOMs, repositories, profiles and plugins are not automatically copied.
+- Ordinary additional direct Maven dependencies are selected by default. Original
+  explicit versions, exclusions, scopes and optional flags are retained. An omitted
+  version remains omitted and uses destination dependency management, so JAXB API/runtime
+  declarations do not require a separate decision just because their version is inherited.
+  Existing declarations are not duplicated. Conflicting source-module versions, unresolved
+  expressions, non-portable system dependencies and platform-baseline declarations remain
+  manual review items with disabled Import checkboxes. Double-click their description to
+  inspect the declarations; the importer does not guess versions or copy local JAR paths.
+  Original parents, BOMs, repositories, profiles and plugins are not automatically copied.
 
-**Compare Selected Item…** opens IntelliJ's native diff. For dependency rows it compares
-`pom.xml` with all selected dependency additions. Existing developer-owned files require
-explicit replacement approval; changed source, destination, POM or generated bean contracts
+**Compare Selected Item…**, double-clicking a row, or pressing Enter opens IntelliJ's
+native read-only diff. File comparisons put the original on the left and the current
+destination on the right. Dependency rows compare that declaration with its current
+destination counterpart, including unresolved/manual-review declarations; comparing
+never selects an item for import. Double-clicking the Import checkbox only changes
+selection and does not open a diff.
+
+`DebugTransitionComponent` and `DeepCopyUtil` in their exact Studio packages are
+excluded from selectable imports because Studio supplies them for the destination
+meta-pack. A separate **Studio support files** tab shows their status and supports the
+same comparison gestures. Customer classes with the same simple names remain normal
+source choices. Destination files are checked against templates rendered from the
+saved destination model. Differing originals are flagged as possible version changes
+or customisations; missing, locally changed or unverifiable destination support is
+explicitly flagged rather than assumed correct. Formatting/comments are ignored for
+classification; the diff retains the complete original and destination snapshots.
+Neither original support files nor destination support files are overwritten by this
+stage. The saved model and support snapshots must remain unchanged until apply.
+
+Existing developer-owned files require explicit replacement approval; changed source, destination, POM or generated bean contracts
 invalidate the corresponding review. Reanalyse after edits. Multiple selected source files
 cannot target the same destination. File writes are rolled back on a transfer failure.
 

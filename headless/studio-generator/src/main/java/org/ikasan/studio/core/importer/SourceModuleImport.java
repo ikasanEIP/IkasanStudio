@@ -8,6 +8,13 @@ import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.printer.configuration.DefaultConfigurationOption;
+import com.github.javaparser.printer.configuration.DefaultPrinterConfiguration;
+import com.github.javaparser.printer.configuration.DefaultPrinterConfiguration.ConfigOption;
+import org.ikasan.studio.core.generator.DebugTransitionComponentTemplate;
+import org.ikasan.studio.core.generator.DeepCopyUtilTemplate;
+import org.ikasan.studio.core.generator.ProjectArtifactRenderer;
+import org.ikasan.studio.core.io.ComponentIO;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -29,13 +36,28 @@ public final class SourceModuleImport {
 
     public record FileChoice(String source, String destination, String bytes, String previous,
                              boolean recommended, boolean wiring, String reason) { }
+    public enum SupportStatus { SUPPLIED, ORIGINAL_DIFFERS, DESTINATION_DIFFERS, DESTINATION_MISSING, UNVERIFIED }
+    /** Read-only evidence: these exact class identities are owned by Studio generation, even under user/. */
+    public record ManagedFile(String source, String destination, String bytes, String current, SupportStatus status) { }
+    private static final Map<String, String> SUPPORT_CLASSES = Map.of(
+            DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE + "." + DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME,
+            "user/src/main/java/" + DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE.replace('.', '/') + "/" + DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME + ".java",
+            DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE + "." + DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME,
+            "user/src/main/java/" + DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE.replace('.', '/') + "/" + DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME + ".java");
     public record BeanRequirement(String name, String type, String generatedFile, int line,
                                   List<String> sourceDefinitions) { }
     public record PropertyFile(String source, String text, String environment) { }
     public record DependencyChoice(String id, Dependency dependency, boolean importable, String reason) { }
     public record Analysis(Path sourceRoot, Path destinationRoot, List<FileChoice> files,
                            List<BeanRequirement> beans, List<PropertyFile> properties,
-                           List<DependencyChoice> dependencies, List<String> notes, String originalPom, Map<String, String> generatedInputs) { }
+                           List<DependencyChoice> dependencies, List<String> notes, String originalPom, Map<String, String> generatedInputs,
+                           List<ManagedFile> managedFiles, Map<String, String> supportInputs) {
+        public Analysis(Path sourceRoot, Path destinationRoot, List<FileChoice> files,
+                        List<BeanRequirement> beans, List<PropertyFile> properties, List<DependencyChoice> dependencies,
+                        List<String> notes, String originalPom, Map<String, String> generatedInputs) {
+            this(sourceRoot, destinationRoot, files, beans, properties, dependencies, notes, originalPom, generatedInputs, List.of(), Map.of());
+        }
+    }
     private record JavaSource(Path path, String relative, String bytes, CompilationUnit unit, String pkg, boolean wiring) { }
 
     public static Analysis analyse(Path sourceDirectory, Path destinationDirectory, Runnable checkCancelled) throws Exception {
@@ -85,6 +107,24 @@ public final class SourceModuleImport {
         }
         ambiguous.forEach(name -> { classes.remove(name); notes.add("Ambiguous class in multiple source modules; no automatic match: " + name); });
         if (units.isEmpty()) throw new IOException("No Java sources found under src/main/java. Select the original Maven project or reactor directory.");
+        List<ManagedFile> managed = new ArrayList<>();
+        Map<String, String> supportInputs = new TreeMap<>();
+        Map<String, String> expectedSupport = expectedSupport(destination, units, supportInputs, notes);
+        for (Iterator<JavaSource> iterator = units.iterator(); iterator.hasNext();) {
+            JavaSource java = iterator.next();
+            String support = supportPath(java);
+            if (support == null) continue;
+            String current = existing(safe(destination, support));
+            String expected = expectedSupport.get(support);
+            SupportStatus status = current == null ? SupportStatus.DESTINATION_MISSING
+                    : expected == null ? SupportStatus.UNVERIFIED
+                    : !sameJava(parser, decode(current), expected) ? SupportStatus.DESTINATION_DIFFERS
+                    : sameJava(parser, decode(java.bytes()), decode(current)) ? SupportStatus.SUPPLIED : SupportStatus.ORIGINAL_DIFFERS;
+            managed.add(new ManagedFile(java.relative(), support, java.bytes(), current, status));
+            iterator.remove();
+            classes.entrySet().removeIf(entry -> entry.getValue() == java);
+        }
+        managed.sort(Comparator.comparing(ManagedFile::source));
         List<BeanRequirement> beans = new ArrayList<>();
         Set<JavaSource> recommended = new LinkedHashSet<>();
         Path generated = safe(destination, "generated/src/main/java");
@@ -97,6 +137,11 @@ public final class SourceModuleImport {
             var result = parser.parse(new String(generatedBytes, StandardCharsets.UTF_8));
             if (!result.isSuccessful() || result.getResult().isEmpty()) throw new IOException("Cannot inspect generated Java: " + relative(destination, file));
             CompilationUnit unit = result.getResult().get();
+            // Factories can construct an implementation directly rather than inject it through @Resource.
+            for (String reference : references(unit, unit, classes.keySet())) {
+                JavaSource found = classes.get(reference);
+                if (found != null && !found.wiring()) recommended.add(found);
+            }
             for (FieldDeclaration field : unit.findAll(FieldDeclaration.class)) {
                 var resource = field.getAnnotations().stream().filter(a -> a.getName().getIdentifier().equals("Resource")).findFirst();
                 if (resource.isEmpty()) continue;
@@ -151,11 +196,21 @@ public final class SourceModuleImport {
             }
             String target = "user/src/main/java/" + (java.pkg().isEmpty() ? "" : java.pkg().replace('.', '/') + "/") + java.path().getFileName();
             String previous = existing(safe(destination, target));
-            boolean suggested = recommended.contains(java);
+            boolean referenced = recommended.contains(java);
+            boolean duplicate = java.unit().getTypes().stream().anyMatch(type -> ambiguous.contains((java.pkg().isEmpty() ? "" : java.pkg() + ".") + type.getNameAsString()));
+            boolean debugSubclass = java.unit().getTypes().stream().filter(com.github.javaparser.ast.body.TypeDeclaration::isClassOrInterfaceDeclaration)
+                    .map(com.github.javaparser.ast.body.TypeDeclaration::asClassOrInterfaceDeclaration)
+                    .flatMap(type -> type.getExtendedTypes().stream()).anyMatch(type -> resolve(type.getNameWithScope(), java.unit(), SUPPORT_CLASSES.keySet())
+                            .equals(DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE + "." + DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME));
+            boolean newImplementation = previous == null && !java.wiring() && !duplicate && !debugSubclass;
+            boolean suggested = !java.wiring() && !duplicate && !debugSubclass && (referenced || newImplementation);
             choices.add(new FileChoice(java.relative(), target, java.bytes(), previous, suggested, java.wiring(),
                     java.wiring() ? "Original Spring configuration: review duplicate beans and component scanning before selecting."
-                            : suggested ? "Referenced by a generated bean contract or a matching source implementation."
-                            : "Additional source; not proven necessary by static analysis."));
+                            : duplicate ? "Ambiguous class in multiple source modules; select the correct implementation explicitly."
+                            : debugSubclass ? "Flow debug subclass: Studio may already generate it; compare and select explicitly if needed."
+                            : referenced ? "Referenced by generated code, a bean contract or a matching source implementation."
+                            : newImplementation ? "New implementation/helper source with no destination file; selected for review, necessity is not proven by static analysis."
+                            : "Existing destination source; compare and select explicitly if needed."));
         }
         // Keep explicitly named @PropertySource classpath resources at their original classpath paths.
         // application*.properties remain external environment choices to avoid duplicate application resources.
@@ -186,7 +241,49 @@ public final class SourceModuleImport {
         notes.add("Static analysis cannot prove reflection, custom factories, external library internals, inherited Maven configuration or all resource usage. Review the original wiring and runtime-import report.");
         notes.add("Properties retain placeholders. Supply real environment settings; do not invent business defaults to suppress binding failures.");
         return new Analysis(source, destination, List.copyOf(choices), List.copyOf(beans), List.copyOf(properties),
-                dependencies, List.copyOf(notes), originalPom, Map.copyOf(generatedInputs));
+                dependencies, List.copyOf(notes), originalPom, Map.copyOf(generatedInputs), List.copyOf(managed), Map.copyOf(supportInputs));
+    }
+
+    private static String supportPath(JavaSource java) {
+        for (var type : java.unit().getTypes()) {
+            String path = SUPPORT_CLASSES.get(java.pkg() + "." + type.getNameAsString());
+            if (path != null && java.path().getFileName().toString().equals(type.getNameAsString() + ".java")) return path;
+        }
+        return null;
+    }
+
+    private static Map<String, String> expectedSupport(Path destination, List<JavaSource> units,
+                                                      Map<String, String> inputs, List<String> notes) throws IOException {
+        if (units.stream().noneMatch(java -> supportPath(java) != null)) return Map.of();
+        String model = existing(safe(destination, ProjectArtifactRenderer.MODEL));
+        if (model == null) {
+            notes.add("Studio support templates could not be verified: save/generate the destination model, then analyse again.");
+            return Map.of();
+        }
+        inputs.put(ProjectArtifactRenderer.MODEL, model);
+        try {
+            var module = ComponentIO.deserializeModuleInstanceString(decode(model), ProjectArtifactRenderer.MODEL);
+            return Map.of(
+                    SUPPORT_CLASSES.get(DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE + "." + DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME), DebugTransitionComponentTemplate.create(module),
+                    SUPPORT_CLASSES.get(DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE + "." + DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME), DeepCopyUtilTemplate.create(module));
+        } catch (Exception problem) {
+            notes.add("Studio support templates could not be verified against the destination model and installed meta-pack. Regenerate and analyse again; inspect Studio support files separately.");
+            return Map.of();
+        }
+    }
+
+    /** Ignore formatting and comments for classification; comparison retains the exact original bytes. */
+    private static boolean sameJava(JavaParser parser, String left, String right) {
+        var first = parser.parse(left); var second = parser.parse(right);
+        if (!first.isSuccessful() || !second.isSuccessful() || first.getResult().isEmpty() || second.getResult().isEmpty()) return false;
+        var printing = new DefaultPrinterConfiguration()
+                .removeOption(new DefaultConfigurationOption(
+                        ConfigOption.PRINT_COMMENTS))
+                .removeOption(new DefaultConfigurationOption(
+                        ConfigOption.PRINT_JAVADOC))
+                .addOption(new DefaultConfigurationOption(
+                        ConfigOption.END_OF_LINE_CHARACTER, "\n"));
+        return first.getResult().get().toString(printing).equals(second.getResult().get().toString(printing));
     }
 
     private static Set<String> references(Node node, CompilationUnit unit, Set<String> names) {
@@ -248,14 +345,13 @@ public final class SourceModuleImport {
                 if (existing.contains(id) || "test".equals(dependency.getScope())) continue;
                 boolean platform = dependency.getGroupId() == null || dependency.getGroupId().startsWith("org.ikasan")
                         || dependency.getGroupId().startsWith("org.springframework");
-                boolean importable = !platform && dependency.getVersion() != null
-                        && !dependency.getVersion().contains("${") && !id.contains("${") && dependency.getSystemPath() == null
+                boolean importable = !platform && (dependency.getVersion() == null || !dependency.getVersion().contains("${")) && !id.contains("${") && dependency.getSystemPath() == null
                         && dependency.getExclusions().stream().noneMatch(e -> Objects.toString(e.getGroupId(), "").contains("${") || Objects.toString(e.getArtifactId(), "").contains("${"))
-                        && !dependency.isOptional() && (dependency.getScope() == null || Set.of("compile", "runtime", "provided").contains(dependency.getScope()));
+                        && (dependency.getScope() == null || Set.of("compile", "runtime", "provided").contains(dependency.getScope()));
                 var candidate = new DependencyChoice(id, dependency, importable, relative(source, path)
                         + (platform ? ": platform dependency; retain the selected meta-pack baseline."
-                        : importable ? ": direct declaration; confirm the selected classes require it (exclusions are retained)."
-                        : ": unresolved/inherited version, optional or special dependency; review manually."));
+                        : importable ? ": original Maven declaration included by default; versions, exclusions, scopes and optional flags are retained. An omitted version uses destination dependency management."
+                        : ": unresolved expression, non-portable declaration or unsupported scope; resolve manually."));
                 var previous = candidates.putIfAbsent(id, candidate);
                 if (previous != null && !Objects.equals(previous.dependency().getVersion(), dependency.getVersion()))
                     candidates.put(id, new DependencyChoice(id, dependency, false, "Different source modules declare different versions; resolve manually."));
@@ -290,11 +386,31 @@ public final class SourceModuleImport {
         var writer = new StringWriter(); new MavenXpp3Writer().write(writer, model); return writer.toString();
     }
 
+    public record DependencyComparison(String original, String destination) { }
+
+    /** Compare the selected declaration, including review-only dependencies, without approving an import. */
+    public static DependencyComparison compareDependency(Analysis analysis, String id) throws Exception {
+        var choice = analysis.dependencies().stream().filter(d -> d.id().equals(id)).findFirst().orElseThrow();
+        var target = pom(decode(analysis.originalPom())).getDependencies().stream()
+                .filter(d -> coordinate(d).equals(id)).findFirst().orElse(null);
+        return new DependencyComparison(dependencyXml(choice.dependency()), dependencyXml(target));
+    }
+
+    private static String dependencyXml(Dependency dependency) throws IOException {
+        if (dependency == null) return "";
+        var model = new Model(); model.setModelVersion("4.0.0"); model.addDependency(dependency.clone());
+        var text = new StringWriter(); new MavenXpp3Writer().write(text, model); return text.toString();
+    }
+
     public static String report(Analysis analysis, Set<String> files, Set<String> dependencies) {
         StringBuilder text = new StringBuilder("# Source-assisted module import review\n\n");
         text.append("Original checkout: ").append(analysis.sourceRoot()).append("\n\n");
         text.append("This is a transfer and review record, not evidence that the module compiles or runs. The original checkout is unchanged.\n\n## Selected files\n\n");
         analysis.files().stream().filter(f -> files.contains(f.source())).forEach(f -> text.append("- ").append(f.source()).append(" → ").append(f.destination()).append(f.wiring() ? " — REVIEW ORIGINAL SPRING WIRING" : "").append('\n'));
+        text.append("\n## Studio-managed support files (not imported)\n\n");
+        text.append("Studio supplies these exact support classes for the destination meta-pack. Differing originals may contain version changes or customisations; compare them separately. No original support code is copied.\n");
+        analysis.managedFiles().forEach(file -> text.append("- ").append(file.source()).append(" → ").append(file.destination())
+                .append(" — ").append(supportDescription(file.status())).append('\n'));
         text.append("\n## Generated bean contracts\n\n");
         for (var bean : analysis.beans()) {
             text.append("- Bean `").append(bean.name()).append("` of type `").append(bean.type()).append("`: ")
@@ -321,11 +437,30 @@ public final class SourceModuleImport {
         return text.toString();
     }
 
+    private static String supportDescription(SupportStatus status) {
+        return switch (status) {
+            case SUPPLIED -> "Supplied by Studio; matches the destination template and original implementation.";
+            case ORIGINAL_DIFFERS -> "Supplied by Studio; original differs. Compare for version changes or customisations.";
+            case DESTINATION_DIFFERS -> "Destination differs from its template. Review local edits before regenerating.";
+            case DESTINATION_MISSING -> "Destination support is missing. Generate the project and analyse again.";
+            case UNVERIFIED -> "Destination template could not be verified. Review the saved model and meta-pack, then analyse again.";
+        };
+    }
+
     public static Path apply(Analysis analysis, Set<String> files, Set<String> dependencies, boolean replaceExisting) throws Exception {
         Map<String, String> generatedNow = new TreeMap<>();
         for (Path file : inventory(safe(analysis.destinationRoot(), "generated/src/main/java"), null, () -> { }))
             if (file.toString().endsWith(".java")) generatedNow.put(relative(analysis.destinationRoot(), file), encode(read(file)));
         if (!generatedNow.equals(analysis.generatedInputs())) throw new IOException("Generated code changed since review. Analyse again.");
+        for (var input : analysis.supportInputs().entrySet())
+            if (!Objects.equals(existing(safe(analysis.destinationRoot(), input.getKey())), input.getValue()))
+                throw new IOException("Destination model changed since support review. Analyse again.");
+        for (var support : analysis.managedFiles()) {
+            if (!Objects.equals(existing(safe(analysis.sourceRoot(), support.source())), support.bytes())
+                    || !Objects.equals(existing(safe(analysis.destinationRoot(), support.destination())), support.current()))
+                throw new IOException("Studio support file changed since review. Analyse again: " + support.source());
+            if (files.contains(support.source())) throw new IOException("Studio-managed support files cannot be imported: " + support.source());
+        }
         Map<Path, String> originals = new LinkedHashMap<>(), writes = new LinkedHashMap<>();
         for (String source : files) {
             var file = analysis.files().stream().filter(f -> f.source().equals(source)).findFirst().orElseThrow();

@@ -330,7 +330,16 @@ public final class IkasanModelDocuments {
                 && id.equals(identifier(moduleName, flowName, name, configurationClass(meta)))) {
             result.remove("configurationId");
         }
-        if (!meta.getRuntimeConfigurationProperties().isEmpty()) {
+        // Before XML runtime mappings existed, document saves used the builder identifier and
+        // kept XML settings in Studio properties, without any native configuration record.
+        // Only that exact historical shape can omit the record; modern or explicitly linked
+        // configurations must still fail when missing.
+        boolean legacyXmlWithoutConfiguration =
+                "org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder".equals(implementation)
+                        && "org.ikasan.component.converter.xml.ObjectToXMLStringConverter".equals(meta.getImplementingClass())
+                        && !raw.has("configurationId") && !raw.path("configurable").asBoolean(false)
+                        && !extra.has("configurationIdProperty") && !extra.has("configurationIdTemplate");
+        if (!meta.getRuntimeConfigurationProperties().isEmpty() && !legacyXmlWithoutConfiguration) {
             ObjectNode config = configs.get(id);
             if (config == null) throw invalid("Missing configuration " + id + " for " + name);
             if (!configurationClass(meta).equals(text(config, "implementingClass"))) throw invalid("Configuration class does not match " + name);

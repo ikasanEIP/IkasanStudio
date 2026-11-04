@@ -37,13 +37,23 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     private final JBTextArea report = new JBTextArea(18, 85);
     private final Choices choices = new Choices();
     private final JBTable table = new JBTable(choices);
+    private final JTabbedPane reviewTabs = new JBTabbedPane();
+    private final SupportChoices supportChoices = new SupportChoices();
+    private final JBTable supportTable = new JBTable(supportChoices);
+    private final JPanel supportPanel = new JPanel(new BorderLayout(0, JBUI.scale(6)));
+    private final JBTextArea supportNotice = new JBTextArea();
     private SourceModuleImport.Analysis analysis;
     private Path analysedSource;
     private final Set<String> selectedFiles = new LinkedHashSet<>(), selectedDependencies = new LinkedHashSet<>();
 
     public ImportSourceModuleDialog(Project project) {
+        this(project, true);
+    }
+
+    public ImportSourceModuleDialog(Project project, boolean importPropertiesAfterwards) {
         super(project, project.getService(UiContext.class).getDesignerCanvas());
         this.project = project;
+        properties.setSelected(importPropertiesAfterwards);
         setTitle(StudioBundle.message("sourceImport.title"));
         setOKButtonText(StudioBundle.message("sourceImport.apply"));
         init();
@@ -70,17 +80,40 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         actions.add(Box.createHorizontalStrut(JBUI.scale(8)));
         JButton compare = new JButton(StudioBundle.message("sourceImport.compare")); compare.addActionListener(event -> compare()); actions.add(compare);
         top.add(actions, BorderLayout.SOUTH); panel.add(top, BorderLayout.NORTH);
-        JTabbedPane tabs = new JBTabbedPane();
+        JTabbedPane tabs = reviewTabs;
         var files = new JBScrollPane(table); files.setMinimumSize(new Dimension(0, 0));
         table.setAutoCreateRowSorter(true);
+        registerComparison(table);
         table.getColumnModel().getColumn(0).setMaxWidth(JBUI.scale(65));
+        var checkboxRenderer = table.getDefaultRenderer(Boolean.class);
+        table.setDefaultRenderer(Boolean.class, (view, value, selected, focused, row, column) -> {
+            Component cell = checkboxRenderer.getTableCellRendererComponent(view, value, selected, focused, row, column);
+            boolean editable = view.getModel().isCellEditable(view.convertRowIndexToModel(row), view.convertColumnIndexToModel(column));
+            cell.setEnabled(view.isEnabled() && editable);
+            if (cell instanceof JComponent component)
+                component.setToolTipText(editable ? null : StudioBundle.message("sourceImport.dependency.manualHint"));
+            return cell;
+        });
         table.getAccessibleContext().setAccessibleName(StudioBundle.message("sourceImport.files"));
         tabs.addTab(StudioBundle.message("sourceImport.files"), files);
         report.setEditable(false); report.setLineWrap(true); report.setWrapStyleWord(true);
         report.getAccessibleContext().setAccessibleName(StudioBundle.message("sourceImport.review"));
         var scroll = new JBScrollPane(report); scroll.setMinimumSize(new Dimension(0, 0));
         tabs.addTab(StudioBundle.message("sourceImport.review"), scroll);
-        panel.add(tabs, BorderLayout.CENTER);
+        var supportHelp = new JBTextArea(StudioBundle.message("sourceImport.support.help"));
+        supportHelp.setEditable(false); supportHelp.setLineWrap(true); supportHelp.setWrapStyleWord(true);
+        supportHelp.setOpaque(false); supportHelp.setFocusable(false);
+        supportPanel.add(supportHelp, BorderLayout.NORTH);
+        supportTable.setAutoCreateRowSorter(true);
+        registerComparison(supportTable);
+        supportTable.getAccessibleContext().setAccessibleName(StudioBundle.message("sourceImport.support.title"));
+        var supportScroll = new JBScrollPane(supportTable); supportScroll.setMinimumSize(new Dimension(0, 0));
+        supportPanel.add(supportScroll, BorderLayout.CENTER);
+        supportNotice.setEditable(false); supportNotice.setLineWrap(true); supportNotice.setWrapStyleWord(true);
+        supportNotice.setOpaque(false); supportNotice.setFocusable(false); supportNotice.setVisible(false);
+        JPanel content = new JPanel(new BorderLayout(0, JBUI.scale(6)));
+        content.add(supportNotice, BorderLayout.NORTH); content.add(tabs, BorderLayout.CENTER);
+        panel.add(content, BorderLayout.CENTER);
         JPanel options = new JPanel(new GridLayout(0, 1)); options.add(replace); options.add(properties);
         panel.add(options, BorderLayout.SOUTH); panel.setPreferredSize(JBUI.size(920, 650));
         return panel;
@@ -94,15 +127,29 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         StudioProjectFiles.saveConfigurationDocuments(project, List.of("pom.xml"));
         var result = work(() -> SourceModuleImport.analyse(selected, Path.of(java.util.Objects.requireNonNull(project.getBasePath(), "Import requires a project directory")), ProgressManager::checkCanceled), true);
         if (result == null || project.isDisposed() || isDisposed()) return;
+        acceptAnalysis(result, selected);
+    }
+
+    void acceptAnalysis(SourceModuleImport.Analysis result, Path selected) {
         source.setText(selected.toString());
         analysis = result; analysedSource = selected; selectedFiles.clear(); selectedDependencies.clear(); replace.setSelected(false);
-        result.files().stream().filter(f -> f.recommended() && (f.previous() == null || f.previous().equals(f.bytes())))
+        result.files().stream().filter(f -> f.recommended() && !f.wiring() && f.previous() == null)
                 .forEach(f -> selectedFiles.add(f.source()));
+        result.dependencies().stream().filter(SourceModuleImport.DependencyChoice::importable)
+                .forEach(dependency -> selectedDependencies.add(dependency.id()));
         choices.fireTableDataChanged(); refreshReport();
     }
 
     private void refreshReport() {
         if (analysis == null) return;
+        boolean hasSupport = !analysis.managedFiles().isEmpty();
+        supportNotice.setVisible(hasSupport);
+        if (hasSupport) {
+            supportNotice.setText(StudioBundle.message("sourceImport.support.notice", analysis.managedFiles().size()));
+            if (reviewTabs.indexOfComponent(supportPanel) < 0)
+                reviewTabs.addTab(StudioBundle.message("sourceImport.support.title"), supportPanel);
+        } else if (reviewTabs.indexOfComponent(supportPanel) >= 0) reviewTabs.remove(supportPanel);
+        supportChoices.fireTableDataChanged();
         report.setText(SourceModuleImport.report(analysis, Set.copyOf(selectedFiles), Set.copyOf(selectedDependencies)));
         report.setCaretPosition(0);
     }
@@ -130,7 +177,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         } finally { context.endMigration(); }
         if (savedReport == null) return;
         StudioProjectFiles.refreshConfigurationDirectory(project);
-        boolean importProperties = properties.isSelected() && !analysis.properties().isEmpty();
+        boolean importProperties = properties.isSelected();
         var discovered = analysis.properties(); close(OK_EXIT_CODE);
         ApplicationManager.getApplication().invokeLater(() -> {
             if (project.isDisposed()) return;
@@ -139,23 +186,59 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         }, ModalityState.nonModal());
     }
 
+    private void registerComparison(JBTable target) {
+        target.setToolTipText(StudioBundle.message("sourceImport.compareGesture"));
+        target.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent event) {
+                if (event.getClickCount() != 2 || !SwingUtilities.isLeftMouseButton(event)) return;
+                int row = target.rowAtPoint(event.getPoint()), column = target.columnAtPoint(event.getPoint());
+                if (row < 0 || column < 0 || target == table && target.convertColumnIndexToModel(column) == 0) return;
+                target.setRowSelectionInterval(row, row);
+                compare(target);
+            }
+        });
+        target.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ENTER, 0), "studio.compareSource");
+        target.getActionMap().put("studio.compareSource", new AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent event) { compare(target); }
+        });
+    }
+
     private void compare() {
-        if (analysis == null) return;
-        int row = table.getSelectedRow(); if (row < 0) return;
-        row = table.convertRowIndexToModel(row);
-        String before, after;
-        @com.intellij.openapi.util.NlsSafe
-        String title;
-        if (row < analysis.files().size()) {
-            var file = analysis.files().get(row); title = file.destination();
-            before = file.previous() == null ? "" : utf8(file.previous()); after = utf8(file.bytes());
-        } else {
-            title = "pom.xml"; before = utf8(analysis.originalPom());
-            after = work(() -> SourceModuleImport.pomAfter(analysis, Set.copyOf(selectedDependencies)), false); if (after == null) return;
+        compare(reviewTabs.getSelectedComponent() == supportPanel ? supportTable : table);
+    }
+
+    private void compare(JTable selectedTable) {
+        var request = comparison(selectedTable);
+        if (request != null) com.intellij.diff.DiffManager.getInstance().showDiff(project, request);
+    }
+
+    /** Build a read-only diff from the reviewed snapshots, preserving sorted-table row mapping. */
+    @Nullable com.intellij.diff.requests.SimpleDiffRequest comparison(JTable selectedTable) {
+        if (analysis == null || selectedTable.getSelectedRow() < 0) return null;
+        int row = selectedTable.convertRowIndexToModel(selectedTable.getSelectedRow());
+        if (selectedTable == supportTable) {
+            var support = analysis.managedFiles().get(row);
+            return comparison(support.destination(), utf8(support.bytes()), support.current() == null ? "" : utf8(support.current()),
+                    StudioBundle.message("sourceImport.support.originalVersion"), StudioBundle.message("sourceImport.support.destinationVersion"));
         }
+        if (row < analysis.files().size()) {
+            var file = analysis.files().get(row);
+            return comparison(file.destination(), utf8(file.bytes()), file.previous() == null ? "" : utf8(file.previous()),
+                    StudioBundle.message("sourceImport.originalVersion"), StudioBundle.message("sourceImport.destinationVersion"));
+        }
+        var dependency = analysis.dependencies().get(row - analysis.files().size());
+        var values = work(() -> SourceModuleImport.compareDependency(analysis, dependency.id()), false);
+        return values == null ? null : comparison("pom.xml: " + dependency.id(), values.original(), values.destination(),
+                StudioBundle.message("sourceImport.originalDependency"), StudioBundle.message("sourceImport.destinationDependency"));
+    }
+
+    private com.intellij.diff.requests.SimpleDiffRequest comparison(@org.jetbrains.annotations.Nls String title,
+            String before, String after, @org.jetbrains.annotations.Nls String beforeTitle, @org.jetbrains.annotations.Nls String afterTitle) {
         var factory = com.intellij.diff.DiffContentFactory.getInstance();
-        com.intellij.diff.DiffManager.getInstance().showDiff(project, new com.intellij.diff.requests.SimpleDiffRequest(title,
-                factory.create(before), factory.create(after), StudioBundle.message("sourceImport.before"), StudioBundle.message("sourceImport.after")));
+        var request = new com.intellij.diff.requests.SimpleDiffRequest(title,
+                factory.create(before), factory.create(after), beforeTitle, afterTitle);
+        request.putUserData(com.intellij.diff.util.DiffUserDataKeys.FORCE_READ_ONLY, true);
+        return request;
     }
     private static String utf8(String encoded) { return new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8); }
     private interface Work<T> { T run() throws Exception; }
@@ -169,10 +252,22 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     }
     private void error(String message) { Messages.showErrorDialog(getContentPane() == null ? source : getContentPane(), message, StudioBundle.message("sourceImport.title")); }
 
+    private final class SupportChoices extends AbstractTableModel {
+        @Override public int getRowCount() { return analysis == null ? 0 : analysis.managedFiles().size(); }
+        @Override public int getColumnCount() { return 2; }
+        @Override public String getColumnName(int column) {
+            return StudioBundle.message(column == 0 ? "sourceImport.support.source" : "sourceImport.support.status");
+        }
+        @Override public Object getValueAt(int row, int column) {
+            var file = analysis.managedFiles().get(row);
+            return column == 0 ? file.source() : StudioBundle.message("sourceImport.support.status." + file.status().name());
+        }
+    }
+
     private final class Choices extends AbstractTableModel {
         @Override public int getRowCount() { return analysis == null ? 0 : analysis.files().size() + analysis.dependencies().size(); }
         @Override public int getColumnCount() { return 3; }
-        @Override public String getColumnName(int column) { return StudioBundle.message(new String[]{"sourceImport.selected", "sourceImport.destination", "sourceImport.evidence"}[column]); }
+        @Override public String getColumnName(int column) { return StudioBundle.message(new String[]{"sourceImport.selected", "sourceImport.evidence", "sourceImport.destination"}[column]); }
         @Override public Class<?> getColumnClass(int column) { return column == 0 ? Boolean.class : String.class; }
         @Override public boolean isCellEditable(int row, int column) { return column == 0 && (row < analysis.files().size() || analysis.dependencies().get(row - analysis.files().size()).importable()); }
         @Override public Object getValueAt(int row, int column) {
@@ -180,12 +275,16 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                 var file = analysis.files().get(row);
                 return switch (column) {
                     case 0 -> selectedFiles.contains(file.source());
-                    case 1 -> file.destination();
+                    case 2 -> file.destination();
                     default -> file.source() + " — " + file.reason() + (file.previous() != null && !file.previous().equals(file.bytes()) ? " " + StudioBundle.message("sourceImport.conflict") : "");
                 };
             }
             var dependency = analysis.dependencies().get(row - analysis.files().size());
-            return switch (column) { case 0 -> selectedDependencies.contains(dependency.id()); case 1 -> "pom.xml: " + dependency.id(); default -> dependency.reason(); };
+            return switch (column) {
+                case 0 -> selectedDependencies.contains(dependency.id());
+                case 2 -> StudioBundle.message(dependency.importable() ? "sourceImport.dependency.addToPom" : "sourceImport.dependency.manual");
+                default -> dependency.id() + " — " + dependency.reason();
+            };
         }
         @Override public void setValueAt(Object value, int row, int column) {
             Set<String> selection; String id;

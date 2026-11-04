@@ -908,15 +908,15 @@ public class ComponentPropertyEditRow {
 
     /** Typed collection patterns apply per entry; legacy comma-separated patterns apply to the whole list. */
     static String patternValidationMessage(ComponentPropertyMeta meta, Object value) {
-        if (meta.getValidationPattern() == null || value == null) return null;
+        if (!meta.hasValidation() || value == null) return null;
         value = meta.patternValidationValue(value);
         if (value instanceof List<?> entries) {
             for (int i = 0; i < entries.size(); i++) {
-                if (!(entries.get(i) instanceof String text) || !meta.getValidationPattern().matcher(text).matches()) {
+                if (!(entries.get(i) instanceof String text) || !meta.matchesValidation(text)) {
                     return StudioBundle.message("validation.CollectionEntry", meta.getPropertyName(), i + 1, meta.getValidationMessage());
                 }
             }
-        } else if (value instanceof String text && !meta.getValidationPattern().matcher(text).matches()) {
+        } else if (value instanceof String text && !meta.matchesValidation(text)) {
             return meta.getPropertyName() + ": " + meta.getValidationMessage();
         }
         return null;

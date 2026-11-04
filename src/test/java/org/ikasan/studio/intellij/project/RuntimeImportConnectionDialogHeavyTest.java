@@ -21,6 +21,14 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
                 "/ctx/swagger-ui/index.html?token=private-query#/module");
     }
 
+    public void testBlueConsolePageUsesAndDisplaysTheNormalizedContext() throws Exception {
+        exerciseFetch(200, "{\"name\":\"Demo\",\"flows\":[]}", true, "/ctx/home.htm?view=flows#selected");
+    }
+
+    public void testFailedBlueConsoleFetchKeepsTheNormalizedUrlForRetry() throws Exception {
+        exerciseFetch(404, "private response", false, "/ctx/home.htm");
+    }
+
     public void testRetryReusesPasswordWithoutReentryAndClearsItOnSuccess() throws Exception {
         var headers = new java.util.concurrent.CopyOnWriteArrayList<String>();
         var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
@@ -78,7 +86,7 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
         // Round-trip through the platform serializer, as when the workspace is reopened.
         var service = getProject().getService(RuntimeImportConnectionSettings.class);
         var xml = com.intellij.util.xmlb.XmlSerializer.serialize(service.getState());
-        String serialized = new org.jdom.output.XMLOutputter().outputString(xml);
+        String serialized = com.intellij.openapi.util.JDOMUtil.writeElement(xml);
         assertFalse(serialized.contains("never-persist-this"));
         assertFalse(serialized.contains("token"));
         service.loadState(com.intellij.util.xmlb.XmlSerializer.deserialize(xml,

@@ -322,9 +322,11 @@ public final class ModelProposal {
                     && !meta.getChoices().contains(String.valueOf(converted)))
                 fail("Value is not an allowed choice for " + key + ". Allowed: " + String.join(", ", meta.getChoices()));
             // Say what the rule is, but never echo the rejected value: it may be a credential.
-            if (meta.getValidationPattern() != null && !meta.getValidationPattern().matcher(String.valueOf(converted)).matches()) {
+            if (meta.hasValidation() && !meta.matchesValidation(String.valueOf(converted))) {
                 String hint = meta.getValidationMessage() == null || meta.getValidationMessage().isBlank() ? "" : ": " + meta.getValidationMessage().strip();
-                fail("Value does not match the validation rule for " + key + hint + " (pattern " + meta.getValidationPattern().pattern() + ")");
+                String rule = meta.getValidationKind() == null || meta.getValidationKind().isBlank()
+                        ? meta.getValidation() : meta.getValidationKind();
+                fail("Value does not match the validation rule for " + key + hint + " (rule " + rule + ")");
             }
         }
         return converted;

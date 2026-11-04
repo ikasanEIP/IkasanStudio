@@ -19,11 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @org.junit.jupiter.api.Tag("packs")
 class ModulePackageNameValidationTest {
 
-    private static java.util.regex.Pattern pattern(String pack) throws Exception {
+    private static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta pattern(String pack) throws Exception {
         var meta = ComponentLibrary.getIkasanComponents(pack).get("Module").getMetadata("applicationPackageName");
-        assertNotNull(meta.getValidationPattern(), "applicationPackageName should be validated in " + pack);
+        assertTrue(meta.hasValidation(), "applicationPackageName should be validated in " + pack);
         assertNotNull(meta.getValidationMessage());
-        return meta.getValidationPattern();
+        return meta;
     }
 
     @ParameterizedTest
@@ -32,7 +32,7 @@ class ModulePackageNameValidationTest {
         var pattern = pattern(pack);
         for (String legal : new String[]{"co.uk.test", "org.ikasan.studio", "com.example.app2", "com.my_company.$app",
                 "single", "com.Example.MixedCase", "com.日本.app", "com.imports.x", "com.classes"}) {
-            assertTrue(pattern.matcher(legal).matches(), "should accept " + legal);
+            assertTrue(pattern.matchesValidation(legal), "should accept " + legal);
         }
     }
 
@@ -42,7 +42,7 @@ class ModulePackageNameValidationTest {
         var pattern = pattern(pack);
         for (String illegal : new String[]{"com.my-company.app", "com.my company", "com..x", ".com.x", "com.x.", "1com.x",
                 "com.2x", "com.import.x", "default.app", "com.x.class", "com.x.true", "com.x.null", "com.x.", "", "com.a/b"}) {
-            assertFalse(pattern.matcher(illegal).matches(), "should reject [" + illegal + "]");
+            assertFalse(pattern.matchesValidation(illegal), "should reject [" + illegal + "]");
         }
     }
 }

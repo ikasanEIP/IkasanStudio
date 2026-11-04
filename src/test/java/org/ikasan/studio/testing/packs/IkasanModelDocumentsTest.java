@@ -23,6 +23,61 @@ class IkasanModelDocumentsTest {
         return Files.readString(Path.of("src/test/resources/org/ikasan/studio", name));
     }
 
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT", "V5.1.0"})
+    void legacyXmlDocumentsWithoutNativeConfigurationRemainReadable(String pack) throws Exception {
+        var xml = org.ikasan.studio.core.model.ikasan.instance.FlowElement.flowElementBuilder()
+                .componentMeta(org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Object To XML String Converter"))
+                .componentName("XML converter").build();
+        xml.defaultUnsetMandatoryProperties();
+        xml.setPropertyValue("objectClass", "org.example.Order");
+        var flow = org.ikasan.studio.core.TestFixtures.getUnbuiltFlow(pack)
+                .consumer(org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumer(pack)).build();
+        flow.getFlowRoute().getFlowElements().add(xml);
+        xml.setContainingFlowRoute(flow.getFlowRoute());
+        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(pack, java.util.List.of(flow));
+        ObjectNode document = (ObjectNode) json.readTree(ModelTemplate.create(module));
+        ObjectNode nativeXml = (ObjectNode) java.util.stream.StreamSupport.stream(
+                document.at("/module/flows/0/flowElements").spliterator(), false)
+                .filter(c -> c.path("componentName").asText().equals("XML converter")).findFirst().orElseThrow();
+        String id = nativeXml.path("configurationId").asText();
+        var records = (com.fasterxml.jackson.databind.node.ArrayNode) document.path("configuration");
+        for (int i = records.size() - 1; i >= 0; i--)
+            if (id.equals(records.get(i).path("configurationId").asText())) records.remove(i);
+        // Modern documents with dangling configuration references must still be rejected.
+        assertThatThrownBy(() -> ComponentIO.validatePersistedModuleJson(document.toString(), "missing modern XML configuration", false))
+                .hasMessageContaining("Missing configuration");
+        nativeXml.remove(java.util.List.of("configurationId", "configurable"));
+        assertThatThrownBy(() -> ComponentIO.validatePersistedModuleJson(document.toString(), "modern XML without a configuration link", false))
+                .hasMessageContaining("Missing configuration");
+        nativeXml.put("implementingClass", "org.ikasan.builder.component.converter.ObjectToXmlStringConverterBuilder");
+        ObjectNode settings = (ObjectNode) document.path("studio").path("flows").path(flow.getIdentity())
+                .path("components").path("XML converter");
+        settings.remove(java.util.List.of("configurationIdProperty", "configurationIdTemplate"));
+        ObjectNode properties = (ObjectNode) settings.path("properties");
+        // The user's older document contains only objectClass; no XML runtime fields or record.
+        var restored = ComponentIO.validatePersistedModuleJson(document.toString(), "historical XML document", false);
+        var restoredXml = restored.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
+        assertThat(restoredXml.getPropertyValue("objectClass")).isEqualTo("org.example.Order");
+        assertThat(restoredXml.getComponentMeta().getImplementingClass())
+                .isEqualTo("org.ikasan.component.converter.xml.ObjectToXMLStringConverter");
+        var saved = json.readTree(ModelTemplate.create(restored));
+        assertThat(saved.toString()).doesNotContain("ObjectToXmlStringConverterBuilder");
+        assertThat(ComponentIO.validatePersistedModuleJson(saved.toString(), "upgraded XML document", false).getFlows()).hasSize(1);
+        // Settings supplied by old Studio documents remain explicit, including false booleans.
+        properties.put("validate", false).put("rootName", "original-root");
+        restored = ComponentIO.validatePersistedModuleJson(document.toString(), "historical XML settings", false);
+        restoredXml = restored.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
+        assertThat(restoredXml.getPropertyValue("validate")).isEqualTo(false);
+        assertThat(restoredXml.getPropertyValue("rootName")).isEqualTo("original-root");
+        nativeXml.put("configurable", true);
+        assertThatThrownBy(() -> ComponentIO.validatePersistedModuleJson(document.toString(), "XML explicitly declared configurable", false))
+                .hasMessageContaining("Missing configuration");
+        nativeXml.remove("configurable");
+        nativeXml.put("configurationId", "missing-explicit-record");
+        assertThatThrownBy(() -> ComponentIO.validatePersistedModuleJson(document.toString(), "dangling legacy XML configuration", false))
+                .hasMessageContaining("Missing configuration");
+    }
+
     @Test void savedDocumentsLockTheirPackRevisionAndOldDocumentsAcquireALockOnSave() throws Exception {
         var module = ComponentIO.validatePersistedModuleJson(fixture("populated_module.json"), "legacy", false);
         ObjectNode saved = (ObjectNode) json.readTree(ModelTemplate.create(module));

@@ -1,7 +1,7 @@
 # Standalone Ikasan 5.1.0 meta-pack example
 
-This independent Maven project produces `org.ikasan.metapack:ikasan5-metapack:1.0.1`.
-Its complete resource-only pack is **ExampleIkasan5**, pack revision **1.0.1**, targeting
+This independent Maven project produces `org.ikasan.metapack:ikasan5-metapack:1.0.2`.
+Its complete resource-only pack is **ExampleIkasan5**, pack revision **1.0.2**, targeting
 Ikasan **5.1.0** and generated-project **JDK 25**. The distinct ID allows it to be installed
 alongside Studio's bundled **V5.1.0**, demonstrating external pack loading on the normal plugin.
 No snapshot opt-in is needed for this released runtime.
@@ -29,7 +29,7 @@ Then run inside this directory:
 mvn clean verify
 ```
 
-The resulting `target/ikasan5-metapack-1.0.1.jar` is installable directly. Tests validate the
+The resulting `target/ikasan5-metapack-1.0.2.jar` is installable directly. Tests validate the
 library, render and round-trip a model, inspect the actual archive and run separate JVM
 installation/restart probes with the example resources excluded from the host classpath.
 Those probes prove the pack is discovered from the installed JAR, including when snapshots
@@ -66,3 +66,5 @@ an Ikasan 4/JDK 17 starter; this directory is the independent released Ikasan 5 
 The unmodified 5.1.0 runtime has reproduced transaction rollback failures under injected
 JMS/FTP/SFTP errors. The pack does not patch those libraries. See the
 [release verification and limitations](https://github.com/ikasanEIP/IkasanStudio/blob/main/docs/Ikasan510Verification-2026-10-29.md).
+
+Property validation uses the current generator API 2 and [RE2/J validation policy](../../src/main/resources/studio/metapack/METAPACK.md#property-validation-safety-generator-api-2).

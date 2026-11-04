@@ -26,9 +26,9 @@ Source contracts inspected: `rest/rest-module/.../MetaDataApplication.java` and 
 ## Import into Studio
 
 1. Create/open the destination Studio project and choose **Import model.json** from the module creation screen.
-2. Select **Import an Ikasan runtime export (instead of a Studio model)**. Paste or choose the module metadata document in **Module metadata JSON**. Leave this option unchecked when importing a complete Studio `model.json`; only the **Studio model.json** tab is shown in that mode.
+2. Select **Import an Ikasan module**. Choose **Fetch from running module…** OR **Paste module metadata JSON**. The latter opens an editor where you can paste or choose the metadata document. Leave this option unchecked when importing a complete Studio `model.json`; only the **Studio model.json** tab is shown in that mode.
 3. Select the original Ikasan version and enter the destination application's Java package. The runtime module's `version` is an application version, not a Studio meta-pack identifier; `ikasanVersion`, when present, is checked separately.
-4. In **Component configuration JSON (optional)**, paste or choose the component configuration export. Leave it blank to import topology only and configure components afterwards. A single configuration object or an array of objects is accepted. Records are matched by `configurationId`, not position or component display name.
+4. For manual input, **Paste configuration JSON (optional)** becomes available after metadata is supplied. In that tab, paste or choose the component configuration export. Leave it blank to import topology only and configure components afterwards. A single configuration object or an array of objects is accepted. Records are matched by `configurationId`, not position or component display name.
 5. Select component variants only if prompted. For shared runtime classes, Studio links the component's
    configurationId to its supplied configuration record and matches the exact configuration class against
    the selected pack. A unique match selects the variant automatically and records the evidence in the
@@ -38,7 +38,10 @@ Source contracts inspected: `rest/rest-module/.../MetaDataApplication.java` and 
    message-provider wiring still needs review; no Java classes are loaded to guess inheritance. REST
    parameters with omitted/null values are retained as unset rather than applied or rejected; duplicate
    parameter names remain invalid.
-6. Review the report before importing. Import replaces the destination project's model and uses the existing generation workflow. Use a new project when exploring an existing application.
+6. Optionally select **Review source code from the original project** and/or **Import properties for shared settings or environments** under **After import (optional)**. These steps apply to both Studio and Ikasan imports: the model does not include Java implementations or environment files. If both are selected, source review comes first, then properties.
+7. Review the report before importing. Import replaces the destination project's model and uses the existing generation workflow. Use a new project when exploring an existing application.
+
+Fetched documents are available for inspection; choose a **Paste** option to edit or replace them. Fetching fills the preview only. Model changes still require review and import.
 
 Imported flows preserve each declared `flowStartupType`: **AUTOMATIC**, **MANUAL** or **DISABLED**. Missing/null settings fall back to **MANUAL** with a flow-specific review item; unknown or malformed values block import rather than silently changing behaviour. The application HTTP port is copied from the module metadata. If absent, Studio uses its default and flags the port for review; invalid supplied ports block import. The REST URL may use a proxy port, so it is not used to infer the application port. Project build settings come from the selected meta-pack; compare the generated POM with the original for custom dependencies, repositories, plugins and profiles. Bring across the original business implementations, dependencies and Spring wiring, review endpoint settings, then compile and test before starting flows. Importing metadata is not a promise of an immediately runnable reproduction of the original application.
 
@@ -46,12 +49,13 @@ Runtime exports describe effective settings, so defaults left blank in the origi
 
 ## Fetch from a running module
 
-In the import dialog, choose **Fetch from running module…**. Enter the application URL
+In the import dialog, select **Import an Ikasan module**, then choose **Fetch from running module…**. Enter the application URL
 including its context path (for example `http://localhost:8080/orders`), the registered
 module name, and optional Basic authentication credentials. The registered module name is
 case-sensitive (`module.name`) and may differ from the lowercase URL context: for example,
 URL `http://localhost:12450/converterandtranslators5` with module `converterAndTranslators5`.
-Recognized `/swagger-ui/index.html`, `/swagger-ui/` and `/swagger-ui.html` suffixes are removed
+Recognized `/swagger-ui/index.html`, `/swagger-ui/`, `/swagger-ui.html` and Blue Console
+`/home.htm` suffixes are removed
 automatically (including their UI query/fragment). Other application URL queries/fragments
 are rejected. The dialog displays the normalized application URL after Fetch. Empty credentials request
 anonymous access; the deployment must permit the REST calls. The inspected controllers
@@ -82,7 +86,7 @@ configuration for each flow** and fetch topology only; settings then require man
 The fetch dialog remembers the application URL, registered module name, username and
 configuration checkbox in this project's local IDE workspace, including across IDE restarts.
 Values are remembered after Fetch or closing the dialog, including failed requests and Cancel.
-Swagger suffixes are removed before saving; an invalid URL leaves the last usable URL unchanged.
+Swagger and Blue Console landing-page suffixes are removed before saving; an invalid URL leaves the last usable URL unchanged.
 Passwords are not saved in Studio settings, project files or import provenance;
 the password field remains populated while the fetch dialog stays open, so failed or cancelled
 fetch attempts can be retried without re-entry. Closing the dialog (including success or Cancel)
@@ -93,7 +97,7 @@ so review it before sharing the project. Fetch has a five-second connection time
 a twenty-second request timeout and an 8 MiB limit on metadata and combined configuration.
 The IDE log records each actual GET endpoint, acquisition stage and HTTP status, making wrong
 context paths and module-name casing visible. Request credentials, authorization headers,
-Swagger query/fragment values and response bodies are not logged. HTTP 404/500 guidance asks
+Landing-page query/fragment values and response bodies are not logged. HTTP 404/500 guidance asks
 the developer to check the exact registered module name as well as context/endpoint availability;
 HTTP 500 can also require checking the module server log.
 Requests are cancellable while waiting for the server. No retry or partial configuration

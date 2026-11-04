@@ -9,9 +9,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
+import com.google.re2j.Pattern;
+
+import javax.lang.model.SourceVersion;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 @Data
 @Builder(toBuilder = true)
@@ -193,6 +195,12 @@ public class ComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     private String validationMessage = "";  // Message to be displayed when the object fails validation
+    /** Optional semantic rule, independent of the RE2/J expression. Requires generator API 2. */
+    @JsonSetter(nulls = Nulls.SKIP)
+    @Builder.Default
+    private String validationKind = "";
+    public static final String JAVA_PACKAGE = "JAVA_PACKAGE";
+    public static final int MAX_VALIDATION_EXPRESSION_LENGTH = 4096;
     private Pattern validationPattern;      // Set internally when first got, if validation attribute exists, this is the compiled pattern
 
     /** Legacy list fields are edited as comma-separated text; their patterns describe the whole list. */
@@ -263,9 +271,31 @@ public class ComponentPropertyMeta {
             validationPattern = null;
         } else if (validationPattern == null || !validation.equals(validationPattern.pattern())) {
             // Also handles toBuilder() copies that retain a cache from the previous regex.
-            validationPattern = Pattern.compile(validation);
+            if (validation.length() > MAX_VALIDATION_EXPRESSION_LENGTH)
+                throw new IllegalArgumentException("RE2/J validation expression exceeds " + MAX_VALIDATION_EXPRESSION_LENGTH + " characters");
+            try {
+                validationPattern = Pattern.compile(validation);
+            } catch (com.google.re2j.PatternSyntaxException invalid) {
+                throw new IllegalArgumentException("Unsupported RE2/J validation expression: " + invalid.getMessage(), invalid);
+            }
         }
         return validationPattern;
+    }
+
+    @JsonIgnore
+    public boolean hasValidation() {
+        return (validation != null && !validation.isBlank()) || (validationKind != null && !validationKind.isBlank());
+    }
+
+    /** Shared by the editor, readiness checks and AI proposals; never falls back to Java regex. */
+    public boolean matchesValidation(String value) {
+        if (validationKind != null && !validationKind.isBlank()) {
+            if (!JAVA_PACKAGE.equals(validationKind))
+                throw new IllegalArgumentException("Unsupported validationKind: " + validationKind);
+            if (!SourceVersion.isName(value, SourceVersion.RELEASE_17)) return false;
+        }
+        Pattern pattern = getValidationPattern();
+        return pattern == null || pattern.matcher(value).matches();
     }
 
     public static boolean isSubstitutionValue(Object value) {
@@ -311,6 +341,7 @@ public class ComponentPropertyMeta {
                 Objects.equals(usageDataType, that.usageDataType) &&
                 Objects.equals(userImplementClassFtlTemplate, that.userImplementClassFtlTemplate) &&
                 Objects.equals(validation, that.validation) &&
+                Objects.equals(validationKind, that.validationKind) &&
                 Objects.equals(validationMessage, that.validationMessage);
     }
 
@@ -322,6 +353,6 @@ public class ComponentPropertyMeta {
                 hiddenProperty, ignoreProperty, mandatory, propertyConfigFileLabel, propertyDataType, readOnlyProperty, setterProperty,
                 setterMethod, usageDataType, userDefineResource, userImplementClassFtlTemplate, userSuppliedClass,
                 protectFromOverwrite, noStubRequired, preserveWhitespace,
-                validation, validationMessage);
+                validation, validationKind, validationMessage);
     }
 }

@@ -140,6 +140,20 @@ class AiProjectContractGeneratorTest {
     }
 
     @Test
+    void catalogueExportsSemanticPackageValidation() throws Exception {
+        for (String version : PackExpectations.metaPacksToTest().toList()) {
+            JsonNode catalogue = StudioJson.newObjectMapper().readTree(AiProjectContractGenerator.componentCatalogue(version));
+            boolean found = false;
+            for (JsonNode property : component(catalogue, "Module").path("properties")) {
+                if (!"applicationPackageName".equals(property.path("name").asText())) continue;
+                assertThat(property.path("validationKind").asText()).isEqualTo("JAVA_PACKAGE");
+                found = true;
+            }
+            assertThat(found).isTrue();
+        }
+    }
+
+    @Test
     void emailAddressRulesAcceptLongDomainSuffixesAndRejectMalformedAddresses() throws Exception {
         for (String version : PackExpectations.metaPacksToTest().toList()) {
             JsonNode catalogue = StudioJson.newObjectMapper().readTree(AiProjectContractGenerator.componentCatalogue(version));
@@ -147,7 +161,7 @@ class AiProjectContractGeneratorTest {
             for (JsonNode property : component(catalogue, "Email Producer").path("properties")) {
                 String name = property.path("name").asText();
                 if (!java.util.Set.of("toRecipient", "from", "ccRecipient", "bccRecipient").contains(name)) continue;
-                var rule = java.util.regex.Pattern.compile(property.path("validation").asText());
+                var rule = com.google.re2j.Pattern.compile(property.path("validation").asText());
                 for (String valid : java.util.List.of("audience@example.invalid", "studio@example.test",
                         "developer@example.technology", "first.last+demo@example.com")) {
                     assertThat(rule.matcher(valid).matches()).as("%s %s accepts %s", version, name, valid).isTrue();

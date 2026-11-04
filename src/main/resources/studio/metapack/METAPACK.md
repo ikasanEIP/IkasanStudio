@@ -83,7 +83,7 @@ The manifest declares the pack's exact build platform:
 {
   "schemaVersion": 2,
   "packVersion": "0.1.0-SNAPSHOT",
-  "generatorApiVersion": 1,
+  "generatorApiVersion": 2,
   "id": "V4.1.6",
   "ikasanVersion": "4.1.6",
   "javaVersion": "17",
@@ -323,3 +323,41 @@ behaviour; exposing standard settings must not replace or overwrite it.
 `legacyPropertyAliases` maps old Studio property names to canonical properties. Aliases are applied when reading legacy flat models and Studio document containers, and when converting legacy models for saving. Different values under both names are rejected rather than choosing one. Saves use canonical names. Alias sources cannot shadow current properties or form chains. Keep existing `propertyConfigFileLabel` strings when renaming a property so application-property overrides remain compatible. The bundled packs correct `hasAttachments` to `hasAttachment`, SFTP `knownHostFilename` to `knownHostsFilename`, and SFTP producer `cleanupChunks` to `cleanUpChunks`. See the [property naming audit](../../../../../docs/MetaPackPropertyNamingAudit-2026-10-26.md) for source checks and intentional API differences.
 
 The historical aliases are temporary for this development cycle and are scheduled for removal in the next release. Do not use `legacyPropertyAliases` for REST naming differences. Before removal, resave development projects/examples with canonical names and complete the cleanup checklist in the naming audit.
+
+
+## Property validation safety (generator API 2)
+
+Property metadata `validation` expressions use [RE2/J](https://github.com/google/re2j),
+with full-string matching and a maximum expression length of 4,096 UTF-16 characters.
+RE2/J avoids catastrophic backtracking. Lookahead/lookbehind, backreferences,
+possessive quantifiers and Java-only character classes/flags are unsupported.
+Counted repetitions are subject to RE2/J's own limits (at most 1,000).
+Unsupported expressions fail pack validation with the component/property path and
+migration guidance; Studio never skips the rule or falls back to Java regex.
+Use RE2/J's syntax and character-class semantics, including its treatment of Unicode
+and line terminators. Test accepted and rejected values, not only compilation.
+
+For Java package names, use `"validationKind": "JAVA_PACKAGE"` instead of a keyword
+negative-lookahead expression. This validates each Java identifier and rejects Java
+keywords, boolean/null literals and the single underscore using the Java 17 language
+name contract (also valid for released Ikasan 5 Java 25 packages). An optional
+`validation` expression is applied in addition to the semantic rule. Unknown kinds
+are rejected. The same predicate runs in the editor, saved-model readiness checks
+and AI proposal validation; the AI component catalogue includes `validationKind`.
+
+Packs using `validationKind` must declare `generatorApiVersion: 2`. Current Studio
+accepts API 1 packs whose expressions satisfy this RE2/J policy; older engines reject
+API 2 packs rather than silently ignoring their semantic rules. Pack authors migrating
+rules should publish a new immutable revision and test with the current generator.
+The Java API's `getValidationPattern()` now returns `com.google.re2j.Pattern`;
+source consumers must rebuild, and should use `hasValidation()` and
+`matchesValidation(value)` to include semantic rules.
+
+This policy applies to **meta-pack property validation**, not to regex values in the
+application being generated. For example, FTP filename patterns remain Java regex
+expressions interpreted by the Ikasan runtime. The FTP metadata check still rejects
+a leading bare `*`, `+` or `?` without changing those runtime expressions.
+
+The released V5.1.0 adapter and ExampleIkasan5 example advance from pack revision
+1.0.1 to 1.0.2. Existing models locked to 1.0.1 require the normal explicit
+**Adopt Installed Meta-Pack Revision…** workflow and its backup; no lock is bypassed.

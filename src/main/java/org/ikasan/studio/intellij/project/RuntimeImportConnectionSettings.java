@@ -17,7 +17,7 @@ public final class RuntimeImportConnectionSettings implements PersistentStateCom
 
     private Settings settings = new Settings();
 
-    @Override public Settings getState() { return settings; }
+    @Override public @NotNull Settings getState() { return settings; }
 
     @Override public void loadState(@NotNull Settings state) {
         settings = new Settings();

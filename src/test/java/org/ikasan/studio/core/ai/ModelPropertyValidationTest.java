@@ -30,6 +30,18 @@ class ModelPropertyValidationTest {
     }
 
 
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
+    void semanticPackageRulesAreEnforcedInSavedModelReadiness(String pack) {
+        var model = model(pack);
+        model.put("applicationPackageName", "com.class.app");
+        assertThat(ModelPropertyValidation.scan(model)).anySatisfy(f -> {
+            assertThat(f.target()).isEqualTo(ImplementationReadiness.Target.MODULE);
+            assertThat(f.property()).isEqualTo("applicationPackageName");
+        });
+        model.put("applicationPackageName", "com.日本.app");
+        assertThat(ModelPropertyValidation.scan(model)).noneSatisfy(f -> assertThat(f.property()).isEqualTo("applicationPackageName"));
+    }
+
     private ObjectNode model(String pack) {
         var model = StudioJson.newObjectMapper().createObjectNode();
         model.put("version", pack).put("name", "Example").put("applicationPackageName", "org.example");

@@ -49,6 +49,25 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
     private final JBTextArea configurationArea = new JBTextArea();
     private final JBCheckBox importSource = new JBCheckBox(StudioBundle.message("sourceImport.afterModel"));
     private final JBCheckBox importProperties = new JBCheckBox(StudioBundle.message("environment.afterImport"));
+    private enum Acquisition { NONE, MANUAL, FETCHED }
+    private Acquisition acquisition = Acquisition.NONE;
+    private final JPanel acquisitionRow = new JPanel(new FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0));
+    private final JPanel runtimeOptions = new JPanel(new GridBagLayout());
+    private final JPanel documentPanel = new JPanel(new BorderLayout(0, JBUI.scale(6)));
+    private final JPanel optionalSteps = new JPanel();
+    private final JPanel fileRow = new JPanel(new FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0));
+    private final JTabbedPane documents = new com.intellij.ui.components.JBTabbedPane();
+    private final JButton pasteMetadata = new JButton(StudioBundle.message("import.journey.pasteMetadata"));
+    private final JButton pasteConfiguration = new JButton(StudioBundle.message("import.journey.pasteConfiguration"));
+    private final JButton chooseFileButton = new JButton();
+    private final JBLabel studioInputOr = new JBLabel(StudioBundle.message("import.journey.or"));
+    private final JBLabel studioPastePrompt = new JBLabel(StudioBundle.message("import.journey.studioPaste"));
+    private final JButton diagnostics = new JButton(StudioBundle.message("import.diagnostics.title"));
+    private final JBTextArea journeyHelp = importHelp("import.journey.studioHelp");
+    private final JBTextArea sourceHelp = importHelp("import.journey.chooseSource");
+    private final JBTextArea runtimeDefaultsHelp = importHelp("import.runtime.defaultsHelp");
+    private final JBTextArea runtimePlaceholder = importHelp("import.journey.chooseSource");
+
 
     public ImportModelJsonDialog(Project project) {
         this(project, (Component) null);
@@ -66,7 +85,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
     private ImportModelJsonDialog(Project project, Component parent, java.util.function.Supplier<java.util.List<String>> loadPacks) {
         super(project, parent);
         this.project = project;
-        setTitle(StudioBundle.message("dialog.ImportModelJson"));
+        setTitle(StudioBundle.message("import.journey.title"));
         setOKButtonText(StudioBundle.message("button.ImportModelJson"));
         applicationPackage.setText(project.getService(UiContext.class).getOptions().getPackageName());
         init();
@@ -116,66 +135,102 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
     }
 
     private void updateOkAction() {
-        String text = jsonArea.getText();
-        setOKActionEnabled(text != null && !text.isBlank()
-                && (!runtimeMode.isSelected() || runtimePack.getSelectedItem() != null));
+        boolean runtime = runtimeMode.isSelected();
+        boolean hasMetadata = !jsonArea.getText().isBlank();
+        boolean hasSource = !runtime || acquisition != Acquisition.NONE;
+        acquisitionRow.setVisible(runtime);
+        runtimeOptions.setVisible(runtime && hasSource);
+        runtimeDefaultsHelp.setVisible(runtime && hasSource && hasMetadata);
+        documentPanel.setVisible(hasSource);
+        runtimePlaceholder.setVisible(runtime && !hasSource);
+        optionalSteps.setVisible(hasSource && hasMetadata);
+        diagnostics.setVisible(runtime);
+        fileRow.setVisible(!runtime || acquisition == Acquisition.MANUAL);
+        studioInputOr.setVisible(!runtime);
+        studioPastePrompt.setVisible(!runtime);
+        chosenFilePathLabel.setVisible(fileRow.isVisible());
+        jsonArea.getAccessibleContext().setAccessibleName(StudioBundle.message(runtime
+                ? "import.runtime.moduleTab" : "import.journey.studioPaste"));
+        jsonArea.setEditable(!runtime || acquisition == Acquisition.MANUAL);
+        configurationArea.setEditable(acquisition == Acquisition.MANUAL);
+        pasteConfiguration.setEnabled(runtime && hasSource && hasMetadata);
+        if (documents.getTabCount() > 1) {
+            documents.setEnabledAt(1, hasMetadata && hasSource);
+            if (!hasMetadata && documents.getSelectedIndex() == 1) documents.setSelectedIndex(0);
+        }
+        chooseFileButton.setText(StudioBundle.message(runtime ? "import.journey.chooseMetadata" : "import.journey.chooseStudio"));
+        journeyHelp.setText(StudioBundle.message(runtime ? "import.journey.runtimeHelp" : "import.journey.studioHelp"));
+        sourceHelp.setVisible(runtime);
+        sourceHelp.setText(StudioBundle.message(acquisition == Acquisition.FETCHED
+                ? "import.journey.fetchedHelp" : "import.journey.manualHelp"));
+        setOKButtonText(StudioBundle.message(runtime ? "import.journey.reviewImport" : "import.journey.importStudio"));
+        setOKActionEnabled(hasSource && hasMetadata && (!runtime || runtimePack.getSelectedItem() != null));
+        if (getContentPane() != null) { getContentPane().revalidate(); getContentPane().repaint(); }
+    }
+
+    private void supplyJson(int tab) {
+        acquisition = Acquisition.MANUAL;
+        updateOkAction();
+        documents.setSelectedIndex(tab);
+        (tab == 0 ? jsonArea : configurationArea).requestFocusInWindow();
     }
 
     @Override
     protected @Nullable JComponent createCenterPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
-
         JPanel options = new JPanel();
         options.setLayout(new BoxLayout(options, BoxLayout.Y_AXIS));
-        options.add(importHelp("message.ImportModelJsonExplanation"));
+        options.add(journeyHelp);
         options.add(Box.createVerticalStrut(JBUI.scale(8)));
         runtimeMode.setAlignmentX(Component.LEFT_ALIGNMENT);
         runtimeMode.setToolTipText(StudioBundle.message("import.runtime.modeHelp"));
         options.add(runtimeMode);
-        options.add(importSource);
-        options.add(importProperties);
-        options.add(Box.createVerticalStrut(JBUI.scale(4)));
-        JPanel runtimeOptions = new JPanel(new GridBagLayout());
+        options.add(Box.createVerticalStrut(JBUI.scale(6)));
+
+        JButton fetch = new JButton(StudioBundle.message("import.remote.title"));
+        fetch.addActionListener(event -> {
+            var connection = new RuntimeImportConnectionDialog(project, getContentPane());
+            if (connection.showAndGet() && !isDisposed() && !project.isDisposed()) applyFetchedDocuments(connection.documents());
+        });
+        acquisitionRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        acquisitionRow.add(fetch);
+        acquisitionRow.add(new JBLabel(StudioBundle.message("import.journey.or")));
+        pasteMetadata.addActionListener(event -> supplyJson(0));
+        acquisitionRow.add(pasteMetadata);
+        pasteConfiguration.addActionListener(event -> supplyJson(1));
+        pasteConfiguration.setToolTipText(StudioBundle.message("import.journey.configurationPrerequisite"));
+        acquisitionRow.add(pasteConfiguration);
+        options.add(acquisitionRow);
+        runtimePlaceholder.setAlignmentX(Component.LEFT_ALIGNMENT);
+        options.add(runtimePlaceholder);
+        options.add(Box.createVerticalStrut(JBUI.scale(6)));
+
         runtimeOptions.setAlignmentX(Component.LEFT_ALIGNMENT);
         GridBagConstraints row = new GridBagConstraints();
         row.anchor = GridBagConstraints.WEST;
         row.insets = JBUI.insets(2, 0, 2, 8);
         JBLabel packLabel = new JBLabel(StudioBundle.message("import.runtime.pack"));
         packLabel.setLabelFor(runtimePack);
-        row.gridx = 0;
-        row.gridy = 0;
+        row.gridx = 0; row.gridy = 0;
         runtimeOptions.add(packLabel, row);
-        row.gridx = 1;
-        row.weightx = 1;
-        row.fill = GridBagConstraints.HORIZONTAL;
+        row.gridx = 1; row.weightx = 1; row.fill = GridBagConstraints.HORIZONTAL;
         runtimeOptions.add(runtimePack, row);
         JBLabel packageLabel = new JBLabel(StudioBundle.message("import.runtime.package"));
         packageLabel.setLabelFor(applicationPackage);
-        row.gridx = 0;
-        row.gridy = 1;
-        row.weightx = 0;
-        row.fill = GridBagConstraints.NONE;
+        row.gridx = 0; row.gridy = 1; row.weightx = 0; row.fill = GridBagConstraints.NONE;
         runtimeOptions.add(packageLabel, row);
-        row.gridx = 1;
-        row.weightx = 1;
-        row.fill = GridBagConstraints.HORIZONTAL;
+        row.gridx = 1; row.weightx = 1; row.fill = GridBagConstraints.HORIZONTAL;
         runtimeOptions.add(applicationPackage, row);
-        runtimeOptions.setVisible(false);
         options.add(runtimeOptions);
-        JBTextArea runtimeDefaultsHelp = importHelp("import.runtime.defaultsHelp");
-        runtimeDefaultsHelp.setVisible(false);
         options.add(runtimeDefaultsHelp);
         panel.add(options, BorderLayout.NORTH);
 
-        jsonArea.setRows(16);
-        jsonArea.setColumns(80);
-        jsonArea.setLineWrap(false);
+        jsonArea.setRows(12); jsonArea.setColumns(75); jsonArea.setLineWrap(false);
         jsonArea.setFont(JBFont.create(EditorColorsManager.getInstance().getGlobalScheme().getFont(EditorFontType.PLAIN), false));
-        JTabbedPane documents = new com.intellij.ui.components.JBTabbedPane();
-        documents.addTab(StudioBundle.message("import.runtime.studioTab"), documentScrollPane(jsonArea));
-        configurationArea.setRows(16);
-        configurationArea.setColumns(80);
-        configurationArea.setFont(jsonArea.getFont());
+        jsonArea.getAccessibleContext().setAccessibleName(StudioBundle.message("import.runtime.moduleTab"));
+        configurationArea.setRows(12); configurationArea.setColumns(75); configurationArea.setFont(jsonArea.getFont());
+        configurationArea.getAccessibleContext().setAccessibleName(StudioBundle.message("import.runtime.configurationTab"));
+        JBScrollPane moduleEditor = documentScrollPane(jsonArea);
         JPanel configurationPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         configurationPanel.add(importHelp("import.runtime.configurationHelp"), BorderLayout.NORTH);
         configurationPanel.add(documentScrollPane(configurationArea), BorderLayout.CENTER);
@@ -183,45 +238,45 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         chooseConfiguration.addActionListener(event -> chooseConfiguration());
         configurationPanel.add(chooseConfiguration, BorderLayout.SOUTH);
         runtimeMode.addActionListener(event -> {
-            runtimeOptions.setVisible(runtimeMode.isSelected());
-            runtimeDefaultsHelp.setVisible(runtimeMode.isSelected());
-            documents.setSelectedIndex(0);
-            documents.setTitleAt(0, StudioBundle.message(runtimeMode.isSelected()
-                    ? "import.runtime.moduleTab" : "import.runtime.studioTab"));
+            documentPanel.remove(runtimeMode.isSelected() ? moduleEditor : documents);
+            documents.removeAll();
             if (runtimeMode.isSelected()) {
+                documents.addTab(StudioBundle.message("import.runtime.moduleTab"), moduleEditor);
                 documents.addTab(StudioBundle.message("import.runtime.configurationTab"), configurationPanel);
-            } else if (documents.getTabCount() > 1) {
-                documents.removeTabAt(1);
+                documentPanel.add(documents, BorderLayout.CENTER);
+            } else {
+                documentPanel.add(moduleEditor, BorderLayout.CENTER);
             }
             updateOkAction();
-            panel.revalidate();
-            panel.repaint();
         });
-        panel.add(documents, BorderLayout.CENTER);
-
-        JPanel chooseRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        JButton chooseFileButton = new JButton(StudioBundle.message("button.ChooseModelJsonFile"));
+        JPanel documentHeader = new JPanel(new BorderLayout(0, JBUI.scale(6)));
+        documentHeader.add(sourceHelp, BorderLayout.NORTH);
+        documentHeader.add(fileRow, BorderLayout.SOUTH);
+        documentPanel.add(documentHeader, BorderLayout.NORTH);
+        documentPanel.add(moduleEditor, BorderLayout.CENTER);
         chooseFileButton.addActionListener(event -> chooseFile());
-        chooseRow.add(chooseFileButton);
-        chooseRow.add(Box.createHorizontalStrut(JBUI.scale(8)));
-        JButton fetch = new JButton(StudioBundle.message("import.remote.title"));
-        fetch.addActionListener(event -> {
-            var connection = new RuntimeImportConnectionDialog(project, getContentPane());
-            if (connection.showAndGet() && !isDisposed() && !project.isDisposed()) {
-                applyFetchedDocuments(connection.documents());
-            }
-        });
-        chooseRow.add(fetch);
-        JButton diagnostics = new JButton(StudioBundle.message("import.diagnostics.title"));
-        diagnostics.addActionListener(event -> new RuntimeImportReportDialog(project, getContentPane()).show());
-        chooseRow.add(Box.createHorizontalStrut(JBUI.scale(8)));
-        chooseRow.add(diagnostics);
-        chooseRow.add(Box.createHorizontalStrut(JBUI.scale(8)));
+        fileRow.add(chooseFileButton);
+        fileRow.add(studioInputOr);
+        studioPastePrompt.setLabelFor(jsonArea);
+        fileRow.add(studioPastePrompt);
         chosenFilePathLabel.setForeground(com.intellij.util.ui.UIUtil.getLabelForeground());
-        chooseRow.add(chosenFilePathLabel);
-        panel.add(chooseRow, BorderLayout.SOUTH);
+        documentPanel.add(chosenFilePathLabel, BorderLayout.SOUTH);
+        // Fetched JSON is inspectable; editing or choosing configuration explicitly switches to manual input.
+        panel.add(documentPanel, BorderLayout.CENTER);
 
-        panel.setPreferredSize(JBUI.size(780, 540));
+        JPanel bottom = new JPanel(new BorderLayout(0, JBUI.scale(6)));
+        optionalSteps.setLayout(new BoxLayout(optionalSteps, BoxLayout.Y_AXIS));
+        optionalSteps.add(new com.intellij.ui.TitledSeparator(StudioBundle.message("import.journey.followUp")));
+        optionalSteps.add(importHelp("import.journey.followUpHelp"));
+        importSource.setAlignmentX(Component.LEFT_ALIGNMENT); optionalSteps.add(importSource);
+        importProperties.setAlignmentX(Component.LEFT_ALIGNMENT); optionalSteps.add(importProperties);
+        bottom.add(optionalSteps, BorderLayout.CENTER);
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        diagnostics.addActionListener(event -> new RuntimeImportReportDialog(project, getContentPane()).show());
+        footer.add(diagnostics); bottom.add(footer, BorderLayout.SOUTH);
+        panel.add(bottom, BorderLayout.SOUTH);
+        panel.setPreferredSize(JBUI.size(920, 680));
+        updateOkAction();
         return panel;
     }
 
@@ -253,17 +308,19 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
 
     @Override
     public @Nullable JComponent getPreferredFocusedComponent() {
-        return jsonArea;
+        return runtimeMode.isSelected() && acquisition == Acquisition.NONE ? pasteMetadata : jsonArea;
     }
 
     /** Acquisition changes only the editable preview; Import still performs mapping and explicit review. */
     void applyFetchedDocuments(org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents documents) {
         if (documents == null || isDisposed() || project.isDisposed()) return;
         if (!runtimeMode.isSelected()) runtimeMode.doClick();
+        acquisition = Acquisition.FETCHED;
         jsonArea.setText(documents.moduleJson());
         jsonArea.setCaretPosition(0);
         configurationArea.setText(documents.configurationJson());
         configurationArea.setCaretPosition(0);
+        this.documents.setSelectedIndex(0);
         chosenFilePathLabel.setText(StudioBundle.message("import.remote.source"));
         chosenFilePathLabel.setToolTipText(null);
         updateOkAction();
@@ -271,8 +328,8 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
 
     private void chooseFile() {
         FileChooserDescriptor descriptor = new FileChooserDescriptor(true, true, true, true, false, false)
-                .withTitle(StudioBundle.message("dialog.ChooseModelJsonFile"))
-                .withDescription(StudioBundle.message("message.ChooseModelJsonFileDescription"));
+                .withTitle(StudioBundle.message(runtimeMode.isSelected() ? "import.journey.chooseMetadata" : "dialog.ChooseModelJsonFile"))
+                .withDescription(StudioBundle.message(runtimeMode.isSelected() ? "import.journey.manualHelp" : "message.ChooseModelJsonFileDescription"));
         StudioProjectFiles.chooseFileAndReadText(project, descriptor, result -> {
             if (isDisposed() || project.isDisposed()) return;
             if (result.content() != null) {
@@ -291,6 +348,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
     }
 
     private void chooseConfiguration() {
+        if (runtimeMode.isSelected()) supplyJson(1);
         StudioProjectFiles.chooseFileAndReadText(project,
                 new FileChooserDescriptor(true, true, true, true, false, false)
                         .withTitle(StudioBundle.message("import.runtime.chooseConfiguration")), result -> {
@@ -427,8 +485,16 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         return review.showAndGet();
     }
 
+    private Runnable sourceReviewStep(boolean propertiesAfterSource) {
+        return () -> new org.ikasan.studio.intellij.importer.ImportSourceModuleDialog(project, propertiesAfterSource).show();
+    }
+
     @Override
     protected void doOKAction() {
+        if (runtimeMode.isSelected() && acquisition == Acquisition.NONE) {
+            setErrorText(StudioBundle.message("import.journey.chooseSource"));
+            return;
+        }
         String json = jsonArea.getText();
         if (json == null || json.isBlank()) {
             Messages.showErrorDialog(messageParent(),
@@ -446,7 +512,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
             }
             ModelImporter.importFromText(project, json, chosenFilePathLabel.getText().isBlank()
                     ? StudioBundle.message("label.PastedModelJson") : chosenFilePathLabel.getText(), activeReport,
-                    importSource.isSelected() ? () -> new org.ikasan.studio.intellij.importer.ImportSourceModuleDialog(project).show()
+                    importSource.isSelected() ? sourceReviewStep(importProperties.isSelected())
                             : importProperties.isSelected() ? () -> new org.ikasan.studio.intellij.configuration.ImportEnvironmentPropertiesDialog(project).show() : null);
         } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
             activeReport.cancelled();

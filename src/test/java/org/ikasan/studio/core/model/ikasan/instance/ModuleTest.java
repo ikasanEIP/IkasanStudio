@@ -51,8 +51,8 @@ class ModuleTest {
                         .usingRecursiveComparison()
                         .ignoringFields("jarDependencies", "iconResourceDirectory", "allowableProperties.version.choices")
                         .withEqualsForType(StudioComparitors::imageIconsEqual, Icon.class)
-                        // java.util.regex.Pattern has no equals(), so compare validation patterns by their text.
-                        .withComparatorForType(java.util.Comparator.nullsFirst(java.util.Comparator.comparing(java.util.regex.Pattern::pattern)), java.util.regex.Pattern.class)
+                        // com.google.re2j.Pattern has no equals(), so compare validation patterns by their text.
+                        .withComparatorForType(java.util.Comparator.nullsFirst(java.util.Comparator.comparing(com.google.re2j.Pattern::pattern)), com.google.re2j.Pattern.class)
                         .isEqualTo(oldModule.getComponentMeta()),
                 () -> assertEquals(jarDependenciesOld, new TreeSet<>(oldModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString()),
                 () -> assertEquals(jarDependenciesNew, new TreeSet<>(newModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString())
