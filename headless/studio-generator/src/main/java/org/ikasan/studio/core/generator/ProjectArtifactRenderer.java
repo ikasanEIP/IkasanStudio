@@ -58,7 +58,7 @@ public final class ProjectArtifactRenderer {
         java(files, Generator.STUDIO_BOOT_PACKAGE, "Application", ApplicationTemplate.create(module));
         java(files, Generator.STUDIO_BOOT_PACKAGE, "ModuleConfig", ModuleConfigTemplate.create(module));
         java(files, Generator.STUDIO_BOOT_PACKAGE, "StudioInjectController", StudioInjectControllerTemplate.create(module));
-        files.put("generated/h2/pom.xml", H2StartStopTemplate.create(module.getMetaVersion()));
+        files.put(IndependentH2Template.PATH, IndependentH2Template.create());
         files.put("generated/src/main/resources/application.properties", PropertiesTemplate.create(module));
         files.put(ModuleTestWiring.PATH, ModuleTestWiring.create(module));
         for (var flow : module.getFlows()) {

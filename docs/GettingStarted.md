@@ -79,3 +79,5 @@ for V4.1.6, the Ikasan BOM and required component dependencies. Unrelated Maven 
 are retained. Existing compiler source/target settings (including legacy Java 7 values)
 and an existing `maven.compiler.release` property are updated even when no dependency
 changes are needed. Configure a matching installed JDK if Studio cannot select one.
+
+For a separate local development database, see [independent H2](IndependentH2.md).

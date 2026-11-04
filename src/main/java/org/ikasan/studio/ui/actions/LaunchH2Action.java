@@ -1,145 +1,43 @@
 package org.ikasan.studio.ui.actions;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.terminal.ui.TerminalWidget;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentManager;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationService;
 import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.jetbrains.plugins.terminal.TerminalToolWindowFactory;
-import org.jetbrains.plugins.terminal.TerminalToolWindowManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Map;
 
-public class LaunchH2Action implements ActionListener {
-   private static final Logger LOG = LoggerFactory.getLogger(LaunchH2Action.class);
-   private final Project project;
-   private final JComponent jComponent;
-   private boolean start=true;
-   public LaunchH2Action(Project project, JComponent jComponent) {
-      this.project = project;
-      this.jComponent = jComponent;
-   }
-   @Override
-   public void actionPerformed(ActionEvent actionEvent) {
-
-      //  mvn exec:java@StartH2 -Dh2DbPortNumber=12461  -Dh2WebPortNumber=12462
-      // mvn exec:java@StopH2 -Dh2DbPortNumber=12461
-      UiContext uiContext = project.getService(UiContext.class);
-      Module module = uiContext.getIkasanModule();
-      module.getH2PortNumber();
-      module.getH2WebPortNumber();
-
-      Map<String, String> applicationProperties = uiContext.getApplicationProperties();
-      String connectionString ;
-      if (applicationProperties != null && applicationProperties.get("datasource.url") != null) {
-         String connnectionString = applicationProperties.get("datasource.url");
-         if (connnectionString != null && connnectionString.contains(";")) {
-            connnectionString = connnectionString.split(";")[0];
-         }
-         connectionString = StudioBundle.message("message.UseConnectionString", connnectionString);
-      } else {
-         connectionString = StudioBundle.message("message.SeeDatasourceUrlInApplicationProperties");
-      }
-
-      String basePath = StudioProjectFiles.getProjectBasePath(project);
-      if (basePath == null) {
-         LOG.warn("STUDIO: WARN: Could not get virtual project root for project [" + project + "], consider resaving");
-      } else {
-         String command =
-              (start ?
-                 "mvn exec:java@StartH2 -Dh2DbPortNumber=" + module.getH2PortNumber() + " -Dh2WebPortNumber=" + module.getH2WebPortNumber() :
-                 "mvn exec:java@StopH2 -Dh2DbPortNumber=" + module.getH2PortNumber());
-         String path = basePath + "/generated/h2";
-         try {
-            executeCommandInTerminal(project, path, (start ? StudioBundle.message("button.H2Start") : StudioBundle.message("button.H2Stop")), command);
-            StudioUIUtils.displayIdeaInfoMessage(project,
-                    (start ? StudioBundle.message("message.StartingH2ServerConsoleShouldAppear", connectionString)
-                            : StudioBundle.message("message.StoppingH2ServerReviewH2TerminalTabs")));
-         } catch (RuntimeException e) {
-            String message = StudioBundle.message("message.AttemptToRunCommandFailed", e.getMessage());
-            if (start) {
-               StudioUIUtils.displayIdeaErrorMessage(project, message);
-            } else {
-               StudioUIUtils.displayIdeaWarnMessage(project, message);
-            }
-         }
-      }
-
-      start = !start;
-      toggleButtonText();
-   }
-
-   private void toggleButtonText() {
-      String action = start ? StudioBundle.message("button.H2Start") : StudioBundle.message("button.H2Stop");
-      Color backgroundColor = start ? UIManager.getColor("Panel.background") : JBColor.GREEN;
-      if (jComponent instanceof JButton) {
-         ((JButton) jComponent).setText(action);
-         jComponent.setBackground(backgroundColor);
-         jComponent.setOpaque(!start);
-      } else if (jComponent instanceof JMenuItem) {
-         ((JMenuItem)jComponent).setText(action);
-      }
-   }
-
-   private void executeCommandInTerminal(Project project, String path, String title, String command) {
-      ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TerminalToolWindowFactory.TOOL_WINDOW_ID);
-      if (window == null) return;
-
-      // window.show(Runnable), not a direct getContentManager()/createShellWidget() call - see the identical,
-      // confirmed-via-real-repro fix and comment in StartTestMailServerAction#launchInTerminal: on the
-      // Terminal tool window's first touch in an IDE session, calling getContentManager() straight away can
-      // create the terminal content before the tool window's own Swing hierarchy is realized, so the tab
-      // silently never appears. show(Runnable) defers this block until the tool window has genuinely been shown.
-      window.show(() -> {
-         ContentManager contentManager = window.getContentManager();
-         Content h2ContentTab = contentManager.findContent(title);
-         TerminalWidget terminalWidget;
-
-         // Check if the content already exists and reuse its terminal widget
-         if (h2ContentTab != null) {
-            terminalWidget = TerminalToolWindowManager.findWidgetByContent(h2ContentTab);
-            contentManager.setSelectedContent(h2ContentTab);
-         } else {
-            terminalWidget = createTerminalWidget(project, path, title);
-         }
-
-         // Execute the command if we have a valid terminal widget
-         if (terminalWidget != null) {
-            terminalWidget.sendCommandToExecute(command);
-         } else {
-            LOG.warn("STUDIO: WARN: Could not create or find terminal widget for H2 command execution");
-         }
-      });
-   }
-
-   /**
-    * Create a new terminal widget via TerminalToolWindowManager, the non-deprecated replacement for
-    * TerminalView#createLocalShellWidget (scheduled for removal).
-    *
-    * @param project The IntelliJ project
-    * @param workingDirectory The working directory for the terminal
-    * @param displayName The display name for the terminal tab
-    * @return A new TerminalWidget instance, or null if creation fails
-    */
-   private TerminalWidget createTerminalWidget(Project project, String workingDirectory, String displayName) {
-      try {
-         return TerminalToolWindowManager.getInstance(project).createShellWidget(workingDirectory, displayName, true, true);
-      } catch (Exception e) {
-         LOG.warn("STUDIO: WARN: Failed to create terminal widget: " + e.getMessage(), e);
-         return null;
-      }
-   }
+/** Canvas controls reflect the actual project-scoped H2 process, including normal IDE Run/Stop actions. */
+public final class LaunchH2Action implements ActionListener {
+    private final Project project;
+    private final JComponent component;
+    public LaunchH2Action(Project project, JComponent component) {
+        this.project = project; this.component = component; refresh();
+    }
+    public void listen(Disposable owner) {
+        project.getService(IndependentH2RunConfigurationService.class).listen(this::refresh, owner);
+    }
+    @Override public void actionPerformed(ActionEvent event) {
+        project.getService(IndependentH2RunConfigurationService.class).toggle(); refresh();
+    }
+    private void refresh() {
+        var model = project.getService(UiContext.class).getIkasanModule();
+        refreshPresentation(model == null || model.getUseEmbeddedH2());
+    }
+    public void refreshPresentation(boolean embedded) {
+        var state = project.getService(IndependentH2RunConfigurationService.class).state();
+        String key = switch (state) {
+            case STOPPED -> component instanceof JMenuItem ? "menu.LaunchH2" : "button.H2Start";
+            case RUNNING -> "h2.independent.stop";
+            case STARTING -> "h2.independent.starting";
+            case STOPPING -> "h2.independent.stopping";
+        };
+        if (component instanceof AbstractButton button) button.setText(StudioBundle.message(key));
+        component.setEnabled(state == IndependentH2RunConfigurationService.State.RUNNING
+                || state == IndependentH2RunConfigurationService.State.STOPPED && !embedded);
+        component.setToolTipText(StudioBundle.message("h2.independent.hint"));
+    }
 }

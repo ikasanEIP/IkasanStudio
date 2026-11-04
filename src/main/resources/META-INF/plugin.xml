@@ -19,6 +19,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <runConfigurationExtension implementation="org.ikasan.studio.intellij.execution.SftpHarnessRunExtension"/>
+        <runConfigurationExtension implementation="org.ikasan.studio.intellij.execution.IndependentH2RunExtension"/>
         <!-- User-submitted exception reports; JetBrains hosts the Marketplace backend. -->
         <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
         <toolWindow factoryClass="org.ikasan.studio.intellij.toolwindow.DesignerToolWindowFactory"

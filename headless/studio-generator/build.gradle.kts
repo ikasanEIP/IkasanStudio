@@ -29,7 +29,7 @@ val sharedTestSources = tasks.register<Sync>("syncSharedTestSources") {
 sourceSets {
     main {
         resources.setSrcDirs(listOf("../../src/main/resources"))
-        resources.include("studio/metapack/schema/**")
+        resources.include("studio/metapack/schema/**", "studio/runtime/**")
     }
     test {
         java.srcDir(sharedTestSources)

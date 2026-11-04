@@ -150,7 +150,7 @@ class ModelMigrationTest {
                 Files.createDirectories(target.getParent());
                 Files.writeString(target, entry.getValue());
                 if (entry.getKey().endsWith(".java")) {
-                    var declaration = java.util.regex.Pattern.compile("(?m)^public class (\\w+)").matcher(entry.getValue());
+                    var declaration = java.util.regex.Pattern.compile("(?m)^public (?:final )?class (\\w+)").matcher(entry.getValue());
                     assertThat(declaration.find()).as(entry.getKey()).isTrue();
                     assertThat(target.getFileName().toString()).isEqualTo(declaration.group(1) + ".java");
                 }

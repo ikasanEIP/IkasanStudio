@@ -41,6 +41,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
     private static final Icon LOAD_ICON = IconLoader.getIcon("/studio/icons/load.svg", CanvasPanel.class);
     private static final Icon REGENERATE_ICON = IconLoader.getIcon("/studio/icons/regenerate-code.svg", CanvasPanel.class);
 
+    private final LaunchH2Action h2Action;
     JButton h2Button = new JButton(StudioBundle.message("button.H2Start"), H2_ICON);
     JButton runModuleButton = new JButton(AllIcons.Actions.Execute);
     JButton debugModuleButton = new JButton(AllIcons.Actions.StartDebugger);
@@ -126,7 +127,9 @@ public class CanvasPanel extends JBPanel implements Disposable {
         runModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.RunModule"));
         debugModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.DebugModule"));
         stopModuleButton.getAccessibleContext().setAccessibleName(StudioBundle.message("button.StopModule"));
-        addButtonsToPanel(canvasHeaderButtonPanel, h2Button, new LaunchH2Action(project, h2Button), StudioBundle.message("tooltip.StartTheH2ConsoleInABrowser"));
+        h2Action = new LaunchH2Action(project, h2Button);
+        h2Action.listen(this);
+        addButtonsToPanel(canvasHeaderButtonPanel, h2Button, h2Action, StudioBundle.message("h2.independent.hint"));
 
         // Harness is placed left of Module because a harness (e.g. the test FTP server) needs to be started
         // before the module that depends on it, matching the order the user actually has to click them in.
@@ -261,7 +264,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
      * @param flag, if true will enable the button, otherwise disable it.
      */
     public void disableH2Button(boolean flag) {
-        h2Button.setEnabled(!flag);
+        h2Action.refreshPresentation(flag);
     }
 
     /**

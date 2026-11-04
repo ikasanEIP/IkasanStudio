@@ -84,6 +84,9 @@ class DesignerCanvasTest {
         Project project = mock(Project.class);
         var context = mock(org.ikasan.studio.ui.UiContext.class);
         when(project.getService(org.ikasan.studio.ui.UiContext.class)).thenReturn(context);
+        var h2 = mock(org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationService.class);
+        when(project.getService(org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationService.class)).thenReturn(h2);
+        when(h2.state()).thenReturn(org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationService.State.STOPPED);
         when(context.getViewHandlerFactory()).thenReturn(mock(org.ikasan.studio.ui.viewmodel.ViewHandlerCache.class));
         Module module = mock(Module.class);
         when(module.isInitialised()).thenReturn(true);

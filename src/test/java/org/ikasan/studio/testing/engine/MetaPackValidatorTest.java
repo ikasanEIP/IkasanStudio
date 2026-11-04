@@ -121,7 +121,7 @@ class MetaPackValidatorTest {
 
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.NullSource
-    @org.junit.jupiter.params.provider.ValueSource(ints = {0, 3})
+    @org.junit.jupiter.params.provider.ValueSource(ints = {0, 4})
     void rejectsMissingOrIncompatibleGeneratorApi(Integer api) {
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", revisionManifest("1.0.0", api), Map.of()))
                 .hasMessageContaining("generatorApiVersion");

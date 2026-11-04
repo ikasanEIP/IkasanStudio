@@ -235,7 +235,7 @@ def main():
         revision, dirty = None, None  # Source ZIPs have no Git metadata; file hashes still identify delivered bytes.
     receipt = {"createdUtc": datetime.now(timezone.utc).isoformat(), "studioCommit": revision,
                "workingTreeHadChanges": dirty, "ikasanVersion": "4.1.6", "packId": "SharedIkasan4",
-               "generatorApiVersion": 2, "jdk": 17, "containsPrivateComponents": False,
+               "generatorApiVersion": 3, "jdk": 17, "containsPrivateComponents": False,
                "pluginIncluded": not args.without_plugin, "requestedArtifactPaths": requested,
                "validation": "isolated repository bootstrap; offline verification required before packaging"}
     (kit / "build-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")

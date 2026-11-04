@@ -306,17 +306,12 @@ public class GeneratedProjectSynchronizer {
      * @param module for this code
      */
     private void saveApplication(Project project, Module module) {
-        // The H2 Launcher
-        // @TODO this only needs to be done once.
-        String h2StartStopPomString;
         try {
-            h2StartStopPomString = H2StartStopTemplate.create(module.getMetaVersion());
-        } catch (StudioGeneratorException e) {
-            throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
-        }
-
-        if (h2StartStopPomString != null) {
-            StudioProjectFiles.createPomFile(project, StudioProjectFiles.GENERATED_CONTENT_ROOT, "h2", h2StartStopPomString);
+            StudioProjectFiles.createJavaSourceFile(project, StudioProjectFiles.GENERATED_CONTENT_ROOT,
+                    StudioProjectFiles.SRC_MAIN_JAVA_CODE, IndependentH2Template.PACKAGE,
+                    IndependentH2Template.CLASS_NAME, IndependentH2Template.create(), null);
+        } catch (java.io.IOException failure) {
+            throw new StudioRuntimeException("Could not generate the independent H2 launcher", failure);
         }
 
         // The SpringBoot startup

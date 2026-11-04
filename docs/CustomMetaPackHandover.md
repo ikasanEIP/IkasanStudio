@@ -123,7 +123,7 @@ Alternatively, run `./gradlew -p headless publishToMavenLocal` in Studio, remove
 
 ## Manifest, metadata and tests
 
-Use schema 2, `generatorApiVersion: 2`, a `packVersion` such as `0.1.0-SNAPSHOT`, and an `id` matching the resource directory. Preserve the exact runtime `ikasanVersion`, Java baseline and BOM contract from the chosen platform. The custom ID does not change the runtime version. Declare justified explicit third-party dependency versions in `compatibilityOverrides` as required by the validator.
+Use schema 2, `generatorApiVersion: 3`, a `packVersion` such as `0.1.0-SNAPSHOT`, and an `id` matching the resource directory. Preserve the exact runtime `ikasanVersion`, Java baseline and BOM contract from the chosen platform. The custom ID does not change the runtime version. Declare justified explicit third-party dependency versions in `compatibilityOverrides` as required by the validator.
 
 Follow [meta-pack authoring](../src/main/resources/studio/metapack/METAPACK.md), the [schemas](../src/main/resources/studio/metapack/schema/) and [compliance requirements](../src/main/resources/studio/metapack/METAPACK_COMPLIANCE.md). Review copied compatibility overrides rather than dropping them or assuming they suit a different runtime.
 

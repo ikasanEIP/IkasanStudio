@@ -162,7 +162,7 @@ dependencies {
 // declares testClassesDirs pointing at this source set's output directories.
 sourceSets {
     main {
-        resources.exclude("studio/metapack/**")
+        resources.exclude("studio/metapack/**", "studio/runtime/**")
     }
     create("testHarness") {
         java.srcDir("src/testHarness/java")

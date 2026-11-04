@@ -23,7 +23,7 @@ class PackContractTest extends MetaPackContract {
     @Test void loadsIndependentlyWithoutOtherOfficialPacks() throws Exception {
         assertEquals(List.of(packId()), ComponentLibrary.getMetapackList());
         assertEquals(2, ComponentLibrary.getMetaPackManifest(packId()).schemaVersion());
-        assertEquals(1, ComponentLibrary.getMetaPackManifest(packId()).generatorApiVersion());
+        assertEquals(3, ComponentLibrary.getMetaPackManifest(packId()).generatorApiVersion());
         assertThrows(ClassNotFoundException.class,
                 () -> Class.forName("com.intellij.openapi.application.ApplicationManager"));
     }

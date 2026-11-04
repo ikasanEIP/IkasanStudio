@@ -83,7 +83,7 @@ The manifest declares the pack's exact build platform:
 {
   "schemaVersion": 2,
   "packVersion": "0.1.0-SNAPSHOT",
-  "generatorApiVersion": 2,
+  "generatorApiVersion": 3,
   "id": "V4.1.6",
   "ikasanVersion": "4.1.6",
   "javaVersion": "17",
@@ -361,3 +361,12 @@ a leading bare `*`, `+` or `?` without changing those runtime expressions.
 The released V5.1.0 adapter and ExampleIkasan5 example advance from pack revision
 1.0.1 to 1.0.2. Existing models locked to 1.0.1 require the normal explicit
 **Adopt Installed Meta-Pack Revision…** workflow and its backup; no lock is bypassed.
+
+
+## Independent H2 (generator API 3)
+
+The engine now supplies `IndependentH2.java`; packs no longer provide
+`h2StartStopPom_en.ftl`. H2 is resolved from the project's own Maven runtime classpath,
+with no separate pinned server POM. New official packs declare API 3; current engines
+still accept API 1/2 packs. See [independent H2](../../../../../docs/IndependentH2.md)
+for lifecycle, revision adoption and database compatibility details.
