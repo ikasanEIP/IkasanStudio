@@ -351,6 +351,19 @@ public class GeneratedProjectSynchronizer {
         }
     }
 
+    private static boolean shouldGenerateSupport(Project project, String packageName, String className) {
+        String basePath = project.getBasePath();
+        if (basePath == null) {
+            throw new StudioRuntimeException("Cannot verify support customisations: project has no base path");
+        }
+        try {
+            return !org.ikasan.studio.core.importer.SourceModuleImport.preserveSupportCustomisation(
+                    java.nio.file.Path.of(basePath), packageName, className);
+        } catch (java.io.IOException failure) {
+            throw new StudioRuntimeException("Cannot verify support customisations; generation stopped to preserve developer code", failure);
+        }
+    }
+
     /**
      * Save the DebugTransitionComponent base class and its DeepCopyUtil helper - generated directly into
      * the project (rather than pulled in as a jar dependency) so they always compile against whichever
@@ -363,23 +376,27 @@ public class GeneratedProjectSynchronizer {
      */
     private void saveDebugSupportClasses(Project project, Module module) {
         try {
-            String debugTransitionComponentTemplateString = DebugTransitionComponentTemplate.create(module);
-            StudioProjectFiles.authoriseUserJavaReplacement(DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE,
-                    DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME);
-            StudioProjectFiles.createJavaSourceFile(project,
-                    StudioProjectFiles.USER_CONTENT_ROOT,
-                    StudioProjectFiles.SRC_MAIN_JAVA_CODE,
-                    DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE,
-                    DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME, debugTransitionComponentTemplateString, null);
-
-            String deepCopyUtilTemplateString = DeepCopyUtilTemplate.create(module);
-            StudioProjectFiles.authoriseUserJavaReplacement(DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE,
-                    DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME);
-            StudioProjectFiles.createJavaSourceFile(project,
-                    StudioProjectFiles.USER_CONTENT_ROOT,
-                    StudioProjectFiles.SRC_MAIN_JAVA_CODE,
-                    DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE,
-                    DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME, deepCopyUtilTemplateString, null);
+            if (shouldGenerateSupport(project, DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE,
+                    DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME)) {
+                String debugTransitionComponentTemplateString = DebugTransitionComponentTemplate.create(module);
+                StudioProjectFiles.authoriseUserJavaReplacement(DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE,
+                        DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME);
+                StudioProjectFiles.createJavaSourceFile(project,
+                        StudioProjectFiles.USER_CONTENT_ROOT,
+                        StudioProjectFiles.SRC_MAIN_JAVA_CODE,
+                        DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE,
+                        DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME, debugTransitionComponentTemplateString, null);
+            }
+            if (shouldGenerateSupport(project, DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE, DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME)) {
+                String deepCopyUtilTemplateString = DeepCopyUtilTemplate.create(module);
+                StudioProjectFiles.authoriseUserJavaReplacement(DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE,
+                        DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME);
+                StudioProjectFiles.createJavaSourceFile(project,
+                        StudioProjectFiles.USER_CONTENT_ROOT,
+                        StudioProjectFiles.SRC_MAIN_JAVA_CODE,
+                        DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE,
+                        DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME, deepCopyUtilTemplateString, null);
+            }
         } catch (StudioGeneratorException e) {
             throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
         }

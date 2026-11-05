@@ -5,6 +5,10 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Place Studio support files immediately after Classes and Dependencies. Allow explicit whole-file copies and staged partial merges with Copy all/Revert and Save preview/Cancel, retain customised support files during regeneration, and preserve identity, replacement approval and stale-review safeguards.
+
+- Verify source checkout module identity against the imported model before preselecting files; recognise Studio generated identity evidence, isolate reactor applications and require an explicit override for mismatched/unverified names. Recheck metadata before applying. Start comparison automatically from directory selection or committed path entry, simplify guidance, remove redundant Analyse/Compare buttons and support staged line-by-line Java merges with immutable originals and existing replacement/stale-review safeguards.
+
 - Run independent H2 as an IntelliJ Java Application using the project JDK and resolved H2 runtime dependency. Track actual processes across editor/menu recreation, open the loopback console after readiness, and support graceful shutdown with an explicit force-stop fallback. Replace generated/sample H2 Maven helper POMs and the pinned server template with a common Java 11-compatible launcher. Advance the generator contract to API 3 and released V5/ExampleIkasan5 packs to 1.0.3; preserve core-managed H2 versions and existing revision-lock adoption.
 
 - Separate Studio-managed debug support files from selectable source imports, verify their destination templates, and provide a read-only comparison/review tab for differing originals. Put original-source evidence before destinations and open original-left diffs with double-click or Enter, preserving import selections and sorted-row mapping. Compare selected dependency declarations even when they require manual resolution. Preselect new implementation/helper sources and ordinary additional dependencies, preserving inherited Maven versions and optional flags; leave existing code, wiring and manual-only declarations unselected.

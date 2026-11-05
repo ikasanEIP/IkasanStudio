@@ -18,9 +18,26 @@ the running source module.
 
 ## 2. Review the original source checkout
 
-Select the original Maven project or reactor directory containing `src/main/java`, then
-choose **Analyse Source**. The checkout stays unchanged. The analysis reads local files;
-it does not execute application classes, Maven plugins, builds or scripts.
+Choose the original Maven project or reactor directory containing `src/main/java`.
+Browse starts comparison automatically. For a typed/pasted path, press Enter or leave
+the field; press Enter again to refresh after edits. Directory errors appear inline.
+The checkout stays unchanged. Analysis reads local files and does not execute
+application classes, Maven plugins, builds or scripts.
+
+Before defaults are selected, Studio compares the imported model's exact, case-sensitive
+module name with `module.name` declarations in source properties and the saved model
+of a Studio checkout. Generated source properties/models are read only for identity;
+generated implementation files remain excluded from transfer. Folder names and Maven
+artifact IDs are hints, never proof of identity. Referenced implementation matches are
+shown as additional evidence.
+
+A unique matching application in a reactor is selected automatically. Otherwise choose
+the source module before comparison. Sibling module code/properties/dependencies are
+excluded; verified local-parent POM declarations are retained. Mismatched names, missing
+names, external placeholders and conflicting profile names require **Use this checkout
+anyway** before selection/import is enabled. Approving restores the normal default
+selections. The completion report records identity evidence and any explicit override.
+Changes to the imported model or checkout identity metadata require a fresh comparison.
 
 The **Classes and Dependencies** table shows original-source evidence on the left and proposed destination paths on the right:
 
@@ -29,10 +46,9 @@ The **Classes and Dependencies** table shows original-source evidence on the lef
   same-package helpers, used wildcard imports and static imports extend the source set.
   This is conservative static analysis, not complete Java symbol or dependency resolution.
 - Java files retain their package, original bytes, comments and line endings beneath
-  `user/src/main/java`. New non-wiring implementation/helper sources are selected by
-  default, including domain classes not proven necessary by static analysis. Existing
-  destination files, ambiguous duplicates, original Spring wiring and flow debug
-  subclasses require explicit selection. Review the defaults and deselect unrelated code.
+  `user/src/main/java`. Files start without pending copies. Use **Copy all** in the
+  middle column to stage a complete original file, or copy individual changes in its diff.
+  Review original Spring wiring and flow debug subclasses carefully before copying.
 - Original Spring configuration and classes containing `@Bean` methods are unselected by
   default. The original Spring Boot application is excluded because Studio supplies startup.
   Copying an old configuration wholesale can duplicate Studio's native components and beans.
@@ -45,28 +61,45 @@ The **Classes and Dependencies** table shows original-source evidence on the lef
   declarations do not require a separate decision just because their version is inherited.
   Existing declarations are not duplicated. Conflicting source-module versions, unresolved
   expressions, non-portable system dependencies and platform-baseline declarations remain
-  manual review items with disabled Import checkboxes. Double-click their description to
+  manual review items with disabled copy actions. Double-click their description to
   inspect the declarations; the importer does not guess versions or copy local JAR paths.
   Original parents, BOMs, repositories, profiles and plugins are not automatically copied.
 
-**Compare Selected Item…**, double-clicking a row, or pressing Enter opens IntelliJ's
-native read-only diff. File comparisons put the original on the left and the current
-destination on the right. Dependency rows compare that declaration with its current
-destination counterpart, including unresolved/manual-review declarations; comparing
-never selects an item for import. Double-clicking the Import checkbox only changes
-selection and does not open a diff.
+Double-click a row or press Enter to open IntelliJ's native diff. The original is on
+the left. For approved Java source files, the destination on the right is an editable
+preview: use the normal diff arrows to copy individual changes, or edit it directly.
+Click **Save preview** to keep the diff edits in memory and stage that row for import.
+**Cancel** or closing the comparison discards edits from that comparison session,
+preserving any previously staged copy. Saving a preview does not write project files.
+Reopening the file starts from the current staged preview. The middle button changes to **Revert** after a whole-file copy or
+partial edit. Revert restores the starting destination preview and removes that file
+from the pending import; manually restoring the starting text also clears the edit. Cancelling or changing checkout discards staged edits. Existing-file
+replacement approval still applies. No source/destination files are written until
+**Import Selected Files**. Whole-file imports without staged edits retain original bytes.
 
-`DebugTransitionComponent` and `DeepCopyUtil` in their exact Studio packages are
-excluded from selectable imports because Studio supplies them for the destination
-meta-pack. A separate **Studio support files** tab shows their status and supports the
-same comparison gestures. Customer classes with the same simple names remain normal
-source choices. Destination files are checked against templates rendered from the
-saved destination model. Differing originals are flagged as possible version changes
-or customisations; missing, locally changed or unverifiable destination support is
-explicitly flagged rather than assumed correct. Formatting/comments are ignored for
-classification; the diff retains the complete original and destination snapshots.
-Neither original support files nor destination support files are overwritten by this
-stage. The saved model and support snapshots must remain unchanged until apply.
+Properties resources and dependency comparisons remain read-only.
+Dependency rows compare the selected declaration with its current destination counterpart,
+including unresolved/manual-review declarations. Opening a comparison alone does not
+change import selection. The middle column contains the copy/revert actions.
+
+`DebugTransitionComponent` and `DeepCopyUtil` in their exact Studio packages appear in
+**Studio support files**, immediately after **Classes and Dependencies**. They are
+supplied for the destination meta-pack and start without pending copies. The tab offers
+the same **Copy all**, **Revert** and editable diff with **Save preview**/**Cancel**.
+Use a partial merge for useful custom debug code, taking care to retain target-version
+API compatibility. Customer classes with the same simple names remain normal source choices.
+Destination files are compared with templates rendered from the saved model. Formatting
+and comments are ignored for classification; the diff retains the exact snapshots.
+
+An explicit support copy or partial merge requires existing-file replacement approval.
+Applying a changed support file records its destination in
+`user/import-reviews/support-customisations.txt`; normal regeneration then preserves it
+as developer code. Keep this file with the project. Untouched support files continue to
+be supplied by Studio. To restore template generation for a customised support file,
+remove its line from this record and regenerate; that explicitly replaces the local file.
+When upgrading Ikasan, review customised support classes against the target APIs.
+The saved model, customisation record and source/destination snapshots are rechecked
+before applying, and the original checkout remains unchanged.
 
 Existing developer-owned files require explicit replacement approval; changed source, destination, POM or generated bean contracts
 invalidate the corresponding review. Reanalyse after edits. Multiple selected source files

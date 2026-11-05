@@ -18,6 +18,8 @@ class SourceModuleImportTest {
         Path file = root.resolve(relative); Files.createDirectories(file.getParent()); Files.writeString(file, text);
     }
     private void fixture() throws Exception {
+        write(target(), "generated/src/main/model/model.json", "{\"version\":\"V4.1.6\",\"name\":\"Example\",\"flows\":[]}");
+        write(source(), "src/main/resources/application.properties", "module.name=Example\n");
         write(target(), "pom.xml", "<project><modelVersion>4.0.0</modelVersion><groupId>example</groupId><artifactId>studio</artifactId><version>1</version></project>");
         write(target(), "generated/src/main/java/studio/ComponentFactory.java", """
                 package studio;
@@ -198,6 +200,7 @@ class SourceModuleImportTest {
                 .name("Support example").applicationPackageName("org.example").port("8080")
                 .h2PortNumber("8092").h2WebPortNumber("8093").flows(List.of()).build();
         write(target(), MODEL, org.ikasan.studio.core.generator.ModelTemplate.create(module));
+        write(source(), "src/main/resources/application.properties", "module.name=Support example\n");
         String debug = org.ikasan.studio.core.generator.DebugTransitionComponentTemplate.create(module);
         String copy = org.ikasan.studio.core.generator.DeepCopyUtilTemplate.create(module);
         write(target(), DEBUG, debug); write(target(), COPY, copy);
@@ -223,11 +226,45 @@ class SourceModuleImportTest {
         assertThat(analysis.files()).anyMatch(f -> f.destination().equals("user/src/main/java/org/customer/DeepCopyUtil.java"));
         assertThat(analysis.files()).anyMatch(f -> f.source().endsWith("Helper.java") && f.recommended());
         String destination = Files.readString(target().resolve(DEBUG));
-        assertThatThrownBy(() -> SourceModuleImport.apply(analysis, Set.of(DEBUG), Set.of(), true))
-                .hasMessageContaining("Studio-managed support files cannot be imported");
         var report = SourceModuleImport.apply(analysis, Set.of("src/main/java/org/customer/Bespoke.java"), Set.of(), false);
         assertThat(Files.readString(target().resolve(DEBUG))).isEqualTo(destination);
-        assertThat(Files.readString(report)).contains("Studio-managed support files (not imported)", "Supplied by Studio");
+        assertThat(Files.readString(report)).contains("Studio support files", "Supplied by Studio");
+    }
+
+    @Test void explicitSupportMergesRequireApprovalAndSurviveRegeneration() throws Exception {
+        supportFixture();
+        String destination = Files.readString(target().resolve(DEBUG));
+        write(source(), DEBUG, "// original-only debug notes\n" + Files.readString(source().resolve(DEBUG)));
+        var analysis = analyse();
+        String merged = "// reviewed debug note\n" + destination;
+        assertThatThrownBy(() -> SourceModuleImport.apply(analysis, Set.of(DEBUG), Set.of(), false, false, Map.of(DEBUG, merged)))
+                .hasMessageContaining("Approve replacement");
+        assertThat(Files.exists(target().resolve(SourceModuleImport.SUPPORT_CUSTOMISATIONS))).isFalse();
+        var report = SourceModuleImport.apply(analysis, Set.of(DEBUG), Set.of(), true, false, Map.of(DEBUG, merged));
+        assertThat(Files.readString(target().resolve(DEBUG))).isEqualTo(merged).doesNotContain("original-only");
+        assertThat(Files.readString(source().resolve(DEBUG))).startsWith("// original-only");
+        assertThat(SourceModuleImport.preserveSupportCustomisation(target(), "org.ikasan.studio.component", "DebugTransitionComponent")).isTrue();
+        assertThat(SourceModuleImport.preserveSupportCustomisation(target(), "org.ikasan.studio.component.utils", "DeepCopyUtil")).isFalse();
+        assertThat(Files.readString(report)).contains("CUSTOMISATION SELECTED", "Staged Java merges applied");
+        var next = analyse();
+        Files.writeString(target().resolve(SourceModuleImport.SUPPORT_CUSTOMISATIONS), "# changed after review\n");
+        assertThatThrownBy(() -> SourceModuleImport.apply(next, Set.of(DEBUG), Set.of(), true))
+                .hasMessageContaining("Destination model changed since support review");
+        assertThat(Files.readString(target().resolve(DEBUG))).isEqualTo(merged);
+    }
+
+    @Test void explicitWholeSupportCopyRetainsSourceBytesAndChecksStaleSources() throws Exception {
+        supportFixture();
+        String original = "// useful debug note\r\n" + Files.readString(source().resolve(DEBUG));
+        write(source(), DEBUG, original);
+        var analysis = analyse();
+        SourceModuleImport.apply(analysis, Set.of(DEBUG), Set.of(), true);
+        assertThat(Files.readString(target().resolve(DEBUG))).isEqualTo(original);
+        var next = analyse();
+        write(source(), DEBUG, original + "// changed later\n");
+        assertThatThrownBy(() -> SourceModuleImport.apply(next, Set.of(DEBUG), Set.of(), true))
+                .hasMessageContaining("Studio support file changed since review");
+        assertThat(Files.readString(target().resolve(DEBUG))).isEqualTo(original);
     }
 
     @Test void differingOriginalsAreFlaggedWithoutReplacingGeneratedSupport() throws Exception {

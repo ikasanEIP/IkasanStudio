@@ -37,8 +37,9 @@ public final class SourceModuleImport {
     public record FileChoice(String source, String destination, String bytes, String previous,
                              boolean recommended, boolean wiring, String reason) { }
     public enum SupportStatus { SUPPLIED, ORIGINAL_DIFFERS, DESTINATION_DIFFERS, DESTINATION_MISSING, UNVERIFIED }
-    /** Read-only evidence: these exact class identities are owned by Studio generation, even under user/. */
+    /** Studio-provided support classes; only explicit reviewed copies become developer customisations. */
     public record ManagedFile(String source, String destination, String bytes, String current, SupportStatus status) { }
+    public static final String SUPPORT_CUSTOMISATIONS = "user/import-reviews/support-customisations.txt";
     private static final Map<String, String> SUPPORT_CLASSES = Map.of(
             DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE + "." + DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME,
             "user/src/main/java/" + DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE.replace('.', '/') + "/" + DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME + ".java",
@@ -51,19 +52,47 @@ public final class SourceModuleImport {
     public record Analysis(Path sourceRoot, Path destinationRoot, List<FileChoice> files,
                            List<BeanRequirement> beans, List<PropertyFile> properties,
                            List<DependencyChoice> dependencies, List<String> notes, String originalPom, Map<String, String> generatedInputs,
-                           List<ManagedFile> managedFiles, Map<String, String> supportInputs) {
-        public Analysis(Path sourceRoot, Path destinationRoot, List<FileChoice> files,
-                        List<BeanRequirement> beans, List<PropertyFile> properties, List<DependencyChoice> dependencies,
-                        List<String> notes, String originalPom, Map<String, String> generatedInputs) {
-            this(sourceRoot, destinationRoot, files, beans, properties, dependencies, notes, originalPom, generatedInputs, List.of(), Map.of());
-        }
+                           List<ManagedFile> managedFiles, Map<String, String> supportInputs, SourceCheckoutIdentity.Check identity) {
     }
+
+    /** Normal and explicitly customisable support sources share the same protected import path. */
+    public static List<FileChoice> importableFiles(Analysis analysis) {
+        List<FileChoice> result = new ArrayList<>(analysis.files());
+        analysis.managedFiles().stream().filter(file -> SUPPORT_CLASSES.containsValue(file.destination()))
+                .map(file -> new FileChoice(file.source(), file.destination(), file.bytes(), file.current(), false, false,
+                        supportDescription(file.status()))).forEach(result::add);
+        return List.copyOf(result);
+    }
+
+    public static boolean preserveSupportCustomisation(Path root, String packageName, String className) throws IOException {
+        String destination = "user/src/main/java/" + packageName.replace('.', '/') + "/" + className + ".java";
+        return SUPPORT_CLASSES.containsValue(destination) && Files.exists(safe(root, destination), LinkOption.NOFOLLOW_LINKS)
+                && supportCustomisations(existing(safe(root, SUPPORT_CUSTOMISATIONS))).contains(destination);
+    }
+
+    private static Set<String> supportCustomisations(String encoded) throws IOException {
+        Set<String> paths = new TreeSet<>();
+        if (encoded != null) for (String path : decode(encoded).lines().toList()) {
+            if (path.isBlank() || path.startsWith("#")) continue;
+            if (!SUPPORT_CLASSES.containsValue(path)) throw new IOException("Invalid support customisation path: " + path);
+            paths.add(path);
+        }
+        return paths;
+    }
+
     private record JavaSource(Path path, String relative, String bytes, CompilationUnit unit, String pkg, boolean wiring) { }
 
     public static Analysis analyse(Path sourceDirectory, Path destinationDirectory, Runnable checkCancelled) throws Exception {
-        Path source = sourceDirectory.toRealPath();
-        Path destination = destinationDirectory.toRealPath();
-        if (source.equals(destination)) throw new IOException("Select the original module checkout, not the Studio project.");
+        return analyse(sourceDirectory, destinationDirectory, null, checkCancelled);
+    }
+
+    public static Analysis analyse(Path sourceDirectory, Path destinationDirectory, String sourceModule,
+                                   Runnable checkCancelled) throws Exception {
+        var inspection = SourceCheckoutIdentity.inspect(sourceDirectory, destinationDirectory, checkCancelled);
+        var candidate = sourceModule == null ? inspection.automaticCandidate()
+                : inspection.candidates().stream().filter(c -> c.directory().equals(sourceModule)).findFirst().orElse(null);
+        if (candidate == null) throw new IOException("Multiple source modules found. Choose the source module before analysing.");
+        Path source = inspection.sourceRoot(), destination = inspection.destinationRoot();
         List<String> notes = new ArrayList<>();
         var parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE));
         Map<String, JavaSource> classes = new TreeMap<>();
@@ -74,6 +103,7 @@ public final class SourceModuleImport {
         long sourceBytes = 0;
         for (Path file : inventory(source, destination, checkCancelled)) {
             checkCancelled.run();
+            if (!inspection.includes(candidate, file)) continue;
             String relative = relative(source, file);
             if (relative.endsWith(".java") || relative.endsWith(".properties") || file.getFileName().toString().equals("pom.xml")) {
                 sourceBytes += Files.size(file);
@@ -109,6 +139,7 @@ public final class SourceModuleImport {
         if (units.isEmpty()) throw new IOException("No Java sources found under src/main/java. Select the original Maven project or reactor directory.");
         List<ManagedFile> managed = new ArrayList<>();
         Map<String, String> supportInputs = new TreeMap<>();
+        supportInputs.put(SUPPORT_CUSTOMISATIONS, Objects.toString(existing(safe(destination, SUPPORT_CUSTOMISATIONS)), ""));
         Map<String, String> expectedSupport = expectedSupport(destination, units, supportInputs, notes);
         for (Iterator<JavaSource> iterator = units.iterator(); iterator.hasNext();) {
             JavaSource java = iterator.next();
@@ -241,7 +272,8 @@ public final class SourceModuleImport {
         notes.add("Static analysis cannot prove reflection, custom factories, external library internals, inherited Maven configuration or all resource usage. Review the original wiring and runtime-import report.");
         notes.add("Properties retain placeholders. Supply real environment settings; do not invent business defaults to suppress binding failures.");
         return new Analysis(source, destination, List.copyOf(choices), List.copyOf(beans), List.copyOf(properties),
-                dependencies, List.copyOf(notes), originalPom, Map.copyOf(generatedInputs), List.copyOf(managed), Map.copyOf(supportInputs));
+                dependencies, List.copyOf(notes), originalPom, Map.copyOf(generatedInputs), List.copyOf(managed), Map.copyOf(supportInputs),
+                new SourceCheckoutIdentity.Check(inspection, candidate, recommended.stream().map(java -> java.pkg() + "." + java.path().getFileName().toString().replace(".java", "")).sorted().toList()));
     }
 
     private static String supportPath(JavaSource java) {
@@ -322,7 +354,7 @@ public final class SourceModuleImport {
         target.getDependencies().forEach(d -> existing.add(coordinate(d)));
         Properties shared = new Properties();
         Path rootPom = safe(source, "pom.xml");
-        if (Files.isRegularFile(rootPom)) shared.putAll(pom(new String(read(rootPom), StandardCharsets.UTF_8)).getProperties());
+        if (poms.contains(rootPom) && Files.isRegularFile(rootPom)) shared.putAll(pom(new String(read(rootPom), StandardCharsets.UTF_8)).getProperties());
         Map<String, DependencyChoice> candidates = new TreeMap<>();
         for (Path path : poms) {
             Model model;
@@ -405,12 +437,19 @@ public final class SourceModuleImport {
     public static String report(Analysis analysis, Set<String> files, Set<String> dependencies) {
         StringBuilder text = new StringBuilder("# Source-assisted module import review\n\n");
         text.append("Original checkout: ").append(analysis.sourceRoot()).append("\n\n");
+        text.append("## Module identity\n\nImported module: ").append(analysis.identity().expected())
+                .append("\nSource module names: ").append(analysis.identity().names()).append("\nStatus: ").append(analysis.identity().status()).append('\n');
+        if (analysis.identity().candidate() != null) {
+            text.append("Selected source module: ").append(analysis.identity().candidate().directory()).append('\n');
+            analysis.identity().candidate().declarations().forEach(d -> text.append("- ").append(d.file()).append(": module.name = ").append(d.value()).append('\n'));
+        }
+        text.append("Referenced implementations matched: ").append(analysis.identity().matchedImplementations().size()).append("\n\n");
         text.append("This is a transfer and review record, not evidence that the module compiles or runs. The original checkout is unchanged.\n\n## Selected files\n\n");
         analysis.files().stream().filter(f -> files.contains(f.source())).forEach(f -> text.append("- ").append(f.source()).append(" → ").append(f.destination()).append(f.wiring() ? " — REVIEW ORIGINAL SPRING WIRING" : "").append('\n'));
-        text.append("\n## Studio-managed support files (not imported)\n\n");
-        text.append("Studio supplies these exact support classes for the destination meta-pack. Differing originals may contain version changes or customisations; compare them separately. No original support code is copied.\n");
+        text.append("\n## Studio support files\n\n");
+        text.append("Studio supplies these exact support classes for the destination meta-pack. Differing originals may contain version changes or customisations. Explicit copies are retained as developer customisations during regeneration.\n");
         analysis.managedFiles().forEach(file -> text.append("- ").append(file.source()).append(" → ").append(file.destination())
-                .append(" — ").append(supportDescription(file.status())).append('\n'));
+                .append(" — ").append(supportDescription(file.status())).append(files.contains(file.source()) ? " — CUSTOMISATION SELECTED" : " — unchanged").append('\n'));
         text.append("\n## Generated bean contracts\n\n");
         for (var bean : analysis.beans()) {
             text.append("- Bean `").append(bean.name()).append("` of type `").append(bean.type()).append("`: ")
@@ -448,28 +487,67 @@ public final class SourceModuleImport {
     }
 
     public static Path apply(Analysis analysis, Set<String> files, Set<String> dependencies, boolean replaceExisting) throws Exception {
+        return apply(analysis, files, dependencies, replaceExisting, false);
+    }
+
+    public static Path apply(Analysis analysis, Set<String> files, Set<String> dependencies, boolean replaceExisting,
+                             boolean acceptIdentity) throws Exception {
+        return apply(analysis, files, dependencies, replaceExisting, acceptIdentity, Map.of());
+    }
+
+    /** Reviewed Java text is staged separately; original bytes remain the stale-source guard. */
+    public static Path apply(Analysis analysis, Set<String> files, Set<String> dependencies, boolean replaceExisting,
+                             boolean acceptIdentity, Map<String, String> reviewedJava) throws Exception {
+        for (var entry : reviewedJava.entrySet()) {
+            if (!files.contains(entry.getKey()) || !entry.getKey().endsWith(".java")
+                    || importableFiles(analysis).stream().noneMatch(file -> file.source().equals(entry.getKey())))
+                throw new IOException("Staged merges must belong to selected Java source files.");
+            if (entry.getValue().getBytes(StandardCharsets.UTF_8).length > MAX_BYTES)
+                throw new IOException("Staged Java file exceeds 2 MiB: " + entry.getKey());
+        }
+        if (!analysis.sourceRoot().equals(analysis.identity().inspection().sourceRoot())
+                || !analysis.destinationRoot().equals(analysis.identity().inspection().destinationRoot()))
+            throw new IOException("Module identity review does not belong to this source/destination checkout.");
+        SourceCheckoutIdentity.verify(analysis.identity());
+        if (analysis.identity().requiresApproval() && !acceptIdentity)
+            throw new IOException("Source module identity is mismatched or unverified. Explicitly approve this checkout before importing.");
         Map<String, String> generatedNow = new TreeMap<>();
         for (Path file : inventory(safe(analysis.destinationRoot(), "generated/src/main/java"), null, () -> { }))
             if (file.toString().endsWith(".java")) generatedNow.put(relative(analysis.destinationRoot(), file), encode(read(file)));
         if (!generatedNow.equals(analysis.generatedInputs())) throw new IOException("Generated code changed since review. Analyse again.");
         for (var input : analysis.supportInputs().entrySet())
-            if (!Objects.equals(existing(safe(analysis.destinationRoot(), input.getKey())), input.getValue()))
+            if (!Objects.equals(input.getKey().equals(SUPPORT_CUSTOMISATIONS)
+                    ? Objects.toString(existing(safe(analysis.destinationRoot(), input.getKey())), "")
+                    : existing(safe(analysis.destinationRoot(), input.getKey())), input.getValue()))
                 throw new IOException("Destination model changed since support review. Analyse again.");
         for (var support : analysis.managedFiles()) {
             if (!Objects.equals(existing(safe(analysis.sourceRoot(), support.source())), support.bytes())
                     || !Objects.equals(existing(safe(analysis.destinationRoot(), support.destination())), support.current()))
                 throw new IOException("Studio support file changed since review. Analyse again: " + support.source());
-            if (files.contains(support.source())) throw new IOException("Studio-managed support files cannot be imported: " + support.source());
         }
         Map<Path, String> originals = new LinkedHashMap<>(), writes = new LinkedHashMap<>();
         for (String source : files) {
-            var file = analysis.files().stream().filter(f -> f.source().equals(source)).findFirst().orElseThrow();
+            var file = importableFiles(analysis).stream().filter(f -> f.source().equals(source)).findFirst().orElseThrow();
             if (!Objects.equals(existing(safe(analysis.sourceRoot(), source)), file.bytes())) throw new IOException("Original source changed since review: " + source);
             Path target = safe(analysis.destinationRoot(), file.destination());
-            if (writes.putIfAbsent(target, file.bytes()) != null) throw new IOException("Multiple sources target " + file.destination());
+            String output = reviewedJava.containsKey(source) ? encode(reviewedJava.get(source).getBytes(StandardCharsets.UTF_8)) : file.bytes();
+            if (writes.putIfAbsent(target, output) != null) throw new IOException("Multiple sources target " + file.destination());
             if (!Objects.equals(file.previous(), existing(target))) throw new IOException("Destination changed since review: " + file.destination());
-            if (file.previous() != null && !file.previous().equals(file.bytes()) && !replaceExisting) throw new IOException("Approve replacement before importing " + file.destination());
+            if (file.previous() != null && !file.previous().equals(output) && !replaceExisting) throw new IOException("Approve replacement before importing " + file.destination());
             originals.put(target, file.previous());
+        }
+        var customSupport = analysis.managedFiles().stream().filter(file -> files.contains(file.source())
+                && !Objects.equals(writes.get(analysis.destinationRoot().resolve(file.destination())), file.current())).toList();
+        if (!customSupport.isEmpty()) {
+            Path marker = safe(analysis.destinationRoot(), SUPPORT_CUSTOMISATIONS);
+            String previous = existing(marker);
+            if (!Objects.equals(Objects.toString(previous, ""), analysis.supportInputs().get(SUPPORT_CUSTOMISATIONS)))
+                throw new IOException("Support customisations changed since review. Analyse again.");
+            var preserved = supportCustomisations(previous);
+            customSupport.forEach(file -> preserved.add(file.destination()));
+            originals.put(marker, previous);
+            writes.put(marker, encode(("# Explicitly customised support files; retained during regeneration.\n"
+                    + String.join("\n", preserved) + "\n").getBytes(StandardCharsets.UTF_8)));
         }
         if (!dependencies.isEmpty()) {
             Path target = safe(analysis.destinationRoot(), "pom.xml");
@@ -477,7 +555,10 @@ public final class SourceModuleImport {
             originals.put(target, analysis.originalPom()); writes.put(target, encode(pomAfter(analysis, dependencies).getBytes(StandardCharsets.UTF_8)));
         }
         Path report = safe(analysis.destinationRoot(), "user/import-reviews/" + UUID.randomUUID() + ".md");
-        originals.put(report, null); writes.put(report, encode(report(analysis, files, dependencies).getBytes(StandardCharsets.UTF_8)));
+        originals.put(report, null); writes.put(report, encode((report(analysis, files, dependencies)
+                + (analysis.identity().requiresApproval() && acceptIdentity ? "\nDeveloper explicitly approved the mismatched/unverified checkout identity.\n" : "")
+                + (reviewedJava.isEmpty() ? "" : "\nStaged Java merges applied: " + new TreeSet<>(reviewedJava.keySet()) + "\n"))
+                .getBytes(StandardCharsets.UTF_8)));
         List<Path> applied = new ArrayList<>();
         try {
             for (var entry : writes.entrySet()) {
@@ -504,7 +585,7 @@ public final class SourceModuleImport {
 
     // JDK file-visitor nullability contracts; keep the core free of IDE annotation dependencies.
     @SuppressWarnings("NullableProblems")
-    private static List<Path> inventory(Path root, Path excluded, Runnable checkCancelled) throws IOException {
+    static List<Path> inventory(Path root, Path excluded, Runnable checkCancelled) throws IOException {
         List<Path> paths = new ArrayList<>();
         Files.walkFileTree(root, new SimpleFileVisitor<>() {
             private int visited;
@@ -525,15 +606,15 @@ public final class SourceModuleImport {
         });
         paths.sort(Comparator.naturalOrder()); return paths;
     }
-    private static String relative(Path root, Path file) { return root.relativize(file).toString().replace('\\', '/'); }
-    private static byte[] read(Path file) throws IOException {
+    static String relative(Path root, Path file) { return root.relativize(file).toString().replace('\\', '/'); }
+    static byte[] read(Path file) throws IOException {
         if (Files.size(file) > MAX_BYTES) throw new IOException("Source file exceeds 2 MiB: " + file.getFileName());
         return Files.readAllBytes(file);
     }
     private static String existing(Path file) throws IOException { return Files.exists(file, LinkOption.NOFOLLOW_LINKS) ? encode(read(file)) : null; }
     private static String encode(byte[] bytes) { return Base64.getEncoder().encodeToString(bytes); }
     private static String decode(String bytes) { return new String(Base64.getDecoder().decode(bytes), StandardCharsets.UTF_8); }
-    private static Path safe(Path root, String relative) throws IOException {
+    static Path safe(Path root, String relative) throws IOException {
         Path base = root.toAbsolutePath().normalize(), path = base.resolve(relative).normalize();
         if (!path.startsWith(base) || Path.of(relative).isAbsolute()) throw new IOException("Import path escapes its project.");
         for (Path part = path; part != null && part.startsWith(base); part = part.getParent())
