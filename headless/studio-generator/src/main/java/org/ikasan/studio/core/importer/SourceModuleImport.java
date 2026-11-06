@@ -46,7 +46,13 @@ public final class SourceModuleImport {
             DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE + "." + DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME,
             "user/src/main/java/" + DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE.replace('.', '/') + "/" + DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME + ".java");
     public record BeanRequirement(String name, String type, String generatedFile, int line,
-                                  List<String> sourceDefinitions) { }
+                                  List<String> sourceDefinitions, boolean generatedProvider) {
+        public BeanRequirement(String name, String type, String generatedFile, int line, List<String> sourceDefinitions) {
+            this(name, type, generatedFile, line, sourceDefinitions, false);
+        }
+    }
+    public enum ReviewKind { BEAN, SOURCE, RESOURCE, WIRING, DEPENDENCY, SUPPORT_COMPARE, SUPPORT_REPAIR, SCAN }
+    public record ReviewAction(ReviewKind kind, String subject, List<String> evidence) { }
     public record PropertyFile(String source, String text, String environment) { }
     public record DependencyChoice(String id, Dependency dependency, boolean importable, String reason) { }
     public record Analysis(Path sourceRoot, Path destinationRoot, List<FileChoice> files,
@@ -161,6 +167,7 @@ public final class SourceModuleImport {
         Path generated = safe(destination, "generated/src/main/java");
         if (!Files.isDirectory(generated)) throw new IOException("Generate/import the destination module before reviewing its source checkout.");
         Map<String, String> generatedInputs = new TreeMap<>();
+        Map<String, CompilationUnit> generatedUnits = new LinkedHashMap<>();
         for (Path file : inventory(generated, null, checkCancelled)) {
             if (!file.toString().endsWith(".java")) continue;
             byte[] generatedBytes = read(file);
@@ -168,6 +175,7 @@ public final class SourceModuleImport {
             var result = parser.parse(new String(generatedBytes, StandardCharsets.UTF_8));
             if (!result.isSuccessful() || result.getResult().isEmpty()) throw new IOException("Cannot inspect generated Java: " + relative(destination, file));
             CompilationUnit unit = result.getResult().get();
+            generatedUnits.put(relative(destination, file), unit);
             // Factories can construct an implementation directly rather than inject it through @Resource.
             for (String reference : references(unit, unit, classes.keySet())) {
                 JavaSource found = classes.get(reference);
@@ -209,6 +217,15 @@ public final class SourceModuleImport {
                 }
             }
         }
+        Set<String> knownTypes = new HashSet<>(classes.keySet());
+        generatedUnits.values().forEach(unit -> unit.getTypes().forEach(type -> knownTypes.add(
+                unit.getPackageDeclaration().map(pkg -> pkg.getNameAsString() + ".").orElse("") + type.getNameAsString())));
+        var providers = declaredProviders(generatedUnits, knownTypes);
+        beans = beans.stream().map(bean -> {
+            String type = resolve(bean.type(), generatedUnits.get(bean.generatedFile()), knownTypes);
+            boolean supplied = provided(providers, new BeanRequirement(bean.name(), type, bean.generatedFile(), bean.line(), bean.sourceDefinitions()));
+            return new BeanRequirement(bean.name(), type, bean.generatedFile(), bean.line(), bean.sourceDefinitions(), supplied);
+        }).toList();
         // Conservative source closure: explicit imports, wildcard imports used in the AST, and same-package types.
         Deque<JavaSource> pending = new ArrayDeque<>(recommended);
         while (!pending.isEmpty()) {
@@ -434,6 +451,155 @@ public final class SourceModuleImport {
         var text = new StringWriter(); new MavenXpp3Writer().write(text, model); return text.toString();
     }
 
+    private record GeneratedProvider(String name, String type) { }
+
+    private static List<GeneratedProvider> declaredProviders(Map<String, CompilationUnit> units, Set<String> knownTypes) {
+        List<GeneratedProvider> providers = new ArrayList<>();
+        for (var unit : units.values()) for (var type : unit.getTypes()) {
+            // Conditional providers require review rather than an assumption that their profile is active.
+            if (type.getAnnotations().stream().anyMatch(a -> (a.getName().getIdentifier().equals("Profile") || a.getName().getIdentifier().startsWith("Conditional")))) continue;
+            var component = type.getAnnotations().stream().filter(a -> Set.of("Component", "Configuration", "Service", "Repository", "Controller", "RestController")
+                    .contains(a.getName().getIdentifier())).findFirst();
+            if (component.isEmpty()) continue;
+            String qualified = unit.getPackageDeclaration().map(pkg -> pkg.getNameAsString() + ".").orElse("") + type.getNameAsString();
+            String simpleName = type.getNameAsString();
+            String defaultName = simpleName.length() > 1 && Character.isUpperCase(simpleName.charAt(0)) && Character.isUpperCase(simpleName.charAt(1))
+                    ? simpleName : Character.toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
+            for (String name : beanNames(component.get(), defaultName)) providers.add(new GeneratedProvider(name, qualified));
+            for (var method : type.getMethods()) {
+                if (method.getAnnotations().stream().anyMatch(a -> (a.getName().getIdentifier().equals("Profile") || a.getName().getIdentifier().startsWith("Conditional")))) continue;
+                var bean = method.getAnnotations().stream().filter(a -> a.getName().getIdentifier().equals("Bean")).findFirst();
+                if (bean.isPresent()) for (String name : beanNames(bean.get(), method.getNameAsString()))
+                    providers.add(new GeneratedProvider(name, resolve(method.getType().asString(), unit, knownTypes)));
+            }
+        }
+        return providers;
+    }
+
+    private static List<String> beanNames(com.github.javaparser.ast.expr.AnnotationExpr annotation, String fallback) {
+        List<com.github.javaparser.ast.expr.Expression> values = new ArrayList<>();
+        if (annotation.isSingleMemberAnnotationExpr()) values.add(annotation.asSingleMemberAnnotationExpr().getMemberValue());
+        if (annotation.isNormalAnnotationExpr()) annotation.asNormalAnnotationExpr().getPairs().stream()
+                .filter(pair -> Set.of("value", "name").contains(pair.getNameAsString())).forEach(pair -> values.add(pair.getValue()));
+        if (values.isEmpty()) return List.of(fallback);
+        List<String> names = new ArrayList<>();
+        for (var value : values) {
+            if (value.isStringLiteralExpr() && !value.asStringLiteralExpr().asString().isBlank()) names.add(value.asStringLiteralExpr().asString());
+            else if (value.isArrayInitializerExpr()) for (var item : value.asArrayInitializerExpr().getValues())
+                if (item.isStringLiteralExpr() && !item.asStringLiteralExpr().asString().isBlank()) names.add(item.asStringLiteralExpr().asString());
+        }
+        return names;
+    }
+
+    private static boolean provided(List<GeneratedProvider> providers, BeanRequirement bean) {
+        var named = providers.stream().filter(provider -> provider.name().equals(bean.name())).toList();
+        if (!named.isEmpty()) return named.size() == 1 && named.get(0).type().equals(bean.type());
+        return providers.stream().filter(provider -> provider.type().equals(bean.type())).count() == 1;
+    }
+
+    private static List<GeneratedProvider> reviewedProviders(Analysis analysis, Set<String> files, Map<String, String> reviewedJava) {
+        var parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE));
+        Set<String> scanned = new HashSet<>();
+        for (String encoded : analysis.generatedInputs().values()) {
+            if (Thread.currentThread().isInterrupted()) throw new java.util.concurrent.CancellationException();
+            var parsed = parser.parse(decode(encoded));
+            if (!parsed.isSuccessful() || parsed.getResult().isEmpty()) continue;
+            var unit = parsed.getResult().get();
+            for (var type : unit.getTypes()) {
+                if (type.getAnnotations().stream().anyMatch(a -> a.getName().getIdentifier().equals("Profile") || a.getName().getIdentifier().startsWith("Conditional"))) continue;
+                boolean explicitScan = type.getAnnotations().stream().anyMatch(a -> a.getName().getIdentifier().equals("ComponentScan"));
+                for (var annotation : type.getAnnotations()) {
+                    String name = annotation.getName().getIdentifier();
+                    if (name.equals("ComponentScan")) {
+                        if (annotation.isNormalAnnotationExpr() && annotation.asNormalAnnotationExpr().getPairs().stream()
+                                .anyMatch(pair -> pair.getNameAsString().equals("excludeFilters"))) continue;
+                        if (annotation.isSingleMemberAnnotationExpr()) collectLiteralPackages(annotation.asSingleMemberAnnotationExpr().getMemberValue(), scanned);
+                        if (annotation.isNormalAnnotationExpr()) annotation.asNormalAnnotationExpr().getPairs().stream()
+                                .filter(pair -> Set.of("value", "basePackages").contains(pair.getNameAsString()))
+                                .forEach(pair -> collectLiteralPackages(pair.getValue(), scanned));
+                    } else if (name.equals("SpringBootApplication")) {
+                        boolean customScan = annotation.isNormalAnnotationExpr() && annotation.asNormalAnnotationExpr().getPairs().stream()
+                                .anyMatch(pair -> Set.of("scanBasePackages", "scanBasePackageClasses", "exclude", "excludeName").contains(pair.getNameAsString()));
+                        if (!explicitScan && !customScan) unit.getPackageDeclaration().ifPresent(pkg -> scanned.add(pkg.getNameAsString()));
+                        if (annotation.isNormalAnnotationExpr()) annotation.asNormalAnnotationExpr().getPairs().stream()
+                                .filter(pair -> pair.getNameAsString().equals("scanBasePackages"))
+                                .forEach(pair -> collectLiteralPackages(pair.getValue(), scanned));
+                    }
+                }
+            }
+        }
+        Map<String, CompilationUnit> userUnits = new LinkedHashMap<>();
+        for (var file : analysis.files()) {
+            if (Thread.currentThread().isInterrupted()) throw new java.util.concurrent.CancellationException();
+            if (!file.source().endsWith(".java")) continue;
+            String text = files.contains(file.source()) ? reviewedJava.getOrDefault(file.source(), decode(file.bytes()))
+                    : file.previous() == null ? null : decode(file.previous());
+            if (text == null) continue;
+            var parsed = parser.parse(text);
+            if (!parsed.isSuccessful() || parsed.getResult().isEmpty()) continue;
+            var unit = parsed.getResult().get();
+            String pkg = unit.getPackageDeclaration().map(com.github.javaparser.ast.PackageDeclaration::getNameAsString).orElse("");
+            if (scanned.stream().anyMatch(base -> pkg.equals(base) || pkg.startsWith(base + "."))) userUnits.put(file.destination(), unit);
+        }
+        Set<String> known = new HashSet<>();
+        userUnits.values().forEach(unit -> unit.getTypes().forEach(type -> known.add(
+                unit.getPackageDeclaration().map(pkg -> pkg.getNameAsString() + ".").orElse("") + type.getNameAsString())));
+        return declaredProviders(userUnits, known);
+    }
+
+    private static void collectLiteralPackages(com.github.javaparser.ast.expr.Expression value, Set<String> packages) {
+        if (value.isStringLiteralExpr()) {
+            String pkg = value.asStringLiteralExpr().asString();
+            if (!pkg.isBlank() && !pkg.contains("${") && !pkg.contains("#{")) packages.add(pkg);
+        } else if (value.isArrayInitializerExpr()) value.asArrayInitializerExpr().getValues().forEach(item -> collectLiteralPackages(item, packages));
+    }
+
+    /** Only concrete decisions for the live UI; the complete audit remains in report(). */
+    public static List<ReviewAction> reviewActions(Analysis analysis, Set<String> files, Set<String> dependencies) {
+        return reviewActions(analysis, files, dependencies, Map.of());
+    }
+
+    /** AST inspection belongs on a worker thread, including when reviewing staged diff contents. */
+    public static List<ReviewAction> reviewActions(Analysis analysis, Set<String> files, Set<String> dependencies,
+                                                  Map<String, String> reviewedJava) {
+        var userProviders = reviewedProviders(analysis, files, reviewedJava);
+        List<ReviewAction> actions = new ArrayList<>();
+        for (var bean : analysis.beans()) if (!bean.generatedProvider() && !provided(userProviders, bean)) {
+            List<String> evidence = new ArrayList<>();
+            evidence.add(bean.generatedFile() + ":" + bean.line()); evidence.addAll(bean.sourceDefinitions());
+            actions.add(new ReviewAction(ReviewKind.BEAN, bean.name() + " : " + bean.type(), List.copyOf(evidence)));
+        }
+        Set<String> referencedPaths = new HashSet<>();
+        analysis.identity().matchedImplementations().forEach(type -> referencedPaths.add("user/src/main/java/" + type.replace('.', '/') + ".java"));
+        for (var file : analysis.files()) {
+            if (file.wiring() && files.contains(file.source()))
+                actions.add(new ReviewAction(ReviewKind.WIRING, file.destination(), List.of()));
+            else if (!files.contains(file.source()) && file.recommended() && !file.source().endsWith(".java")
+                    && !Objects.equals(file.bytes(), file.previous()))
+                actions.add(new ReviewAction(ReviewKind.RESOURCE, file.destination(), List.of()));
+            else if (!files.contains(file.source()) && referencedPaths.contains(file.destination())
+                    && !Objects.equals(file.bytes(), file.previous()))
+                actions.add(new ReviewAction(ReviewKind.SOURCE, file.destination(), List.of()));
+        }
+        for (var dependency : analysis.dependencies()) {
+            if (dependencies.contains(dependency.id())) continue;
+            String group = Objects.toString(dependency.dependency().getGroupId(), "");
+            if (group.startsWith("org.ikasan") || group.startsWith("org.springframework")) continue;
+            actions.add(new ReviewAction(ReviewKind.DEPENDENCY, dependency.id(),
+                    dependency.importable() ? List.of() : List.of(dependency.reason())));
+        }
+        for (var support : analysis.managedFiles()) {
+            if (support.status() == SupportStatus.UNVERIFIED || support.status() == SupportStatus.DESTINATION_MISSING)
+                actions.add(new ReviewAction(ReviewKind.SUPPORT_REPAIR, support.destination(), List.of()));
+            else if (!files.contains(support.source()) && support.status() == SupportStatus.ORIGINAL_DIFFERS)
+                actions.add(new ReviewAction(ReviewKind.SUPPORT_COMPARE, support.destination(), List.of()));
+        }
+        for (String note : analysis.notes()) if (note.startsWith("Cannot parse source;") || note.startsWith("Ambiguous class in multiple source modules;")
+                || note.startsWith("Cannot inspect Maven declarations:") || note.startsWith("Review parent, dependency management,"))
+            actions.add(new ReviewAction(ReviewKind.SCAN, note, List.of()));
+        return List.copyOf(actions);
+    }
+
     public static String report(Analysis analysis, Set<String> files, Set<String> dependencies) {
         StringBuilder text = new StringBuilder("# Source-assisted module import review\n\n");
         text.append("Original checkout: ").append(analysis.sourceRoot()).append("\n\n");
@@ -444,7 +610,7 @@ public final class SourceModuleImport {
             analysis.identity().candidate().declarations().forEach(d -> text.append("- ").append(d.file()).append(": module.name = ").append(d.value()).append('\n'));
         }
         text.append("Referenced implementations matched: ").append(analysis.identity().matchedImplementations().size()).append("\n\n");
-        text.append("This is a transfer and review record, not evidence that the module compiles or runs. The original checkout is unchanged.\n\n## Selected files\n\n");
+        text.append("## Selected files\n\n");
         analysis.files().stream().filter(f -> files.contains(f.source())).forEach(f -> text.append("- ").append(f.source()).append(" → ").append(f.destination()).append(f.wiring() ? " — REVIEW ORIGINAL SPRING WIRING" : "").append('\n'));
         text.append("\n## Studio support files\n\n");
         text.append("Studio supplies these exact support classes for the destination meta-pack. Differing originals may contain version changes or customisations. Explicit copies are retained as developer customisations during regeneration.\n");

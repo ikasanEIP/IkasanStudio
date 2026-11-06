@@ -75,7 +75,7 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
             support.setRowSelectionInterval(0, 0);
             assertDiff(dialog.comparison(support), "original support", "destination support");
             assertTrue(((JTextArea) field(dialog, "supportNotice")).isVisible());
-            assertEquals(3, ((JTabbedPane) field(dialog, "reviewTabs")).getTabCount());
+            assertEquals(2, ((JTabbedPane) field(dialog, "reviewTabs")).getTabCount());
             assertEquals(org.ikasan.studio.ui.StudioBundle.message("sourceImport.support.title"), ((JTabbedPane) field(dialog, "reviewTabs")).getTitleAt(1));
             assertEquals(2, table.getRowCount());
         } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
@@ -143,8 +143,6 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
             com.intellij.openapi.application.WriteAction.run(() -> right.setText("destination support with debug note"));
             assertEquals(Boolean.TRUE, support.getValueAt(0, 1));
             var validation = dialog.getClass().getDeclaredMethod("doValidate"); validation.setAccessible(true);
-            assertNotNull(validation.invoke(dialog));
-            ((JCheckBox) field(dialog, "replace")).setSelected(true);
             assertNull(validation.invoke(dialog));
             support.getModel().setValueAt(Boolean.FALSE, 0, 1);
             assertEquals("destination support", right.getText());
@@ -173,6 +171,53 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
         }
     }
 
+    public void testSupportActionsAppearWithTheSelectedRowAndUpdateAfterCopyAndRevert() throws Exception {
+        var dialog = previewDialog();
+        try {
+            var details = (JTextArea) field(dialog, "supportDetails");
+            var pane = (JScrollPane) field(dialog, "supportDetailsPane");
+            var support = (JTable) field(dialog, "supportTable");
+            support.setRowSelectionInterval(0, 0);
+            String comparison = org.ikasan.studio.ui.StudioBundle.message("sourceImport.reviewAction.SUPPORT_COMPARE", "user/src/main/java/org/ikasan/studio/component/DebugTransitionComponent.java");
+            com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching("Support action missing", () -> details.getText().contains(comparison), 10);
+            assertTrue(pane.isVisible());
+            assertEquals(2, ((JTabbedPane) field(dialog, "reviewTabs")).getTabCount());
+            support.getModel().setValueAt(Boolean.TRUE, 0, 1);
+            com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching("Completed action not removed", () -> !pane.isVisible(), 10);
+            assertEquals(0, support.getSelectedRow());
+            support.getModel().setValueAt(Boolean.FALSE, 0, 1);
+            com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching("Reverted action not restored", () -> details.getText().contains(comparison), 10);
+        } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testWiringIssuesAttachToFileRowsAndUnmatchedScanIssuesRemainVisibleWithoutCopyControls() throws Exception {
+        var dialog = previewDialog();
+        try {
+            var original = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            var analysis = new SourceModuleImport.Analysis(original.sourceRoot(), original.destinationRoot(), original.files(),
+                    List.of(new SourceModuleImport.BeanRequirement("aBean", "A", "generated/Factory.java", 12, List.of("src/A.java:3 — @Bean makeA returns A"))),
+                    original.properties(), original.dependencies(), List.of("Cannot parse source; review manually: src/Broken.java"),
+                    original.originalPom(), original.generatedInputs(), original.managedFiles(), original.supportInputs(), original.identity());
+            dialog.acceptAnalysis(analysis, original.sourceRoot());
+            var table = (JTable) field(dialog, "table");
+            com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching("Unmatched scan issue missing", () -> table.getRowCount() == 3, 10);
+            table.getRowSorter().toggleSortOrder(1);
+            int fileRow = table.convertRowIndexToView(1);
+            assertTrue(String.valueOf(table.getModel().getValueAt(1, 2)).contains(org.ikasan.studio.ui.StudioBundle.message("sourceImport.inline.attention")));
+            table.setRowSelectionInterval(fileRow, fileRow);
+            var details = (JTextArea) field(dialog, "fileDetails");
+            assertTrue(details.getText().contains("aBean")); assertTrue(details.getText().contains("generated/Factory.java:12"));
+            int issueRow = table.convertRowIndexToView(2);
+            table.setRowSelectionInterval(issueRow, issueRow);
+            assertFalse(table.isCellEditable(issueRow, 1));
+            assertNull(dialog.comparison(table));
+            assertTrue(details.getText().contains("src/Broken.java"));
+            ((JTextField) field(dialog, "source")).setText("/different");
+            assertEquals(0, table.getRowCount());
+            assertFalse(((JScrollPane) field(dialog, "fileDetailsPane")).isVisible());
+        } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
     public void testCopyAllAndRevertRestoreTheDestinationPreview() throws Exception {
         var dialog = previewDialog();
         try {
@@ -184,6 +229,8 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
             table.getModel().setValueAt(Boolean.TRUE, 0, 0);
             assertEquals("original B", right.getText());
             assertEquals(Boolean.TRUE, table.getModel().getValueAt(0, 0));
+            var validation = dialog.getClass().getDeclaredMethod("doValidate"); validation.setAccessible(true);
+            assertNull(validation.invoke(dialog));
             table.getModel().setValueAt(Boolean.FALSE, 0, 0);
             assertEquals("destination B", right.getText());
             assertEquals(Boolean.FALSE, table.getModel().getValueAt(0, 0));

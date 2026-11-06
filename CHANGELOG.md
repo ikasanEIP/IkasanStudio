@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Remove the separate source-import review tab. Show wiring/dependency actions beside their rows and source locations beneath the selected row; keep unmatched scan/wiring problems visible as non-copyable rows. Preserve background updates and the full saved import record, and remove the redundant replacement checkbox: explicit Copy all/Save preview choices authorise only those staged file replacements.
+
 - Place Studio support files immediately after Classes and Dependencies. Allow explicit whole-file copies and staged partial merges with Copy all/Revert and Save preview/Cancel, retain customised support files during regeneration, and preserve identity, replacement approval and stale-review safeguards.
 
 - Verify source checkout module identity against the imported model before preselecting files; recognise Studio generated identity evidence, isolate reactor applications and require an explicit override for mismatched/unverified names. Recheck metadata before applying. Start comparison automatically from directory selection or committed path entry, simplify guidance, remove redundant Analyse/Compare buttons and support staged line-by-line Java merges with immutable originals and existing replacement/stale-review safeguards.

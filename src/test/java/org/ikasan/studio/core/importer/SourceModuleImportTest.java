@@ -71,9 +71,103 @@ class SourceModuleImportTest {
         assertThat(analysis.beans().get(0).sourceDefinitions()).anyMatch(d -> d.contains("OriginalConfig.java:4") && d.contains("oldBeanName"));
         assertThat(analysis.properties()).extracting(SourceModuleImport.PropertyFile::environment).contains("dev", "").doesNotContain("prod");
         String report = SourceModuleImport.report(analysis, Set.of(), Set.of());
-        assertThat(report).contains("renamedBean", "explicitBean", "first delivery", "later delivery", "not evidence")
-                .doesNotContain("CUSTOM_SECRET", "https://customer", "custom.value=preserved");
+        assertThat(report).contains("renamedBean", "explicitBean", "first delivery", "later delivery")
+                .doesNotContain("CUSTOM_SECRET", "https://customer", "custom.value=preserved",
+                        "This is a transfer and review record");
         assertThat(target().resolve("user")).doesNotExist();
+    }
+
+    @Test void liveReviewContainsOnlyConcreteDecisionsAndUpdatesWithPendingCopies() throws Exception {
+        fixture(); var analysis = analyse();
+        var dependencies = analysis.dependencies().stream().filter(SourceModuleImport.DependencyChoice::importable)
+                .map(SourceModuleImport.DependencyChoice::id).collect(java.util.stream.Collectors.toSet());
+        var actions = SourceModuleImport.reviewActions(analysis, Set.of(), dependencies);
+        assertThat(actions).anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().contains("renamedBean"));
+        assertThat(actions).anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.SOURCE && action.subject().endsWith("Bespoke.java"));
+        assertThat(actions).anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.RESOURCE && action.subject().endsWith("bespoke.properties"));
+        assertThat(actions).noneMatch(action -> action.subject().contains("Unrelated.java") || action.subject().contains("ikasan-parent")
+                || action.kind() == SourceModuleImport.ReviewKind.DEPENDENCY || action.subject().contains("Module identity"));
+        var files = analysis.files().stream().filter(SourceModuleImport.FileChoice::recommended)
+                .map(SourceModuleImport.FileChoice::source).collect(java.util.stream.Collectors.toSet());
+        assertThat(SourceModuleImport.reviewActions(analysis, files, dependencies)).noneMatch(action ->
+                action.kind() == SourceModuleImport.ReviewKind.SOURCE || action.kind() == SourceModuleImport.ReviewKind.RESOURCE);
+        files.remove("src/main/java/org/customer/Bespoke.java");
+        assertThat(SourceModuleImport.reviewActions(analysis, files, dependencies)).anyMatch(action ->
+                action.kind() == SourceModuleImport.ReviewKind.SOURCE && action.subject().endsWith("Bespoke.java"));
+        assertThat(SourceModuleImport.report(analysis, files, dependencies)).contains("Module identity", "Selected files", "Generated bean contracts");
+    }
+
+    @Test void generatedBeansAreNotMisreportedAsMissingWiringButConditionalProvidersRemainReviewable() throws Exception {
+        fixture();
+        write(target(), "generated/src/main/java/studio/Beans.java", """
+                package studio;
+                @org.springframework.context.annotation.Configuration class Beans {
+                    @org.springframework.context.annotation.Bean(name={"explicitBean", "alias"})
+                    org.customer.Other provided() { return null; }
+                    @org.springframework.context.annotation.Bean
+                    @org.springframework.context.annotation.Profile("dev")
+                    org.customer.Bespoke renamedBean() { return null; }
+                }
+                """);
+        write(target(), "generated/src/main/java/studio/Flow.java", "package studio; @org.springframework.stereotype.Component(\"customName\") public class Flow {}");
+        write(target(), "generated/src/main/java/studio/Internal.java", "package studio; class Internal { @jakarta.annotation.Resource Flow flow; }");
+        var analysis = analyse();
+        assertThat(analysis.beans()).anyMatch(bean -> bean.name().equals("explicitBean") && bean.generatedProvider());
+        assertThat(analysis.beans()).anyMatch(bean -> bean.name().equals("flow") && bean.type().equals("studio.Flow") && bean.generatedProvider());
+        assertThat(analysis.beans()).anyMatch(bean -> bean.name().equals("renamedBean") && !bean.generatedProvider());
+        assertThat(SourceModuleImport.reviewActions(analysis, Set.of(), Set.of()))
+                .noneMatch(action -> action.kind() == SourceModuleImport.ReviewKind.BEAN && (action.subject().startsWith("flow :") || action.subject().startsWith("explicitBean :")))
+                .anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().startsWith("renamedBean :"));
+    }
+
+    @Test void reviewRecognisesScannedDestinationAndStagedProvidersButKeepsMissingOrConditionalWiring() throws Exception {
+        fixture();
+        write(target(), "generated/src/main/java/studio/Application.java", """
+                package studio;
+                @org.springframework.boot.autoconfigure.SpringBootApplication
+                @org.springframework.context.annotation.ComponentScan("org.customer") class Application {}
+                """);
+        String provider = "package org.customer; @org.springframework.stereotype.Component class Bespoke {}";
+        write(source(), "src/main/java/org/customer/Bespoke.java", provider);
+        var analysis = analyse();
+        String selected = "src/main/java/org/customer/Bespoke.java";
+        assertThat(SourceModuleImport.reviewActions(analysis, Set.of(), Set.of())).anyMatch(action ->
+                action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().startsWith("renamedBean :"));
+        assertThat(SourceModuleImport.reviewActions(analysis, Set.of(selected), Set.of())).noneMatch(action ->
+                action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().startsWith("renamedBean :"));
+        assertThat(SourceModuleImport.reviewActions(analysis, Set.of(selected), Set.of(), Map.of(selected, "package org.customer; class Bespoke {}")))
+                .anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().startsWith("renamedBean :"));
+        assertThat(SourceModuleImport.reviewActions(analysis, Set.of(selected), Set.of(), Map.of(selected,
+                "package org.customer; @org.springframework.context.annotation.Profile(\"dev\") @org.springframework.stereotype.Component class Bespoke {}")))
+                .anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().startsWith("renamedBean :"));
+        write(target(), "user/src/main/java/org/customer/Bespoke.java", provider);
+        assertThat(SourceModuleImport.reviewActions(analyse(), Set.of(), Set.of())).noneMatch(action ->
+                action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().startsWith("renamedBean :"));
+        write(target(), "generated/src/main/java/studio/Application.java", """
+                package studio;
+                @org.springframework.boot.autoconfigure.SpringBootApplication
+                @org.springframework.context.annotation.ComponentScan("org.different") class Application {}
+                """);
+        assertThat(SourceModuleImport.reviewActions(analyse(), Set.of(selected), Set.of())).anyMatch(action ->
+                action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().startsWith("renamedBean :"));
+    }
+
+    @Test void unchangedReferencedImplementationsAndSuppliedSupportHaveNoLiveReviewItems() throws Exception {
+        supportFixture();
+        var analysis = analyse();
+        var unchangedFiles = analysis.files().stream().map(file -> new SourceModuleImport.FileChoice(file.source(), file.destination(),
+                file.bytes(), file.bytes(), file.recommended(), file.wiring(), file.reason())).toList();
+        var quiet = new SourceModuleImport.Analysis(analysis.sourceRoot(), analysis.destinationRoot(), unchangedFiles, List.of(),
+                analysis.properties(), List.of(), analysis.notes(), analysis.originalPom(), analysis.generatedInputs(),
+                analysis.managedFiles(), analysis.supportInputs(), analysis.identity());
+        assertThat(SourceModuleImport.reviewActions(quiet, Set.of(), Set.of())).isEmpty();
+        String original = Files.readString(source().resolve(DEBUG)).replace("return payload;", "return null;");
+        write(source(), DEBUG, original);
+        analysis = analyse();
+        assertThat(SourceModuleImport.reviewActions(analysis, Set.of(), Set.of()))
+                .anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.SUPPORT_COMPARE);
+        assertThat(SourceModuleImport.reviewActions(analysis, Set.of(DEBUG), Set.of()))
+                .noneMatch(action -> action.kind() == SourceModuleImport.ReviewKind.SUPPORT_COMPARE);
     }
 
     @Test void transferPreservesOriginalBytesResourcesAndPackagesAndLeavesGeneratedAndOriginalUntouched() throws Exception {

@@ -73,9 +73,8 @@ Click **Save preview** to keep the diff edits in memory and stage that row for i
 preserving any previously staged copy. Saving a preview does not write project files.
 Reopening the file starts from the current staged preview. The middle button changes to **Revert** after a whole-file copy or
 partial edit. Revert restores the starting destination preview and removes that file
-from the pending import; manually restoring the starting text also clears the edit. Cancelling or changing checkout discards staged edits. Existing-file
-replacement approval still applies. No source/destination files are written until
-**Import Selected Files**. Whole-file imports without staged edits retain original bytes.
+from the pending import; manually restoring the starting text also clears the edit. Cancelling or changing checkout discards staged edits. Copy all or Save preview authorises replacement of that file. No source/destination files are written until
+**Perform Actions**. Whole-file imports without staged edits retain original bytes.
 
 Properties resources and dependency comparisons remain read-only.
 Dependency rows compare the selected declaration with its current destination counterpart,
@@ -91,7 +90,7 @@ API compatibility. Customer classes with the same simple names remain normal sou
 Destination files are compared with templates rendered from the saved model. Formatting
 and comments are ignored for classification; the diff retains the exact snapshots.
 
-An explicit support copy or partial merge requires existing-file replacement approval.
+Copy all or Save preview explicitly authorises replacement of that support file.
 Applying a changed support file records its destination in
 `user/import-reviews/support-customisations.txt`; normal regeneration then preserves it
 as developer code. Keep this file with the project. Untouched support files continue to
@@ -101,7 +100,7 @@ When upgrading Ikasan, review customised support classes against the target APIs
 The saved model, customisation record and source/destination snapshots are rechecked
 before applying, and the original checkout remains unchanged.
 
-Existing developer-owned files require explicit replacement approval; changed source, destination, POM or generated bean contracts
+Only explicitly staged developer-owned files are replaced; changed source, destination, POM or generated bean contracts
 invalidate the corresponding review. Reanalyse after edits. Multiple selected source files
 cannot target the same destination. File writes are rolled back on a transfer failure.
 
@@ -112,9 +111,17 @@ Spring annotations, inherited build configuration and non-properties resources r
 
 ## 3. Complete configuration and wiring
 
-The **Bean Contracts and Review** tab records the actual required bean names, types and
-source locations from generated Java, together with matching original `@Bean` methods.
-These are candidates and contracts, not a claim that Spring wiring has been completed.
+Source review has two tabs: **Classes and Dependencies** and **Studio support files**.
+Relevant wiring and dependency issues appear on their rows with a warning icon;
+select a row to see the action and source locations beneath the table. Scan failures
+or wiring requirements without a matching file appear as non-copyable rows in
+**Classes and Dependencies**, so they remain visible without another review tab.
+Copy, Save preview and Revert update these details in the background. Routine identity,
+transfer and property-file inventories stay in the saved import report.
+
+**Copy all** or **Save preview** explicitly chooses the content to replace that destination
+file when **Perform Actions** is applied. No extra replacement checkbox is required;
+unchecked/unstaged files are untouched and stale-review checks still protect intervening edits.
 
 Finish the wiring under `user/`, in a package scanned by the generated application's
 `@ComponentScan`, or add an explicit, narrowly scoped registration there. Classes keep
