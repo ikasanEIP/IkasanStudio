@@ -14,18 +14,25 @@ import java.awt.Component;
 import java.awt.Dimension;
 
 /** Edits an isolated preview; cancellation never modifies the pending import. */
-final class SourceComparisonDialog extends ImportDialogWrapper {
+public final class SourceComparisonDialog extends ImportDialogWrapper {
     private final Project project;
     private final DocumentContent destination;
     private final DocumentContent preview;
     private final SimpleDiffRequest request;
+    private final java.util.function.Function<String, String> validation;
 
-    SourceComparisonDialog(Project project, Component parent, SimpleDiffRequest original) {
+    public SourceComparisonDialog(Project project, Component parent, SimpleDiffRequest original) {
+        this(project, parent, original, text -> null);
+    }
+
+    public SourceComparisonDialog(Project project, Component parent, SimpleDiffRequest original,
+                                  java.util.function.Function<String, String> validation) {
         super(project, parent);
+        this.validation = validation;
         this.project = project;
         destination = (DocumentContent) original.getContents().get(1);
         preview = DiffContentFactory.getInstance().create(destination.getDocument().getText(),
-                com.intellij.ide.highlighter.JavaFileType.INSTANCE);
+                destination.getContentType());
         preview.getDocument().setReadOnly(false);
         request = new SimpleDiffRequest(original.getTitle(), original.getContents().get(0), preview,
                 original.getContentTitles().get(0), original.getContentTitles().get(1));
@@ -43,6 +50,11 @@ final class SourceComparisonDialog extends ImportDialogWrapper {
     }
 
     @Override protected void doOKAction() {
+        String problem = validation.apply(preview.getDocument().getText());
+        if (problem != null) {
+            com.intellij.openapi.ui.Messages.showErrorDialog(getContentPane(), problem, getTitle());
+            return;
+        }
         WriteAction.run(() -> destination.getDocument().setText(preview.getDocument().getText()));
         super.doOKAction();
     }

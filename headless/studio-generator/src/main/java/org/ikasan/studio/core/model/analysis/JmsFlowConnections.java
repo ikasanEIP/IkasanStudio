@@ -41,6 +41,10 @@ public final class JmsFlowConnections {
      * @return every matching producer/consumer pair found, in no particular order.
      */
     public static List<JmsLink> findMatchingLinks(Module module) {
+        return findMatchingLinks(module, e -> TestJmsHarnessLinks.destinationOverride(module, e) != null);
+    }
+
+    public static List<JmsLink> findMatchingLinks(Module module, java.util.function.Predicate<FlowElement> diverted) {
         List<JmsLink> links = new ArrayList<>();
         if (module == null || module.getFlows() == null) {
             return links;
@@ -64,7 +68,7 @@ public final class JmsFlowConnections {
                 }
             }
             for (FlowElement element : flow.ftlGetConsumerAndFlowElements()) {
-                if (isJmsProducer(element) && TestJmsHarnessLinks.destinationOverride(module, element) == null) {
+                if (isJmsProducer(element) && !diverted.test(element)) {
                     producers.add(element);
                 }
             }

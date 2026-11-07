@@ -1,7 +1,7 @@
 # Import a module from runtime metadata and a source checkout
 
 **Tools → Ikasan Studio → Import Module…** guides the transfer into an existing Studio
-Maven project. It combines runtime acquisition, local source review and environment
+Maven project. It combines runtime acquisition, local source review and local
 configuration. This workflow needs no AI service, Copilot connection or internet-based
 source analysis. Use a fresh destination project when evaluating an existing application.
 
@@ -10,7 +10,7 @@ source analysis. Use a fresh destination project when evaluating an existing app
 Select **Import an Ikasan module**, then choose **Fetch from running module…**, supply its URL and registered module name, then
 select the matching meta-pack and application package. Review the topology/configuration
 import as usual. See [runtime JSON import](IkasanRuntimeJson.md) for endpoints, credentials
-and version matching. The wizard enables **Review source code from the original project**. This optional step also applies when importing a Studio model. **Import properties for shared settings or environments** is a separate optional follow-up for either import type; when both are selected, properties follow source review. Source review opens only after model validation and generation succeed.
+and version matching. The wizard enables **Review source code from the original project**. This optional step also applies when importing a Studio model. **Import local configuration** is a separate optional follow-up for either import type; when both are selected, properties follow source review. Source review opens only after model validation and generation succeed.
 
 Runtime import commits the model and generates Studio-owned files. Cancelling a later
 source or configuration stage does not undo that model import. No stage starts or stops
@@ -39,7 +39,7 @@ anyway** before selection/import is enabled. Approving restores the normal defau
 selections. The completion report records identity evidence and any explicit override.
 Changes to the imported model or checkout identity metadata require a fresh comparison.
 
-The **Classes and Dependencies** table shows original-source evidence on the left and proposed destination paths on the right:
+The **Classes and Dependencies** table shows original-source evidence on the left and proposed destination paths on the right. Exact file matches are hidden by default; use **Show identical files** to reveal them. Dependency rows, unresolved wiring/scan issues and pending edits remain visible. Equality is cached during background analysis:
 
 - Exact implementation types referenced by generated `@Resource` fields and matching
   original `@Bean` methods seed the recommendations. Explicit imports, AST type references,
@@ -54,7 +54,7 @@ The **Classes and Dependencies** table shows original-source evidence on the lef
   Copying an old configuration wholesale can duplicate Studio's native components and beans.
 - Literal `@PropertySource("classpath:…properties")` resources on recommended source classes
   are offered at the same path beneath `user/src/main/resources`. Canonical application
-  properties remain separate environment configuration choices.
+  properties are reviewed separately for local configuration.
 - Ordinary additional direct Maven dependencies are selected by default. Original
   explicit versions, exclusions, scopes and optional flags are retained. An omitted
   version remains omitted and uses destination dependency management, so JAXB API/runtime
@@ -83,7 +83,13 @@ change import selection. The middle column contains the copy/revert actions.
 
 `DebugTransitionComponent` and `DeepCopyUtil` in their exact Studio packages appear in
 **Studio support files**, immediately after **Classes and Dependencies**. They are
-supplied for the destination meta-pack and start without pending copies. The tab offers
+supplied for the destination meta-pack and start without pending copies. Exactly identical
+files are hidden by default; select **Show identical files** to reveal them. The equality
+check is cached during background analysis and compares original bytes, including comments,
+formatting and line endings. Matching source/destination files are hidden even when they differ
+from the raw generated template (for example after IntelliJ shortens imports). Missing or
+unverified destination files and actual source/destination differences stay visible,
+as do files with pending edits. The tab offers
 the same **Copy all**, **Revert** and editable diff with **Save preview**/**Cancel**.
 Use a partial merge for useful custom debug code, taking care to retain target-version
 API compatibility. Customer classes with the same simple names remain normal source choices.
@@ -134,10 +140,10 @@ constructor arguments, configuration IDs, business values or placeholder default
 
 After transferring selected files, **Continue to configuration import** offers the discovered
 `application.properties`, profile-specific files and other properties in resources or
-`config/`. Choose a discovered file, choose **Use Selected Discovered File**, assign its
-environment and add it for review. Import only the relevant settings. Refer to
-[configuration import and environments](ProjectFilesAndRecovery.md#import-configuration-and-select-an-environment)
-for precedence, local-only files and environment Run/Debug configurations.
+`config/`. Choose a discovered file, choose **Use Selected Discovered File**, adapt its settings for
+local development, then use **Copy all** or double-click the file row and choose **Save preview**. Import only the relevant settings. Refer to
+[local configuration import](ProjectFilesAndRecovery.md#import-local-configuration)
+for local storage, precedence and Run/Debug configurations.
 
 A value-free review is saved under `user/import-reviews/`. It lists transferred files,
 bean contracts, dependency decisions, discovered property-file paths and remaining tasks.

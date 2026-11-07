@@ -1,7 +1,7 @@
 # Ikasan 5.1.0 released meta-pack
 
 `studio-pack-v5-release` supplies **V5.1.0**, runtime **5.1.0**, independent pack revision
-**1.0.3** and generator API **3**. It is included in normal Studio plugin and CLI distributions.
+**1.0.4** and generator API **4**. It is included in normal Studio plugin and CLI distributions.
 It requires no snapshot setting or separate installation. Generated applications require
 **JDK 25**; the Studio plugin, generator and resource-only pack authoring build use JDK 17.
 
@@ -45,3 +45,5 @@ downgrade is applied. See the [dated release verification](../../docs/Ikasan510V
 Revision 1.0.2 adopts the [RE2/J property-validation policy](../../src/main/resources/studio/metapack/METAPACK.md#property-validation-safety-generator-api-2) and semantic Java package-name checks. Existing 1.0.1 model locks require explicit revision adoption.
 
 Revision 1.0.3 removes the legacy H2 Maven template in favour of the engine-provided [independent H2 Java launcher](../../docs/IndependentH2.md). Existing model revision locks require explicit adoption.
+
+Revision 1.0.4 adds per-component launch selection for harness-owned overrides. Regenerate code after explicit revision adoption; component configuration remains unchanged.

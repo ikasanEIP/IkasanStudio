@@ -82,6 +82,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private JButton regenerateClassButton;
     private boolean updateUserCodeManually;
     private JButton cancelEditsButton;
+    private javax.swing.JLabel harnessOverrideStatus;
     private final SimpleChangeListener listenerForAnyEditChanges;
     /** Reveal a reported property, including optional rows hidden by the current search/collapse state. */
     public void revealProperty(String property) {
@@ -989,6 +990,19 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             gc1.weightx = 1;
             gc1.gridy = 0;
 
+            harnessOverrideStatus = null;
+            if (getSelectedComponent() instanceof FlowElement endpoint
+                    && !org.ikasan.studio.core.model.analysis.HarnessOverrides.kind(
+                    project.getService(UiContext.class).getIkasanModule(), endpoint).isEmpty()) {
+                JBPanel harnessStatusPanel = new JBPanel(new BorderLayout(0, JBUI.scale(4)));
+                harnessOverrideStatus = new com.intellij.ui.components.JBLabel();
+                JButton manage = new JButton(StudioBundle.message("harnessOverrides.manage"));
+                manage.addActionListener(event -> org.ikasan.studio.intellij.configuration.HarnessOverridesDialog.show(project));
+                harnessStatusPanel.add(harnessOverrideStatus, BorderLayout.NORTH);
+                harnessStatusPanel.add(manage, BorderLayout.SOUTH);
+                setSubPanel(propertiesEditorPanel, harnessStatusPanel, null, null, gc1);
+                refreshHarnessOverrideStatus();
+            }
             if (mandatoryTabley > 0) {
                 setSubPanel(propertiesEditorPanel, mandatoryPropertiesEditorPanel, StudioBundle.message("label.MandatoryProperties"), ThemeAwareColors.getImportantBorderColor(), gc1);
             }
@@ -1016,6 +1030,20 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 applyPropertySearchFilter(propertySearchField.getText());
             }
         }
+    }
+
+    public void refreshHarnessOverrideStatus() {
+        if (harnessOverrideStatus == null || !(getSelectedComponent() instanceof FlowElement endpoint)) return;
+        var service = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        if (service == null) return;
+        boolean enabled = service.isEnabled(endpoint);
+        boolean active = service.isActive(endpoint);
+        harnessOverrideStatus.setText("<html>" + StudioBundle.message(enabled ?
+                "harnessOverrides.enabled" : "harnessOverrides.disabled")
+                + (service.hasRunningLaunches() ? "<br>" + StudioBundle.message(active ?
+                "harnessOverrides.active" : "harnessOverrides.runningConfigured") : "") + "</html>");
+        harnessOverrideStatus.setToolTipText(StudioBundle.message("harnessOverrides.componentHelp",
+                active ? StudioBundle.message("harnessOverrides.active") : StudioBundle.message("harnessOverrides.none")));
     }
 
     /**

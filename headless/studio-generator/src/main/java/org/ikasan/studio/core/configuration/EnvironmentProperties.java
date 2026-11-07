@@ -11,9 +11,16 @@ import java.util.*;
 
 /** Developer-owned Spring configuration. Imported text retains comments and placeholders. */
 public final class EnvironmentProperties {
+    public static final String USER_CONFIGURATION = "user/src/main/resources/studio-local.properties";
+    public static final String USER_IMPORT = "optional:classpath:studio-local.properties";
+    public static final String APPLICATION_CONFIGURATION = "generated/src/main/resources/application.properties";
     private EnvironmentProperties() { }
 
-    public record Selection(String text, String environment, boolean localOnly) {
+    public record Selection(String text, String environment, boolean localOnly, boolean userResource) {
+        public Selection(String text, String environment, boolean localOnly) {
+            this(text, environment, localOnly, false);
+        }
+        public static Selection developerOwned(String text) { return new Selection(text, "", false, true); }
         public Selection {
             Objects.requireNonNull(text);
             if (text.length() > 2 * 1024 * 1024) throw new IllegalArgumentException("Properties file exceeds 2 MiB.");
@@ -31,6 +38,7 @@ public final class EnvironmentProperties {
                 throw new IllegalArgumentException("Use a profile name starting with a letter, followed by letters, digits, _ or -. studio-debug is reserved.");
         }
         public String relativePath() {
+            if (userResource) return USER_CONFIGURATION;
             return "config/" + (localOnly ? "local/" : "") + "application"
                     + (environment.isEmpty() ? "" : "-" + environment) + ".properties";
         }
@@ -38,7 +46,12 @@ public final class EnvironmentProperties {
 
     public record Change(String key, String kind) { }
     public record Preview(Selection selection, String previous, List<Change> changes,
-                          Set<String> generatedOverrides, Set<String> sharedOverrides) { }
+                          Set<String> generatedOverrides, Set<String> sharedOverrides, String applicationPrevious) {
+        public Preview(Selection selection, String previous, List<Change> changes,
+                       Set<String> generatedOverrides, Set<String> sharedOverrides) {
+            this(selection, previous, changes, generatedOverrides, sharedOverrides, null);
+        }
+    }
 
     public static Properties parse(String text) throws IOException {
         if (text.lines().anyMatch(line -> line.matches("[#!]---")))
@@ -54,15 +67,18 @@ public final class EnvironmentProperties {
         return result;
     }
 
+    /** Captures raw destination bytes so the comparison can also repair invalid existing properties. */
+    public static Preview previewDeveloperDestination(Path root) throws IOException {
+        return new Preview(Selection.developerOwned(""), read(safePath(root, USER_CONFIGURATION)),
+                List.of(), Set.of(), Set.of(), read(safePath(root, APPLICATION_CONFIGURATION)));
+    }
+
     public static Preview preview(Path root, Selection selection) throws IOException {
         Path target = safePath(root, selection.relativePath());
         String previous = read(target);
         Properties before = parse(previous == null ? "" : previous);
         Properties after = parse(selection.text());
-        for (String key : after.stringPropertyNames()) {
-            if (key.equals("spring.profiles") || key.startsWith("spring.profiles.") || key.startsWith("spring.config."))
-                throw new IOException("Remove launch-control property before import: " + key);
-        }
+        validateImport(selection);
         Set<String> keys = new TreeSet<>(before.stringPropertyNames());
         keys.addAll(after.stringPropertyNames());
         List<Change> changes = new ArrayList<>();
@@ -88,13 +104,30 @@ public final class EnvironmentProperties {
         }
         shared.retainAll(after.stringPropertyNames());
         return new Preview(selection, previous, List.copyOf(changes), Collections.unmodifiableSet(overrides),
-                Collections.unmodifiableSet(shared));
+                Collections.unmodifiableSet(shared), selection.userResource() ? generated : null);
     }
 
-    public static String comparisonBaseline(Path root, Preview preview) throws IOException {
-        if (preview.previous() != null) return preview.previous();
-        String defaults = read(safePath(root, "generated/src/main/resources/application.properties"));
-        return defaults == null ? "" : defaults;
+    public static void validateImport(Selection selection) throws IOException {
+        Properties after = parse(selection.text());
+        for (String key : after.stringPropertyNames()) {
+            if (key.equals("spring.profiles") || key.startsWith("spring.profiles.") || key.startsWith("spring.config."))
+                throw new IOException("Remove launch-control property before import: " + key);
+        }
+    }
+
+    /** Adds only the optional user resource import; all unrelated generated text is retained. */
+    public static String withDeveloperImport(String text) throws IOException {
+        String value = parse(text).getProperty("spring.config.import");
+        if (value != null && Arrays.stream(value.split(",")).map(String::trim).anyMatch(entry -> USER_IMPORT.equals(entry) || "classpath:studio-local.properties".equals(entry))) return text;
+        String newline = text.contains("\r\n") ? "\r\n" : "\n";
+        if (value == null) return text + (text.isEmpty() || text.endsWith("\n") || text.endsWith("\r") ? "" : newline)
+                + "spring.config.import=" + USER_IMPORT + newline;
+        var matcher = java.util.regex.Pattern.compile("(?m)^(spring\\.config\\.import[ \t]*[=:][ \t]*)([^\r\n]*)").matcher(text);
+        if (!matcher.find() || matcher.group(2).stripTrailing().endsWith("\\"))
+            throw new IOException("Regenerate application.properties before importing: its spring.config.import uses an unsupported layout.");
+        String updated = matcher.group(1) + matcher.group(2).stripTrailing()
+                + (value.isBlank() ? "" : ",") + USER_IMPORT;
+        return text.substring(0, matcher.start()) + updated + text.substring(matcher.end());
     }
 
     /** Refuses stale previews. Replacement requires explicit approval by the caller. */
@@ -108,6 +141,19 @@ public final class EnvironmentProperties {
             if (preview.previous() != null && !replaceExisting) throw new IOException("Approve replacement of existing configuration files first.");
             original.put(target, preview.previous());
             writes.put(target, preview.selection().text());
+            validateImport(preview.selection());
+            if (preview.selection().userResource()) {
+                Path application = safePath(root, APPLICATION_CONFIGURATION);
+                if (!Objects.equals(read(application), preview.applicationPrevious()))
+                    throw new IOException("Application configuration changed since comparison; compare again.");
+                if (preview.applicationPrevious() != null) {
+                    String updated = withDeveloperImport(preview.applicationPrevious());
+                    if (!updated.equals(preview.applicationPrevious())) {
+                        original.put(application, preview.applicationPrevious());
+                        writes.put(application, updated);
+                    }
+                }
+            }
         }
         if (previews.stream().anyMatch(p -> p.selection().localOnly())) {
             Path ignore = safePath(root, ".gitignore");

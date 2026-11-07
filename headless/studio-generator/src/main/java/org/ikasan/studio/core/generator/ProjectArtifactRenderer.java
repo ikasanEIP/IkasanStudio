@@ -60,6 +60,8 @@ public final class ProjectArtifactRenderer {
         java(files, Generator.STUDIO_BOOT_PACKAGE, "StudioInjectController", StudioInjectControllerTemplate.create(module));
         files.put(IndependentH2Template.PATH, IndependentH2Template.create());
         files.put("generated/src/main/resources/application.properties", PropertiesTemplate.create(module));
+        files.put(HarnessOverridesTemplate.JAVA_PATH, HarnessOverridesTemplate.javaSource());
+        files.put(HarnessOverridesTemplate.PATH, HarnessOverridesTemplate.create(module));
         files.put(ModuleTestWiring.PATH, ModuleTestWiring.create(module));
         for (var flow : module.getFlows()) {
             String pkg = Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();

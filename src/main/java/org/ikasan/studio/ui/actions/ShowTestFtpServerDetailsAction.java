@@ -32,7 +32,7 @@ public final class ShowTestFtpServerDetailsAction implements ActionListener {
             return;
         }
         TestFtpServerService service = project.getService(TestFtpServerService.class);
-        TestFtpServerConfiguration configuration = TestFtpServerConfiguration.from(flowElement);
+        TestFtpServerConfiguration configuration = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effectiveFtp(project, flowElement);
         Path rootDirectory = service.getRootDirectory();
         if (!service.isRunningAt(configuration) || rootDirectory == null) {
             StudioUIUtils.displayIdeaInfoMessage(project,

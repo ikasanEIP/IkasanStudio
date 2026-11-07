@@ -5,6 +5,17 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Explain premature Ikasan shutdown before startup completion, including when no cause is reported and leftover threads keep the JVM alive. Exclude explicit operator stops and ordinary shutdown after startup.
+- Detect Spring Boot module startup failures, including reported HTTP port conflicts, from bounded process output. Show an actionable notification and persistent Studio banner with Run/Debug output access even when leftover JVM threads keep the failed process alive. Reset the diagnostic on a new launch without guessing failure from startup delay or REST 404 responses.
+
+- Simplify property import to an original/action/destination row with Copy all/Revert and an editable Compare Values preview. Remove Review Changes/Clear Review, store imported settings in developer-owned user/src/main/resources/studio-local.properties and wire its optional classpath import without overwriting generated defaults. Preserve cancellation, explicit selection and stale-file checks.
+
+- Apply property edits on the first Update Code click after leaving a required numeric field. Keep uncommitted text intact on focus transfer so formatter rewrites cannot cancel the click or silently revert invalid input.
+
+- Add per-component harness overrides to mix local FTP/SFTP/email and JMS test-reader connections with configured development connections. Keep harness settings in separate generated output, save selections in IntelliJ Application configurations, preserve running-launch selections and show active/next-launch indicators without editing component values. Simplify configuration import to one local file. Generator API 4 and V5.1.0 adapter revision 1.0.4 require explicit adoption for locked projects.
+
+- Hide exactly identical Studio support files by default, with a Show identical files toggle and an empty state. Cache byte equality during background analysis; preserve comment/formatting differences, verification problems and staged edits in the visible list.
+
 - Remove the separate source-import review tab. Show wiring/dependency actions beside their rows and source locations beneath the selected row; keep unmatched scan/wiring problems visible as non-copyable rows. Preserve background updates and the full saved import record, and remove the redundant replacement checkbox: explicit Copy all/Save preview choices authorise only those staged file replacements.
 
 - Place Studio support files immediately after Classes and Dependencies. Allow explicit whole-file copies and staged partial merges with Copy all/Revert and Save preview/Cancel, retain customised support files during regeneration, and preserve identity, replacement approval and stale-review safeguards.

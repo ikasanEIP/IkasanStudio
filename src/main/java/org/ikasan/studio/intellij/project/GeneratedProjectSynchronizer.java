@@ -795,6 +795,12 @@ public class GeneratedProjectSynchronizer {
         try {
             templateString = PropertiesTemplate.create(module);
             StudioProjectFiles.createFileWithDirectories(project,
+                    org.ikasan.studio.core.generator.HarnessOverridesTemplate.JAVA_PATH,
+                    org.ikasan.studio.core.generator.HarnessOverridesTemplate.javaSource(), null);
+            StudioProjectFiles.createFileWithDirectories(project,
+                    org.ikasan.studio.core.generator.HarnessOverridesTemplate.PATH,
+                    org.ikasan.studio.core.generator.HarnessOverridesTemplate.create(module), null);
+            StudioProjectFiles.createFileWithDirectories(project,
                     org.ikasan.studio.core.generator.ModuleTestWiring.PATH,
                     org.ikasan.studio.core.generator.ModuleTestWiring.create(module), null);
             Map<String, String> applicationProperties = StudioBuildUtils.convertStringToMap(templateString);
@@ -803,24 +809,22 @@ public class GeneratedProjectSynchronizer {
         } catch (StudioGeneratorException e) {
             throw new StudioRuntimeException("Template generation failed; no project files were changed", e);
         }
-        if (templateString != null) {
-            StudioProjectFiles.createPropertiesFile(project, templateString);
-            // Unlike initialisePsiFileHandles() (which calls resolveApplicationPropertiesPsiFile() from a
-            // background pooled thread), this method runs inside CommandProcessor.executeCommand on the EDT
-            // (see asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk) - PsiManager.findFile() inside
-            // resolveApplicationPropertiesPsiFile() hits the workspace file index, which the platform refuses
-            // to do synchronously on the EDT ("Slow operations are prohibited on EDT"). ReadAction.nonBlocking
-            // runs the lookup on a pooled thread and hops back for the (already read-action-safe) nav-target
-            // update, the same pattern used in SendTestMessagePayloadDialog.
-            VirtualFile projectBaseDir = StudioProjectFiles.getProjectBaseDir(project);
-            ReadAction.nonBlocking(() -> resolveApplicationPropertiesPsiFile(projectBaseDir))
-                    .finishOnUiThread(ModalityState.defaultModalityState(), propertiesPsiFile -> {
-                        if (!project.isDisposed()) {
-                            setPropertiesFileNavigationTargets(module, propertiesPsiFile);
-                        }
-                    })
-                    .submit(AppExecutorUtil.getAppExecutorService());
-        }
+        StudioProjectFiles.createPropertiesFile(project, templateString);
+        // Unlike initialisePsiFileHandles() (which calls resolveApplicationPropertiesPsiFile() from a
+        // background pooled thread), this method runs inside CommandProcessor.executeCommand on the EDT
+        // (see asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk) - PsiManager.findFile() inside
+        // resolveApplicationPropertiesPsiFile() hits the workspace file index, which the platform refuses
+        // to do synchronously on the EDT ("Slow operations are prohibited on EDT"). ReadAction.nonBlocking
+        // runs the lookup on a pooled thread and hops back for the (already read-action-safe) nav-target
+        // update, the same pattern used in SendTestMessagePayloadDialog.
+        VirtualFile projectBaseDir = StudioProjectFiles.getProjectBaseDir(project);
+        ReadAction.nonBlocking(() -> resolveApplicationPropertiesPsiFile(projectBaseDir))
+                .finishOnUiThread(ModalityState.defaultModalityState(), propertiesPsiFile -> {
+                    if (!project.isDisposed()) {
+                        setPropertiesFileNavigationTargets(module, propertiesPsiFile);
+                    }
+                })
+                .submit(AppExecutorUtil.getAppExecutorService());
     }
 
     /**

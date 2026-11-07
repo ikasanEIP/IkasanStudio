@@ -11,6 +11,9 @@ public class ComponentFactoryMyFlow1
 @org.springframework.beans.factory.annotation.Value("${module.name}")
 private String moduleName;
 @org.springframework.beans.factory.annotation.Autowired
+private org.springframework.core.env.Environment studioHarnessEnvironment;
+
+@org.springframework.beans.factory.annotation.Autowired
 private org.springframework.core.env.Environment studioEnvironment;
 
 private com.fasterxml.jackson.databind.JsonNode studioCollection(String name) {
@@ -107,7 +110,7 @@ java.lang.String myFlow1MyEmailProducerEmailProducerUser;
 org.ikasan.component.endpoint.email.producer.EmailProducerConfiguration myConfigurationClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMyEmailProducer() {
-return builderFactory.getComponentBuilder().emailProducer()
+return org.ikasan.studio.boot.StudioHarnessOverrides.apply(studioHarnessEnvironment, builderFactory.getComponentBuilder().emailProducer()
 .setBccRecipient(myFlow1MyEmailProducerEmailProducerBccRecipient)
 .setBccRecipients(studioStringList("myflow1.myemailproducer.email.producer.bccRecipients"))
 .setCcRecipient(myFlow1MyEmailProducerEmailProducerCcRecipient)
@@ -138,5 +141,5 @@ return builderFactory.getComponentBuilder().emailProducer()
 .setToRecipients(studioStringList("myflow1.myemailproducer.email.producer.toRecipients"))
 .setTransportProtocol(myFlow1MyEmailProducerEmailProducerTransportProtocol)
 .setUser(myFlow1MyEmailProducerEmailProducerUser)
-.build();
+.build(), "TXlGbG93MQ.TXkgRW1haWwgUHJvZHVjZXI", "Email", false);
 }}

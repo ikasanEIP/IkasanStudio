@@ -2,7 +2,6 @@ package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
@@ -31,8 +30,8 @@ public final class ShowTestMailServerDetailsAction implements ActionListener {
             return;
         }
 
-        String smtpHost = TestMailServerLinks.resolveSmtpHost(flowElement);
-        int smtpPort = TestMailServerLinks.resolveSmtpPort(flowElement);
+        String smtpHost = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effectiveMailHost(project, flowElement);
+        int smtpPort = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effectiveMailPort(project, flowElement);
         if (!project.getService(TestMailServerSessionService.class).isListening(smtpHost, smtpPort)) {
             StudioUIUtils.displayIdeaInfoMessage(project,
                     StudioBundle.message("message.TestMailServerNotRunning"));

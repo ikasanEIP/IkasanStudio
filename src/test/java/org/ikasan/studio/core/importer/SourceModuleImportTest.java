@@ -307,7 +307,21 @@ class SourceModuleImportTest {
         supportFixture(pack);
         String original = "// Original checkout header\n" + Files.readString(source().resolve(DEBUG)).replace("    ", "\t");
         write(source(), DEBUG, original.replace("\n", "\r\n"));
-        assertThat(analyse().managedFiles()).hasSize(2).allMatch(file -> file.status() == SourceModuleImport.SupportStatus.SUPPLIED);
+        assertThat(analyse().managedFiles()).hasSize(2).allMatch(file -> file.status() == SourceModuleImport.SupportStatus.SUPPLIED)
+                .anyMatch(file -> file.source().equals(DEBUG) && !file.identicalToDestination());
+    }
+
+    @Test void matchingSupportWithShortenedImportsIsIdenticalEvenWhenItDiffersFromTheRawTemplate() throws Exception {
+        supportFixture();
+        String original = Files.readString(source().resolve(COPY));
+        String shortened = original.replace("package org.ikasan.studio.component.utils;", "package org.ikasan.studio.component.utils;\nimport java.io.Serializable;")
+                .replace("java.io.Serializable", "Serializable");
+        // Keep the import qualified while shortening the implementation reference.
+        shortened = shortened.replace("import Serializable;", "import java.io.Serializable;");
+        write(source(), COPY, shortened); write(target(), COPY, shortened);
+        var file = analyse().managedFiles().stream().filter(support -> support.source().equals(COPY)).findFirst().orElseThrow();
+        assertThat(file.status()).isEqualTo(SourceModuleImport.SupportStatus.DESTINATION_DIFFERS);
+        assertThat(file.identicalToDestination()).isTrue();
     }
 
     @Test void supportClassesAreSuppliedSeparatelyWhileCustomerNamesAndReferencesRemainImportable() throws Exception {

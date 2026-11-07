@@ -30,7 +30,7 @@ class StudioBundleLocalisationTest {
         Properties english = load(ENGLISH);
         Properties japanese = load(JAPANESE);
         for (String key : english.stringPropertyNames()) {
-            if (key.startsWith("h2.independent.") || key.startsWith("environment.") || key.startsWith("sourceImport.") || key.startsWith("import.journey.")
+            if (key.startsWith("startup.") || key.startsWith("harnessOverrides.") || key.startsWith("h2.independent.") || key.startsWith("environment.") || key.startsWith("sourceImport.") || key.startsWith("import.journey.")
                     || key.startsWith("action.IkasanStudio.ImportModuleWizard.") || key.startsWith("action.IkasanStudio.ImportSourceModule.")
                     || key.startsWith("action.IkasanStudio.ImportEnvironmentProperties.")) {
                 assertLocalised(japanese, key);

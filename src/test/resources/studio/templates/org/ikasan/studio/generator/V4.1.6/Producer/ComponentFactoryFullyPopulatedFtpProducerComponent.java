@@ -10,6 +10,9 @@ public class ComponentFactoryMyFlow1
 {
 @org.springframework.beans.factory.annotation.Value("${module.name}")
 private String moduleName;
+@org.springframework.beans.factory.annotation.Autowired
+private org.springframework.core.env.Environment studioHarnessEnvironment;
+
 
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
@@ -70,7 +73,7 @@ org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration myConfigurationClass;
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Producer getMyFTPProducer() {
-return builderFactory.getComponentBuilder().ftpProducer()
+return org.ikasan.studio.boot.StudioHarnessOverrides.apply(studioHarnessEnvironment, builderFactory.getComponentBuilder().ftpProducer()
 .setActive(myFlow1MyFTPProducerFtpProducerActive)
 .setChecksumDelivered(myFlow1MyFTPProducerFtpProducerChecksumDelivered)
 .setCleanupJournalOnComplete(myFlow1MyFTPProducerFtpProducerCleanupJournalOnComplete)
@@ -80,7 +83,7 @@ return builderFactory.getComponentBuilder().ftpProducer()
 .setCreateParentDirectory(myFlow1MyFTPProducerFtpProducerCreateParentDirectory)
 .setCriticalOnStartup(myFlow1MyFTPProducerFtpProducerCriticalOnStartup)
 .setDataTimeout(myFlow1MyFTPProducerFtpProducerDataTimeout)
-.setFTPS(myFlow1MyFTPProducerFtpProducerFtps)
+.setFTPS(org.ikasan.studio.boot.StudioHarnessOverrides.isEnabled("TXlGbG93MQ.TXkgRlRQIFByb2R1Y2Vy") ? false : myFlow1MyFTPProducerFtpProducerFtps)
 .setFtpsIsImplicit(myFlow1MyFTPProducerFtpProducerFtpsIsImplicit)
 .setFtpsKeyStoreFilePassword(myFlow1MyFTPProducerFtpProducerFtpsKeyStoreFilePassword)
 .setFtpsKeyStoreFilePath(myFlow1MyFTPProducerFtpProducerFtpsKeyStoreFilePath)
@@ -99,5 +102,5 @@ return builderFactory.getComponentBuilder().ftpProducer()
 .setTransactionManager(myTransactionManagerClass)
 .setUnzip(myFlow1MyFTPProducerFtpProducerUnzip)
 .setUsername(myFlow1FtpConsumerUsername)
-.build();
+.build(), "TXlGbG93MQ.TXkgRlRQIFByb2R1Y2Vy", "FTP", false);
 }}

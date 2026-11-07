@@ -29,7 +29,7 @@ public final class StartTestFtpServerAction implements ActionListener {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestFtpServerCanOnlyBeUsedOnFtpConsumer"));
             return;
         }
-        TestFtpServerConfiguration configuration = TestFtpServerConfiguration.from(flowElement);
+        TestFtpServerConfiguration configuration = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.ftp(project, flowElement);
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Starting test FTP server") {
             @SuppressWarnings("NullableProblems")
             @Override public void run(ProgressIndicator indicator) {

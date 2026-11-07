@@ -19,6 +19,10 @@ public class FlowsComponentFactoryTemplate extends Generator {
         configs.put(CLASS_NAME_TAG, COMPONENT_FACTORY_CLASS_NAME);
         configs.put(MODULE_TAG, ikasanModule);
         configs.put(FLOW_TAG, ikasanFlow);
+        boolean hasHarness = ikasanFlow.getFlowElementsNoExternalEndPoints().stream()
+                .anyMatch(e -> !org.ikasan.studio.core.model.analysis.HarnessOverrides.kind(ikasanModule, e).isEmpty());
+        configs.put("harnessSupport", hasHarness ?
+                "@org.springframework.beans.factory.annotation.Autowired\nprivate org.springframework.core.env.Environment studioHarnessEnvironment;\n" : "");
         return FreemarkerUtils.generateFromTemplate(ikasanModule.getMetaVersion(), COMPONENT_FACTORY_FTL, configs);
     }
 }

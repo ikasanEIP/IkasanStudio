@@ -24,6 +24,6 @@
       "reason": "Security override including CVE-2026-40466, CVE-2026-41044, CVE-2026-42588, CVE-2026-45505 and CVE-2026-74761; retain the jakarta.jms / Java 25 contract. Remove when the matching Ikasan BOM manages this patched release or a newer compatible version."
     }
   ],
-  "packVersion": "1.0.3",
-  "generatorApiVersion": 3
+  "packVersion": "1.0.4",
+  "generatorApiVersion": 4
 }

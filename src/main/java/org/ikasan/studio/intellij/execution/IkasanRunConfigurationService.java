@@ -100,8 +100,14 @@ public final class IkasanRunConfigurationService implements Disposable {
                 && MAIN_CLASS_NAME.equals(configuration.getMainClassName())
                 && Objects.equals(configuration.getConfigurationModule().getModule(), module)
                 ? environmentOf(configuration.getProgramParameters()) : null;
-        RunnerAndConfigurationSettings settings = environment == null ? findOrCreateConfiguration(module, debug)
-                : findOrCreateEnvironmentConfiguration(module, debug, environment);
+        java.util.Set<String> harnessSelection = selected != null
+                && selected.getConfiguration() instanceof ApplicationConfiguration previous
+                && MAIN_CLASS_NAME.equals(previous.getMainClassName())
+                && Objects.equals(previous.getConfigurationModule().getModule(), module)
+                ? project.getService(HarnessOverrideService.class).selection(previous) : java.util.Set.of();
+        RunnerAndConfigurationSettings settings = environment == null
+                ? findOrCreateConfiguration(module, debug, harnessSelection)
+                : findOrCreateEnvironmentConfiguration(module, debug, environment, harnessSelection);
         RunManager.getInstance(project).setSelectedConfiguration(settings);
         try {
             ExecutionEnvironmentBuilder.create(executor, settings).buildAndExecute();
@@ -118,12 +124,14 @@ public final class IkasanRunConfigurationService implements Disposable {
      * active - see {@link #STUDIO_DEBUG_PROGRAM_PARAMETERS} - so the generated app's /rest/studio/inject endpoint
      * is only reachable when launched via the Debug button, never via a plain Run or a real deployment.
      */
-    RunnerAndConfigurationSettings findOrCreateConfiguration(Module module, boolean debug) {
+    RunnerAndConfigurationSettings findOrCreateConfiguration(Module module, boolean debug, java.util.Set<String> harnessSelection) {
         RunManager runManager = RunManager.getInstance(project);
         RunnerAndConfigurationSettings existing = runManager.getAllSettings().stream()
                 .filter(settings -> settings.getConfiguration() instanceof ApplicationConfiguration)
                 .filter(settings -> matches(
                         (ApplicationConfiguration) settings.getConfiguration(), module, debug))
+                .filter(settings -> Objects.equals(harnessSelection, HarnessOverrideService.explicitSelection(
+                        ((ApplicationConfiguration) settings.getConfiguration()).getVMParameters())))
                 .findFirst()
                 .orElse(null);
         if (existing != null) {
@@ -148,6 +156,8 @@ public final class IkasanRunConfigurationService implements Disposable {
             configuration.setProgramParameters(STUDIO_DEBUG_PROGRAM_PARAMETERS);
         }
 
+        if (harnessSelection != null) configuration.setVMParameters(
+                HarnessOverrideService.withSelection(configuration.getVMParameters(), harnessSelection));
         settings.storeInLocalWorkspace();
         runManager.addConfiguration(settings);
         runManager.setSelectedConfiguration(settings);
@@ -164,8 +174,20 @@ public final class IkasanRunConfigurationService implements Disposable {
 
     /** Creates local workspace Run/Debug configurations without starting the application. */
     public void prepareEnvironments(List<String> environments, Consumer<Boolean> completion) {
+        prepareConfigurations(environments, true, completion);
+    }
+
+    /** Standard classpath-based launches for developer-owned imported resources. */
+    public void prepareLocalConfiguration(Consumer<Boolean> completion) {
+        prepareConfigurations(List.of(""), false, completion);
+    }
+
+    private void prepareConfigurations(List<String> environments, boolean externalLocations, Consumer<Boolean> completion) {
         if (project.isDisposed()) return;
         if (environments.isEmpty()) { completion.accept(false); return; }
+        var overrides = project.getService(HarnessOverrideService.class);
+        var selected = overrides.selectedConfiguration();
+        var selection = selected == null ? java.util.Set.<String>of() : overrides.selection(selected);
         var file = StudioProjectFiles.getVirtualFile(project,
                 "generated/src/main/java/org/ikasan/studio/boot/Application.java");
         if (file == null) { completion.accept(false); return; }
@@ -175,34 +197,48 @@ public final class IkasanRunConfigurationService implements Disposable {
                     if (project.isDisposed()) return;
                     if (module == null) { completion.accept(false); return; }
                     for (String environment : environments) {
-                        findOrCreateEnvironmentConfiguration(module, false, environment);
-                        findOrCreateEnvironmentConfiguration(module, true, environment);
+                        if (externalLocations) {
+                            findOrCreateEnvironmentConfiguration(module, false, environment, selection);
+                            findOrCreateEnvironmentConfiguration(module, true, environment, selection);
+                        } else {
+                            findOrCreateConfiguration(module, false, selection);
+                            findOrCreateConfiguration(module, true, selection);
+                        }
                     }
                     RunManager.getInstance(project).setSelectedConfiguration(
-                            findOrCreateEnvironmentConfiguration(module, false, environments.get(0)));
+                            externalLocations ? findOrCreateEnvironmentConfiguration(module, false, environments.get(0), selection)
+                                    : findOrCreateConfiguration(module, false, selection));
                     completion.accept(true);
                 }).submit(AppExecutorUtil.getAppExecutorService());
     }
 
     RunnerAndConfigurationSettings findOrCreateEnvironmentConfiguration(Module module, boolean debug, String environment) {
+        return findOrCreateEnvironmentConfiguration(module, debug, environment, java.util.Set.of());
+    }
+
+    RunnerAndConfigurationSettings findOrCreateEnvironmentConfiguration(Module module, boolean debug, String environment,
+                                                                       java.util.Set<String> harnessSelection) {
         String parameters = environmentParameters(Objects.requireNonNull(project.getBasePath(), "Environment configurations require a project directory"), environment, debug);
         var manager = RunManager.getInstance(project);
         var existing = manager.getAllSettings().stream()
                 .filter(s -> s.getConfiguration() instanceof ApplicationConfiguration c
                         && MAIN_CLASS_NAME.equals(c.getMainClassName())
                         && Objects.equals(c.getConfigurationModule().getModule(), module)
-                        && parameters.equals(c.getProgramParameters()))
+                        && parameters.equals(c.getProgramParameters())
+                        && Objects.equals(harnessSelection, HarnessOverrideService.explicitSelection(c.getVMParameters())))
                 .findFirst();
         if (existing.isPresent()) return existing.get();
         var type = ApplicationConfigurationType.getInstance();
         var settings = manager.createConfiguration(manager.suggestUniqueName("Ikasan: " + project.getName()
-                + " — " + (environment.isEmpty() ? "Shared" : environment) + (debug ? " (Debug)" : ""), type),
+                + " — " + (environment.isEmpty() ? "Local" : environment) + (debug ? " (Debug)" : ""), type),
                 type.getConfigurationFactories()[0]);
         var configuration = (ApplicationConfiguration) settings.getConfiguration();
         configuration.setMainClassName(MAIN_CLASS_NAME);
         configuration.getConfigurationModule().setModule(module);
         configuration.setWorkingDirectory(project.getBasePath());
         configuration.setProgramParameters(parameters);
+        if (harnessSelection != null) configuration.setVMParameters(
+                HarnessOverrideService.withSelection(configuration.getVMParameters(), harnessSelection));
         settings.storeInLocalWorkspace();
         manager.addConfiguration(settings);
         return settings;

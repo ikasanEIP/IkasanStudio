@@ -145,6 +145,8 @@ public final class TestMailServerSessionService implements Disposable {
         Module ikasanModule = disposed || project.isDisposed() ? null : project.getService(UiContext.class).getIkasanModule();
         if (ikasanModule != null) {
             List<TestMailServerLinks.Link> links = TestMailServerLinks.findLinks(ikasanModule);
+            if (!links.isEmpty() && listeningProbe.test(TestMailServerLinks.DEFAULT_SMTP_HOST, TestMailServerLinks.DEFAULT_SMTP_PORT))
+                nowListening.add(TestMailServerLinks.DEFAULT_SMTP_HOST + ":" + TestMailServerLinks.DEFAULT_SMTP_PORT);
             for (TestMailServerLinks.Link link : links) {
                 if (listeningProbe.test(link.host(), link.port())) {
                     nowListening.add(link.address());

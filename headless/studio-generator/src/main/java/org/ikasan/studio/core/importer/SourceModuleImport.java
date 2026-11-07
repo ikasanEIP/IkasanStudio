@@ -35,10 +35,22 @@ public final class SourceModuleImport {
     private static final long MAX_BYTES = 2 * 1024 * 1024;
 
     public record FileChoice(String source, String destination, String bytes, String previous,
-                             boolean recommended, boolean wiring, String reason) { }
+                             boolean recommended, boolean wiring, String reason, boolean identicalToDestination) {
+        public FileChoice(String source, String destination, String bytes, String previous,
+                          boolean recommended, boolean wiring, String reason) {
+            this(source, destination, bytes, previous, recommended, wiring, reason,
+                    previous != null && Objects.equals(bytes, previous));
+        }
+    }
     public enum SupportStatus { SUPPLIED, ORIGINAL_DIFFERS, DESTINATION_DIFFERS, DESTINATION_MISSING, UNVERIFIED }
     /** Studio-provided support classes; only explicit reviewed copies become developer customisations. */
-    public record ManagedFile(String source, String destination, String bytes, String current, SupportStatus status) { }
+    public record ManagedFile(String source, String destination, String bytes, String current, SupportStatus status,
+                              boolean identicalToDestination) {
+        /** Cached during background analysis; encoded-byte equality retains comments, whitespace and line endings. */
+        public ManagedFile(String source, String destination, String bytes, String current, SupportStatus status) {
+            this(source, destination, bytes, current, status, current != null && Objects.equals(bytes, current));
+        }
+    }
     public static final String SUPPORT_CUSTOMISATIONS = "user/import-reviews/support-customisations.txt";
     private static final Map<String, String> SUPPORT_CLASSES = Map.of(
             DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE + "." + DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME,
@@ -595,7 +607,7 @@ public final class SourceModuleImport {
                 actions.add(new ReviewAction(ReviewKind.SUPPORT_COMPARE, support.destination(), List.of()));
         }
         for (String note : analysis.notes()) if (note.startsWith("Cannot parse source;") || note.startsWith("Ambiguous class in multiple source modules;")
-                || note.startsWith("Cannot inspect Maven declarations:") || note.startsWith("Review parent, dependency management,"))
+                || note.startsWith("Cannot inspect Maven declarations:"))
             actions.add(new ReviewAction(ReviewKind.SCAN, note, List.of()));
         return List.copyOf(actions);
     }

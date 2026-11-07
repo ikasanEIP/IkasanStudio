@@ -45,9 +45,13 @@ class TestJmsDiversionTest extends AbstractGeneratorTestFixtures {
         assertEquals("originalQueue", producer.getPropertyValue("destinationJndiName"));
         assertEquals("originalQueue", consumer.getPropertyValue("destinationJndiName"));
         assertTrue(JmsFlowConnections.findMatchingLinks(module).isEmpty());
-        String override = ".setDestinationJndiName(\"" + privateDestination + "\")";
+        String id = org.ikasan.studio.core.model.analysis.HarnessOverrides.id(producer);
+        String override = "\"" + id + "\", \"JMS\"";
         assertTrue(FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, upstream).contains(override));
         assertTrue(FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, harness).contains(override));
+        assertTrue(org.ikasan.studio.core.generator.HarnessOverridesTemplate.create(module).contains(privateDestination));
+        assertTrue(JmsFlowConnections.findMatchingLinks(module, element -> false).stream()
+                .anyMatch(l -> l.producer() == producer && l.consumer() == consumer));
         assertEquals(downstreamWiring, FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, downstream));
 
         var reloaded = ComponentIO.validatePersistedModuleJson(ComponentIO.toJson(module), "test diversion", false);

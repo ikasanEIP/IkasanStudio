@@ -2,6 +2,48 @@
 
 Harnesses support local development. Start with a disposable project and test endpoints, apply **Update Code**, and restart the module whenever generated configuration changes. Actions are shown only for components and states that support them. Toolbar harness start/stop controls manage the module's FTP, local SFTP and mail test harnesses; they do not start a JMS broker or the application.
 
+## Mix harness and configured connections
+
+Use the **Harness overrides** cog in the **Harness** toolbar group to choose which components use
+local harness settings. Each checkbox enables harness-owned connection settings for one
+component; it does not edit that component's configured properties. For example, use the
+local SFTP harness for one consumer and the local email inbox for one producer while
+another SFTP connection and JMS connection retain their development-region settings.
+
+The choice is saved in the selected IntelliJ Application Run/Debug configuration. Studio
+Run/Debug carries the current selection across when switching between its Run and Debug
+variants. Separate saved configurations can hold different combinations. The generated
+`generated/src/main/resources/studio-harness.properties` and `StudioHarnessOverrides.java`
+are Studio-owned output; regenerate them rather than editing them. The properties file
+uses a separate namespace and cannot enable connections merely by being packaged.
+Imported local properties continue to provide baseline values. Enabled harness connection
+settings take precedence for the selected component only.
+
+The cog tooltip shows the next-launch override count and, while a module runs, the
+running override count, together with the component names. An **H** on a component marks a selected
+or active override; its tooltip and properties-panel status distinguish running use from
+next-launch selection. Component fields continue to show configured values. **Manage
+harness overrides…** opens the same selection dialog without an override-value editor.
+
+Changes apply on the next application launch. Existing processes retain their original
+selection. Each overridden endpoint uses a distinct runtime configuration resource ID, so
+saved development configuration cannot replace harness values or be overwritten by them.
+Disabling an override restores the normal configured resource ID on the next launch.
+No launch selection or generated file contains ephemeral SFTP credentials; those are supplied
+in memory by the project-owned server at launch.
+
+Start selected file/mail harnesses with **Harness Start**, then Run or Debug the module.
+FTP overrides use Studio's loopback server on port 2121; email overrides use the local
+SMTP inbox on port 1025. SFTP uses its allocated loopback port. A selected file harness
+must be running before launch. Port conflicts are reported rather than selecting a different
+external endpoint. JMS selection diverts to its existing reader's private test destination;
+it continues using the configured broker and does not start a broker.
+
+Regenerate existing projects before first use. For a V5.1.0 project locked to an older
+adapter revision, explicitly adopt revision **1.0.4** first. The generated inventory permits
+normal IntelliJ Application launches when the Studio editor is closed. Maven, JUnit and
+command-line launches do not automatically enable Studio harness overrides.
+
 ## AI-assisted demonstrations
 
 The generated `IKASAN_STUDIO.md` and new `LOCAL_TEST_ENVIRONMENT.md` templates explain
@@ -12,7 +54,12 @@ harness is incomplete; disabling its flows hides the outstanding setup.
 
 ## Email
 
-Right-click an Email Producer or its endpoint and choose **Start Test Mail Server**. Studio starts MailHog in a **Test Mail Server** Terminal tab and opens its web inbox. The SMTP address follows the supported local producer configuration; **Show Test Mail Server Details** shows the address and inbox. If prompted to align other producers with this address, review the proposed change and restart the module after regeneration.
+Right-click an Email Producer or its endpoint and choose **Start Test Mail Server**.
+Enable its local harness override to use MailHog while retaining the producer's configured
+SMTP connection. Studio no longer rewrites other producers to align them with the inbox.
+If a producer has incompatible configured settings and no override, Start opens the
+selection dialog. Apply the selection, then start the harness. **Show Test Mail Server
+Details** shows the effective local address and inbox.
 
 The web inbox is at `http://127.0.0.1:8025`. Use **Stop Test Mail Server**, or stop the process in its Terminal tab. Studio will not replace or stop an unrelated listener it cannot establish ownership of.
 
@@ -28,26 +75,33 @@ Use **Stop Test FTP Server** when finished. The server is project-owned and stop
 
 ### Local or external SFTP
 
-Right-click an SFTP Consumer or Producer and choose **SFTP test harness…**:
+Right-click an SFTP Consumer or Producer and choose **SFTP test harness…** to open
+the component selection dialog. Enable each connection that should use Studio's local
+Apache MINA SSHD server. Other SFTP connections retain their configured external server.
+No installed SSH service or Docker is needed.
 
-- **Use local test SFTP server** starts a project-owned Apache MINA SSHD server on an allocated loopback port. No installed SSH service or Docker is needed. This is suggested in the chooser; existing projects keep their configured connections until you select it.
-- **Use configured external server** uses the saved component connection settings. Studio does not start or stop that external server.
+Use **Harness Start** before launching and start it again after **Harness Stop**. Closing
+the project stops its owned server. The canvas server node links only the components using
+the local harness for the running launch, or the next selection when no module is running.
+Changing a next-launch selection does not change the running module's connections.
 
-While the local server is running, the canvas shows **Test SFTP Server** using the same icon as the FTP test server, connected to the SFTP consumers and producers. Right-click the server icon to show its files, change the harness mode or stop the server. The icon disappears when the server stops or external mode is selected.
+Use **Show local test SFTP files** to inspect `temporary-files/test-data/sftp/home`.
+Each selected component uses a stable `component-<encoded identity>` directory; **Browse
+remote files…** opens the appropriate component directory. Files remain across stops.
+Use fresh filenames when duplicate detection or overwrite protection is enabled. Local
+consumers use minimum file age zero; filename patterns, schedules and other processing
+settings still apply. Consumers and producers have separate directories.
 
-The choice applies to all SFTP components in this project and is stored in the local IDE workspace. Stop the module before switching modes. Regenerate code with this Studio version before the first local run; old SFTP factories are rejected at launch until regenerated. Use **Harness Start** before launching the module with Studio Run/Debug; after **Harness Stop**, start it again before restarting the module. Closing the project stops its local server.
-
-Local mode supplies transient launch settings to IntelliJ Application configurations for `org.ikasan.studio.boot.Application`. It does not rewrite the model, generated application properties or saved run configuration. Maven, command-line application launches and JUnit flow tests retain their own settings. Switching back to external mode removes the overrides on the next launch. Local endpoints use separate runtime configuration IDs so persisted external connection records cannot override them or be overwritten. Local configuration records may remain in the module’s development database after the session.
-
-Use **Show local test SFTP files** to add input files and inspect output under `temporary-files/test-data/sftp/home`. Each component has its own `flow-<encoded name>/component-<encoded name>` directory. Names are URL-encoded to keep paths safe on Windows, macOS and Linux. Files are retained across stops for inspection; unlike JUnit fixtures, they are not automatically deleted between runs. Use fresh filenames when duplicate detection or overwrite protection is enabled. Local consumers use a minimum file age of zero; filename patterns, schedules and other processing settings still apply. Paired consumers and producers use separate directories, so they do not automatically feed one another.
-
-**Browse remote files…** uses the local component directory while local mode is selected, and the external connection dialog otherwise. The server supplies its own host key and generated credentials. The browser verifies that key; the Ikasan connector retains its version-specific host-key behavior (including the password-authentication limitation described below).
+The server supplies its host key and ephemeral credentials. The browser verifies that key;
+the Ikasan connector retains its version-specific host-key behavior. External browsing
+uses the component's configured connection. Local endpoints use separate runtime IDs;
+local records may remain in the module's development database.
 
 Generated JUnit flow tests retain their separate self-contained SFTP fixtures; see [Flow testing](IkasanFlowTesting.md). Both harnesses use Apache MINA SSHD, but runtime files and lifecycle are project-owned, while JUnit owns its temporary directories. Sending a synthetic payload downstream does not test SFTP connectivity, authentication or scanning.
 
 ## JMS readers
 
-On a supported JMS Producer, choose **Create test JMS consumer flow**. New readers divert that producer to a private test destination. Restart the module to activate the change. Run in Debug mode and use **Jump to Debug Component** on the harness node to place a breakpoint and inspect messages.
+On a supported JMS Producer, choose **Create test JMS consumer flow**. Enable the producer in **Harness overrides…** to divert it to the reader's private test destination on the next launch. Disable it to restore the configured destination without deleting the reader. Run in Debug mode and use **Jump to Debug Component** on the harness node to place a breakpoint and inspect messages.
 
 Messages are consumed, not copied, forwarded or replayed. Messages already on the original destination can still reach its normal consumers. Older readers created without diversion share the original destination. Use **Message Consumption Warning...** for the relevant warning. Remove the reader using **Remove test harness**, then regenerate/restart to restore the producer's configured destination. The reader still needs a functioning JMS provider; it is not an embedded broker. See [JMS object messages](JmsObjectMessages.md) for serialization and trusted-package requirements.
 

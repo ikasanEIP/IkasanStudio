@@ -620,6 +620,11 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             this.setToolTipText(((Flow) mouseSelectedComponent).getFlowIntegrityStatus());
         } else if (mouseSelectedComponent instanceof FlowElement flowElement) {
             String tooltip = buildInputOutputTooltip(flowElement);
+            var selections = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+            if (selections != null && (selections.isEnabled(flowElement) || selections.isActive(flowElement))) {
+                tooltip += " — " + StudioBundle.message(selections.isActive(flowElement) ?
+                        "harnessOverrides.active" : "harnessOverrides.enabled");
+            }
             this.setToolTipText(isRestartPendingFor(flowElement) ? appendRestartWarning(tooltip) : tooltip);
         } else {
             this.setToolTipText("");
@@ -877,7 +882,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         if (ikasanModule == null || ikasanModule.getFlows() == null) {
             return null;
         }
-        List<TestMailServerLinks.Link> links = TestMailServerLinks.findLinks(ikasanModule);
+        List<TestMailServerLinks.Link> links = effectiveMailLinks(ikasanModule);
         if (links.isEmpty()) {
             return null;
         }
@@ -1775,6 +1780,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
                 }
                 super.paintComponent(g);
                 moduleViewHandler.paintComponent(this, g, -1, -1);
+                paintHarnessOverrideIndicators(g, ikasanModule);
                 paintDraggedComponentGhost(g);
                 paintJmsDestinationConnectors(g, ikasanModule);
                 paintSharedFtpEndpoints(g, ikasanModule);
@@ -1788,6 +1794,57 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         }
         paintGettingStartedHint(g, ikasanModule);
         updateRunModuleButtonState(ikasanModule);
+    }
+
+    private List<TestFtpServerLinks.Link> effectiveFtpLinks(Module module) {
+        var links = new java.util.ArrayList<TestFtpServerLinks.Link>();
+        for (var original : TestFtpServerLinks.findLinks(module)) {
+            var elements = new java.util.ArrayList<>(original.consumers());
+            elements.addAll(original.producers());
+            for (var element : elements) {
+                var configuration = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, element)
+                        ? org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.localFtp() : original.configuration();
+                var link = links.stream().filter(l -> l.configuration().sameAddressAs(configuration)).findFirst().orElse(null);
+                if (link == null) {
+                    link = new TestFtpServerLinks.Link(configuration, new java.util.ArrayList<>(), new java.util.ArrayList<>());
+                    links.add(link);
+                }
+                (element.getComponentMeta().isConsumer() ? link.consumers() : link.producers()).add(element);
+            }
+        }
+        return links;
+    }
+
+    private List<TestMailServerLinks.Link> effectiveMailLinks(Module module) {
+        var links = new java.util.ArrayList<TestMailServerLinks.Link>();
+        for (var original : TestMailServerLinks.findLinks(module)) for (var element : original.producers()) {
+            boolean local = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, element);
+            String host = local ? TestMailServerLinks.DEFAULT_SMTP_HOST : original.host();
+            int port = local ? TestMailServerLinks.DEFAULT_SMTP_PORT : original.port();
+            var link = links.stream().filter(l -> l.host().equals(host) && l.port() == port).findFirst().orElse(null);
+            if (link == null) {
+                link = new TestMailServerLinks.Link(host, port, new java.util.ArrayList<>());
+                links.add(link);
+            }
+            link.producers().add(element);
+        }
+        return links;
+    }
+
+    private void paintHarnessOverrideIndicators(Graphics graphics, Module module) {
+        var selections = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        if (selections == null) return;
+        for (var target : org.ikasan.studio.core.model.analysis.HarnessOverrides.targets(module)) {
+            if (!selections.isEnabled(target.element()) && !selections.isActive(target.element())) continue;
+            var handler = ViewHandlerCache.getAbstractViewHandler(project, target.element());
+            if (handler == null) continue;
+            Graphics badge = graphics.create();
+            try {
+                badge.setColor(org.ikasan.studio.ui.theme.ThemeAwareColors.getSuccessColor());
+                badge.setFont(graphics.getFont().deriveFont(java.awt.Font.BOLD));
+                badge.drawString("H", handler.getRightX() - JBUI.scale(12), handler.getTopY() + JBUI.scale(12));
+            } finally { badge.dispose(); }
+        }
     }
 
     private void paintSharedFtpEndpoints(Graphics graphics, Module module) {
@@ -1867,7 +1924,8 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         if (ikasanModule == null || !(graphics instanceof Graphics2D) || !IkasanStudioSettings.areJmsConnectorsEnabled()) {
             return;
         }
-        List<JmsFlowConnections.JmsLink> links = JmsFlowConnections.findMatchingLinks(ikasanModule);
+        List<JmsFlowConnections.JmsLink> links = JmsFlowConnections.findMatchingLinks(ikasanModule, e ->
+                org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, e));
         if (links.isEmpty()) {
             return;
         }
@@ -1958,17 +2016,17 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         TestMailServerSessionService mailService = project.getService(TestMailServerSessionService.class);
         // module is provably non-null here: bounds is only ever assigned inside the "if (module != null)" block
         // above, so the "bounds == null" early return already ruled out module being null by this point.
-        List<TestFtpServerLinks.Link> ftpLinks = TestFtpServerLinks.findLinks(module);
+        List<TestFtpServerLinks.Link> ftpLinks = effectiveFtpLinks(module);
         boolean hasLeftHarness = ftpLinks.stream()
                 .anyMatch(link -> ftpService.isRunningAt(link.configuration()) && !link.consumers().isEmpty());
         boolean hasRightFtpHarness = ftpLinks.stream()
                 .anyMatch(link -> ftpService.isRunningAt(link.configuration()) && !link.producers().isEmpty());
-        boolean hasRightMailHarness = TestMailServerLinks.findLinks(module).stream()
+        boolean hasRightMailHarness = effectiveMailLinks(module).stream()
                 .anyMatch(link -> mailService.isListening(link.host(), link.port()));
         boolean sftpRunning = isLocalSftpServerRunning();
-        hasLeftHarness |= sftpRunning && !sftpMembers(module, true).isEmpty();
+        hasLeftHarness |= sftpRunning && !selectedSftpMembers(module, true).isEmpty();
         boolean hasRightHarness = hasRightFtpHarness || hasRightMailHarness
-                || sftpRunning && !sftpMembers(module, false).isEmpty();
+                || sftpRunning && !selectedSftpMembers(module, false).isEmpty();
         int leftReserve = hasLeftHarness ? TEST_FTP_SERVER_NODE_WIDTH + TEST_FTP_SERVER_NODE_GAP : 0;
         int rightReserve = hasRightHarness ? TEST_FTP_SERVER_NODE_WIDTH + TEST_FTP_SERVER_NODE_GAP : 0;
         int bottomReserve = 70; // clears the lowest flow's getting-started guidance as well as its border
@@ -2054,7 +2112,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             return null;
         }
         TestFtpServerService service = project.getService(TestFtpServerService.class);
-        for (TestFtpServerLinks.Link link : TestFtpServerLinks.findLinks(module)) {
+        for (TestFtpServerLinks.Link link : effectiveFtpLinks(module)) {
             if (!service.isRunningAt(link.configuration())) {
                 continue;
             }
@@ -2091,7 +2149,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         if (module == null || module.getFlows() == null || !(graphics instanceof Graphics2D)) {
             return;
         }
-        List<TestFtpServerLinks.Link> links = TestFtpServerLinks.findLinks(module);
+        List<TestFtpServerLinks.Link> links = effectiveFtpLinks(module);
         if (links.isEmpty()) {
             return;
         }
@@ -2126,13 +2184,18 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
                 .toList();
     }
 
+    private List<FlowElement> selectedSftpMembers(Module module, boolean consumers) {
+        return sftpMembers(module, consumers).stream()
+                .filter(e -> org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, e)).toList();
+    }
+
     private void paintTestSftpServerNode(Graphics graphics, Module module) {
         if (!(graphics instanceof Graphics2D) || !isLocalSftpServerRunning()) return;
         Graphics2D g2d = (Graphics2D) graphics.create();
         try {
             g2d.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             for (TestFtpServerSide side : TestFtpServerSide.values()) {
-                paintTestFileServerSide(graphics, g2d, module, sftpMembers(module, side == TestFtpServerSide.LEFT),
+                paintTestFileServerSide(graphics, g2d, module, selectedSftpMembers(module, side == TestFtpServerSide.LEFT),
                         side, StudioBundle.message("sftpHarness.endpoint"));
             }
         } finally { g2d.dispose(); }
@@ -2143,7 +2206,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         Module module = getIkasanModule();
         if (module == null) return null;
         for (TestFtpServerSide side : TestFtpServerSide.values()) {
-            FlowElement anchor = firstByModuleOrder(module, sftpMembers(module, side == TestFtpServerSide.LEFT));
+            FlowElement anchor = firstByModuleOrder(module, selectedSftpMembers(module, side == TestFtpServerSide.LEFT));
             Point connector = endpointConnectorPoint(anchor, side);
             if (connector != null && testFtpServerNodeBounds(connector, side).contains(x, y)) return anchor;
         }
@@ -2286,7 +2349,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         if (ikasanModule == null || ikasanModule.getFlows() == null || !(graphics instanceof Graphics2D)) {
             return;
         }
-        List<TestMailServerLinks.Link> links = TestMailServerLinks.findLinks(ikasanModule);
+        List<TestMailServerLinks.Link> links = effectiveMailLinks(ikasanModule);
         if (links.isEmpty()) {
             return;
         }
@@ -2388,6 +2451,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     }
 
     private void paintTestJmsHarnessLink(Graphics graphics, Graphics2D g2d, TestJmsHarnessLinks.Link link) {
+        if (!org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, link.ownerProducer())) return;
         Point anchorRight = jmsHarnessAnchorConnectorPoint(link.ownerProducer());
         if (anchorRight == null) {
             return;
@@ -2443,6 +2507,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             return null;
         }
         for (TestJmsHarnessLinks.Link link : TestJmsHarnessLinks.findLinks(ikasanModule)) {
+            if (!org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, link.ownerProducer())) continue;
             Point anchorRight = jmsHarnessAnchorConnectorPoint(link.ownerProducer());
             if (anchorRight == null) {
                 continue;

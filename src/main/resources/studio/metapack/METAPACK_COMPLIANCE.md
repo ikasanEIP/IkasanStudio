@@ -28,7 +28,8 @@ Every immediate child of `studio/metapack/` must contain `metapack.json` alongsi
 ```
 
 - New packs use schema 2. `packVersion` is the independent artifact revision;
-  `generatorApiVersion` must currently be `1`. Schema 1 remains a legacy loading format.
+  `generatorApiVersion` must be supported by the target generator (currently 1–4).
+  Templates using per-component harness adapters require API 4. Schema 1 remains a legacy loading format.
 - `id` must exactly match the meta-pack directory name.
 - `ikasanVersion` is the exact tested release, never a range or an `x` version.
 - `javaVersion` is the Java release used by generated modules.

@@ -17,6 +17,7 @@ public class PropertiesTemplate extends Generator {
     protected static String generateContents(Module ikasanModule) throws StudioGeneratorException {
         Map<String, Object> configs = getBasicTemplateConfigs();
         configs.put(MODULE_TAG, ikasanModule);
-        return FreemarkerUtils.generateFromTemplate(ikasanModule.getMetaVersion(), MODULE_PROPERTIES_FTL, configs);
+        return FreemarkerUtils.generateFromTemplate(ikasanModule.getMetaVersion(), MODULE_PROPERTIES_FTL, configs)
+                + "\n# Harness settings are inert until enabled for an IntelliJ launch.\nspring.config.import=optional:classpath:studio-harness.properties,optional:classpath:studio-local.properties\n";
     }
 }

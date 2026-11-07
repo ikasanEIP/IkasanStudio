@@ -162,8 +162,8 @@ class DesignerCanvasTest {
     @Test
     void fileHistoryIsAvailableOnlyForFileTransferConsumersAndUsesTheirClientId() {
         Project project = mock(Project.class);
-        var sftpService = mock(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
-        when(project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class)).thenReturn(sftpService);
+        var harnessService = mock(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        when(project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class)).thenReturn(harnessService);
         var context = mock(org.ikasan.studio.ui.UiContext.class);
         when(project.getService(org.ikasan.studio.ui.UiContext.class)).thenReturn(context);
         when(context.getViewHandlerFactory()).thenReturn(mock(org.ikasan.studio.ui.viewmodel.ViewHandlerCache.class));
@@ -185,12 +185,12 @@ class DesignerCanvasTest {
                     assertThat(labels.contains(StudioBundle.message("sftpHarness.title"))).isEqualTo(endpoint.equals("SFTP Endpoint"));
                     assertThat(labels).doesNotContain(StudioBundle.message("sftpHarness.files"));
                     if (endpoint.equals("SFTP Endpoint")) {
-                        when(sftpService.isLocal()).thenReturn(true);
+                        when(harnessService.isEnabled(component)).thenReturn(true);
                         var localMenu = DesignCanvasContextMenu.createCanvasMenu(project, null, component);
                         assertThat(java.util.Arrays.stream(localMenu.getComponents())
                                 .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast).map(JMenuItem::getText).toList())
                                 .contains(StudioBundle.message("sftpHarness.files"));
-                        when(sftpService.isLocal()).thenReturn(false);
+                        when(harnessService.isEnabled(component)).thenReturn(false);
                     }
                     boolean supported = consumer && !endpoint.equals("JMS Endpoint");
                     assertThat(item.isPresent()).isEqualTo(supported);

@@ -42,6 +42,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
     private static final Icon REGENERATE_ICON = IconLoader.getIcon("/studio/icons/regenerate-code.svg", CanvasPanel.class);
 
     private final LaunchH2Action h2Action;
+    private final Project project;
     JButton h2Button = new JButton(StudioBundle.message("button.H2Start"), H2_ICON);
     JButton runModuleButton = new JButton(AllIcons.Actions.Execute);
     JButton debugModuleButton = new JButton(AllIcons.Actions.StartDebugger);
@@ -102,6 +103,8 @@ public class CanvasPanel extends JBPanel implements Disposable {
     JButton stopHarnessButton = new JButton(AllIcons.Actions.Suspend);
     private final JBPanel harnessGroupPanel;
     private final Timer harnessRefreshTimer;
+    private final com.intellij.ui.EditorNotificationPanel startupBanner = new com.intellij.ui.EditorNotificationPanel();
+    private final JButton harnessOverridesButton = new JButton(AllIcons.General.GearPlain);
     private final DesignerCanvas designerCanvas;
     // These are the less commonly needed controls, gated behind the "Show advanced controls" setting (see
     // IkasanStudioSettings) rather than removed outright, since each is still a legitimate escape hatch:
@@ -112,6 +115,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
     JTextArea canvasTextArea;
     public CanvasPanel(Project project) {
         super();
+        this.project = project;
         designerCanvas = new DesignerCanvas(project);
         UiContext uiContext = project.getService(UiContext.class);
         uiContext.setDesignerCanvas(designerCanvas);
@@ -139,6 +143,10 @@ public class CanvasPanel extends JBPanel implements Disposable {
         addButtonsToPanel(harnessGroupPanel, stopHarnessButton, harnessActions.stopAction(), StudioBundle.message("tooltip.StopHarnesses"));
         startHarnessButton.getAccessibleContext().setAccessibleName(StudioBundle.message("accessible.StartHarnesses"));
         stopHarnessButton.getAccessibleContext().setAccessibleName(StudioBundle.message("accessible.StopHarnesses"));
+        addButtonsToPanel(harnessGroupPanel, harnessOverridesButton, event ->
+                org.ikasan.studio.intellij.configuration.HarnessOverridesDialog.show(project),
+                StudioBundle.message("harnessOverrides.manage"));
+        harnessOverridesButton.getAccessibleContext().setAccessibleName(StudioBundle.message("harnessOverrides.manage"));
         harnessGroupPanel.setVisible(harnessActions.isAvailable());
         canvasHeaderButtonPanel.add(harnessGroupPanel);
 
@@ -168,7 +176,15 @@ public class CanvasPanel extends JBPanel implements Disposable {
         testPropertiesBanner = new org.ikasan.studio.intellij.testing.FlowTestPropertiesBanner(project);
         JPanel top = new JPanel(new BorderLayout());
         top.add(headerPanel, BorderLayout.NORTH);
-        top.add(testPropertiesBanner, BorderLayout.SOUTH);
+        startupBanner.icon(AllIcons.General.Error);
+        startupBanner.createActionLabel(StudioBundle.message("startup.output"), () ->
+                project.getService(org.ikasan.studio.intellij.execution.ModuleStartupDiagnostics.class).showOutput());
+        startupBanner.setVisible(false);
+        JPanel banners = new JPanel();
+        banners.setLayout(new BoxLayout(banners, BoxLayout.Y_AXIS));
+        banners.add(startupBanner);
+        banners.add(testPropertiesBanner);
+        top.add(banners, BorderLayout.SOUTH);
         add(top, BorderLayout.NORTH);
         installToolbarContextMenu(headerPanel, new DefaultActionGroup(new AdvancedControlsAction()));
 
@@ -241,7 +257,32 @@ public class CanvasPanel extends JBPanel implements Disposable {
      * harness at all can change as the user edits the canvas.
      */
     private void refreshHarnessGroupVisibility(HarnessControlActions harnessActions) {
-        boolean available = harnessActions.isAvailable();
+        if (project.isDisposed()) return;
+        var diagnostics = project.getService(org.ikasan.studio.intellij.execution.ModuleStartupDiagnostics.class);
+        String startupProblem = diagnostics.message();
+        startupBanner.setText(diagnostics.bannerMessage());
+        startupBanner.setToolTipText(startupProblem);
+        startupBanner.setVisible(startupProblem != null);
+        var overrides = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        if (overrides != null) {
+            var selected = overrides.nextSelection();
+            String next = overrides.describe(selected);
+            String active = overrides.describe(overrides.activeSelection());
+            String summary = overrides.hasRunningLaunches()
+                    ? StudioBundle.message("harnessOverrides.runningSummary", overrides.activeSelection().size(), selected.size())
+                    : StudioBundle.message("harnessOverrides.summary", selected.size());
+            harnessOverridesButton.setToolTipText(summary + " " + StudioBundle.message("harnessOverrides.summaryHelp",
+                    next.isEmpty() ? StudioBundle.message("harnessOverrides.none") : next,
+                    active.isEmpty() ? StudioBundle.message("harnessOverrides.none") : active));
+            harnessOverridesButton.getAccessibleContext().setAccessibleName(harnessOverridesButton.getToolTipText());
+            harnessOverridesButton.setVisible(!overrides.targets().isEmpty());
+            var properties = project.getService(UiContext.class).getPropertiesPanel();
+            if (properties != null) properties.refreshHarnessOverrideStatus();
+        }
+        boolean hasServerControls = harnessActions.isAvailable();
+        startHarnessButton.setVisible(hasServerControls);
+        stopHarnessButton.setVisible(hasServerControls);
+        boolean available = hasServerControls || overrides != null && !overrides.targets().isEmpty();
         if (harnessGroupPanel.isVisible() != available) {
             harnessGroupPanel.setVisible(available);
             harnessGroupPanel.getParent().revalidate();

@@ -83,7 +83,7 @@ The manifest declares the pack's exact build platform:
 {
   "schemaVersion": 2,
   "packVersion": "0.1.0-SNAPSHOT",
-  "generatorApiVersion": 3,
+  "generatorApiVersion": 4,
   "id": "V4.1.6",
   "ikasanVersion": "4.1.6",
   "javaVersion": "17",
@@ -367,6 +367,23 @@ The released V5.1.0 adapter and ExampleIkasan5 example advance from pack revisio
 
 The engine now supplies `IndependentH2.java`; packs no longer provide
 `h2StartStopPom_en.ftl`. H2 is resolved from the project's own Maven runtime classpath,
-with no separate pinned server POM. New official packs declare API 3; current engines
+with no separate pinned server POM. API 3 introduced this contract; current engines
 still accept API 1/2 packs. See [independent H2](../../../../../docs/IndependentH2.md)
 for lifecycle, revision adoption and database compatibility details.
+
+
+## Per-component harness overrides (generator API 4)
+
+Official API 4 factory templates call the generated `StudioHarnessOverrides.apply` adapter
+after building supported FTP, SFTP, email and JMS-reader endpoints. Use
+`HarnessOverrides.selectionId(module, flow, flowElement)` for the selection identity;
+a JMS reader follows its owning producer. The generator supplies `harnessSupport`
+for the factory's Environment injection and emits the common adapter, separate
+`studio-harness.properties` and launch inventory. The `ftps` builder flag must also
+honour `StudioHarnessOverrides.isEnabled` before the component is built.
+
+Packs using these APIs must declare `generatorApiVersion: 4` so older engines reject
+them before rendering. Older packs remain loadable; their unchanged factories do not
+offer the new selective overrides. The application properties import the harness file's
+private namespace; importing the file never enables an override. Studio enables only
+the component identities saved in the selected IntelliJ Application configuration.

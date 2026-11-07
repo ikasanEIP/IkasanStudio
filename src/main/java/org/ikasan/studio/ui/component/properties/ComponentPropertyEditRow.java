@@ -357,6 +357,12 @@ public class ComponentPropertyEditRow {
                 }
             }
         }
+        if (propertyValueField != null) {
+            // Update/Cancel own the edit transaction and validation reads the live text. A focus-loss
+            // formatter rewrite removes then reinserts the document, transiently disabling Update Code
+            // for a required field and disarming the mouse click that transferred focus to that button.
+            propertyValueField.setFocusLostBehavior(JFormattedTextField.PERSIST);
+        }
         resetDataEntryComponentsWithNewValues();
         propertyTitleField.setToolTipText(StudioUIUtils.buildPropertyTooltipHtml(componentProperty.getMeta().getPropertyName(), propertyDisplayName, componentProperty.getMeta().getHelpText()));
         if (componentProperty.getMeta().getDataValidationType() != null) {

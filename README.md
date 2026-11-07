@@ -38,11 +38,13 @@ Optional AI integration lets compatible assistants inspect and update your flow 
 Ikasan Studio is open source under the [BSD 3-Clause License](https://github.com/IkasanEIP/IkasanStudio/blob/main/LICENSE.txt); [browse the source code](https://github.com/IkasanEIP/IkasanStudio).
 <!-- Plugin description end -->
 
-**Release status:** Preparing for public beta on JetBrains Marketplace. Until publication, use a candidate ZIP or build the plugin as described below.
+**Builds:** Compare [beta and nightly features](docs/Features.md). [Nightly ZIPs](downloads/) are updated in this repository and installed through IntelliJ’s **Install Plugin from Disk**.
 
-[Get started](#get-started) · [Documentation](#documentation) · [Build and contribute](#build-and-contribute) · [Report a problem](#report-a-problem)
+[Get started](#get-started) · [Feature matrix](docs/Features.md) · [Documentation](#documentation) · [Build and contribute](#build-and-contribute) · [Report a problem](#report-a-problem)
 
 ## What you can do
+
+See the [complete feature matrix](docs/Features.md) for capabilities grouped by function, with **Beta** and **Nightly** availability. [Nightly ZIPs](downloads/) are updated in this repository; Ikasan 5 support and the latest source-import workflow are nightly features.
 
 - Design flows with a component palette, property editor and visual connections in IntelliJ's main editor area.
 - Generate application code and configuration while keeping business logic in developer-owned source files.
@@ -89,7 +91,7 @@ See [Supported versions](docs/SupportedVersions.md) and [Known limitations](docs
 
 ### Install and create a module
 
-1. Follow the [installation guide](docs/Installation.md) for Marketplace beta access or installation from a candidate ZIP. Until publication, obtain a candidate ZIP or [build the plugin](#build-and-contribute).
+1. Follow the [installation guide](docs/Installation.md) for Marketplace beta access or installation from a candidate ZIP. For nightly features, use the [GitHub ZIP](downloads/ikasanstudio-1.0.0-beta.1.zip) or [build the plugin](#build-and-contribute).
 2. Create a **Maven Archetype** project using `org.ikasan.studio:ikasan-studio-project-archetype` and the version supplied for your candidate. If it is unavailable in your configured repositories, use the [manual archetype fallback](#manual-archetype-fallback).
 3. Allow Maven import and indexing to finish. Studio opens in an editor tab; select the appropriate Ikasan pack and configure the module.
 4. Add a flow, a consumer and the remaining components. Apply their properties, then use the **Regenerate Code** icon in the Module controls to generate from the current in-memory model.
@@ -129,6 +131,7 @@ Studio validates proposals and applies them according to its approval settings. 
 
 | Guide                                                                   | Read it for                                                                                  |
 | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [Feature matrix](docs/Features.md)                                     | Capabilities by functional area, with beta/nightly availability                              |
 | [Getting started](docs/GettingStarted.md)                               | Create, configure, run and debug your first module                                           |
 | [Video tutorials](tutorials/README.md)                                  | Recommended viewing order for module development and Studio contribution                     |
 | [Generated verification baselines](docs/GeneratedVerification.md)       | Model-based checks and frozen baselines for migration comparisons                            |

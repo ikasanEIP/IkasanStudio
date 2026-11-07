@@ -6,7 +6,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
@@ -36,8 +35,8 @@ public class StopTestMailServerAction implements ActionListener {
                     StudioBundle.message("message.TestMailServerCanOnlyBeUsedOnEmailProducer"));
             return;
         }
-        String smtpHost = TestMailServerLinks.resolveSmtpHost(flowElement);
-        int smtpPort = TestMailServerLinks.resolveSmtpPort(flowElement);
+        String smtpHost = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effectiveMailHost(project, flowElement);
+        int smtpPort = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effectiveMailPort(project, flowElement);
         String smtpAddress = smtpHost + ":" + smtpPort;
         TestMailServerSessionService service = project.getService(TestMailServerSessionService.class);
         ProcessHandle terminalShell = null;

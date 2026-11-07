@@ -38,7 +38,7 @@ Source contracts inspected: `rest/rest-module/.../MetaDataApplication.java` and 
    message-provider wiring still needs review; no Java classes are loaded to guess inheritance. REST
    parameters with omitted/null values are retained as unset rather than applied or rejected; duplicate
    parameter names remain invalid.
-6. Optionally select **Review source code from the original project** and/or **Import properties for shared settings or environments** under **After import (optional)**. These steps apply to both Studio and Ikasan imports: the model does not include Java implementations or environment files. If both are selected, source review comes first, then properties.
+6. Optionally select **Review source code from the original project** and/or **Import local configuration** under **After import (optional)**. These steps apply to both Studio and Ikasan imports: the model does not include Java implementations or environment files. If both are selected, source review comes first, then properties.
 7. Review the report before importing. Import replaces the destination project's model and uses the existing generation workflow. Use a new project when exploring an existing application.
 
 Fetched documents are available for inspection; choose a **Paste** option to edit or replace them. Fetching fills the preview only. Model changes still require review and import.
@@ -114,10 +114,9 @@ Fetched imports preserve declared flow startup settings, just like file-based ru
 Runtime REST imports do not fetch the original application properties or discover every
 key used by bespoke classes. Select **Import properties files after the model has been
 generated** in the import dialog, or use **Tools → Ikasan Studio → Import Configuration…**
-later. Supply the original properties files, review their changes, and assign shared or
-named environment settings. Files are preserved outside `generated/`; local-only import
-is the default. See [configuration import and environments](ProjectFilesAndRecovery.md#import-configuration-and-select-an-environment)
-for precedence, Run/Debug configuration selection, value comparison and replacement rules.
+later. Supply the original properties files, review their changes, and import settings for local development. Settings are saved to
+`user/src/main/resources/studio-local.properties` outside `generated/`. See [local configuration import](ProjectFilesAndRecovery.md#import-local-configuration)
+for local Run/Debug setup, value comparison and replacement rules.
 The Java implementations and Spring wiring still need to be supplied separately.
 
 ## Export three separate files

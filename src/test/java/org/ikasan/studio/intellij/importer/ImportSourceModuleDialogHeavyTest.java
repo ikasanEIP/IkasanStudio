@@ -45,7 +45,8 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
             assertEquals(Boolean.FALSE, model.getValueAt(4, 0));
             assertEquals(org.ikasan.studio.ui.StudioBundle.message("sourceImport.dependency.manual"), model.getValueAt(4, 2));
             assertFalse(model.isCellEditable(4, 0));
-            var checkbox = table.getCellRenderer(4, 1).getTableCellRendererComponent(table, Boolean.FALSE, false, false, 4, 1);
+            int manualRow = table.convertRowIndexToView(4);
+            var checkbox = table.getCellRenderer(manualRow, 1).getTableCellRendererComponent(table, Boolean.FALSE, false, false, manualRow, 1);
             assertFalse(checkbox.isEnabled());
             model.setValueAt(Boolean.TRUE, 0, 0);
             assertEquals(Boolean.TRUE, model.getValueAt(0, 0));
@@ -331,6 +332,121 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
             ((JComboBox<?>) candidates).setSelectedIndex(1);
             assertEquals("two", chooser.selectedDirectory());
         } finally { chooser.close(DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testIdenticalSupportIsHiddenButCommentsAndSortedComparisonsRemainAvailable() throws Exception {
+        var dialog = previewDialog();
+        try {
+            var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            String copy = "user/src/main/java/org/ikasan/studio/component/utils/DeepCopyUtil.java";
+            String debug = "user/src/main/java/org/ikasan/studio/component/DebugTransitionComponent.java";
+            var support = List.of(
+                    new SourceModuleImport.ManagedFile("src/A.java", copy, encoded("class A {}"), encoded("class A {}"), SourceModuleImport.SupportStatus.DESTINATION_DIFFERS),
+                    new SourceModuleImport.ManagedFile("src/Z.java", debug, encoded("// useful debug note\nclass Z {}"), encoded("class Z {}"), SourceModuleImport.SupportStatus.SUPPLIED));
+            dialog.acceptAnalysis(withSupport(base, support), base.sourceRoot());
+            var table = (JTable) field(dialog, "supportTable");
+            var show = (JCheckBox) field(dialog, "showIdenticalSupport");
+            assertFalse(show.isSelected()); assertEquals(1, table.getRowCount());
+            table.getRowSorter().toggleSortOrder(0);
+            table.setRowSelectionInterval(0, 0);
+            assertDiff(dialog.comparison(table), "// useful debug note\nclass Z {}", "class Z {}");
+            show.doClick(); assertEquals(2, table.getRowCount());
+            assertEquals(1, table.convertRowIndexToModel(table.getSelectedRow()));
+            show.doClick(); assertEquals(1, table.getRowCount());
+            assertEquals(1, table.convertRowIndexToModel(table.getSelectedRow()));
+            assertDiff(dialog.comparison(table), "// useful debug note\nclass Z {}", "class Z {}");
+        } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testSupportVerificationProblemsAndMissingDestinationsAreNeverHidden() throws Exception {
+        var dialog = previewDialog();
+        try {
+            var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            String destination = "user/src/main/java/org/ikasan/studio/component/DebugTransitionComponent.java";
+            for (var status : List.of(SourceModuleImport.SupportStatus.UNVERIFIED, SourceModuleImport.SupportStatus.DESTINATION_MISSING)) {
+                var support = new SourceModuleImport.ManagedFile("src/Debug.java", destination, encoded("class Debug {}"),
+                        status == SourceModuleImport.SupportStatus.DESTINATION_MISSING ? null : encoded("class Debug {}"), status);
+                dialog.acceptAnalysis(withSupport(base, List.of(support)), base.sourceRoot());
+                assertEquals(1, ((JTable) field(dialog, "supportTable")).getRowCount());
+            }
+        } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testAllIdenticalSupportHasAnEmptyStateAndStagedEditsRemainVisibleUntilReverted() throws Exception {
+        var dialog = previewDialog();
+        try {
+            var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            var support = new SourceModuleImport.ManagedFile("src/Debug.java", "user/src/main/java/org/ikasan/studio/component/DebugTransitionComponent.java",
+                    encoded("class Debug {}"), encoded("class Debug {}"), SourceModuleImport.SupportStatus.SUPPLIED);
+            dialog.acceptAnalysis(withSupport(base, List.of(support)), base.sourceRoot());
+            var table = (com.intellij.ui.table.JBTable) field(dialog, "supportTable");
+            var show = (JCheckBox) field(dialog, "showIdenticalSupport");
+            assertEquals(0, table.getRowCount());
+            assertEquals(org.ikasan.studio.ui.StudioBundle.message("sourceImport.support.allIdentical"), table.getEmptyText().getText());
+            assertEquals(2, ((JTabbedPane) field(dialog, "reviewTabs")).getTabCount());
+            show.doClick(); assertEquals(1, table.getRowCount());
+            table.setRowSelectionInterval(0, 0);
+            var right = ((com.intellij.diff.contents.DocumentContent) requiredComparison(dialog.comparison(table)).getContents().get(1)).getDocument();
+            com.intellij.openapi.application.WriteAction.run(() -> right.setText("// copied debug note\nclass Debug {}"));
+            show.doClick(); assertEquals(1, table.getRowCount());
+            assertEquals(Boolean.TRUE, table.getValueAt(0, 1));
+            assertTrue(table.editCellAt(0, 1));
+            ((JButton) table.getEditorComponent()).doClick();
+            assertEquals(0, table.getRowCount());
+            assertFalse(table.isEditing());
+            assertTrue(((Set<?>) field(dialog, "selectedFiles")).isEmpty());
+        } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testIdenticalClassesAreHiddenWhileDependenciesAndStagedEditsRemainVisible() throws Exception {
+        var dialog = previewDialog();
+        try {
+            var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            var dependency = new org.apache.maven.model.Dependency(); dependency.setGroupId("customer"); dependency.setArtifactId("client");
+            var files = List.of(
+                    new SourceModuleImport.FileChoice("src/A.java", "user/A.java", encoded("class A {}"), encoded("class A {}"), false, false, ""),
+                    new SourceModuleImport.FileChoice("src/B.java", "user/B.java", encoded("// debug\nclass B {}"), encoded("class B {}"), false, false, ""));
+            var analysis = new SourceModuleImport.Analysis(base.sourceRoot(), base.destinationRoot(), files, List.of(), List.of(),
+                    List.of(new SourceModuleImport.DependencyChoice("customer:client:jar:", dependency, true, "Original declaration")),
+                    List.of(), base.originalPom(), base.generatedInputs(), List.of(), base.supportInputs(), base.identity());
+            dialog.acceptAnalysis(analysis, base.sourceRoot());
+            var table = (com.intellij.ui.table.JBTable) field(dialog, "table");
+            var show = (JCheckBox) field(dialog, "showIdenticalFiles");
+            assertFalse(show.isSelected()); assertEquals(2, table.getRowCount());
+            table.getRowSorter().toggleSortOrder(1);
+            int changed = table.convertRowIndexToView(1); table.setRowSelectionInterval(changed, changed);
+            assertDiff(dialog.comparison(table), "// debug\nclass B {}", "class B {}");
+            show.doClick(); assertEquals(3, table.getRowCount());
+            int identical = table.convertRowIndexToView(0); table.setRowSelectionInterval(identical, identical);
+            var right = ((com.intellij.diff.contents.DocumentContent) requiredComparison(dialog.comparison(table)).getContents().get(1)).getDocument();
+            com.intellij.openapi.application.WriteAction.run(() -> right.setText("// staged\nclass A {}"));
+            show.doClick(); assertEquals(3, table.getRowCount());
+            identical = table.convertRowIndexToView(0);
+            assertTrue(table.editCellAt(identical, 1)); ((JButton) table.getEditorComponent()).doClick();
+            assertEquals(2, table.getRowCount()); assertEquals(-1, table.convertRowIndexToView(0));
+            assertFalse(table.isEditing());
+        } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testIdenticalClassWithUnresolvedWiringRemainsVisible() throws Exception {
+        var dialog = previewDialog();
+        try {
+            var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            var file = new SourceModuleImport.FileChoice("src/A.java", "user/src/main/java/A.java", encoded("class A {}"), encoded("class A {}"), false, false, "");
+            var analysis = new SourceModuleImport.Analysis(base.sourceRoot(), base.destinationRoot(), List.of(file),
+                    List.of(new SourceModuleImport.BeanRequirement("aBean", "A", "generated/Factory.java", 1, List.of())),
+                    List.of(), List.of(), List.of(), base.originalPom(), base.generatedInputs(), List.of(), base.supportInputs(), base.identity());
+            dialog.acceptAnalysis(analysis, base.sourceRoot());
+            var table = (JTable) field(dialog, "table");
+            com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching("Wiring issue hidden with identical class", () -> table.getRowCount() == 1, 10);
+            table.setRowSelectionInterval(0, 0);
+            assertTrue(((JTextArea) field(dialog, "fileDetails")).getText().contains("aBean"));
+        } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    private SourceModuleImport.Analysis withSupport(SourceModuleImport.Analysis base, List<SourceModuleImport.ManagedFile> support) {
+        return new SourceModuleImport.Analysis(base.sourceRoot(), base.destinationRoot(), base.files(), base.beans(), base.properties(),
+                base.dependencies(), base.notes(), base.originalPom(), base.generatedInputs(), support, base.supportInputs(), base.identity());
     }
 
     private ImportSourceModuleDialog previewDialog() {

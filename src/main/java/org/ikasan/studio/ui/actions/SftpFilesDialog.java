@@ -49,12 +49,12 @@ public final class SftpFilesDialog extends DialogWrapper {
 
     public static void open(Project project, FlowElement component) {
         var harness = project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
-        if (harness.isLocal()) {
-            String remote = "/" + org.ikasan.studio.integration.sftp.LocalSftpHarness.directory(
-                    component.getContainingFlow().getIdentity(), component.getIdentity());
+        if (org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, component)) {
+            String remote = "/component-" + org.ikasan.studio.core.model.analysis.HarnessOverrides.id(component);
             ApplicationManager.getApplication().executeOnPooledThread(() -> {
                 try {
-                    var server = harness.start();
+                    // The project service owns this server and closes it on stop/disposal.
+                    @SuppressWarnings("resource") var server = harness.start();
                     java.nio.file.Files.createDirectories(server.home().resolve(remote.substring(1)));
                     var connection = server.connection();
                     ApplicationManager.getApplication().invokeLater(() -> {

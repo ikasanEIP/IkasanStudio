@@ -1,19 +1,9 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
-    <!--
-      This project uses Lombok in some classes but deliberately not in others (e.g. Swing UI classes such as
-      DesignerCanvas). The Lombok plugin's "may be used" suggestions fire on any plain field/getter/setter
-      project-wide regardless of whether that class opts into Lombok, so they're just noise here.
-    -->
+    <inspection_tool class="JvmTaintAnalysis" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="LombokGetterMayBeUsed" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="LombokSetterMayBeUsed" enabled="false" level="WARNING" enabled_by_default="false" />
-    <!--
-      Standard Java I/O is intentional in standalone core code and local tests. Replacing it
-      project-wide with Eel APIs would couple that code to IntelliJ and requires checking our
-      2024.2 minimum IDE compatibility. Disable only this remote-I/O performance suggestion;
-      revisit Eel optimisations in IntelliJ integration code when validating remote workflows.
-    -->
     <inspection_tool class="UseOptimizedEelFunctions" enabled="false" level="WARNING" enabled_by_default="false" />
   </profile>
 </component>

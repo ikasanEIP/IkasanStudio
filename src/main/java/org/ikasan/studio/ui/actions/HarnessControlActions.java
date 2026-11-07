@@ -60,17 +60,26 @@ public final class HarnessControlActions {
     }
 
     private void startHarnesses(Module module, ActionEvent event) {
-        if (org.ikasan.studio.intellij.runtime.TestSftpServerService.hasSftp(module)) SftpHarnessAction.start(project);
+        var overrides = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        if (overrides != null && overrides.targets().stream().anyMatch(t -> "SFTP".equals(t.kind())
+                && overrides.nextSelection().contains(t.id()))) SftpHarnessAction.start(project);
         List<TestFtpServerLinks.Link> ftpLinks = TestFtpServerLinks.findLinks(module);
         if (!ftpLinks.isEmpty()) {
-            FlowElement owner = firstFtpOwner(ftpLinks.get(0));
+            FlowElement owner = overrides == null ? firstFtpOwner(ftpLinks.get(0)) :
+                    overrides.targets().stream().filter(t -> "FTP".equals(t.kind()) && overrides.nextSelection().contains(t.id()))
+                            .map(org.ikasan.studio.core.model.analysis.HarnessOverrides.Target::element)
+                            .findFirst().orElse(firstFtpOwner(ftpLinks.get(0)));
             if (owner != null) {
                 new StartTestFtpServerAction(project, owner).actionPerformed(event);
             }
         }
         List<TestMailServerLinks.Link> mailLinks = TestMailServerLinks.findLinks(module);
         if (!mailLinks.isEmpty() && !mailLinks.get(0).producers().isEmpty()) {
-            new StartTestMailServerAction(project, mailLinks.get(0).producers().get(0)).actionPerformed(event);
+            var owner = overrides == null ? mailLinks.get(0).producers().get(0) :
+                    overrides.targets().stream().filter(t -> "Email".equals(t.kind()) && overrides.nextSelection().contains(t.id()))
+                            .map(org.ikasan.studio.core.model.analysis.HarnessOverrides.Target::element)
+                            .findFirst().orElse(mailLinks.get(0).producers().get(0));
+            new StartTestMailServerAction(project, owner).actionPerformed(event);
         }
     }
 

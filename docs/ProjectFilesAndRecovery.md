@@ -65,67 +65,56 @@ JMS JNDI maps use the structured string-map editor and JSON object values in the
 file, with one string value per key. Generated factories parse these maps before calling
 the builder; Java variable names or expressions are not map configuration values.
 
-## Import configuration and select an environment
+## Import local configuration
 
-Choose **Tools → Ikasan Studio → Import Configuration…** to bring across properties that
-runtime metadata does not expose, including keys used by bespoke classes. During model
-import, **Import properties files after the model has been generated** opens the same dialog
-once generation succeeds. Cancelling configuration import leaves the imported model intact.
+Choose **Tools → Ikasan Studio → Import Configuration…**, then choose a properties file
+or paste properties to be added. Files use ISO-8859-1 with Unicode escapes; pasted Unicode
+is escaped for Spring Boot. Source import can also supply discovered properties files.
 
-1. Choose a `.properties` file or paste its contents. Files use Java properties encoding
-   (ISO-8859-1 with Unicode escapes); pasted Unicode is escaped for Spring Boot.
-2. Enter an environment such as `dev` or `int`, or leave it blank for shared settings.
-   `application-dev.properties` automatically suggests `dev`. Names start with a letter
-   and contain letters, digits, underscores or hyphens; `studio-debug` is reserved.
-3. Leave **Local only** selected for machine-specific settings or credentials. Clear it
-   when the file should be available for version control.
-4. Choose **Add File for Review**. Repeat for additional files. The review lists added,
-   changed and removed keys, and overlaps with generated defaults and shared settings.
-   Select a staged file and choose **Compare Values…** for IntelliJ's native diff. For a
-   new file, generated defaults are reference material and are retained during import.
-5. Existing destination files require **Replace existing destination files with the
-   reviewed contents**. Replacement uses the entire imported file; it does not merge
-   missing keys. A destination changed after preview blocks the import. Choose
-   **Clear Reviewed Files** and review again to refresh the preview.
-6. Choose **Import Reviewed Files**, then select the environment in IntelliJ's standard
-   Run/Debug configuration selector. Import does not start or stop a module.
+The file row shows the original file (or **Pasted properties**), the action and the destination:
+`user/src/main/resources/studio-local.properties`.
 
-Shareable files live in `config/application.properties` and
-`config/application-<environment>.properties`; local files use the same names beneath
-`config/local/`. They retain comments, placeholders, custom keys and line endings and
-are outside generation ownership. Local import appends `/config/local/` to `.gitignore`;
-this does not untrack files already committed to Git. Run configurations are stored in
-IntelliJ's local workspace and contain configuration paths and profile names, not copied
-property values. Move neither sensitive files nor their values into `model.json`.
+- **Copy all** stages the complete input for import. **Revert** discards that pending selection.
+- Double-click an entry or press Enter to open the original on the left and an editable
+  destination preview on the right. Copy selected differences or edit the preview, then choose
+  **Save preview**. **Cancel** leaves the pending import unchanged.
+- **Import Configuration** writes the explicitly selected contents. Editing or loading new input
+  clears the previous selection. Cancelling the import writes nothing.
 
-The generated application and its IntelliJ module must be available to create launch
-configurations. If they are unavailable, the files remain imported; finish generation
-and Maven import and repeat configuration import to create the configurations.
-Configurations load `config/` followed by `config/local/`, with local settings taking
-precedence. Spring loads the selected profile's settings over shared settings within
-each directory. Environment variables and command-line overrides still follow normal
-Spring Boot precedence. **Run module** and **Debug module** use the environment of the
-currently selected Studio environment configuration. Debug variants additionally activate
-`studio-debug`; normal Run variants do not. Switching environments takes effect on the
-next launch, without changing the canvas defaults or a running application.
+Existing destination contents are replaced only after **Copy all** or **Save preview** explicitly
+selects them. There is no implicit merge: properties omitted from the selected destination text
+are removed from that file. A destination or generated application configuration changed since
+comparison blocks import; use **Revert** and compare again.
 
-For launching outside IntelliJ, use the same configuration directories, for example from
-the project root:
+The imported file is developer-owned, survives regeneration, and is packaged as a normal
+resource of the `user` Maven module. Studio does not add it to `.gitignore`; handle sensitive
+values through placeholders and the project's normal configuration practices. Generated
+`application.properties` imports it with `optional:classpath:studio-local.properties`, alongside
+the separate generated harness settings. This uses distinct resource names so the developer
+file does not hide the generated `application.properties`.
 
-```shell
-java -jar generated/target/your-module.jar --spring.profiles.active=dev \
-  --spring.config.additional-location=optional:file:./config/,optional:file:./config/local/
-```
+Import adds the optional resource import to an existing generated application configuration,
+preserving other properties and imports in the same stale-checked write transaction. Future
+generation includes it automatically. If the application has not yet been generated, import
+retains the developer file for the later generation step. Nonstandard multiline import entries
+require regeneration before import rather than an unsafe rewrite.
 
-Use the application's actual built JAR path. Deployment must supply these external files;
-they are not packaged into the generated JAR. Resolve secrets through deployment-managed
-environment variables or local files as appropriate.
+Studio prepares ordinary local IntelliJ Application Run/Debug configurations, preserving the
+selected harness combination. These use classpath configuration without selecting environment
+profiles or external configuration directories. Existing external configuration files and saved
+launch configurations are retained. External files and environment variables retain normal
+Spring Boot precedence. Settings take effect on the next launch and do not reset
+persisted Ikasan configuration.
 
-Import rejects duplicate keys, malformed escapes, multi-document properties and
-`spring.profiles.*` / `spring.config.*` controls rather than silently flattening or
-redirecting configuration. Split multi-document input into environment files and keep
-profile/location activation in the run configuration. Placeholder values remain unresolved
-in Studio, including when they refer to environment variables.
+Only the selected destination text must pass properties validation. Duplicate keys, malformed
+escapes, multi-document input and `spring.profiles.*` / `spring.config.*` launch controls are
+rejected before writing. The original comparison may contain such controls: leave them out of
+the destination preview. Comments, placeholders and the destination's line-ending style are
+retained. Placeholders remain unresolved in Studio.
+
+Harness connection overrides are separate from this import. Use the **Harness overrides** cog
+to enable them per component for a launch while retaining imported and configured values.
+See [mixing harness and configured connections](Harnesses.md#mix-harness-and-configured-connections).
 
 Properties do not reconstruct bespoke Java implementations, dependencies or Spring wiring,
 and choosing an environment does not clear Ikasan's persisted configuration-service

@@ -45,11 +45,13 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     private List<SourceModuleImport.ReviewAction> standaloneIssues = List.of();
     private final Choices choices = new Choices();
     private final JBTable table = new JBTable(choices);
+    private final JBCheckBox showIdenticalFiles = new JBCheckBox(StudioBundle.message("sourceImport.files.showIdentical"));
     private final JTabbedPane reviewTabs = new JBTabbedPane();
     private final SupportChoices supportChoices = new SupportChoices();
     private final JBTable supportTable = new JBTable(supportChoices);
     private final JPanel supportPanel = new JPanel(new BorderLayout(0, JBUI.scale(6)));
     private final JBTextArea supportNotice = new JBTextArea();
+    private final JBCheckBox showIdenticalSupport = new JBCheckBox(StudioBundle.message("sourceImport.support.showIdentical"));
     private SourceModuleImport.Analysis analysis;
     private boolean analysing;
     private String lastAttempt = "";
@@ -141,6 +143,22 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         JTabbedPane tabs = reviewTabs;
         var files = new JBScrollPane(table); files.setMinimumSize(new Dimension(0, 0));
         table.setAutoCreateRowSorter(true);
+        table.getEmptyText().setText(StudioBundle.message("sourceImport.files.allIdentical"));
+        ((javax.swing.table.TableRowSorter<?>) table.getRowSorter()).setRowFilter(new javax.swing.RowFilter<javax.swing.table.TableModel, Integer>() {
+            @Override public boolean include(Entry<? extends javax.swing.table.TableModel, ? extends Integer> entry) {
+                if (analysis == null) return false;
+                int row = entry.getIdentifier();
+                if (row >= analysis.files().size()) return true;
+                var file = analysis.files().get(row);
+                return showIdenticalFiles.isSelected() || selectedFiles.contains(file.source())
+                        || !file.identicalToDestination() || !rowActions(table, row).isEmpty();
+            }
+        });
+        ((javax.swing.table.TableRowSorter<?>) table.getRowSorter()).setSortsOnUpdates(true);
+        showIdenticalFiles.addActionListener(event -> {
+            if (table.isEditing()) table.getCellEditor().stopCellEditing();
+            refreshFileVisibility();
+        });
         registerComparison(table);
         table.getColumnModel().getColumn(0).setMaxWidth(JBUI.scale(100));
         table.moveColumn(0, 1);
@@ -154,6 +172,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         table.setDefaultEditor(Boolean.class, new CopyButtonEditor());
         table.getAccessibleContext().setAccessibleName(StudioBundle.message("sourceImport.files"));
         JPanel filePanel = new JPanel(new BorderLayout(0, JBUI.scale(6)));
+        filePanel.add(showIdenticalFiles, BorderLayout.NORTH);
         filePanel.add(files, BorderLayout.CENTER);
         configureDetails(table, fileDetails, fileDetailsPane);
         filePanel.add(fileDetailsPane, BorderLayout.SOUTH);
@@ -162,8 +181,26 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         var supportHelp = new JBTextArea(StudioBundle.message("sourceImport.support.help"));
         supportHelp.setEditable(false); supportHelp.setLineWrap(true); supportHelp.setWrapStyleWord(true);
         supportHelp.setOpaque(false); supportHelp.setFocusable(false);
-        supportPanel.add(supportHelp, BorderLayout.NORTH);
+        JPanel supportHeader = new JPanel(new BorderLayout(0, JBUI.scale(6)));
+        supportHeader.add(supportHelp, BorderLayout.NORTH);
+        supportHeader.add(showIdenticalSupport, BorderLayout.SOUTH);
+        supportPanel.add(supportHeader, BorderLayout.NORTH);
+        showIdenticalSupport.addActionListener(event -> {
+            if (supportTable.isEditing()) supportTable.getCellEditor().stopCellEditing();
+            refreshSupportVisibility();
+        });
         supportTable.setAutoCreateRowSorter(true);
+        supportTable.getEmptyText().setText(StudioBundle.message("sourceImport.support.allIdentical"));
+        ((javax.swing.table.TableRowSorter<?>) supportTable.getRowSorter()).setRowFilter(new javax.swing.RowFilter<javax.swing.table.TableModel, Integer>() {
+            @Override public boolean include(Entry<? extends javax.swing.table.TableModel, ? extends Integer> entry) {
+                if (analysis == null) return false;
+                var file = analysis.managedFiles().get(entry.getIdentifier());
+                return showIdenticalSupport.isSelected() || selectedFiles.contains(file.source())
+                        || !file.identicalToDestination() || file.status() == SourceModuleImport.SupportStatus.UNVERIFIED
+                        || file.status() == SourceModuleImport.SupportStatus.DESTINATION_MISSING;
+            }
+        });
+        ((javax.swing.table.TableRowSorter<?>) supportTable.getRowSorter()).setSortsOnUpdates(true);
         registerComparison(supportTable);
         supportTable.getColumnModel().getColumn(1).setMaxWidth(JBUI.scale(100));
         supportTable.setDefaultRenderer(Boolean.class, table.getDefaultRenderer(Boolean.class));
@@ -262,11 +299,10 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         boolean hasSupport = !analysis.managedFiles().isEmpty();
         supportNotice.setVisible(hasSupport);
         if (hasSupport) {
-            supportNotice.setText(StudioBundle.message("sourceImport.support.notice", analysis.managedFiles().size()));
             if (reviewTabs.indexOfComponent(supportPanel) < 0)
                 reviewTabs.insertTab(StudioBundle.message("sourceImport.support.title"), null, supportPanel, null, 1);
         } else if (reviewTabs.indexOfComponent(supportPanel) >= 0) reviewTabs.remove(supportPanel);
-        supportTable.repaint();
+        refreshFileVisibility(); refreshSupportVisibility();
         stagedSummary.setVisible(!stagedJava.isEmpty());
         stagedSummary.setText(StudioBundle.message("sourceImport.stagedSummary", stagedJava.size()));
         long sequence = reviewSequence.incrementAndGet();
@@ -286,6 +322,20 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                     }
                     attachActions(actions);
                 }, ModalityState.any()));
+    }
+
+    private void refreshFileVisibility() {
+        if (analysis == null) return;
+        ((javax.swing.table.TableRowSorter<?>) table.getRowSorter()).sort();
+        updateDetails(table);
+    }
+
+    private void refreshSupportVisibility() {
+        if (analysis == null) return;
+        ((javax.swing.table.TableRowSorter<?>) supportTable.getRowSorter()).sort();
+        int shown = supportTable.getRowCount();
+        supportNotice.setText(StudioBundle.message("sourceImport.support.notice", shown, analysis.managedFiles().size() - shown));
+        updateDetails(supportTable);
     }
 
     private static String actionMessage(SourceModuleImport.ReviewAction action) {
@@ -384,7 +434,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
             @Override public Component getTableCellRendererComponent(JTable tableView, Object value, boolean selected, boolean focused, int row, int column) {
                 super.getTableCellRendererComponent(tableView, value, selected, focused, row, column);
                 var actions = rowActions(tableView, tableView.convertRowIndexToModel(row));
-                boolean attention = !actions.isEmpty() && tableView.convertColumnIndexToModel(column) == 2;
+                boolean attention = tableView != supportTable && !actions.isEmpty() && tableView.convertColumnIndexToModel(column) == 2;
                 setIcon(attention ? com.intellij.icons.AllIcons.General.Warning : null);
                 setToolTipText(actions.isEmpty() ? String.valueOf(value) : actionMessage(actions.get(0)));
                 return this;

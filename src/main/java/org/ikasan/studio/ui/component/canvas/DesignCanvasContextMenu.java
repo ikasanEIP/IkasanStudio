@@ -130,7 +130,7 @@ public class DesignCanvasContextMenu {
                 JMenuItem harness = new JMenuItem(StudioBundle.message("sftpHarness.title"));
                 harness.addActionListener(e -> SftpHarnessAction.choose(project));
                 menu.add(harness);
-                if (project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class).isLocal()) {
+                if (org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, flowElement)) {
                     JMenuItem files = new JMenuItem(StudioBundle.message("sftpHarness.files"));
                     files.addActionListener(e -> SftpHarnessAction.showFiles(project));
                     menu.add(files);

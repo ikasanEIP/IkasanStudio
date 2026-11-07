@@ -13,7 +13,7 @@ import java.util.Set;
 /** Enforces the version contract before a meta-pack can be exposed to Studio. */
 public final class MetaPackValidator {
     /** Increment only when the pack-facing generator contract changes incompatibly. */
-    public static final int GENERATOR_API_VERSION = 3;
+    public static final int GENERATOR_API_VERSION = 4;
     private MetaPackValidator() { }
 
     public static void validate(String directoryName, MetaPackManifest manifest,

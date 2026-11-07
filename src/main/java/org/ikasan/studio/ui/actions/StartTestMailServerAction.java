@@ -9,10 +9,6 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import org.ikasan.studio.core.generation.GenerationRequest;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.ui.UiContext;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -83,60 +79,13 @@ public class StartTestMailServerAction implements ActionListener {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMailServerUnsavedProperties"));
             return;
         }
-        int harnessPort = TestMailServerLinks.needsLocalConfiguration(flowElement)
-                ? TestMailServerLinks.DEFAULT_SMTP_PORT : TestMailServerLinks.resolveSmtpPort(flowElement);
-        String harnessHost = TestMailServerLinks.needsLocalConfiguration(flowElement)
-                ? TestMailServerLinks.DEFAULT_SMTP_HOST : TestMailServerLinks.resolveSmtpHost(flowElement);
-        var mismatches = TestMailServerLinks.incompatibleProducers(context.getIkasanModule(), harnessPort);
-        if (!mismatches.isEmpty()) {
-            if (mismatches.stream().anyMatch(producer -> producer == context.getSelectedComponent())
-                    && context.getPropertiesPanel() != null
-                    && context.getPropertiesPanel().dataHasChangedAndOKToProcess()) {
-                StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMailServerUnsavedProperties"));
-                return;
-            }
-            String details = mismatches.stream().map(producer ->
-                    (producer.getContainingFlow() == null ? "" : producer.getContainingFlow().getIdentity() + " / ")
-                            + producer.getComponentName() + " — " + TestMailServerLinks.producerAddressDescription(producer))
-                    .collect(java.util.stream.Collectors.joining("\n"));
-            int choice = Messages.showYesNoDialog(project,
-                    StudioBundle.message("message.TestMailServerAlignProducers", harnessHost + ":" + harnessPort, details),
-                    StudioBundle.message("dialog.TestMailServerConfiguration"),
-                    StudioBundle.message("button.AlignEmailProducers"),
-                    StudioBundle.message("button.Cancel"), Messages.getWarningIcon());
-            if (choice != Messages.YES) return;
-            GenerationRequest request = GenerationRequest.modelOnly();
-            for (FlowElement producer : mismatches) {
-                producer.setPropertyValue("mailSmtpHost", harnessHost);
-                producer.setPropertyValue("mailSmtpPort", harnessPort);
-                project.getService(IkasanDebugSessionService.class).markRestartRequired(producer);
-                request = request.merge(GenerationRequest.flow(producer.getContainingFlow()));
-                if (context.getSelectedComponent() == producer && context.getPropertiesPanel() != null) {
-                    context.getPropertiesPanel().updateTargetComponent(producer);
-                }
-            }
-            try {
-                StudioProjectFiles.refreshCodeFromModel(project, request)
-                        .whenComplete((ignored, failure) -> invokeLaterIfProjectOpen(() -> {
-                            if (failure != null) {
-                                StudioUIUtils.displayIdeaWarnMessage(project,
-                                        StudioBundle.message("message.TestMailServerConfigurationFailed"));
-                                return;
-                            }
-                            StudioUIUtils.displayIdeaInfoMessage(project,
-                                    StudioBundle.message("message.TestMailServerConfigurationUpdated"));
-                            actionPerformed(actionEvent);
-                        }));
-            } catch (RuntimeException failure) {
-                LOG.warn("STUDIO: Could not save local email test configuration", failure);
-                StudioUIUtils.displayIdeaWarnMessage(project,
-                        StudioBundle.message("message.TestMailServerConfigurationFailed"));
-            }
+        if (!org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.enabled(project, flowElement)
+                && TestMailServerLinks.needsLocalConfiguration(flowElement)) {
+            org.ikasan.studio.intellij.configuration.HarnessOverridesDialog.show(project);
             return;
         }
-
-        String smtpHost = TestMailServerLinks.resolveSmtpHost(flowElement);
-        int smtpPort = TestMailServerLinks.resolveSmtpPort(flowElement);
+        String smtpHost = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.mailHost(project, flowElement);
+        int smtpPort = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.mailPort(project, flowElement);
         String smtpAddress = smtpHost + ":" + smtpPort;
         String uiUrl = "http://" + TestMailServerSupport.UI_HOST + ":" + TestMailServerSupport.UI_PORT;
 

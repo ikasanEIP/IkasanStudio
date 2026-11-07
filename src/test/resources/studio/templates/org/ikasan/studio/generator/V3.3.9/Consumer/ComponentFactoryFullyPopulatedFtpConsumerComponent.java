@@ -10,6 +10,9 @@ public class ComponentFactoryMyFlow1
 {
 @org.springframework.beans.factory.annotation.Value("${module.name}")
 private String moduleName;
+@org.springframework.beans.factory.annotation.Autowired
+private org.springframework.core.env.Environment studioHarnessEnvironment;
+
 
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
@@ -106,7 +109,7 @@ org.ikasan.framework.factory.DirectoryURLFactory myDirectoryURLFactoryClass;
 org.springframework.transaction.jta.JtaTransactionManager myTransactionManagerClass;
 
 public org.ikasan.spec.component.endpoint.Consumer getMyFTPConsumer() {
-return builderFactory.getComponentBuilder().ftpConsumer()
+return org.ikasan.studio.boot.StudioHarnessOverrides.apply(studioHarnessEnvironment, builderFactory.getComponentBuilder().ftpConsumer()
 .setActive(myFlow1MyFTPConsumerFtpConsumerActive)
 .setAgeOfFiles(myFlow1MyFTPConsumerFtpConsumerAgeOfFiles)
 .setChecksum(myFlow1MyFTPConsumerFtpConsumerChecksum)
@@ -125,7 +128,7 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setFilterDuplicates(myFlow1MyFTPConsumerFtpConsumerFilterDuplicates)
 .setFilterOnFilename(myFlow1MyFTPConsumerFtpConsumerFilterOnFilename)
 .setFilterOnLastModifiedDate(myFlow1MyFTPConsumerFtpConsumerFilterOnLastModifiedDate)
-.setFTPS(myFlow1MyFTPConsumerFtpConsumerFtps)
+.setFTPS(org.ikasan.studio.boot.StudioHarnessOverrides.isEnabled("TXlGbG93MQ.TXkgRlRQIENvbnN1bWVy") ? false : myFlow1MyFTPConsumerFtpConsumerFtps)
 .setFtpsIsImplicit(myFlow1MyFTPConsumerFtpConsumerFtpsIsImplicit)
 .setFtpsKeyStoreFilePassword(myFlow1MyFTPConsumerFtpConsumerFtpsKeyStoreFilePassword)
 .setFtpsKeyStoreFilePath(myFlow1MyFTPConsumerFtpConsumerFtpsKeyStoreFilePath)
@@ -153,5 +156,5 @@ return builderFactory.getComponentBuilder().ftpConsumer()
 .setSystemKey(myFlow1FtpConsumerSystemKey)
 .setTransactionManager(myTransactionManagerClass)
 .setUsername(myFlow1FtpConsumerUsername)
-.build();
+.build(), "TXlGbG93MQ.TXkgRlRQIENvbnN1bWVy", "FTP", true);
 }}
