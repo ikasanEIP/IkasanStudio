@@ -38,10 +38,29 @@ class RuntimeImportClientTest {
         }, base -> {
             var result = RuntimeImportClient.fetch(base, "Demo module", "user", "secret".toCharArray(), true, () -> {});
             assertEquals(MODULE, result.moduleJson());
-            assertEquals("[" + RECORD + "]", result.configurationJson());
+            assertEquals(new com.fasterxml.jackson.databind.ObjectMapper().readTree("[" + RECORD + "]"),
+                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(result.configurationJson()));
+            assertTrue(result.configurationJson().contains("\n"));
             assertEquals(List.of("/ctx/rest/metadata/module/Demo%20module",
                     "/ctx/rest/configuration/Demo%20module/Flow%201/components",
                     "/ctx/rest/configuration/Demo%20module/Flow%2F2/components"), paths);
+        });
+    }
+
+    @Test void formatsLargeConfigurationForDisplayWithoutChangingUnicodeOrEscapedValues() throws Exception {
+        var json = new com.fasterxml.jackson.databind.ObjectMapper();
+        var records = json.createArrayNode();
+        for (int index = 0; index < 1000; index++) {
+            var record = records.addObject().put("configurationId", "config-" + index);
+            record.putArray("parameters").addObject().put("name", "value")
+                    .put("value", "日本語 café \"quoted\"\nsecond line");
+        }
+        withServer(exchange -> respond(exchange, 200,
+                exchange.getRequestURI().getPath().contains("/metadata/") ? MODULE : records.toString()), base -> {
+            var result = RuntimeImportClient.fetch(base, "Demo module", "", new char[0], true, () -> {});
+            assertEquals(records, json.readTree(result.configurationJson()));
+            assertTrue(result.configurationJson().lines().count() > 1000);
+            assertTrue(result.configurationJson().lines().mapToInt(String::length).max().orElseThrow() < 200);
         });
     }
 

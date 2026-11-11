@@ -60,6 +60,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
     private final JButton pasteMetadata = new JButton(StudioBundle.message("import.journey.pasteMetadata"));
     private final JButton pasteConfiguration = new JButton(StudioBundle.message("import.journey.pasteConfiguration"));
     private final JButton chooseFileButton = new JButton();
+    private final JButton chooseConfigurationButton = new JButton();
     private final JBLabel studioInputOr = new JBLabel(StudioBundle.message("import.journey.or"));
     private final JBLabel studioPastePrompt = new JBLabel(StudioBundle.message("import.journey.studioPaste"));
     private final JButton diagnostics = new JButton(StudioBundle.message("import.diagnostics.title"));
@@ -153,6 +154,8 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
                 ? "import.runtime.moduleTab" : "import.journey.studioPaste"));
         jsonArea.setEditable(!runtime || acquisition == Acquisition.MANUAL);
         configurationArea.setEditable(acquisition == Acquisition.MANUAL);
+        chooseConfigurationButton.setText(StudioBundle.message(acquisition == Acquisition.FETCHED
+                ? "import.runtime.overrideConfiguration" : "import.runtime.chooseConfiguration"));
         pasteConfiguration.setEnabled(runtime && hasSource && hasMetadata);
         if (documents.getTabCount() > 1) {
             documents.setEnabledAt(1, hasMetadata && hasSource);
@@ -228,15 +231,15 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         jsonArea.setRows(12); jsonArea.setColumns(75); jsonArea.setLineWrap(false);
         jsonArea.setFont(JBFont.create(EditorColorsManager.getInstance().getGlobalScheme().getFont(EditorFontType.PLAIN), false));
         jsonArea.getAccessibleContext().setAccessibleName(StudioBundle.message("import.runtime.moduleTab"));
-        configurationArea.setRows(12); configurationArea.setColumns(75); configurationArea.setFont(jsonArea.getFont());
+        configurationArea.setRows(12); configurationArea.setColumns(75); configurationArea.setLineWrap(false);
+        configurationArea.setFont(jsonArea.getFont());
         configurationArea.getAccessibleContext().setAccessibleName(StudioBundle.message("import.runtime.configurationTab"));
         JBScrollPane moduleEditor = documentScrollPane(jsonArea);
         JPanel configurationPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         configurationPanel.add(importHelp("import.runtime.configurationHelp"), BorderLayout.NORTH);
         configurationPanel.add(documentScrollPane(configurationArea), BorderLayout.CENTER);
-        JButton chooseConfiguration = new JButton(StudioBundle.message("import.runtime.chooseConfiguration"));
-        chooseConfiguration.addActionListener(event -> chooseConfiguration());
-        configurationPanel.add(chooseConfiguration, BorderLayout.SOUTH);
+        chooseConfigurationButton.addActionListener(event -> chooseConfiguration());
+        configurationPanel.add(chooseConfigurationButton, BorderLayout.SOUTH);
         runtimeMode.addActionListener(event -> {
             documentPanel.remove(runtimeMode.isSelected() ? moduleEditor : documents);
             documents.removeAll();

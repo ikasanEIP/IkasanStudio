@@ -529,6 +529,59 @@ class IkasanRuntimeImportTest {
     }
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
+    void importsConcreteFtpAndSftpRuntimeClassesWithoutGenericFallback(String pack) throws Exception {
+        for (String protocol : java.util.List.of("ftp", "sftp")) {
+            String variant = protocol.equals("ftp") ? "FTP Producer" : "SFTP Producer";
+            String runtimeClass = "org.ikasan.endpoint." + protocol + ".producer."
+                    + (protocol.equals("ftp") ? "FtpProducer" : "SftpProducer");
+            var tree = topology(pack);
+            var endpoint = component(pack, variant, "Log").put("implementingClass", runtimeClass)
+                    .put("configurationId", "endpoint-config");
+            ((com.fasterxml.jackson.databind.node.ArrayNode) tree.path("flows").get(0).path("flowElements")).set(0, endpoint);
+            var config = JSON.createObjectNode().put("configurationId", "endpoint-config")
+                    .put("implementingClass", runtimeClass + "Configuration");
+            var values = JSON.createObjectNode().put("remoteHost", "ftp.example.test").put("remotePort", 2121)
+                    .put("username", "fixture-user").put("password", "fixture-password")
+                    .put("clientID", "fixture-client").put("outputDirectory", "/out");
+            if (protocol.equals("ftp")) {
+                for (String key : java.util.List.of("FTPS", "active", "checksumDelivered", "cleanupJournalOnComplete",
+                        "createParentDirectory", "ftpsIsImplicit", "overwrite", "unzip")) values.put(key, true);
+                for (String key : java.util.List.of("connectionTimeout", "dataTimeout", "ftpsPort", "maxRetryAttempts", "socketTimeout"))
+                    values.put(key, 123);
+                for (String key : java.util.List.of("ftpsKeyStoreFilePassword", "ftpsKeyStoreFilePath", "ftpsProtocol",
+                        "renameExtension", "systemKey")) values.put(key, "fixture-value");
+            }
+            var parameters = config.putArray("parameters");
+            values.fields().forEachRemaining(e -> parameters.addObject().put("name", e.getKey()).set("value", e.getValue()));
+            var configs = JSON.createArrayNode().add(configuration()).add(config);
+            var result = IkasanRuntimeImport.convert(tree.toString(), configs.toString(), pack, "org.example", mappings());
+            var imported = JSON.readTree(result.studioJson()).path("flows").get(0).path("flowElements").get(0);
+            var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, variant);
+            assertThat(imported.path("implementingClass").asText()).isEqualTo(meta.getImplementingClass());
+            assertThat(imported.path("additionalKey").asText()).isEqualTo(meta.getAdditionalKey());
+            values.fields().forEachRemaining(e -> assertThat(imported.get(e.getKey().equals("FTPS") ? "ftps" : e.getKey()))
+                    .as(pack + " " + variant + " " + e.getKey()).isEqualTo(e.getValue()));
+            assertThat(result.review()).noneMatch(line -> line.contains("Log: review configuration fields not applied"));
+        }
+    }
+
+    @Test void doesNotTreatAnUndeclaredCustomProducerAsFtpFromItsConfigurationClass() throws Exception {
+        var tree = topology("V4.1.6");
+        var endpoint = component("V4.1.6", "FTP Producer", "Log")
+                .put("implementingClass", "example.CustomFtpProducer").put("configurationId", "endpoint-config");
+        ((com.fasterxml.jackson.databind.node.ArrayNode) tree.path("flows").get(0).path("flowElements")).set(0, endpoint);
+        var config = JSON.createObjectNode().put("configurationId", "endpoint-config")
+                .put("implementingClass", "org.ikasan.endpoint.ftp.producer.FtpProducerConfiguration");
+        config.putArray("parameters").addObject().put("name", "remoteHost").put("value", "ftp.example.test");
+        var result = IkasanRuntimeImport.convert(tree.toString(), JSON.createArrayNode().add(configuration()).add(config).toString(),
+                "V4.1.6", "org.example", mappings());
+        var imported = JSON.readTree(result.studioJson()).path("flows").get(0).path("flowElements").get(0);
+        assertThat(imported.path("userImplementedClassName").asText()).isEqualTo("example.CustomFtpProducer");
+        assertThat(imported.has("remoteHost")).isFalse();
+        assertThat(result.review().toString()).contains("configuration fields not applied: remoteHost");
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void importsVerifiedEndpointConfigurationFields(String pack) throws Exception {
         for (var example : java.util.Map.of(
                 "FTP Producer", "remoteHost", "SFTP Producer", "remoteHost",

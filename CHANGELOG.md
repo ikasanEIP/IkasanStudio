@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Recognise concrete FTP and SFTP producer classes during runtime import using explicit pack metadata. Import their configuration fields instead of falling back to Generic Producer; preserve historical saved component identities. The released V5.1.0 adapter advances to revision 1.0.5.
+
 - Explain premature Ikasan shutdown before startup completion, including when no cause is reported and leftover threads keep the JVM alive. Exclude explicit operator stops and ordinary shutdown after startup.
 - Detect Spring Boot module startup failures, including reported HTTP port conflicts, from bounded process output. Show an actionable notification and persistent Studio banner with Run/Debug output access even when leftover JVM threads keep the failed process alive. Reset the diagnostic on a new launch without guessing failure from startup delay or REST 404 responses.
 

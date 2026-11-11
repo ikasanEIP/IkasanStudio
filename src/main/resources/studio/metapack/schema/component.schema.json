@@ -31,6 +31,7 @@
     "flowTestObservationOnly": { "type": "boolean" },
     "runtimeConfigurationProperties": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
     "runtimeConfigurationClass": { "type": "string" },
+    "runtimeImplementingClass": { "type": "string", "minLength": 1 },
     "runtimeConfigurationMappings": { "type": "object", "propertyNames": { "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" }, "additionalProperties": { "type": "string", "minLength": 1 } },
     "legacyPropertyAliases": { "type": "object", "propertyNames": { "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" }, "additionalProperties": { "type": "string", "minLength": 1 } },
     "runtimeConfigurationDefaults": { "type": "object", "propertyNames": { "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" }, "additionalProperties": { "not": { "type": "null" } } },

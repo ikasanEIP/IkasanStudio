@@ -114,7 +114,9 @@ public final class RuntimeImportClient {
         cancelled.run();
         var configuration = JSON.createArrayNode();
         records.values().forEach(configuration::add);
-        String combined = JSON.writeValueAsString(configuration);
+        // Keep large configuration exports readable and avoid Swing rendering a single enormous line.
+        // This runs on the acquisition worker, before documents are handed to the EDT.
+        String combined = configuration.isEmpty() ? "[]" : JSON.writerWithDefaultPrettyPrinter().writeValueAsString(configuration);
         if (combined.getBytes(StandardCharsets.UTF_8).length > MAX_BYTES) throw new IOException("Component configuration exceeds the 8 MiB import limit.");
         return new Documents(metadata, combined);
     }

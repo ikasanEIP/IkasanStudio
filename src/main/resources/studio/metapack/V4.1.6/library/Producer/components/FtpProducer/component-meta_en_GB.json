@@ -1,4 +1,5 @@
 {
+  "runtimeImplementingClass": "org.ikasan.endpoint.ftp.producer.FtpProducer",
   "runtimeConfigurationMappings": {"FTPS": "ftps"},
   "flowTestDeliveryStrategy": "ftp",
   "runtimeConfigurationProperties": ["active", "checksumDelivered", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "createParentDirectory", "dataTimeout", "ftpsIsImplicit", "ftpsKeyStoreFilePassword", "ftpsKeyStoreFilePath", "ftpsPort", "ftpsProtocol", "maxRetryAttempts", "outputDirectory", "overwrite", "password", "remoteHost", "remotePort", "renameExtension", "socketTimeout", "systemKey", "tempFileName", "unzip", "username", "ftps"],

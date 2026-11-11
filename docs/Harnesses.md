@@ -40,7 +40,7 @@ external endpoint. JMS selection diverts to its existing reader's private test d
 it continues using the configured broker and does not start a broker.
 
 Regenerate existing projects before first use. For a V5.1.0 project locked to an older
-adapter revision, explicitly adopt revision **1.0.4** first. The generated inventory permits
+adapter revision, explicitly adopt revision **1.0.5** first. The generated inventory permits
 normal IntelliJ Application launches when the Studio editor is closed. Maven, JUnit and
 command-line launches do not automatically enable Studio harness overrides.
 

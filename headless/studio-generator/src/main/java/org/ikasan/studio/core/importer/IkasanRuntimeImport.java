@@ -211,8 +211,6 @@ public final class IkasanRuntimeImport {
                     ? JSON.createArrayNode() : read(configurationJson);
             Map<String, JsonNode> configurations = configurations(configuration);
             List<String> review = new ArrayList<>();
-            review.add("Runtime JSON does not include Java implementations, dependencies, Spring wiring or all builder settings. Review these before building or running.");
-            review.add("Compare the generated Maven POM with the original project: restore any custom dependencies, repositories, plugins and build profiles needed by your application.");
             if (!runtimeVersion.isBlank() && !runtimeVersion.equals(manifest.ikasanVersion()))
                 review.add("Patch upgrade: export Ikasan " + runtimeVersion + " imported using " + pack
                         + " (Ikasan " + manifest.ikasanVersion() + "). Generated dependencies target the newer patch."
@@ -376,7 +374,9 @@ public final class IkasanRuntimeImport {
     private static List<ComponentMeta> exactCandidates(JsonNode raw, String pack) throws StudioBuildException {
         String type = required(raw, "componentType"), implementation = required(raw, "implementingClass");
         return ComponentLibrary.getPaletteComponentList(pack).stream()
-                .filter(m -> type.equals(m.getComponentType()) && implementation.equals(m.getImplementingClass())).toList();
+                // Keep persisted Studio identities compatible; runtime identities are explicit pack declarations.
+                .filter(m -> type.equals(m.getComponentType()) && (implementation.equals(m.getImplementingClass())
+                        || implementation.equals(m.getRuntimeImplementingClass()))).toList();
     }
 
     private static ComponentMeta resolve(JsonNode raw, String pack, String selectedVariant,

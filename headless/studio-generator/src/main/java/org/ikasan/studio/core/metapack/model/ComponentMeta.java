@@ -160,6 +160,8 @@ public class ComponentMeta implements IkasanMeta {
     private List<String> runtimeConfigurationProperties = List.of();
     /** Optional runtime configuration type when no user-supplied configuration property is exposed. */
     private String runtimeConfigurationClass;
+    /** Concrete class exported by a running module when the saved Studio identity differs. */
+    private String runtimeImplementingClass;
     /** REST parameter name to Studio property, declared only where names differ. */
     @Builder.Default
     @JsonSetter(nulls = Nulls.SKIP)

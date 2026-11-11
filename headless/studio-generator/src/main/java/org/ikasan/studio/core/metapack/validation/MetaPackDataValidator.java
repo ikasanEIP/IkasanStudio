@@ -63,6 +63,8 @@ final class MetaPackDataValidator {
             method(problems, path + ".ikasanComponentFactoryMethod", component.getIkasanComponentFactoryMethod());
             help(problems, path + ".helpText", component.getHelpText());
             url(problems, pack, path + ".webHelpURL", component.getWebHelpURL());
+            javaName(problems, path + ".runtimeImplementingClass", component.getRuntimeImplementingClass());
+            namespace(problems, platform, path + ".runtimeImplementingClass", component.getRuntimeImplementingClass());
             types(problems, path + ".expectedInputTypes", component.getExpectedInputTypes());
             type(problems, path + ".producedOutputType", component.getProducedOutputType());
             namespace(problems, platform, path + ".implementingClass", component.getImplementingClass());
