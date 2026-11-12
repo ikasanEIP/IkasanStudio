@@ -18,7 +18,7 @@ buildscript {
     dependencies {
         classpath(platform("com.fasterxml.jackson:jackson-bom:2.22.4"))
         constraints {
-            add("classpath", "org.jsoup:jsoup:1.23.2") {
+            add("classpath", "org.jsoup:jsoup:1.24.1") {
                 because("GHSA-pmhh-3w7g-xqp8 and GHSA-65r4-943x-97jj affect build-tool XML parsing")
             }
         }
