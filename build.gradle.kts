@@ -16,7 +16,7 @@ import java.time.Duration
 // placing them on the plugin runtime classpath or replacing IntelliJ-owned libraries.
 buildscript {
     dependencies {
-        classpath(platform("com.fasterxml.jackson:jackson-bom:2.22.4"))
+        classpath(platform("com.fasterxml.jackson:jackson-bom:2.23.0"))
         constraints {
             add("classpath", "org.jsoup:jsoup:1.23.2") {
                 because("GHSA-pmhh-3w7g-xqp8 and GHSA-65r4-943x-97jj affect build-tool XML parsing")
@@ -148,7 +148,7 @@ dependencies {
 // The platform fixtures resolve separately from testRuntimeClasspath. These are
 // test-only repairs; IntelliJ's installed libraries remain owned by JetBrains.
 dependencies {
-    add("intellijPlatformTestDependencies", platform("com.fasterxml.jackson:jackson-bom:2.22.4"))
+    add("intellijPlatformTestDependencies", platform("com.fasterxml.jackson:jackson-bom:2.23.0"))
     constraints {
         add("intellijPlatformTestDependencies", "org.assertj:assertj-core:3.27.7") {
             because("CVE-2026-24400: patch the platform fixture's XML assertions")
