@@ -57,6 +57,8 @@ java.lang.Integer myFlow1SftpConsumerMaxRetryAttempts;
 java.lang.Integer myFlow1MySFTPConsumerSftpConsumerMaxRows;
 @org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.minAge}")
 java.lang.Long myFlow1MySFTPConsumerSftpConsumerMinAge;
+@org.springframework.beans.factory.annotation.Value("${myflow1.mysftpconsumer.sftp.consumer.moveOnSuccess}")
+java.lang.Boolean myFlow1MySFTPConsumerSftpConsumerMoveOnSuccess;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.move-on-success-new-path}")
 java.lang.String myFlow1SftpConsumerMoveOnSuccessNewPath;
 @org.springframework.beans.factory.annotation.Value("${myflow1.sftp.consumer.password}")
@@ -117,6 +119,7 @@ return org.ikasan.studio.boot.StudioHarnessOverrides.apply(studioHarnessEnvironm
 .setMaxRows(myFlow1MySFTPConsumerSftpConsumerMaxRows)
 .setMessageProvider(myMessageProviderClass)
 .setMinAge(myFlow1MySFTPConsumerSftpConsumerMinAge)
+.setMoveOnSuccess(myFlow1MySFTPConsumerSftpConsumerMoveOnSuccess)
 .setMoveOnSuccessNewPath(myFlow1SftpConsumerMoveOnSuccessNewPath)
 .setPassword(myFlow1SftpConsumerPassword)
 .setPreferredKeyExchangeAlgorithm(myFlow1SftpConsumerPreferredKeyExchangeAlgorithm)

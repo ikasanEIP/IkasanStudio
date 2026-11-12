@@ -18,23 +18,23 @@ class FlowClipboardTest {
         return FlowClipboard.decode(FlowClipboard.encode(FlowClipboard.capture(flow, BASE_META_PACK)), BASE_META_PACK);
     }
 
-    @Test void filenameListsSurviveSavingReloadingAndCopyingWithoutDisplayBrackets() throws Exception {
+    @Test void filenameListsSurviveSavingReloadingAndCopyingWithPatternsIntact() throws Exception {
         Flow source = TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerWithWiretapsFlow(BASE_META_PACK);
         var consumer = TestFixtures.getLocalFileConsumer(BASE_META_PACK);
         consumer.setComponentName(source.getConsumer().getIdentity());
         source.setConsumer(consumer);
-        String expected = "myFile\\.txt,anotherFile\\.txt,[a-z]+[.]csv";
-        consumer.setPropertyValue("filenames", List.of("myFile\\.txt", "anotherFile\\.txt", "[a-z]+[.]csv"));
+        var expected = List.of("myFile\\.txt", "anotherFile\\.txt", "[a-z]+[.]csv", "[a-z]{1,3}[.]csv");
+        consumer.setPropertyValue("filenames", expected);
         Module module = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, new ArrayList<>(List.of(source)));
         for (int i = 0; i < 3; i++) {
             String json = org.ikasan.studio.core.io.ComponentIO.toJson(module);
             var tree = StudioJson.newObjectMapper().readTree(json);
-            assertEquals(expected, tree.get("flows").get(0).get("consumer").get("filenames").asText());
+            assertEquals(StudioJson.newObjectMapper().valueToTree(expected), tree.get("flows").get(0).get("consumer").get("filenames"));
             module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(json, "filename round trip", false);
-            assertEquals(expected, module.getFlows().get(0).getConsumer().getPropertyValueAsString("filenames"));
+            assertEquals(expected, module.getFlows().get(0).getConsumer().getPropertyValue("filenames"));
         }
         Flow pasted = copy(source);
-        assertEquals(expected, pasted.getConsumer().getPropertyValueAsString("filenames"));
+        assertEquals(expected, pasted.getConsumer().getPropertyValue("filenames"));
         assertEquals(FlowClipboard.capture(source, BASE_META_PACK), FlowClipboard.capture(pasted, BASE_META_PACK));
     }
 

@@ -14,6 +14,39 @@ import java.util.concurrent.TimeUnit;
 // Test-only modality simulation: LaterInvocator is never included in the distributed plugin.
 @SuppressWarnings("JetBrainsInternalApiUsage")
 public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
+    public void testFetchedVersionSelectsMatchingPackBeforeReview() throws Exception {
+        assertFetchedVersionSelection(false);
+    }
+
+    public void testFetchedVersionSelectsMatchingPackAfterDelayedDiscovery() throws Exception {
+        assertFetchedVersionSelection(true);
+    }
+
+    private void assertFetchedVersionSelection(boolean delayedDiscovery) throws Exception {
+        var release = new CountDownLatch(delayedDiscovery ? 1 : 0);
+        var dialog = new ImportModelJsonDialog(getProject(), () -> {
+            try {
+                if (!release.await(10, TimeUnit.SECONDS)) throw new AssertionError("Pack discovery was not released");
+            } catch (InterruptedException failure) { throw new AssertionError(failure); }
+            return List.of("V3.3.9", "V4.1.6");
+        });
+        try {
+            var packs = (JComboBox<?>) field(dialog, "runtimePack");
+            if (!delayedDiscovery) {
+                PlatformTestUtil.waitWithEventsDispatching("Packs did not load", () -> packs.getItemCount() == 2, 10);
+                assertEquals("V3.3.9", packs.getSelectedItem());
+            }
+            dialog.applyFetchedDocuments(new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents(
+                    "{\"ikasanVersion\":\"4.1.6\",\"flows\":[]}", "[]"));
+            release.countDown();
+            PlatformTestUtil.waitWithEventsDispatching("Fetched version was not selected",
+                    () -> "V4.1.6".equals(packs.getSelectedItem()), 10);
+        } finally {
+            release.countDown();
+            dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+        }
+    }
+
     public void testAcquisitionAndFollowUpStepsAppearOnlyWhenApplicable() throws Exception {
         var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
         try {

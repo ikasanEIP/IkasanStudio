@@ -10,9 +10,9 @@ The IntelliJ plugin, generator, test kit and official packs remain in this repos
 | --- | --- | --- | --- | --- |
 | `studio-pack-v3` | `studio-pack-v3` | `V3.3.9` | `3.3.9` | `0.1.0-SNAPSHOT` |
 | `studio-pack-v4` | `studio-pack-v4` | `V4.1.6` | `4.1.6` | `0.1.0-SNAPSHOT` |
-| `studio-pack-v5-release` | `studio-pack-v5-release` | `V5.1.0` | `5.1.0` | `1.0.5` |
+| `studio-pack-v5-release` | `studio-pack-v5-release` | `V5.1.0` | `5.1.0` | `1.0.6` |
 
-`studio-pack-v5-release:1.0.5` is the normally bundled released adapter for `V5.1.0`.
+`studio-pack-v5-release:1.0.6` is the normally bundled released adapter for `V5.1.0`.
 `studio-pack-v5` remains a separate, opt-in development artifact targeting `V5.0.1-SNAPSHOT`.
 The standalone Maven [Ikasan 5 authoring example](../ikasan-studio-ancillary/ikasan5-metapack/README.md)
 targets runtime 5.1.0 with the distinct ID `ExampleIkasan5`.

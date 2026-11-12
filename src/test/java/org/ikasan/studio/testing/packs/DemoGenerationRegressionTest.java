@@ -42,6 +42,10 @@ class DemoGenerationRegressionTest {
         var loaded = new Properties();
         loaded.load(new java.io.ByteArrayInputStream(PropertiesTemplate.create(module).getBytes(java.nio.charset.StandardCharsets.UTF_8)));
         String restored = loaded.getProperty(flow.getJavaPackageName() + ".file.consumer.filenames");
+        if (org.ikasan.studio.core.model.StringCollectionValues.supports(local.getComponentMeta()
+                .getAllowableProperties().get("filenames").getPropertyDataType())) {
+            restored = new com.fasterxml.jackson.databind.ObjectMapper().readTree(restored).get(0).asText();
+        }
         assertEquals(pattern, restored);
         assertTrue(java.util.regex.Pattern.matches(restored, "/tmp/Demo12.txt"));
         assertFalse(java.util.regex.Pattern.matches(restored, "/tmp/Demo12Xtxt"));

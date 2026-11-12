@@ -1,4 +1,5 @@
 {
+  "runtimeConfigurationDefaults": {"dontUseFileRename": false},
   "runtimeImplementingClass": "org.ikasan.endpoint.sftp.producer.SftpProducer",
   "legacyPropertyAliases": {"knownHostFilename": "knownHostsFilename", "cleanupChunks": "cleanUpChunks"},
   "flowTestDeliveryStrategy": "sftp",

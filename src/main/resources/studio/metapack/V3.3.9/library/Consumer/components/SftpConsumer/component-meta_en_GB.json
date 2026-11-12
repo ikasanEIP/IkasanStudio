@@ -1,6 +1,7 @@
 {
+  "runtimeConfigurationDefaults": {"cronExpressions": [], "passthroughProperties": {}, "persistentRecovery": true, "recoveryTolerance": 1800000, "provideRelativePath": false},
   "legacyPropertyAliases": {"knownHostFilename": "knownHostsFilename"},
-  "runtimeConfigurationProperties": ["ageOfFiles", "checksum", "chronological", "chunkSize", "chunking", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "cronExpression", "destructive", "eager", "filenamePattern", "ignoreMisfire", "isRecursive", "maxEagerCallbacks", "maxRetryAttempts", "maxRows", "minAge", "moveOnSuccessNewPath", "password", "preferredKeyExchangeAlgorithm", "privateKeyFilename", "remoteHost", "remotePort", "renameOnSuccess", "renameOnSuccessExtension", "sourceDirectory", "timezone", "username", "knownHostsFilename"],
+  "runtimeConfigurationProperties": ["ageOfFiles", "checksum", "chronological", "chunkSize", "chunking", "cleanupJournalOnComplete", "clientID", "connectionTimeout", "cronExpression", "destructive", "eager", "filenamePattern", "filterDuplicates", "filterOnFilename", "filterOnLastModifiedDate", "ignoreMisfire", "isRecursive", "knownHostsFilename", "maxEagerCallbacks", "maxRetryAttempts", "maxRows", "minAge", "moveOnSuccess", "moveOnSuccessNewPath", "password", "preferredKeyExchangeAlgorithm", "privateKeyFilename", "remoteHost", "remotePort", "renameOnSuccess", "renameOnSuccessExtension", "sourceDirectory", "timezone", "username"],
   "supportsTestSftpServer": true,
   "name": "SFTP Consumer",
   "producedOutputType": "org.ikasan.filetransfer.Payload",
@@ -196,6 +197,33 @@
       "validation": "^[A-Z_$][a-zA-Z\\d_$£]*$",
       "validationMessage": "Provide a java classname for the Configuration bean."
     },
+    "filterDuplicates": {
+      "propertyName": "filterDuplicates",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.filterDuplicates",
+      "propertyGroup": "Duplicate Detection",
+      "propertyDisplayOrder": 120,
+      "helpText": "When true (the runtime default), ignore duplicate files using persisted metadata. Leave unset to use the runtime default.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "filterOnFilename": {
+      "propertyName": "filterOnFilename",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.filterOnFilename",
+      "propertyGroup": "Duplicate Detection",
+      "propertyDisplayOrder": 130,
+      "helpText": "When true (the runtime default), use the full remote path when detecting duplicates. Requires filterDuplicates. Leave unset to use the runtime default.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
+    "filterOnLastModifiedDate": {
+      "propertyName": "filterOnLastModifiedDate",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.filterOnLastModifiedDate",
+      "propertyGroup": "Duplicate Detection",
+      "propertyDisplayOrder": 140,
+      "helpText": "When true (the runtime default), use the last modified date when detecting duplicates. Requires filterDuplicates. Leave unset to use the runtime default.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
+    },
     "filenamePattern": {
       "propertyName": "filenamePattern",
       "preserveWhitespace": true,
@@ -307,6 +335,15 @@
       "helpText": "The minimum age of the file on the remote filesystem before file can be processed. This setting is in place to prevent (S)FTP consumer from picking up file which is still being written to. The default is 120 seconds.",
       "setterProperty": true,
       "propertyDataType": "java.lang.Long"
+    },
+    "moveOnSuccess": {
+      "propertyName": "moveOnSuccess",
+      "propertyConfigFileLabel": "__flow.__component.sftp.consumer.moveOnSuccess",
+      "propertyGroup": "Post file transfer actions",
+      "propertyDisplayOrder": 10,
+      "helpText": "When true, move files to moveOnSuccessNewPath after successful consumption. Cannot be combined with destructive or renameOnSuccess. Leave unset to use the runtime default, false.",
+      "setterProperty": true,
+      "propertyDataType": "java.lang.Boolean"
     },
     "moveOnSuccessNewPath": {
       "propertyName": "moveOnSuccessNewPath",

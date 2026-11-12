@@ -1,5 +1,6 @@
 {
-  "runtimeConfigurationProperties": ["cronExpression", "directoryDepth", "eager", "encoding", "ignoreFileRenameWhilstScanning", "ignoreMisfire", "includeHeader", "includeTrailer", "logMatchedFilenames", "maxEagerCallbacks", "sortAscending", "sortByModifiedDateTime", "timezone"],
+  "runtimeConfigurationDefaults": {"cronExpressions": [], "dynamicFileName": false, "followSymbolicLinks": true, "passthroughProperties": {}, "persistentRecovery": true, "recoveryTolerance": 1800000},
+  "runtimeConfigurationProperties": ["cronExpression", "directoryDepth", "eager", "encoding", "filenames", "ignoreFileRenameWhilstScanning", "ignoreMisfire", "includeHeader", "includeTrailer", "logMatchedFilenames", "maxEagerCallbacks", "sortAscending", "sortByModifiedDateTime", "timezone"],
   "name": "Local File Consumer",
   "producedOutputType": "java.util.List<java.io.File>",
   "isFileBasedConsumer": "true",
@@ -110,6 +111,7 @@
     },
     "filenames": {
       "propertyName": "filenames",
+      "propertyDataType": "java.util.List",
       "propertyDisplayOrder": -10,
       "defaultValue": "myFile\\.txt,anotherFile\\.txt",
       "helpText": "A comma-separated list where each entry is compiled as a full Java regular expression (not a literal filename or a shell glob) and matched against candidate filenames - e.g. '.*\\.csv' matches any CSV file. To match a literal filename, escape any regex-significant characters in it, particularly '.', e.g. 'invoice\\.txt' (an unescaped 'invoice.txt' would also match 'invoiceXtxt', since '.' means \"any character\" in a regex). Files are assumed to be in the same directory as the running ikasan application, or one of its subdirectories (see directoryDepth), unless overridden via configuration.",

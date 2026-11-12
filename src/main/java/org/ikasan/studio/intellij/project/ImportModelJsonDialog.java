@@ -97,6 +97,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
                 ApplicationManager.getApplication().invokeLater(() -> {
                     if (isDisposed() || project.isDisposed()) return;
                     packs.forEach(runtimePack::addItem);
+                    selectFetchedRuntimeVersion();
                     updateOkAction();
                 }, ModalityState.any());
             } catch (RuntimeException failure) {
@@ -326,7 +327,32 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         this.documents.setSelectedIndex(0);
         chosenFilePathLabel.setText(StudioBundle.message("import.remote.source"));
         chosenFilePathLabel.setToolTipText(null);
+        selectFetchedRuntimeVersion();
         updateOkAction();
+    }
+
+    /** Resolve pack metadata off the EDT, including when discovery finishes after the fetch. */
+    private void selectFetchedRuntimeVersion() {
+        if (acquisition != Acquisition.FETCHED || runtimePack.getItemCount() == 0) return;
+        String json = jsonArea.getText();
+        Object selected = runtimePack.getSelectedItem();
+        var available = new java.util.ArrayList<String>();
+        for (int i = 0; i < runtimePack.getItemCount(); i++) available.add(runtimePack.getItemAt(i));
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            try {
+                var recommendation = IkasanRuntimeImport.recommendPack(json, available);
+                // Patch substitutions still require the existing explicit review confirmation.
+                if (recommendation.isEmpty() || !recommendation.get().exact()) return;
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    if (isDisposed() || project.isDisposed() || acquisition != Acquisition.FETCHED
+                            || !json.equals(jsonArea.getText())
+                            || !java.util.Objects.equals(selected, runtimePack.getSelectedItem())) return;
+                    runtimePack.setSelectedItem(recommendation.get().pack());
+                }, ModalityState.any());
+            } catch (StudioBuildException ignored) {
+                // Invalid or unsupported metadata receives actionable diagnostics during review.
+            }
+        });
     }
 
     private void chooseFile() {

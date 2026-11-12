@@ -10,6 +10,47 @@ public class ComponentFactoryMyFlow1
 {
 @org.springframework.beans.factory.annotation.Value("${module.name}")
 private String moduleName;
+@org.springframework.beans.factory.annotation.Autowired
+private org.springframework.core.env.Environment studioEnvironment;
+
+private com.fasterxml.jackson.databind.JsonNode studioCollection(String name) {
+    try {
+        return new com.fasterxml.jackson.databind.ObjectMapper()
+            .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
+            .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .readTree(studioEnvironment.getRequiredProperty(name));
+    } catch (java.io.IOException failure) {
+        throw new IllegalArgumentException("Invalid collection configuration: " + name);
+    }
+}
+
+private java.util.List<String> studioStringList(String name) {
+    String raw = studioEnvironment.getRequiredProperty(name);
+    // Existing deployment overrides may still use comma-separated recipient lists.
+    if (!raw.stripLeading().startsWith("[")) {
+        return raw.isBlank() ? new java.util.ArrayList<>()
+            : new java.util.ArrayList<>(java.util.Arrays.asList(raw.split("\\s*,\\s*", -1)));
+    }
+    com.fasterxml.jackson.databind.JsonNode value = studioCollection(name);
+    if (!value.isArray()) throw new IllegalArgumentException("Expected string list: " + name);
+    java.util.List<String> result = new java.util.ArrayList<>();
+    for (com.fasterxml.jackson.databind.JsonNode entry : value) {
+        if (!entry.isTextual()) throw new IllegalArgumentException("Expected string entries: " + name);
+        result.add(entry.textValue());
+    }
+    return result;
+}
+
+private java.util.Map<String, String> studioStringMap(String name) {
+    com.fasterxml.jackson.databind.JsonNode value = studioCollection(name);
+    if (value == null || !value.isObject()) throw new IllegalArgumentException("Expected string map: " + name);
+    java.util.Map<String, String> result = new java.util.LinkedHashMap<>();
+    value.fields().forEachRemaining(entry -> {
+        if (!entry.getValue().isTextual()) throw new IllegalArgumentException("Expected string entries: " + name);
+        result.put(entry.getKey(), entry.getValue().textValue());
+    });
+    return result;
+}
 
 @javax.annotation.Resource
 org.ikasan.builder.BuilderFactory builderFactory;
@@ -24,8 +65,6 @@ java.lang.Integer myFlow1MyLocalFileConsumerFileConsumerDirectoryDepth;
 java.lang.Boolean myFlow1MyLocalFileConsumerFileConsumerEager;
 @org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.encoding}")
 java.lang.String myFlow1MyLocalFileConsumerFileConsumerEncoding;
-@org.springframework.beans.factory.annotation.Value("#{'${myflow1.file.consumer.filenames}'.split(',')}")
-java.util.List<String> myFlow1FileConsumerFilenames;
 @org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.ignoreFileRenameWhilstScanning}")
 java.lang.Boolean myFlow1MyLocalFileConsumerFileConsumerIgnoreFileRenameWhilstScanning;
 @org.springframework.beans.factory.annotation.Value("${myflow1.mylocalfileconsumer.file.consumer.ignoreMisfire}")
@@ -65,7 +104,7 @@ return builderFactory.getComponentBuilder().fileConsumer()
 .setEager(myFlow1MyLocalFileConsumerFileConsumerEager)
 .setEncoding(myFlow1MyLocalFileConsumerFileConsumerEncoding)
 .setEventFactory(orgIkasanMyflowMyEventFactory)
-.setFilenames(myFlow1FileConsumerFilenames)
+.setFilenames(studioStringList("myflow1.file.consumer.filenames"))
 .setIgnoreFileRenameWhilstScanning(myFlow1MyLocalFileConsumerFileConsumerIgnoreFileRenameWhilstScanning)
 .setIgnoreMisfire(myFlow1MyLocalFileConsumerFileConsumerIgnoreMisfire)
 .setIncludeHeader(myFlow1MyLocalFileConsumerFileConsumerIncludeHeader)

@@ -47,7 +47,7 @@ sourceSets {
     test {
         java.srcDir(sharedTestSources)
         resources.srcDir("../../src/test/resources")
-        resources.include("studio/templates/**", "studio/metapack/TestV*/**")
+        resources.include("studio/templates/**", "studio/metapack/TestV*/**", "studio/runtime-import/**")
     }
 }
 

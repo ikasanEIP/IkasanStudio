@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Audit the bundled runtime configuration mappings across V3, V4 and V5. Import Local File Consumer filename lists and SFTP Consumer filter/move controls, and avoid warnings for verified unchanged defaults. Keep unsupported settings and type/class mismatches visible for review. Advance the released V5.1.0 adapter to revision 1.0.6; existing model locks require explicit adoption.
+
 - Recognise concrete FTP and SFTP producer classes during runtime import using explicit pack metadata. Import their configuration fields instead of falling back to Generic Producer; preserve historical saved component identities. The released V5.1.0 adapter advances to revision 1.0.5.
 
 - Explain premature Ikasan shutdown before startup completion, including when no cause is reported and leftover threads keep the JVM alive. Exclude explicit operator stops and ordinary shutdown after startup.

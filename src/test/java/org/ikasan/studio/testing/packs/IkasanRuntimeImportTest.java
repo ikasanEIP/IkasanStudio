@@ -581,6 +581,119 @@ class IkasanRuntimeImportTest {
         assertThat(result.review().toString()).contains("configuration fields not applied: remoteHost");
     }
 
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT", "V5.1.0"})
+    void sftpImportsFilterAndMoveSettingsWhileKeepingUnsupportedValuesVisible(String pack) throws Exception {
+        var input = topology(pack);
+        var config = configuration().put("implementingClass", "org.ikasan.endpoint.sftp.consumer.SftpConsumerConfiguration");
+        var parameters = config.withArray("parameters");
+        parameters.removeAll();
+        var values = (ObjectNode) JSON.readTree("""
+                {"cronExpression":"0/10 * * * * ?", "filterDuplicates":false, "filterOnFilename":false,
+                 "filterOnLastModifiedDate":false, "moveOnSuccess":true, "moveOnSuccessNewPath":"/processed",
+                 "cronExpressions":[], "passthroughProperties":{}, "persistentRecovery":true,
+                 "recoveryTolerance":1800000, "provideRelativePath":false}
+                """);
+        values.fields().forEachRemaining(entry -> parameters.addObject().put("name", entry.getKey()).set("value", entry.getValue()));
+        var result = IkasanRuntimeImport.convert(input.toString(), config.toString(), pack, "org.example");
+        assertThat(result.review()).noneMatch(line -> line.contains("configuration fields not applied"));
+        var module = ComponentIO.validatePersistedModuleJson(result.studioJson(), "SFTP import", false);
+        var consumer = module.getFlows().get(0).getConsumer();
+        assertThat(consumer.getComponentMeta().getName()).isEqualTo("SFTP Consumer");
+        for (String name : java.util.List.of("filterDuplicates", "filterOnFilename", "filterOnLastModifiedDate"))
+            assertThat(consumer.getPropertyValue(name)).as(name).isEqualTo(false);
+        assertThat(consumer.getPropertyValue("moveOnSuccess")).isEqualTo(true);
+        assertThat(consumer.getPropertyValue("moveOnSuccessNewPath")).isEqualTo("/processed");
+        var properties = new java.util.Properties();
+        properties.load(new java.io.StringReader(org.ikasan.studio.core.generator.PropertiesTemplate.create(module)));
+        assertThat(properties.getProperty("orders.poll.sftp.consumer.filterDuplicates")).isEqualTo("false");
+        assertThat(properties.getProperty("orders.poll.sftp.consumer.moveOnSuccess")).isEqualTo("true");
+        String factory = org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.create(
+                "org.example", module, module.getFlows().get(0));
+        assertThat(factory).contains(".setFilterDuplicates(", ".setFilterOnFilename(",
+                ".setFilterOnLastModifiedDate(", ".setMoveOnSuccess(");
+        assertThat(JSON.readTree(ComponentIO.toValidatedModuleJson(module))
+                .path(IkasanRuntimeImport.SOURCE_FIELD).path("configuration")).isEqualTo(config);
+
+        // Empty is not the construction default (null). Never hide an unknown credential value.
+        parameters.addObject().put("name", "privateKeyPassphrase").put("value", "");
+        assertThat(IkasanRuntimeImport.convert(input.toString(), config.toString(), pack, "org.example").review().toString())
+                .contains("configuration fields not applied: privateKeyPassphrase");
+        for (int i = 0; i < parameters.size(); i++) {
+            var parameter = (ObjectNode) parameters.get(i);
+            if (parameter.path("name").asText().equals("provideRelativePath")) parameter.put("value", true);
+            if (parameter.path("name").asText().equals("filterDuplicates")) parameter.put("value", "false");
+        }
+        var changed = IkasanRuntimeImport.convert(input.toString(), config.toString(), pack, "org.example");
+        assertThat(changed.review().toString()).contains("filterDuplicates", "provideRelativePath", "privateKeyPassphrase");
+        config.put("implementingClass", "custom.OtherConfiguration");
+        var mismatched = IkasanRuntimeImport.convert(input.toString(), config.toString(), pack, "org.example",
+                java.util.Map.of(new IkasanRuntimeImport.ComponentRef("Orders", "Poll"), "SFTP Consumer"));
+        assertThat(mismatched.review().toString()).contains("cronExpressions", "passthroughProperties", "persistentRecovery", "recoveryTolerance");
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT", "V5.1.0"})
+    void sftpProducerDefaultsAreQuietButChangedValuesAndCredentialsRequireReview(String pack) throws Exception {
+        var input = topology(pack);
+        var flow = (ObjectNode) input.path("flows").get(0);
+        ((com.fasterxml.jackson.databind.node.ArrayNode) flow.path("flowElements")).set(0,
+                component(pack, "SFTP Producer", "Log").put("configurationId", "producer-config"));
+        var config = JSON.createObjectNode().put("configurationId", "producer-config")
+                .put("implementingClass", "org.ikasan.endpoint.sftp.producer.SftpProducerConfiguration");
+        var parameters = config.putArray("parameters");
+        var rename = parameters.addObject().put("name", "dontUseFileRename").put("value", false);
+        var result = IkasanRuntimeImport.convert(input.toString(), config.toString(), pack, "org.example", mappings());
+        assertThat(result.review()).noneMatch(line -> line.contains("configuration fields not applied"));
+        rename.put("value", true);
+        parameters.addObject().put("name", "privateKeyPassphrase").put("value", "private-test-value");
+        var changed = IkasanRuntimeImport.convert(input.toString(), config.toString(), pack, "org.example", mappings());
+        assertThat(changed.review().toString()).contains("dontUseFileRename", "privateKeyPassphrase")
+                .doesNotContain("private-test-value");
+        rename.put("value", "false");
+        assertThat(IkasanRuntimeImport.convert(input.toString(), config.toString(), pack, "org.example", mappings()).review().toString())
+                .contains("dontUseFileRename");
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.0.1-SNAPSHOT", "V5.1.0"})
+    void localFileImportPreservesPatternsAndOnlyReviewsChangedUnmappedSettings(String pack) throws Exception {
+        var input = topology(pack);
+        var config = configuration().put("implementingClass",
+                "org.ikasan.component.endpoint.filesystem.messageprovider.FileConsumerConfiguration");
+        var parameters = config.withArray("parameters");
+        parameters.removeAll();
+        parameters.addObject().put("name", "cronExpression").put("value", "0/10 * * * * ?");
+        var filenames = JSON.createArrayNode().add("orders.*\\.csv").add("other,orders\\.txt");
+        parameters.addObject().put("name", "filenames").set("value", filenames);
+        // Effective runtime defaults from FileConsumerConfiguration and ScheduledConsumerConfiguration.
+        var defaults = (ObjectNode) JSON.readTree("""
+                {"cronExpressions": [], "dynamicFileName": false, "followSymbolicLinks": true,
+                 "passthroughProperties": {}, "persistentRecovery": true, "recoveryTolerance": 1800000}
+                """);
+        defaults.fields().forEachRemaining(entry -> parameters.addObject().put("name", entry.getKey())
+                .set("value", entry.getValue()));
+        var result = IkasanRuntimeImport.convert(input.toString(), config.toString(), pack, "org.example");
+        assertThat(result.review()).noneMatch(line -> line.contains("configuration fields not applied"));
+        var module = ComponentIO.validatePersistedModuleJson(result.studioJson(), "local file import", false);
+        var saved = JSON.readTree(ComponentIO.toValidatedModuleJson(module));
+        assertThat(saved.path("flows").get(0).path("consumer").path("filenames")).isEqualTo(filenames);
+        assertThat(saved.path(IkasanRuntimeImport.SOURCE_FIELD).path("configuration")).isEqualTo(config);
+        var properties = new java.util.Properties();
+        properties.load(new java.io.StringReader(org.ikasan.studio.core.generator.PropertiesTemplate.create(module)));
+        assertThat(JSON.readTree(properties.getProperty("orders.file.consumer.filenames"))).isEqualTo(filenames);
+
+        var changed = JSON.readTree("""
+                {"cronExpressions": ["0/20 * * * * ?"], "dynamicFileName": true, "followSymbolicLinks": false,
+                 "passthroughProperties": {"key":"value"}, "persistentRecovery": false, "recoveryTolerance": 1000}
+                """);
+        for (int i = 2; i < parameters.size(); i++) {
+            var parameter = (ObjectNode) parameters.get(i);
+            parameter.set("value", changed.get(parameter.path("name").asText()));
+        }
+        var changedResult = IkasanRuntimeImport.convert(input.toString(), config.toString(), pack, "org.example");
+        assertThat(changedResult.review().toString()).contains(
+                "configuration fields not applied: cronExpressions, dynamicFileName, followSymbolicLinks, "
+                        + "passthroughProperties, persistentRecovery, recoveryTolerance");
+    }
+
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void importsVerifiedEndpointConfigurationFields(String pack) throws Exception {
         for (var example : java.util.Map.of(
