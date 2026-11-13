@@ -47,12 +47,22 @@ public final class RuntimeImportClient {
             throw new IllegalArgumentException("Use an HTTP(S) application URL including its context path, without credentials.");
         }
         String path = uri.getRawPath().replaceAll("/+$", "");
-        String applicationPath = path.replaceFirst("(?i)/(?:swagger-ui(?:/index\\.html)?|swagger-ui\\.html|home\\.htm)$", "");
+        String applicationPath = path.replaceFirst("(?i)/(?:swagger-ui(?:/index\\.html)?|swagger-ui\\.html|home\\.htm|login\\.jsp|modules/view\\.htm)$", "");
         boolean landingPage = !applicationPath.equals(path);
         if (!landingPage && (uri.getRawQuery() != null || uri.getRawFragment() != null))
             throw new IllegalArgumentException("Use an application URL without query or fragment.");
         // Strip only recognized Swagger/Blue Console landing pages, preserving context case and encoding.
         return URI.create(uri.getScheme() + "://" + uri.getRawAuthority() + applicationPath);
+    }
+
+    /** Same normalized, encoded endpoint used by fetch; safe for a local connection preview. */
+    public static URI metadataUri(URI application, String module) {
+        return URI.create(baseUri(application.toString()).toASCIIString() + metadataPath(module));
+    }
+
+    private static String metadataPath(String module) {
+        if (module == null || module.isBlank()) throw new IllegalArgumentException("Enter the running module name.");
+        return "/rest/metadata/module/" + segment(module);
     }
 
     public static Documents fetch(URI base, String module, String username, char[] password,
@@ -82,7 +92,7 @@ public final class RuntimeImportClient {
         if (username.isBlank() && password.length != 0) throw new IllegalArgumentException("Enter a username or clear the password for anonymous access.");
         String authorization = username.isBlank() ? null : "Basic " + Base64.getEncoder().encodeToString(
                 (username + ":" + new String(password)).getBytes(StandardCharsets.UTF_8));
-        String metadata = get(base, "/rest/metadata/module/" + segment(module), authorization, cancelled, diagnostics, responseStatus);
+        String metadata = get(base, metadataPath(module), authorization, cancelled, diagnostics, responseStatus);
         JsonNode topology = parse(metadata, "Module metadata");
         if (!topology.isObject() || !topology.path("flows").isArray()
                 || !topology.path("name").isTextual() || !module.equals(topology.path("name").asText())) {
@@ -166,7 +176,7 @@ public final class RuntimeImportClient {
             diagnostics.accept("Runtime import: " + stage + " GET " + endpoint + " returned HTTP " + status);
             if (status == 401 || status == 403) throw new IOException("REST access was denied (HTTP " + status + "). Check credentials and ALL or WebServiceAdmin authority.");
             if (status >= 300 && status < 400) throw new IOException("The module redirected the REST request. Enter its final application URL; redirects are not followed.");
-            if (status != 200) throw new IOException("Module REST request returned HTTP " + status + ". Verify the application context path and the exact case-sensitive registered module name (module.name), which may differ from the lowercase URL context. Also check REST endpoint availability and, for HTTP 500, the module server log.");
+            if (status != 200) throw new IOException("The " + stage + " REST request returned HTTP " + status + ". Verify the application context path and the exact case-sensitive registered module name (module.name), which may differ from the lowercase URL context. Also check REST endpoint availability and, for HTTP 500, the module server log.");
             return new String(response.body(), StandardCharsets.UTF_8);
         } finally { future.cancel(true); }
     }

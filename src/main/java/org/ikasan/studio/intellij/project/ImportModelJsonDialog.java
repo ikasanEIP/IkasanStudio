@@ -500,7 +500,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
             { setTitle(StudioBundle.message("import.runtime.reviewTitle"));
               setOKButtonText(StudioBundle.message("import.runtime.accept")); init(); }
             @Override protected JComponent createCenterPanel() {
-                JBTextArea text = new JBTextArea(String.join("\n\n", result.review()), 20, 85);
+                JBTextArea text = new JBTextArea(RuntimeImportReviewText.format(result), 20, 85);
                 text.setEditable(false);
                 text.setLineWrap(true);
                 text.setWrapStyleWord(true);

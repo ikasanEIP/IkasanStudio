@@ -26,9 +26,14 @@ public final class IkasanRuntimeImport {
     private IkasanRuntimeImport() { }
 
     /** Result is a validated Studio document plus review messages, without configuration values. */
-    public record Result(String studioJson, List<String> review) {
-        public Result { review = List.copyOf(review); }
+    public record Result(String studioJson, List<String> review, List<ReviewItem> reviewItems) {
+        public Result(String studioJson, List<String> review) { this(studioJson, review, List.of()); }
+        public Result { review = List.copyOf(review); reviewItems = List.copyOf(reviewItems); }
     }
+
+    public enum ReviewKind { IMPLEMENTATION, CONFIGURATION, INFERRED_VARIANT }
+    /** Structured presentation data; the original review remains intact in the saved provenance. */
+    public record ReviewItem(ReviewKind kind, ComponentRef component, String subject, String evidence, String message) { }
 
     /** A runtime implementation can correspond to several design-time variants (for example scheduled/file consumers). */
     public record ComponentRef(String flow, String component) { }
@@ -211,6 +216,7 @@ public final class IkasanRuntimeImport {
                     ? JSON.createArrayNode() : read(configurationJson);
             Map<String, JsonNode> configurations = configurations(configuration);
             List<String> review = new ArrayList<>();
+            List<ReviewItem> reviewItems = new ArrayList<>();
             if (!runtimeVersion.isBlank() && !runtimeVersion.equals(manifest.ikasanVersion()))
                 review.add("Patch upgrade: export Ikasan " + runtimeVersion + " imported using " + pack
                         + " (Ikasan " + manifest.ikasanVersion() + "). Generated dependencies target the newer patch."
@@ -247,7 +253,7 @@ public final class IkasanRuntimeImport {
             for (JsonNode flow : topology.path("flows")) {
                 String name = required(flow, "name");
                 if (!names.add(name)) throw problem("Duplicate flow name: " + name);
-                flows.add(flow(flow, pack, configurations, usedConfigurations, review, componentMappings));
+                flows.add(flow(flow, pack, configurations, usedConfigurations, review, componentMappings, reviewItems));
             }
             for (String id : configurations.keySet()) if (!usedConfigurations.contains(id))
                 review.add("Configuration " + id + ": retained only; no supported component mapping applied (module, flow, invoker or unmatched resource).");
@@ -260,7 +266,7 @@ public final class IkasanRuntimeImport {
                 if (!edges(flows.get(i)).equals(edges(roundTrip.path("flows").get(i))))
                     throw problem("Flow " + flows.get(i).path("name").asText() + ": graph cannot be represented without changing transitions.");
             }
-            return new Result(result, review);
+            return new Result(result, review, reviewItems);
         } catch (StudioBuildException e) {
             throw e;
         } catch (Exception e) {
@@ -270,7 +276,8 @@ public final class IkasanRuntimeImport {
     }
 
     private static ObjectNode flow(JsonNode input, String pack, Map<String, JsonNode> configs,
-                                   Set<String> used, List<String> review, Map<ComponentRef, String> mappings) throws Exception {
+                                   Set<String> used, List<String> review, Map<ComponentRef, String> mappings,
+                                   List<ReviewItem> reviewItems) throws Exception {
         String flowName = required(input, "name");
         if (!input.path("consumer").isObject() || !input.path("flowElements").isArray()
                 || !input.path("transitions").isArray()) throw problem("Flow " + flowName + ": consumer, flowElements and transitions are required.");
@@ -321,10 +328,13 @@ public final class IkasanRuntimeImport {
             JsonNode raw = entry.getValue();
             ComponentRef ref = new ComponentRef(flowName, entry.getKey());
             ComponentMeta meta = resolve(raw, pack, mappings.get(ref), configs);
-            if (!mappings.containsKey(ref) && exactCandidates(raw, pack).size() > 1)
-                review.add(flowName + " → " + entry.getKey() + ": inferred variant " + meta.getName()
+            if (!mappings.containsKey(ref) && exactCandidates(raw, pack).size() > 1) {
+                String message = flowName + " → " + entry.getKey() + ": inferred variant " + meta.getName()
                         + " from its linked configuration class " + configurationClass(meta)
-                        + ". Review the original message-provider wiring before running.");
+                        + ". Review the original message-provider wiring before running.";
+                review.add(message);
+                reviewItems.add(new ReviewItem(ReviewKind.INFERRED_VARIANT, ref, meta.getName(), configurationClass(meta), message));
+            }
             if (entry.getKey().equals(consumer) != meta.isConsumer()) throw problem("Flow " + flowName + ": invalid consumer placement.");
             List<JsonNode> routes = outgoing.getOrDefault(entry.getKey(), List.of());
             if (routes.size() > 1 && !meta.isRouter()) throw problem("Flow " + flowName + ": branching component is not a supported router.");
@@ -343,7 +353,10 @@ public final class IkasanRuntimeImport {
                 for (String typeProperty : List.of("fromType", "toType")) {
                     if (meta.getAllowableProperties().containsKey(typeProperty)) target.put(typeProperty, "java.lang.Object");
                 }
-                review.add(flowName + " → " + entry.getKey() + ": supply existing implementation " + required(raw, "implementingClass") + " and its Spring bean/wiring.");
+                String implementation = required(raw, "implementingClass");
+                String message = flowName + " → " + entry.getKey() + ": supply existing implementation " + implementation + " and its Spring bean/wiring.";
+                review.add(message);
+                reviewItems.add(new ReviewItem(ReviewKind.IMPLEMENTATION, ref, implementation, "", message));
             }
             if (meta.isRouter()) {
                 if (routes.stream().anyMatch(e -> e.path("name").asText().contains(",")))
@@ -358,7 +371,7 @@ public final class IkasanRuntimeImport {
                 if (config == null) review.add(flowName + " → " + entry.getKey() + ": no configuration supplied for " + id + ".");
                 else {
                     used.add(id);
-                    applyConfiguration(target, config, meta, flowName, review);
+                    applyConfiguration(target, config, meta, flowName, review, reviewItems);
                 }
             }
             String inputTypeProperty = meta.getExpectedInputTypeProperty();
@@ -426,7 +439,7 @@ public final class IkasanRuntimeImport {
     }
 
     private static void applyConfiguration(ObjectNode target, JsonNode config, ComponentMeta meta,
-                                           String flowName, List<String> review) throws StudioBuildException {
+                                           String flowName, List<String> review, List<ReviewItem> reviewItems) throws StudioBuildException {
         String configurationClass = configurationClass(meta);
         boolean matchingClass = config.path("implementingClass").asText().equals(configurationClass);
         List<String> unapplied = new ArrayList<>();
@@ -446,9 +459,15 @@ public final class IkasanRuntimeImport {
                 unapplied.add(name);
             }
         }
-        if (!unapplied.isEmpty()) review.add(flowName + " → " + target.path("componentName").asText()
+        if (!unapplied.isEmpty()) {
+            String message = flowName + " → " + target.path("componentName").asText()
                 + ": review configuration fields not applied: " + String.join(", ", unapplied)
-                + ". Compare with the original configuration before running.");
+                + ". Compare with the original configuration before running.";
+            review.add(message);
+            reviewItems.add(new ReviewItem(ReviewKind.CONFIGURATION,
+                    new ComponentRef(flowName, target.path("componentName").asText()),
+                    String.join(", ", unapplied.stream().sorted().toList()), "", message));
+        }
     }
 
     private static boolean compatible(JsonNode value, Class<?> type) {

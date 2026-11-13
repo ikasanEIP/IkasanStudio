@@ -5,6 +5,10 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Accept Blue Console login and module-view URLs during runtime fetch, preserving the application context and removing page queries/fragments. Preview the exact metadata GET URL before fetching and identify the failing REST stage in HTTP errors.
+
+- Group runtime import review findings by unapplied configuration fields, required implementation classes and matched component variants. List all affected flow/component locations, show shared guidance once per group and retain the original detailed review in saved provenance.
+
 - Audit the bundled runtime configuration mappings across V3, V4 and V5. Import Local File Consumer filename lists and SFTP Consumer filter/move controls, and avoid warnings for verified unchanged defaults. Keep unsupported settings and type/class mismatches visible for review. Advance the released V5.1.0 adapter to revision 1.0.6; existing model locks require explicit adoption.
 
 - Recognise concrete FTP and SFTP producer classes during runtime import using explicit pack metadata. Import their configuration fields instead of falling back to Generic Producer; preserve historical saved component identities. The released V5.1.0 adapter advances to revision 1.0.5.

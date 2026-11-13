@@ -23,6 +23,8 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
     private final JBTextField username = new JBTextField();
     private final JBPasswordField password = new JBPasswordField();
     private final JBCheckBox configuration = new JBCheckBox(StudioBundle.message("import.remote.includeConfiguration"), true);
+    private final JButton reportButton = new JButton(StudioBundle.message("import.diagnostics.title"));
+    private final JBTextArea endpointPreview = new JBTextArea(2, 60);
     private RuntimeImportClient.Documents documents;
 
     RuntimeImportConnectionDialog(Project project) {
@@ -40,6 +42,14 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
         setTitle(StudioBundle.message("import.remote.title"));
         setOKButtonText(StudioBundle.message("import.remote.fetch"));
         init();
+        var previewListener = new javax.swing.event.DocumentListener() {
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent event) { updateEndpointPreview(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent event) { updateEndpointPreview(); }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent event) { updateEndpointPreview(); }
+        };
+        url.getDocument().addDocumentListener(previewListener);
+        module.getDocument().addDocumentListener(previewListener);
+        updateEndpointPreview();
     }
 
     @Override protected JComponent createCenterPanel() {
@@ -55,12 +65,29 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
         add(fields, 3, "import.remote.password", password);
         panel.add(fields, BorderLayout.CENTER);
         var bottom = new JPanel(new BorderLayout());
+        endpointPreview.setEditable(false); endpointPreview.setLineWrap(true); endpointPreview.setWrapStyleWord(true);
+        endpointPreview.setOpaque(false); endpointPreview.setFont(UIManager.getFont("Label.font"));
+        endpointPreview.getAccessibleContext().setAccessibleName(StudioBundle.message("import.remote.endpointLabel"));
+        bottom.add(endpointPreview, BorderLayout.NORTH);
         bottom.add(configuration, BorderLayout.CENTER);
-        var reportButton = new JButton(StudioBundle.message("import.diagnostics.title"));
+        reportButton.setVisible(false);
         reportButton.addActionListener(event -> new RuntimeImportReportDialog(project, getContentPane()).show());
         bottom.add(reportButton, BorderLayout.SOUTH);
         panel.add(bottom, BorderLayout.SOUTH);
         return panel;
+    }
+
+    private void updateEndpointPreview() {
+        try {
+            var endpoint = RuntimeImportClient.metadataUri(RuntimeImportClient.baseUri(url.getText()), module.getText().trim());
+            endpointPreview.setText(StudioBundle.message("import.remote.endpointPreview", endpoint.toASCIIString()));
+            endpointPreview.setCaretPosition(0);
+            endpointPreview.setVisible(true);
+        } catch (IllegalArgumentException invalid) {
+            endpointPreview.setText("");
+            endpointPreview.setVisible(false);
+        }
+        if (getContentPane() != null) { getContentPane().revalidate(); getContentPane().repaint(); }
     }
 
     private static void add(JPanel panel, int row, String key, JComponent input) {
@@ -89,6 +116,8 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
 
     @Override protected void doOKAction() {
         if (doValidate() != null) { initValidation(); return; }
+        reportButton.setVisible(false);
+        setErrorText(null);
         var base = RuntimeImportClient.baseUri(url.getText());
         url.setText(base.toString());
         String name = module.getText().trim();
@@ -117,6 +146,7 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
             if (!completed || project.isDisposed() || isDisposed()) { report.cancelled(); return; }
             if (failure.get() != null) {
                 report.failure(failure.get());
+                reportButton.setVisible(true);
                 setErrorText(StudioBundle.message("import.remote.failed", failure.get().getMessage()));
                 return;
             }

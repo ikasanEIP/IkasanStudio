@@ -44,6 +44,25 @@ class IkasanRuntimeImportTest {
                 """);
     }
 
+    @Test void structuredReviewRetainsOriginalMessagesAndExactComponentIdentities() throws Exception {
+        String pack = "V4.1.6";
+        var input = topology(pack);
+        ((ObjectNode) input.path("flows").get(0).path("flowElements").get(0))
+                .put("implementingClass", "example.ExistingProducer");
+        var result = IkasanRuntimeImport.convert(input.toString(), configuration().toString(), pack, "org.example");
+        assertThat(result.reviewItems()).hasSize(3);
+        assertThat(result.reviewItems()).extracting(IkasanRuntimeImport.ReviewItem::kind).containsExactlyInAnyOrder(
+                IkasanRuntimeImport.ReviewKind.IMPLEMENTATION, IkasanRuntimeImport.ReviewKind.CONFIGURATION,
+                IkasanRuntimeImport.ReviewKind.INFERRED_VARIANT);
+        var implementation = result.reviewItems().stream()
+                .filter(item -> item.kind() == IkasanRuntimeImport.ReviewKind.IMPLEMENTATION).findFirst().orElseThrow();
+        assertThat(implementation.subject()).isEqualTo("example.ExistingProducer");
+        assertThat(implementation.component()).isEqualTo(new IkasanRuntimeImport.ComponentRef("Orders", "Log"));
+        for (var item : result.reviewItems()) assertThat(result.review()).contains(item.message());
+        assertThat(JSON.readTree(result.studioJson()).path(IkasanRuntimeImport.SOURCE_FIELD).path("review"))
+                .isEqualTo(JSON.valueToTree(result.review()));
+    }
+
     @Test void diagnosticsUseActualPackMatchingAndTypedConfigurationWithoutLeakingUnknownNames() throws Exception {
         String pack = "V4.1.6";
         var report = new org.ikasan.studio.core.diagnostics.RuntimeImportReport();

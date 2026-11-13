@@ -8,6 +8,35 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
 public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCase {
+    public void testMetadataPreviewNormalizesConsolePagesAndHidesInvalidUrlsWithoutSecrets() throws Exception {
+        var dialog = new RuntimeImportConnectionDialog(getProject());
+        try {
+            var url = (JTextField) field(dialog, "url");
+            var module = (JTextField) field(dialog, "module");
+            var preview = (javax.swing.JTextArea) field(dialog, "endpointPreview");
+            module.setText("Demo module");
+            url.setText("http://localhost:12620/My%20Context/login.jsp?token=private-query#login");
+            assertTrue(preview.isVisible());
+            assertTrue(preview.getText().contains("GET http://localhost:12620/My%20Context/rest/metadata/module/Demo%20module"));
+            assertFalse(preview.getText().contains("private-query"));
+            module.setText("OtherModule");
+            assertTrue(preview.getText().endsWith("/OtherModule"));
+            url.setText("http://private-user:private-secret@localhost:12620/ctx");
+            assertFalse(preview.isVisible()); assertEquals("", preview.getText());
+            url.setText("http://localhost:12620/ctx");
+            module.setText("");
+            assertFalse(preview.isVisible());
+        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testLoginPageFetchUsesTheApplicationRoot() throws Exception {
+        exerciseFetch(200, "{\"name\":\"Demo\",\"flows\":[]}", true, "/ctx/login.jsp");
+    }
+
+    public void testModuleViewPageFetchUsesTheApplicationRoot() throws Exception {
+        exerciseFetch(200, "{\"name\":\"Demo\",\"flows\":[]}", true, "/ctx/modules/view.htm?moduleName=Demo");
+    }
+
     public void testSuccessfulFetchClearsPasswordAndReturnsPreviewDocuments() throws Exception {
         exerciseFetch(200, "{\"name\":\"Demo\",\"flows\":[]}", true);
     }
@@ -46,8 +75,11 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
             ((JTextField) field(dialog, "username")).setText("demo-user");
             var password = (JPasswordField) field(dialog, "password");
             password.setText("temporary-secret");
+            var reportButton = (javax.swing.JButton) field(dialog, "reportButton");
+            assertFalse(reportButton.isVisible());
             dialog.doOKAction();
             assertFalse(dialog.isDisposed());
+            assertTrue(reportButton.isVisible());
             assertEquals("temporary-secret".length(), password.getPassword().length);
             // Retry without setting the password again: both HTTP requests must authenticate identically.
             dialog.doOKAction();
@@ -56,6 +88,7 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
             assertEquals(java.util.List.of(expected, expected), headers);
             assertNotNull(dialog.documents());
             assertTrue(dialog.isDisposed());
+            assertFalse(reportButton.isVisible());
             assertEquals(0, password.getPassword().length);
         } finally {
             if (!dialog.isDisposed()) dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
@@ -126,12 +159,15 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
         server.start();
         var dialog = new RuntimeImportConnectionDialog(getProject());
         try {
+            var reportButton = (javax.swing.JButton) field(dialog, "reportButton");
+            assertFalse(reportButton.isVisible());
             ((JTextField) field(dialog, "url")).setText("http://127.0.0.1:" + server.getAddress().getPort() + suffix);
             ((JTextField) field(dialog, "module")).setText("Demo");
             ((JTextField) field(dialog, "username")).setText("demo-user");
             var password = (JPasswordField) field(dialog, "password"); password.setText("temporary-secret");
             assertNull(dialog.doValidate());
             dialog.doOKAction();
+            assertEquals(!success, reportButton.isVisible());
             assertEquals("Demo", getProject().getService(RuntimeImportConnectionSettings.class).getState().moduleName);
             assertEquals("demo-user", getProject().getService(RuntimeImportConnectionSettings.class).getState().username);
             String context = suffix.isEmpty() ? "" : "/ctx";

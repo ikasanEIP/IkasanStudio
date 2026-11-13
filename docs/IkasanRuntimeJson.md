@@ -43,6 +43,8 @@ Source contracts inspected: `rest/rest-module/.../MetaDataApplication.java` and 
 
 Fetched documents are available for inspection; choose a **Paste** option to edit or replace them. Fetching fills the preview only. Model changes still require review and import.
 
+The runtime import review groups configuration warnings, implementation classes and matched component variants. Repeated classes or identical sets of unapplied fields appear once with all affected flow/component locations beneath them. Shared guidance appears once per section; other checks remain visible first. Supply implementation classes through source code or dependencies as appropriate, then verify their Spring wiring. The original detailed messages remain in the saved import provenance.
+
 “Configuration fields not applied” lists populated settings that Studio could not reproduce from its supported properties. Verified unchanged defaults do not require a warning. Local File Consumer filename lists and SFTP Consumer duplicate-filter/move settings are supported across the bundled versions. Some configuration-only settings still require manual work, including SFTP private-key passphrases (even an explicit empty string), nondefault relative-path/recovery settings and local-file path/SpEL settings. The original values remain in the imported source snapshot; retaining them does not apply them to generated code. See the [runtime configuration audit](RuntimeImportConfigurationAudit.md) for the complete scope and remaining limitations.
 
 Imported flows preserve each declared `flowStartupType`: **AUTOMATIC**, **MANUAL** or **DISABLED**. Missing/null settings fall back to **MANUAL** with a flow-specific review item; unknown or malformed values block import rather than silently changing behaviour. The application HTTP port is copied from the module metadata. If absent, Studio uses its default and flags the port for review; invalid supplied ports block import. The REST URL may use a proxy port, so it is not used to infer the application port. Project build settings come from the selected meta-pack; compare the generated POM with the original for custom dependencies, repositories, plugins and profiles. Bring across the original business implementations, dependencies and Spring wiring, review endpoint settings, then compile and test before starting flows. Importing metadata is not a promise of an immediately runnable reproduction of the original application.
@@ -57,12 +59,12 @@ module name, and optional Basic authentication credentials. The registered modul
 case-sensitive (`module.name`) and may differ from the lowercase URL context: for example,
 URL `http://localhost:12450/converterandtranslators5` with module `converterAndTranslators5`.
 Recognized `/swagger-ui/index.html`, `/swagger-ui/`, `/swagger-ui.html` and Blue Console
-`/home.htm` suffixes are removed
+`/home.htm`, `/login.jsp` and `/modules/view.htm` suffixes are removed
 automatically (including their UI query/fragment). Other application URL queries/fragments
-are rejected. The dialog displays the normalized application URL after Fetch. Empty credentials request
+are rejected. The dialog previews the exact normalized metadata GET URL as the application URL/module name are edited; the preview is selectable for copying and contains no credentials or UI query/fragment. Fetch also updates the application URL field to its normalized root. Empty credentials request
 anonymous access; the deployment must permit the REST calls. The inspected controllers
 require `ALL` or `WebServiceAdmin` authority. HTTPS uses normal JVM certificate trust;
-redirects are not followed. Enter the final application URL rather than a login page.
+redirects are not followed. Enter the final application URL; recognising the Blue Console login page does not reuse the browser login session. Studio authenticates its REST requests separately with the supplied Basic credentials.
 
 Fetch reads `/rest/metadata/module/{moduleName}`, then
 `/rest/configuration/{moduleName}/{flowName}/components` for every returned flow.

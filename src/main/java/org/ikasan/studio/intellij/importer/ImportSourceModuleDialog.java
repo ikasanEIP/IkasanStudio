@@ -400,6 +400,11 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         return rowActions(view, row).isEmpty() ? "" : " — " + StudioBundle.message("sourceImport.inline.attention");
     }
 
+    private String newFileHint(SourceModuleImport.FileChoice file) {
+        return StudioBundle.message(selectedFiles.contains(file.source())
+                ? "sourceImport.file.newSelected" : "sourceImport.file.newHelp");
+    }
+
     private void configureDetails(JTable view, JBTextArea details, JBScrollPane pane) {
         details.setEditable(false); details.setLineWrap(true); details.setWrapStyleWord(true);
         details.setFont(com.intellij.util.ui.UIUtil.getLabelFont());
@@ -414,6 +419,13 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         int selected = view.getSelectedRow();
         var actions = selected >= 0 && selected < view.getRowCount() ? rowActions(view, view.convertRowIndexToModel(selected)) : List.<SourceModuleImport.ReviewAction>of();
         StringBuilder text = new StringBuilder();
+        if (analysis != null && view == table && selected >= 0 && selected < view.getRowCount()) {
+            int row = view.convertRowIndexToModel(selected);
+            if (row < analysis.files().size()) {
+                var file = analysis.files().get(row);
+                if (file.previous() == null) text.append(newFileHint(file)).append('\n').append(file.destination());
+            }
+        }
         for (var action : actions) {
             if (!text.isEmpty()) text.append('\n');
             text.append(actionMessage(action));
@@ -437,6 +449,13 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                 boolean attention = tableView != supportTable && !actions.isEmpty() && tableView.convertColumnIndexToModel(column) == 2;
                 setIcon(attention ? com.intellij.icons.AllIcons.General.Warning : null);
                 setToolTipText(actions.isEmpty() ? String.valueOf(value) : actionMessage(actions.get(0)));
+                int modelRow = tableView.convertRowIndexToModel(row);
+                if (analysis != null && tableView == table && modelRow < analysis.files().size()
+                        && tableView.convertColumnIndexToModel(column) == 2) {
+                    var file = analysis.files().get(modelRow);
+                    if (file.previous() == null) setToolTipText(newFileHint(file) + " " + file.destination()
+                            + (actions.isEmpty() ? "" : " — " + actionMessage(actions.get(0))));
+                }
                 return this;
             }
         });
@@ -671,7 +690,8 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                 var file = analysis.files().get(row);
                 return switch (column) {
                     case 0 -> selectedFiles.contains(file.source());
-                    case 2 -> file.destination() + actionSuffix(table, row);
+                    case 2 -> (file.previous() == null ? StudioBundle.message("sourceImport.file.new", file.destination())
+                            : file.destination()) + actionSuffix(table, row);
                     default -> file.source() + (stagedJava.containsKey(file.source()) ? " " + StudioBundle.message("sourceImport.stagedMarker") : "");
                 };
             }

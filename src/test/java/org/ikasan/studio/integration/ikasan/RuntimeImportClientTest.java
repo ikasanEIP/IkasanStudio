@@ -276,23 +276,32 @@ class RuntimeImportClientTest {
                 RuntimeImportClient.baseUri("http://localhost:8080/swagger-ui/index.html").toString());
     }
 
-    @ParameterizedTest @ValueSource(strings = {"/home.htm", "/home.htm/", "/HOME.HTM?view=flows#selected"})
-    void normalizesBlueConsoleHomePagesWithoutChangingTheContext(String suffix) {
+    @ParameterizedTest @ValueSource(strings = {"/home.htm", "/home.htm/", "/HOME.HTM?view=flows#selected",
+            "/login.jsp", "/LOGIN.JSP?error=private-query#login", "/modules/view.htm?moduleName=Demo",
+            "/modules/view.htm/", "/MODULES/VIEW.HTM?moduleName=Demo#flows"})
+    void normalizesBlueConsolePagesWithoutChangingTheContext(String suffix) {
         assertEquals("http://localhost:12450/converterandtranslators5",
                 RuntimeImportClient.baseUri("http://localhost:12450/converterandtranslators5" + suffix).toString());
         assertEquals("https://localhost:8443/My%20Module",
                 RuntimeImportClient.baseUri("https://localhost:8443/My%20Module" + suffix).toString());
         assertEquals("http://localhost:8080", RuntimeImportClient.baseUri("http://localhost:8080/home.htm").toString());
         assertEquals("http://localhost:8080/home.htm/context", RuntimeImportClient.baseUri("http://localhost:8080/home.htm/context").toString());
+        assertEquals("http://localhost:8080/modules/view.htm/context", RuntimeImportClient.baseUri("http://localhost:8080/modules/view.htm/context").toString());
+        assertEquals("http://localhost:8080/custom.jsp", RuntimeImportClient.baseUri("http://localhost:8080/custom.jsp").toString());
     }
 
-    @ParameterizedTest @ValueSource(strings = {"swagger-ui/index.html", "home.htm", "home.htm?view=flows#selected"})
+    @ParameterizedTest @ValueSource(strings = {"swagger-ui/index.html", "home.htm", "home.htm?view=flows#selected",
+            "login.jsp", "modules/view.htm?moduleName=Demo%20module"})
     void landingPageUrlFetchUsesApplicationRestPath(String suffix) throws Exception {
         withServer(exchange -> {
             assertEquals("/ctx/rest/metadata/module/Demo%20module", exchange.getRequestURI().getRawPath());
             respond(exchange, 200, MODULE);
-        }, base -> assertEquals(MODULE, RuntimeImportClient.fetch(
-                URI.create(base + suffix), "Demo module", "", new char[0], false, () -> {}).moduleJson()));
+        }, base -> {
+            URI application = URI.create(base + suffix);
+            assertEquals(base.toString().replaceAll("/+$", "") + "/rest/metadata/module/Demo%20module",
+                    RuntimeImportClient.metadataUri(application, "Demo module").toASCIIString());
+            assertEquals(MODULE, RuntimeImportClient.fetch(application, "Demo module", "", new char[0], false, () -> {}).moduleJson());
+        });
     }
 
     @ParameterizedTest @ValueSource(ints = {404, 500})
@@ -301,11 +310,12 @@ class RuntimeImportClientTest {
             var failure = assertThrows(IOException.class, () -> RuntimeImportClient.fetch(base,
                     "wrongcase", "", new char[0], false, () -> {}));
             assertTrue(failure.getMessage().contains("case-sensitive registered module name (module.name)"));
+            assertTrue(failure.getMessage().contains("module metadata REST request returned HTTP " + status));
             assertFalse(failure.getMessage().contains("private response"));
         });
     }
 
-    @ParameterizedTest @ValueSource(strings = {"swagger-ui/index.html", "home.htm"})
+    @ParameterizedTest @ValueSource(strings = {"swagger-ui/index.html", "home.htm", "login.jsp", "modules/view.htm"})
     void diagnosticsShowTheActualRestUrlAndStatusWithoutCredentialsOrResponseBodies(String page) throws Exception {
         var logs = new ArrayList<String>();
         withServer(exchange -> respond(exchange, 500, "private response password=private-body"), base -> {

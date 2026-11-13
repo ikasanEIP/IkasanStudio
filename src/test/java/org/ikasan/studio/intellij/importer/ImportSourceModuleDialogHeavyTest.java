@@ -10,6 +10,40 @@ import java.nio.file.Files;
 import java.util.*;
 
 public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
+    public void testMissingDestinationIsLabelledAndCopyGuidanceTracksStagingAfterSorting() throws Exception {
+        var dialog = previewDialog();
+        try {
+            var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            var first = base.files().get(0);
+            var second = base.files().get(1);
+            var files = List.of(
+                    new SourceModuleImport.FileChoice(first.source(), first.destination(), first.bytes(), null, false, false, "New"),
+                    new SourceModuleImport.FileChoice(second.source(), second.destination(), second.bytes(), "", false, false, "Existing empty file"));
+            dialog.acceptAnalysis(new SourceModuleImport.Analysis(base.sourceRoot(), base.destinationRoot(), files,
+                    base.beans(), base.properties(), base.dependencies(), base.notes(), base.originalPom(), base.generatedInputs(),
+                    base.managedFiles(), base.supportInputs(), base.identity()), base.sourceRoot());
+            var table = (JTable) field(dialog, "table");
+            var model = table.getModel();
+            assertTrue(model.getValueAt(0, 2).toString().startsWith(
+                    org.ikasan.studio.ui.StudioBundle.message("sourceImport.file.new", first.destination())));
+            assertFalse(model.getValueAt(1, 2).toString().startsWith(
+                    org.ikasan.studio.ui.StudioBundle.message("sourceImport.file.new", second.destination())));
+            table.getRowSorter().toggleSortOrder(1);
+            int row = table.convertRowIndexToView(0);
+            table.setRowSelectionInterval(row, row);
+            var details = (JTextArea) field(dialog, "fileDetails");
+            assertTrue(details.getText().contains(org.ikasan.studio.ui.StudioBundle.message("sourceImport.file.newHelp")));
+            int destinationColumn = table.convertColumnIndexToView(2);
+            var label = (JLabel) table.prepareRenderer(table.getCellRenderer(row, destinationColumn), row, destinationColumn);
+            assertTrue(label.getToolTipText().contains(first.destination()));
+            assertTrue(label.getToolTipText().contains(org.ikasan.studio.ui.StudioBundle.message("sourceImport.file.newHelp")));
+            model.setValueAt(Boolean.TRUE, 0, 0);
+            assertTrue(details.getText().contains(org.ikasan.studio.ui.StudioBundle.message("sourceImport.file.newSelected")));
+            model.setValueAt(Boolean.FALSE, 0, 0);
+            assertTrue(details.getText().contains(org.ikasan.studio.ui.StudioBundle.message("sourceImport.file.newHelp")));
+        } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
     public void testSourceReviewHonoursThePropertiesStepChosenInTheParentJourney() throws Exception {
         for (boolean selected : new boolean[]{false, true}) {
             var dialog = new ImportSourceModuleDialog(getProject(), selected);
