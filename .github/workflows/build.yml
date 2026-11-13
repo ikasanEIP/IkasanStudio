@@ -44,7 +44,7 @@ jobs:
 
       # Validate wrapper
       - name: Gradle Wrapper Validation
-        uses: gradle/actions/wrapper-validation@v6.4.0
+        uses: gradle/actions/wrapper-validation@v6.4.1
 
       # Set up Java environment for the next steps
       - name: Setup Java
@@ -55,7 +55,7 @@ jobs:
 
       # Setup Gradle
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6.4.1
 
       # Set environment variables
       - name: Export Properties
@@ -124,7 +124,7 @@ jobs:
 
       # Setup Gradle
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6.4.1
 
       # Explicitly prove the engine/test kit builds without configuring the IntelliJ plugin.
       - name: Run Headless Tests
@@ -226,7 +226,7 @@ jobs:
 
       # Setup Gradle
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6.4.1
 
       # Cache Plugin Verifier IDEs
       - name: Setup Plugin Verifier IDEs Cache
