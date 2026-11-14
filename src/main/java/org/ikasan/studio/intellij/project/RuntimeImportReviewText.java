@@ -21,7 +21,6 @@ final class RuntimeImportReviewText {
         if (!other.isEmpty()) sections.add(StudioBundle.message("import.runtime.review.other") + "\n" + String.join("\n", other));
         append(sections, result, IkasanRuntimeImport.ReviewKind.CONFIGURATION, "configuration");
         append(sections, result, IkasanRuntimeImport.ReviewKind.IMPLEMENTATION, "implementations");
-        append(sections, result, IkasanRuntimeImport.ReviewKind.INFERRED_VARIANT, "variants");
         return String.join("\n\n", sections);
     }
 

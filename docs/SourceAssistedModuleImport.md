@@ -118,12 +118,14 @@ Spring annotations, inherited build configuration and non-properties resources r
 ## 3. Complete configuration and wiring
 
 Source review has two tabs: **Classes and Dependencies** and **Studio support files**.
-Relevant wiring and dependency issues appear on their rows with a warning icon;
+Selected Spring configuration and dependency decisions appear on their rows with a warning icon;
 select a row to see the action and source locations beneath the table. Scan failures
-or wiring requirements without a matching file appear as non-copyable rows in
+without a matching file appear as non-copyable rows in
 **Classes and Dependencies**, so they remain visible without another review tab.
 Copy, Save preview and Revert update these details in the background. Routine identity,
-transfer and property-file inventories stay in the saved import report.
+transfer and property-file inventories stay in the saved import report. Confirmation-only
+Spring bean/wiring reminders are also retained in that report rather than shown as
+extra rows or warning markers in the source-import screen.
 
 **Copy all** or **Save preview** explicitly chooses the content to replace that destination
 file when **Perform Actions** is applied. No extra replacement checkbox is required;

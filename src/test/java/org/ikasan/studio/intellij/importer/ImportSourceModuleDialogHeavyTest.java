@@ -225,12 +225,16 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
         } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
     }
 
-    public void testWiringIssuesAttachToFileRowsAndUnmatchedScanIssuesRemainVisibleWithoutCopyControls() throws Exception {
+    public void testBeanConfirmationsAreHiddenButWiringDecisionsAndScanProblemsRemainVisible() throws Exception {
         var dialog = previewDialog();
         try {
             var original = (SourceModuleImport.Analysis) field(dialog, "analysis");
-            var analysis = new SourceModuleImport.Analysis(original.sourceRoot(), original.destinationRoot(), original.files(),
-                    List.of(new SourceModuleImport.BeanRequirement("aBean", "A", "generated/Factory.java", 12, List.of("src/A.java:3 — @Bean makeA returns A"))),
+            var wiring = original.files().get(1);
+            var files = List.of(original.files().get(0), new SourceModuleImport.FileChoice(wiring.source(), wiring.destination(),
+                    wiring.bytes(), wiring.previous(), false, true, "Review selected configuration"));
+            var analysis = new SourceModuleImport.Analysis(original.sourceRoot(), original.destinationRoot(), files,
+                    List.of(new SourceModuleImport.BeanRequirement("aBean", "A", "generated/Factory.java", 12, List.of("src/A.java:3 — @Bean makeA returns A")),
+                            new SourceModuleImport.BeanRequirement("libraryBean", "example.LibraryType", "generated/Factory.java", 20, List.of())),
                     original.properties(), original.dependencies(), List.of("Cannot parse source; review manually: src/Broken.java"),
                     original.originalPom(), original.generatedInputs(), original.managedFiles(), original.supportInputs(), original.identity());
             dialog.acceptAnalysis(analysis, original.sourceRoot());
@@ -238,10 +242,13 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
             com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching("Unmatched scan issue missing", () -> table.getRowCount() == 3, 10);
             table.getRowSorter().toggleSortOrder(1);
             int fileRow = table.convertRowIndexToView(1);
-            assertTrue(String.valueOf(table.getModel().getValueAt(1, 2)).contains(org.ikasan.studio.ui.StudioBundle.message("sourceImport.inline.attention")));
+            assertFalse(String.valueOf(table.getModel().getValueAt(1, 2)).contains(org.ikasan.studio.ui.StudioBundle.message("sourceImport.inline.attention")));
             table.setRowSelectionInterval(fileRow, fileRow);
             var details = (JTextArea) field(dialog, "fileDetails");
-            assertTrue(details.getText().contains("aBean")); assertTrue(details.getText().contains("generated/Factory.java:12"));
+            assertFalse(details.getText().contains("aBean"));
+            table.getModel().setValueAt(Boolean.TRUE, 1, 0);
+            String wiringMessage = org.ikasan.studio.ui.StudioBundle.message("sourceImport.reviewAction.WIRING", wiring.destination());
+            com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching("Selected wiring decision hidden", () -> details.getText().contains(wiringMessage), 10);
             int issueRow = table.convertRowIndexToView(2);
             table.setRowSelectionInterval(issueRow, issueRow);
             assertFalse(table.isCellEditable(issueRow, 1));
@@ -462,7 +469,7 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
         } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
     }
 
-    public void testIdenticalClassWithUnresolvedWiringRemainsVisible() throws Exception {
+    public void testBeanConfirmationDoesNotCreateAnExtraRowForAnIdenticalClass() throws Exception {
         var dialog = previewDialog();
         try {
             var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
@@ -472,9 +479,16 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
                     List.of(), List.of(), List.of(), base.originalPom(), base.generatedInputs(), List.of(), base.supportInputs(), base.identity());
             dialog.acceptAnalysis(analysis, base.sourceRoot());
             var table = (JTable) field(dialog, "table");
-            com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching("Wiring issue hidden with identical class", () -> table.getRowCount() == 1, 10);
+            var attach = dialog.getClass().getDeclaredMethod("attachActions", List.class);
+            attach.setAccessible(true);
+            var actions = SourceModuleImport.reviewActions(analysis, Set.of(), Set.of());
+            assertTrue(actions.stream().anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.BEAN));
+            attach.invoke(dialog, actions);
+            assertEquals(0, table.getRowCount());
+            ((JCheckBox) field(dialog, "showIdenticalFiles")).doClick();
+            assertEquals(1, table.getRowCount());
             table.setRowSelectionInterval(0, 0);
-            assertTrue(((JTextArea) field(dialog, "fileDetails")).getText().contains("aBean"));
+            assertFalse(((JTextArea) field(dialog, "fileDetails")).getText().contains("aBean"));
         } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
     }
 

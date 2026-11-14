@@ -350,15 +350,10 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         Map<String, List<SourceModuleImport.ReviewAction>> attached = new LinkedHashMap<>();
         List<SourceModuleImport.ReviewAction> unmatched = new ArrayList<>();
         for (var action : actions) {
-            if (action.kind() == SourceModuleImport.ReviewKind.SOURCE || action.kind() == SourceModuleImport.ReviewKind.RESOURCE) continue;
+            if (action.kind() == SourceModuleImport.ReviewKind.SOURCE || action.kind() == SourceModuleImport.ReviewKind.RESOURCE
+                    || action.kind() == SourceModuleImport.ReviewKind.BEAN) continue;
             String key;
-            if (action.kind() == SourceModuleImport.ReviewKind.BEAN) {
-                String type = action.subject().substring(action.subject().indexOf(" : ") + 3);
-                String target = "user/src/main/java/" + type.replace('.', '/') + ".java";
-                key = analysis.files().stream().map(SourceModuleImport.FileChoice::destination).filter(target::equals).findFirst().orElse(null);
-                if (key == null) key = analysis.files().stream().filter(file -> action.evidence().stream()
-                        .anyMatch(evidence -> evidence.startsWith(file.source() + ":"))).map(SourceModuleImport.FileChoice::destination).findFirst().orElse(null);
-            } else if (action.kind() == SourceModuleImport.ReviewKind.SCAN) {
+            if (action.kind() == SourceModuleImport.ReviewKind.SCAN) {
                 key = analysis.files().stream().filter(file -> action.subject().contains(file.source())).map(SourceModuleImport.FileChoice::destination).findFirst().orElse(null);
             } else key = action.subject();
             if (key == null) unmatched.add(action);

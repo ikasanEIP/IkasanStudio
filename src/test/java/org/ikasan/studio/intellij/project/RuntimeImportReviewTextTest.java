@@ -21,13 +21,12 @@ class RuntimeImportReviewTextTest {
         var result = new IkasanRuntimeImport.Result("{}", review, items);
         String text = RuntimeImportReviewText.format(result);
         assertThat(text).contains("Implementation classes to supply (1)", "Configuration warnings (1)",
-                "Matched component variants (1)", "First: flow → nested → Consumer", "Second → Producer",
-                "First → Consumer", "SFTP Consumer (example.SftpConfiguration)", review.get(5));
+                "First: flow → nested → Consumer", "Second → Producer", "First → Consumer", review.get(5));
+        assertThat(text).doesNotContain("Matched component variants", "example.SftpConfiguration", "\nvariant");
         assertThat(text.split("example.Shared", -1)).hasSize(2);
         assertThat(text.split("privateKeyPassphrase", -1)).hasSize(2);
         assertThat(text.indexOf("Patch upgrade")).isLessThan(text.indexOf("Configuration warnings"));
         assertThat(text.indexOf("Configuration warnings")).isLessThan(text.indexOf("Implementation classes"));
-        assertThat(text.indexOf("Implementation classes")).isLessThan(text.indexOf("Matched component variants"));
         assertThat(result.review()).containsExactlyElementsOf(review);
     }
 
