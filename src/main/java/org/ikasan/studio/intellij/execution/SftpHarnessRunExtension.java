@@ -49,7 +49,7 @@ public final class SftpHarnessRunExtension extends RunConfigurationExtension {
                 var ftp = project.getService(org.ikasan.studio.intellij.runtime.TestFtpServerService.class);
                 var expected = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.localFtp();
                 if (!ftp.isRunningAt(expected))
-                    throw new IllegalStateException(org.ikasan.studio.ui.StudioBundle.message("harnessOverrides.startFtp"));
+                    throw new IllegalStateException(org.ikasan.studio.ui.StudioBundle.message("harnessOverrides.startFtp", expected.address()));
                 parameters.getVMParametersList().addProperty("studio.harness.ftp.home", ftp.getRootDirectory().toString());
             }
             parameters.getVMParametersList().addProperty("studio.harness.components", String.join(",", selected));

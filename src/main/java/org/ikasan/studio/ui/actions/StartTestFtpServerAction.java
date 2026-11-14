@@ -30,6 +30,7 @@ public final class StartTestFtpServerAction implements ActionListener {
             return;
         }
         TestFtpServerConfiguration configuration = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.ftp(project, flowElement);
+        boolean harnessOverride = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.enabled(project, flowElement);
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Starting test FTP server") {
             @SuppressWarnings("NullableProblems")
             @Override public void run(ProgressIndicator indicator) {
@@ -50,7 +51,8 @@ public final class StartTestFtpServerAction implements ActionListener {
                     LOG.warn("STUDIO: Could not start test FTP server: " + safeDetail);
                     if (isPortConflict(e)) {
                         ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaErrorMessage(project,
-                                StudioBundle.message("message.TestFtpServerPortConflict", configuration.address())));
+                                StudioBundle.message(harnessOverride ? "message.TestFtpHarnessPortConflict"
+                                        : "message.TestFtpServerPortConflict", configuration.address())));
                         return;
                     }
                     ApplicationManager.getApplication().invokeLater(() -> StudioUIUtils.displayIdeaErrorMessage(project,

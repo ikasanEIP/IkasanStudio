@@ -152,6 +152,7 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
             }
             report.complete();
             documents = fetched.get();
+            if (documents != null && documents.applicationUri() != null) url.setText(documents.applicationUri().toString());
             if (documents != null) close(OK_EXIT_CODE);
         } catch (ProcessCanceledException cancelled) {
             report.cancelled(); throw cancelled;

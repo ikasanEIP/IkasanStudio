@@ -8,6 +8,31 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
 public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCase {
+    public void testGenericPageFetchRemembersTheDiscoveredApplicationRoot() throws Exception {
+        var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/", exchange -> {
+            boolean found = exchange.getRequestURI().getPath().equals("/ctx/rest/metadata/module/Demo");
+            byte[] body = "{\"name\":\"Demo\",\"flows\":[]}".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(found ? 200 : 404, body.length);
+            try (var output = exchange.getResponseBody()) { output.write(body); }
+        });
+        server.start();
+        var dialog = new RuntimeImportConnectionDialog(getProject());
+        try {
+            String root = "http://127.0.0.1:" + server.getAddress().getPort() + "/ctx";
+            ((JTextField) field(dialog, "url")).setText(root + "/modules/list.htm?moduleName=Demo#selected");
+            ((JTextField) field(dialog, "module")).setText("Demo");
+            ((JTextField) field(dialog, "username")).setText("");
+            dialog.doOKAction();
+            assertTrue(dialog.isDisposed());
+            assertEquals(root, dialog.documents().applicationUri().toString());
+            assertEquals(root, getProject().getService(RuntimeImportConnectionSettings.class).getState().applicationUrl);
+        } finally {
+            if (!dialog.isDisposed()) dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+            server.stop(0);
+        }
+    }
+
     public void testMetadataPreviewNormalizesConsolePagesAndHidesInvalidUrlsWithoutSecrets() throws Exception {
         var dialog = new RuntimeImportConnectionDialog(getProject());
         try {
@@ -151,7 +176,7 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
         var requested = new java.util.concurrent.atomic.AtomicReference<String>();
         var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/", exchange -> {
-            requested.set(exchange.getRequestURI().toASCIIString());
+            requested.compareAndSet(null, exchange.getRequestURI().toASCIIString());
             byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
             exchange.sendResponseHeaders(status, bytes.length);
             try (var stream = exchange.getResponseBody()) { stream.write(bytes); }

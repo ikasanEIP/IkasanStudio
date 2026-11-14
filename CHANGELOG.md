@@ -5,6 +5,10 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Clarify that selecting harness overrides requires starting the local services before Run/Debug. Identify the project-owned FTP endpoint in launch failures and give override-aware port-conflict guidance instead of suggesting a component port change that overrides would ignore.
+
+- Locate running modules from arbitrary page URLs using bounded, cancellable parent-path metadata discovery on the same server. Ignore page queries/fragments, reuse and remember the discovered root, and distinguish the first-request preview from the resolved application URL.
+
 - Remove confirmation-only Spring bean/wiring reminders from source-import rows and warning markers. Retain the saved wiring report and actionable source, dependency, support-file and scan decisions.
 
 - Accept Blue Console login and module-view URLs during runtime fetch, preserving the application context and removing page queries/fragments. Preview the exact metadata GET URL before fetching and identify the failing REST stage in HTTP errors.

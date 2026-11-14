@@ -53,15 +53,25 @@ Runtime exports describe effective settings, so defaults left blank in the origi
 
 ## Fetch from a running module
 
-In the import dialog, select **Import an Ikasan module**, then choose **Fetch from running module…**. Enter the application URL
-including its context path (for example `http://localhost:8080/orders`), the registered
+In the import dialog, select **Import an Ikasan module**, then choose **Fetch from running module…**. Paste the application root URL
+or any page URL within it (for example `http://localhost:8080/orders/modules/list.htm`), the registered
 module name, and optional Basic authentication credentials. The registered module name is
 case-sensitive (`module.name`) and may differ from the lowercase URL context: for example,
 URL `http://localhost:12450/converterandtranslators5` with module `converterAndTranslators5`.
 Recognized `/swagger-ui/index.html`, `/swagger-ui/`, `/swagger-ui.html` and Blue Console
 `/home.htm`, `/login.jsp` and `/modules/view.htm` suffixes are removed
-automatically (including their UI query/fragment). Other application URL queries/fragments
-are rejected. The dialog previews the exact normalized metadata GET URL as the application URL/module name are edited; the preview is selectable for copying and contains no credentials or UI query/fragment. Fetch also updates the application URL field to its normalized root. Empty credentials request
+automatically. Queries and fragments on any page URL are discarded before REST requests.
+The dialog previews the first metadata GET URL as the application URL/module name are edited;
+the preview is selectable for copying and contains no credentials or UI query/fragment.
+If metadata returns HTTP 404, Fetch tries each parent path on the same scheme/host/port,
+up to 16 candidate roots within a shared 20-second metadata-discovery budget. It issues only
+read-only metadata GETs; it does not visit the supplied page, follow page links or follow redirects.
+A successful response must still contain valid metadata for the exact supplied module name.
+Authentication failures, redirects, server errors and malformed/mismatched successful metadata
+stop the search rather than being hidden by another candidate. Cancellation remains available.
+After a successful fetch, the resolved root is displayed and remembered, and all scoped
+configuration requests use that root. Intermediate discovery 404s are logged locally but
+are not reported as import problems when discovery succeeds. Empty credentials request
 anonymous access; the deployment must permit the REST calls. The inspected controllers
 require `ALL` or `WebServiceAdmin` authority. HTTPS uses normal JVM certificate trust;
 redirects are not followed. Enter the final application URL; recognising the Blue Console login page does not reuse the browser login session. Studio authenticates its REST requests separately with the supplied Basic credentials.

@@ -31,11 +31,17 @@ public final class RuntimeImportClient {
     public static final class Documents {
         private final String moduleJson;
         private final String configurationJson;
+        private final URI applicationUri;
         public Documents(String moduleJson, String configurationJson) {
+            this(moduleJson, configurationJson, null);
+        }
+        private Documents(String moduleJson, String configurationJson, URI applicationUri) {
             this.moduleJson = moduleJson; this.configurationJson = configurationJson;
+            this.applicationUri = applicationUri;
         }
         public String moduleJson() { return moduleJson; }
         public String configurationJson() { return configurationJson; }
+        public URI applicationUri() { return applicationUri; }
     }
 
     public static URI baseUri(String value) {
@@ -48,10 +54,7 @@ public final class RuntimeImportClient {
         }
         String path = uri.getRawPath().replaceAll("/+$", "");
         String applicationPath = path.replaceFirst("(?i)/(?:swagger-ui(?:/index\\.html)?|swagger-ui\\.html|home\\.htm|login\\.jsp|modules/view\\.htm)$", "");
-        boolean landingPage = !applicationPath.equals(path);
-        if (!landingPage && (uri.getRawQuery() != null || uri.getRawFragment() != null))
-            throw new IllegalArgumentException("Use an application URL without query or fragment.");
-        // Strip only recognized Swagger/Blue Console landing pages, preserving context case and encoding.
+        // UI queries/fragments are not part of the application context and never reach REST requests.
         return URI.create(uri.getScheme() + "://" + uri.getRawAuthority() + applicationPath);
     }
 
@@ -92,7 +95,9 @@ public final class RuntimeImportClient {
         if (username.isBlank() && password.length != 0) throw new IllegalArgumentException("Enter a username or clear the password for anonymous access.");
         String authorization = username.isBlank() ? null : "Basic " + Base64.getEncoder().encodeToString(
                 (username + ":" + new String(password)).getBytes(StandardCharsets.UTF_8));
-        String metadata = get(base, metadataPath(module), authorization, cancelled, diagnostics, responseStatus);
+        var located = locateMetadata(base, module, authorization, cancelled, diagnostics, responseStatus);
+        base = located.application();
+        String metadata = located.json();
         JsonNode topology = parse(metadata, "Module metadata");
         if (!topology.isObject() || !topology.path("flows").isArray()
                 || !topology.path("name").isTextual() || !module.equals(topology.path("name").asText())) {
@@ -128,7 +133,46 @@ public final class RuntimeImportClient {
         // This runs on the acquisition worker, before documents are handed to the EDT.
         String combined = configuration.isEmpty() ? "[]" : JSON.writerWithDefaultPrettyPrinter().writeValueAsString(configuration);
         if (combined.getBytes(StandardCharsets.UTF_8).length > MAX_BYTES) throw new IOException("Component configuration exceeds the 8 MiB import limit.");
-        return new Documents(metadata, combined);
+        return new Documents(metadata, combined, base);
+    }
+
+    private record LocatedMetadata(URI application, String json) { }
+
+    /** Only probe the expected metadata endpoint on the same origin; never follow page links or redirects. */
+    private static LocatedMetadata locateMetadata(URI base, String module, String authorization, Runnable cancelled,
+                                                  java.util.function.Consumer<String> diagnostics,
+                                                  java.util.function.BiConsumer<RequestStage, Integer> responseStatus)
+            throws IOException, InterruptedException {
+        var candidates = new ArrayList<URI>();
+        String path = base.getRawPath();
+        while (true) {
+            if (candidates.size() == 16) throw new IOException("Application URL has too many path segments. Enter a URL closer to the application root.");
+            candidates.add(URI.create(base.getScheme() + "://" + base.getRawAuthority() + path));
+            if (path.isEmpty()) break;
+            path = path.substring(0, path.lastIndexOf('/'));
+        }
+        long deadline = System.nanoTime() + Duration.ofSeconds(20).toNanos();
+        responseStatus.accept(RequestStage.METADATA, 0);
+        for (int i = 0; i < candidates.size(); i++) {
+            cancelled.run();
+            int[] status = {0};
+            try {
+                String json = get(candidates.get(i), metadataPath(module), authorization, cancelled, diagnostics,
+                        (stage, value) -> status[0] = value, deadline);
+                responseStatus.accept(RequestStage.METADATA, status[0]);
+                return new LocatedMetadata(candidates.get(i), json);
+            } catch (IOException failure) {
+                if (failure instanceof HttpStatusException http && http.status == 404 && i + 1 < candidates.size()) continue;
+                responseStatus.accept(RequestStage.METADATA, status[0]);
+                throw failure;
+            }
+        }
+        throw new IOException("Could not locate the module metadata endpoint.");
+    }
+
+    private static final class HttpStatusException extends IOException {
+        private final int status;
+        private HttpStatusException(int status, String message) { super(message); this.status = status; }
     }
 
     private static String segment(String text) { return URLEncoder.encode(text, StandardCharsets.UTF_8).replace("+", "%20"); }
@@ -147,17 +191,25 @@ public final class RuntimeImportClient {
     private static String get(URI base, String path, String authorization, Runnable cancelled,
                               java.util.function.Consumer<String> diagnostics,
                               java.util.function.BiConsumer<RequestStage, Integer> responseStatus) throws IOException, InterruptedException {
+        return get(base, path, authorization, cancelled, diagnostics, responseStatus,
+                System.nanoTime() + Duration.ofSeconds(20).toNanos());
+    }
+
+    private static String get(URI base, String path, String authorization, Runnable cancelled,
+                              java.util.function.Consumer<String> diagnostics,
+                              java.util.function.BiConsumer<RequestStage, Integer> responseStatus, long deadline) throws IOException, InterruptedException {
         cancelled.run();
         URI endpoint = URI.create(base.toASCIIString() + path);
         responseStatus.accept(path.startsWith("/rest/metadata/") ? RequestStage.METADATA : RequestStage.CONFIGURATION, 0);
         String stage = path.startsWith("/rest/metadata/") ? "module metadata" : "component configuration";
         // Endpoint contains no user-info, query or fragment. Never log headers, credentials or response bodies.
         diagnostics.accept("Runtime import: fetching " + stage + " via GET " + endpoint);
+        long remaining = deadline - System.nanoTime();
+        if (remaining <= 0) throw new IOException("The module REST request timed out.");
         var request = HttpRequest.newBuilder(endpoint)
-                .timeout(Duration.ofSeconds(20)).header("Accept", "application/json").GET();
+                .timeout(Duration.ofNanos(remaining)).header("Accept", "application/json").GET();
         if (authorization != null) request.header("Authorization", authorization);
         var future = HTTP.sendAsync(request.build(), ignored -> new LimitedBody());
-        long deadline = System.nanoTime() + Duration.ofSeconds(20).toNanos();
         try {
             HttpResponse<byte[]> response;
             while (true) {
@@ -176,7 +228,7 @@ public final class RuntimeImportClient {
             diagnostics.accept("Runtime import: " + stage + " GET " + endpoint + " returned HTTP " + status);
             if (status == 401 || status == 403) throw new IOException("REST access was denied (HTTP " + status + "). Check credentials and ALL or WebServiceAdmin authority.");
             if (status >= 300 && status < 400) throw new IOException("The module redirected the REST request. Enter its final application URL; redirects are not followed.");
-            if (status != 200) throw new IOException("The " + stage + " REST request returned HTTP " + status + ". Verify the application context path and the exact case-sensitive registered module name (module.name), which may differ from the lowercase URL context. Also check REST endpoint availability and, for HTTP 500, the module server log.");
+            if (status != 200) throw new HttpStatusException(status, "The " + stage + " REST request returned HTTP " + status + ". Verify the application context path and the exact case-sensitive registered module name (module.name), which may differ from the lowercase URL context. Also check REST endpoint availability and, for HTTP 500, the module server log.");
             return new String(response.body(), StandardCharsets.UTF_8);
         } finally { future.cancel(true); }
     }

@@ -260,10 +260,82 @@ class RuntimeImportClientTest {
         } finally { release.countDown(); executor.shutdownNow(); }
     }
 
-    @ParameterizedTest @ValueSource(strings = {"file:///tmp/config", "http://user:secret@localhost/app", "http://localhost/app?token=secret", "http://localhost/app#fragment", "not a URL"})
+    @ParameterizedTest @ValueSource(strings = {"file:///tmp/config", "http://user:secret@localhost/app", "not a URL"})
     void rejectsAmbiguousOrCredentialBearingUrls(String url) {
         var failure = assertThrows(IllegalArgumentException.class, () -> RuntimeImportClient.baseUri(url));
         assertFalse(failure.getMessage().contains("secret"));
+    }
+
+    @Test void genericPageQueriesAndFragmentsAreDiscardedWithoutChangingThePath() {
+        assertEquals("https://localhost:8443/Proxy/My%20App/custom/page",
+                RuntimeImportClient.baseUri("https://localhost:8443/Proxy/My%20App/custom/page?token=secret#view").toString());
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"modules/list.htm", "custom/deep/page", "custom.jsp?token=private-query#view"})
+    void discoversApplicationRootAndUsesItForConfigurationWithoutReportingProbeFailures(String page) throws Exception {
+        var requests = new ArrayList<String>();
+        var statuses = new ArrayList<Integer>();
+        var logs = new ArrayList<String>();
+        withServer(exchange -> {
+            String path = exchange.getRequestURI().getRawPath(); requests.add(path);
+            assertEquals("GET", exchange.getRequestMethod());
+            assertNull(exchange.getRequestURI().getRawQuery());
+            if (path.equals("/ctx/rest/metadata/module/Demo%20module")) respond(exchange, 200, MODULE);
+            else if (path.startsWith("/ctx/rest/configuration/")) respond(exchange, 200, "[]");
+            else respond(exchange, 404, "private body");
+        }, base -> {
+            var documents = RuntimeImportClient.fetch(URI.create(base + page), "Demo module", "", new char[0], true,
+                    () -> {}, logs::add, (stage, status) -> { if (stage == RuntimeImportClient.RequestStage.METADATA) statuses.add(status); });
+            assertEquals(base.toString().replaceAll("/+$", ""), documents.applicationUri().toString());
+            assertEquals(MODULE, documents.moduleJson());
+            assertEquals("[]", documents.configurationJson());
+            assertEquals(List.of(0, 200), statuses);
+            assertTrue(requests.stream().anyMatch(path -> path.startsWith("/ctx/rest/configuration/")));
+            assertFalse(String.join("\n", logs).contains("private-query"));
+            assertFalse(String.join("\n", logs).contains("private body"));
+        });
+    }
+
+    @Test void discoversNestedEncodedContextWithoutGuessingTheFirstPathSegment() throws Exception {
+        withServer(exchange -> respond(exchange,
+                exchange.getRequestURI().getRawPath().equals("/ctx/proxy/My%20App/rest/metadata/module/Demo%20module") ? 200 : 404,
+                MODULE), base -> {
+            var documents = RuntimeImportClient.fetch(URI.create(base + "proxy/My%20App/screens/arbitrary"), "Demo module",
+                    "", new char[0], false, () -> {});
+            assertEquals(base + "proxy/My%20App", documents.applicationUri().toString());
+        });
+    }
+
+    @ParameterizedTest @ValueSource(ints = {401, 403, 500, 302})
+    void discoveryStopsOnErrorsOtherThanNotFound(int status) throws Exception {
+        var count = new AtomicInteger();
+        withServer(exchange -> { count.incrementAndGet(); respond(exchange, status, "private response"); }, base -> {
+            assertThrows(IOException.class, () -> RuntimeImportClient.fetch(URI.create(base + "a/b/page"), "Demo module",
+                    "", new char[0], false, () -> {}));
+            assertEquals(1, count.get());
+        });
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"not JSON", "{\"name\":\"Other\",\"flows\":[]}"})
+    void discoveryDoesNotHideInvalidSuccessfulMetadata(String body) throws Exception {
+        var count = new AtomicInteger();
+        withServer(exchange -> { count.incrementAndGet(); respond(exchange, 200, body); }, base -> {
+            assertThrows(IOException.class, () -> RuntimeImportClient.fetch(URI.create(base + "a/b/page"), "Demo module",
+                    "", new char[0], false, () -> {}));
+            assertEquals(1, count.get());
+        });
+    }
+
+    @Test void discoveryIsBoundedAndCancellableBetweenCandidates() throws Exception {
+        var count = new AtomicInteger();
+        withServer(exchange -> { count.incrementAndGet(); respond(exchange, 404, ""); }, base -> {
+            assertThrows(IOException.class, () -> RuntimeImportClient.fetch(URI.create(base + "segment/".repeat(17)), "Demo module",
+                    "", new char[0], false, () -> {}));
+            assertEquals(0, count.get());
+            assertThrows(CancellationException.class, () -> RuntimeImportClient.fetch(URI.create(base + "a/b/page"), "Demo module",
+                    "", new char[0], false, () -> { if (count.get() > 0) throw new CancellationException(); }));
+            assertEquals(1, count.get());
+        });
     }
 
     @ParameterizedTest @ValueSource(strings = {

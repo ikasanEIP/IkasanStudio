@@ -39,6 +39,14 @@ must be running before launch. Port conflicts are reported rather than selecting
 external endpoint. JMS selection diverts to its existing reader's private test destination;
 it continues using the configured broker and does not start a broker.
 
+Selecting overrides chooses the connection settings; use **Harness Start** to start the
+local services. Each project's FTP server is owned by that IDE project, while port 2121
+is shared across the machine. If another project owns it, use **Harness Stop** in that
+project before starting this project's server. Stopping a module does not stop its
+IDE-owned FTP harness. Changing a component's `remotePort` does not change the fixed
+port used by FTP overrides. A launch refusal means the selected project-owned service
+is unavailable, even if a different FTP server is listening at that address.
+
 Regenerate existing projects before first use. For a V5.1.0 project locked to an older
 adapter revision, explicitly adopt revision **1.0.6** first. The generated inventory permits
 normal IntelliJ Application launches when the Studio editor is closed. Maven, JUnit and
