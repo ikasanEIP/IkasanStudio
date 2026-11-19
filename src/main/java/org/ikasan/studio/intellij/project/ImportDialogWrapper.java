@@ -1,7 +1,8 @@
 package org.ikasan.studio.intellij.project;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.ScreenUtil;
 import com.intellij.util.ui.JBUI;
@@ -15,8 +16,7 @@ import java.awt.Window;
 
 /** Import dialogs stay with their invoking window and fit its monitor's usable bounds. */
 // Studio currently runs in the local IDE; backend classification comes from transitive plugin dependencies.
-@SuppressWarnings("SplitModeApiUsage")
-public abstract class ImportDialogWrapper extends DialogWrapper {
+public abstract class ImportDialogWrapper extends StudioDialogWrapper {
     private final Component parent;
 
     protected ImportDialogWrapper(Project project, Component parent) {

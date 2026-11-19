@@ -1,7 +1,8 @@
 package org.ikasan.studio.ui.component.properties;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.StudioBundle;
 
@@ -18,7 +19,7 @@ import java.util.List;
  * Resolves pending edits before a selection change or launch. Navigation is offered only for destinations
  * available on the clicked component's context menu. Navigation and Cancel preserve the original edits.
  */
-public class UnsavedPropertyChangesDialog extends DialogWrapper {
+public class UnsavedPropertyChangesDialog extends StudioDialogWrapper {
 
     public record PropertyChangeDetail(String label, String oldValueDisplay, String newValueDisplay) {}
 
@@ -55,7 +56,7 @@ public class UnsavedPropertyChangesDialog extends DialogWrapper {
     }
 
     @Override
-    protected JComponent createCenterPanel() {
+    protected JComponent createStudioContent() {
         return buildContent(message, componentName, changes);
     }
 

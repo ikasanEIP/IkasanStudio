@@ -1,7 +1,8 @@
 package org.ikasan.studio.ui.component.properties;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -12,7 +13,7 @@ import java.awt.*;
 import java.util.List;
 
 /** Native controls avoid the checkbox-message dialog's limited HTML message renderer. */
-final class RegenerateUserClassDialog extends DialogWrapper {
+final class RegenerateUserClassDialog extends StudioDialogWrapper {
     record AffectedClass(String flow, String type, String className) {}
     private final String message;
     private final boolean allowManualUpdate;
@@ -52,7 +53,7 @@ final class RegenerateUserClassDialog extends DialogWrapper {
     boolean isBackupSelected() { return backup.isSelected(); }
 
     @Override
-    protected JComponent createCenterPanel() {
+    protected JComponent createStudioContent() {
         return buildContent(message, affected, backup);
     }
 

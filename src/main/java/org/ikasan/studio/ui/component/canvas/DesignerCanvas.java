@@ -1,5 +1,7 @@
 package org.ikasan.studio.ui.component.canvas;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.undo.UndoManager;
@@ -7,7 +9,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
@@ -3270,8 +3271,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     }
 
     // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
-    @SuppressWarnings("SplitModeApiUsage")
-    private static final class ErrorDetailsDialog extends DialogWrapper {
+    private static final class ErrorDetailsDialog extends StudioDialogWrapper {
         private final String report;
         private final JBTextArea detailsArea;
         private final Action copyAllAction = new AbstractAction(StudioBundle.message("button.CopyAll")) {
@@ -3292,7 +3292,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         }
 
         @Override
-        protected JComponent createCenterPanel() {
+        protected JComponent createStudioContent() {
             detailsArea.setEditable(false);
             detailsArea.setLineWrap(false);
             detailsArea.setCaretPosition(0);

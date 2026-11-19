@@ -115,6 +115,7 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
         add(Box.createVerticalGlue(), constraints);
 
         showWaitingForIndexes();
+        org.ikasan.studio.ui.StudioTextCopySupport.install(this);
     }
 
     private static void configureDescription(JBTextArea textArea) {

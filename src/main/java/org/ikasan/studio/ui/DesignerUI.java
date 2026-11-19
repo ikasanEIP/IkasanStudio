@@ -120,6 +120,7 @@ public class DesignerUI implements Disposable {
         contentPanel.add(initialisationPanel, INITIALISING_CARD);
         contentPanel.add(propertiesAndCanvasSplitPane, DESIGNER_CARD);
         contentLayout.show(contentPanel, INITIALISING_CARD);
+        StudioTextCopySupport.install(contentPanel);
         uiContext.setDesignerUI(this);
         if (initialisationService.getState() == StudioProjectInitialisationService.State.READY) {
             completeInitialisation(uiContext);

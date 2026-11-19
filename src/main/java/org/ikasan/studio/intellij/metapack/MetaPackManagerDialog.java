@@ -1,11 +1,12 @@
 package org.ikasan.studio.intellij.metapack;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.*;
 import com.intellij.util.ui.JBUI;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** External-pack lifecycle UI; bundled packs continue to be managed by the plugin distribution. */
-final class MetaPackManagerDialog extends DialogWrapper {
+final class MetaPackManagerDialog extends StudioDialogWrapper {
     private final Project project;
     private final Path directory = new StudioMetaPackDirectoryProvider().directory();
     private final DefaultListModel<MetaPackStore.Entry> model = new DefaultListModel<>();
@@ -47,7 +48,7 @@ final class MetaPackManagerDialog extends DialogWrapper {
         updateButtons();
     }
 
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(JBUI.scale(8), JBUI.scale(8)));
         JBTextArea note = new JBTextArea(StudioBundle.message("metaPack.ManageNote"));
         note.setEditable(false); note.setLineWrap(true); note.setWrapStyleWord(true); note.setOpaque(false);
@@ -145,9 +146,9 @@ final class MetaPackManagerDialog extends DialogWrapper {
                 Messages.showInfoMessage(project, StudioBundle.message("metaPack.NoHistory"), StudioBundle.message("metaPack.Restore")); return;
             }
             var choices = new JBList<>(previous); choices.setSelectedIndex(0);
-            var picker = new DialogWrapper(project, true) {
+            var picker = new StudioDialogWrapper(project, true) {
                 { setTitle(StudioBundle.message("metaPack.Restore")); init(); }
-                @Override protected JComponent createCenterPanel() { return new JBScrollPane(choices); }
+                @Override protected JComponent createStudioContent() { return new JBScrollPane(choices); }
             };
             if (picker.showAndGet() && choices.getSelectedValue() != null) reviewUpdate(selected, choices.getSelectedValue().file());
         });

@@ -1,7 +1,8 @@
 package org.ikasan.studio.ui.component.properties;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.StudioBundle;
 
@@ -11,7 +12,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 /** A bounded, wrapping warning keeps even long package names readable. */
-final class FlowPackageChangeDialog extends DialogWrapper {
+final class FlowPackageChangeDialog extends StudioDialogWrapper {
     private final String oldPackage;
     private final String newPackage;
     private final java.util.List<String> files;
@@ -27,7 +28,7 @@ final class FlowPackageChangeDialog extends DialogWrapper {
     }
 
     @Override
-    protected JComponent createCenterPanel() {
+    protected JComponent createStudioContent() {
         JPanel details = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.NORTHWEST;

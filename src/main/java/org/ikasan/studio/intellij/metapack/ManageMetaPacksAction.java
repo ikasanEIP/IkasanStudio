@@ -11,8 +11,13 @@ public final class ManageMetaPacksAction extends DumbAwareAction {
         event.getPresentation().setEnabled(event.getProject() != null && !event.getProject().isDisposed());
     }
     @Override public void actionPerformed(AnActionEvent event) {
-        if (event.getProject() == null || event.getProject().isDisposed()) return;
-        var dialog = new MetaPackManagerDialog(event.getProject());
+        open(event.getProject());
+    }
+
+    /** Opens the same manager from the menu or a notification action, on the EDT. */
+    public static void open(com.intellij.openapi.project.Project project) {
+        if (project == null || project.isDisposed()) return;
+        var dialog = new MetaPackManagerDialog(project);
         dialog.reload();
         dialog.show();
     }

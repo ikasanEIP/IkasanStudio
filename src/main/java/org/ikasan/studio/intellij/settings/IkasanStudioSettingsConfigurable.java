@@ -211,6 +211,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         var scrollPane = new com.intellij.ui.components.JBScrollPane(panel);
         scrollPane.setBorder(JBUI.Borders.empty());
         scrollPane.getAccessibleContext().setAccessibleName(getDisplayName());
+        org.ikasan.studio.ui.StudioTextCopySupport.install(scrollPane);
         return scrollPane;
     }
 

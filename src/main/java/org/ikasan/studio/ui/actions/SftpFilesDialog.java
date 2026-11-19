@@ -1,10 +1,11 @@
 package org.ikasan.studio.ui.actions;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.*;
@@ -28,8 +29,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 /** Session-only connection settings. All SSH and local file IO runs on a pooled thread. */
-@SuppressWarnings("SplitModeApiUsage")
-public final class SftpFilesDialog extends DialogWrapper {
+public final class SftpFilesDialog extends StudioDialogWrapper {
     private final Project project;
     private final RemoteFilesClient.Connection connection;
     private final JBTextField directory = new JBTextField();
@@ -114,7 +114,7 @@ public final class SftpFilesDialog extends DialogWrapper {
         init();
         updateButtons();
     }
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
         JPanel path = new JPanel(new BorderLayout(6, 0));
         path.add(directory, BorderLayout.CENTER);
@@ -232,7 +232,7 @@ public final class SftpFilesDialog extends DialogWrapper {
         if (client != null) ApplicationManager.getApplication().executeOnPooledThread(client::close);
         super.dispose();
     }
-    private static final class Settings extends DialogWrapper {
+    private static final class Settings extends StudioDialogWrapper {
         private final JBTextField host = new JBTextField(), port = new JBTextField(), username = new JBTextField(),
                 key = new JBTextField(), hosts = new JBTextField(), remote = new JBTextField();
         private final JPasswordField password = new JPasswordField(), passphrase = new JPasswordField();
@@ -268,7 +268,7 @@ public final class SftpFilesDialog extends DialogWrapper {
             try { connection(); } catch (IllegalArgumentException e) { return new ValidationInfo(StudioBundle.message("sftpBrowser.required")); }
             return null;
         }
-        @Override protected JComponent createCenterPanel() {
+        @Override protected JComponent createStudioContent() {
             JPanel panel = new JPanel(new GridBagLayout());
             String[] labels = {
                     StudioBundle.message("sftpBrowser.host"), StudioBundle.message("sftpBrowser.port"),

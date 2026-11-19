@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.migration;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.ui.JBSplitter;
 
 import com.intellij.diff.DiffContentFactory;
@@ -7,7 +9,6 @@ import com.intellij.diff.DiffManager;
 import com.intellij.diff.DiffRequestPanel;
 import com.intellij.diff.requests.SimpleDiffRequest;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.*;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.core.migration.MigrationWorkspace;
@@ -19,8 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
-@SuppressWarnings("SplitModeApiUsage")
-final class MigrationPreviewDialog extends DialogWrapper {
+final class MigrationPreviewDialog extends StudioDialogWrapper {
     private final com.intellij.openapi.ui.ComboBox<com.intellij.openapi.projectRoots.Sdk> jdks =
             new com.intellij.openapi.ui.ComboBox<>();
     private final int requiredJava;
@@ -70,7 +70,7 @@ final class MigrationPreviewDialog extends DialogWrapper {
     boolean shouldCompile() { return compile.isSelected(); }
 
     @Override
-    protected JComponent createCenterPanel() {
+    protected JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(JBUI.scale(8), JBUI.scale(8)));
         panel.setPreferredSize(JBUI.size(960, 650));
         JBTabbedPane tabs = new JBTabbedPane();

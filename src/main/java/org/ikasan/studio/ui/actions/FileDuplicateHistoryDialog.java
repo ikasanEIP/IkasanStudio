@@ -1,9 +1,10 @@
 package org.ikasan.studio.ui.actions;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
@@ -25,8 +26,7 @@ import java.util.concurrent.Future;
 
 /** Project-bound, read-only file duplicate history browser. HTTP work never runs on the EDT. */
 // This dialog runs with project services in the local IDE; remote Split Mode needs a separate frontend and RPC boundary.
-@SuppressWarnings("SplitModeApiUsage")
-public final class FileDuplicateHistoryDialog extends DialogWrapper {
+public final class FileDuplicateHistoryDialog extends StudioDialogWrapper {
     private final Project project;
     private final URI endpoint;
     private final JBTextField clientId = new JBTextField(18);
@@ -81,7 +81,7 @@ public final class FileDuplicateHistoryDialog extends DialogWrapper {
 
     @Override protected Action @org.jetbrains.annotations.NotNull [] createActions() { return new Action[]{getCancelAction()}; }
 
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
         JPanel filters = new JPanel(new GridLayout(0, 1, 0, JBUI.scale(4)));
         JPanel flowRow = new JPanel(new FlowLayout(FlowLayout.LEADING));

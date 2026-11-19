@@ -18,3 +18,15 @@ Version migration continues to offer the established V3/V4 paths. See the
 [released Ikasan 5 pack](../headless/studio-pack-v5-release/README.md) for its
 verification evidence and runtime limitations, and
 [independent packs](IndependentMetaPackArtifacts.md) for authoring and packaging.
+
+## Unavailable or unwanted external packs
+
+The unavailable-pack warning offers **Manage Meta-Packs**, also available under
+**Tools → Ikasan Studio**. Select an external pack that no project still needs,
+choose **Remove**, and restart IntelliJ IDEA. The warning keeps the original
+validation details below its recovery instructions.
+
+If the external pack is not listed or **Remove** is disabled, close IntelliJ IDEA
+before moving its JAR out of the IDE configuration directory under
+`ikasan-studio/meta-packs`. Keep the JAR if existing projects may need it restored.
+Bundled packs are maintained through plugin updates, rather than external-pack removal.

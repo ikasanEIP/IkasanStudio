@@ -484,6 +484,9 @@ intellijPlatformTesting {
                     includeTestsMatching("*GenerationTransactionManagerHeavyTest")
                     includeTestsMatching("*GeneratedProjectSynchronizerPropertiesNavigationHeavyTest")
                     includeTestsMatching("*GeneratedProjectSynchronizerFailureInjectionTest")
+                    includeTestsMatching("*ImportModelJsonDialogHeavyTest")
+                    includeTestsMatching("*StudioTextCopySupportTest")
+                    includeTestsMatching("*MetaPackNotificationsHeavyTest")
                 }
             }
         }

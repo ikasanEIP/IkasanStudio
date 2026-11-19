@@ -71,7 +71,7 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
         refreshRow();
     }
 
-    @Override protected @NotNull JComponent createCenterPanel() {
+    @Override protected @NotNull JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
         panel.add(new JBLabel(StudioBundle.message("environment.help")), BorderLayout.NORTH);
         JPanel editor = new JPanel(new BorderLayout(0, JBUI.scale(6)));

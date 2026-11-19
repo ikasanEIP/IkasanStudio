@@ -41,7 +41,7 @@ public final class SourceComparisonDialog extends ImportDialogWrapper {
         init();
     }
 
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         var panel = DiffManager.getInstance().createRequestPanel(project, getDisposable(), getWindow());
         panel.setRequest(request);
         var component = panel.getComponent();

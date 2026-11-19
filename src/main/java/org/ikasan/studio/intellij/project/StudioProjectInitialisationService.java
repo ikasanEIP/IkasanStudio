@@ -172,8 +172,7 @@ public final class StudioProjectInitialisationService implements Disposable {
                         String details = problems.entrySet().stream()
                                 .map(entry -> entry.getKey() + ": " + entry.getValue())
                                 .collect(java.util.stream.Collectors.joining("\n"));
-                        org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage(project,
-                                org.ikasan.studio.ui.StudioBundle.message("metaPack.Unavailable", details));
+                        org.ikasan.studio.intellij.metapack.MetaPackNotifications.showUnavailable(project, details);
                     }
                 }
                 availableMetaPacks = List.copyOf(org.ikasan.studio.core.metapack.ComponentLibrary.getMetapackList());

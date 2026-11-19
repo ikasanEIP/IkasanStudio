@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.ai;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -7,7 +9,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.JBUI;
@@ -46,8 +47,7 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
     // This dialog and its project service currently run together in the local IDE.
     // Remote-development support requires a frontend UI and an RPC boundary to the service;
     // the optional native MCP content module does not provide that UI split.
-    @SuppressWarnings("SplitModeApiUsage")
-    private static final class ConnectionDialog extends DialogWrapper {
+    private static final class ConnectionDialog extends StudioDialogWrapper {
         private final StudioAiService service;
         private final String configuration;
         private final Project project;
@@ -60,7 +60,7 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
             setOKButtonText(StudioBundle.message("button.Close"));
             init();
         }
-        @Override protected JComponent createCenterPanel() {
+        @Override protected JComponent createStudioContent() {
             JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(12)));
             panel.add(text(StudioBundle.message("ai.ConnectionExplanation")), BorderLayout.NORTH);
             JTabbedPane tabs = new com.intellij.ui.components.JBTabbedPane();

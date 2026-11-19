@@ -1,7 +1,8 @@
 package org.ikasan.studio.ui.component.properties;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfoRt;
@@ -15,21 +16,20 @@ import java.awt.*;
 /**
  * The popup wrapper for the Properties panel.
  */
-public class PropertiesPopupDialogue extends DialogWrapper {
+public class PropertiesPopupDialogue extends StudioDialogWrapper {
     private final PropertiesPanel propertiesPanel;
 
     /**
      * Popup Modal window to support entry of properties.
-     * </p>
+     * <p>
      * The main purpose is to force the developer to enter mandatory properties when a component is first dragged
      * onto the canvas. This solves a number of issues and is much more efficient than drag and fix later.
-     *
-     * @todo maybe use this in non modal form for the in-canvas properties editing.
      *
      * @param project is the Intellij project instance
      * @param propertiesPanel to display and have entries taken on.
      * @param actionButtonDefault indicates if the OK button should be enabled by default.
      */
+    // TODO Consider reusing this in a non-modal form for in-canvas property editing.
     public PropertiesPopupDialogue(Project project, PropertiesPanel propertiesPanel, boolean actionButtonDefault) {
         // Modern approach: DialogWrapper with project scoping
         // The boolean parameter indicates if this dialog can be a parent (true = can be parent)
@@ -42,7 +42,7 @@ public class PropertiesPopupDialogue extends DialogWrapper {
         // Project itself - this dialog is that natural owner for a popup-created panel, matching how
         // DesignerUI registers its own persistent (non-popup) instance against itself.
         Disposer.register(getDisposable(), propertiesPanel);
-        init();  // from DialogWrapper which calls createCenterPanel() below so make sure any state is initialised first.
+        init();  // from DialogWrapper which calls createStudioContent() below so make sure any state is initialised first.
         setTitle(propertiesPanel.getPropertiesPanelTitle());
         setOKButtonText(propertiesPanel.getOKButtonText());
         setOKActionEnabled(actionButtonDefault);
@@ -68,7 +68,7 @@ public class PropertiesPopupDialogue extends DialogWrapper {
      * Inject the payload i.e. the ikasan UI element we wish to expose / edit.
      */
     @Override
-    protected JComponent createCenterPanel() {
+    protected JComponent createStudioContent() {
         return propertiesPanel;
     }
 

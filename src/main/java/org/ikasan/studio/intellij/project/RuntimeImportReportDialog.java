@@ -6,6 +6,8 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.intellij.diagnostics.RuntimeImportDiagnostics;
 import org.ikasan.studio.ui.StudioBundle;
+import org.jetbrains.annotations.NotNull;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -18,8 +20,8 @@ public final class RuntimeImportReportDialog extends ImportDialogWrapper {
         init();
     }
     private final String reportText;
-    @Override protected Action[] createActions() { return new Action[] {getOKAction()}; }
-    @Override protected JComponent createCenterPanel() {
+    @Override protected Action @NotNull [] createActions() { return new Action[] {getOKAction()}; }
+    @Override protected JComponent createStudioContent() {
         String[] pages = reportText.split("\\n(?=PAGE [0-9]+ —)");
         var text = new JBTextArea(pages[0], 25, 85);
         text.setEditable(false); text.setLineWrap(true); text.setWrapStyleWord(true); text.setCaretPosition(0);

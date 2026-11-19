@@ -1,8 +1,9 @@
 package org.ikasan.studio.intellij.testing;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -12,8 +13,7 @@ import java.awt.BorderLayout;
 
 /** A compact, non-editable flow choice: arbitrary names cannot produce an invalid request. */
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
-@SuppressWarnings("SplitModeApiUsage")
-final class FlowTestDialog extends DialogWrapper {
+final class FlowTestDialog extends StudioDialogWrapper {
     private final ComboBox<String> flows;
     private final com.intellij.ui.components.JBCheckBox regenerateSupport = new com.intellij.ui.components.JBCheckBox(
             StudioBundle.message("flowTest.regenerateSupport"), false);
@@ -83,7 +83,7 @@ final class FlowTestDialog extends DialogWrapper {
         if (staleSupport || useLocalFtp() || useLocalSmtp() || useLocalSftp()) regenerateSupport.setSelected(true);
         regenerateSupport.setEnabled(!(staleSupport || useLocalFtp() || useLocalSmtp() || useLocalSftp()));
     }
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(12)));
         panel.add(new JBLabel("<html><body style='width: 420px'>"
                 + StringUtil.escapeXmlEntities(StudioBundle.message("flowTest.explanation")) + "</body></html>"), BorderLayout.NORTH);

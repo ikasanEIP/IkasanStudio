@@ -45,6 +45,12 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
 
     private final JBCheckBox runtimeMode = new JBCheckBox(StudioBundle.message("import.runtime.enabled"));
     private final ComboBox<String> runtimePack = new ComboBox<>();
+    private final JBTextField detectedVersion = new JBTextField();
+    private final JBTextArea versionHelp = importHelp("import.runtime.detectedPending");
+    private final Timer metadataRefresh = new Timer(180, event -> refreshRuntimeMetadata());
+    private long metadataRevision;
+    private boolean updatingPackSelection;
+    private boolean explicitPackSelection;
     private final JBTextField applicationPackage = new JBTextField();
     private final JBTextArea configurationArea = new JBTextArea();
     private final JBCheckBox importSource = new JBCheckBox(StudioBundle.message("sourceImport.afterModel"));
@@ -89,6 +95,11 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         setTitle(StudioBundle.message("import.journey.title"));
         setOKButtonText(StudioBundle.message("button.ImportModelJson"));
         applicationPackage.setText(project.getService(UiContext.class).getOptions().getPackageName());
+        detectedVersion.setEditable(false);
+        detectedVersion.setColumns(20);
+        detectedVersion.setText(StudioBundle.message("import.runtime.detectedMissing"));
+        metadataRefresh.setRepeats(false);
+        com.intellij.openapi.util.Disposer.register(getDisposable(), metadataRefresh::stop);
         init();
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
@@ -96,8 +107,10 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
                 // Pure UI publication must run inside the modal import dialog, without PSI/model writes.
                 ApplicationManager.getApplication().invokeLater(() -> {
                     if (isDisposed() || project.isDisposed()) return;
-                    packs.forEach(runtimePack::addItem);
-                    selectFetchedRuntimeVersion();
+                    updatingPackSelection = true;
+                    try { packs.forEach(runtimePack::addItem); }
+                    finally { updatingPackSelection = false; }
+                    refreshRuntimeMetadata();
                     updateOkAction();
                 }, ModalityState.any());
             } catch (RuntimeException failure) {
@@ -107,7 +120,13 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
                 }, ModalityState.any());
             }
         });
-        runtimePack.addActionListener(event -> updateOkAction());
+        runtimePack.addActionListener(event -> {
+            if (!updatingPackSelection) {
+                explicitPackSelection = true;
+                scheduleMetadataPreview();
+            }
+            updateOkAction();
+        });
         // Import needs something to import: keep the OK action disabled until a file has been chosen or model
         // JSON has been pasted into the text area.
         setOKActionEnabled(false);
@@ -115,16 +134,19 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
             @Override
             public void insertUpdate(DocumentEvent event) {
                 updateOkAction();
+                scheduleMetadataPreview();
             }
 
             @Override
             public void removeUpdate(DocumentEvent event) {
                 updateOkAction();
+                scheduleMetadataPreview();
             }
 
             @Override
             public void changedUpdate(DocumentEvent event) {
                 updateOkAction();
+                scheduleMetadataPreview();
             }
         });
     }
@@ -180,7 +202,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
     }
 
     @Override
-    protected @Nullable JComponent createCenterPanel() {
+    protected @Nullable JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
         JPanel options = new JPanel();
         options.setLayout(new BoxLayout(options, BoxLayout.Y_AXIS));
@@ -215,18 +237,30 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         row.insets = JBUI.insets(2, 0, 2, 8);
         JBLabel packLabel = new JBLabel(StudioBundle.message("import.runtime.pack"));
         packLabel.setLabelFor(runtimePack);
-        row.gridx = 0; row.gridy = 0;
+        row.gridx = 0; row.gridy = 0; row.gridwidth = 2;
+        row.fill = GridBagConstraints.HORIZONTAL;
+        runtimeOptions.add(new com.intellij.ui.TitledSeparator(StudioBundle.message("import.runtime.settings")), row);
+        row.gridwidth = 1; row.fill = GridBagConstraints.NONE;
+        JBLabel detectedLabel = new JBLabel(StudioBundle.message("import.runtime.detected"));
+        detectedLabel.setLabelFor(detectedVersion);
+        row.gridy = 1;
+        runtimeOptions.add(detectedLabel, row);
+        row.gridx = 1; row.weightx = 1; row.fill = GridBagConstraints.HORIZONTAL;
+        runtimeOptions.add(detectedVersion, row);
+        row.gridx = 0; row.gridy = 2; row.weightx = 0; row.fill = GridBagConstraints.NONE;
         runtimeOptions.add(packLabel, row);
         row.gridx = 1; row.weightx = 1; row.fill = GridBagConstraints.HORIZONTAL;
         runtimeOptions.add(runtimePack, row);
         JBLabel packageLabel = new JBLabel(StudioBundle.message("import.runtime.package"));
         packageLabel.setLabelFor(applicationPackage);
-        row.gridx = 0; row.gridy = 1; row.weightx = 0; row.fill = GridBagConstraints.NONE;
+        row.gridx = 0; row.gridy = 4; row.weightx = 0; row.fill = GridBagConstraints.NONE;
         runtimeOptions.add(packageLabel, row);
         row.gridx = 1; row.weightx = 1; row.fill = GridBagConstraints.HORIZONTAL;
         runtimeOptions.add(applicationPackage, row);
-        options.add(runtimeOptions);
-        options.add(runtimeDefaultsHelp);
+        row.gridx = 0; row.gridy = 3; row.gridwidth = 2;
+        runtimeOptions.add(versionHelp, row);
+        row.gridy = 5;
+        runtimeOptions.add(importHelp("import.runtime.packageSuggestion"), row);
         panel.add(options, BorderLayout.NORTH);
 
         jsonArea.setRows(12); jsonArea.setColumns(75); jsonArea.setLineWrap(false);
@@ -252,9 +286,14 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
                 documentPanel.add(moduleEditor, BorderLayout.CENTER);
             }
             updateOkAction();
+            scheduleMetadataPreview();
         });
         JPanel documentHeader = new JPanel(new BorderLayout(0, JBUI.scale(6)));
-        documentHeader.add(sourceHelp, BorderLayout.NORTH);
+        JPanel documentHelp = new JPanel();
+        documentHelp.setLayout(new BoxLayout(documentHelp, BoxLayout.Y_AXIS));
+        documentHelp.add(sourceHelp);
+        documentHelp.add(runtimeDefaultsHelp);
+        documentHeader.add(documentHelp, BorderLayout.NORTH);
         documentHeader.add(fileRow, BorderLayout.SOUTH);
         documentPanel.add(documentHeader, BorderLayout.NORTH);
         documentPanel.add(moduleEditor, BorderLayout.CENTER);
@@ -269,6 +308,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         panel.add(documentPanel, BorderLayout.CENTER);
 
         JPanel bottom = new JPanel(new BorderLayout(0, JBUI.scale(6)));
+        bottom.add(runtimeOptions, BorderLayout.NORTH);
         optionalSteps.setLayout(new BoxLayout(optionalSteps, BoxLayout.Y_AXIS));
         optionalSteps.add(new com.intellij.ui.TitledSeparator(StudioBundle.message("import.journey.followUp")));
         optionalSteps.add(importHelp("import.journey.followUpHelp"));
@@ -327,31 +367,60 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         this.documents.setSelectedIndex(0);
         chosenFilePathLabel.setText(StudioBundle.message("import.remote.source"));
         chosenFilePathLabel.setToolTipText(null);
-        selectFetchedRuntimeVersion();
+        refreshRuntimeMetadata();
         updateOkAction();
     }
 
-    /** Resolve pack metadata off the EDT, including when discovery finishes after the fetch. */
-    private void selectFetchedRuntimeVersion() {
-        if (acquisition != Acquisition.FETCHED || runtimePack.getItemCount() == 0) return;
+    private void scheduleMetadataPreview() {
+        ++metadataRevision;
+        detectedVersion.setText(StudioBundle.message("import.runtime.detectedPending"));
+        versionHelp.setText(StudioBundle.message("import.runtime.detectedPending"));
+        metadataRefresh.restart();
+    }
+
+    /** Parsing and pack discovery stay off the EDT for fetched, pasted and file-loaded metadata. */
+    private void refreshRuntimeMetadata() {
+        metadataRefresh.stop();
+        long revision = ++metadataRevision;
+        if (!runtimeMode.isSelected() || acquisition == Acquisition.NONE) return;
         String json = jsonArea.getText();
-        Object selected = runtimePack.getSelectedItem();
+        if (json.isBlank()) {
+            detectedVersion.setText(StudioBundle.message("import.runtime.detectedMissing"));
+            versionHelp.setText(StudioBundle.message("import.runtime.versionManual"));
+            return;
+        }
         var available = new java.util.ArrayList<String>();
         for (int i = 0; i < runtimePack.getItemCount(); i++) available.add(runtimePack.getItemAt(i));
+        boolean maySelect = !explicitPackSelection;
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            String source = "";
+            IkasanRuntimeImport.PackRecommendation recommendation = null;
+            boolean valid = true;
             try {
-                var recommendation = IkasanRuntimeImport.recommendPack(json, available);
-                // Patch substitutions still require the existing explicit review confirmation.
-                if (recommendation.isEmpty() || !recommendation.get().exact()) return;
-                ApplicationManager.getApplication().invokeLater(() -> {
-                    if (isDisposed() || project.isDisposed() || acquisition != Acquisition.FETCHED
-                            || !json.equals(jsonArea.getText())
-                            || !java.util.Objects.equals(selected, runtimePack.getSelectedItem())) return;
-                    runtimePack.setSelectedItem(recommendation.get().pack());
-                }, ModalityState.any());
-            } catch (StudioBuildException ignored) {
-                // Invalid or unsupported metadata receives actionable diagnostics during review.
-            }
+                source = IkasanRuntimeImport.sourceVersion(json);
+                recommendation = IkasanRuntimeImport.recommendPack(json, available).orElse(null);
+            } catch (StudioBuildException invalid) { valid = false; }
+            String reported = source;
+            var choice = recommendation;
+            boolean parsed = valid;
+            ApplicationManager.getApplication().invokeLater(() -> {
+                if (isDisposed() || project.isDisposed() || revision != metadataRevision
+                        || !runtimeMode.isSelected() || !json.equals(jsonArea.getText())) return;
+                detectedVersion.setText(StudioBundle.message(!parsed ? "import.runtime.detectedInvalid"
+                        : reported.isBlank() ? "import.runtime.detectedMissing" : "import.runtime.detectedValue", reported));
+                if (choice != null && maySelect && !explicitPackSelection) {
+                    updatingPackSelection = true;
+                    try { runtimePack.setSelectedItem(choice.pack()); }
+                    finally { updatingPackSelection = false; }
+                }
+                String hint = !parsed ? "import.runtime.detectedInvalidHelp"
+                        : reported.isBlank() ? "import.runtime.versionManual"
+                        : choice == null ? "import.runtime.versionUnsupported"
+                        : !choice.pack().equals(runtimePack.getSelectedItem()) ? "import.runtime.versionDifferent"
+                        : choice.exact() ? "import.runtime.versionMatched" : "import.runtime.versionProposedPatch";
+                versionHelp.setText(StudioBundle.message(hint, reported, choice == null ? "" : choice.targetVersion()));
+                updateOkAction();
+            }, ModalityState.any());
         });
     }
 
@@ -465,7 +534,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         java.util.Map<IkasanRuntimeImport.ComponentRef, ComboBox<String>> selectors = new java.util.LinkedHashMap<>();
         DialogWrapper dialog = new ImportDialogWrapper(project, getContentPane()) {
             { setTitle(StudioBundle.message("import.runtime.mappingTitle")); init(); }
-            @Override protected JComponent createCenterPanel() {
+            @Override protected JComponent createStudioContent() {
                 JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
                 panel.add(new JBLabel(StudioBundle.message("import.runtime.mappingHelp")), BorderLayout.NORTH);
                 JPanel rows = new JPanel(new GridLayout(0, 2, JBUI.scale(8), JBUI.scale(4)));
@@ -499,7 +568,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         DialogWrapper review = new ImportDialogWrapper(project, getContentPane()) {
             { setTitle(StudioBundle.message("import.runtime.reviewTitle"));
               setOKButtonText(StudioBundle.message("import.runtime.accept")); init(); }
-            @Override protected JComponent createCenterPanel() {
+            @Override protected JComponent createStudioContent() {
                 JBTextArea text = new JBTextArea(RuntimeImportReviewText.format(result), 20, 85);
                 text.setEditable(false);
                 text.setLineWrap(true);

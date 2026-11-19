@@ -1,7 +1,8 @@
 package org.ikasan.studio.intellij.testing;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
@@ -13,8 +14,7 @@ import java.awt.BorderLayout;
 
 /** Confirmation with an explicit, default-off archive option for an existing baseline. */
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
-@SuppressWarnings("SplitModeApiUsage")
-final class GeneratedVerificationDialog extends DialogWrapper {
+final class GeneratedVerificationDialog extends StudioDialogWrapper {
     private final boolean existingTests;
     private final JBCheckBox archive = new JBCheckBox(StudioBundle.message("verification.archive"), false);
 
@@ -29,7 +29,7 @@ final class GeneratedVerificationDialog extends DialogWrapper {
 
     boolean archivePrevious() { return existingTests && archive.isSelected(); }
 
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(12)));
         String prompt = StudioBundle.message(existingTests ? "verification.replace" : "verification.create");
         panel.add(new JBLabel("<html><body style='width: 420px'>"

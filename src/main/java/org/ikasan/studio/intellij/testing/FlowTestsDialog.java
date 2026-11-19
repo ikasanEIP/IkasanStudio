@@ -1,7 +1,8 @@
 package org.ikasan.studio.intellij.testing;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.*;
 import com.intellij.util.ui.JBUI;
@@ -13,8 +14,7 @@ import java.util.List;
 
 /** Module-level flow selection; large modules scroll instead of stretching the dialog. */
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
-@SuppressWarnings("SplitModeApiUsage")
-final class FlowTestsDialog extends DialogWrapper {
+final class FlowTestsDialog extends StudioDialogWrapper {
     private final List<JBCheckBox> choices = new ArrayList<>();
     private final com.intellij.ui.components.JBCheckBox regenerateSupport = new com.intellij.ui.components.JBCheckBox(
             StudioBundle.message("flowTest.regenerateSupport"), false);
@@ -87,7 +87,7 @@ final class FlowTestsDialog extends DialogWrapper {
         if (staleSupport || useLocalFtp() || useLocalSmtp() || useLocalSftp()) regenerateSupport.setSelected(true);
         regenerateSupport.setEnabled(!(staleSupport || useLocalFtp() || useLocalSmtp() || useLocalSftp()));
     }
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(12)));
         panel.add(new JBLabel("<html><body style='width: 420px'>"
                 + StringUtil.escapeXmlEntities(StudioBundle.message("flowTest.batchExplanation")) + "</body></html>"), BorderLayout.NORTH);

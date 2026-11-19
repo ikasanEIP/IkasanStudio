@@ -1,7 +1,8 @@
 package org.ikasan.studio.ui.component.properties;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBLabel;
@@ -16,8 +17,7 @@ import java.util.*;
 
 /** Edits string entries without comma splitting, value coercion or silent duplicate-key replacement. */
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
-@SuppressWarnings("SplitModeApiUsage")
-final class StringCollectionDialog extends DialogWrapper {
+final class StringCollectionDialog extends StudioDialogWrapper {
     private final org.ikasan.studio.core.metapack.model.ComponentPropertyMeta meta;
     private final boolean map;
     private final DefaultTableModel rows;
@@ -40,7 +40,7 @@ final class StringCollectionDialog extends DialogWrapper {
         init();
         if (value instanceof String) setErrorText(StudioBundle.message("collection.InvalidLegacy"));
     }
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         var panel = new JPanel(new BorderLayout(0, 8));
         panel.add(new JBLabel(StudioBundle.message("collection.Guidance")), BorderLayout.NORTH);
         panel.add(ToolbarDecorator.createDecorator(table)

@@ -262,6 +262,76 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
         }
     }
 
+    public void testFetchedPatchShowsProposalBeforeReviewButStillRequiresConsent() throws Exception {
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
+        var previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> com.intellij.openapi.ui.Messages.NO);
+        try {
+            var packs = (JComboBox<?>) field(dialog, "runtimePack");
+            var detected = (javax.swing.JTextField) field(dialog, "detectedVersion");
+            var original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
+            String json = "{\"name\":\"Demo\",\"ikasanVersion\":\"4.1.3\",\"flows\":[]}";
+            dialog.applyFetchedDocuments(new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents(json, "[]"));
+            PlatformTestUtil.waitWithEventsDispatching("Patch proposal not displayed", () ->
+                    "4.1.3".equals(detected.getText()) && "V4.1.6".equals(packs.getSelectedItem()), 10);
+            assertFalse(detected.isEditable());
+            String hint = ((JTextArea) field(dialog, "versionHelp")).getText();
+            assertTrue(hint.contains("4.1.3")); assertTrue(hint.contains("4.1.6"));
+            try { dialog.selectRuntimePack(json); fail("A proposed patch must still require consent"); }
+            catch (com.intellij.openapi.progress.ProcessCanceledException expected) { }
+            assertSame(original, getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule());
+        } finally {
+            dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+            com.intellij.openapi.ui.TestDialogManager.setTestDialog(previous);
+        }
+    }
+
+    public void testManualMetadataPreservesExplicitTargetAndDestinationPackage() throws Exception {
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
+        try {
+            var packs = (JComboBox<?>) field(dialog, "runtimePack");
+            PlatformTestUtil.waitWithEventsDispatching("Packs not loaded", () -> packs.getItemCount() == 2, 10);
+            ((JCheckBox) field(dialog, "runtimeMode")).doClick();
+            ((javax.swing.JButton) field(dialog, "pasteMetadata")).doClick();
+            var json = (JTextArea) field(dialog, "jsonArea");
+            var detected = (javax.swing.JTextField) field(dialog, "detectedVersion");
+            json.setText("{\"ikasanVersion\":\"4.1.6\",\"flows\":[]}");
+            PlatformTestUtil.waitWithEventsDispatching("Manual version not detected", () ->
+                    "4.1.6".equals(detected.getText()) && "V4.1.6".equals(packs.getSelectedItem()), 10);
+            packs.setSelectedItem("V3.3.9");
+            var pkg = (javax.swing.JTextField) field(dialog, "applicationPackage");
+            pkg.setText("com.example.destination");
+            json.setText("{\"ikasanVersion\":\"4.1.3\",\"flows\":[]}");
+            PlatformTestUtil.waitWithEventsDispatching("Edited source not detected", () -> "4.1.3".equals(detected.getText()), 10);
+            assertEquals("V3.3.9", packs.getSelectedItem());
+            assertEquals("com.example.destination", pkg.getText());
+        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testUnsupportedVersionIsDisplayedWithoutGuessingAnUnrelatedTarget() throws Exception {
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
+        try {
+            dialog.applyFetchedDocuments(new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents(
+                    "{\"ikasanVersion\":\"4.2.0\",\"flows\":[]}", "[]"));
+            var detected = (javax.swing.JTextField) field(dialog, "detectedVersion");
+            PlatformTestUtil.waitWithEventsDispatching("Unsupported version not displayed", () -> "4.2.0".equals(detected.getText()), 10);
+            assertEquals(org.ikasan.studio.ui.StudioBundle.message("import.runtime.versionUnsupported", "4.2.0", ""),
+                    ((JTextArea) field(dialog, "versionHelp")).getText());
+        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
+    public void testExplanatoryTextCanBeFocusedAndSelectedWithoutEditing() throws Exception {
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        try {
+            for (String name : List.of("journeyHelp", "sourceHelp", "runtimeDefaultsHelp", "versionHelp")) {
+                var text = (JTextArea) field(dialog, name);
+                assertFalse(name + " must remain read-only", text.isEditable());
+                assertTrue(name + " must allow selection and keyboard copy", text.isFocusable());
+                text.selectAll();
+                assertEquals(text.getText(), text.getSelectedText());
+            }
+        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+    }
+
     private Object field(Object owner, String name) throws Exception {
         var field = owner.getClass().getDeclaredField(name);
         field.setAccessible(true);

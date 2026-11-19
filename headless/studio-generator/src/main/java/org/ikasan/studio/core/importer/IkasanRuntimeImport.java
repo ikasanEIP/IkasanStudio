@@ -128,11 +128,18 @@ public final class IkasanRuntimeImport {
         return "OTHER";
     }
 
+    /** Reported runtime version only; parsing uses the same limits and duplicate-key rules as import. */
+    public static String sourceVersion(String moduleJson) throws StudioBuildException {
+        try { return read(moduleJson).path("ikasanVersion").asText(""); }
+        catch (StudioBuildException failure) { throw failure; }
+        catch (Exception failure) { throw new StudioBuildException("Cannot inspect the export's Ikasan version.", failure); }
+    }
+
     /** Exact version first, otherwise the nearest newer stable patch in the same major/minor line. */
     public static Optional<PackRecommendation> recommendPack(String moduleJson, List<String> packs)
             throws StudioBuildException {
         try {
-            String source = read(moduleJson).path("ikasanVersion").asText("");
+            String source = sourceVersion(moduleJson);
             if (source.isBlank()) return Optional.empty();
             PackRecommendation nearest = null;
             for (String pack : packs) {

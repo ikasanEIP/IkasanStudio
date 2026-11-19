@@ -52,7 +52,7 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
         updateEndpointPreview();
     }
 
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         var panel = new JPanel(new BorderLayout(0, JBUI.scale(10)));
         var note = new JBTextArea(StudioBundle.message("import.remote.help"), 6, 60);
         note.setEditable(false); note.setLineWrap(true); note.setWrapStyleWord(true);

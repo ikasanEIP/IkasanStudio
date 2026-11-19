@@ -5,6 +5,12 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Allow selection and copying of read-only instructions and diagnostics across Studio dialogs, Settings and designer panels. Add right-click text copying for captions and headings, preserve native editing/custom menus, and exclude password fields without global event hooks or polling.
+
+- Make unavailable meta-pack warnings actionable: show removal/restart guidance before validation details, offer Manage Meta-Packs directly, and explain manual recovery for broken external JARs while distinguishing bundled packs.
+
+- Clarify runtime import settings below the JSON preview: show the detected Ikasan version separately from the proposed target, retain patch-upgrade confirmation, preserve explicit target/package edits, and identify the application package as a project-supplied suggestion.
+
 - Replace deprecated process adapters and retry-safe blocking PSI reads with baseline-compatible listeners and project-scoped nonblocking reads. Keep rollback snapshots local to each read attempt and propagate cancellation without reporting it as a lookup/refactoring failure. Extend newer-IDE lifecycle/generation coverage and pin compatibility verification to IDEA 2026.3.
 
 - Default unset module H2 ports to HTTP + 1 / + 2 during creation and runtime import; preserve explicit values, provide per-port Default controls and validate port ranges and duplicate local service ports.

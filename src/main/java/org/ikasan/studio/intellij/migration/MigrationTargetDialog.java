@@ -1,8 +1,9 @@
 package org.ikasan.studio.intellij.migration;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.StudioBundle;
@@ -10,8 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
-@SuppressWarnings("SplitModeApiUsage")
-final class MigrationTargetDialog extends DialogWrapper {
+final class MigrationTargetDialog extends StudioDialogWrapper {
     private final JCheckBox updateImports = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("migration.updateUserImports"), true);
     private final String current;
     private final ComboBox<String> versions;
@@ -27,7 +27,7 @@ final class MigrationTargetDialog extends DialogWrapper {
     boolean updateUserImports() { return updateImports.isSelected(); }
     String targetVersion() { return (String) versions.getSelectedItem(); }
     @Override public JComponent getPreferredFocusedComponent() { return versions; }
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(JBUI.scale(8), JBUI.scale(8)));
         panel.add(new JBLabel(StudioBundle.message("label.CurrentVersion", current)), BorderLayout.NORTH);
         JBLabel target = new JBLabel(StudioBundle.message("label.TargetIkasanVersion"));

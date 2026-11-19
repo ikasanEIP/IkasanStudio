@@ -101,7 +101,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         setOKActionEnabled(false);
     }
 
-    @Override protected @org.jetbrains.annotations.NotNull JComponent createCenterPanel() {
+    @Override protected @org.jetbrains.annotations.NotNull JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
         JPanel top = new JPanel(new BorderLayout(0, JBUI.scale(6)));
         var help = new JBTextArea(StudioBundle.message("sourceImport.help"));
@@ -538,11 +538,10 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                 .collect(java.util.stream.Collectors.joining("\n\n"));
         StudioUIUtils.setAttentionPulse(builderSettingsButton, false);
         // Bound the preview so a large module does not create a screen-height message dialog.
-        @SuppressWarnings("SplitModeApiUsage")
-        var review = new com.intellij.openapi.ui.DialogWrapper(project) {
+        var review = new org.ikasan.studio.ui.StudioDialogWrapper(project) {
             { setTitle(StudioBundle.message("sourceImport.builder.title"));
               setOKButtonText(StudioBundle.message("sourceImport.builder.stage")); init(); }
-            @Override protected JComponent createCenterPanel() {
+            @Override protected JComponent createStudioContent() {
                 var text = new JBTextArea(StudioBundle.message("sourceImport.builder.explanation", changes), 20, 85);
                 text.setEditable(false); text.setLineWrap(true); text.setWrapStyleWord(true);
                 text.getAccessibleContext().setAccessibleName(StudioBundle.message("sourceImport.builder.title"));
@@ -563,11 +562,10 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         var candidate = registrationCandidate;
         if (candidate == null) return;
         // This review runs in the local IDE, like ImportDialogWrapper.
-        @SuppressWarnings("SplitModeApiUsage")
-        var review = new com.intellij.openapi.ui.DialogWrapper(project) {
+        var review = new org.ikasan.studio.ui.StudioDialogWrapper(project) {
             { setTitle(StudioBundle.message("sourceImport.registration.title"));
               setOKButtonText(StudioBundle.message("sourceImport.registration.stage")); init(); }
-            @Override protected JComponent createCenterPanel() {
+            @Override protected JComponent createStudioContent() {
                 var panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
                 var explanation = new JBTextArea(StudioBundle.message("sourceImport.registration.explanation", candidate.destination()));
                 explanation.setEditable(false); explanation.setOpaque(false); explanation.setLineWrap(true); explanation.setWrapStyleWord(true);

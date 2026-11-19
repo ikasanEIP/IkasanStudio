@@ -1,12 +1,13 @@
 package org.ikasan.studio.ui.actions;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.util.ui.JBUI;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -42,7 +43,7 @@ import java.util.List;
  * every time. Scoped per-component (not shared globally) since different consumers typically expect
  * completely different payload shapes.
  */
-public class SendTestMessagePayloadDialog extends DialogWrapper {
+public class SendTestMessagePayloadDialog extends StudioDialogWrapper {
     private static final String PAYLOAD_PROPERTY_PREFIX = "ikasan.studio.sendTestMessage.payload.";
     private static final String PAYLOAD_CLASS_PROPERTY_PREFIX = "ikasan.studio.sendTestMessage.payloadClass.";
 
@@ -80,7 +81,7 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
         String persistedClassName = properties.getValue(PAYLOAD_CLASS_PROPERTY_PREFIX + componentKey);
         if (persistedClassName != null && !persistedClassName.isBlank()) {
             // Sets payloadClassName and refreshes payloadClassField/payloadLabel - all already constructed via
-            // field initialisers at this point, even though createCenterPanel() (called from init() below)
+            // field initialisers at this point, even though createStudioContent() (called from init() below)
             // hasn't run yet.
             setPayloadClassName(persistedClassName);
         }
@@ -107,7 +108,7 @@ public class SendTestMessagePayloadDialog extends DialogWrapper {
     }
 
     @Override
-    protected @Nullable JComponent createCenterPanel() {
+    protected @Nullable JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
 
         // BorderLayout (not BoxLayout) - BoxLayout(Y_AXIS) aligns siblings relative to EACH OTHER's

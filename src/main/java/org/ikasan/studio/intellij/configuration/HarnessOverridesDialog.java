@@ -32,7 +32,7 @@ public final class HarnessOverridesDialog extends org.ikasan.studio.intellij.pro
                     });
         } else new HarnessOverridesDialog(project).show();
     }
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         var service = project.getService(HarnessOverrideService.class);
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(10)));
         int width = JBUI.scale(620);

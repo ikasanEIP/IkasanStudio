@@ -87,3 +87,16 @@ Maven compiler model. Use **Reload All Maven Projects**, wait for import/indexin
 to finish, then build again. Studio imports request Maven refresh after code
 generation and JDK alignment; a failed Maven-server request can still require
 this manual retry. Preserve the Java level required by the selected Ikasan pack.
+
+## Copying text for a support report
+
+Select read-only instructions or diagnostic text with the mouse and use **Ctrl+C**
+(**Cmd+C** on macOS). Right-click a caption, heading or read-only text block and choose
+**Copy text**; if text is selected, the action becomes **Copy selected text**.
+Read-only text also offers **Select all**. This is available in Studio dialogs,
+its Settings page and designer panels, including dynamically displayed messages.
+Existing custom context menus keep their own actions. Password fields are excluded.
+
+Diagram labels are painted on the canvas: use the corresponding properties fields to
+copy their values. The diagram's existing selection and drag behavior is unchanged.
+Review copied diagnostics for credentials and customer data before sharing them.

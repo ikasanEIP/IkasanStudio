@@ -1,7 +1,8 @@
 package org.ikasan.studio.intellij.ai;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -12,8 +13,7 @@ import org.ikasan.studio.ui.StudioBundle;
 import javax.swing.*;
 
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
-@SuppressWarnings("SplitModeApiUsage")
-final class StudioAiProposalDialog extends DialogWrapper {
+final class StudioAiProposalDialog extends StudioDialogWrapper {
     private final Project project;
     private final StudioAiService service;
     private final JBTextArea status = new StudioAiConnectionText("");
@@ -31,7 +31,7 @@ final class StudioAiProposalDialog extends DialogWrapper {
         setOKButtonText(StudioBundle.message("ai.Apply"));
         init();
     }
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         JBTextArea text = new StudioAiConnectionText(StudioBundle.message("ai.PreviewExplanation") + "\n\n"
                 + (proposal.deletionReviewRequired ? StudioBundle.message("ai.DeleteReviewRequired") + "\n\n" : "")
                 + (proposal.userCodeReviewRequired ? StudioBundle.message("ai.UserCodeReviewRequired") + "\n\n" : "")

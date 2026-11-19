@@ -28,7 +28,7 @@ final class SourceModuleSelectionDialog extends ImportDialogWrapper {
         init();
     }
     String selectedDirectory() { return inspection.candidates().get(modules.getSelectedIndex()).directory(); }
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         var panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
         var help = new JBTextArea(StudioBundle.message("sourceImport.identity.chooseHelp", inspection.expected().isBlank()
                 ? StudioBundle.message("sourceImport.identity.unknownName") : inspection.expected()));

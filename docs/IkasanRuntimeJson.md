@@ -27,7 +27,7 @@ Source contracts inspected: `rest/rest-module/.../MetaDataApplication.java` and 
 
 1. Create/open the destination Studio project and choose **Import model.json** from the module creation screen.
 2. Select **Import an Ikasan module**. Choose **Fetch from running module…** OR **Paste module metadata JSON**. The latter opens an editor where you can paste or choose the metadata document. Leave this option unchecked when importing a complete Studio `model.json`; only the **Studio model.json** tab is shown in that mode.
-3. Select the original Ikasan version and enter the destination application's Java package. The runtime module's `version` is an application version, not a Studio meta-pack identifier; `ikasanVersion`, when present, is checked separately.
+3. Inspect the JSON, then use **Import settings** below the preview. **Detected Ikasan version** shows the export's `ikasanVersion`; **Target Ikasan version** proposes an exact installed version or a supported newer patch. The proposal does not authorize an upgrade: patch changes still require confirmation during review. The application Java package starts with the current project's suggestion and remains editable; runtime exports do not reliably identify it. Explicit target/package edits are preserved. The runtime module's `version` is an application version, not an Ikasan version.
 4. For manual input, **Paste configuration JSON (optional)** becomes available after metadata is supplied. In that tab, paste or choose the component configuration export. Leave it blank to import topology only and configure components afterwards. A single configuration object or an array of objects is accepted. Records are matched by `configurationId`, not position or component display name.
 5. Select component variants only if prompted. For shared runtime classes, Studio links the component's
    configurationId to its supplied configuration record and matches the exact configuration class against
@@ -85,8 +85,9 @@ select the first registered module in the inspected implementation, so Studio de
 uses scoped component endpoints. It never invokes the older `createConfiguration` GETs,
 configuration writes or flow control endpoints.
 
-On success, the documents populate the existing editable preview and runtime import mode
-is selected. Choose the matching Ikasan meta-pack and destination package, resolve any
+On success, the documents populate a read-only preview and runtime import mode
+is selected. Use a Paste option to edit or replace them. The detected runtime version and
+proposed target appear below the preview. Check the target and destination package, resolve any
 component variant choices, then review before importing. If the selected pack is unsuitable,
 Studio recommends an exact available version first, otherwise the nearest newer stable patch
 in the same major/minor line (for example 4.1.3 → 4.1.6). Changing packs or using a newer patch

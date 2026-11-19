@@ -1,7 +1,8 @@
 package org.ikasan.studio.ui.actions;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.*;
 import com.intellij.ui.table.JBTable;
@@ -20,7 +21,7 @@ import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
 
-final class ReplaceReferencesDialog extends DialogWrapper {
+final class ReplaceReferencesDialog extends StudioDialogWrapper {
     private final Project project;
     private final Module module;
     private final JBTextField find = new JBTextField();
@@ -58,7 +59,7 @@ final class ReplaceReferencesDialog extends DialogWrapper {
     }
 
     @Override public JComponent getPreferredFocusedComponent() { return find; }
-    @Override protected JComponent createCenterPanel() {
+    @Override protected JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(12)));
         JPanel fields = new JPanel(new GridLayout(0, 2, JBUI.scale(8), JBUI.scale(8)));
         JBLabel findLabel = new JBLabel(StudioBundle.message("replaceReferences.Find"));

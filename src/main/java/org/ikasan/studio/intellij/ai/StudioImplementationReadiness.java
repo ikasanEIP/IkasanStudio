@@ -1,10 +1,11 @@
 package org.ikasan.studio.intellij.ai;
 
+import org.ikasan.studio.ui.StudioDialogWrapper;
+
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
@@ -97,8 +98,7 @@ public final class StudioImplementationReadiness {
     }
 
     // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
-    @SuppressWarnings("SplitModeApiUsage")
-    private static final class Results extends DialogWrapper {
+    private static final class Results extends StudioDialogWrapper {
         private final Project project;
         private final Path root;
         private final ImplementationReadiness.Report report;
@@ -138,7 +138,7 @@ public final class StudioImplementationReadiness {
             var size = getSize();
             setSize(size.width, Math.min(size.height, heightLimit));
         }
-        @Override protected JComponent createCenterPanel() {
+        @Override protected JComponent createStudioContent() {
             JPanel panel = new JPanel(new java.awt.BorderLayout(0, JBUI.scale(8)));
             var description = new StudioAiConnectionText(StudioBundle.message("readiness.scope"));
             description.setEditable(false); description.setLineWrap(true); description.setWrapStyleWord(true);
