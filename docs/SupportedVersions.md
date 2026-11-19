@@ -6,7 +6,7 @@ This page describes the repository configuration for the public beta. Check the 
 | --- | --- |
 | IntelliJ minimum | IDEA 2024.2, platform build 242 |
 | Compilation target | IDEA Community 2024.3.7 |
-| Configured binary compatibility checks | IDEA Community 2024.2 and 2024.3.7; IDEA 2026.2.2 |
+| Configured binary compatibility checks | IDEA Community 2024.2 and 2024.3.7; IDEA 2026.3 |
 | Default bundled Ikasan packs | V3.3.9, V4.1.6 and V5.1.0 |
 | V3.3.9 project JDK | Java 11 |
 | V4.1.6 project JDK | Java 17 |
@@ -21,3 +21,7 @@ Ikasan **5.1.0** is bundled as **V5.1.0** and is available without snapshot opt-
 
 Ikasan 5.1.0 transaction-failure checks still reproduce upstream rollback diagnostics;
 see [5.1.0 verification evidence and limitations](Ikasan510Verification-2026-10-29.md).
+
+The [19 November API maintenance report](CompatibilityWarnings-2026-11-19.md) records
+compatibility checks and the reasons for retained deprecated/experimental API usages.
+These checks do not replace candidate-specific installation and workflow testing.

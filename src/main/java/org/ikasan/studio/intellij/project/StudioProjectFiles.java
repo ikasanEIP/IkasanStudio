@@ -88,7 +88,7 @@ public class StudioProjectFiles {
         UiContext uiContext = project.getService(UiContext.class);
         PsiFile pomPsiFile = pomGetTopLevel(project, project.getName());
         if (pomPsiFile != null) {
-            String pomText = ReadAction.compute(pomPsiFile::getText);
+            String pomText = ReadAction.nonBlocking(pomPsiFile::getText).expireWith(project).executeSynchronously();
             try (Reader reader = new StringReader(pomText)) {
                 MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
                 model = xpp3Reader.read(reader);
@@ -229,9 +229,12 @@ public class StudioProjectFiles {
             if (virtualFile != null) {
                 PsiFile returnFile = null;
                 try {
-                    returnFile = ReadAction.compute(() -> PsiManager.getInstance(project).findFile(virtualFile));
+                    returnFile = ReadAction.nonBlocking(() -> PsiManager.getInstance(project).findFile(virtualFile))
+                            .expireWith(project).executeSynchronously();
+                } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+                    throw cancelled;
                 } catch (Exception ee) {
-                    // ReadAction.compute can swallow exceptions if not explicitly caught
+                    // Cancellation is control flow; only report unexpected lookup failures.
                     LOG.warn("STUDIO: WARN: The read action of pomGetTopLevel for params " +
                     " project [" + project + "] containingDirectory [" + containingDirectory + "] " +
                     " threw an exception, message " + ee.getMessage() + " Trace [" + Arrays.asList(ee.getStackTrace()));
@@ -1313,7 +1316,7 @@ public class StudioProjectFiles {
 
             CompletableFuture<PsiDirectory[]> leafPackageDirectoryFuture = CompletableFuture.supplyAsync(() -> {
                 try {
-                    return ReadAction.compute(() -> {
+                    return ReadAction.nonBlocking(() -> {
                         final VirtualFile sourceRoot = StudioProjectFiles.getExistingSourceDirectoryForContentRoot(project, baseDir.getPath(), contentRoot, StudioProjectFiles.SRC_MAIN_JAVA_CODE);
                         if (sourceRoot == null) {
                             // Nothing generated to this content root yet (e.g. a brand new project) - nothing to prune,
@@ -1324,7 +1327,9 @@ public class StudioProjectFiles {
                         PsiDirectory leafPackageDirectory = getDirectoryForPackage(sourceRootDir, basePackage);
                         // basePackage may not exist on disk yet (e.g. no flows generated under it yet) - nothing to prune.
                         return leafPackageDirectory == null ? new PsiDirectory[0] : leafPackageDirectory.getSubdirectories();
-                    });
+                    }).expireWith(project).executeSynchronously();
+                } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+                    throw cancelled;
                 } catch (Exception ee) {
                     LOG.warn("STUDIO: SERIOUS: The read action of deleteSubPackagesNotIn for params " +
                             " project [" + project + "] contentRoot [" + contentRoot + "] basePackage + [" + basePackage + "] subPackagesToKeep [" + subPackagesToKeep + "] " +

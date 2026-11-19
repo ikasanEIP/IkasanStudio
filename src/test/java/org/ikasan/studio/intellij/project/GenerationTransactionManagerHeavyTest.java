@@ -330,6 +330,56 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         assertTrue(read(base, path).contains("return 2"));
     }
 
+    public void testSnapshotRetryPublishesOnlyCompleteAttemptAfterPendingWrite() throws Exception {
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
+        assertNotNull(base);
+        String firstPath = "generated/retry-first.txt";
+        String secondPath = "generated/retry-second.txt";
+        StudioProjectFiles.createFileWithDirectories(myProject, firstPath, "before write", null);
+        StudioProjectFiles.createFileWithDirectories(myProject, secondPath, "second", null);
+        VirtualFile first = base.findFileByRelativePath(firstPath);
+        VirtualFile second = base.findFileByRelativePath(secondPath);
+        assertNotNull(first);
+        assertNotNull(second);
+        var reachedSecond = new java.util.concurrent.CountDownLatch(1);
+        var firstAttempt = new java.util.concurrent.atomic.AtomicBoolean(true);
+        var writeFinished = new java.util.concurrent.atomic.AtomicBoolean();
+        // Pause after the first rollback entry has been collected. A real pending EDT write
+        // cancels the read; its retry must discard that partial list and read the new bytes.
+        VirtualFile observedBase = org.mockito.Mockito.spy(base);
+        org.mockito.Mockito.doAnswer(invocation -> {
+            if (firstAttempt.compareAndSet(true, false)) {
+                reachedSecond.countDown();
+                long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(10);
+                while (!writeFinished.get()) {
+                    com.intellij.openapi.progress.ProgressManager.checkCanceled();
+                    if (System.nanoTime() > deadline) throw new AssertionError("Pending write did not cancel the read");
+                    java.util.concurrent.locks.LockSupport.parkNanos(java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(1));
+                }
+            }
+            return second;
+        }).when(observedBase).findFileByRelativePath(secondPath);
+        var future = com.intellij.openapi.application.ApplicationManager.getApplication().executeOnPooledThread(() ->
+                GenerationTransactionManager.prepareSnapshots(myProject, observedBase, java.util.List.of(
+                        new GenerationBatch.Artifact(firstPath, "replacement", null),
+                        new GenerationBatch.Artifact(secondPath, "replacement", null))));
+        try {
+            assertTrue("Read must reach the second artifact", reachedSecond.await(10, java.util.concurrent.TimeUnit.SECONDS));
+            com.intellij.openapi.application.WriteAction.run(() -> {
+                first.setBinaryContent("after write".getBytes(StandardCharsets.UTF_8));
+                writeFinished.set(true);
+            });
+            var snapshots = future.get(10, java.util.concurrent.TimeUnit.SECONDS);
+            assertEquals("An interrupted attempt must not leave extra rollback entries", 2, snapshots.size());
+            assertEquals("after write", new String(snapshots.get(0).bytes(), StandardCharsets.UTF_8));
+            assertEquals("second", new String(snapshots.get(1).bytes(), StandardCharsets.UTF_8));
+            for (var snapshot : snapshots) snapshot.verifyUnchanged(base);
+        } finally {
+            writeFinished.set(true);
+            future.cancel(true);
+        }
+    }
+
     public void testPreparedSnapshotRejectsFileChangedBeforeCommit() throws Exception {
         VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull("Test project must have a base directory", base);

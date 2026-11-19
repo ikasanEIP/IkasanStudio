@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Replace deprecated process adapters and retry-safe blocking PSI reads with baseline-compatible listeners and project-scoped nonblocking reads. Keep rollback snapshots local to each read attempt and propagate cancellation without reporting it as a lookup/refactoring failure. Extend newer-IDE lifecycle/generation coverage and pin compatibility verification to IDEA 2026.3.
+
 - Default unset module H2 ports to HTTP + 1 / + 2 during creation and runtime import; preserve explicit values, provide per-port Default controls and validate port ranges and duplicate local service ports.
 
 - Distinguish project-owned running harnesses (green) from shared-only SMTP availability (amber), with visible group status and explicit Stop ownership guidance.

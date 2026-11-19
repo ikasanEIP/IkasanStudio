@@ -173,17 +173,20 @@ public final class UserImplementedClassRelocator {
         boolean[] moved = {false};
         try {
             StudioProjectFiles.backupFile(project, oldFile);
-            PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(project).findFile(oldFile));
+            PsiFile psiFile = ReadAction.nonBlocking(() -> PsiManager.getInstance(project).findFile(oldFile))
+                    .expireWith(project).executeSynchronously();
             if (psiFile instanceof PsiJavaFile javaFile && javaFile.getClasses().length > 0) {
                 PsiClass psiClass = javaFile.getClasses()[0];
                 String oldQualifiedName = psiClass.getQualifiedName();
                 VirtualFile destinationDir = StudioProjectFiles.ensureUserImplementedClassPackageDirectory(project, newPackageName);
                 if (destinationDir != null) {
-                    PsiDirectory psiDestinationDir = ReadAction.compute(() -> PsiManager.getInstance(project).findDirectory(destinationDir));
+                    PsiDirectory psiDestinationDir = ReadAction.nonBlocking(() -> PsiManager.getInstance(project).findDirectory(destinationDir))
+                            .expireWith(project).executeSynchronously();
                     if (psiDestinationDir != null) {
                         var pointer = SmartPointerManager.getInstance(project).createSmartPsiElementPointer(psiClass);
-                        VirtualFile sourceRoot = ReadAction.compute(() -> ProjectRootManager.getInstance(project)
-                                .getFileIndex().getSourceRootForFile(destinationDir));
+                        VirtualFile sourceRoot = ReadAction.nonBlocking(() -> ProjectRootManager.getInstance(project)
+                                .getFileIndex().getSourceRootForFile(destinationDir))
+                                .expireWith(project).executeSynchronously();
                         if (sourceRoot == null) {
                             throw new IllegalStateException("Destination is not an imported Java source root");
                         }
@@ -209,6 +212,8 @@ public final class UserImplementedClassRelocator {
                     }
                 }
             }
+        } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+            throw cancelled;
         } catch (Exception e) {
             LOG.warn("STUDIO: WARN: Unable to relocate user implemented class [" + movedElement.getComponentName() +
                     "] to package [" + newPackageName + "] class [" + newClassName + "] exception was " + e.getMessage());

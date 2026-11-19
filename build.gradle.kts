@@ -470,7 +470,7 @@ intellijPlatformTesting {
                 disabledPlugins.add("com.intellij.modules.ultimate")
             }
             task {
-                description = "Exercises the refactoring, Maven sync and optional MCP module on a newer IDE."
+                description = "Exercises process lifecycle, generation, refactoring, Maven sync and optional MCP on a newer IDE."
                 filter {
                     includeTestsMatching("*UserImplementedClassRelocatorHeavyTest")
                     includeTestsMatching("*MigrationMavenSyncTest")
@@ -479,6 +479,11 @@ intellijPlatformTesting {
                     includeTestsMatching("*FlowPackageRefactoringHeavyTest")
                     includeTestsMatching("*FlowTestRenameRefactoringHeavyTest")
                     includeTestsMatching("*FlowClipboardActionsTest")
+                    includeTestsMatching("*ModuleStartupDiagnosticsHeavyTest")
+                    includeTestsMatching("*IndependentH2RunConfigurationHeavyTest")
+                    includeTestsMatching("*GenerationTransactionManagerHeavyTest")
+                    includeTestsMatching("*GeneratedProjectSynchronizerPropertiesNavigationHeavyTest")
+                    includeTestsMatching("*GeneratedProjectSynchronizerFailureInjectionTest")
                 }
             }
         }

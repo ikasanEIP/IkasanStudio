@@ -32,8 +32,9 @@ public final class ExportOfflineToolsAction extends DumbAwareAction {
                 @Override public void run(@NotNull ProgressIndicator indicator) {
                     try (var input=ExportOfflineToolsAction.class.getResourceAsStream(OfflineToolsExporter.RESOURCE)) {
                         if (input==null) throw new IOException("Bundled offline tools archive is missing");
-                        Path model = com.intellij.openapi.application.ReadAction.compute(() ->
-                                org.ikasan.studio.intellij.project.StudioProjectFiles.getModelJsonPath(project));
+                        Path model = com.intellij.openapi.application.ReadAction.nonBlocking(() ->
+                                org.ikasan.studio.intellij.project.StudioProjectFiles.getModelJsonPath(project))
+                                .expireWith(project).executeSynchronously();
                         String savedModel = model != null && java.nio.file.Files.isRegularFile(model) ? java.nio.file.Files.readString(model) : null;
                         exported=OfflineToolsExporter.export(input, parent, savedModel, indicator::checkCanceled);
                     } catch (IOException failure) { throw new IllegalStateException(failure.getMessage(), failure); }

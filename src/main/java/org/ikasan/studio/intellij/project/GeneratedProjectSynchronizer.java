@@ -852,6 +852,7 @@ public class GeneratedProjectSynchronizer {
         if (vFile == null || !vFile.isValid()) {
             return null;
         }
-        return ReadAction.compute(() -> PsiManager.getInstance(project).findFile(vFile));
+        return ReadAction.nonBlocking(() -> PsiManager.getInstance(project).findFile(vFile))
+                .expireWith(project).executeSynchronously();
     }
 }

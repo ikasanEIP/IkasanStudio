@@ -178,8 +178,12 @@ final class GenerationTransactionManager {
         java.util.concurrent.atomic.AtomicReference<RuntimeException> failure = new java.util.concurrent.atomic.AtomicReference<>();
         Runnable prepare = () -> {
             try {
-                com.intellij.openapi.application.ReadAction.run(() -> {
+                // A pending write may restart this read. Publish only a complete attempt so
+                // rollback snapshots cannot be duplicated or retain bytes from an aborted read.
+                var prepared = com.intellij.openapi.application.ReadAction.nonBlocking(() -> {
+                    List<Snapshot> attempt = new ArrayList<>();
                     for (var artifact : artifacts) {
+                        com.intellij.openapi.progress.ProgressManager.checkCanceled();
                         VirtualFile file = baseDir.findFileByRelativePath(artifact.relativePath());
                         try {
                             byte[] bytes = file == null ? null : readBytes(file);
@@ -187,12 +191,14 @@ final class GenerationTransactionManager {
                             Snapshot snapshot = new Snapshot(artifact.relativePath(), file, bytes, file == null ? -1 : file.getModificationStamp(),
                                     document, document == null ? -1 : document.getModificationStamp());
                             snapshot.verifyUnchanged(baseDir);
-                            snapshots.add(snapshot);
+                            attempt.add(snapshot);
                         } catch (IOException error) {
                             throw new StudioRuntimeException("Could not snapshot generated file " + artifact.relativePath(), error);
                         }
                     }
-                });
+                    return attempt;
+                }).expireWith(project).executeSynchronously();
+                snapshots.addAll(prepared);
             } catch (RuntimeException error) { failure.set(error); }
         };
         if (com.intellij.openapi.application.ApplicationManager.getApplication().isDispatchThread()) {

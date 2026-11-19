@@ -72,7 +72,7 @@ public final class ModuleStartupDiagnostics implements Disposable {
             entry = new Entry(++generation);
             active.put(handler, entry);
         }
-        entry.listener = new ProcessAdapter() {
+        entry.listener = new ProcessListener() {
             @Override public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
                 if (entry.stopping) return;
                 if (!ProcessOutputType.isStdout(outputType) && !ProcessOutputType.isStderr(outputType)) return;
@@ -145,7 +145,7 @@ public final class ModuleStartupDiagnostics implements Disposable {
         private ModuleStartupOutput.Failure reported;
         private long revision;
         private volatile boolean stopping;
-        private ProcessAdapter listener;
+        private ProcessListener listener;
         private com.intellij.notification.Notification notification;
         Entry(long generation) { this.generation = generation; }
     }

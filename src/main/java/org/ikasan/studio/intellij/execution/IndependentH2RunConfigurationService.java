@@ -138,7 +138,7 @@ public final class IndependentH2RunConfigurationService implements Disposable {
         var entry = new OwnedProcess();
         if (processes.putIfAbsent(handler, entry) != null) return;
         preparing = false;
-        handler.addProcessListener(new ProcessAdapter() {
+        handler.addProcessListener(new ProcessListener() {
             @Override public void onTextAvailable(ProcessEvent event, Key outputType) {
                 if (!ProcessOutputTypes.STDOUT.equals(outputType) || entry.ready) return;
                 synchronized (entry.output) {
