@@ -5,7 +5,7 @@ dependencies {
     api("com.fasterxml.jackson.core:jackson-databind:2.22.4")
     api("org.apache.maven:maven-model:3.10.0")
     // Export the patched Plexus dependency to consumers, including Maven consumers.
-    api("org.codehaus.plexus:plexus-utils:4.1.0") {
+    api("org.codehaus.plexus:plexus-utils:4.2.0") {
         because("Keep the patched Plexus utilities available to all consumers")
     }
     // Plexus Utils 4 moved the Maven 3 XML parser classes into this separate artifact.
