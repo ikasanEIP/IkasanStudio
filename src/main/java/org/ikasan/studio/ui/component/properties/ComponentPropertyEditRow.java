@@ -16,7 +16,6 @@ import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.intellij.psi.StudioPsiUtils;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.UiContext;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -490,13 +489,10 @@ public class ComponentPropertyEditRow {
 
     private void doDataValidationHelperPopup() {
         CronPanel cronPanel = new CronPanel(project, (String)getValue());
-            CronPopupDialogue cronPopupDialogue = new CronPopupDialogue(
-                    project,
-                    project.getService(UiContext.class).getDesignerCanvas(),
-                    cronPanel);
-            if (cronPopupDialogue.showAndGet()) {
-                propertyValueField.setText(cronPanel.getValue());
-            }
+        CronPopupDialogue cronPopupDialogue = new CronPopupDialogue(project, cronPanel);
+        if (cronPopupDialogue.showAndGet()) {
+            propertyValueField.setText(cronPanel.getValue());
+        }
     }
 
     private String getListAsText(String bracketedCommList) {
