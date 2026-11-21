@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Repair clean CI builds of the Maven meta-pack example and its archetype: declare the Red Hat repository required by Ikasan 4.1.6 test dependencies, align the example's generator API with its copied V4 baseline, and test that the example does not under-declare that API requirement.
+
 - Allow selection and copying of read-only instructions and diagnostics across Studio dialogs, Settings and designer panels. Add right-click text copying for captions and headings, preserve native editing/custom menus, and exclude password fields without global event hooks or polling.
 
 - Make unavailable meta-pack warnings actionable: show removal/restart guidance before validation details, offer Manage Meta-Packs directly, and explain manual recovery for broken external JARs while distinguishing bundled packs.

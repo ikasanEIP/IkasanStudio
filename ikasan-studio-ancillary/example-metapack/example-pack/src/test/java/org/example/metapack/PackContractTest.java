@@ -28,6 +28,17 @@ class PackContractTest extends MetaPackContract {
     private FlowElement element(Flow flow, String type, String name) throws Exception {
         return FlowElementFactory.createFlowElement(packId(), ComponentLibrary.getIkasanComponentByKeyMandatory(packId(), type), flow, flow.getFlowRoute(), name);
     }
+    @Test void generatorApiDeclarationCoversTheCopiedBaseline() throws Exception {
+        var json = new com.fasterxml.jackson.databind.ObjectMapper();
+        var baseline = json.readTree(Path.of("target/baseline/studio/metapack/V4.1.6/metapack.json").toFile());
+        try (var input = getClass().getResourceAsStream("/studio/metapack/ExampleIkasan4/metapack.json")) {
+            assertNotNull(input);
+            var example = json.readTree(input);
+            int required = baseline.path("generatorApiVersion").asInt(1);
+            assertTrue(example.path("generatorApiVersion").asInt(1) >= required,
+                "The example copies the baseline's descriptors and templates and must declare at least generator API " + required);
+        }
+    }
     @Test void writesSampleAndChecksCustomComponentRendering() throws Exception {
         Module sample = sampleModule();
         Files.createDirectories(Path.of("target/samples"));

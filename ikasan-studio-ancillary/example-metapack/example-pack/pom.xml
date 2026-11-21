@@ -9,6 +9,22 @@
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+  <!-- Ikasan 4.1.6 pins a Red Hat Narayana build that is not published to Maven Central.
+       Keep this declaration in the project so clean builds do not rely on user settings.xml. -->
+  <repositories>
+    <repository>
+      <id>central</id>
+      <url>https://repo.maven.apache.org/maven2</url>
+      <releases><enabled>true</enabled></releases>
+      <snapshots><enabled>false</enabled></snapshots>
+    </repository>
+    <repository>
+      <id>redhat-earlyaccess</id>
+      <url>https://maven.repository.redhat.com/earlyaccess/all/</url>
+      <releases><enabled>true</enabled></releases>
+      <snapshots><enabled>false</enabled></snapshots>
+    </repository>
+  </repositories>
   <dependencies>
     <dependency>
       <groupId>org.example.metapack</groupId>

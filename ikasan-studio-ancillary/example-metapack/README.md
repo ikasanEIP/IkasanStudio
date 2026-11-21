@@ -14,6 +14,13 @@ mvn clean verify
 mvn install
 ```
 
+The pack's test dependency on Ikasan 4.1.6 transitively requires
+`me.snowdrop:narayana-spring-boot-starter:3.0.0.redhat-00042`, available from
+Red Hat's Early Access Maven repository rather than Maven Central. The pack POM
+declares both repositories (releases only), so clean builds and projects copied
+from the archetype do not depend on a developer's `settings.xml`. Network access
+to both repositories is required for the first build.
+
 `example-runtime` contains SampleTextConverter, UppercaseConverter and LoggingProducer.
 `example-pack` contains descriptors, icons, manifest and contract tests. Its build unpacks
 the pinned `studio-pack-v4:0.1.0-SNAPSHOT` baseline, then adds the example resources under
@@ -67,3 +74,8 @@ Review baseline updates explicitly, including security overrides. SNAPSHOT coord
 are development bootstrap versions, not immutable releases. Record the Studio commit
 and exact baseline revision when releasing your pack; publish your runtime library
 alongside it. Keep developer implementation classes out of the resource-only pack.
+
+The example manifest declares generator API **4**, matching the copied V4 baseline.
+When adopting a newer baseline, review its generator API requirement as well as its
+templates and descriptors. The contract tests reject an example declaration below
+the copied baseline, even if a particular sample flow does not use every new feature.
