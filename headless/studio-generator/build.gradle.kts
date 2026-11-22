@@ -9,7 +9,7 @@ dependencies {
         because("Keep the patched Plexus utilities available to all consumers")
     }
     // Plexus Utils 4 moved the Maven 3 XML parser classes into this separate artifact.
-    api("org.codehaus.plexus:plexus-xml:4.2.0")
+    api("org.codehaus.plexus:plexus-xml:4.2.1")
     api("org.freemarker:freemarker:2.3.35")
     implementation("com.github.javaparser:javaparser-core:3.28.2")
     implementation("commons-io:commons-io:2.22.0")
