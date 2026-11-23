@@ -262,6 +262,36 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
         }
     }
 
+    public void testSnapshotToNewerMinorRequiresConsentBeforeChangingSelection() throws Exception {
+        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V5.1.0"));
+        var packs = (JComboBox<?>) field(dialog, "runtimePack");
+        var original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
+        var messages = new java.util.ArrayList<String>();
+        var previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> {
+            messages.add(message);
+            return com.intellij.openapi.ui.Messages.NO;
+        });
+        try {
+            PlatformTestUtil.waitWithEventsDispatching("Pack choices not loaded", () -> packs.getItemCount() == 2, 10);
+            String json = "{\"name\":\"Demo\",\"ikasanVersion\":\"5.0.1-SNAPSHOT\",\"flows\":[]}";
+            try {
+                dialog.selectRuntimePack(json);
+                fail("Same-major upgrade needs explicit acceptance");
+            } catch (com.intellij.openapi.progress.ProcessCanceledException expected) { }
+            assertEquals("V3.3.9", packs.getSelectedItem());
+            assertSame(original, getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule());
+            assertEquals(1, messages.size());
+            assertTrue(messages.get(0).contains("5.0.1-SNAPSHOT"));
+            assertTrue(messages.get(0).contains("5.1.0"));
+            com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> com.intellij.openapi.ui.Messages.YES);
+            assertEquals("V5.1.0", dialog.selectRuntimePack(json));
+            assertEquals("V5.1.0", packs.getSelectedItem());
+        } finally {
+            dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+            com.intellij.openapi.ui.TestDialogManager.setTestDialog(previous);
+        }
+    }
+
     public void testFetchedPatchShowsProposalBeforeReviewButStillRequiresConsent() throws Exception {
         var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
         var previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> com.intellij.openapi.ui.Messages.NO);

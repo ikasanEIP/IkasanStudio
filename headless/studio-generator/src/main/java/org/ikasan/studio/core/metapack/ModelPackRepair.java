@@ -41,7 +41,7 @@ public final class ModelPackRepair {
         if (manifest.packVersion() == null || manifest.packVersion().isBlank())
             throw new IOException("The installed pack does not supply a revision for a validated repair.");
         if (!retiredSnapshot && previousRevision.equals(manifest.packVersion()))
-            throw new IOException("The model already selects the installed pack revision. Restore a validated backup or correct the reported model error.");
+            throw new IOException("The model already selects the installed pack revision. If you have just applied a repair and Studio still shows the previous error, close and reopen the project to reload the repaired model. If loading still fails, restore a validated backup or correct the reported model error.");
         studio.put("metaPack", targetPack);
         studio.put("metaPackRevision", manifest.packVersion());
         module.put("ikasanVersion", manifest.ikasanVersion());

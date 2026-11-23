@@ -5,6 +5,10 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Propose the nearest newer stable Ikasan release within the same major during runtime import, including snapshot sources, with explicit upgrade confirmation and compatibility review; reject downgrades and automatic cross-major imports.
+
+- Retry transient HTTP and network failures during meta-pack help-link verification, with bounded attempts and clear diagnostics; broken links still fail validation.
+
 - Repair clean CI builds of the Maven meta-pack example and its archetype: declare the Red Hat repository required by Ikasan 4.1.6 test dependencies, align the example's generator API with its copied V4 baseline, and test that the example does not under-declare that API requirement.
 
 - Allow selection and copying of read-only instructions and diagnostics across Studio dialogs, Settings and designer panels. Add right-click text copying for captions and headings, preserve native editing/custom menus, and exclude password fields without global event hooks or polling.

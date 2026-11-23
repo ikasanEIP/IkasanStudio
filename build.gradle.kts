@@ -337,18 +337,34 @@ tasks {
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build()
             val failures = urls.mapNotNull { url ->
-                try {
-                    val request = HttpRequest.newBuilder(URI.create(url))
-                        .timeout(Duration.ofSeconds(20))
-                        .header("User-Agent", "Ikasan-Studio-meta-pack-validator")
-                        .GET()
-                        .build()
-                    val response = client.send(request, HttpResponse.BodyHandlers.discarding())
-                    if (response.statusCode() in 200..399) null
-                    else url + " returned HTTP " + response.statusCode()
-                } catch (exception: Exception) {
-                    url + " could not be checked: " + exception.message
+                val request = HttpRequest.newBuilder(URI.create(url))
+                    .timeout(Duration.ofSeconds(20))
+                    .header("User-Agent", "Ikasan-Studio-meta-pack-validator")
+                    .GET()
+                    .build()
+                var failure: String? = null
+                val maxAttempts = 3
+                for (attempt in 1..maxAttempts) {
+                    try {
+                        val response = client.send(request, HttpResponse.BodyHandlers.discarding())
+                        val status = response.statusCode()
+                        failure = if (status in 200..399) null else "$url returned HTTP $status"
+                        // Retry temporary service failures, but do not mask broken links or access errors.
+                        if (status !in setOf(408, 429, 500, 502, 503, 504)) break
+                    } catch (exception: java.io.IOException) {
+                        failure = "$url could not be checked: ${exception.message}"
+                    } catch (exception: InterruptedException) {
+                        Thread.currentThread().interrupt()
+                        throw exception
+                    }
+                    if (attempt == maxAttempts) {
+                        failure = "$failure (after $maxAttempts attempts)"
+                        break
+                    }
+                    logger.lifecycle("Retrying help URL after attempt $attempt/$maxAttempts: $failure")
+                    Thread.sleep(1_000L * attempt)
                 }
+                failure
             }
             if (failures.isNotEmpty()) {
                 throw GradleException(

@@ -135,7 +135,7 @@ public final class IkasanRuntimeImport {
         catch (Exception failure) { throw new StudioBuildException("Cannot inspect the export's Ikasan version.", failure); }
     }
 
-    /** Exact version first, otherwise the nearest newer stable patch in the same major/minor line. */
+    /** Exact version first, otherwise the nearest newer stable release within the same major. */
     public static Optional<PackRecommendation> recommendPack(String moduleJson, List<String> packs)
             throws StudioBuildException {
         try {
@@ -146,22 +146,29 @@ public final class IkasanRuntimeImport {
                 String target = ComponentLibrary.getMetaPackManifest(pack).ikasanVersion();
                 var candidate = new PackRecommendation(pack, source, target);
                 if (candidate.exact()) return Optional.of(candidate);
-                if (forwardPatch(source, target) && (nearest == null
-                        || patch(target).compareTo(patch(nearest.targetVersion())) < 0)) nearest = candidate;
+                if (forwardRelease(source, target) && (nearest == null
+                        || compareRelease(target, nearest.targetVersion()) < 0)) nearest = candidate;
             }
             return Optional.ofNullable(nearest);
         } catch (StudioBuildException failure) { throw failure; }
         catch (Exception failure) { throw new StudioBuildException("Cannot inspect the export's Ikasan version.", failure); }
     }
 
-    private static boolean forwardPatch(String source, String target) {
-        if (!source.matches("[0-9]+\\.[0-9]+\\.[0-9]+") || !target.matches("[0-9]+\\.[0-9]+\\.[0-9]+")) return false;
-        String[] from = source.split("\\."), to = target.split("\\.");
-        return from[0].equals(to[0]) && from[1].equals(to[1]) && patch(target).compareTo(patch(source)) >= 0;
+    private static boolean forwardRelease(String source, String target) {
+        if (!source.matches("[0-9]+\\.[0-9]+\\.[0-9]+(?:-SNAPSHOT)?")
+                || !target.matches("[0-9]+\\.[0-9]+\\.[0-9]+")) return false;
+        String base = source.replaceFirst("-SNAPSHOT$", "");
+        return new java.math.BigInteger(base.split("\\.")[0]).equals(
+                new java.math.BigInteger(target.split("\\.")[0])) && compareRelease(target, base) >= 0;
     }
 
-    private static java.math.BigInteger patch(String version) {
-        return new java.math.BigInteger(version.substring(version.lastIndexOf('.') + 1));
+    private static int compareRelease(String first, String second) {
+        String[] left = first.split("\\."), right = second.split("\\.");
+        for (int i = 0; i < 3; i++) {
+            int comparison = new java.math.BigInteger(left[i]).compareTo(new java.math.BigInteger(right[i]));
+            if (comparison != 0) return comparison;
+        }
+        return 0;
     }
 
     /** Topology-only inspection retains clarification when configuration evidence is unavailable. */
@@ -217,16 +224,16 @@ public final class IkasanRuntimeImport {
             var manifest = ComponentLibrary.getMetaPackManifest(pack);
             String runtimeVersion = topology.path("ikasanVersion").asText("");
             if (!runtimeVersion.isBlank() && !runtimeVersion.equals(manifest.ikasanVersion())
-                    && !forwardPatch(runtimeVersion, manifest.ikasanVersion()))
-                throw problem("The export uses Ikasan " + runtimeVersion + "; select its matching meta-pack or a newer patch in the same major/minor line. Downgrades and cross-minor/major imports require a separate migration.");
+                    && !forwardRelease(runtimeVersion, manifest.ikasanVersion()))
+                throw problem("The export uses Ikasan " + runtimeVersion + "; select its matching meta-pack or a newer stable release within the same major version. Downgrades and cross-major imports require a separate migration.");
             JsonNode configuration = configurationJson == null || configurationJson.isBlank()
                     ? JSON.createArrayNode() : read(configurationJson);
             Map<String, JsonNode> configurations = configurations(configuration);
             List<String> review = new ArrayList<>();
             List<ReviewItem> reviewItems = new ArrayList<>();
             if (!runtimeVersion.isBlank() && !runtimeVersion.equals(manifest.ikasanVersion()))
-                review.add("Patch upgrade: export Ikasan " + runtimeVersion + " imported using " + pack
-                        + " (Ikasan " + manifest.ikasanVersion() + "). Generated dependencies target the newer patch."
+                review.add("Version upgrade: export Ikasan " + runtimeVersion + " imported using " + pack
+                        + " (Ikasan " + manifest.ikasanVersion() + "). Generated dependencies target the newer release."
                         + " Review API/configuration differences and compile and test before starting flows; compatibility is not guaranteed.");
             if (runtimeVersion.isBlank()) review.add("The export has no ikasanVersion; verify the selected meta-pack against the original application.");
             Module base = new Module(pack);

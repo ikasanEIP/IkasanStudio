@@ -142,7 +142,7 @@ class IkasanRuntimeImportTest {
         var module = ComponentIO.validatePersistedModuleJson(result.studioJson(), "patch import", false);
         assertThat(module.getVersion()).isEqualTo("V4.1.6");
         assertThat(module.getFlows().get(0).getPropertyValue("flowStartupType")).isEqualTo("AUTOMATIC");
-        assertThat(result.review().toString()).contains("Patch upgrade", "4.1.3", "4.1.6", "compatibility is not guaranteed");
+        assertThat(result.review().toString()).contains("Version upgrade", "4.1.3", "4.1.6", "compatibility is not guaranteed");
         var saved = JSON.readTree(ComponentIO.toValidatedModuleJson(module));
         assertThat(saved.path(IkasanRuntimeImport.SOURCE_FIELD).path("module").path("ikasanVersion").asText()).isEqualTo("4.1.3");
         var choice = IkasanRuntimeImport.recommendPack(input.toString(), java.util.List.of("V3.3.9", "V4.1.6")).orElseThrow();
@@ -150,12 +150,35 @@ class IkasanRuntimeImportTest {
         assertThat(choice.exact()).isFalse();
     }
 
-    @ParameterizedTest @ValueSource(strings = {"4.1.7", "4.1.10", "4.0.9", "4.2.0", "3.3.9", "4.1.3-SNAPSHOT"})
-    void rejectsDowngradesCrossMinorMajorAndNonExactPrereleases(String source) throws Exception {
+    @ParameterizedTest @ValueSource(strings = {"4.1.7", "4.1.10", "4.2.0", "3.3.9", "5.0.1-SNAPSHOT", "4.1.3-RC1"})
+    void rejectsDowngradesCrossMajorAndUnrecognisedPrereleases(String source) throws Exception {
         var input = topology("V4.1.6").put("ikasanVersion", source);
         assertThatThrownBy(() -> IkasanRuntimeImport.convert(input.toString(), "", "V4.1.6", "org.example", mappings()))
                 .hasMessageContaining("matching meta-pack");
         assertThat(IkasanRuntimeImport.recommendPack(input.toString(), java.util.List.of("V4.1.6"))).isEmpty();
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"5.0.1-SNAPSHOT", "5.0.1", "5.1.0-SNAPSHOT"})
+    void proposesAndConvertsNewerSameMajorReleaseWithReview(String source) throws Exception {
+        String input = "{\"name\":\"Demo\",\"ikasanVersion\":\"" + source + "\",\"flows\":[]}";
+        var choice = IkasanRuntimeImport.recommendPack(input,
+                java.util.List.of("V3.3.9", "V4.1.6", "V5.1.0")).orElseThrow();
+        assertThat(choice.pack()).isEqualTo("V5.1.0");
+        assertThat(choice.exact()).isFalse();
+        var result = IkasanRuntimeImport.convert(input, "", choice.pack(), "org.example");
+        assertThat(result.review().toString()).contains("Version upgrade", source, "5.1.0",
+                "compatibility is not guaranteed");
+        var saved = JSON.readTree(result.studioJson());
+        assertThat(saved.path(IkasanRuntimeImport.SOURCE_FIELD).path("module").path("ikasanVersion").asText())
+                .isEqualTo(source);
+    }
+
+    @Test void offersOnlyForwardSameMajorReleases() throws Exception {
+        String input = "{\"ikasanVersion\":\"4.0.9-SNAPSHOT\",\"flows\":[]}";
+        assertThat(IkasanRuntimeImport.recommendPack(input, java.util.List.of("V5.1.0", "V4.1.6"))
+                .orElseThrow().pack()).isEqualTo("V4.1.6");
+        assertThat(IkasanRuntimeImport.recommendPack(input.replace("4.0.9-SNAPSHOT", "5.2.0"),
+                java.util.List.of("V3.3.9", "V4.1.6", "V5.1.0"))).isEmpty();
     }
 
     @Test void recommendsExactVersionsBeforeOtherPacksAndDoesNotGuessMissingVersions() throws Exception {
