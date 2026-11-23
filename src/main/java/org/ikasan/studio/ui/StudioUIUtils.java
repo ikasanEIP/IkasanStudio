@@ -498,16 +498,14 @@ public class StudioUIUtils {
     }
 
     /**
-     * Starts (or stops) a pulsating coloured border on the given button - used to draw the developer's eye to a
-     * button that's gone disabled specifically because of a validation failure (as opposed to merely "nothing
-     * has changed yet"), since a silently-disabled button is easy to miss, especially when the actual reason is
-     * only discoverable by hovering over its tooltip. Idempotent and safe to call on every validation pass:
+     * Starts (or stops) a pulsating coloured border on a button needing attention, including pending edits
+     * and validation failures. Callers retain the appropriate enabled state and validation tooltip.
+     * Idempotent and safe to call on every validation pass:
      * calling with active=true while already pulsing, or active=false while already stopped, is a no-op, so
      * callers never need to track pulsing state themselves.
      * -
      * State (the running Timer and the button's original border, to restore exactly) is stashed on the button
-     * itself via client properties rather than in some external map, so it's inherently scoped to the button's
-     * own lifecycle - no separate cleanup/disposal path is needed.
+     * itself via client properties rather than in some external map. Owners stop attention on disposal.
      * @param button the button to pulse - a no-op if null (e.g. a dialog whose buttons haven't been created yet).
      * @param active true to start pulsing (or keep pulsing), false to stop and restore the original border.
      */

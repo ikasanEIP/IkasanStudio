@@ -153,8 +153,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         listenerForAnyEditChanges = () -> {
             List<ValidationInfo> validationIssues = doValidateAll();
             boolean hasValidationIssues = !validationIssues.isEmpty();
-            boolean okToProcess = dataHasChangedAndOKToProcess() && !hasValidationIssues;
-            if (cancelEditsButton != null) cancelEditsButton.setEnabled(dataHasChangedAndOKToProcess());
+            boolean hasPendingChanges = dataHasChangedAndOKToProcess();
+            boolean okToProcess = hasPendingChanges && !hasValidationIssues;
+            if (cancelEditsButton != null) cancelEditsButton.setEnabled(hasPendingChanges);
             // A disabled button still shows its tooltip on hover (Swing dispatches hover/mouse-motion events to
             // disabled components; only the click itself is suppressed), and the pulsating border draws the
             // developer's eye there in the first place - without both, a validation failure (e.g. a duplicate
@@ -167,7 +168,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             if (updateCodeButton != null) {
                 updateCodeButton.setEnabled(okToProcess);
                 updateCodeButton.setToolTipText(tooltip);
-                StudioUIUtils.setAttentionPulse(updateCodeButton, hasValidationIssues);
+                StudioUIUtils.setAttentionPulse(updateCodeButton, hasPendingChanges || hasValidationIssues);
             }
             if (getPropertiesDialogue() != null) {
                 getPropertiesDialogue().setOKActionEnabled(okToProcess);
@@ -196,6 +197,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             regenerateClassButton.setVisible(false);
             footerPanel.add(regenerateClassButton);
         }
+    }
+
+    @Override
+    public void dispose() {
+        StudioUIUtils.setAttentionPulse(updateCodeButton, false);
+        super.dispose();
     }
 
     /**

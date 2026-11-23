@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Pulse Update Code for valid pending property edits as well as validation errors, including same-length port replacements; stop attention when edits are reverted or the panel is disposed.
+
 - Keep Properties tab headers clickable with text-copy support, and reopen the existing properties form when clicking an already-selected canvas item without losing pending edits.
 
 - Propose the nearest newer stable Ikasan release within the same major during runtime import, including snapshot sources, with explicit upgrade confirmation and compatibility review; reject downgrades and automatic cross-major imports.
