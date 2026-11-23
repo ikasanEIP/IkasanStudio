@@ -21,11 +21,11 @@ class RuntimeImportReportTest {
                {"name":"unset"}, {"name":"null", "value":null},
                {"name":"false", "value":false}, {"name":"zero", "value":0}]}]
             """);
-        String text = report.render("1.0.0-beta.1", "262.123.4");
+        String text = report.render("1.0.0-beta.4-SNAPSHOT", "262.123.4");
         assertTrue(text.contains("components: 2"));
         assertTrue(text.contains("unset parameters: 2"));
         assertTrue(text.contains("Issues: 0"));
-        assertTrue(text.contains("1.0.0-beta.1"));
+        assertTrue(text.contains("Plugin: 1.0.0-beta.4-SNAPSHOT; IDE build: 262.123.4"));
         assertFalse(text.contains("PRIVATE")); assertFalse(text.contains("PASSWORD"));
     }
 

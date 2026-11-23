@@ -160,7 +160,8 @@ public final class RuntimeImportReport {
         if (incoming.containsKey(consumer.path("componentName").asText())) issue(location, "CONSUMER_HAS_INCOMING_TRANSITION");
     }
     private static String safeVersion(String value) {
-        return value != null && value.matches("[Vv]?[0-9]+(?:[.][0-9]+){1,3}(?:-(?:SNAPSHOT|beta[.][0-9]+|rc[.][0-9]+))?") ? value : "unavailable/nonstandard";
+        return value != null && value.matches("[Vv]?[0-9]+(?:[.][0-9]+){1,3}(?:-(?:SNAPSHOT|(?:beta|rc)[.][0-9]+(?:-SNAPSHOT)?))?")
+                ? value : "unavailable/nonstandard";
     }
     public synchronized String render(String pluginVersion, String ideBuild) { return render(pluginVersion, ideBuild, null); }
     public synchronized String render(String pluginVersion, String ideBuild, String buildIdentity) {
