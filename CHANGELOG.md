@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Keep Properties tab headers clickable with text-copy support, and reopen the existing properties form when clicking an already-selected canvas item without losing pending edits.
+
 - Propose the nearest newer stable Ikasan release within the same major during runtime import, including snapshot sources, with explicit upgrade confirmation and compatibility review; reject downgrades and automatic cross-major imports.
 
 - Retry transient HTTP and network failures during meta-pack help-link verification, with bounded attempts and clear diagnostics; broken links still fail validation.

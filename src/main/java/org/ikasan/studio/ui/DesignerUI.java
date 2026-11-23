@@ -89,8 +89,7 @@ public class DesignerUI implements Disposable {
         ComponentPropertiesTabPanel componentPropertiesTabPanel = new ComponentPropertiesTabPanel(componentPropertiesPanel);
         uiContext.setPropertiesTabPanel(componentPropertiesTabPanel);
 
-        paletteAndProperties.add(componentPropertiesTabPanel);
-        paletteAndProperties.setTabComponentAt(0, createPropertiesLabel());
+        paletteAndProperties.addTab(UiContext.PROPERTIES_TAB_TITLE, componentPropertiesTabPanel);
         paletteAndProperties.setBorder(JBUI.Borders.empty());
 
         CanvasPanel canvasPanel = new CanvasPanel(this.project);
@@ -128,12 +127,6 @@ public class DesignerUI implements Disposable {
             initialisationStateChanged(initialisationService.getState(), initialisationService.getDetail());
             initialisationService.start();
         }
-    }
-
-    protected JLabel createPropertiesLabel() {
-        JLabel label = new JLabel(UiContext.PROPERTIES_TAB_TITLE);
-        label.setBorder(JBUI.Borders.empty(13, 0)); // top, left, bottom, right
-        return label;
     }
 
     public JComponent getContent() {

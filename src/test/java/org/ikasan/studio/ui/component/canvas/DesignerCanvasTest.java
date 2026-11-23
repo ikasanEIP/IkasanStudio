@@ -26,6 +26,29 @@ import static org.mockito.Mockito.when;
 class DesignerCanvasTest {
 
     @Test
+    void reselectingDisplayedTargetRevealsPropertiesWithoutDiscardingEdits() throws Exception {
+        Project project = mock(Project.class);
+        var context = mock(org.ikasan.studio.ui.UiContext.class);
+        var properties = mock(org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel.class);
+        Module module = mock(Module.class);
+        when(project.getService(org.ikasan.studio.ui.UiContext.class)).thenReturn(context);
+        when(context.getOptions()).thenReturn(new org.ikasan.studio.ui.state.StudioSessionOptions());
+        when(context.getPropertiesPanel()).thenReturn(properties);
+        when(properties.isEditingComponent(module)).thenReturn(true);
+        javax.swing.SwingUtilities.invokeAndWait(() -> {
+            var canvas = new DesignerCanvas(project);
+            try {
+                canvas.editComponent(module);
+                org.mockito.Mockito.verify(context).setRightTabbedPaneFocus(org.ikasan.studio.ui.UiContext.PROPERTIES_TAB_INDEX);
+                org.mockito.Mockito.verify(properties, org.mockito.Mockito.never())
+                        .confirmSelectionChangeWithPendingEdits(org.mockito.ArgumentMatchers.any());
+                org.mockito.Mockito.verify(properties, org.mockito.Mockito.never())
+                        .updateTargetComponent(org.mockito.ArgumentMatchers.any());
+            } finally { canvas.disposeCanvas(); }
+        });
+    }
+
+    @Test
     void snapshotChoicesRefreshFromPublishedMetadataWithoutChangingReleasedSelection() throws Exception {
         Project project = mock(Project.class);
         var context = mock(org.ikasan.studio.ui.UiContext.class);

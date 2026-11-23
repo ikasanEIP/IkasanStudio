@@ -36,6 +36,19 @@ public final class StudioTextCopySupport {
                 || control instanceof JPopupMenu || control instanceof JMenuBar
                 || Boolean.TRUE.equals(control.getClientProperty(INSTALLED))) return;
         control.putClientProperty(INSTALLED, Boolean.TRUE);
+        if (control instanceof JTabbedPane tabs) {
+            // Tab headers belong to the platform UI delegate. Adding mouse listeners to their
+            // labels can steal the click that normally selects a tab; only visit page contents.
+            for (int i = 0; i < tabs.getTabCount(); i++) install(tabs.getComponentAt(i));
+            tabs.addContainerListener(new ContainerAdapter() {
+                @Override public void componentAdded(ContainerEvent event) {
+                    for (int i = 0; i < tabs.getTabCount(); i++) {
+                        if (tabs.getComponentAt(i) == event.getChild()) install(event.getChild());
+                    }
+                }
+            });
+            return;
+        }
         if (control instanceof JTextComponent text) {
             if (text instanceof JTextArea) text.putClientProperty(TRAVERSAL, new Traversal(
                     text.getFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS),

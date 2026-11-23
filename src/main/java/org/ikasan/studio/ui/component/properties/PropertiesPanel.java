@@ -311,6 +311,11 @@ public abstract class PropertiesPanel extends JBPanel implements Disposable {
         return selectedComponent;
     }
 
+    /** Identity matters: an imported replacement model may have the same name as the old target. */
+    public boolean isEditingComponent(IkasanObject component) {
+        return selectedComponent == component;
+    }
+
     protected abstract List<ValidationInfo> doValidateAll();
     public abstract void updateComponentsWithNewValues();
     public abstract boolean dataHasChangedAndOKToProcess();

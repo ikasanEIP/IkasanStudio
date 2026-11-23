@@ -523,11 +523,8 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             new NavigateToCodeAction(project, ikasanBasicElement, true)
                     .actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "navigateToCode"));
         } // Single Left-click -> update properties
-        else if ((me.getButton() == MouseEvent.BUTTON1) &&
-                 (  ViewHandlerCache.getAbstractViewHandler(project, ikasanBasicElement) != null &&
-                    ! ViewHandlerCache.getAbstractViewHandler(project, ikasanBasicElement).isAlreadySelected()
-
-                 )) {
+        else if (me.getButton() == MouseEvent.BUTTON1 &&
+                ViewHandlerCache.getAbstractViewHandler(project, ikasanBasicElement) != null) {
             editComponent(ikasanBasicElement);
         }
     }
@@ -547,6 +544,11 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     public void editComponent(BasicElement basicElement) {
         UiContext uiContext = project.getService(UiContext.class);
         ComponentPropertiesPanel currentProperties = uiContext.getPropertiesPanel();
+        if (currentProperties != null && currentProperties.isEditingComponent(basicElement)) {
+            // Re-selecting a target should reveal its existing form, preserving unsaved edits.
+            uiContext.setRightTabbedPaneFocus(UiContext.PROPERTIES_TAB_INDEX);
+            return;
+        }
         if (currentProperties != null
                 && !currentProperties.confirmSelectionChangeWithPendingEdits(basicElement)) {
             return;
