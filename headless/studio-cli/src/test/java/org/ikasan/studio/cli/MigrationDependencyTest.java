@@ -1,17 +1,19 @@
 package org.ikasan.studio.cli;
 
-import org.junit.jupiter.api.Test;
-import org.ikasan.studio.core.migration.*;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.StringReader;
 import java.nio.file.*;
-import static org.junit.jupiter.api.Assertions.*;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.ikasan.studio.core.migration.*;
 import org.ikasan.studio.core.migration.ModelMigration.Plan;
+import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class MigrationDependencyTest {
     private String source() throws Exception {
@@ -26,7 +28,7 @@ class MigrationDependencyTest {
         return model.toString();
     }
     private String baseline(String source) throws Exception {
-        return MigrationArtifacts.render(new ModelMigration.Plan("V3.3.9","V3.3.9",source,source,java.util.List.of()),
+        return MigrationArtifacts.render(new ModelMigration.Plan("V3.3.9","V3.3.9",source,source,List.of()),
                 Files.readString(Path.of("regression-tests/migration/project/pom.xml"))).get("pom.xml");
     }
     @Test void removesRetiredBomDependenciesOnUpgradeAndDowngrade() throws Exception {

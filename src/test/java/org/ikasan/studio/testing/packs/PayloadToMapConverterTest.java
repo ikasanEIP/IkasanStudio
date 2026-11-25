@@ -1,25 +1,29 @@
 package org.ikasan.studio.testing.packs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.nio.file.*;
+import java.util.*;
 import org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate;
 import org.ikasan.studio.core.generator.ModelTemplate;
+import org.ikasan.studio.core.generator.PropertiesTemplate;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport.ComponentRef;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport;
+import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.nio.file.*;
-import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.metapack.model.MetaPackManifest;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 @Tag("packs")
 class PayloadToMapConverterTest {
@@ -46,7 +50,7 @@ class PayloadToMapConverterTest {
         reverse.setPropertyValue("contentAttributeName", "content");
         reverse.setPropertyValue("idAttributeName", "fileName");
         reverse.setPropertyValue("fileNameAttributeName", "fileName");
-        String properties = org.ikasan.studio.core.generator.PropertiesTemplate.create(module);
+        String properties = PropertiesTemplate.create(module);
         assertTrue(properties.contains("mapping.maptopayload.map.converter.contentAttributeName=content"));
         assertTrue(properties.contains("mapping.maptopayload.map.converter.idAttributeName=fileName"));
         assertTrue(properties.contains("mapping.maptopayload.map.converter.fileNameAttributeName=fileName"));
@@ -55,7 +59,7 @@ class PayloadToMapConverterTest {
         assertFalse(factory.contains("UserImplemented"));
         assertTrue(factory.contains("new org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverter()"));
         assertTrue(factory.contains("component.getConfiguration().setContentAttributeName("));
-        Module restored = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(ModelTemplate.create(module), "map test", false);
+        Module restored = ComponentIO.validatePersistedModuleJson(ModelTemplate.create(module), "map test", false);
         assertEquals(meta.getImplementingClass(), restored.getFlows().get(0).getFlowRoute().getFlowElements().get(0).getComponentMeta().getImplementingClass());
         assertTrue(module.getAllUniqueSortedJarDependencies().stream().anyMatch(d -> "ikasan-component-converter".equals(d.getArtifactId())));
         MetaPackManifest manifest = ComponentLibrary.getMetaPackManifest(pack);
@@ -155,7 +159,7 @@ class PayloadToMapConverterTest {
     }
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void runtimeImportRecognisesTheStandardConverterWithoutRequestingAStub(String pack) throws Exception {
-        ObjectMapper json = new com.fasterxml.jackson.databind.ObjectMapper();
+        ObjectMapper json = new ObjectMapper();
         ObjectNode topology = json.createObjectNode().put("name", "Existing Module");
         ObjectNode flow = topology.putArray("flows").addObject().put("name", "Mapping");
         ComponentMeta sourceMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Scheduled Consumer");
@@ -176,9 +180,9 @@ class PayloadToMapConverterTest {
         transitions.addObject().put("from", "Input").put("to", "Map Payload").put("name", "default");
         transitions.addObject().put("from", "Map Payload").put("to", "Unmap Payload").put("name", "default");
         transitions.addObject().put("from", "Unmap Payload").put("to", "Output").put("name", "default");
-        Result result = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(topology.toString(), "[{\"configurationId\":\"map-config\",\"implementingClass\":\"org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverterConfiguration\",\"parameters\":[{\"name\":\"idAttributeName\",\"value\":\"id\"}]}]", pack, "org.example",
-                Map.of(new org.ikasan.studio.core.importer.IkasanRuntimeImport.ComponentRef("Mapping", "Input"), "Scheduled Consumer"));
-        Module module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(result.studioJson(), "runtime map", false);
+        Result result = IkasanRuntimeImport.convert(topology.toString(), "[{\"configurationId\":\"map-config\",\"implementingClass\":\"org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverterConfiguration\",\"parameters\":[{\"name\":\"idAttributeName\",\"value\":\"id\"}]}]", pack, "org.example",
+                Map.of(new ComponentRef("Mapping", "Input"), "Scheduled Consumer"));
+        Module module = ComponentIO.validatePersistedModuleJson(result.studioJson(), "runtime map", false);
         FlowElement mapped = module.getFlows().get(0).getFlowRoute().getFlowElements().stream()
                 .filter(element -> "Map Payload".equals(element.getComponentName())).findFirst().orElseThrow();
         assertEquals("Payload To Map Converter", mapped.getComponentMeta().getName());

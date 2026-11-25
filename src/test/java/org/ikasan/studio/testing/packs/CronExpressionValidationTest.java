@@ -1,7 +1,10 @@
 package org.ikasan.studio.testing.packs;
 
+import com.google.re2j.Pattern;
 import org.ikasan.studio.SharedResourceExtension;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -9,8 +12,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.google.re2j.Pattern;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 
 /**
  * The cron expression is free text handed to Quartz when the generated application starts. Unix's five-field cron,
@@ -19,7 +20,7 @@ import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
  * deliberately no stricter than Quartz, so nothing Quartz accepts is refused.
  */
 @ExtendWith(SharedResourceExtension.class)
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 class CronExpressionValidationTest {
     private static final String[] CRON_COMPONENTS = {"Scheduled Consumer", "FTP Consumer", "SFTP Consumer", "Local File Consumer"};
 

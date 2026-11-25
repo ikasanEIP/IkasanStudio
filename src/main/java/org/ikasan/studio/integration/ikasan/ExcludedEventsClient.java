@@ -1,29 +1,32 @@
 package org.ikasan.studio.integration.ikasan;
 
+import com.fasterxml.jackson.core.JsonParser.Feature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ikasan.studio.core.StudioBuildUtils;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.net.http.HttpResponse;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Read-only adapter for the module-local Ikasan 3/4 exclusion search contract. */
 public final class ExcludedEventsClient {
     public static final int PAGE_SIZE = 20;
     private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-            .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .enable(Feature.STRICT_DUPLICATE_DETECTION);
     private ExcludedEventsClient() { }
 
     public record Event(String module, String flow, String identifier, long timestamp,
@@ -39,7 +42,7 @@ public final class ExcludedEventsClient {
     public static URI query(URI endpoint, int page, String flow, String from, String until) {
         if (page < 0) throw new IllegalArgumentException("page");
         DateTimeFormatter format = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss")
-                .withResolverStyle(java.time.format.ResolverStyle.STRICT);
+                .withResolverStyle(ResolverStyle.STRICT);
         LocalDateTime start = from.isBlank() ? null : LocalDateTime.parse(from.strip(), format);
         LocalDateTime end = until.isBlank() ? null : LocalDateTime.parse(until.strip(), format);
         if (start != null && end != null && start.isAfter(end)) throw new IllegalArgumentException("date order");
@@ -87,7 +90,7 @@ public final class ExcludedEventsClient {
                     payload = StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
                             .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(decoded)).toString();
                     binary = payload.codePoints().anyMatch(c -> Character.isISOControl(c) && c != '\n' && c != '\r' && c != '\t');
-                } catch (java.nio.charset.CharacterCodingException e) { binary = true; }
+                } catch (CharacterCodingException e) { binary = true; }
                 if (binary) payload = bytes.asText();
                 if (payload.length() > 32768) payload = payload.substring(0, 32768) + "\n…";
             }

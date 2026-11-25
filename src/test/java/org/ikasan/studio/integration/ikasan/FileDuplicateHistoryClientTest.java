@@ -1,9 +1,11 @@
 package org.ikasan.studio.integration.ikasan;
 
-import org.junit.jupiter.api.Test;
+import java.io.IOException;
 import java.net.URI;
-import static org.assertj.core.api.Assertions.*;
 import org.ikasan.studio.integration.ikasan.FileDuplicateHistoryClient.Page;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.*;
 
 class FileDuplicateHistoryClientTest {
     @Test void preservesSearchPatternsWithoutQueryInjection() {
@@ -41,6 +43,6 @@ class FileDuplicateHistoryClientTest {
     }
     @Test void rejectsBrokenPagesInsteadOfShowingEmptyHistory() {
         for (String json : new String[]{"null","{}","{\"resultSize\":0,\"lastPage\":true,\"pagedResults\":[null]}"})
-            assertThatThrownBy(() -> FileDuplicateHistoryClient.parse(json)).isInstanceOf(java.io.IOException.class);
+            assertThatThrownBy(() -> FileDuplicateHistoryClient.parse(json)).isInstanceOf(IOException.class);
     }
 }

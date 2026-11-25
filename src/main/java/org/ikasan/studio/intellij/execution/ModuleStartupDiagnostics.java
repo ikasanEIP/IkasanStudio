@@ -5,6 +5,7 @@ import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.*;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
@@ -13,18 +14,16 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.Alarm;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
-
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
-
-import org.jetbrains.annotations.NotNull;
-import com.intellij.openapi.wm.ToolWindow;
 import org.ikasan.studio.intellij.execution.ModuleStartupOutput.Failure;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.jetbrains.annotations.NotNull;
 
 /** Observes each module launch before its first output, independently of editor ownership and process liveness. */
 @Service(Service.Level.PROJECT)
@@ -36,14 +35,14 @@ public final class ModuleStartupDiagnostics implements Disposable {
     private long generation;
     private volatile boolean debug;
     private volatile boolean disposed;
-    private volatile com.intellij.notification.Notification lastNotification;
+    private volatile Notification lastNotification;
 
     public ModuleStartupDiagnostics(Project project) {
         this.project = project;
         project.getMessageBus().connect(this).subscribe(ExecutionManager.EXECUTION_TOPIC, new ExecutionListener() {
             @Override public void processStarted(@NotNull String executorId, @NotNull ExecutionEnvironment environment, @NotNull ProcessHandler handler) {
                 synchronized (ModuleStartupDiagnostics.this) {
-                    org.ikasan.studio.intellij.execution.ModuleStartupDiagnostics.Entry entry = active.get(handler);
+                    Entry entry = active.get(handler);
                     if (entry != null && entry.generation == generation)
                         debug = DefaultDebugExecutor.EXECUTOR_ID.equals(executorId);
                 }
@@ -148,7 +147,7 @@ public final class ModuleStartupDiagnostics implements Disposable {
         private long revision;
         private volatile boolean stopping;
         private ProcessListener listener;
-        private com.intellij.notification.Notification notification;
+        private Notification notification;
         Entry(long generation) { this.generation = generation; }
     }
 }

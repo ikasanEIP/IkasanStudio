@@ -8,6 +8,7 @@ import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.execution.application.ApplicationConfigurationType;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Ref;
@@ -16,13 +17,14 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.PsiTestUtil;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Objects;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.intellij.testing.RunFlowTestAction.Target;
+import org.jetbrains.annotations.NotNull;
 
 public class RunFlowTestActionHeavyTest extends HeavyPlatformTestCase {
     private TestProducer producer;
@@ -48,7 +50,7 @@ public class RunFlowTestActionHeavyTest extends HeavyPlatformTestCase {
         Future<Target> target = ApplicationManager.getApplication().executeOnPooledThread(
                 () -> ReadAction.compute(() -> RunFlowTestAction.resolve(myProject, testFile)));
         // Pump the event queue rather than blocking the EDT while platform producer code resolves.
-        com.intellij.testFramework.PlatformTestUtil.waitForFuture(target);
+        PlatformTestUtil.waitForFuture(target);
         try {
             Target resolved = target.get();
             assertNotNull(resolved);
@@ -74,7 +76,7 @@ public class RunFlowTestActionHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testUnimportedFileDoesNotCreateConfiguration() {
-        LightVirtualFile file = new LightVirtualFile("GreetingFlowTest.java", com.intellij.ide.highlighter.JavaFileType.INSTANCE,
+        LightVirtualFile file = new LightVirtualFile("GreetingFlowTest.java", JavaFileType.INSTANCE,
                 "package org.example; public class GreetingFlowTest {}");
         assertNull(ReadAction.compute(() -> RunFlowTestAction.resolve(myProject, file)));
     }
@@ -95,7 +97,7 @@ public class RunFlowTestActionHeavyTest extends HeavyPlatformTestCase {
         }
         @Override public boolean isConfigurationFromContext(@NotNull ApplicationConfiguration configuration, ConfigurationContext context) {
             return context.getPsiLocation() instanceof PsiClass type
-                    && java.util.Objects.equals(type.getQualifiedName(), configuration.getMainClassName())
+                    && Objects.equals(type.getQualifiedName(), configuration.getMainClassName())
                     && configuration.getConfigurationModule().getModule() == context.getModule();
         }
         @Override public void onFirstRun(@NotNull ConfigurationFromContext configuration, @NotNull ConfigurationContext context, Runnable launch) {

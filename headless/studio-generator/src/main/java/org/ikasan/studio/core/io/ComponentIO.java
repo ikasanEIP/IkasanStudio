@@ -1,27 +1,30 @@
 package org.ikasan.studio.core.io;
 
-import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ikasan.studio.StudioRuntimeException;
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.StudioBuildRuntimeException;
-import org.ikasan.studio.core.generator.Generator;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.metapack.model.ComponentTypeMeta;
-import org.ikasan.studio.core.metapack.model.IkasanMeta;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-import org.ikasan.studio.core.persistence.json.IkasanModelDocuments;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Map.Entry;
+import java.util.function.Predicate;
+import org.ikasan.studio.StudioRuntimeException;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioBuildRuntimeException;
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+import org.ikasan.studio.core.generator.Generator;
+import org.ikasan.studio.core.metapack.loading.ClasspathResourcePaths;
+import org.ikasan.studio.core.metapack.loading.MetaPackResources;
+import org.ikasan.studio.core.metapack.model.ComponentTypeMeta;
+import org.ikasan.studio.core.metapack.model.IkasanMeta;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.IkasanModelDocuments;
+import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ComponentIO {
     private static final ObjectMapper MAPPER = StudioJson.newObjectMapper()
@@ -84,12 +87,12 @@ public class ComponentIO {
      * @throws StudioBuildException to wrap malformed resource names or JSON
      */
     public static Module deserializeModuleInstance(final String path) throws StudioBuildException {
-        String resource = org.ikasan.studio.core.metapack.loading.ClasspathResourcePaths.canonicalRelative(path, false);
+        String resource = ClasspathResourcePaths.canonicalRelative(path, false);
         if (resource == null) throw new StudioBuildException("Model resource must be a canonical relative classpath name");
         try (InputStream input = ComponentIO.class.getClassLoader().getResourceAsStream(resource)) {
             if (input == null) throw new StudioBuildException("Model resource could not be loaded: " + path);
             return deserializeModuleInstanceString(new String(input.readAllBytes(), StandardCharsets.UTF_8), path);
-        } catch (java.io.IOException failure) {
+        } catch (IOException failure) {
             throw new StudioBuildException("Could not read model resource " + path, failure);
         }
     }
@@ -113,12 +116,12 @@ public class ComponentIO {
     }
 
     private static String getJsonFromFile(final String path) throws StudioBuildException {
-        try (InputStream inputStream = org.ikasan.studio.core.metapack.loading.MetaPackResources.open(path)) {
+        try (InputStream inputStream = MetaPackResources.open(path)) {
             if (inputStream == null) {
                 throw new StudioBuildException("The serialised data in [" + path + "] could not be loaded, check the path is correct");
             }
             return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             throw new StudioBuildException("Could not read metadata resource " + path, e);
         }
     }
@@ -176,7 +179,7 @@ public class ComponentIO {
             if (resolver != null && resolver.isObject()) {
                 // Each entry maps a caught exception to its resolution. One that is not a populated object loads but can
                 // never be saved again, which would leave the user unable to save anything.
-                for (java.util.Map.Entry<String, JsonNode> entry : resolver.properties()) {
+                for (Entry<String, JsonNode> entry : resolver.properties()) {
                     if (!entry.getValue().isObject() || entry.getValue().isEmpty()) {
                         throw shapeError(flowPath + "/" + Flow.EXCEPTION_RESOLVER_JSON_TAG + "/" + entry.getKey(),
                                 "a populated object", source);
@@ -195,7 +198,7 @@ public class ComponentIO {
     }
 
     private static void requireType(JsonNode parent, String field, String expected,
-                                    java.util.function.Predicate<JsonNode> isExpected, String parentPath,
+                                    Predicate<JsonNode> isExpected, String parentPath,
                                     String source) throws StudioBuildException {
         JsonNode value = parent.get(field);
         if (value != null && !value.isNull() && !isExpected.test(value)) {
@@ -223,7 +226,7 @@ public class ComponentIO {
         final JsonNode root;
         try {
             root = IkasanModelDocuments.toLegacy(parsed);
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             throw new StudioBuildException("The serialised data in [" + source + "] cannot be loaded safely: " + e.getMessage(), e);
         }
         if (root == null || !root.isObject()) {

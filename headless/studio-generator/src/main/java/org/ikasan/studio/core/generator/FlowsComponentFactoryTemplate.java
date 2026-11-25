@@ -1,9 +1,9 @@
 package org.ikasan.studio.core.generator;
 
+import java.util.Map;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-
-import java.util.Map;
 
 public class FlowsComponentFactoryTemplate extends Generator {
     public static final String COMPONENT_FACTORY_CLASS_NAME = "ComponentFactory";
@@ -20,7 +20,7 @@ public class FlowsComponentFactoryTemplate extends Generator {
         configs.put(MODULE_TAG, ikasanModule);
         configs.put(FLOW_TAG, ikasanFlow);
         boolean hasHarness = ikasanFlow.getFlowElementsNoExternalEndPoints().stream()
-                .anyMatch(e -> !org.ikasan.studio.core.model.analysis.HarnessOverrides.kind(ikasanModule, e).isEmpty());
+                .anyMatch(e -> !HarnessOverrides.kind(ikasanModule, e).isEmpty());
         configs.put("harnessSupport", hasHarness ?
                 "@org.springframework.beans.factory.annotation.Autowired\nprivate org.springframework.core.env.Environment studioHarnessEnvironment;\n" : "");
         return FreemarkerUtils.generateFromTemplate(ikasanModule.getMetaVersion(), COMPONENT_FACTORY_FTL, configs);

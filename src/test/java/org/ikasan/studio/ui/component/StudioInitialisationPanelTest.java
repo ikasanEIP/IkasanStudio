@@ -1,16 +1,15 @@
 package org.ikasan.studio.ui.component;
 
 import com.intellij.ui.components.labels.LinkLabel;
-import org.ikasan.studio.ui.StudioBundle;
-import org.junit.jupiter.api.Test;
-
-import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Container;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.swing.SwingUtilities;
+import org.ikasan.studio.ui.StudioBundle;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import java.util.concurrent.atomic.AtomicInteger;
 
 class StudioInitialisationPanelTest {
     @Test void repairIsDiscoverableOnFailureAndHiddenDuringLoading() throws Exception {
@@ -32,7 +31,7 @@ class StudioInitialisationPanelTest {
 
     @Test void waitingScreenOffersAnExplicitMavenReloadAndHidesItAfterImport() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            AtomicInteger reloads = new java.util.concurrent.atomic.AtomicInteger();
+            AtomicInteger reloads = new AtomicInteger();
             StudioInitialisationPanel panel = new StudioInitialisationPanel(() -> { }, index -> { }, () -> { }, reloads::incrementAndGet);
             LinkLabel<?> link = findLink(panel, StudioBundle.message("initialisation.ReloadMaven"));
             assertThat(link).isNotNull();
@@ -55,8 +54,10 @@ class StudioInitialisationPanelTest {
             LinkLabel<?> update = findLink(panel, StudioBundle.message("modelUpdate.Link"));
             assertThat(update).isNotNull();
             assertThat(update.isVisible()).isTrue();
-            assertThat(findLink(panel, StudioBundle.message("label.Retry")).isVisible()).isFalse();
-            assertThat(findLink(panel, StudioBundle.message("label.RestoreModelBackup", 1)).getParent().isVisible()).isFalse();
+            assertThat(findLink(panel, StudioBundle.message("label.Retry")))
+                    .isNotNull().matches(link -> !link.isVisible());
+            assertThat(findLink(panel, StudioBundle.message("label.RestoreModelBackup", 1)))
+                    .isNotNull().matches(link -> !link.getParent().isVisible());
             update.doClick();
             assertThat(reviews.get()).isEqualTo(1);
             panel.showFailure("Invalid model", List.of());

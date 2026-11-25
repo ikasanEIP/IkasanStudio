@@ -1,27 +1,29 @@
 package org.ikasan.studio.core;
 
-import org.junit.jupiter.api.Test;
-
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.TreeSet;
+import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 public class StudioBuildUtilsTest {
     @Test
     void configurationConversionDoesNotPrintCredentials() {
-        java.io.PrintStream original = System.out;
-        ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
-        try (PrintStream capture = new java.io.PrintStream(output)) {
+        PrintStream original = System.out;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try (PrintStream capture = new PrintStream(output)) {
             System.setOut(capture);
             Map<String, String> properties = StudioBuildUtils.convertStringToMap("password=CANARY_SECRET\ncopy=${password}");
             assertEquals("CANARY_SECRET", properties.get("copy"));
@@ -168,8 +170,8 @@ public class StudioBuildUtilsTest {
         String original = ".*\\.tmp";
         String escaped = StudioBuildUtils.escapeSpringPropertiesValue(original);
 
-        java.util.Properties properties = new java.util.Properties();
-        properties.load(new java.io.StringReader("filenamePattern=" + escaped));
+        Properties properties = new Properties();
+        properties.load(new StringReader("filenamePattern=" + escaped));
 
         assertThat("the escaped form must decode back to exactly what the user typed",
                 properties.getProperty("filenamePattern"), is(original));
@@ -201,8 +203,8 @@ public class StudioBuildUtilsTest {
 
         assertThat("only ASCII may remain, so the file reads the same in any charset",
                 escaped.chars().allMatch(c -> c < 0x7f), is(true));
-        java.util.Properties properties = new java.util.Properties();
-        properties.load(new java.io.StringReader("dir=" + escaped));
+        Properties properties = new Properties();
+        properties.load(new StringReader("dir=" + escaped));
         assertThat(properties.getProperty("dir"), is(original));
         assertThat(StudioBuildUtils.escapeSpringPropertiesValue("plain /value with spaces"), is("plain /value with spaces"));
     }
@@ -213,8 +215,8 @@ public class StudioBuildUtilsTest {
         String escaped = StudioBuildUtils.escapeSpringPropertiesMapKey(original);
 
         assertThat(escaped.chars().allMatch(c -> c < 0x7f), is(true));
-        java.util.Properties properties = new java.util.Properties();
-        properties.load(new java.io.StringReader(escaped + "=v"));
+        Properties properties = new Properties();
+        properties.load(new StringReader(escaped + "=v"));
         assertThat(properties.getProperty(original), is("v"));
     }
 
@@ -228,7 +230,7 @@ public class StudioBuildUtilsTest {
         assertThat(StudioBuildUtils.toUrlString("Café Orders"), is("cafe-orders"));
         assertThat(StudioBuildUtils.toUrlString("日本語"), is("module"));
         assertThat(StudioBuildUtils.toUrlString(""), is(""));
-        assertThat(StudioBuildUtils.toUrlString(null), org.hamcrest.CoreMatchers.nullValue());
+        assertThat(StudioBuildUtils.toUrlString(null), CoreMatchers.nullValue());
     }
 
     /**

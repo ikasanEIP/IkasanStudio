@@ -1,12 +1,12 @@
 package org.ikasan.studio.core.model.analysis;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Finds pairs of JMS Producer/Consumer components, in different Flows of the same Module, that reference the
@@ -44,7 +44,7 @@ public final class JmsFlowConnections {
         return findMatchingLinks(module, e -> TestJmsHarnessLinks.destinationOverride(module, e) != null);
     }
 
-    public static List<JmsLink> findMatchingLinks(Module module, java.util.function.Predicate<FlowElement> diverted) {
+    public static List<JmsLink> findMatchingLinks(Module module, Predicate<FlowElement> diverted) {
         List<JmsLink> links = new ArrayList<>();
         if (module == null || module.getFlows() == null) {
             return links;

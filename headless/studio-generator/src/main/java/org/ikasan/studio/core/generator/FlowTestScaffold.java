@@ -1,18 +1,26 @@
 package org.ikasan.studio.core.generator;
 
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.List;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 
 /** Renders developer-owned tests once; normal generation never owns these files. */
 public final class FlowTestScaffold {
@@ -30,8 +38,8 @@ public final class FlowTestScaffold {
     public record Scaffold(String rootPom, String testPath, Map<String, String> files) { }
 
     /** Pack-declared external settings and provider choices affect shared test wiring. */
-    public static java.util.Set<String> supportModelFields(Module module) {
-        java.util.Set<String> fields = new java.util.TreeSet<>();
+    public static Set<String> supportModelFields(Module module) {
+        Set<String> fields = new TreeSet<>();
         for (Flow flow : module.getFlows()) for (FlowElement component : flow.getFlowElementsNoExternalEndPoints()) {
             component.getComponentMeta().getAllowableProperties().forEach((name, property) -> {
                 if (property.getPropertyConfigFileLabel() != null && !property.getPropertyConfigFileLabel().isBlank()) fields.add(name);
@@ -42,7 +50,7 @@ public final class FlowTestScaffold {
     }
 
     public static String supportFingerprint(Module module) throws Exception {
-        return FlowTestSupportFingerprint.fingerprint(org.ikasan.studio.core.io.ComponentIO.toJson(module), supportModelFields(module));
+        return FlowTestSupportFingerprint.fingerprint(ComponentIO.toJson(module), supportModelFields(module));
     }
 
     /** Legacy fingerprints or package layouts need one explicit module-support refresh. */
@@ -70,8 +78,8 @@ public final class FlowTestScaffold {
         if (!className.matches("[A-Za-z_$][A-Za-z0-9_$]*")) throw new IllegalArgumentException("Invalid flow Java class name.");
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("supportMetaPack", module.getMetaVersion());
-        Map<String, org.ikasan.studio.core.metapack.model.ComponentMeta> identities = new java.util.TreeMap<>(
-                org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponents(module.getMetaVersion()));
+        Map<String, ComponentMeta> identities = new TreeMap<>(
+                ComponentLibrary.getIkasanComponents(module.getMetaVersion()));
         values.put("supportComponentIdentities", identities);
         values.put("className", className);
         values.put("flowName", flow.getIdentity());
@@ -83,10 +91,10 @@ public final class FlowTestScaffold {
                 && filenameProperty != null && !filenameProperty.valueNotSet()
                 && filenameProperty.getMeta().getPropertyConfigFileLabel() != null;
         values.put("isolatedFiles", isolatedFiles);
-        values.put("filenameKey", isolatedFiles ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
+        values.put("filenameKey", isolatedFiles ? StudioBuildUtils.substitutePlaceholderInLowerCase(
                 module, flow, flow.getConsumer(), filenameProperty.getMeta().getPropertyConfigFileLabel()) : "");
         Map<String, String> methods = Map.of("Converter", "converter", "Translator", "translator", "Broker", "broker", "Producer", "producer", "Splitter", "splitter");
-        java.util.List<Map<String, String>> executionPath = new java.util.ArrayList<>();
+        List<Map<String, String>> executionPath = new ArrayList<>();
         boolean automaticPath = flow.getFlowRoute().getChildRoutes().isEmpty() && flow.getExceptionResolver() == null;
         for (FlowElement element : flow.getFlowRoute().getFlowElements()) {
             if (element.getComponentMeta().isDebug()) continue;
@@ -107,8 +115,8 @@ public final class FlowTestScaffold {
                 ? FlowTestRoutePath.describe(flow.getFlowRoute(), new int[]{0}) : null;
         values.put("routerPath", routePath == null ? Map.of() : routePath);
 
-        java.util.List<Map<String, Object>> splitSteps = new java.util.ArrayList<>();
-        java.util.List<String> splitClosings = new java.util.ArrayList<>();
+        List<Map<String, Object>> splitSteps = new ArrayList<>();
+        List<String> splitClosings = new ArrayList<>();
         int splitDepth = 0;
         for (Map<String,String> step : executionPath) {
             String indent = "    ".repeat(3 + splitDepth);
@@ -161,7 +169,7 @@ public final class FlowTestScaffold {
                     && !"true".equalsIgnoreCase(output.getPropertyValueAsString("pubSubDomain"))
                     && outputDestination != null && !outputDestination.valueNotSet()
                     && outputDestination.getMeta().getPropertyConfigFileLabel() != null) {
-                jmsOutputKey = org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
+                jmsOutputKey = StudioBuildUtils.substitutePlaceholderInLowerCase(
                         module, flow, output, outputDestination.getMeta().getPropertyConfigFileLabel());
             }
         }
@@ -217,7 +225,7 @@ public final class FlowTestScaffold {
         values.put("resourceExpectedOutputs", resourceExpectedOutputs);
 
 
-        values.put("jmsInputKey", jmsConsumer ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
+        values.put("jmsInputKey", jmsConsumer ? StudioBuildUtils.substitutePlaceholderInLowerCase(
                 module, flow, flow.getConsumer(), destination.getMeta().getPropertyConfigFileLabel()) : "");
         ComponentProperty patternProperty = flow.getConsumer().getProperty("filenamePattern");
         boolean ftpInput = flow.getConsumer().getComponentMeta().supportsTestFtpServer()
@@ -227,10 +235,10 @@ public final class FlowTestScaffold {
                 && patternProperty != null && !patternProperty.valueNotSet()
                 && patternProperty.getMeta().getPropertyConfigFileLabel() != null;
         values.put("sftpInput", sftpInput);
-        values.put("sftpInputPatternKey", sftpInput ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
+        values.put("sftpInputPatternKey", sftpInput ? StudioBuildUtils.substitutePlaceholderInLowerCase(
                 module, flow, flow.getConsumer(), patternProperty.getMeta().getPropertyConfigFileLabel()) : "");
         values.put("ftpInput", ftpInput);
-        values.put("ftpInputPatternKey", ftpInput ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
+        values.put("ftpInputPatternKey", ftpInput ? StudioBuildUtils.substitutePlaceholderInLowerCase(
                 module, flow, flow.getConsumer(), patternProperty.getMeta().getPropertyConfigFileLabel()) : "");
         values.put("scheduled", flow.getConsumer().getComponentMeta().isTimeEventConsumer());
         values.put("producers", flow.getFlowElementsNoExternalEndPoints().stream()
@@ -401,11 +409,11 @@ public final class FlowTestScaffold {
             new MavenXpp3Writer().write(writer, parent);
             updated = writer.toString();
         }
-        return new Scaffold(updated, path, java.util.Collections.unmodifiableMap(files));
+        return new Scaffold(updated, path, Collections.unmodifiableMap(files));
     }
     private static void addSampleResources(Map<String, String> files, String flowName, String componentName) {
         // Match noSpaces() in the generated test without allowing names to escape their resource directory.
-        for (String name : java.util.List.of(flowName, componentName)) {
+        for (String name : List.of(flowName, componentName)) {
             if (name.isBlank() || name.equals(".") || name.equals("..") || name.contains("/") || name.contains("\\")) {
                 throw new IllegalArgumentException("Test resource directory requires a flow/component name without path separators: " + name);
             }

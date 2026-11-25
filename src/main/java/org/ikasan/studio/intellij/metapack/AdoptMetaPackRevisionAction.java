@@ -1,24 +1,24 @@
 package org.ikasan.studio.intellij.metapack;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.ikasan.studio.core.metapack.MetaPackRevisionLock.Plan;
 import org.ikasan.studio.core.metapack.MetaPackRevisionLock;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import java.nio.file.Files;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import java.nio.file.Path;
-import org.ikasan.studio.core.metapack.MetaPackRevisionLock.Plan;
+import org.jetbrains.annotations.NotNull;
 
 /** Explicit recovery from a revision mismatch, with a reviewed model-only change and rotating backup. */
 public final class AdoptMetaPackRevisionAction extends DumbAwareAction {
@@ -49,19 +49,17 @@ public final class AdoptMetaPackRevisionAction extends DumbAwareAction {
                 return refreshed;
             });
             if (file != null) {
-                Document document = FileDocumentManager.getInstance().getCachedDocument(file);
-                if (document != null) com.intellij.openapi.application.ApplicationManager.getApplication().runWriteAction(() ->
-                        FileDocumentManager.getInstance().reloadFromDisk(document));
+                ModelDocumentReload.reload(project, file);
             }
             context.allowModelPersistence();
             // Reopening starts the normal background model-loading lifecycle, including pack validation.
             project.getService(StudioProjectInitialisationService.class).reloadModel();
             StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("metaPack.Adopted", plan.packId(), plan.availableRevision()));
-        } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) { throw cancelled; }
+        } catch (ProcessCanceledException cancelled) { throw cancelled; }
         catch (Exception e) { Messages.showErrorDialog(project, StudioBundle.message("metaPack.Failed", e.getMessage()), title); }
         finally { if (acquired) context.endMigration(); }
     }
-    static void checkUnsaved(com.intellij.openapi.project.Project project) {
+    static void checkUnsaved(Project project) {
         for (Document document : FileDocumentManager.getInstance().getUnsavedDocuments()) {
             VirtualFile file = FileDocumentManager.getInstance().getFile(document);
             if (file != null && project.getBasePath() != null && file.getPath().startsWith(project.getBasePath() + "/"))

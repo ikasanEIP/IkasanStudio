@@ -2,40 +2,50 @@ package org.ikasan.studio.intellij.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.undo.*;
 import com.intellij.openapi.components.Service;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.sun.net.httpserver.HttpServer;
-import org.ikasan.studio.core.ai.LiveModelSnapshot;
-import org.ikasan.studio.core.ai.ModelProposal;
-import org.ikasan.studio.core.generation.GenerationRequest;
-import org.ikasan.studio.core.generator.AiProjectContractGenerator;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
-
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
-import com.intellij.openapi.application.Application;
-import java.io.InputStream;
+import org.ikasan.studio.core.ai.ImplementationReadiness;
+import org.ikasan.studio.core.ai.LiveModelSnapshot;
 import org.ikasan.studio.core.ai.ModelProposal.Prepared;
+import org.ikasan.studio.core.ai.ModelProposal;
+import org.ikasan.studio.core.ai.OfflineModelProposal;
+import org.ikasan.studio.core.generation.GenerationRequest;
+import org.ikasan.studio.core.generator.AiProjectContractGenerator;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
 
 /** Opt-in project-local bridge. HTTP is private IPC for the bundled MCP stdio adapter. */
 @Service(Service.Level.PROJECT)
@@ -149,7 +159,7 @@ public final class StudioAiService implements Disposable {
 
     private static Path javaExecutable() {
         Path bin = Path.of(System.getProperty("java.home"), "bin").toAbsolutePath();
-        Path executable = bin.resolve(com.intellij.openapi.util.SystemInfo.isWindows ? "java.exe" : "java");
+        Path executable = bin.resolve(SystemInfo.isWindows ? "java.exe" : "java");
         if (!Files.isRegularFile(executable)) throw new IllegalStateException("IDE Java executable is missing");
         return executable;
     }
@@ -179,16 +189,16 @@ public final class StudioAiService implements Disposable {
                 JsonNode model = JSON.valueToTree(snapshot.model());
                 redact(model);
                 yield Map.of("revision", revision, "model", model, "project", project.getName(),
-                        "implementationReadiness", org.ikasan.studio.core.ai.ImplementationReadiness.scan(Path.of(projectPath), model),
+                        "implementationReadiness", ImplementationReadiness.scan(Path.of(projectPath), model),
                         "note", "Live model snapshot. Known credential fields are redacted; other model content is shared with your connected AI. Supported edits include linear and branched routes, routers and flow-wide exception rules. Read studio_catalogue for operations and action metadata.");
             }
             case "studio_catalogue" -> {
                 String version = onEdt(() -> { requireReady(); return context().getIkasanModule().getVersion(); });
-                java.util.List<String> keys = null;
+                List<String> keys = null;
                 if (arguments.has("componentKeys")) {
                     JsonNode selection = arguments.get("componentKeys");
                     if (!selection.isArray()) throw new IllegalArgumentException("componentKeys must be an array of strings");
-                    keys = new java.util.ArrayList<>();
+                    keys = new ArrayList<>();
                     for (JsonNode key : selection) {
                         if (!key.isTextual()) throw new IllegalArgumentException("componentKeys must contain only strings");
                         keys.add(key.textValue());
@@ -245,7 +255,7 @@ public final class StudioAiService implements Disposable {
         for (Module module : modules) {
             for (Flow flow : module.getFlows()) {
                 for (FlowElement element : flow.getFlowElementsNoExternalEndPoints()) {
-                    if (element instanceof org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement implementation
+                    if (element instanceof FlowUserImplementedElement implementation
                             && implementation.isOverwriteEnabled()) return true;
                     for (ComponentProperty property : element.getUserSuppliedClassProperties()) {
                         if (property.getMeta().isProtectFromOverwrite() && !property.getMeta().isNoStubRequired()
@@ -274,8 +284,8 @@ public final class StudioAiService implements Disposable {
                 if (project.isDisposed()) return;
                 String message = StudioBundle.message(failure == null ? "ai.AutoApplied" : "ai.ApplyGenerationFailed")
                         + "\n" + String.join("\n", proposal.prepared.summary());
-                if (failure == null) org.ikasan.studio.ui.StudioUIUtils.displayIdeaInfoMessage(project, message);
-                else org.ikasan.studio.ui.StudioUIUtils.displayIdeaErrorMessage(project, message);
+                if (failure == null) StudioUIUtils.displayIdeaInfoMessage(project, message);
+                else StudioUIUtils.displayIdeaErrorMessage(project, message);
             }));
         } catch (RuntimeException failure) {
             cancel(proposal);
@@ -289,7 +299,7 @@ public final class StudioAiService implements Disposable {
     private boolean importFileProposal(String json, Path source, boolean autoOnly) throws Exception {
         StudioAiProposalFeedback feedback = new StudioAiProposalFeedback(source, json, project.getBasePath() == null ? null : Path.of(project.getBasePath()));
         try { return importProposal(json, autoOnly, feedback); }
-        catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) { throw cancelled; }
+        catch (ProcessCanceledException cancelled) { throw cancelled; }
         catch (Exception failure) {
             feedback.publish("rejected", failure.getMessage());
             throw failure;
@@ -309,7 +319,7 @@ public final class StudioAiService implements Disposable {
         byte[] saved;
         try (InputStream input = Files.newInputStream(modelFile)) { saved = input.readNBytes(8_388_609); }
         if (saved.length > 8_388_608) throw new IllegalArgumentException("Saved Studio model exceeds 8 MiB.");
-        Prepared prepared = org.ikasan.studio.core.ai.OfflineModelProposal.prepare(json, saved, snapshot.model());
+        Prepared prepared = OfflineModelProposal.prepare(json, saved, snapshot.model());
         Proposal proposal = new Proposal(snapshot, prepared,
                 JSON.writerWithDefaultPrettyPrinter().writeValueAsString(operations));
         proposal.fileBased = true;
@@ -419,7 +429,7 @@ public final class StudioAiService implements Disposable {
     }
     private void refreshUi() {
         context().resetSelectionAfterDeletion();
-        IkasanDebugSessionService runtime = project.getService(org.ikasan.studio.intellij.execution.IkasanDebugSessionService.class);
+        IkasanDebugSessionService runtime = project.getService(IkasanDebugSessionService.class);
         if (runtime != null) runtime.markRestartRequired(context().getIkasanModule());
         StudioProjectFiles.causeRedraw(project);
     }
@@ -442,7 +452,7 @@ public final class StudioAiService implements Disposable {
             List<String> names = new ArrayList<>(); node.fieldNames().forEachRemaining(names::add);
             for (String name : names) {
                 if (name.toLowerCase(Locale.ROOT).matches(".*(password|secret|token|credential).*"))
-                    ((com.fasterxml.jackson.databind.node.ObjectNode) node).put(name, "<redacted>");
+                    ((ObjectNode) node).put(name, "<redacted>");
                 else redact(node.get(name));
             }
         } else if (node.isArray()) node.forEach(StudioAiService::redact);
@@ -461,8 +471,8 @@ public final class StudioAiService implements Disposable {
         connectionFiles = null;
         if (files != null) cleanup = CompletableFuture.runAsync(() -> {
             try { files.close(); }
-            catch (java.io.IOException failure) {
-                com.intellij.openapi.diagnostic.Logger.getInstance(StudioAiService.class).warn("Could not remove stopped AI connection", failure);
+            catch (IOException failure) {
+                Logger.getInstance(StudioAiService.class).warn("Could not remove stopped AI connection", failure);
             }
         }, AppExecutorUtil.getAppExecutorService());
     }

@@ -1,7 +1,9 @@
 package org.ikasan.studio.testing.engine;
 
+import java.io.IOException;
 import org.ikasan.studio.core.diagnostics.RuntimeImportReport;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class RuntimeImportReportTest {
@@ -52,7 +54,7 @@ class RuntimeImportReportTest {
     @Test void boundedIssuesAndNumberedPagesPreserveSourceLocationsButExcludeMessagesAndPaths() {
         RuntimeImportReport report = new RuntimeImportReport();
         for (int i = 0; i < 205; i++) report.issue("F1/C1", "CONFIGURATION_NOT_SUPPLIED");
-        IllegalArgumentException failure = new IllegalArgumentException("PRIVATE_PASSWORD https://private/", new java.io.IOException("PRIVATE_BODY"));
+        IllegalArgumentException failure = new IllegalArgumentException("PRIVATE_PASSWORD https://private/", new IOException("PRIVATE_BODY"));
         failure.setStackTrace(new StackTraceElement[]{new StackTraceElement("org.ikasan.studio.core.Example", "generate", "/PRIVATE_PATH", 42)});
         report.stage(RuntimeImportReport.Stage.GENERATION); report.failure(failure);
         String text = report.render("1.0.0-beta.1", "262.123.4");
@@ -66,7 +68,7 @@ class RuntimeImportReportTest {
 
     @Test void applicationClassesSharingTheStudioNamespaceAreExcluded() {
         RuntimeImportReport report = new RuntimeImportReport();
-        org.ikasan.studio.testing.engine.RuntimeImportReportTest.PrivateBusinessException failure = new PrivateBusinessException();
+        PrivateBusinessException failure = new PrivateBusinessException();
         failure.setStackTrace(new StackTraceElement[] {
                 new StackTraceElement("org.ikasan.studio.demo.PrivateComponent", "convert", "PrivateComponent.java", 12),
                 new StackTraceElement("org.ikasan.studio.core.importer.IkasanRuntimeImport", "convert", "Ignored.java", 20)});

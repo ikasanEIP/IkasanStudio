@@ -1,15 +1,16 @@
 package org.ikasan.studio.intellij.migration;
 
 import java.io.*;
+import java.io.OutputStream;
 import java.nio.file.*;
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.zip.ZipInputStream;
-import java.io.OutputStream;
-import java.nio.file.Path;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import org.ikasan.studio.core.metapack.loading.OfflinePackBundle;
 
 /** Extracts only into a new staging directory; never overwrites customer files. */
 final class OfflineToolsExporter {
@@ -29,7 +30,7 @@ final class OfflineToolsExporter {
         try {
             extract(archive, staging, checkCancelled);
             try {
-                org.ikasan.studio.core.metapack.loading.OfflinePackBundle.write(staging, savedModel, checkCancelled);
+                OfflinePackBundle.write(staging, savedModel, checkCancelled);
             } catch (RuntimeException failure) { throw failure; }
             catch (Exception failure) { throw new IOException("Could not export the required meta-pack: " + failure.getMessage(), failure); }
             checkCancelled.run();

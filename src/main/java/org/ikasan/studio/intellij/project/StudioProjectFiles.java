@@ -11,17 +11,50 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileChooser.*;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.Consumer;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import java.awt.*;
+import java.io.*;
+import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.HexFormat;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -30,6 +63,9 @@ import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
 import org.ikasan.studio.core.generation.GenerationRequest;
+import org.ikasan.studio.core.generator.AiProjectContractGenerator;
+import org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate;
+import org.ikasan.studio.core.generator.StudioAiSkillTemplates;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
@@ -40,27 +76,13 @@ import org.ikasan.studio.core.persistence.json.ProtectedModelFileWriter;
 import org.ikasan.studio.intellij.navigation.NavigationTarget;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
-
-import java.awt.*;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiConsumer;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.APPLICATION_PACKAGE_NAME;
 import static org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
-import com.intellij.openapi.vfs.VirtualFile;
-import java.util.Map.Entry;
-import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
-import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 public class StudioProjectFiles {
     private static final Logger LOG = Logger.getInstance("#StudioProjectFiles");
@@ -92,7 +114,7 @@ public class StudioProjectFiles {
         UiContext uiContext = project.getService(UiContext.class);
         PsiFile pomPsiFile = pomGetTopLevel(project, project.getName());
         if (pomPsiFile != null) {
-            String pomText = ReadAction.nonBlocking(pomPsiFile::getText).expireWith(project).executeSynchronously();
+            String pomText = ReadAction.nonBlocking(pomPsiFile::getText).expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously();
             try (Reader reader = new StringReader(pomText)) {
                 MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
                 model = xpp3Reader.read(reader);
@@ -234,8 +256,8 @@ public class StudioProjectFiles {
                 PsiFile returnFile = null;
                 try {
                     returnFile = ReadAction.nonBlocking(() -> PsiManager.getInstance(project).findFile(virtualFile))
-                            .expireWith(project).executeSynchronously();
-                } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+                            .expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously();
+                } catch (ProcessCanceledException cancelled) {
                     throw cancelled;
                 } catch (Exception ee) {
                     // Cancellation is control flow; only report unexpected lookup failures.
@@ -540,10 +562,10 @@ public class StudioProjectFiles {
     }
 
     /** Seed create-only guidance off the EDT, independently of the generated-code transaction. */
-    public static java.util.concurrent.CompletableFuture<Void> createStartupGuidanceIfMissing(Project project) {
+    public static CompletableFuture<Void> createStartupGuidanceIfMissing(Project project) {
         String basePath = project.getBasePath();
-        if (basePath == null || project.isDisposed()) return java.util.concurrent.CompletableFuture.completedFuture(null);
-        return java.util.concurrent.CompletableFuture.runAsync(() -> {
+        if (basePath == null || project.isDisposed()) return CompletableFuture.completedFuture(null);
+        return CompletableFuture.runAsync(() -> {
             if (project.isDisposed()) return;
             // Plain developer-owned Markdown needs no PSI formatting. NIO avoids cold VFS traversal
             // on the EDT; CREATE_NEW also prevents a concurrent editor/agent's file being overwritten.
@@ -551,30 +573,30 @@ public class StudioProjectFiles {
                 throw new IllegalStateException("Startup guidance must be written off the EDT");
             }
             try {
-                java.util.Map<String, String> files = new java.util.LinkedHashMap<>();
-                files.put(org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.FILE_NAME,
-                        org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.content());
-                files.put("AGENTS.md", org.ikasan.studio.core.generator.AiProjectContractGenerator.agentsGuide());
-                files.putAll(org.ikasan.studio.core.generator.StudioAiSkillTemplates.files());
-                java.nio.file.Path root = java.nio.file.Path.of(basePath);
+                Map<String, String> files = new LinkedHashMap<>();
+                files.put(LocalTestEnvironmentTemplate.FILE_NAME,
+                        LocalTestEnvironmentTemplate.content());
+                files.put("AGENTS.md", AiProjectContractGenerator.agentsGuide());
+                files.putAll(StudioAiSkillTemplates.files());
+                Path root = Path.of(basePath);
                 for (Entry<String,String> entry : files.entrySet()) {
                     if (project.isDisposed()) return;
-                    java.nio.file.Path target = root.resolve(entry.getKey());
-                    java.nio.file.Files.createDirectories(target.getParent());
+                    Path target = root.resolve(entry.getKey());
+                    Files.createDirectories(target.getParent());
                     try {
-                        java.nio.file.Files.writeString(target, entry.getValue(), StandardCharsets.UTF_8,
-                                java.nio.file.StandardOpenOption.CREATE_NEW, java.nio.file.StandardOpenOption.WRITE);
-                    } catch (java.nio.file.FileAlreadyExistsException existing) {
+                        Files.writeString(target, entry.getValue(), StandardCharsets.UTF_8,
+                                StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+                    } catch (FileAlreadyExistsException existing) {
                         // Preserve developer content, including files with unsaved editor changes.
                     }
                 }
-                if (!project.isDisposed()) com.intellij.openapi.vfs.LocalFileSystem.getInstance()
-                        .refreshIoFiles(java.util.List.of(root.toFile()), true, true, null);
+                if (!project.isDisposed()) LocalFileSystem.getInstance()
+                        .refreshIoFiles(List.of(root.toFile()), true, true, null);
             } catch (IOException | RuntimeException failure) {
                 LOG.warn("STUDIO: Could not create project AI guidance; generation will retry", failure);
-                throw new java.util.concurrent.CompletionException(failure);
+                throw new CompletionException(failure);
             }
-        }, com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
+        }, AppExecutorUtil.getAppExecutorService());
     }
 
     /** Creates a project file only when it does not already exist, preserving developer-owned guidance. */
@@ -588,12 +610,12 @@ public class StudioProjectFiles {
     }
 
     private record GeneratedContentFingerprint(String rendered, String persisted) { }
-    private static final com.intellij.openapi.util.Key<GeneratedContentFingerprint> GENERATED_CONTENT =
-            com.intellij.openapi.util.Key.create("ikasan.studio.generatedContent");
+    private static final Key<GeneratedContentFingerprint> GENERATED_CONTENT =
+            Key.create("ikasan.studio.generatedContent");
 
     private static String contentHash(byte[] bytes) {
-        try { return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(bytes)); }
-        catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
+        try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes)); }
+        catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
     }
 
     /**
@@ -629,7 +651,7 @@ public class StudioProjectFiles {
                         ? document.getText()
                         : new String(persistedContent, StandardCharsets.UTF_8);
 
-                String documentContent = com.intellij.openapi.util.text.StringUtil.convertLineSeparators(fileContent);
+                String documentContent = StringUtil.convertLineSeparators(fileContent);
                 if ((document != null ? documentContent : fileContent).equals(existingContent)
                         || canReuseGeneratedContent(file, fileContent, persistedContent)) {
                     // Avoid manufacturing PSI/document changes for artifacts whose rendered output did
@@ -664,7 +686,7 @@ public class StudioProjectFiles {
                     if (file.getName().endsWith(".java")) {
                         String formatted = formatGeneratedJavaText(project, file.getName(), documentContent);
                         vfsContent = fileContent.contains("\r\n")
-                                ? com.intellij.openapi.util.text.StringUtil.convertLineSeparators(formatted, "\r\n")
+                                ? StringUtil.convertLineSeparators(formatted, "\r\n")
                                 : formatted;
                     }
                     String contentToWrite = vfsContent;
@@ -698,15 +720,15 @@ public class StudioProjectFiles {
                                 if (componentViewHandler != null) {
                                     setCodeNavigationTargetAsync(componentViewHandler, psiFile);
                                 }
-                            } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+                            } catch (ProcessCanceledException cancelled) {
                                 throw cancelled;
                             } catch (RuntimeException failure) {
                                 file.putUserData(GENERATED_CONTENT, null);
                                 LOG.warn("STUDIO: Could not format generated file " + file.getPath(), failure);
-                                org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage(project,
+                                StudioUIUtils.displayIdeaWarnMessage(project,
                                         "Could not finish formatting generated file " + file.getName() + ". " + failure.getMessage());
                             }
-                        }).submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
+                        }).submit(AppExecutorUtil.getAppExecutorService());
 
             }
         } catch (IOException e) {
@@ -749,7 +771,7 @@ public class StudioProjectFiles {
         }
         // Import can trigger indexing between successive artifact writes. Import shortening
         // resolves types even for an in-memory file; it must not abort a valid generation batch.
-        if (com.intellij.openapi.project.DumbService.isDumb(project)) return content;
+        if (DumbService.isDumb(project)) return content;
         try {
             PsiFile inMemoryFile = PsiFileFactory.getInstance(project)
                     .createFileFromText(fileName, JavaFileType.INSTANCE, content);
@@ -758,7 +780,7 @@ public class StudioProjectFiles {
                 CodeStyleManager.getInstance(project).reformat(inMemoryFile);
                 return inMemoryFile.getText();
             });
-        } catch (com.intellij.openapi.project.IndexNotReadyException indexing) {
+        } catch (IndexNotReadyException indexing) {
             // Index access can also become unavailable before DumbService reports dumb mode.
             // Return the original, validated source, never partially shortened in-memory text.
             LOG.info("STUDIO: Preserving generated Java source while indexes are unavailable");
@@ -785,7 +807,7 @@ public class StudioProjectFiles {
                         componentViewHandler.setCodeNavigationTarget(target);
                     }
                 })
-                .submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
+                .submit(AppExecutorUtil.getAppExecutorService());
     }
 
     /** Refresh the post-format fingerprint without reading persisted bytes on the EDT. */
@@ -794,7 +816,7 @@ public class StudioProjectFiles {
         ReadAction.nonBlocking(() -> {
             try {
                 String hash = contentHash(readBytes(file));
-                return new java.util.AbstractMap.SimpleImmutableEntry<>(file.getModificationStamp(), hash);
+                return new SimpleImmutableEntry<>(file.getModificationStamp(), hash);
             } catch (IOException failure) {
                 LOG.warn("STUDIO: Could not verify generated file " + file.getPath(), failure);
                 return null;
@@ -805,7 +827,7 @@ public class StudioProjectFiles {
                     if (!file.isValid() || file.getUserData(GENERATED_CONTENT) != fingerprint) return;
                     file.putUserData(GENERATED_CONTENT, result != null && file.getModificationStamp() == result.getKey()
                             ? new GeneratedContentFingerprint(fingerprint.rendered(), result.getValue()) : null);
-                }).submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
+                }).submit(AppExecutorUtil.getAppExecutorService());
     }
 
     /**
@@ -1129,8 +1151,8 @@ public class StudioProjectFiles {
     public record TextFileReadResult(String path, String content, String errorMessage) {}
 
     /** Flush only affected editor buffers before previewing or replacing developer-owned configuration. */
-    public static void saveConfigurationDocuments(Project project, java.util.List<String> paths) {
-        FileDocumentManager manager = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
+    public static void saveConfigurationDocuments(Project project, List<String> paths) {
+        FileDocumentManager manager = FileDocumentManager.getInstance();
         for (String path : paths) {
             VirtualFile file = getVirtualFile(project, path);
             if (file == null) continue;
@@ -1141,8 +1163,8 @@ public class StudioProjectFiles {
 
     public static void refreshConfigurationDirectory(Project project) {
         String base = project.getBasePath();
-        if (base != null) com.intellij.openapi.vfs.LocalFileSystem.getInstance()
-                .refreshIoFiles(java.util.List.of(new java.io.File(base)), true, true, null);
+        if (base != null) LocalFileSystem.getInstance()
+                .refreshIoFiles(List.of(new File(base)), true, true, null);
     }
 
     /**
@@ -1163,7 +1185,7 @@ public class StudioProjectFiles {
     }
 
     private static void chooseFileAndReadText(Project project, FileChooserDescriptor descriptor,
-                                            java.nio.charset.Charset encoding, Consumer<TextFileReadResult> callback) {
+                                            Charset encoding, Consumer<TextFileReadResult> callback) {
         openChooserWarmed(project, activeWindowOrNull(), (parent, toSelect) ->
                 FileChooser.chooseFile(descriptor, project, parent, toSelect, virtualFile -> {
                     ModalityState modality = ModalityState.current();
@@ -1281,7 +1303,7 @@ public class StudioProjectFiles {
 
     static VirtualFile findGeneratedContentRoot(String basePath, VirtualFile[] roots) {
         if (basePath == null) return null;
-        String expected = com.intellij.openapi.util.io.FileUtil.toSystemIndependentName(basePath)
+        String expected = FileUtil.toSystemIndependentName(basePath)
                 .replaceAll("/+$", "") + GENERATED_CONTENT_ROOT;
         for (VirtualFile root : roots) {
             if (!root.isValid()) continue;
@@ -1331,8 +1353,8 @@ public class StudioProjectFiles {
                         PsiDirectory leafPackageDirectory = getDirectoryForPackage(sourceRootDir, basePackage);
                         // basePackage may not exist on disk yet (e.g. no flows generated under it yet) - nothing to prune.
                         return leafPackageDirectory == null ? new PsiDirectory[0] : leafPackageDirectory.getSubdirectories();
-                    }).expireWith(project).executeSynchronously();
-                } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+                    }).expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously();
+                } catch (ProcessCanceledException cancelled) {
                     throw cancelled;
                 } catch (Exception ee) {
                     LOG.warn("STUDIO: SERIOUS: The read action of deleteSubPackagesNotIn for params " +

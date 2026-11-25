@@ -1,23 +1,26 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.project.Project;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import javax.swing.*;
+import javax.swing.JFormattedTextField;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
-import org.ikasan.studio.ui.UiContext;
-import org.junit.jupiter.api.Test;
-import javax.swing.*;
-import java.util.HashMap;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import javax.swing.JFormattedTextField;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.UiContext;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class ComponentPropertiesCancelTest {
     @Test
     void sameLengthPortEditsPulseAndRestoringSavedValuesStopsAttention() throws Exception {
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, java.util.List.of());
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, List.of());
         module.setPort("12450");
         module.setH2DbPortNumber("12451");
         module.setH2WebPortNumber("12452");
@@ -30,7 +33,7 @@ class ComponentPropertiesCancelTest {
             ComponentPropertiesPanel panel = new ComponentPropertiesPanel(project, false);
             try {
                 panel.updateTargetComponent(module);
-                for (String key : java.util.List.of("port", "h2DbPortNumber", "h2WebPortNumber")) {
+                for (String key : List.of("port", "h2DbPortNumber", "h2WebPortNumber")) {
                     ComponentPropertyEditRow row = panel.getComponentPropertyEditBoxList().stream()
                             .filter(candidate -> key.equals(candidate.getPropertyKey())).findFirst().orElseThrow();
                     JFormattedTextField field = row.getOverridingInputField();
@@ -64,7 +67,7 @@ class ComponentPropertiesCancelTest {
             ComponentPropertiesPanel panel = new ComponentPropertiesPanel(project, false);
             try {
                 panel.updateTargetComponent(component);
-                JButton cancel = java.util.Arrays.stream(panel.footerPanel.getComponents())
+                JButton cancel = Arrays.stream(panel.footerPanel.getComponents())
                         .filter(c -> c instanceof JButton b && "Cancel".equals(b.getText()))
                         .map(JButton.class::cast).findFirst().orElseThrow();
                 assertFalse(cancel.isEnabled());

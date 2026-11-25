@@ -1,15 +1,15 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.ikasan.studio.core.model.ModelUtils;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.StudioBuildUtils;
-
-import java.util.List;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ModelUtils;
+import org.ikasan.studio.core.model.StringCollectionValues;
 
 /**
  * Holds the value of a property
@@ -44,10 +44,10 @@ public class ComponentProperty {
      * ClassCastException, and it re-saves as the quoted text Studio always writes.
      */
     private static Object asDeclaredType(ComponentPropertyMeta meta, Object value) {
-        if (meta != null && org.ikasan.studio.core.model.StringCollectionValues.supports(meta.getPropertyDataType())) {
+        if (meta != null && StringCollectionValues.supports(meta.getPropertyDataType())) {
             // A legacy string "[]" meant unset; a structured empty JSON array is explicitly empty.
-            if (meta.getPropertyDataType() == java.util.List.class && value instanceof String text && text.strip().equals("[]")) return null;
-            try { return org.ikasan.studio.core.model.StringCollectionValues.normalize(meta.getPropertyDataType(), value); }
+            if (meta.getPropertyDataType() == List.class && value instanceof String text && text.strip().equals("[]")) return null;
+            try { return StringCollectionValues.normalize(meta.getPropertyDataType(), value); }
             catch (IllegalArgumentException failure) {
                 // Older maps were unrestricted text. Keep an invalid draft visible for correction,
                 // rather than preventing the project from opening or silently discarding it.
@@ -72,8 +72,8 @@ public class ComponentProperty {
 
     @JsonIgnore
     public String getValueString() {
-        if (meta != null && org.ikasan.studio.core.model.StringCollectionValues.supports(meta.getPropertyDataType()))
-            return org.ikasan.studio.core.model.StringCollectionValues.json(value);
+        if (meta != null && StringCollectionValues.supports(meta.getPropertyDataType()))
+            return StringCollectionValues.json(value);
         String returnValue = "null";
         if (value != null) {
             if (value instanceof List) {
@@ -140,7 +140,7 @@ public class ComponentProperty {
      */
     @JsonIgnore
     public boolean valueNotSet() {
-        if (meta != null && org.ikasan.studio.core.model.StringCollectionValues.supports(meta.getPropertyDataType())) return value == null;
+        if (meta != null && StringCollectionValues.supports(meta.getPropertyDataType())) return value == null;
         return (value == null) ||
                 (value instanceof String && ((String) value).isEmpty()) ||
                 (value instanceof List && ((List<?>) value).isEmpty()) ||

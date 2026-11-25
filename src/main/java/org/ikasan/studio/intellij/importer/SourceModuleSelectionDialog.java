@@ -5,14 +5,14 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
+import java.awt.*;
+import javax.swing.*;
+import javax.swing.JPanel;
+import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate;
 import org.ikasan.studio.core.importer.SourceCheckoutIdentity;
 import org.ikasan.studio.intellij.project.ImportDialogWrapper;
 import org.ikasan.studio.ui.StudioBundle;
-
-import javax.swing.*;
-import java.awt.*;
-import javax.swing.JPanel;
-import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate;
 
 /** Explicit reactor-module choice before any source recommendations are populated. */
 final class SourceModuleSelectionDialog extends ImportDialogWrapper {
@@ -35,7 +35,7 @@ final class SourceModuleSelectionDialog extends ImportDialogWrapper {
         JBTextArea help = new JBTextArea(StudioBundle.message("sourceImport.identity.chooseHelp", inspection.expected().isBlank()
                 ? StudioBundle.message("sourceImport.identity.unknownName") : inspection.expected()));
         help.setEditable(false); help.setLineWrap(true); help.setWrapStyleWord(true); help.setOpaque(false); help.setFocusable(false);
-        help.setFont(com.intellij.util.ui.UIUtil.getLabelFont());
+        help.setFont(UIUtil.getLabelFont());
         panel.add(help, BorderLayout.NORTH);
         JBLabel label = new JBLabel(StudioBundle.message("sourceImport.identity.sourceModule")); label.setLabelFor(modules);
         JPanel row = new JPanel(new BorderLayout(JBUI.scale(8), 0)); row.add(label, BorderLayout.WEST); row.add(modules, BorderLayout.CENTER);

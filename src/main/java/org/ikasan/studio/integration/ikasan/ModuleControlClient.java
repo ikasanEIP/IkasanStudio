@@ -1,15 +1,15 @@
 package org.ikasan.studio.integration.ikasan;
 
+import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ikasan.studio.core.StudioBuildUtils;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -19,7 +19,10 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.nio.ByteBuffer;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Flow.Subscription;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /**
  * Shared HTTP client for GETting a running module's own Ikasan REST interface - {@code /rest/moduleControl/...}
@@ -56,7 +59,7 @@ public final class ModuleControlClient {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-            .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+            .enable(Feature.STRICT_DUPLICATE_DETECTION);
 
     private ModuleControlClient() {
     }
@@ -244,15 +247,15 @@ public final class ModuleControlClient {
     /** Bound memory while reading event payloads; cancellation also releases the HTTP subscription. */
     private static final class BoundedRuntimeRecordsBody implements HttpResponse.BodySubscriber<String> {
         private final HttpResponse.BodySubscriber<String> delegate = HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8);
-        private java.util.concurrent.Flow.Subscription subscription;
+        private Subscription subscription;
         private long bytes;
         private boolean failed;
-        @Override public java.util.concurrent.CompletionStage<String> getBody() { return delegate.getBody(); }
-        @Override public void onSubscribe(java.util.concurrent.Flow.Subscription subscription) {
+        @Override public CompletionStage<String> getBody() { return delegate.getBody(); }
+        @Override public void onSubscribe(Subscription subscription) {
             this.subscription = subscription;
             delegate.onSubscribe(subscription);
         }
-        @Override public void onNext(List<java.nio.ByteBuffer> buffers) {
+        @Override public void onNext(List<ByteBuffer> buffers) {
             if (failed) return;
             for (ByteBuffer buffer : buffers) bytes += buffer.remaining();
             if (bytes > 4 * 1024 * 1024) {
@@ -272,7 +275,7 @@ public final class ModuleControlClient {
      */
     static String latestErrorQuery(String flowName) {
         return "pageNumber=0&pageSize=1&orderBy=timestamp&orderAscending=false&flow="
-                + java.net.URLEncoder.encode(flowName, StandardCharsets.UTF_8);
+                + URLEncoder.encode(flowName, StandardCharsets.UTF_8);
     }
 
     /**

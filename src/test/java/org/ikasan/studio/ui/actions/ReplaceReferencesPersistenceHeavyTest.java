@@ -1,25 +1,25 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.command.undo.UndoManager;
+import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.generation.GenerationRequest;
-import org.ikasan.studio.core.model.analysis.ModelReferenceReplacement;
-import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.ui.UiContext;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import com.intellij.openapi.ui.TestDialog;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.model.analysis.ModelReferenceReplacement.Change;
+import org.ikasan.studio.core.model.analysis.ModelReferenceReplacement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.ui.UiContext;
 
 /** Real model persistence and IntelliJ Undo; source generation is tested independently. */
 public class ReplaceReferencesPersistenceHeavyTest extends HeavyPlatformTestCase {
@@ -48,7 +48,7 @@ public class ReplaceReferencesPersistenceHeavyTest extends HeavyPlatformTestCase
         assertTrue(readPersistedModel(projectDirectory).contains("org.example.debug.domain"));
         UndoManager undo = UndoManager.getInstance(myProject);
         assertTrue(undo.isUndoAvailable(null));
-        TestDialog previousDialog = com.intellij.openapi.ui.TestDialogManager.setTestDialog(com.intellij.openapi.ui.TestDialog.OK);
+        TestDialog previousDialog = TestDialogManager.setTestDialog(TestDialog.OK);
         try {
             undo.undo(null);
             PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
@@ -59,7 +59,7 @@ public class ReplaceReferencesPersistenceHeavyTest extends HeavyPlatformTestCase
             PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
             assertEquals("org.example.debug.domain", consumer.getPropertyValue("trustedObjectPackages"));
             assertTrue(readPersistedModel(projectDirectory).contains("org.example.debug.domain"));
-        } finally { com.intellij.openapi.ui.TestDialogManager.setTestDialog(previousDialog); }
+        } finally { TestDialogManager.setTestDialog(previousDialog); }
     }
 
     private static String readPersistedModel(VirtualFile projectDirectory) throws IOException {

@@ -1,11 +1,14 @@
 package org.ikasan.studio.integration.ikasan;
 
-import org.junit.jupiter.api.Test;
-import java.net.URI;
 import java.io.IOException;
-import static org.assertj.core.api.Assertions.*;
+import java.net.URI;
+import java.time.format.DateTimeParseException;
+import java.util.Collections;
 import org.ikasan.studio.integration.ikasan.WiretapEventsClient.Event;
 import org.ikasan.studio.integration.ikasan.WiretapEventsClient.Page;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.*;
 
 class WiretapEventsClientTest {
     private static final String ROW = """
@@ -34,13 +37,13 @@ class WiretapEventsClientTest {
                 .contains("pageNumber=2", "orderBy=timestamp", "orderAscending=false",
                         "flow=Orders+%26+Returns", "componentName=Audit+%2B+Log");
         assertThatThrownBy(() -> WiretapEventsClient.query(endpoint, 0, "", "", "2026-02-30T00:00:00", ""))
-                .isInstanceOf(java.time.format.DateTimeParseException.class);
+                .isInstanceOf(DateTimeParseException.class);
     }
     @Test void rejectsMalformedAndOversizedPagesAndBoundsPreviews() throws Exception {
         assertThatThrownBy(() -> WiretapEventsClient.parse("{}" )).isInstanceOf(IOException.class);
         assertThatThrownBy(() -> WiretapEventsClient.parse(page(ROW.replace("\"identifier\":42", "\"identifier\":{}"))))
                 .isInstanceOf(IOException.class);
-        assertThatThrownBy(() -> WiretapEventsClient.parse(page(String.join(",", java.util.Collections.nCopies(21, ROW)))))
+        assertThatThrownBy(() -> WiretapEventsClient.parse(page(String.join(",", Collections.nCopies(21, ROW)))))
                 .isInstanceOf(IOException.class);
         assertThat(WiretapEventsClient.parse(page(ROW.replace("<order>hello & world</order>", "x".repeat(40000))))
                 .events().get(0).payload()).hasSize(32770).endsWith("\n…");

@@ -1,10 +1,9 @@
 package org.ikasan.studio.core.importer;
 
+import com.fasterxml.jackson.core.JsonParser.Feature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.ikasan.studio.core.configuration.EnvironmentProperties;
-import org.ikasan.studio.core.generator.ProjectArtifactRenderer;
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -12,12 +11,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.*;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.ikasan.studio.core.configuration.EnvironmentProperties;
+import org.ikasan.studio.core.generator.ProjectArtifactRenderer;
 
 /** Read-only identity evidence. Never resolves placeholders against the IDE environment or executes source code. */
 public final class SourceCheckoutIdentity {
@@ -43,7 +44,7 @@ public final class SourceCheckoutIdentity {
             this(sourceRoot, destinationRoot, expected, candidates, pomDirectories, sourceInputs, destinationInputs, Map.of());
         }
         public Candidate automaticCandidate() {
-            List<org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate> matching = candidates.stream().filter(c -> c.status(expected) == Status.MATCH).toList();
+            List<Candidate> matching = candidates.stream().filter(c -> c.status(expected) == Status.MATCH).toList();
             if (matching.size() == 1) {
                 Candidate match = matching.get(0);
                 boolean anotherPlausible = candidates.stream().anyMatch(other -> other != match
@@ -84,7 +85,7 @@ public final class SourceCheckoutIdentity {
         List<String> directories = poms.stream().map(p -> SourceModuleImport.relative(source, p.getParent())).distinct().sorted().toList();
         List<Input> inputs = new ArrayList<>();
         Map<String, String> artifacts = new TreeMap<>();
-        Map<String, org.apache.maven.model.Model> models = new TreeMap<>();
+        Map<String, Model> models = new TreeMap<>();
         Map<String, List<Declaration>> declarations = new TreeMap<>();
         Set<String> uncertain = new HashSet<>(), studio = new HashSet<>();
         long bytes = 0;
@@ -174,7 +175,7 @@ public final class SourceCheckoutIdentity {
     static void verify(Check check) throws Exception {
         if (check.candidate() == null || !check.inspection().candidates().contains(check.candidate()))
             throw new IOException("Review the source checkout and verify its module identity before importing.");
-        org.ikasan.studio.core.importer.SourceCheckoutIdentity.Inspection current = inspect(check.inspection().sourceRoot(), check.inspection().destinationRoot(), () -> { });
+        Inspection current = inspect(check.inspection().sourceRoot(), check.inspection().destinationRoot(), () -> { });
         if (!check.inspection().equals(current)) throw new IOException("Module identity or checkout metadata changed since review. Analyse again.");
     }
 
@@ -214,8 +215,8 @@ public final class SourceCheckoutIdentity {
     private static String modelName(byte[] content) {
         if (content == null) return "";
         try {
-            JsonNode node = new ObjectMapper().enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
-                    .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS).readTree(content);
+            JsonNode node = new ObjectMapper().enable(Feature.STRICT_DUPLICATE_DETECTION)
+                    .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).readTree(content);
             if (node == null) return "";
             JsonNode name = node.has("modelFormat") ? node.path("module").path("name") : node.path("name");
             return name.isTextual() ? name.textValue() : "";

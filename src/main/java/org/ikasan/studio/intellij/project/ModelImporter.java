@@ -2,23 +2,33 @@ package org.ikasan.studio.intellij.project;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
+import java.awt.Component;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage;
+import org.ikasan.studio.core.diagnostics.RuntimeImportReport;
+import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.migration.MigrationJdk;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
 /**
  * Imports a persisted {@code model.json} (from another project or anywhere on disk, either chosen via a file
@@ -32,7 +42,7 @@ public final class ModelImporter {
 
     private ModelImporter() { }
 
-    public static void openImportDialog(Project project, java.awt.Component parent) {
+    public static void openImportDialog(Project project, Component parent) {
         new ImportModelJsonDialog(project, parent).show();
     }
 
@@ -49,29 +59,29 @@ public final class ModelImporter {
     }
 
     static void importFromText(Project project, String json, String sourceDescription,
-                               org.ikasan.studio.core.diagnostics.RuntimeImportReport report) throws StudioBuildException {
+                               RuntimeImportReport report) throws StudioBuildException {
         importFromText(project, json, sourceDescription, report, null);
     }
 
     static void importFromText(Project project, String json, String sourceDescription,
-                               org.ikasan.studio.core.diagnostics.RuntimeImportReport report,
+                               RuntimeImportReport report,
                                Runnable afterGeneration) throws StudioBuildException {
-        if (report != null) report.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.VALIDATION);
+        if (report != null) report.stage(Stage.VALIDATION);
         if (project.isDisposed()) {
             throw new StudioBuildException("The project is closing; import was not started.");
         }
         ApplicationManager.getApplication().assertIsDispatchThread();
-        java.util.concurrent.atomic.AtomicReference<Module> validated = new java.util.concurrent.atomic.AtomicReference<>();
-        java.util.concurrent.atomic.AtomicReference<StudioBuildException> validationFailure = new java.util.concurrent.atomic.AtomicReference<>();
-        java.util.concurrent.atomic.AtomicInteger javaVersion = new java.util.concurrent.atomic.AtomicInteger(-1);
-        boolean completed = com.intellij.openapi.progress.ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
+        AtomicReference<Module> validated = new AtomicReference<>();
+        AtomicReference<StudioBuildException> validationFailure = new AtomicReference<>();
+        AtomicInteger javaVersion = new AtomicInteger(-1);
+        boolean completed = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
             try {
                 Module candidate = ComponentIO.validatePersistedModuleJson(json, sourceDescription, false);
                 String version = candidate.getVersion();
                 if (version == null || version.isBlank() || !ComponentLibrary.getMetapackList().contains(version)) {
                     throw new StudioBuildException(StudioBundle.message("message.ImportModelMetapackUnavailable", version));
                 }
-                if (!org.ikasan.studio.intellij.settings.IkasanStudioSettings.areSnapshotMetaPacksAllowed()
+                if (!IkasanStudioSettings.areSnapshotMetaPacksAllowed()
                         && ComponentLibrary.isSnapshotRuntime(ComponentLibrary.getMetaPackManifest(version))) {
                     throw new StudioBuildException(StudioBundle.message("metaPack.SnapshotsDisabled", version));
                 }
@@ -83,7 +93,7 @@ public final class ModelImporter {
             }
         }, StudioBundle.message("dialog.ImportModelJson"), false, project);
         if (validationFailure.get() != null) throw validationFailure.get();
-        if (!completed || project.isDisposed()) throw new com.intellij.openapi.progress.ProcessCanceledException();
+        if (!completed || project.isDisposed()) throw new ProcessCanceledException();
         Module module = validated.get();
         String version = module.getVersion();
         int requiredJava = javaVersion.get();
@@ -94,11 +104,11 @@ public final class ModelImporter {
         if (module.getApplicationPackageName() != null && !module.getApplicationPackageName().isBlank()) {
             uiContext.getOptions().setPackageName(module.getApplicationPackageName());
         }
-        java.util.concurrent.CompletableFuture<Void> generation;
+        CompletableFuture<Void> generation;
         try {
-            if (report != null) report.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.GENERATION);
+            if (report != null) report.stage(Stage.GENERATION);
             generation = StudioProjectFiles.refreshCodeFromModel(project,
-                    org.ikasan.studio.core.generation.GenerationRequest.full(), false);
+                    GenerationRequest.full(), false);
         } catch (RuntimeException failure) {
             uiContext.setIkasanModule(previousModule);
             uiContext.getOptions().setPackageName(previousPackage);
@@ -121,7 +131,7 @@ public final class ModelImporter {
                     if (report != null) report.complete();
                     try {
                         applyMatchingJdk(project, requiredJava);
-                    } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+                    } catch (ProcessCanceledException cancelled) {
                         throw cancelled;
                     } catch (RuntimeException settingsFailure) {
                         LOG.warn("STUDIO: Could not configure the imported model's JDK", settingsFailure);
@@ -131,7 +141,7 @@ public final class ModelImporter {
                     // Generation has committed and importer/runner JDK settings are now stable.
                     // Always refresh: an unchanged POM can still have a stale IDE compiler model.
                     try {
-                        org.jetbrains.idea.maven.project.MavenProjectsManager.getInstance(project)
+                        MavenProjectsManager.getInstance(project)
                                 .forceUpdateAllProjectsOrFindAllAvailablePomFiles();
                     } catch (RuntimeException refreshFailure) {
                         LOG.warn("STUDIO: Could not refresh Maven after model import", refreshFailure);

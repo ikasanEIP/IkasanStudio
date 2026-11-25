@@ -1,19 +1,21 @@
 package org.ikasan.studio.core.ai;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.ai.ModelProposal.ChangeSet;
+import org.ikasan.studio.core.ai.ModelProposal.Prepared;
 import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import java.util.ArrayList;
+
 import static org.assertj.core.api.Assertions.*;
-import java.util.Map;
-import org.ikasan.studio.core.ai.ModelProposal.ChangeSet;
-import org.ikasan.studio.core.ai.ModelProposal.Prepared;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 class ModelProposalComponentRemovalTest {
     private final ObjectMapper json = new ObjectMapper();
@@ -92,7 +94,7 @@ class ModelProposalComponentRemovalTest {
     void rejectsInvalidReplacementWithoutTouchingLiveModel(String version) throws Exception {
         Module live = model(version);
         Map<String,Object> before = LiveModelSnapshot.capture(live);
-        for (String operation : java.util.List.of(
+        for (String operation : List.of(
                 "{\"type\":\"deleteComponent\",\"flow\":\"toby\",\"component\":\"missing\"}",
                 "{\"type\":\"replaceComponent\",\"flow\":\"toby\",\"component\":\"bob\",\"key\":\"Dev Null Producer\",\"name\":\"new\"}",
                 "{\"type\":\"replaceComponent\",\"flow\":\"toby\",\"component\":\"bob\",\"key\":\"Spring JMS Consumer\",\"name\":\"timmy\"}",
@@ -105,7 +107,7 @@ class ModelProposalComponentRemovalTest {
     void deletesWholeFlowAndHarnessWithIdentityPreservingUndoAndRedo(String version) throws Exception {
         Module live = model(version);
         Flow original = live.getFlows().get(0);
-        Flow harness = new org.ikasan.studio.core.model.ikasan.instance.Flow(version);
+        Flow harness = new Flow(version);
         harness.setName("TestHarness");
         harness.setPropertyValue("testHarnessOwner", "toby/timmy");
         live.getFlows().add(harness);

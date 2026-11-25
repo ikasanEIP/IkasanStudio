@@ -1,18 +1,17 @@
 package org.ikasan.studio.core.configuration;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.*;
-import java.io.InputStream;
 import java.util.Properties;
 import org.ikasan.studio.core.configuration.EnvironmentProperties.Preview;
 import org.ikasan.studio.core.configuration.EnvironmentProperties.Selection;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.assertj.core.api.Assertions.*;
 
 class EnvironmentPropertiesTest {
     @TempDir Path root;
@@ -105,7 +104,7 @@ class EnvironmentPropertiesTest {
         Selection pasted = new EnvironmentProperties.Selection("hello=日本", "", false);
         assertThat(pasted.relativePath()).isEqualTo("config/application.properties");
         EnvironmentProperties.apply(root, List.of(EnvironmentProperties.preview(root, pasted)), false);
-        Properties loaded = new java.util.Properties();
+        Properties loaded = new Properties();
         try (InputStream stream = Files.newInputStream(root.resolve(pasted.relativePath()))) { loaded.load(stream); }
         assertThat(loaded.getProperty("hello")).isEqualTo("日本");
     }

@@ -1,18 +1,18 @@
 package org.ikasan.studio.testing.engine;
 
-import org.ikasan.studio.core.generator.FreemarkerUtils;
-import org.ikasan.studio.core.generator.StudioGeneratorException;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import org.ikasan.studio.core.generator.FreemarkerUtils;
+import org.ikasan.studio.core.generator.StudioGeneratorException;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Small authored templates exercise engine behaviour without an official Ikasan release. */
-@org.junit.jupiter.api.Tag("engine")
+@Tag("engine")
 class TemplateEngineTest {
     private static String render(String pack, String name, String value) throws StudioGeneratorException {
         return FreemarkerUtils.generateFromTemplate(pack, name, new HashMap<>(Map.of("value", value)));

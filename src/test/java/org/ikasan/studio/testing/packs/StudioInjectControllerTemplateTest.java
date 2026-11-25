@@ -1,22 +1,24 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.*;
-
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.io.IOException;
-import java.util.ArrayList;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import java.nio.file.Path;
 
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 public class StudioInjectControllerTemplateTest {
 
     @BeforeAll
@@ -27,22 +29,22 @@ public class StudioInjectControllerTemplateTest {
     }
 
     @ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void exportLocalFileTestController(String version) throws Exception {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         String generated = StudioInjectControllerTemplate.create(module);
-        org.junit.jupiter.api.Assertions.assertTrue(generated.contains("ScheduledComponent && !selectedLocalFiles"));
-        org.junit.jupiter.api.Assertions.assertTrue(generated.contains("invokeInTransaction(flow, event)"));
+        Assertions.assertTrue(generated.contains("ScheduledComponent && !selectedLocalFiles"));
+        Assertions.assertTrue(generated.contains("invokeInTransaction(flow, event)"));
         String export = System.getenv("STUDIO_INJECT_EXPORT");
         if (export != null) {
-            Path directory = java.nio.file.Path.of(export, version);
-            java.nio.file.Files.createDirectories(directory);
-            java.nio.file.Files.writeString(directory.resolve("StudioInjectController.java"), generated);
+            Path directory = Path.of(export, version);
+            Files.createDirectories(directory);
+            Files.writeString(directory.resolve("StudioInjectController.java"), generated);
         }
     }
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/StudioInjectController.java
+     * Expected output is recorded in the pack-specific {@code Module/StudioInjectController.java} test fixture.
      * @throws IOException if the template cant be generated
      */
     @ParameterizedTest

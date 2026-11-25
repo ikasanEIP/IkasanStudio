@@ -2,19 +2,20 @@ package org.ikasan.studio.core.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParserConfiguration;
-import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.expr.*;
-import com.github.javaparser.ast.stmt.ReturnStmt;
-import java.nio.file.*;
-import java.util.*;
 import com.github.javaparser.ParseResult;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.stmt.ReturnStmt;
+import java.io.IOException;
+import java.nio.file.*;
 import java.nio.file.Path;
+import java.util.*;
 import java.util.stream.Stream;
 
 /** Parse only: never compile or execute developer tests. Unknown expressions are left to runtime checks. */
@@ -89,7 +90,7 @@ final class FlowTestPathValidation {
                     }
                 }
             }
-        } catch (java.io.IOException failure) {
+        } catch (IOException failure) {
             result.add(new ImplementationReadiness.Finding("", "Flow tests", "user-flow-tests/src/test/java", 1,
                     "NOT_CHECKED", "Could not inspect saved flow-test paths."));
         }

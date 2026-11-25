@@ -1,67 +1,76 @@
 package org.ikasan.studio.ui.component.canvas;
 
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-
-import java.awt.Font;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.ui.StudioBundle;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.util.List;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.io.StringReader;
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import javax.swing.JComboBox;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
+import javax.swing.SwingUtilities;
 import javax.swing.text.Document;
 import javax.swing.text.html.HTMLEditorKit;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.loading.MetaPackResources;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.execution.HarnessOverrideService;
+import org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationService.State;
 import org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationService;
 import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.FileDuplicateHistoryDialog;
 import org.ikasan.studio.ui.actions.SftpFilesDialog;
 import org.ikasan.studio.ui.actions.SftpHarnessAction;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
+import org.ikasan.studio.ui.state.StudioSessionOptions;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class DesignerCanvasTest {
 
     @Test
     void reselectingDisplayedTargetRevealsPropertiesWithoutDiscardingEdits() throws Exception {
         Project project = mock(Project.class);
-        UiContext context = mock(org.ikasan.studio.ui.UiContext.class);
-        ComponentPropertiesPanel properties = mock(org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel.class);
+        UiContext context = mock(UiContext.class);
+        ComponentPropertiesPanel properties = mock(ComponentPropertiesPanel.class);
         Module module = mock(Module.class);
-        when(project.getService(org.ikasan.studio.ui.UiContext.class)).thenReturn(context);
-        when(context.getOptions()).thenReturn(new org.ikasan.studio.ui.state.StudioSessionOptions());
+        when(project.getService(UiContext.class)).thenReturn(context);
+        when(context.getOptions()).thenReturn(new StudioSessionOptions());
         when(context.getPropertiesPanel()).thenReturn(properties);
         when(properties.isEditingComponent(module)).thenReturn(true);
-        javax.swing.SwingUtilities.invokeAndWait(() -> {
+        SwingUtilities.invokeAndWait(() -> {
             DesignerCanvas canvas = new DesignerCanvas(project);
             try {
                 canvas.editComponent(module);
-                org.mockito.Mockito.verify(context).setRightTabbedPaneFocus(org.ikasan.studio.ui.UiContext.PROPERTIES_TAB_INDEX);
-                org.mockito.Mockito.verify(properties, org.mockito.Mockito.never())
-                        .confirmSelectionChangeWithPendingEdits(org.mockito.ArgumentMatchers.any());
-                org.mockito.Mockito.verify(properties, org.mockito.Mockito.never())
-                        .updateTargetComponent(org.mockito.ArgumentMatchers.any());
+                Mockito.verify(context).setRightTabbedPaneFocus(UiContext.PROPERTIES_TAB_INDEX);
+                Mockito.verify(properties, Mockito.never())
+                        .confirmSelectionChangeWithPendingEdits(ArgumentMatchers.any());
+                Mockito.verify(properties, Mockito.never())
+                        .updateTargetComponent(ArgumentMatchers.any());
             } finally { canvas.disposeCanvas(); }
         });
     }
@@ -69,26 +78,26 @@ class DesignerCanvasTest {
     @Test
     void snapshotChoicesRefreshFromPublishedMetadataWithoutChangingReleasedSelection() throws Exception {
         Project project = mock(Project.class);
-        UiContext context = mock(org.ikasan.studio.ui.UiContext.class);
-        when(project.getService(org.ikasan.studio.ui.UiContext.class)).thenReturn(context);
-        when(context.getOptions()).thenReturn(new org.ikasan.studio.ui.state.StudioSessionOptions());
-        javax.swing.SwingUtilities.invokeAndWait(() -> {
-            try (MockedStatic<IkasanStudioSettings> settings = org.mockito.Mockito.mockStatic(org.ikasan.studio.intellij.settings.IkasanStudioSettings.class)) {
+        UiContext context = mock(UiContext.class);
+        when(project.getService(UiContext.class)).thenReturn(context);
+        when(context.getOptions()).thenReturn(new StudioSessionOptions());
+        SwingUtilities.invokeAndWait(() -> {
+            try (MockedStatic<IkasanStudioSettings> settings = Mockito.mockStatic(IkasanStudioSettings.class)) {
                 DesignerCanvas canvas = new DesignerCanvas(project);
                 try {
                     Field field = DesignerCanvas.class.getDeclaredField("metaDataVersionComboBox");
                     field.setAccessible(true);
-                    JComboBox<?> choices = (javax.swing.JComboBox<?>) field.get(canvas);
+                    JComboBox<?> choices = (JComboBox<?>) field.get(canvas);
                     canvas.setAvailableMetaPacks(List.of("V4.1.6", "Example-SNAPSHOT", "AcmePack"),
-                            java.util.Set.of("Example-SNAPSHOT", "AcmePack"));
+                            Set.of("Example-SNAPSHOT", "AcmePack"));
                     assertThat(choices.getItemCount()).isEqualTo(1);
                     assertThat(choices.getSelectedItem()).isEqualTo("V4.1.6");
-                    settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::areSnapshotMetaPacksAllowed).thenReturn(true);
+                    settings.when(IkasanStudioSettings::areSnapshotMetaPacksAllowed).thenReturn(true);
                     canvas.refreshMetaPackChoices();
                     assertThat(choices.getItemCount()).isEqualTo(3);
                     assertThat(choices.getSelectedItem()).isEqualTo("V4.1.6");
                     canvas.setSelectedMetapackVersion("Example-SNAPSHOT");
-                    settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::areSnapshotMetaPacksAllowed).thenReturn(false);
+                    settings.when(IkasanStudioSettings::areSnapshotMetaPacksAllowed).thenReturn(false);
                     canvas.refreshMetaPackChoices();
                     assertThat(choices.getItemCount()).isEqualTo(1);
                     assertThat(choices.getSelectedItem()).isEqualTo("V4.1.6");
@@ -102,15 +111,15 @@ class DesignerCanvasTest {
     @Test
     void editorShellAndPublishedPackChoicesDoNotDiscoverResourcesOnTheEdt() throws Exception {
         Project project = mock(Project.class);
-        UiContext context = mock(org.ikasan.studio.ui.UiContext.class);
-        when(project.getService(org.ikasan.studio.ui.UiContext.class)).thenReturn(context);
-        when(context.getOptions()).thenReturn(new org.ikasan.studio.ui.state.StudioSessionOptions());
-        javax.swing.SwingUtilities.invokeAndWait(() -> {
-            try (MockedStatic<ComponentLibrary> libraries = org.mockito.Mockito.mockStatic(org.ikasan.studio.core.metapack.ComponentLibrary.class);
-                 MockedStatic<MetaPackResources> resources = org.mockito.Mockito.mockStatic(org.ikasan.studio.core.metapack.loading.MetaPackResources.class)) {
+        UiContext context = mock(UiContext.class);
+        when(project.getService(UiContext.class)).thenReturn(context);
+        when(context.getOptions()).thenReturn(new StudioSessionOptions());
+        SwingUtilities.invokeAndWait(() -> {
+            try (MockedStatic<ComponentLibrary> libraries = Mockito.mockStatic(ComponentLibrary.class);
+                 MockedStatic<MetaPackResources> resources = Mockito.mockStatic(MetaPackResources.class)) {
                 DesignerCanvas canvas = new DesignerCanvas(project);
                 try {
-                    canvas.setAvailableMetaPacks(List.of("V4.1.6", "AcmePack"), java.util.Set.of());
+                    canvas.setAvailableMetaPacks(List.of("V4.1.6", "AcmePack"), Set.of());
                     canvas.refreshMetaPackChoices();
                     canvas.setSelectedMetapackVersion("AcmePack");
                     libraries.verifyNoInteractions();
@@ -123,16 +132,16 @@ class DesignerCanvasTest {
     @Test
     void moduleActionsAreConfinedToTheCanvasBackgroundMenu() {
         Project project = mock(Project.class);
-        UiContext context = mock(org.ikasan.studio.ui.UiContext.class);
-        when(project.getService(org.ikasan.studio.ui.UiContext.class)).thenReturn(context);
-        IndependentH2RunConfigurationService h2 = mock(org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationService.class);
-        when(project.getService(org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationService.class)).thenReturn(h2);
-        when(h2.state()).thenReturn(org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationService.State.STOPPED);
-        when(context.getViewHandlerFactory()).thenReturn(mock(org.ikasan.studio.ui.viewmodel.ViewHandlerCache.class));
+        UiContext context = mock(UiContext.class);
+        when(project.getService(UiContext.class)).thenReturn(context);
+        IndependentH2RunConfigurationService h2 = mock(IndependentH2RunConfigurationService.class);
+        when(project.getService(IndependentH2RunConfigurationService.class)).thenReturn(h2);
+        when(h2.state()).thenReturn(State.STOPPED);
+        when(context.getViewHandlerFactory()).thenReturn(mock(ViewHandlerCache.class));
         Module module = mock(Module.class);
         when(module.isInitialised()).thenReturn(true);
         JPopupMenu moduleMenu = DesignCanvasContextMenu.createCanvasMenu(project, null, module);
-        List<String> moduleLabels = java.util.Arrays.stream(moduleMenu.getComponents())
+        List<String> moduleLabels = Arrays.stream(moduleMenu.getComponents())
                 .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast).map(JMenuItem::getText).toList();
         assertThat(moduleLabels).contains(StudioBundle.message("button.ImportModelJson"),
                 StudioBundle.message("menu.SaveImage"), StudioBundle.message("label.Load"),
@@ -146,10 +155,10 @@ class DesignerCanvasTest {
                         && !label.equals(StudioBundle.message("menu.ComponentWebHelp"))).toList();
         Flow flow = mock(Flow.class);
         FlowElement component = mock(FlowElement.class);
-        when(component.getComponentMeta()).thenReturn(mock(org.ikasan.studio.core.metapack.model.ComponentMeta.class));
+        when(component.getComponentMeta()).thenReturn(mock(ComponentMeta.class));
         for (BasicElement element : List.of(flow, component)) {
             JPopupMenu menu = DesignCanvasContextMenu.createCanvasMenu(project, null, element);
-            List<String> labels = java.util.Arrays.stream(menu.getComponents())
+            List<String> labels = Arrays.stream(menu.getComponents())
                     .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast).map(JMenuItem::getText).toList();
             assertThat(labels).contains(StudioBundle.message("menu.EditComponent"), StudioBundle.message("wiretapEvents.action"))
                     .doesNotContain(StudioBundle.message("menu.JumpToCode"), StudioBundle.message("menu.JumpToProperties"))
@@ -158,7 +167,7 @@ class DesignerCanvasTest {
             else assertThat(labels).doesNotContain(StudioBundle.message("exclusions.action"));
             assertThat(labels).endsWith(StudioBundle.message("menu.DescribeComponent"),
                     StudioBundle.message("menu.ComponentWebHelp"));
-            assertThat(menu.getComponent(menu.getComponentCount() - 3)).isInstanceOf(javax.swing.JSeparator.class);
+            assertThat(menu.getComponent(menu.getComponentCount() - 3)).isInstanceOf(JSeparator.class);
         }
     }
 
@@ -167,9 +176,9 @@ class DesignerCanvasTest {
     void sftpEndpointBrowserUsesItsOwningConsumerOrProducer() {
         Project project = mock(Project.class);
         FlowElement component = mock(FlowElement.class);
-        ComponentMeta meta = mock(org.ikasan.studio.core.metapack.model.ComponentMeta.class);
+        ComponentMeta meta = mock(ComponentMeta.class);
         when(component.getComponentMeta()).thenReturn(meta);
-        try (MockedStatic<SftpFilesDialog> dialog = org.mockito.Mockito.mockStatic(org.ikasan.studio.ui.actions.SftpFilesDialog.class)) {
+        try (MockedStatic<SftpFilesDialog> dialog = Mockito.mockStatic(SftpFilesDialog.class)) {
             for (String endpoint : List.of("SFTP Endpoint", "FTP Endpoint", "JMS Endpoint")) {
                 when(meta.getEndpointKey()).thenReturn(endpoint);
                 for (boolean consumer : List.of(true, false)) {
@@ -177,22 +186,22 @@ class DesignerCanvasTest {
                     when(meta.isProducer()).thenReturn(!consumer);
                     when(meta.isTimeEventConsumer()).thenReturn(consumer);
                     when(meta.getTestPayloadAdapter()).thenReturn(
-                            org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER);
+                            ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER);
                     JPopupMenu menu = DesignCanvasContextMenu.createEndpointMenu(project, component);
-                    Optional<JMenuItem> item = java.util.Arrays.stream(menu.getComponents())
+                    Optional<JMenuItem> item = Arrays.stream(menu.getComponents())
                             .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast)
                             .filter(i -> StudioBundle.message("sftpBrowser.action").equals(i.getText())).findFirst();
                     assertThat(item.isPresent()).isEqualTo(endpoint.equals("SFTP Endpoint"));
                     if (item.isPresent()) {
                         item.get().doClick();
-                        dialog.verify(() -> org.ikasan.studio.ui.actions.SftpFilesDialog.open(project, component));
+                        dialog.verify(() -> SftpFilesDialog.open(project, component));
                         dialog.clearInvocations();
                         if (consumer) {
                             assertThat(menu.getComponent(0)).isInstanceOf(JMenuItem.class);
                             assertThat(((JMenuItem) menu.getComponent(0)).getText())
                                     .isEqualTo(StudioBundle.message("menu.TriggerLocalFileScan"));
                             assertThat(menu.getComponent(menu.getComponentCount() - 2))
-                                    .isInstanceOf(javax.swing.JSeparator.class);
+                                    .isInstanceOf(JSeparator.class);
                         }
                     }
                 }
@@ -203,32 +212,32 @@ class DesignerCanvasTest {
     @Test
     void fileHistoryIsAvailableOnlyForFileTransferConsumersAndUsesTheirClientId() {
         Project project = mock(Project.class);
-        HarnessOverrideService harnessService = mock(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
-        when(project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class)).thenReturn(harnessService);
-        UiContext context = mock(org.ikasan.studio.ui.UiContext.class);
-        when(project.getService(org.ikasan.studio.ui.UiContext.class)).thenReturn(context);
-        when(context.getViewHandlerFactory()).thenReturn(mock(org.ikasan.studio.ui.viewmodel.ViewHandlerCache.class));
+        HarnessOverrideService harnessService = mock(HarnessOverrideService.class);
+        when(project.getService(HarnessOverrideService.class)).thenReturn(harnessService);
+        UiContext context = mock(UiContext.class);
+        when(project.getService(UiContext.class)).thenReturn(context);
+        when(context.getViewHandlerFactory()).thenReturn(mock(ViewHandlerCache.class));
         FlowElement component = mock(FlowElement.class);
-        ComponentMeta meta = mock(org.ikasan.studio.core.metapack.model.ComponentMeta.class);
+        ComponentMeta meta = mock(ComponentMeta.class);
         when(component.getComponentMeta()).thenReturn(meta);
         when(component.getPropertyValueAsString("clientID")).thenReturn("orders-inbound");
-        try (MockedStatic<FileDuplicateHistoryDialog> dialog = org.mockito.Mockito.mockStatic(org.ikasan.studio.ui.actions.FileDuplicateHistoryDialog.class)) {
+        try (MockedStatic<FileDuplicateHistoryDialog> dialog = Mockito.mockStatic(FileDuplicateHistoryDialog.class)) {
             for (String endpoint : List.of("FTP Endpoint", "SFTP Endpoint", "JMS Endpoint")) {
                 when(meta.getEndpointKey()).thenReturn(endpoint);
                 for (boolean consumer : List.of(true, false)) {
                     when(meta.isConsumer()).thenReturn(consumer);
                     JPopupMenu menu = DesignCanvasContextMenu.createCanvasMenu(project, null, component);
-                    Optional<JMenuItem> item = java.util.Arrays.stream(menu.getComponents())
+                    Optional<JMenuItem> item = Arrays.stream(menu.getComponents())
                             .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast)
                             .filter(i -> StudioBundle.message("fileHistory.action").equals(i.getText())).findFirst();
-                    List<String> labels = java.util.Arrays.stream(menu.getComponents())
+                    List<String> labels = Arrays.stream(menu.getComponents())
                             .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast).map(JMenuItem::getText).toList();
                     assertThat(labels.contains(StudioBundle.message("sftpHarness.title"))).isEqualTo(endpoint.equals("SFTP Endpoint"));
                     assertThat(labels).doesNotContain(StudioBundle.message("sftpHarness.files"));
                     if (endpoint.equals("SFTP Endpoint")) {
                         when(harnessService.isEnabled(component)).thenReturn(true);
                         JPopupMenu localMenu = DesignCanvasContextMenu.createCanvasMenu(project, null, component);
-                        assertThat(java.util.Arrays.stream(localMenu.getComponents())
+                        assertThat(Arrays.stream(localMenu.getComponents())
                                 .filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast).map(JMenuItem::getText).toList())
                                 .contains(StudioBundle.message("sftpHarness.files"));
                         when(harnessService.isEnabled(component)).thenReturn(false);
@@ -237,7 +246,7 @@ class DesignerCanvasTest {
                     assertThat(item.isPresent()).isEqualTo(supported);
                     if (supported) {
                         item.orElseThrow().doClick();
-                        dialog.verify(() -> org.ikasan.studio.ui.actions.FileDuplicateHistoryDialog.open(project, "orders-inbound"));
+                        dialog.verify(() -> FileDuplicateHistoryDialog.open(project, "orders-inbound"));
                         dialog.clearInvocations();
                     }
                 }
@@ -249,9 +258,9 @@ class DesignerCanvasTest {
     void restartWarningIsVisibleInTheRenderedPayloadTooltip() throws Exception {
         String tooltip = DesignerCanvas.appendRestartWarning(
                 "<html>Input: java.lang.String<br>Output: java.lang.String</html>");
-        HTMLEditorKit html = new javax.swing.text.html.HTMLEditorKit();
+        HTMLEditorKit html = new HTMLEditorKit();
         Document document = html.createDefaultDocument();
-        html.read(new java.io.StringReader(tooltip), document, 0);
+        html.read(new StringReader(tooltip), document, 0);
 
         assertThat(document.getText(0, document.getLength()))
                 .contains("Input: java.lang.String", "Output: java.lang.String",
@@ -389,15 +398,15 @@ class DesignerCanvasTest {
     void localSftpEndpointMenuOffersFilesModeAndStop() {
         Project project = mock(Project.class);
         JPopupMenu menu = DesignCanvasContextMenu.createTestSftpServerMenu(project);
-        try (MockedStatic<SftpHarnessAction> actions = org.mockito.Mockito.mockStatic(org.ikasan.studio.ui.actions.SftpHarnessAction.class)) {
+        try (MockedStatic<SftpHarnessAction> actions = Mockito.mockStatic(SftpHarnessAction.class)) {
             assertThat(((JMenuItem) menu.getComponent(0)).getText()).isEqualTo(StudioBundle.message("sftpHarness.files"));
             ((JMenuItem) menu.getComponent(0)).doClick();
-            actions.verify(() -> org.ikasan.studio.ui.actions.SftpHarnessAction.showFiles(project));
+            actions.verify(() -> SftpHarnessAction.showFiles(project));
             ((JMenuItem) menu.getComponent(1)).doClick();
-            actions.verify(() -> org.ikasan.studio.ui.actions.SftpHarnessAction.choose(project));
+            actions.verify(() -> SftpHarnessAction.choose(project));
             assertThat(((JMenuItem) menu.getComponent(3)).getText()).isEqualTo(StudioBundle.message("sftpHarness.stop"));
             ((JMenuItem) menu.getComponent(3)).doClick();
-            actions.verify(() -> org.ikasan.studio.ui.actions.SftpHarnessAction.stop(project));
+            actions.verify(() -> SftpHarnessAction.stop(project));
         }
     }
 
@@ -419,7 +428,7 @@ class DesignerCanvasTest {
     void runningMailHarnessContextMenuExposesDetailsAndStop() throws Exception {
         Project project = mock(Project.class);
         FlowElement mail = FlowElement.flowElementBuilder()
-                .componentMeta(org.ikasan.studio.core.metapack.ComponentLibrary
+                .componentMeta(ComponentLibrary
                         .getIkasanComponentByKeyMandatory(BASE_META_PACK, "Email Producer"))
                 .componentName("mail")
                 .build();

@@ -1,17 +1,21 @@
 package org.ikasan.studio.intellij.ai;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
-import com.intellij.openapi.project.Project;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.StudioBundle;
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.util.concurrent.CompletableFuture;
+import javax.swing.*;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
+import org.ikasan.studio.ui.StudioUIUtils;
 
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
 final class StudioAiProposalDialog extends StudioDialogWrapper {
@@ -19,7 +23,7 @@ final class StudioAiProposalDialog extends StudioDialogWrapper {
     private final StudioAiService service;
     private final JBTextArea status = new StudioAiConnectionText("");
     private final JBLabel completion = new JBLabel();
-    private final JPanel feedback = new JPanel(new java.awt.BorderLayout(0, JBUI.scale(8)));
+    private final JPanel feedback = new JPanel(new BorderLayout(0, JBUI.scale(8)));
     private boolean applied;
     private final StudioAiService.Proposal proposal;
     StudioAiProposalDialog(Project project, StudioAiService service, StudioAiService.Proposal proposal) {
@@ -45,10 +49,10 @@ final class StudioAiProposalDialog extends StudioDialogWrapper {
         JBScrollPane pane = new JBScrollPane(text);
         text.setSize(JBUI.scale(720), 1);
         // Fit short proposals; retain scrolling for large operation lists.
-        pane.setPreferredSize(new java.awt.Dimension(JBUI.scale(740),
+        pane.setPreferredSize(new Dimension(JBUI.scale(740),
                 Math.min(JBUI.scale(420), text.getPreferredSize().height + JBUI.scale(8))));
-        JPanel panel = new JPanel(new java.awt.BorderLayout(0, JBUI.scale(12)));
-        panel.add(pane, java.awt.BorderLayout.CENTER);
+        JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(12)));
+        panel.add(pane, BorderLayout.CENTER);
         status.setEditable(false);
         status.setLineWrap(true);
         status.setWrapStyleWord(true);
@@ -58,10 +62,10 @@ final class StudioAiProposalDialog extends StudioDialogWrapper {
         status.setVisible(false);
         completion.setIcon(AllIcons.General.InspectionsOK);
         completion.setVisible(false);
-        feedback.add(completion, java.awt.BorderLayout.NORTH);
-        feedback.add(status, java.awt.BorderLayout.CENTER);
+        feedback.add(completion, BorderLayout.NORTH);
+        feedback.add(status, BorderLayout.CENTER);
         feedback.setVisible(false);
-        panel.add(feedback, java.awt.BorderLayout.SOUTH);
+        panel.add(feedback, BorderLayout.SOUTH);
         return panel;
     }
     @Override protected void doOKAction() {
@@ -81,7 +85,7 @@ final class StudioAiProposalDialog extends StudioDialogWrapper {
             status.setText(StudioBundle.message("ai.Generating"));
             pack();
             generation.whenComplete((ignored, failure) ->
-                    com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater(() -> {
+                    ApplicationManager.getApplication().invokeLater(() -> {
                         if (project.isDisposed()) return;
                         String message = StudioBundle.message(failure == null ? (proposal.fileBased ? "ai.FileApplyFinished" : "ai.ApplyFinished") : "ai.ApplyGenerationFailed");
                         if (!isDisposed()) {
@@ -90,7 +94,7 @@ final class StudioAiProposalDialog extends StudioDialogWrapper {
                                 completion.setText(paragraphs[0]);
                                 completion.setVisible(true);
                                 status.setText(paragraphs.length > 1 ? paragraphs[1] : "");
-                                status.setFont(UIManager.getFont("Label.font").deriveFont(java.awt.Font.BOLD));
+                                status.setFont(UIManager.getFont("Label.font").deriveFont(Font.BOLD));
                                 feedback.setBorder(JBUI.Borders.compound(
                                         BorderFactory.createLineBorder(JBColor.border()), JBUI.Borders.empty(10)));
                             } else {
@@ -98,9 +102,9 @@ final class StudioAiProposalDialog extends StudioDialogWrapper {
                             }
                             pack();
                         } else if (failure == null) {
-                            org.ikasan.studio.ui.StudioUIUtils.displayIdeaInfoMessage(project, message);
+                            StudioUIUtils.displayIdeaInfoMessage(project, message);
                         } else {
-                            org.ikasan.studio.ui.StudioUIUtils.displayIdeaErrorMessage(project, message);
+                            StudioUIUtils.displayIdeaErrorMessage(project, message);
                         }
                     }));
         } catch (RuntimeException failure) {

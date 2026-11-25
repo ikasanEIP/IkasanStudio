@@ -1,20 +1,19 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.project.Project;
+import java.util.List;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.execution.HarnessOverrideService;
 import org.ikasan.studio.intellij.runtime.TestFtpServerService;
 import org.ikasan.studio.intellij.runtime.TestSftpServerService;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class IkasanModuleHarnessLayoutTest {
     @Test void ftpReservationUsesTheActiveOverrideAddressRatherThanTheSavedRemoteAddress() throws Exception {
@@ -60,7 +59,7 @@ class IkasanModuleHarnessLayoutTest {
         assertThat(IkasanModuleViewHandler.hasVisibleLeftFileServer(project, module(producer))).isFalse();
     }
 
-    private static org.ikasan.studio.core.model.ikasan.instance.Module module(FlowElement element) throws Exception {
+    private static Module module(FlowElement element) throws Exception {
         Flow flow = TestFixtures.getUnbuiltFlow(TestFixtures.BASE_META_PACK).name("Harness layout").build();
         element.setContainingFlow(flow);
         element.setContainingFlowRoute(flow.getFlowRoute());

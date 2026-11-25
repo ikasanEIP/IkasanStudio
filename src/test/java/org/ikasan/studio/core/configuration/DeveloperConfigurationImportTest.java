@@ -1,13 +1,15 @@
 package org.ikasan.studio.core.configuration;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import java.nio.file.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.util.List;
-import static org.assertj.core.api.Assertions.*;
+import java.util.Set;
 import org.ikasan.studio.core.configuration.EnvironmentProperties.Preview;
 import org.ikasan.studio.core.configuration.EnvironmentProperties.Selection;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.assertj.core.api.Assertions.*;
 
 class DeveloperConfigurationImportTest {
     @TempDir Path root;
@@ -55,7 +57,7 @@ class DeveloperConfigurationImportTest {
         Preview snapshot = EnvironmentProperties.previewDeveloperDestination(root);
         assertThat(snapshot.previous()).isEqualTo(Files.readString(target));
         Preview selected = new EnvironmentProperties.Preview(EnvironmentProperties.Selection.developerOwned("duplicate=chosen\n"),
-                snapshot.previous(), List.of(), java.util.Set.of(), java.util.Set.of(), snapshot.applicationPrevious());
+                snapshot.previous(), List.of(), Set.of(), Set.of(), snapshot.applicationPrevious());
         EnvironmentProperties.apply(root, List.of(selected), true);
         assertThat(Files.readString(target)).isEqualTo("duplicate=chosen\n");
         assertThat(EnvironmentProperties.withDeveloperImport("spring.config.import=classpath:studio-local.properties\n"))

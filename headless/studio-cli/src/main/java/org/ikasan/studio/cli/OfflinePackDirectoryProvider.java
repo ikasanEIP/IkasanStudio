@@ -1,8 +1,9 @@
 package org.ikasan.studio.cli;
 
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 import org.ikasan.studio.core.metapack.loading.MetaPackDirectoryProvider;
 import org.ikasan.studio.core.metapack.loading.OfflinePackBundle;
-import java.nio.file.Path;
 
 /** Uses the exported distribution, never an IntelliJ installation or user-configured pack store. */
 public final class OfflinePackDirectoryProvider implements MetaPackDirectoryProvider {
@@ -13,7 +14,7 @@ public final class OfflinePackDirectoryProvider implements MetaPackDirectoryProv
     }
     private static Path location() {
         try { return Path.of(OfflinePackDirectoryProvider.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toAbsolutePath(); }
-        catch (java.net.URISyntaxException e) { throw new IllegalStateException("Cannot locate the offline tools distribution", e); }
+        catch (URISyntaxException e) { throw new IllegalStateException("Cannot locate the offline tools distribution", e); }
     }
     @Override public Path directory() {
         Path home = toolsHome();

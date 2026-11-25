@@ -1,20 +1,23 @@
 package org.ikasan.studio.integration.ikasan;
 
+import com.fasterxml.jackson.core.JsonParser.Feature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.net.http.HttpResponse;
 
 /** The file-transfer duplicate store is separate from failed-event exclusions. */
 public final class FileDuplicateHistoryClient {
     private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-            .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .enable(Feature.STRICT_DUPLICATE_DETECTION);
     private FileDuplicateHistoryClient() { }
     public record Entry(String id, String clientId, String criteria, long size,
                         String modified, String accessed, String created) { }
@@ -57,7 +60,7 @@ public final class FileDuplicateHistoryClient {
     // Jackson's Date representation depends on the running module's serialization configuration.
     private static String date(JsonNode value) throws IOException {
         if (value == null || value.isNull()) return "";
-        if (value.isIntegralNumber()) return java.time.Instant.ofEpochMilli(value.asLong()).toString();
+        if (value.isIntegralNumber()) return Instant.ofEpochMilli(value.asLong()).toString();
         if (value.isTextual()) return value.asText();
         throw new IOException("Invalid file-filter timestamp");
     }

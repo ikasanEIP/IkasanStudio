@@ -1,41 +1,48 @@
 package org.ikasan.studio.ui.actions;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.application.ApplicationManager;
-import org.ikasan.studio.intellij.runtime.TestSftpServerService;
-import org.ikasan.studio.intellij.navigation.StudioNavigator;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.integration.sftp.LocalSftpHarness;
+import org.ikasan.studio.intellij.configuration.HarnessOverridesDialog;
 import org.ikasan.studio.intellij.execution.HarnessOverrideService;
+import org.ikasan.studio.intellij.navigation.StudioNavigator;
 import org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint;
+import org.ikasan.studio.intellij.runtime.TestSftpServerService;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
 
 /** Starts the project-owned server for explicitly selected SFTP component overrides. */
 public final class SftpHarnessAction {
     private SftpHarnessAction() { }
     public static void choose(Project project) {
-        org.ikasan.studio.intellij.configuration.HarnessOverridesDialog.show(project);
+        HarnessOverridesDialog.show(project);
     }
     public static void start(Project project) {
         TestSftpServerService service = project.getService(TestSftpServerService.class);
-        HarnessOverrideService overrides = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        HarnessOverrideService overrides = project.getService(HarnessOverrideService.class);
         boolean selected = overrides.targets().stream().anyMatch(t -> "SFTP".equals(t.kind())
                 && overrides.nextSelection().contains(t.id()));
         if (!selected) { choose(project); return; }
         service.setLocal(true);
-        Module module = project.getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
-        java.util.List<String> directories = new java.util.ArrayList<>();
+        Module module = project.getService(UiContext.class).getIkasanModule();
+        List<String> directories = new ArrayList<>();
         if (module != null) for (Flow flow : module.getFlows()) for (FlowElement element : flow.getFlowElementsNoExternalEndPoints()) {
             if ("SFTP Endpoint".equals(element.getComponentMeta().getEndpointKey()))
-                directories.add("component-" + org.ikasan.studio.core.model.analysis.HarnessOverrides.id(element));
+                directories.add("component-" + HarnessOverrides.id(element));
         }
         background(project, () -> {
             // The project service owns this server and closes it on stop/disposal.
             @SuppressWarnings("resource") LocalSftpHarness server = service.start();
-            for (String directory : directories) java.nio.file.Files.createDirectories(server.home().resolve(directory));
+            for (String directory : directories) Files.createDirectories(server.home().resolve(directory));
             ApplicationManager.getApplication().invokeLater(() -> {
                 if (!project.isDisposed()) StudioUIUtils.displayIdeaInfoMessage(project,
                         StudioBundle.message("sftpHarness.started", server.port(), server.home()));
@@ -45,7 +52,7 @@ public final class SftpHarnessAction {
     public static void stop(Project project) { stop(project, false); }
     static void stop(Project project, boolean confirmed) {
         Endpoint endpoint = project.getService(TestSftpServerService.class).listeningEndpoint();
-        if (!confirmed && endpoint != null && !HarnessStopWarning.confirm(project, java.util.List.of(endpoint))) return;
+        if (!confirmed && endpoint != null && !HarnessStopWarning.confirm(project, List.of(endpoint))) return;
         background(project, () -> project.getService(TestSftpServerService.class).stop());
     }
     public static void showFiles(Project project) {
@@ -61,7 +68,7 @@ public final class SftpHarnessAction {
             catch (Exception failure) {
                 String detail = StopTestMailServerAction.redact(failure.getMessage() == null
                         ? failure.getClass().getSimpleName() : failure.getMessage());
-                com.intellij.openapi.diagnostic.Logger.getInstance(SftpHarnessAction.class).warn("SFTP harness: " + detail);
+                Logger.getInstance(SftpHarnessAction.class).warn("SFTP harness: " + detail);
                 ApplicationManager.getApplication().invokeLater(() -> {
                     if (!project.isDisposed()) StudioUIUtils.displayIdeaErrorMessage(project,
                             StudioBundle.message("sftpHarness.failed", detail));

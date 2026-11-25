@@ -1,10 +1,5 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.FreemarkerUtils;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
@@ -13,12 +8,19 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import static org.assertj.core.api.Assertions.*;
 import java.util.Hashtable;
+import java.util.regex.Pattern;
 import javax.naming.Context;
 import javax.naming.spi.InitialContextFactory;
 import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+import org.ikasan.studio.core.generator.FreemarkerUtils;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.assertj.core.api.Assertions.*;
 
 class ActiveMqTrustedPackagesRuntimeTest {
     @TempDir Path temporary;
@@ -41,7 +43,7 @@ class ActiveMqTrustedPackagesRuntimeTest {
                 "-classpath", classpath, "-d", temporary.toString(), generated.toString(), orderSource.toString())).isZero();
         List<URL> urls = new ArrayList<>();
         urls.add(temporary.toUri().toURL());
-        for (String entry : classpath.split(java.util.regex.Pattern.quote(File.pathSeparator))) {
+        for (String entry : classpath.split(Pattern.quote(File.pathSeparator))) {
             urls.add(Path.of(entry).toUri().toURL());
         }
         try (URLClassLoader loader = new URLClassLoader(urls.toArray(URL[]::new), ClassLoader.getPlatformClassLoader())) {
@@ -54,9 +56,9 @@ class ActiveMqTrustedPackagesRuntimeTest {
                 assertThatThrownBy(() -> helperClass.getMethod("initialFactoryName", String.class).invoke(null,
                         "example.OtherProvider")).isInstanceOf(InvocationTargetException.class)
                         .hasCauseInstanceOf(IllegalArgumentException.class);
-                InitialContextFactory initial = (javax.naming.spi.InitialContextFactory) helperClass.getConstructor().newInstance();
-                Hashtable<String,Object> environment = new Hashtable<String, Object>();
-                environment.put(javax.naming.Context.PROVIDER_URL, "tcp://localhost:61616");
+                InitialContextFactory initial = (InitialContextFactory) helperClass.getConstructor().newInstance();
+                Hashtable<String,Object> environment = new Hashtable<>();
+                environment.put(Context.PROVIDER_URL, "tcp://localhost:61616");
                 environment.put("connectionFactoryNames", "ConnectionFactory,XAConnectionFactory");
                 Context context = initial.getInitialContext(environment);
                 try {

@@ -1,24 +1,30 @@
 package org.ikasan.studio.cli;
 
-import org.ikasan.studio.core.migration.*;
-import org.ikasan.studio.core.persistence.json.StudioJson;
+import com.fasterxml.jackson.core.JsonParser.Feature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.PrintStream;
 import java.nio.file.*;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
+import org.ikasan.studio.core.generator.ProjectArtifactRenderer;
+import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.loading.OfflinePackBundle;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
+import org.ikasan.studio.core.migration.*;
 import org.ikasan.studio.core.migration.MigrationWorkspace.Change;
 import org.ikasan.studio.core.migration.ModelMigration.Plan;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.StudioJson;
 
 /** Standalone entry point sharing the IDE's migration renderer and recovery transaction. */
 public final class StudioMigrationCli {
@@ -45,7 +51,7 @@ public final class StudioMigrationCli {
                         """);
                 return 0;
             }
-            org.ikasan.studio.core.metapack.loading.OfflinePackBundle.verifyIfPresent(OfflinePackDirectoryProvider.toolsHome());
+            OfflinePackBundle.verifyIfPresent(OfflinePackDirectoryProvider.toolsHome());
             Map<String,String> options = options(args);
             ObjectMapper json = strictJson();
             switch (args[0]) {
@@ -53,15 +59,15 @@ public final class StudioMigrationCli {
                     boolean render = args[0].equals("render");
                     requireKeys(options, render ? Set.of("--project", "--output") : Set.of("--project"));
                     Path root = Path.of(options.get("--project")).toRealPath();
-                    Module module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(
+                    Module module = ComponentIO.validatePersistedModuleJson(
                             Files.readString(root.resolve(MigrationArtifacts.MODEL)), "offline project model", false);
-                    MetaPackManifest pack = org.ikasan.studio.core.metapack.ComponentLibrary.getMetaPackManifest(module.getVersion());
+                    MetaPackManifest pack = ComponentLibrary.getMetaPackManifest(module.getVersion());
                     if (render) {
                         Path requested = Path.of(options.get("--output")).toAbsolutePath().normalize();
                         if (requested.getParent() == null) throw new IllegalArgumentException("Choose a new render directory");
                         Path output = requested.getParent().toRealPath().resolve(requested.getFileName());
                         if (output.startsWith(root)) throw new IllegalArgumentException("Render output must be outside the source project");
-                        Map<String,String> artifacts = org.ikasan.studio.core.generator.ProjectArtifactRenderer.render(module, Files.readString(root.resolve("pom.xml")));
+                        Map<String,String> artifacts = ProjectArtifactRenderer.render(module, Files.readString(root.resolve("pom.xml")));
                         writeRender(output, artifacts);
                         out.println("Rendered preview: " + output);
                     }
@@ -81,14 +87,14 @@ public final class StudioMigrationCli {
                     out.println(plan.report());
                     if (!plan.canApply()) return 2;
                     ArrayList<Change> changes = new ArrayList<>(MigrationWorkspace.prepare(root, MigrationArtifacts.render(plan, pom)));
-                    List<Change> importChanges = updateImports ? UserImportMigration.prepare(root, plan) : List.<MigrationWorkspace.Change>of();
+                    List<Change> importChanges = updateImports ? UserImportMigration.prepare(root, plan) : List.of();
                     changes.addAll(importChanges);
                     String report = updateImports ? UserImportMigration.report(plan.report(), importChanges) : plan.report();
                     if (updateImports) out.println(report);
                     // Detect source/POM edits during rendering as well as after the preview.
                     requireOriginal(changes, MigrationArtifacts.MODEL, source);
                     requireOriginal(changes, "pom.xml", pom);
-                    org.ikasan.studio.cli.StudioMigrationCli.Preview preview = new Preview(1, root.toString(), plan.targetVersion(), report, changes, userHashes(root), updateImports);
+                    Preview preview = new Preview(1, root.toString(), plan.targetVersion(), report, changes, userHashes(root), updateImports);
                     Path file = Path.of(options.get("--plan")).toAbsolutePath().normalize();
                     if (file.startsWith(root.resolve("generated")) || file.startsWith(root.resolve("user")))
                         throw new IllegalArgumentException("Store the preview outside generated/ and user/.");
@@ -102,14 +108,14 @@ public final class StudioMigrationCli {
                 }
                 case "apply" -> {
                     requireKeys(options, Set.of("--plan"));
-                    org.ikasan.studio.cli.StudioMigrationCli.Preview preview = json.readValue(Files.readString(Path.of(options.get("--plan"))), Preview.class);
+                    Preview preview = json.readValue(Files.readString(Path.of(options.get("--plan"))), Preview.class);
                     if (preview.formatVersion() != 1) throw new IllegalArgumentException("Unsupported preview format.");
                     Path root = Path.of(preview.project()).toRealPath();
                     if (!userHashes(root).equals(preview.userHashes())) throw new IllegalStateException("Developer files changed after preview; preview again.");
                     Plan plan = ModelMigration.analyse(Files.readString(root.resolve(MigrationArtifacts.MODEL)), preview.targetVersion());
                     if (!plan.canApply()) throw new IllegalStateException(plan.report());
                     ArrayList<Change> current = new ArrayList<>(MigrationWorkspace.prepare(root, MigrationArtifacts.render(plan, Files.readString(root.resolve("pom.xml")))));
-                    List<Change> importChanges = preview.updateUserImports() ? UserImportMigration.prepare(root, plan) : List.<MigrationWorkspace.Change>of();
+                    List<Change> importChanges = preview.updateUserImports() ? UserImportMigration.prepare(root, plan) : List.of();
                     current.addAll(importChanges);
                     if (!sameChanges(current, preview.changes())) throw new IllegalStateException("Project or renderer changed after preview; preview again.");
                     // Commit enforces permitted paths, rejects symlinks/concurrent edits and rolls back write failures.
@@ -144,10 +150,10 @@ public final class StudioMigrationCli {
         }
     }
 
-    private static com.fasterxml.jackson.databind.ObjectMapper strictJson() {
+    private static ObjectMapper strictJson() {
         return StudioJson.newObjectMapper()
-                .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-                .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+                .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                .enable(Feature.STRICT_DUPLICATE_DETECTION);
     }
     private static boolean sameChanges(List<MigrationWorkspace.Change> current, List<MigrationWorkspace.Change> preview) throws Exception {
         if (current.size()!=preview.size()) return false;

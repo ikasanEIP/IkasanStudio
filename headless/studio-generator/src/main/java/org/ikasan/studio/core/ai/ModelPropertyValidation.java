@@ -1,20 +1,21 @@
 package org.ikasan.studio.core.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.*;
+import java.util.ArrayList;
+import java.util.Map.Entry;
+import java.util.stream.Stream;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.ai.ImplementationReadiness.Finding;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionActionMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
 import org.ikasan.studio.core.model.StringCollectionValues;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 
-import java.util.*;
-import java.util.stream.Stream;
 import static org.ikasan.studio.core.ai.ImplementationReadiness.Target;
-import java.util.ArrayList;
-import java.util.Map.Entry;
-import org.ikasan.studio.core.ai.ImplementationReadiness.Finding;
-import org.ikasan.studio.core.metapack.model.ExceptionActionMeta;
-import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
 
 /** Validates saved values without instantiating components, changing the model or revealing credentials. */
 final class ModelPropertyValidation {
@@ -35,7 +36,7 @@ final class ModelPropertyValidation {
                 if (flow.path("consumer").isObject()) components.add(flow.get("consumer"));
                 flow.path("flowElements").forEach(components::add);
                 if (flow.path("exceptionResolver").isObject()) {
-                    ExceptionResolverMeta resolver = (org.ikasan.studio.core.metapack.model.ExceptionResolverMeta)
+                    ExceptionResolverMeta resolver = (ExceptionResolverMeta)
                             ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Exception Resolver");
                     for (Entry<String,JsonNode> rule : flow.get("exceptionResolver").properties()) {
                         ExceptionActionMeta action = resolver.getExceptionActionWithName(rule.getValue().path("theAction").asText());
@@ -55,7 +56,7 @@ final class ModelPropertyValidation {
                     } else validate(meta, component, name, componentName, Target.COMPONENT, findings);
                 }
             }
-        } catch (org.ikasan.studio.core.StudioBuildException failure) {
+        } catch (StudioBuildException failure) {
             findings.add(new ImplementationReadiness.Finding("", "Module", MODEL, 1,
                     "PROPERTIES_NOT_CHECKED", "Property metadata is unavailable; check the selected meta-pack."));
         }

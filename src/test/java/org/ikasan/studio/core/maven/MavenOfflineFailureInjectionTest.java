@@ -1,9 +1,13 @@
 package org.ikasan.studio.core.maven;
 
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import java.nio.file.*;
-import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class MavenOfflineFailureInjectionTest {
@@ -28,14 +32,14 @@ class MavenOfflineFailureInjectionTest {
         try {
             process = new ProcessBuilder("mvn", "-o", "-B", "-Dmaven.repo.local=" + directory.resolve("empty-repository"),
                     "-f", pom.toString(), "compile").redirectErrorStream(true).redirectOutput(log.toFile()).start();
-        } catch (java.io.IOException absentMaven) {
-            org.junit.jupiter.api.Assumptions.assumeTrue(false, "Maven executable required: " + absentMaven);
+        } catch (IOException absentMaven) {
+            Assumptions.assumeTrue(false, "Maven executable required: " + absentMaven);
             return;
         }
         try {
             assertTrue(process.waitFor(30, TimeUnit.SECONDS), "Offline Maven did not terminate");
             assertNotEquals(0, process.exitValue());
-            assertTrue(Files.readString(log).toLowerCase(java.util.Locale.ROOT).contains("offline"));
+            assertTrue(Files.readString(log).toLowerCase(Locale.ROOT).contains("offline"));
             assertEquals("{\"revision\":1}", Files.readString(model));
             assertEquals("// developer implementation", Files.readString(source));
         } finally { process.destroyForcibly(); }

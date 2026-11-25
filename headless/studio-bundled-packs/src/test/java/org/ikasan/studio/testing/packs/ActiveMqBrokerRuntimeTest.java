@@ -1,10 +1,5 @@
 package org.ikasan.studio.testing.packs;
 
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
-import javax.tools.ToolProvider;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -13,6 +8,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
+import javax.tools.ToolProvider;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -77,7 +77,7 @@ class ActiveMqBrokerRuntimeTest {
                 "--release", variant.equals("v3") ? "11" : "17", "-classpath", classpath,
                 "-d", directory.toString(), probe.toString()));
         List<URL> urls = new ArrayList<>(); urls.add(directory.toUri().toURL());
-        for (String file : classpath.split(java.util.regex.Pattern.quote(File.pathSeparator))) urls.add(Path.of(file).toUri().toURL());
+        for (String file : classpath.split(Pattern.quote(File.pathSeparator))) urls.add(Path.of(file).toUri().toURL());
         try (URLClassLoader loader = new URLClassLoader(urls.toArray(URL[]::new), ClassLoader.getPlatformClassLoader())) {
             Thread thread = Thread.currentThread(); ClassLoader previous = thread.getContextClassLoader();
             try { thread.setContextClassLoader(loader); loader.loadClass("BrokerProbe").getMethod("run").invoke(null); }

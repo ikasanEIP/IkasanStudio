@@ -1,40 +1,43 @@
 package org.ikasan.studio.ui.component.canvas;
 
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.PasteProvider;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import javax.swing.JMenuItem;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
-import org.ikasan.studio.intellij.project.FlowSourceTransfer;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.persistence.json.FlowClipboard;
+import org.ikasan.studio.intellij.project.FlowSourceTransfer;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.DeleteComponentUndoableAction;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.JMenuItem;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.util.Objects;
-import java.util.Map;
-import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /** Uses IntelliJ's Edit menu and configured shortcuts; model reconstruction runs off the EDT. */
 final class FlowClipboardActions implements CopyProvider, PasteProvider {
@@ -104,9 +107,9 @@ final class FlowClipboardActions implements CopyProvider, PasteProvider {
             String packageName = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
             runTask("menu.CopyFlow", () -> FlowClipboard.encode(snapshot,
                     ReadAction.nonBlocking(() -> FlowSourceTransfer.capture(project, packageName))
-                            .expireWith(project.getService(org.ikasan.studio.intellij.project.StudioProjectInitialisationService.class)).executeSynchronously()), encoded ->
+                            .expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously()), encoded ->
                     CopyPasteManager.getInstance().setContents(new StringSelection(encoded)));
-        } catch (com.intellij.openapi.progress.ProcessCanceledException canceled) { throw canceled; }
+        } catch (ProcessCanceledException canceled) { throw canceled; }
         catch (RuntimeException exception) { failed(exception); }
     }
 
@@ -123,14 +126,14 @@ final class FlowClipboardActions implements CopyProvider, PasteProvider {
         });
     }
 
-    private <T> void runTask(String title, java.util.concurrent.Callable<T> work, java.util.function.Consumer<T> success) {
+    private <T> void runTask(String title, Callable<T> work, Consumer<T> success) {
         pendingTasks++;
         new Task.Backgroundable(project, StudioBundle.message(title), true) {
             private T result;
             private Exception failure;
             @Override public void run(@NotNull ProgressIndicator indicator) {
                 try { result = work.call(); }
-                catch (com.intellij.openapi.progress.ProcessCanceledException canceled) { throw canceled; }
+                catch (ProcessCanceledException canceled) { throw canceled; }
                 catch (Exception exception) { failure = exception; }
                 indicator.checkCanceled();
             }
@@ -168,7 +171,7 @@ final class FlowClipboardActions implements CopyProvider, PasteProvider {
             String destinationPackage = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
             runTask("menu.PasteFlow", () -> ReadAction.nonBlocking(() ->
                     FlowSourceTransfer.relocate(project, sources, destinationPackage))
-                    .expireWith(project.getService(org.ikasan.studio.intellij.project.StudioProjectInitialisationService.class)).executeSynchronously(), relocated -> {
+                    .expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously(), relocated -> {
                 if (project.isDisposed() || context.getIkasanModule() != module || context.getDesignerCanvas() != canvas
                         || !Objects.equals(version, module.getVersion())
                         || !Objects.equals(destinationPackage, GeneratorUtils.getUserImplementedClassesPackageName(module, flow))

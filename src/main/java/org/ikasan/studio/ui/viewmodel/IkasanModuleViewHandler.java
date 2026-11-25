@@ -1,19 +1,19 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.project.Project;
+import java.awt.*;
+import javax.swing.*;
+import org.ikasan.studio.core.model.analysis.TestFtpServerLinks.Link;
 import org.ikasan.studio.core.model.analysis.TestFtpServerLinks;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.runtime.HarnessEndpointSettings;
 import org.ikasan.studio.intellij.runtime.TestFtpServerService;
+import org.ikasan.studio.intellij.runtime.TestSftpServerService;
 import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
-
-import javax.swing.*;
-import java.awt.*;
-import org.ikasan.studio.core.model.analysis.TestFtpServerLinks.Link;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.intellij.runtime.TestSftpServerService;
 
 public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     // A file-server card and connector need their own column beyond the fixed
@@ -103,17 +103,17 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
         if (ftp.isRunning()) {
             for (Link link : TestFtpServerLinks.findLinks(module)) {
                 for (FlowElement consumer : link.consumers()) {
-                    if (ftp.isRunningAt(org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effectiveFtp(project, consumer)))
+                    if (ftp.isRunningAt(HarnessEndpointSettings.effectiveFtp(project, consumer)))
                         return true;
                 }
             }
         }
-        TestSftpServerService sftp = project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
+        TestSftpServerService sftp = project.getService(TestSftpServerService.class);
         return sftp.isRunning() && module.getFlows().stream()
                 .flatMap(flow -> flow.getFlowElementsNoExternalEndPoints().stream())
                 .anyMatch(element -> element.getComponentMeta().isConsumer()
                         && "SFTP Endpoint".equals(element.getComponentMeta().getEndpointKey())
-                        && org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, element));
+                        && HarnessEndpointSettings.effective(project, element));
     }
 
     static int flowXStartPoint(int configured, boolean leftFileServer) {

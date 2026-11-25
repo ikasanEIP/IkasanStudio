@@ -1,31 +1,36 @@
 package org.ikasan.studio.intellij.project;
 
-import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.*;
-import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.integration.ikasan.RuntimeImportClient;
-import org.ikasan.studio.ui.StudioBundle;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextArea;
+import com.intellij.util.ui.JBUI;
+import java.awt.*;
 import java.awt.GridBagConstraints;
+import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.swing.*;
 import javax.swing.JPanel;
+import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import org.ikasan.studio.core.diagnostics.RuntimeImportReport.Endpoint;
+import org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage;
 import org.ikasan.studio.core.diagnostics.RuntimeImportReport;
 import org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents;
+import org.ikasan.studio.integration.ikasan.RuntimeImportClient;
+import org.ikasan.studio.intellij.diagnostics.RuntimeImportDiagnostics;
 import org.ikasan.studio.intellij.project.RuntimeImportConnectionSettings.Settings;
+import org.ikasan.studio.ui.StudioBundle;
 
 /** Fetches into memory only. The parent import dialog still owns conversion, review and import. */
 final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
-    private static final com.intellij.openapi.diagnostic.Logger LOG = com.intellij.openapi.diagnostic.Logger.getInstance(RuntimeImportConnectionDialog.class);
+    private static final Logger LOG = Logger.getInstance(RuntimeImportConnectionDialog.class);
     private final Project project;
     private final JBTextField url = new JBTextField("http://localhost:8080/");
     private final JBTextField module = new JBTextField();
@@ -51,10 +56,10 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
         setTitle(StudioBundle.message("import.remote.title"));
         setOKButtonText(StudioBundle.message("import.remote.fetch"));
         init();
-        DocumentListener previewListener = new javax.swing.event.DocumentListener() {
-            @Override public void insertUpdate(javax.swing.event.DocumentEvent event) { updateEndpointPreview(); }
-            @Override public void removeUpdate(javax.swing.event.DocumentEvent event) { updateEndpointPreview(); }
-            @Override public void changedUpdate(javax.swing.event.DocumentEvent event) { updateEndpointPreview(); }
+        DocumentListener previewListener = new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent event) { updateEndpointPreview(); }
+            @Override public void removeUpdate(DocumentEvent event) { updateEndpointPreview(); }
+            @Override public void changedUpdate(DocumentEvent event) { updateEndpointPreview(); }
         };
         url.getDocument().addDocumentListener(previewListener);
         module.getDocument().addDocumentListener(previewListener);
@@ -119,7 +124,7 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
         try {
             if (username.getText().isBlank() && secret.length > 0)
                 return new ValidationInfo(StudioBundle.message("import.remote.usernameRequired"), username);
-        } finally { java.util.Arrays.fill(secret, '\0'); }
+        } finally { Arrays.fill(secret, '\0'); }
         return null;
     }
 
@@ -134,8 +139,8 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
         char[] secret = password.getPassword();
         boolean include = configuration.isSelected();
         rememberConnection();
-        RuntimeImportReport report = org.ikasan.studio.intellij.diagnostics.RuntimeImportDiagnostics.get(project).start();
-        report.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.FETCH);
+        RuntimeImportReport report = RuntimeImportDiagnostics.get(project).start();
+        report.stage(Stage.FETCH);
         AtomicReference<Documents> fetched = new AtomicReference<>();
         AtomicReference<IOException> failure = new AtomicReference<>();
         try {
@@ -144,8 +149,8 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
                     fetched.set(RuntimeImportClient.fetch(base, name, user, secret, include,
                             () -> { ProgressManager.checkCanceled(); if (project.isDisposed()) throw new ProcessCanceledException(); }, LOG::info, (stage, status) -> {
                                 report.request(stage == RuntimeImportClient.RequestStage.METADATA
-                                        ? org.ikasan.studio.core.diagnostics.RuntimeImportReport.Endpoint.METADATA
-                                        : org.ikasan.studio.core.diagnostics.RuntimeImportReport.Endpoint.CONFIGURATION, status);
+                                        ? Endpoint.METADATA
+                                        : Endpoint.CONFIGURATION, status);
                                 if (status > 0 && status != 200) report.issue("DOCUMENT", stage.name() + "_HTTP_" + status);
                             }));
                 } catch (InterruptedException interrupted) {
@@ -165,7 +170,7 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
             if (documents != null) close(OK_EXIT_CODE);
         } catch (ProcessCanceledException cancelled) {
             report.cancelled(); throw cancelled;
-        } finally { java.util.Arrays.fill(secret, '\0'); }
+        } finally { Arrays.fill(secret, '\0'); }
     }
 
     private void rememberConnection() {

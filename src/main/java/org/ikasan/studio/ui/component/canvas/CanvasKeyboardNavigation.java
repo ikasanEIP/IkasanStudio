@@ -1,21 +1,20 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
-
-import javax.swing.*;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.Rectangle;
+import javax.swing.*;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 /** Local navigation bindings leave IDE shortcuts and normal Tab traversal intact. */
 final class CanvasKeyboardNavigation {
@@ -67,7 +66,7 @@ final class CanvasKeyboardNavigation {
         // Selection can be refused when the developer keeps pending property edits.
         if (context.getSelectedComponent() != target) return;
         AbstractViewHandlerIntellij handler = ViewHandlerCache.getAbstractViewHandler(project, target);
-        if (handler != null) canvas.scrollRectToVisible(new java.awt.Rectangle(
+        if (handler != null) canvas.scrollRectToVisible(new Rectangle(
                 handler.getLeftX(), handler.getTopY(), Math.min(handler.getWidth(), canvas.getVisibleRect().width),
                 Math.min(handler.getHeight(), canvas.getVisibleRect().height)));
         canvas.repaint();

@@ -1,17 +1,19 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.metapack.loading.ComponentLibraryLoader;
-
-import org.junit.jupiter.api.Test;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import java.util.concurrent.CompletableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.loading.ComponentLibraryLoader;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
+import org.ikasan.studio.core.metapack.validation.MetaPackValidator;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
-@org.junit.jupiter.api.Tag("packs")
+import static org.assertj.core.api.Assertions.assertThat;
+
+@Tag("packs")
 class OfficialPackLoadingTest {
     @Test
     void loadsTheVersionAndBomContractFromEachPackManifest() throws Exception {
@@ -31,10 +33,10 @@ class OfficialPackLoadingTest {
     @Test
     void packagedDependenciesAreBomManagedUnlessDeclaredAsOverrides() throws Exception {
         ComponentLibraryLoader loader = new ComponentLibraryLoader();
-        for (String version : java.util.List.of("V3.3.9", "V4.1.6")) {
+        for (String version : List.of("V3.3.9", "V4.1.6")) {
             Map<String,ComponentMeta> components = loader.load(version);
             MetaPackManifest manifest = loader.loadManifest(version);
-            org.ikasan.studio.core.metapack.validation.MetaPackValidator.validate(version, manifest, components);
+            MetaPackValidator.validate(version, manifest, components);
             assertThat(components.values()).allSatisfy(component -> {
                 if (component.getJarDependencies() != null) {
                     assertThat(component.getJarDependencies())

@@ -1,5 +1,12 @@
 package org.ikasan.studio.testing.packs;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Map;
+import java.util.TreeMap;
 import org.ikasan.studio.SharedResourceExtension;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.TestFixtures;
@@ -8,23 +15,16 @@ import org.ikasan.studio.core.generator.FlowsUserImplementedComponentTemplate;
 import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import java.util.Map;
-import java.util.Map.Entry;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
 
 /**
  * The readiness checker recognises unfinished scaffolds by their wording, so it silently misses any stub whose marker it
@@ -32,7 +32,7 @@ import org.ikasan.studio.core.metapack.model.ComponentMeta;
  * This generates every real stub in each pack, so a template that adds a marker the checker cannot see fails here.
  */
 @ExtendWith(SharedResourceExtension.class)
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 class ImplementationReadinessStubsTest {
     @TempDir Path root;
 

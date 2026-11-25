@@ -1,21 +1,21 @@
 package org.ikasan.studio.core.maven;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.DependencyManagement;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
-import org.ikasan.studio.core.model.ModelUtils;
-
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
 import org.apache.maven.model.Build;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
+import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginManagement;
+import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest.BomImport;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest.MavenPlugin;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
+import org.ikasan.studio.core.model.ModelUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Used to model the top level pom for the project
@@ -41,7 +41,7 @@ public class IkasanPomModel {
     }
 
     /** Align only Studio-managed build settings, preserving unrelated Maven configuration. */
-    public void applyBuildContract(org.ikasan.studio.core.metapack.model.MetaPackManifest manifest) {
+    public void applyBuildContract(MetaPackManifest manifest) {
         addProperty("version.ikasan", manifest.ikasanVersion());
         addProperty(MAVEN_COMPILER_SOURCE, manifest.javaVersion());
         addProperty(MAVEN_COMPILER_TARGET, manifest.javaVersion());
@@ -55,19 +55,19 @@ public class IkasanPomModel {
     }
 
     /** Plugin management supplies defaults without activating plugins or replacing developer configuration. */
-    private void addMissingPluginDefault(org.ikasan.studio.core.metapack.model.MetaPackManifest.MavenPlugin requested) {
-        if (model.getBuild() == null) model.setBuild(new org.apache.maven.model.Build());
+    private void addMissingPluginDefault(MavenPlugin requested) {
+        if (model.getBuild() == null) model.setBuild(new Build());
         Build build = model.getBuild();
         boolean explicit = build.getPlugins().stream().anyMatch(plugin -> samePlugin(plugin, requested)
                 && plugin.getVersion() != null && !plugin.getVersion().isBlank());
         if (explicit) return;
-        if (build.getPluginManagement() == null) build.setPluginManagement(new org.apache.maven.model.PluginManagement());
+        if (build.getPluginManagement() == null) build.setPluginManagement(new PluginManagement());
         PluginManagement management = build.getPluginManagement();
         Plugin existing = management.getPlugins().stream().filter(plugin -> samePlugin(plugin, requested))
                 .findFirst().orElse(null);
         if (existing != null && existing.getVersion() != null && !existing.getVersion().isBlank()) return;
         if (existing == null) {
-            existing = new org.apache.maven.model.Plugin();
+            existing = new Plugin();
             existing.setGroupId(requested.groupId());
             existing.setArtifactId(requested.artifactId());
             management.addPlugin(existing);
@@ -76,14 +76,14 @@ public class IkasanPomModel {
         isDirty = true;
     }
 
-    private static boolean samePlugin(org.apache.maven.model.Plugin existing,
-            org.ikasan.studio.core.metapack.model.MetaPackManifest.MavenPlugin requested) {
+    private static boolean samePlugin(Plugin existing,
+            MavenPlugin requested) {
         String group = existing.getGroupId() == null ? "org.apache.maven.plugins" : existing.getGroupId();
         return requested.groupId().equals(group) && requested.artifactId().equals(existing.getArtifactId());
     }
 
     /** Check a detached copy so previewing generation does not dirty the cached POM. */
-    public boolean needsBuildContractUpdate(org.ikasan.studio.core.metapack.model.MetaPackManifest manifest) {
+    public boolean needsBuildContractUpdate(MetaPackManifest manifest) {
         IkasanPomModel candidate = new IkasanPomModel(model.clone());
         candidate.applyBuildContract(manifest);
         return candidate.isDirty();
@@ -100,8 +100,7 @@ public class IkasanPomModel {
             writer.write(pomStringWriter, model);
             return pomStringWriter.toString();
         } catch (IOException e) {
-            LOG.warn("STUDIO: WARN, an error occurred trying to get the pom as a string. Trace: [" +
-                    Arrays.toString(e.getStackTrace()) + "]");
+            LOG.warn("STUDIO: Could not serialize the Maven POM", e);
         }
         return "";
     }

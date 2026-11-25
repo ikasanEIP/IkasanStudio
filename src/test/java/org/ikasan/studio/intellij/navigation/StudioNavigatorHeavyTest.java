@@ -1,22 +1,24 @@
 package org.ikasan.studio.intellij.navigation;
 
 import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.impl.NonBlockingReadActionImpl;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.HeavyPlatformTestCase;
-import com.intellij.testFramework.LightVirtualFile;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StudioNavigatorHeavyTest extends HeavyPlatformTestCase {
@@ -54,13 +56,13 @@ public class StudioNavigatorHeavyTest extends HeavyPlatformTestCase {
         NavigationTarget target = NavigationTarget.forFile(psi).withOffset(3);
         Application application = ApplicationManager.getApplication();
         // Run the same target resolution used by the navigator, away from the EDT.
-        AtomicReference<PsiElement> resolved = new java.util.concurrent.atomic.AtomicReference<>();
-        com.intellij.openapi.application.ReadAction.nonBlocking(() -> {
+        AtomicReference<PsiElement> resolved = new AtomicReference<>();
+        ReadAction.nonBlocking(() -> {
             assertFalse(application.isDispatchThread());
             application.assertReadAccessAllowed();
             return target.elementToNavigateTo();
-        }).finishOnUiThread(com.intellij.openapi.application.ModalityState.defaultModalityState(), resolved::set)
-                .submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService());
+        }).finishOnUiThread(ModalityState.defaultModalityState(), resolved::set)
+                .submit(AppExecutorUtil.getAppExecutorService());
         NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
         assertNotNull(resolved.get());
         StudioNavigator.navigateToSource(myProject, target, true);

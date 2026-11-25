@@ -5,23 +5,24 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.impl.LaterInvocator;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import org.ikasan.studio.core.metapack.loading.MetaPackStore;
-import org.ikasan.studio.ui.StudioBundle;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicReference;
-import static org.mockito.Mockito.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
 import org.ikasan.studio.core.metapack.loading.MetaPackStore.Entry;
+import org.ikasan.studio.core.metapack.loading.MetaPackStore;
+import org.ikasan.studio.ui.StudioBundle;
 import org.mockito.MockedStatic;
 
+import static org.mockito.Mockito.*;
+
 public class MetaPackChooserHeavyTest extends HeavyPlatformTestCase {
-    public void testInstallUsesWarmedChooserWhileModal() throws Exception {
+    public void testInstallUsesWarmedChooserWhileModal() {
         AnActionEvent event = mock(AnActionEvent.class);
         when(event.getProject()).thenReturn(getProject());
         assertWarmedChooser(() -> new InstallMetaPackAction().actionPerformed(event), "metaPack.ChooseJar");
@@ -40,7 +41,7 @@ public class MetaPackChooserHeavyTest extends HeavyPlatformTestCase {
                 try { choose.invoke(dialog); }
                 catch (ReflectiveOperationException failure) { throw new AssertionError(failure); }
             }, "metaPack.Update");
-        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+        } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
     }
 
     private void assertWarmedChooser(Runnable open, String titleKey) {

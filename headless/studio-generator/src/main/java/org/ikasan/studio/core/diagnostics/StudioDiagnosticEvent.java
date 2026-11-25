@@ -2,6 +2,7 @@ package org.ikasan.studio.core.diagnostics;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.UUID;
 
@@ -47,6 +48,6 @@ public final class StudioDiagnosticEvent {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
                     .digest((SESSION_SALT + name).getBytes(StandardCharsets.UTF_8))).substring(0, 16);
-        } catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
+        } catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
     }
 }

@@ -1,13 +1,12 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
-import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
-
+import java.util.ArrayList;
+import java.util.List;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
@@ -87,7 +86,7 @@ class JmsFlowConnectionsTest {
         router.setContainingFlow(producerFlow);
         router.setContainingFlowRoute(producerFlow.getFlowRoute());
         producerFlow.getFlowRoute().getFlowElements().add(router);
-        FlowRoute branch = FlowRoute.flowRouteBuilder().flow(producerFlow).flowElements(new java.util.ArrayList<>(List.of(producer))).build();
+        FlowRoute branch = FlowRoute.flowRouteBuilder().flow(producerFlow).flowElements(new ArrayList<>(List.of(producer))).build();
         producer.setContainingFlow(producerFlow);
         producer.setContainingFlowRoute(branch);
         producerFlow.getFlowRoute().getChildRoutes().add(branch);

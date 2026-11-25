@@ -1,25 +1,26 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
-import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.*;
+import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.model.ModelUtils;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
-
-import java.util.*;
-import java.util.List;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ModelUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class holds all the information about the ikasan module flow.
@@ -107,11 +108,11 @@ public class Module extends BasicElement {
     }
 
     @JsonIgnore
-    private final java.util.Map<String, Object> automaticH2Defaults = new java.util.HashMap<>();
+    private final Map<String, Object> automaticH2Defaults = new HashMap<>();
 
     @Override public void defaultUnsetMandatoryProperties() {
-        List<String> missing = java.util.List.of(ComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME)
-                .stream().filter(key -> getPropertyValueAsString(key).isBlank()).toList();
+        List<String> missing = Stream.of(ComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME)
+                .filter(key -> getPropertyValueAsString(key).isBlank()).toList();
         super.defaultUnsetMandatoryProperties();
         for (String key : missing) if (getPropertyValue(key) != null) automaticH2Defaults.put(key, getPropertyValue(key));
     }

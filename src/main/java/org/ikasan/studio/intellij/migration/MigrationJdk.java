@@ -1,20 +1,21 @@
 package org.ikasan.studio.intellij.migration;
 
 import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.util.lang.JavaVersion;
 import org.ikasan.studio.ui.StudioBundle;
 import org.jetbrains.idea.maven.execution.MavenRunner;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.project.MavenWorkspaceSettingsComponent;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.openapi.module.Module;
-import com.intellij.util.lang.JavaVersion;
 
 /** IDE settings change only after the reviewed migration files have been committed. Also reused by model.json import. */
 public final class MigrationJdk {
@@ -23,7 +24,7 @@ public final class MigrationJdk {
     public static boolean matches(Sdk sdk, int required) {
         if (sdk == null || !(sdk.getSdkType() instanceof JavaSdk)) return false;
         String versionString = sdk.getVersionString();
-        JavaVersion version = versionString == null ? null : com.intellij.util.lang.JavaVersion.tryParse(versionString);
+        JavaVersion version = versionString == null ? null : JavaVersion.tryParse(versionString);
         return version != null && version.feature == required;
     }
 
@@ -37,7 +38,7 @@ public final class MigrationJdk {
             ProjectRootManager.getInstance(project).setProjectSdk(sdk);
             // Explicit module SDKs otherwise survive a change of project SDK.
             MavenProjectsManager maven = MavenProjectsManager.getInstance(project);
-            for (Module module : com.intellij.openapi.module.ModuleManager.getInstance(project).getModules()) {
+            for (Module module : ModuleManager.getInstance(project).getModules()) {
                 if (maven.isMavenizedModule(module)) ModuleRootModificationUtil.setSdkInherited(module);
             }
         });

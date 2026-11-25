@@ -2,6 +2,8 @@ package org.ikasan.studio.testing.packs;
 
 import org.ikasan.studio.SharedResourceExtension;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -9,7 +11,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 
 /**
  * The application package name is free text that the generators paste into "package ...;" statements and the
@@ -17,10 +18,10 @@ import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
  * generated code that does not compile, with errors far from the cause. It is validated when the user edits it.
  */
 @ExtendWith(SharedResourceExtension.class)
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 class ModulePackageNameValidationTest {
 
-    private static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta pattern(String pack) throws Exception {
+    private static ComponentPropertyMeta pattern(String pack) throws Exception {
         ComponentPropertyMeta meta = ComponentLibrary.getIkasanComponents(pack).get("Module").getMetadata("applicationPackageName");
         assertTrue(meta.hasValidation(), "applicationPackageName should be validated in " + pack);
         assertNotNull(meta.getValidationMessage());

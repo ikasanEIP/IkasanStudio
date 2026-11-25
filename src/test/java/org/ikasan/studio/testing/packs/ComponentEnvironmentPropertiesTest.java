@@ -1,28 +1,29 @@
 package org.ikasan.studio.testing.packs;
 
+import java.io.StringReader;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate;
 import org.ikasan.studio.core.generator.ModelTemplate;
 import org.ikasan.studio.core.generator.PropertiesTemplate;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import java.io.StringReader;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@org.junit.jupiter.api.Tag("packs")
+import static org.junit.jupiter.api.Assertions.*;
+
+@Tag("packs")
 class ComponentEnvironmentPropertiesTest {
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
@@ -64,7 +65,7 @@ class ComponentEnvironmentPropertiesTest {
         properties.load(new StringReader(PropertiesTemplate.create(restored)));
         assertEquals("0", properties.getProperty("myflow1.receive.jms.consumer.receiveTimeout"));
         assertEquals("false", properties.getProperty("myflow1.receive.jms.consumer.pubSubDomain"));
-        assertEquals(jndi, org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper().readValue(
+        assertEquals(jndi, StudioJson.newObjectMapper().readValue(
                 properties.getProperty("myflow1.receive.jms.consumer.connectionFactoryJndiProperties"), Map.class));
         assertTrue(factory.contains(".setConnectionFactoryJndiProperties(studioStringMap("), factory);
         assertTrue(factory.contains(".setReceiveTimeout(myFlow1ReceiveJmsConsumerReceiveTimeout)"), factory);

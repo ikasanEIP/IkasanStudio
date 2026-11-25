@@ -2,16 +2,16 @@ package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
-import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.intellij.runtime.TestFtpServerService;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.nio.file.Path;
+import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.intellij.runtime.HarnessEndpointSettings;
+import org.ikasan.studio.intellij.runtime.TestFtpServerService;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
 
 /** Redisplays the connection and filesystem details for the running embedded FTP server. */
 public final class ShowTestFtpServerDetailsAction implements ActionListener {
@@ -32,7 +32,7 @@ public final class ShowTestFtpServerDetailsAction implements ActionListener {
             return;
         }
         TestFtpServerService service = project.getService(TestFtpServerService.class);
-        TestFtpServerConfiguration configuration = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effectiveFtp(project, flowElement);
+        TestFtpServerConfiguration configuration = HarnessEndpointSettings.effectiveFtp(project, flowElement);
         Path rootDirectory = service.getRootDirectory();
         if (!service.isRunningAt(configuration) || rootDirectory == null) {
             StudioUIUtils.displayIdeaInfoMessage(project,

@@ -1,11 +1,13 @@
 package org.ikasan.studio.testing.engine;
 
-import com.tngtech.archunit.core.importer.ClassFileImporter;
-import org.junit.jupiter.api.Test;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
-@org.junit.jupiter.api.Tag("engine")
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+
+@Tag("engine")
 class EngineTestBoundaryTest {
     @Test
     void engineTestsDoNotDependOnPackFixturesOrIntellij() {

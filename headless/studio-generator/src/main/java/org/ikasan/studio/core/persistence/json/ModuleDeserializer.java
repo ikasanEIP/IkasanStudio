@@ -1,32 +1,31 @@
 package org.ikasan.studio.core.persistence.json;
 
-import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.StudioBuildRuntimeException;
-import org.ikasan.studio.core.StudioBuildUtils;
-import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.instance.*;
-import org.ikasan.studio.core.metapack.model.*;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioBuildRuntimeException;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.*;
+import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.ikasan.studio.core.generator.Generator.FLOWS_TAG;
+import static org.ikasan.studio.core.metapack.ComponentLibrary.DEFAULT_IKASAN_PACK;
+import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
 import static org.ikasan.studio.core.model.ikasan.instance.Transition.DEFAULT_TRANSITION_NAME;
 import static org.ikasan.studio.core.persistence.json.SerializerUtils.getTypedValue;
-import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
-import static org.ikasan.studio.core.metapack.ComponentLibrary.DEFAULT_IKASAN_PACK;
 
 public class ModuleDeserializer extends StdDeserializer<Module> {
     private static final Logger LOG = LoggerFactory.getLogger(ModuleDeserializer.class);
@@ -192,7 +191,8 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
         if (!transitions.isEmpty()) {
             String startKey = getStartKey(transitions);
-            if (startKey.isBlank()) {                LOG.warn("STUDIO: ERROR: Could not find the start of the transition chain " + transitions);
+            if (startKey.isBlank()) {
+                LOG.warn("STUDIO: ERROR: Could not find the start of the transition chain {}", transitions);
             } else {
                 Map<String, List<Transition>> transitionsMap = transitionToMap(transitions);
                 List<Transition> firstTransition = transitionsMap.get(startKey);
@@ -358,7 +358,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
         if (currentTransition != null) {
             FlowElement fromElement = flowElementsMap.get(currentTransition.getFrom());
             if (fromElement == null) {
-                LOG.warn("STUDIO: WARNING: From element was null, this could happen if no consumer and first element is router, or user broke transition " + currentTransition);
+                LOG.warn("STUDIO: WARNING: From element was null, this could happen if no consumer and first element is router, or user broke transition {}", currentTransition);
             // We never add the consumer
             // We never add the router as a fromElement, the endpoint is its connector in the new route
             } else {
@@ -485,7 +485,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 LOG.warn("STUDIO: SERIOUS: Attempt to setup routes but routeNames was null");
             }
             else if (!(typeSafeAttempt instanceof List<?> rawRouteNames)) {
-                LOG.warn("STUDIO: SERIOUS: Attempt to setup routes but routeNames does not contain a list, routeNames was [" + typeSafeAttempt + "]");
+                LOG.warn("STUDIO: SERIOUS: Attempt to setup routes but routeNames does not contain a list, routeNames was [{}]", typeSafeAttempt);
             }
             else {
                 routeNames = rawRouteNames.stream()
@@ -493,12 +493,12 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                     .map(String.class::cast)
                     .collect(Collectors.toList());
                 if (routeNames.size() != rawRouteNames.size()) {
-                    LOG.warn("STUDIO: SERIOUS: Attempt to setup routes but routeNames list contains non-string values, routeNames was [" + typeSafeAttempt + "]");
+                    LOG.warn("STUDIO: SERIOUS: Attempt to setup routes but routeNames list contains non-string values, routeNames was [{}]", typeSafeAttempt);
                 }
             }
             if (routeNames == null) {
                 routeNames = guessRouteNames(router, transitionsMap);
-                LOG.warn("STUDIO: Attempted to guess routename, got [" + routeNames + "]");
+                LOG.warn("STUDIO: Attempted to guess routename, got [{}]", routeNames);
             }
 
             for(String routeName : routeNames) {
@@ -545,7 +545,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 ComponentMeta endpointComponentMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, endpointComponentName);
                 endpointFlowElement = FlowElementFactory.createFlowElement(metapackVersion, endpointComponentMeta, flow, containingFlowRoute, routeName);
             } catch (StudioBuildException se) {
-                LOG.warn("STUDIO: A studio exception was raised, please investigate: " + se.getMessage() + " Trace: " + Arrays.asList(se.getStackTrace()));
+                LOG.warn("STUDIO: Could not create the endpoint for route [{}]", routeName, se);
             }
         } else {
             LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, null, null, null, null));
@@ -667,7 +667,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
 
                             ComponentPropertyMeta componentPropertyMeta = exceptionActionMeta.getMetaProperty(fieldName);
                             if (componentPropertyMeta == null) {
-                                LOG.warn("STUDIO: DATA CORRUPTION : Attempting to set properties field that has no recorded meta, fieldName=[" + fieldName + "], skipping");
+                                LOG.warn("STUDIO: DATA CORRUPTION : Attempting to set properties field that has no recorded meta, fieldName=[{}], skipping", fieldName);
                             } else {
                                 exceptionResolution.setPropertyValue(componentPropertyMeta, fieldName, value);
                             }
@@ -742,10 +742,11 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
             ComponentMeta componentMeta = ComponentLibrary.getIkasanComponentByDeserialisationKey(
                     metapackVersion, ComponentImplementationAliases.canonical(implementingClass), componentType, additionalKey);
             if (componentMeta == null)
-                LOG.warn("Studio: Serious: Could not create a flow element using implementingClass [" + implementingClass + "] componentType [" + componentType + "] additionalKey [" + additionalKey + "] ignoring element.");
+                LOG.warn("Studio: Serious: Could not create a flow element using implementingClass [{}] componentType [{}] additionalKey [{}], ignoring element.",
+                        implementingClass, componentType, additionalKey);
             else {
                 try {
-                    jsonNode = ComponentPropertyAliases.normalize((com.fasterxml.jackson.databind.node.ObjectNode) jsonNode, componentMeta);
+                    jsonNode = ComponentPropertyAliases.normalize((ObjectNode) jsonNode, componentMeta);
                 } catch (IOException invalidAliases) {
                     throw new StudioBuildException(invalidAliases.getMessage(), invalidAliases);
                 }
@@ -807,7 +808,7 @@ public class ModuleDeserializer extends StdDeserializer<Module> {
                 if (decorator != null && decorator.isValid()) {
                     decorators.add(decorator);
                 } else {
-                    LOG.warn("STUDIO: WARNING, attempt to add invalid decorator of [" + decorator + "] was ignored");
+                    LOG.warn("STUDIO: WARNING, attempt to add invalid decorator of [{}] was ignored", decorator);
                 }
             }
         }

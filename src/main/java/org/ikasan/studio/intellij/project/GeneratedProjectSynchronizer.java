@@ -1,46 +1,60 @@
 package org.ikasan.studio.intellij.project;
 
-import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import org.jetbrains.idea.maven.project.MavenProjectsManager;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.generator.HarnessOverridesTemplate;
+import org.ikasan.studio.core.generator.ModuleTestWiring;
+import org.ikasan.studio.core.importer.SourceModuleImport;
 import org.ikasan.studio.core.maven.IkasanPomModel;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.ai.StudioImplementationReadiness;
 import org.ikasan.studio.intellij.navigation.NavigationTarget;
+import org.ikasan.studio.intellij.project.NavigationTextReader.Snapshot;
 import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
 import static org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME;
 import static org.ikasan.studio.intellij.project.StudioProjectFiles.replaceJsonModelFileSafely;
 import static org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage;
-import org.ikasan.studio.intellij.project.NavigationTextReader.Snapshot;
 
 /**
  * Encapsulates the Intellij representation of the ikasan Module
@@ -77,7 +91,7 @@ public class GeneratedProjectSynchronizer {
             completion.complete(null);
             return completion;
         }
-        if (project.isDisposed()) return CompletableFuture.failedFuture(new java.util.concurrent.CancellationException("Project closed"));
+        if (project.isDisposed()) return CompletableFuture.failedFuture(new CancellationException("Project closed"));
         AtomicReference<Boolean> pomNeedsUpdate = new AtomicReference<>();
         UiContext uiContext = project.getService(UiContext.class);
         long revision = uiContext.beginGenerationRequest(completion, request);
@@ -85,11 +99,11 @@ public class GeneratedProjectSynchronizer {
             completion.completeExceptionally(new IllegalStateException("A version migration is in progress."));
             return completion;
         }
-        com.intellij.openapi.Disposable lifetime = () -> completion.completeExceptionally(
-                new java.util.concurrent.CancellationException("Project closed during generation"));
+        Disposable lifetime = () -> completion.completeExceptionally(
+                new CancellationException("Project closed during generation"));
         completion.whenComplete((result, failure) -> {
             uiContext.endGeneration();
-            com.intellij.openapi.util.Disposer.dispose(lifetime);
+            Disposer.dispose(lifetime);
             if (failure != null && uiContext.isLatestGeneration(revision)) reportGenerationFailure(failure);
         });
         try {
@@ -97,7 +111,7 @@ public class GeneratedProjectSynchronizer {
             // guidelines flag Project/Application as parents to avoid, since they can accumulate disposables for
             // the whole session; StudioProjectInitialisationService is this plugin's own project-scoped
             // Disposable with the same effective lifetime (created for the project, disposed when it closes).
-            com.intellij.openapi.util.Disposer.register(
+            Disposer.register(
                     project.getService(StudioProjectInitialisationService.class), lifetime);
         } catch (RuntimeException failure) {
             completion.completeExceptionally(failure);
@@ -126,7 +140,7 @@ public class GeneratedProjectSynchronizer {
             }
             if (ikasanPomModel != null && (ikasanPomModel.isNewDependency(module.getAllUniqueSortedJarDependencies())
                     || ikasanPomModel.needsBuildContractUpdate(
-                            org.ikasan.studio.core.metapack.ComponentLibrary.getMetaPackManifest(module.getMetaVersion())))) {
+                            ComponentLibrary.getMetaPackManifest(module.getMetaVersion())))) {
                 pomNeedsUpdate.set(true);
             } else {
                 pomNeedsUpdate.set(false);
@@ -211,7 +225,7 @@ public class GeneratedProjectSynchronizer {
                     StudioBundle.message("action.GenerateSourceFromFlowDiagram"),
                     "Undo group ID");
                 completion.complete(null);
-                org.ikasan.studio.intellij.ai.StudioImplementationReadiness.check(project, false);
+                StudioImplementationReadiness.check(project, false);
                 } catch (Exception failure) {
                     completion.completeExceptionally(failure);
                 }
@@ -228,14 +242,14 @@ public class GeneratedProjectSynchronizer {
 
     /** All asynchronous failure paths report once through the generation completion future. */
     private void reportGenerationFailure(Throwable failure) {
-        if (project.isDisposed() || failure instanceof java.util.concurrent.CancellationException) return;
+        if (project.isDisposed() || failure instanceof CancellationException) return;
         LOG.warn(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_FAILED, failure, null, null, null));
         ApplicationManager.getApplication().invokeLater(() -> {
             if (!project.isDisposed()) {
                 String detail = failure.getMessage() == null ? failure.getClass().getSimpleName() : failure.getMessage();
-                org.ikasan.studio.ui.StudioUIUtils.displayIdeaErrorMessage(project,
+                StudioUIUtils.displayIdeaErrorMessage(project,
                         "<html><b>Ikasan Studio code generation failed</b><br><br>"
-                                + org.ikasan.studio.ui.StudioUIUtils.escapeHtml(detail)
+                                + StudioUIUtils.escapeHtml(detail)
                                 + "<br><br>The requested code update did not complete. Review the details above before regenerating."
                                 + "<br>The IDE log records this as GENERATION_FAILED.</html>");
             }
@@ -245,7 +259,7 @@ public class GeneratedProjectSynchronizer {
     private boolean stopObsoleteGeneration(UiContext context, Module module, long revision, CompletableFuture<Void> completion) {
         if (completion.isDone()) return true;
         if (project.isDisposed()) {
-            completion.completeExceptionally(new java.util.concurrent.CancellationException("Project closed"));
+            completion.completeExceptionally(new CancellationException("Project closed"));
             return true;
         }
         if (!context.isLatestGeneration(revision)) {
@@ -256,7 +270,7 @@ public class GeneratedProjectSynchronizer {
             return true;
         }
         if (context.getIkasanModule() != module) {
-            completion.completeExceptionally(new java.util.concurrent.CancellationException("Model was reloaded during generation"));
+            completion.completeExceptionally(new CancellationException("Model was reloaded during generation"));
             return true;
         }
         return false;
@@ -269,7 +283,7 @@ public class GeneratedProjectSynchronizer {
             StudioProjectFiles.createFileWithDirectories(project, "generated/IKASAN_STUDIO.md", AiProjectContractGenerator.studioGuide(module.getMetaVersion()), null);
             StudioProjectFiles.createFileWithDirectories(project, "generated/src/main/model/model.schema.json", AiProjectContractGenerator.modelSchema(), null);
             StudioProjectFiles.createFileWithDirectories(project, "generated/src/main/model/component-catalogue.json", AiProjectContractGenerator.componentCatalogue(module.getMetaVersion()), null);
-        } catch (StudioBuildException | com.fasterxml.jackson.core.JsonProcessingException e) {
+        } catch (StudioBuildException | JsonProcessingException e) {
             throw new StudioRuntimeException("Could not generate the AI project contract", e);
         }
     }
@@ -278,7 +292,7 @@ public class GeneratedProjectSynchronizer {
      * Take the Model from memory and persist it to disk
      */
     public void saveModelJsonToDisk() {
-        if (project.isDisposed()) throw new java.util.concurrent.CancellationException("Project closed");
+        if (project.isDisposed()) throw new CancellationException("Project closed");
         UiContext uiContext = project.getService(UiContext.class);
         if (uiContext.isMigrationActive()) throw new IllegalStateException("A version migration is in progress.");
         if (uiContext.isModelPersistenceBlocked()) {
@@ -317,7 +331,7 @@ public class GeneratedProjectSynchronizer {
             StudioProjectFiles.createJavaSourceFile(project, StudioProjectFiles.GENERATED_CONTENT_ROOT,
                     StudioProjectFiles.SRC_MAIN_JAVA_CODE, IndependentH2Template.PACKAGE,
                     IndependentH2Template.CLASS_NAME, IndependentH2Template.create(), null);
-        } catch (java.io.IOException failure) {
+        } catch (IOException failure) {
             throw new StudioRuntimeException("Could not generate the independent H2 launcher", failure);
         }
 
@@ -364,9 +378,9 @@ public class GeneratedProjectSynchronizer {
             throw new StudioRuntimeException("Cannot verify support customisations: project has no base path");
         }
         try {
-            return !org.ikasan.studio.core.importer.SourceModuleImport.preserveSupportCustomisation(
-                    java.nio.file.Path.of(basePath), packageName, className);
-        } catch (java.io.IOException failure) {
+            return !SourceModuleImport.preserveSupportCustomisation(
+                    Path.of(basePath), packageName, className);
+        } catch (IOException failure) {
             throw new StudioRuntimeException("Cannot verify support customisations; generation stopped to preserve developer code", failure);
         }
     }
@@ -581,12 +595,12 @@ public class GeneratedProjectSynchronizer {
     }
 
     /** Resolve document/PSI on a pooled read action; loading either can refresh the workspace index. */
-    private void withNavigationText(PsiFile file, java.util.function.Consumer<NavigationTextReader.Snapshot> apply) {
+    private void withNavigationText(PsiFile file, Consumer<NavigationTextReader.Snapshot> apply) {
         withNavigationText(() -> file, apply);
     }
 
-    private void withNavigationText(java.util.function.Supplier<PsiFile> resolve,
-                                    java.util.function.Consumer<NavigationTextReader.Snapshot> apply) {
+    private void withNavigationText(Supplier<PsiFile> resolve,
+                                    Consumer<NavigationTextReader.Snapshot> apply) {
         UiContext context = project.getService(UiContext.class);
         ViewHandlerCache owner = context.getViewHandlerFactory();
         Module module = context.getIkasanModule();
@@ -616,7 +630,7 @@ public class GeneratedProjectSynchronizer {
 
     private record ComponentCodeTarget(FlowElement component, NavigationTarget target) {}
 
-    private void setFlowComponentNavigationTargets(Flow ikasanFlow, java.util.function.Supplier<PsiFile> resolve) {
+    private void setFlowComponentNavigationTargets(Flow ikasanFlow, Supplier<PsiFile> resolve) {
         UiContext context = project.getService(UiContext.class);
         ViewHandlerCache owner = context.getViewHandlerFactory();
         Module module = context.getIkasanModule();
@@ -625,7 +639,7 @@ public class GeneratedProjectSynchronizer {
         Runnable read = () -> NavigationTextReader.readComputed(project, () -> {
             Snapshot flowSnapshot = NavigationTextReader.readSnapshot(resolve.get());
             if (flowSnapshot == null) return null;
-            java.util.List<ComponentCodeTarget> targets = new java.util.ArrayList<>();
+            List<ComponentCodeTarget> targets = new ArrayList<>();
             VirtualFile base = StudioProjectFiles.getProjectBaseDir(project);
             int searchFromOffset = 0;
             for (FlowElement component : ikasanFlow.getFlowElementsNoExternalEndPoints()) {
@@ -802,14 +816,14 @@ public class GeneratedProjectSynchronizer {
         try {
             templateString = PropertiesTemplate.create(module);
             StudioProjectFiles.createFileWithDirectories(project,
-                    org.ikasan.studio.core.generator.HarnessOverridesTemplate.JAVA_PATH,
-                    org.ikasan.studio.core.generator.HarnessOverridesTemplate.javaSource(), null);
+                    HarnessOverridesTemplate.JAVA_PATH,
+                    HarnessOverridesTemplate.javaSource(), null);
             StudioProjectFiles.createFileWithDirectories(project,
-                    org.ikasan.studio.core.generator.HarnessOverridesTemplate.PATH,
-                    org.ikasan.studio.core.generator.HarnessOverridesTemplate.create(module), null);
+                    HarnessOverridesTemplate.PATH,
+                    HarnessOverridesTemplate.create(module), null);
             StudioProjectFiles.createFileWithDirectories(project,
-                    org.ikasan.studio.core.generator.ModuleTestWiring.PATH,
-                    org.ikasan.studio.core.generator.ModuleTestWiring.create(module), null);
+                    ModuleTestWiring.PATH,
+                    ModuleTestWiring.create(module), null);
             Map<String, String> applicationProperties = StudioBuildUtils.convertStringToMap(templateString);
             StudioProjectFiles.afterGenerationCommit(() ->
                     project.getService(UiContext.class).setApplicationProperties(applicationProperties));
@@ -854,6 +868,6 @@ public class GeneratedProjectSynchronizer {
             return null;
         }
         return ReadAction.nonBlocking(() -> PsiManager.getInstance(project).findFile(vFile))
-                .expireWith(project).executeSynchronously();
+                .expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously();
     }
 }

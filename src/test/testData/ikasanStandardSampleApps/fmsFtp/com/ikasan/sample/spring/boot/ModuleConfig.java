@@ -1,6 +1,11 @@
 package com.ikasan.sample.spring.boot;
+
+import javax.annotation.Resource;
+import javax.jms.ConnectionFactory;
 import org.apache.activemq.ActiveMQXAConnectionFactory;
-import org.ikasan.builder.*;
+import org.ikasan.builder.BuilderFactory;
+import org.ikasan.builder.FlowBuilder;
+import org.ikasan.builder.ModuleBuilder;
 import org.ikasan.builder.component.ComponentBuilder;
 import org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverter;
 import org.ikasan.component.converter.filetransfer.PayloadToMapConverter;
@@ -12,9 +17,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-
-import javax.annotation.Resource;
-import javax.jms.ConnectionFactory;
 @Configuration
 @ImportResource( {
         "classpath:filetransfer-service-conf.xml",
@@ -56,26 +58,24 @@ public class ModuleConfig {
     @Value("${jms.provider.url}")
     private String brokerUrl;
     @Bean
-    public org.ikasan.spec.module.Module getModule(){
-
-        // The Module buildRouteTree holda the module name
+    public Module getModule() {
         ModuleBuilder mb = builderFactory.getModuleBuilder("fms-ftp");
 
-        Flow jmsToFtpFlow = getJmsToFtpFlow(mb,builderFactory.getComponentBuilder());
-        Flow ftpToJmsFlow = getFtpConsumerFlow(mb,builderFactory.getComponentBuilder());
+        ComponentBuilder componentBuilder = builderFactory.getComponentBuilder();
+        Flow jmsToFtpFlow = getJmsToFtpFlow(mb, componentBuilder);
+        Flow ftpToJmsFlow = getFtpConsumerFlow(mb, componentBuilder);
 
-        org.ikasan.spec.module.Module module = mb.withDescription("Ftp Jms Sample Module")
+        return mb.withDescription("Ftp Jms Sample Module")
                 .addFlow(ftpToJmsFlow)
                 .addFlow(jmsToFtpFlow)
                 .build();
-        return module;
     }
 
     public Flow getFtpConsumerFlow(ModuleBuilder moduleBuilder, ComponentBuilder componentBuilder)
     {
         ConnectionFactory producerConnectionFactory = new ActiveMQXAConnectionFactory(brokerUrl);
 
-        Producer jmsProducer = builderFactory.getComponentBuilder().jmsProducer()
+        Producer jmsProducer = componentBuilder.jmsProducer()
             .setConnectionFactory(producerConnectionFactory)
             .setDestinationJndiName("ftp.private.jms.queue")
             .setConfiguredResourceId("ftpJmsProducer")
@@ -95,7 +95,7 @@ public class ModuleConfig {
                     .setFilenamePattern(ftpConsumerFilenamePattern)
                     .setChronological(true)
                     .setAgeOfFiles(30)
-                    .setMinAge(1l)
+                    .setMinAge(1L)
                     .setFilterDuplicates(true)
                     .setFilterOnLastModifiedDate(true)
                     .setRenameOnSuccess(false)
@@ -113,7 +113,7 @@ public class ModuleConfig {
     public Flow getJmsToFtpFlow(ModuleBuilder moduleBuilder, ComponentBuilder componentBuilder)
     {
         ConnectionFactory consumerConnectionFactory = new ActiveMQXAConnectionFactory(brokerUrl);
-        Consumer ftpJmsConsumer = builderFactory.getComponentBuilder().jmsConsumer()
+        Consumer ftpJmsConsumer = componentBuilder.jmsConsumer()
             .setConnectionFactory(consumerConnectionFactory)
             .setDestinationJndiName("ftp.private.jms.queue")
             .setConfiguredResourceId("ftpJmsConsumer")

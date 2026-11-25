@@ -2,41 +2,54 @@ package org.ikasan.studio.intellij.project;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.components.JBCheckBox;
-import com.intellij.ui.components.JBTextField;
-import org.ikasan.studio.core.importer.IkasanRuntimeImport;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.ui.UiContext;
-import java.util.concurrent.atomic.AtomicReference;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorFontType;
-import com.intellij.util.ui.JBFont;
-
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.TitledSeparator;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.components.JBTextArea;
+import com.intellij.ui.components.JBTextField;
+import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.ui.StudioBundle;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import com.intellij.util.ui.UIUtil;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage;
+import org.ikasan.studio.core.diagnostics.RuntimeImportReport;
 import org.ikasan.studio.core.importer.IkasanRuntimeImport.ComponentRef;
 import org.ikasan.studio.core.importer.IkasanRuntimeImport.MappingChoice;
 import org.ikasan.studio.core.importer.IkasanRuntimeImport.PackRecommendation;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents;
+import org.ikasan.studio.intellij.configuration.ImportEnvironmentPropertiesDialog;
+import org.ikasan.studio.intellij.diagnostics.RuntimeImportDiagnostics;
+import org.ikasan.studio.intellij.importer.ImportSourceModuleDialog;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.UiContext;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Collects a model.json for import either by pasting it directly or by choosing a file (which fills the same text
@@ -46,7 +59,7 @@ import org.ikasan.studio.core.importer.IkasanRuntimeImport.PackRecommendation;
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
 public class ImportModelJsonDialog extends ImportDialogWrapper {
     private final Project project;
-    private org.ikasan.studio.core.diagnostics.RuntimeImportReport activeReport;
+    private RuntimeImportReport activeReport;
     private final JBTextArea jsonArea = new JBTextArea();
     private final JBLabel chosenFilePathLabel = new JBLabel();
 
@@ -69,7 +82,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
     private final JPanel documentPanel = new JPanel(new BorderLayout(0, JBUI.scale(6)));
     private final JPanel optionalSteps = new JPanel();
     private final JPanel fileRow = new JPanel(new FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0));
-    private final JTabbedPane documents = new com.intellij.ui.components.JBTabbedPane();
+    private final JTabbedPane documents = new JBTabbedPane();
     private final JButton pasteMetadata = new JButton(StudioBundle.message("import.journey.pasteMetadata"));
     private final JButton pasteConfiguration = new JButton(StudioBundle.message("import.journey.pasteConfiguration"));
     private final JButton chooseFileButton = new JButton();
@@ -89,14 +102,14 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
 
     public ImportModelJsonDialog(Project project, Component parent) {
         this(project, parent, () -> ComponentLibrary.getMetapackList(
-                org.ikasan.studio.intellij.settings.IkasanStudioSettings.areSnapshotMetaPacksAllowed()));
+                IkasanStudioSettings.areSnapshotMetaPacksAllowed()));
     }
 
-    ImportModelJsonDialog(Project project, java.util.function.Supplier<java.util.List<String>> loadPacks) {
+    ImportModelJsonDialog(Project project, Supplier<List<String>> loadPacks) {
         this(project, null, loadPacks);
     }
 
-    private ImportModelJsonDialog(Project project, Component parent, java.util.function.Supplier<java.util.List<String>> loadPacks) {
+    private ImportModelJsonDialog(Project project, Component parent, Supplier<List<String>> loadPacks) {
         super(project, parent);
         this.project = project;
         setTitle(StudioBundle.message("import.journey.title"));
@@ -106,7 +119,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         detectedVersion.setColumns(20);
         detectedVersion.setText(StudioBundle.message("import.runtime.detectedMissing"));
         metadataRefresh.setRepeats(false);
-        com.intellij.openapi.util.Disposer.register(getDisposable(), metadataRefresh::stop);
+        Disposer.register(getDisposable(), metadataRefresh::stop);
         init();
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
@@ -246,7 +259,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         packLabel.setLabelFor(runtimePack);
         row.gridx = 0; row.gridy = 0; row.gridwidth = 2;
         row.fill = GridBagConstraints.HORIZONTAL;
-        runtimeOptions.add(new com.intellij.ui.TitledSeparator(StudioBundle.message("import.runtime.settings")), row);
+        runtimeOptions.add(new TitledSeparator(StudioBundle.message("import.runtime.settings")), row);
         row.gridwidth = 1; row.fill = GridBagConstraints.NONE;
         JBLabel detectedLabel = new JBLabel(StudioBundle.message("import.runtime.detected"));
         detectedLabel.setLabelFor(detectedVersion);
@@ -309,7 +322,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         fileRow.add(studioInputOr);
         studioPastePrompt.setLabelFor(jsonArea);
         fileRow.add(studioPastePrompt);
-        chosenFilePathLabel.setForeground(com.intellij.util.ui.UIUtil.getLabelForeground());
+        chosenFilePathLabel.setForeground(UIUtil.getLabelForeground());
         documentPanel.add(chosenFilePathLabel, BorderLayout.SOUTH);
         // Fetched JSON is inspectable; editing or choosing configuration explicitly switches to manual input.
         panel.add(documentPanel, BorderLayout.CENTER);
@@ -317,7 +330,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         JPanel bottom = new JPanel(new BorderLayout(0, JBUI.scale(6)));
         bottom.add(runtimeOptions, BorderLayout.NORTH);
         optionalSteps.setLayout(new BoxLayout(optionalSteps, BoxLayout.Y_AXIS));
-        optionalSteps.add(new com.intellij.ui.TitledSeparator(StudioBundle.message("import.journey.followUp")));
+        optionalSteps.add(new TitledSeparator(StudioBundle.message("import.journey.followUp")));
         optionalSteps.add(importHelp("import.journey.followUpHelp"));
         importSource.setAlignmentX(Component.LEFT_ALIGNMENT); optionalSteps.add(importSource);
         importProperties.setAlignmentX(Component.LEFT_ALIGNMENT); optionalSteps.add(importProperties);
@@ -351,8 +364,8 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         help.setLineWrap(true);
         help.setWrapStyleWord(true);
         help.setOpaque(false);
-        help.setFont(com.intellij.util.ui.UIUtil.getLabelFont());
-        help.setForeground(com.intellij.util.ui.UIUtil.getLabelForeground());
+        help.setFont(UIUtil.getLabelFont());
+        help.setForeground(UIUtil.getLabelForeground());
         help.setAlignmentX(Component.LEFT_ALIGNMENT);
         return help;
     }
@@ -363,7 +376,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
     }
 
     /** Acquisition changes only the editable preview; Import still performs mapping and explicit review. */
-    void applyFetchedDocuments(org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents documents) {
+    void applyFetchedDocuments(Documents documents) {
         if (documents == null || isDisposed() || project.isDisposed()) return;
         if (!runtimeMode.isSelected()) runtimeMode.doClick();
         acquisition = Acquisition.FETCHED;
@@ -396,7 +409,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
             versionHelp.setText(StudioBundle.message("import.runtime.versionManual"));
             return;
         }
-        ArrayList<String> available = new java.util.ArrayList<>();
+        ArrayList<String> available = new ArrayList<>();
         for (int i = 0; i < runtimePack.getItemCount(); i++) available.add(runtimePack.getItemAt(i));
         boolean maySelect = !explicitPackSelection;
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
@@ -470,7 +483,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
 
     String selectRuntimePack(String json) throws StudioBuildException {
         String selected = (String) runtimePack.getSelectedItem();
-        ArrayList<String> available = new java.util.ArrayList<>();
+        ArrayList<String> available = new ArrayList<>();
         for (int i = 0; i < runtimePack.getItemCount(); i++) available.add(runtimePack.getItemAt(i));
         String configurationAreaText = configurationArea.getText();
         AtomicReference<PackRecommendation> recommendation = new AtomicReference<>();
@@ -480,15 +493,15 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
                 if (activeReport != null) {
                     activeReport.inspect(json, configurationAreaText);
                     activeReport.pack(selected);
-                    activeReport.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.MATCHING);
+                    activeReport.stage(Stage.MATCHING);
                 }
                 // Honor a suitable explicit selection, otherwise suggest the closest available pack.
-                Optional<PackRecommendation> chosen = IkasanRuntimeImport.recommendPack(json, selected == null ? java.util.List.of() : java.util.List.of(selected));
+                Optional<PackRecommendation> chosen = IkasanRuntimeImport.recommendPack(json, selected == null ? List.of() : List.of(selected));
                 recommendation.set(chosen.isPresent() ? chosen.get()
                         : IkasanRuntimeImport.recommendPack(json, available).orElse(null));
             } catch (StudioBuildException problem) { failure.set(problem); }
         }, StudioBundle.message("import.runtime.reviewTitle"), true, project);
-        if (!completed || project.isDisposed()) throw new com.intellij.openapi.progress.ProcessCanceledException();
+        if (!completed || project.isDisposed()) throw new ProcessCanceledException();
         if (failure.get() != null) throw failure.get();
         PackRecommendation choice = recommendation.get();
         if (choice == null) return selected; // Conversion reports the unsupported version with actionable guidance.
@@ -497,7 +510,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
                     StudioBundle.message(choice.exact() ? "import.runtime.versionExact" : "import.runtime.versionPatch",
                             choice.sourceVersion(), choice.pack(), choice.targetVersion()),
                     StudioBundle.message("import.runtime.versionTitle"), Messages.getQuestionIcon());
-            if (answer != Messages.YES) throw new com.intellij.openapi.progress.ProcessCanceledException();
+            if (answer != Messages.YES) throw new ProcessCanceledException();
             runtimePack.setSelectedItem(choice.pack());
         }
         return choice.pack();
@@ -508,7 +521,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
         String pack = selectRuntimePack(json);
         String packageName = applicationPackage.getText().trim();
         activeReport.pack(pack);
-        AtomicReference<java.util.List<IkasanRuntimeImport.MappingChoice>> choices = new AtomicReference<>();
+        AtomicReference<List<IkasanRuntimeImport.MappingChoice>> choices = new AtomicReference<>();
         AtomicReference<StudioBuildException> inspectionFailure = new AtomicReference<>();
         boolean inspected = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
             try {
@@ -517,28 +530,28 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
             }
             catch (StudioBuildException problem) { inspectionFailure.set(problem); }
         }, StudioBundle.message("import.runtime.reviewTitle"), true, project);
-        if (!inspected || project.isDisposed()) throw new com.intellij.openapi.progress.ProcessCanceledException();
+        if (!inspected || project.isDisposed()) throw new ProcessCanceledException();
         if (inspectionFailure.get() != null) throw inspectionFailure.get();
         Map<ComponentRef,String> mappings = chooseMappings(choices.get());
         AtomicReference<IkasanRuntimeImport.Result> converted = new AtomicReference<>();
         AtomicReference<StudioBuildException> failure = new AtomicReference<>();
         boolean completed = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
             try {
-                activeReport.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.CONVERSION);
+                activeReport.stage(Stage.CONVERSION);
                 converted.set(IkasanRuntimeImport.convert(json, config, pack, packageName, mappings));
             }
             catch (StudioBuildException problem) { failure.set(problem); }
         }, StudioBundle.message("import.runtime.reviewTitle"), true, project);
-        if (!completed || project.isDisposed()) throw new com.intellij.openapi.progress.ProcessCanceledException();
+        if (!completed || project.isDisposed()) throw new ProcessCanceledException();
         if (failure.get() != null) throw failure.get();
         return converted.get();
     }
 
-    private java.util.Map<IkasanRuntimeImport.ComponentRef, String> chooseMappings(
-            java.util.List<IkasanRuntimeImport.MappingChoice> choices) {
-        java.util.Map<IkasanRuntimeImport.ComponentRef, String> result = new java.util.LinkedHashMap<>();
+    private Map<IkasanRuntimeImport.ComponentRef, String> chooseMappings(
+            List<IkasanRuntimeImport.MappingChoice> choices) {
+        Map<IkasanRuntimeImport.ComponentRef, String> result = new LinkedHashMap<>();
         if (choices.isEmpty()) return result;
-        java.util.Map<IkasanRuntimeImport.ComponentRef, ComboBox<String>> selectors = new java.util.LinkedHashMap<>();
+        Map<IkasanRuntimeImport.ComponentRef, ComboBox<String>> selectors = new LinkedHashMap<>();
         DialogWrapper dialog = new ImportDialogWrapper(project, getContentPane()) {
             { setTitle(StudioBundle.message("import.runtime.mappingTitle")); init(); }
             @Override protected JComponent createStudioContent() {
@@ -560,13 +573,13 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
                 panel.add(scroll, BorderLayout.CENTER);
                 return panel;
             }
-            @Override protected com.intellij.openapi.ui.ValidationInfo doValidate() {
+            @Override protected ValidationInfo doValidate() {
                 for (ComboBox<String> selector : selectors.values()) if (selector.getSelectedItem() == null)
-                    return new com.intellij.openapi.ui.ValidationInfo(StudioBundle.message("import.runtime.mappingRequired"), selector);
+                    return new ValidationInfo(StudioBundle.message("import.runtime.mappingRequired"), selector);
                 return null;
             }
         };
-        if (!dialog.showAndGet()) throw new com.intellij.openapi.progress.ProcessCanceledException();
+        if (!dialog.showAndGet()) throw new ProcessCanceledException();
         selectors.forEach((ref, selector) -> result.put(ref, (String) selector.getSelectedItem()));
         return result;
     }
@@ -591,7 +604,7 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
     }
 
     private Runnable sourceReviewStep(boolean propertiesAfterSource) {
-        return () -> new org.ikasan.studio.intellij.importer.ImportSourceModuleDialog(project, propertiesAfterSource).show();
+        return () -> new ImportSourceModuleDialog(project, propertiesAfterSource).show();
     }
 
     @Override
@@ -607,8 +620,8 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
                     StudioBundle.message("dialog.ImportModelJson"));
             return;
         }
-        activeReport = org.ikasan.studio.intellij.diagnostics.RuntimeImportDiagnostics.get(project).start();
-        activeReport.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.PARSE);
+        activeReport = RuntimeImportDiagnostics.get(project).start();
+        activeReport.stage(Stage.PARSE);
         try {
             if (runtimeMode.isSelected()) {
                 IkasanRuntimeImport.Result converted = convertRuntime(json);
@@ -618,8 +631,8 @@ public class ImportModelJsonDialog extends ImportDialogWrapper {
             ModelImporter.importFromText(project, json, chosenFilePathLabel.getText().isBlank()
                     ? StudioBundle.message("label.PastedModelJson") : chosenFilePathLabel.getText(), activeReport,
                     importSource.isSelected() ? sourceReviewStep(importProperties.isSelected())
-                            : importProperties.isSelected() ? () -> new org.ikasan.studio.intellij.configuration.ImportEnvironmentPropertiesDialog(project).show() : null);
-        } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+                            : importProperties.isSelected() ? () -> new ImportEnvironmentPropertiesDialog(project).show() : null);
+        } catch (ProcessCanceledException cancelled) {
             activeReport.cancelled();
             throw cancelled;
         } catch (StudioBuildException | RuntimeException e) {

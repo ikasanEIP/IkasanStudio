@@ -1,48 +1,51 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.*;
-
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.io.IOException;
 import java.util.ArrayList;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.List;
+import java.util.Set;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.maven.IkasanPomModel;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Not many components result in the need for adsitional elements in the pom.
  */
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
-    @org.junit.jupiter.params.provider.CsvSource({"V3.3.9,5.19.12", "V4.1.6,6.3.3", "V5.1.0,6.3.3"})
+    @CsvSource({"V3.3.9,5.19.12", "V4.1.6,6.3.3", "V5.1.0,6.3.3"})
     void regenerationRepairsExistingJmsClientAndBrokerVersions(String pack, String patchedVersion) throws Exception {
         Flow flow = TestFixtures.getUnbuiltFlow(pack)
                 .consumer(TrustedObjectPackagesTemplateTest.jms(pack, "Consumer")).build();
         flow.getFlowRoute().getFlowElements().add(TrustedObjectPackagesTemplateTest.jms(pack, "Producer"));
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, java.util.List.of(flow));
-        Model model = new org.apache.maven.model.Model();
-        for (String artifact : java.util.List.of("activemq-client", "activemq-broker")) {
-            Dependency old = new org.apache.maven.model.Dependency();
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
+        Model model = new Model();
+        for (String artifact : List.of("activemq-client", "activemq-broker")) {
+            Dependency old = new Dependency();
             old.setGroupId("org.apache.activemq");
             old.setArtifactId(artifact);
             old.setVersion("5.16.3");
             model.addDependency(old);
         }
-        IkasanPomModel pom = new org.ikasan.studio.core.maven.IkasanPomModel(model);
+        IkasanPomModel pom = new IkasanPomModel(model);
         for (Dependency dependency : module.getAllUniqueSortedJarDependencies()) {
             pom.checkIfDependancyAlreadyExists(dependency);
         }
@@ -56,9 +59,9 @@ public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
     }
 
     @ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"SFTP Consumer", "SFTP Producer"})
+    @ValueSource(strings = {"SFTP Consumer", "SFTP Producer"})
     void java11SftpComponentsDeclareEd25519Provider(String componentName) throws Exception {
-        ComponentMeta component = org.ikasan.studio.core.metapack.ComponentLibrary
+        ComponentMeta component = ComponentLibrary
                 .getIkasanComponentByKeyMandatory("V3.3.9", componentName);
         List<Dependency> providers = component.getJarDependencies().stream()
                 .filter(dependency -> "org.bouncycastle".equals(dependency.getGroupId())
@@ -75,22 +78,22 @@ public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
     void nestedRoutesContributeDependenciesAndSpringImports(String pack) throws Exception {
         FlowElement email = TestFixtures.getEmailProducer(pack);
         FlowElement nestedEmail = TestFixtures.getEmailProducer(pack);
-        FlowElement support = org.ikasan.studio.core.model.ikasan.instance.FlowElement.flowElementBuilder()
-                .componentMeta(org.ikasan.studio.core.metapack.model.ComponentMeta.builder().name("Nested support").componentTypeMeta(email.getComponentMeta().getComponentTypeMeta())
-                        .importResources(java.util.Set.of("classpath:nested-context.xml"))
-                        .importConfigurationClasses(java.util.Set.of("example.NestedConfiguration"))
+        FlowElement support = FlowElement.flowElementBuilder()
+                .componentMeta(ComponentMeta.builder().name("Nested support").componentTypeMeta(email.getComponentMeta().getComponentTypeMeta())
+                        .importResources(Set.of("classpath:nested-context.xml"))
+                        .importConfigurationClasses(Set.of("example.NestedConfiguration"))
                         .build()).componentName("nested support").build();
         Flow flow = TestFixtures.getUnbuiltFlow(pack)
                 .consumer(TestFixtures.getEventGeneratingConsumer(pack)).build();
-        FlowRoute nested = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
+        FlowRoute nested = FlowRoute.flowRouteBuilder()
                 .flow(flow).routeName("nested")
-                .flowElements(java.util.List.of(nestedEmail, support)).build();
-        FlowRoute branch = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
-                .flow(flow).routeName("route2").flowElements(java.util.List.of(email))
-                .childRoutes(java.util.List.of(nested)).build();
-        flow.setFlowRoute(org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
-                .flow(flow).flowElements(java.util.List.of()).childRoutes(java.util.List.of(branch)).build());
-        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, java.util.List.of(flow));
+                .flowElements(List.of(nestedEmail, support)).build();
+        FlowRoute branch = FlowRoute.flowRouteBuilder()
+                .flow(flow).routeName("route2").flowElements(List.of(email))
+                .childRoutes(List.of(nested)).build();
+        flow.setFlowRoute(FlowRoute.flowRouteBuilder()
+                .flow(flow).flowElements(List.of()).childRoutes(List.of(branch)).build());
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
 
         assertEquals(1, module.getAllUniqueSortedJarDependencies().stream()
                 .filter(d -> "org.ikasan".equals(d.getGroupId())

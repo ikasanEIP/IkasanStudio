@@ -1,17 +1,19 @@
 package org.ikasan.studio.testing.engine;
 
-import org.ikasan.studio.core.metapack.loading.MetaPackArchive;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
-import java.nio.file.*;
-import java.util.jar.*;
-import static org.junit.jupiter.api.Assertions.*;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.*;
+import java.util.jar.*;
 import java.util.jar.JarOutputStream;
+import org.ikasan.studio.core.metapack.loading.MetaPackArchive;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-@org.junit.jupiter.api.Tag("engine")
+import static org.junit.jupiter.api.Assertions.*;
+
+@Tag("engine")
 class MetaPackArchiveTest {
     @TempDir Path temporary;
 

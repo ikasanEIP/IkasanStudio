@@ -1,15 +1,15 @@
 package org.ikasan.studio.intellij.settings;
 
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.ui.StudioBundle;
-
-import javax.swing.JCheckBox;
+import com.intellij.util.xmlb.XmlSerializer;
 import java.awt.Component;
 import java.awt.Container;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 import org.ikasan.studio.intellij.settings.IkasanStudioSettings.State;
+import org.ikasan.studio.ui.StudioBundle;
 import org.jdom.Element;
 
 public class SnapshotMetaPacksHeavyTest extends HeavyPlatformTestCase {
@@ -33,8 +33,8 @@ public class SnapshotMetaPacksHeavyTest extends HeavyPlatformTestCase {
             assertFalse(configurable.isModified());
             State appliedState = settings.getState();
             assertNotNull(appliedState);
-            Element persisted = com.intellij.util.xmlb.XmlSerializer.serialize(appliedState);
-            State restored = com.intellij.util.xmlb.XmlSerializer.deserialize(persisted, IkasanStudioSettings.State.class);
+            Element persisted = XmlSerializer.serialize(appliedState);
+            State restored = XmlSerializer.deserialize(persisted, IkasanStudioSettings.State.class);
             settings.loadState(restored);
             configurable.reset();
             assertTrue(checkbox.isSelected());
@@ -62,9 +62,9 @@ public class SnapshotMetaPacksHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testSnapshotDetectionUsesRuntimeRatherThanPackArtifactRevision() {
-        MetaPackManifest released = new org.ikasan.studio.core.metapack.model.MetaPackManifest(
+        MetaPackManifest released = new MetaPackManifest(
                 2, "custom-pack", "4.1.6", "17", null, null, "0.1.0-SNAPSHOT", 1);
-        MetaPackManifest snapshot = new org.ikasan.studio.core.metapack.model.MetaPackManifest(
+        MetaPackManifest snapshot = new MetaPackManifest(
                 2, "custom-pack", "9.0.0-SNAPSHOT", "25", null, null, "1.0.0", 1);
         assertFalse(ComponentLibrary.isSnapshotRuntime(released));
         assertTrue(ComponentLibrary.isSnapshotRuntime(snapshot));

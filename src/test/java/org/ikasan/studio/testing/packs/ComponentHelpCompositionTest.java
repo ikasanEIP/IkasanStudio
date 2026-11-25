@@ -1,14 +1,14 @@
 package org.ikasan.studio.testing.packs;
 
 import org.ikasan.studio.core.metapack.ComponentLibrary;
-
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 class ComponentHelpCompositionTest {
     @ParameterizedTest
     @ValueSource(strings = {"V3.3.9", "V4.1.6"})

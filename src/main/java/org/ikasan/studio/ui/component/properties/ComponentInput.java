@@ -2,9 +2,9 @@ package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
-import lombok.Data;
-
+import java.awt.event.ActionEvent;
 import javax.swing.*;
+import lombok.Data;
 
 @Data
 public class ComponentInput {
@@ -60,7 +60,7 @@ public class ComponentInput {
                 .put(KeyStroke.getKeyStroke("ENTER"), actionKey);
         propertyValueField.getActionMap().put(actionKey, new AbstractAction() {
             @Override
-            public void actionPerformed(java.awt.event.ActionEvent event) {
+            public void actionPerformed(ActionEvent event) {
                 // The Update action validates and reads the current text, including uncommitted numeric edits.
                 if (propertyValueField.isEnabled() && propertyValueField.isEditable() && updateButton.isEnabled()) {
                     updateButton.doClick(0);

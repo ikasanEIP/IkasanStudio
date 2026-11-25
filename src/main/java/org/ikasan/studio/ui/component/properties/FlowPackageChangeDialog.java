@@ -1,23 +1,22 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.StudioBundle;
-
-import javax.swing.JComponent;
-import javax.swing.JPanel;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
 
 /** A bounded, wrapping warning keeps even long package names readable. */
 final class FlowPackageChangeDialog extends StudioDialogWrapper {
     private final String oldPackage;
     private final String newPackage;
-    private final java.util.List<String> files;
+    private final List<String> files;
 
-    FlowPackageChangeDialog(Project project, String oldPackage, String newPackage, java.util.List<String> files) {
+    FlowPackageChangeDialog(Project project, String oldPackage, String newPackage, List<String> files) {
         super(project, false);
         this.oldPackage = oldPackage;
         this.newPackage = newPackage;

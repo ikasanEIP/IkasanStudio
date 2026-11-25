@@ -1,24 +1,23 @@
 package org.ikasan.studio.intellij.runtime;
 
-import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
-
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Alarm;
+import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.Map;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.integration.ikasan.ModuleControlClient;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.runtime.state.FlowErrorStates.ErrorInfo;
 import org.ikasan.studio.runtime.state.FlowErrorStates;
 import org.ikasan.studio.runtime.state.FlowRuntimeStatuses;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.integration.ikasan.ModuleControlClient;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
-
-import java.util.Map;
-import java.util.Map.Entry;
-import org.ikasan.studio.runtime.state.FlowErrorStates.ErrorInfo;
 
 /**
  * Polls the running module's own Ikasan REST interface (moduleControl) for each flow's state, and flags any flow
@@ -155,7 +154,7 @@ public final class FlowErrorMonitorService implements Disposable {
             LOG.debug("STUDIO: flow error monitor could not reach moduleControl REST endpoint: " + e);
             return;
         }
-        Map<String, ModuleControlClient.ErrorDetails> fetched = new java.util.HashMap<>();
+        Map<String, ModuleControlClient.ErrorDetails> fetched = new HashMap<>();
         for (Entry<String,String> entry : flowStates.entrySet()) {
             if (disposed || project.isDisposed()) return;
             if (STOPPED_IN_ERROR_STATE.equals(entry.getValue())) {

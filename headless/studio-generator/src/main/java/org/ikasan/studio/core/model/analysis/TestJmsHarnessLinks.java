@@ -1,11 +1,11 @@
 package org.ikasan.studio.core.model.analysis;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Pairs each JMS test-consumer harness flow (created by {@code CreateTestJmsConsumerFlowAction}: a real
@@ -74,7 +74,7 @@ public final class TestJmsHarnessLinks {
     public static String newTestDestination(FlowElement producer) {
         String prefix = Boolean.TRUE.equals(producer.getPropertyValue("pubSubDomain"))
                 ? "dynamicTopics/" : "dynamicQueues/";
-        return prefix + "studio-test-" + java.util.UUID.randomUUID();
+        return prefix + "studio-test-" + UUID.randomUUID();
     }
 
     public static boolean isDivertedHarness(Flow flow) {

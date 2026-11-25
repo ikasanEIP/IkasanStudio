@@ -2,6 +2,7 @@ package org.ikasan.studio.intellij.editor;
 
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Arrays;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.LongSupplier;
@@ -38,7 +39,7 @@ final class DebugCanvasSelection {
             if (disposed.getAsBoolean() || !enabled.getAsBoolean() || selection != selectionRevision
                     || pause != pauseRevision.getAsLong() || pause == restoredPause
                     || !editors.isFileOpen(previous) || !pausedDebugSource.test(selected.getPath())
-                    || java.util.Arrays.stream(editors.getSelectedFiles()).noneMatch(selected::equals)) return;
+                    || Arrays.stream(editors.getSelectedFiles()).noneMatch(selected::equals)) return;
             restoredPause = pause;
             // Preserve focus in the debugger tool window, and reuse the existing Studio editor.
             editors.openFile(previous, false);

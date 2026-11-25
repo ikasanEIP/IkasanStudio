@@ -1,22 +1,24 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ValidationInfo;
-import org.jetbrains.annotations.NonNls;
-import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.jetbrains.annotations.NonNls;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 
 /**
  * Regression tests for Email Producer's toRecipient/from/ccRecipient/bccRecipient email-address validation:
@@ -118,7 +120,7 @@ public class ComponentPropertyEditRowRegexValidationTest {
 
     @Test
     public void clearingARequiredValueStillFailsValidation() {
-        ComponentPropertyMeta meta = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
+        ComponentPropertyMeta meta = ComponentPropertyMeta.builder()
                 .propertyName("requiredValue").mandatory(true).validation("[a-z]+").build();
         ComponentPropertyEditRow row = new ComponentPropertyEditRow(null, new ComponentProperty(meta, "old"),
                 false, () -> {}, new HashMap<>());
@@ -141,13 +143,13 @@ public class ComponentPropertyEditRowRegexValidationTest {
                     assertFalse(issues.isEmpty(), pack + " " + field + ": " + address);
                     assertTrue(issues.get(0).message.startsWith(field + ":"));
                     assertTrue(issues.get(0).message.contains(EMAIL_EXAMPLE));
-                    org.junit.jupiter.api.Assertions.assertEquals("error",
+                    Assertions.assertEquals("error",
                             row.getOverridingInputField().getClientProperty("JComponent.outline"));
-                    org.junit.jupiter.api.Assertions.assertNotNull(row.getPropertyTitleField().getIcon());
+                    Assertions.assertNotNull(row.getPropertyTitleField().getIcon());
                     row.getOverridingInputField().setText("bar@example.com");
                     assertTrue(row.doValidateAll().isEmpty());
-                    org.junit.jupiter.api.Assertions.assertNull(row.getOverridingInputField().getClientProperty("JComponent.outline"));
-                    org.junit.jupiter.api.Assertions.assertNull(row.getPropertyTitleField().getIcon());
+                    Assertions.assertNull(row.getOverridingInputField().getClientProperty("JComponent.outline"));
+                    Assertions.assertNull(row.getPropertyTitleField().getIcon());
                 }
                 for (String address : List.of("First.Last+orders@example.co.uk", "user_name@example-domain.com")) {
                     ComponentPropertyEditRow row = new ComponentPropertyEditRow(null,
@@ -172,36 +174,36 @@ public class ComponentPropertyEditRowRegexValidationTest {
                 assertFalse(issues.isEmpty());
                 assertTrue(issues.get(0).message.contains(field));
                 assertTrue(issues.get(0).message.contains("2"), issues.get(0).message);
-                org.junit.jupiter.api.Assertions.assertEquals(
+                Assertions.assertEquals(
                         ComponentPropertyEditRow.patternValidationMessage(property, entries), issues.get(0).message);
-                org.junit.jupiter.api.Assertions.assertNull(ComponentPropertyEditRow.patternValidationMessage(
+                Assertions.assertNull(ComponentPropertyEditRow.patternValidationMessage(
                         property, List.of("first.last@example.com", "second@example.com")));
-                org.junit.jupiter.api.Assertions.assertNotNull(ComponentPropertyEditRow.patternValidationMessage(
+                Assertions.assertNotNull(ComponentPropertyEditRow.patternValidationMessage(
                         property, List.of("")));
             }
         }
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
+    @ParameterizedTest
+    @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void routerListsValidateTheWholeListAndRetainRouteOrder(String pack) throws Exception {
         ComponentPropertyMeta single = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Single Recipient Router").getMetadata("routeNames");
         ComponentPropertyEditRow row = new ComponentPropertyEditRow(null, new ComponentProperty(single), false, () -> {}, new HashMap<>());
         row.resetDataEntryComponentsWithNewValues();
         for (String text : List.of("odd,even", "odd, even")) {
             row.getOverridingInputField().setText(text);
-            org.junit.jupiter.api.Assertions.assertEquals(List.of("odd", "even"), row.getValue());
+            Assertions.assertEquals(List.of("odd", "even"), row.getValue());
             assertTrue(row.doValidateAll().isEmpty(), text);
         }
         for (String text : List.of("odd", "odd,", "odd,,even", "odd,bad-name")) {
             row.getOverridingInputField().setText(text);
             assertFalse(row.doValidateAll().isEmpty(), text);
         }
-        org.junit.jupiter.api.Assertions.assertNotNull(ComponentPropertyEditRow.patternValidationMessage(single, List.of("odd", "odd")));
-        org.junit.jupiter.api.Assertions.assertNull(ComponentPropertyEditRow.patternValidationMessage(single, List.of("odd", "even", "odd")));
+        Assertions.assertNotNull(ComponentPropertyEditRow.patternValidationMessage(single, List.of("odd", "odd")));
+        Assertions.assertNull(ComponentPropertyEditRow.patternValidationMessage(single, List.of("odd", "even", "odd")));
         ComponentPropertyMeta multi = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Multi Recipient Router").getMetadata("routeNames");
-        org.junit.jupiter.api.Assertions.assertNull(ComponentPropertyEditRow.patternValidationMessage(multi, List.of("odd")));
-        org.junit.jupiter.api.Assertions.assertNotNull(ComponentPropertyEditRow.patternValidationMessage(multi, List.of("odd", "bad-name")));
+        Assertions.assertNull(ComponentPropertyEditRow.patternValidationMessage(multi, List.of("odd")));
+        Assertions.assertNotNull(ComponentPropertyEditRow.patternValidationMessage(multi, List.of("odd", "bad-name")));
     }
 
 }

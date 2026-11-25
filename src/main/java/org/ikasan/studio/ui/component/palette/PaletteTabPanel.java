@@ -1,25 +1,12 @@
 package org.ikasan.studio.ui.component.palette;
 
-import com.intellij.ui.JBSplitter;
-
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.component.properties.HtmlScrollingDisplayPanel;
-import org.ikasan.studio.ui.model.PaletteItem;
-import org.ikasan.studio.ui.theme.ThemeAwareColors;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -27,9 +14,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import javax.swing.*;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.DesignerUI;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.component.properties.HtmlScrollingDisplayPanel;
+import org.ikasan.studio.ui.model.PaletteItem;
+import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import static org.ikasan.studio.core.model.ikasan.instance.Module.DUMB_MODULE_VERSION;
-import org.ikasan.studio.ui.DesignerUI;
 
 /**
  * The Palette Tab Panel contains a SplitPane of :
@@ -161,8 +159,8 @@ public class PaletteTabPanel extends JBPanel {
      * Create a list of all known ikasan components
      * @return a list of all known ikasan components
      */
-    private java.util.List<PaletteItem> buildPaletteItems(Project project) {
-        java.util.List<PaletteItem> paletteItems = new ArrayList<>();
+    private List<PaletteItem> buildPaletteItems(Project project) {
+        List<PaletteItem> paletteItems = new ArrayList<>();
         // New project created, no module yet
         UiContext uiContext = project.getService(UiContext.class);
         Module module = uiContext.getIkasanModule();

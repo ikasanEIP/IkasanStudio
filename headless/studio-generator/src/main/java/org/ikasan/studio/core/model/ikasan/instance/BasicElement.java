@@ -1,19 +1,19 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
-import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+import org.ikasan.studio.core.generation.JavaSourceNames;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.VERSION;
 
@@ -28,9 +28,9 @@ public  class BasicElement extends IkasanObject {
     protected Map<String, ComponentProperty> componentProperties;
     /** Opaque model extensions survive reload/regeneration without entering component templates. */
     @JsonIgnore
-    private final Map<String, com.fasterxml.jackson.databind.JsonNode> unknownJsonProperties = new LinkedHashMap<>();
+    private final Map<String, JsonNode> unknownJsonProperties = new LinkedHashMap<>();
 
-    public boolean retainUnknownJsonProperty(String name, com.fasterxml.jackson.databind.JsonNode value) {
+    public boolean retainUnknownJsonProperty(String name, JsonNode value) {
         if (getComponentMeta() != null && getComponentMeta().getMetadata(name) != null) return false;
         unknownJsonProperties.put(name, value.deepCopy());
         return true;
@@ -141,7 +141,7 @@ public  class BasicElement extends IkasanObject {
 
     @JsonIgnore
     public String getJavaVariableName() {
-        return org.ikasan.studio.core.generation.JavaSourceNames.toVariableName(getIdentity());
+        return JavaSourceNames.toVariableName(getIdentity());
     }
 
 
@@ -335,7 +335,8 @@ public  class BasicElement extends IkasanObject {
             // 1 - Is property allowed in the new component meta?
             ComponentPropertyMeta allowableComponentPropertyMeta = newTarget.getComponentMeta().getAllowableProperties().get(sourceKey);
             if (allowableComponentPropertyMeta == null) {
-                LOG.warn("Trying to set old propery of name [" + sourceKey + "] but this is not supported in version [" + newTarget.getVersion() + "] of component [" + newTarget.getComponentName() + "]");
+                LOG.warn("Property [{}] is unsupported in version [{}] of component [{}]",
+                        sourceKey, newTarget.getVersion(), newTarget.getComponentName());
             } else {
             // 2 - Old property is allowed in new components, set the property in the new component
                 newTarget.setPropertyValue(sourceKey, sourceValue);

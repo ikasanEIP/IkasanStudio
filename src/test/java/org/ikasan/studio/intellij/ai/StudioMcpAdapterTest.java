@@ -2,22 +2,22 @@ package org.ikasan.studio.intellij.ai;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpServer;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
+import java.io.BufferedWriter;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import java.io.BufferedWriter;
-import java.io.InputStream;
 
 /** Exercises the exact executable JAR bundled in the plugin, without the IDE classpath. */
 class StudioMcpAdapterTest {
@@ -100,7 +100,7 @@ class StudioMcpAdapterTest {
         Path jar = directory.resolve("adapter with spaces.jar");
         try (InputStream resource = getClass().getResourceAsStream("/studio/ai/studio-mcp-adapter.jar")) {
             assertThat(resource).isNotNull();
-            Files.copy(resource, jar, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(resource, jar, StandardCopyOption.REPLACE_EXISTING);
         }
         String executable = System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java";
         Process process = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", executable).toString(),

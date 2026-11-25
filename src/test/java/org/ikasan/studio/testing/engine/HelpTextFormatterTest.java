@@ -1,12 +1,12 @@
 package org.ikasan.studio.testing.engine;
 
 import org.ikasan.studio.core.metapack.model.HelpTextFormatter;
-
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@org.junit.jupiter.api.Tag("engine")
+@Tag("engine")
 class HelpTextFormatterTest {
     @Test
     void putsCategoryBeforeComponentInSeparateParagraphs() {

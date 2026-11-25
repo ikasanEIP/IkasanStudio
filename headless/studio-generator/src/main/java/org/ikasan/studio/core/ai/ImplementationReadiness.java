@@ -1,10 +1,13 @@
 package org.ikasan.studio.core.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.ikasan.studio.core.StudioBuildUtils;
-import org.ikasan.studio.core.persistence.json.StudioJson;
+import java.io.IOException;
 import java.nio.file.*;
+import java.time.Instant;
 import java.util.*;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.persistence.json.IkasanModelDocuments;
+import org.ikasan.studio.core.persistence.json.StudioJson;
 
 /** Conservative saved-source observations, never a proof of runtime readiness. */
 public final class ImplementationReadiness {
@@ -59,8 +62,8 @@ public final class ImplementationReadiness {
                     }
                     // The converter stub has a TODO comment directly above its throwing stub: report the stronger finding once.
                     for (int i = findings.size() - 1; i > 0; i--) {
-                        org.ikasan.studio.core.ai.ImplementationReadiness.Finding stub = findings.get(i);
-                        org.ikasan.studio.core.ai.ImplementationReadiness.Finding todo = findings.get(i - 1);
+                        Finding stub = findings.get(i);
+                        Finding todo = findings.get(i - 1);
                         if ("THROWING_STUB".equals(stub.code()) && "REVIEW_SCAFFOLD".equals(todo.code()) && todo.file().equals(stub.file())
                                 && todo.line() + 1 == stub.line()) findings.remove(i - 1);
                     }
@@ -70,10 +73,10 @@ public final class ImplementationReadiness {
             }
         }
         findings.addAll(FlowTestPathValidation.scan(root, model));
-        return new Report(java.time.Instant.now().toString(), "Saved model property rules, primary user implementation files and simple saved flow-test expected paths; unsaved edits, external property overrides and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.", false, List.copyOf(findings));
+        return new Report(Instant.now().toString(), "Saved model property rules, primary user implementation files and simple saved flow-test expected paths; unsaved edits, external property overrides and provider/helper beans are not inspected. No findings is not proof of working behaviour. Exercise actual components and flow paths.", false, List.copyOf(findings));
     }
-    public static Report scanProject(Path root) throws java.io.IOException {
-        return scan(root.toAbsolutePath().normalize(), org.ikasan.studio.core.persistence.json.IkasanModelDocuments.toLegacy(StudioJson.newObjectMapper().readTree(
+    public static Report scanProject(Path root) throws IOException {
+        return scan(root.toAbsolutePath().normalize(), IkasanModelDocuments.toLegacy(StudioJson.newObjectMapper().readTree(
                 Files.readString(root.resolve("generated/src/main/model/model.json")))));
     }
 }

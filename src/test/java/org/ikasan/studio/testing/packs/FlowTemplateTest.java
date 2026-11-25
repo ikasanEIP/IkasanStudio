@@ -1,27 +1,27 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.*;
-
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
-import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
     private static final String TEST_FLOW_NAME = "MyFlow1";
     //  ------------------------------- BROKER ----------------------------------
@@ -321,15 +321,15 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
                 Flow nestedFlow = multiRecipient ? TestFixtures.getEventGeneratingConsumerRouterFlow(pack)
                         : TestFixtures.getEventGeneratingConsumerSingleRecipientRouterFlow(pack);
                 FlowRoute branch = flow.getFlowRoute().getChildRoutes().get(0);
-                branch.setFlowElements(new java.util.ArrayList<>(nestedFlow.getFlowRoute().getFlowElements()));
+                branch.setFlowElements(new ArrayList<>(nestedFlow.getFlowRoute().getFlowElements()));
                 if (!converterBeforeRouter) branch.getFlowElements().remove(0);
                 branch.setChildRoutes(nestedFlow.getFlowRoute().getChildRoutes());
-                Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, java.util.List.of(flow));
+                Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
                 String generated = generateFlowTemplateStringForModule(module).replaceAll("\\s+", "");
                 String method = multiRecipient ? "multiRecipientRouter" : "singleRecipientRouter";
                 // One builder per .when(): parent branch, its two nested branches, and the sibling branch.
                 assertEquals(4, generated.split("builderFactory.getRouteBuilder", -1).length - 1);
-                org.junit.jupiter.api.Assertions.assertTrue(generated.contains(converterBeforeRouter
+                Assertions.assertTrue(generated.contains(converterBeforeRouter
                         ? ")." + method + "("
                         : ",builderFactory.getRouteBuilder()." + method + "("), generated);
             }

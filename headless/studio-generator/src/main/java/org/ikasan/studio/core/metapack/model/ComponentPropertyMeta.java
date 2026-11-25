@@ -4,16 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonKey;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
+import com.google.re2j.Pattern;
+import com.google.re2j.PatternSyntaxException;
+import java.util.List;
+import java.util.Objects;
+import javax.lang.model.SourceVersion;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
-
-import com.google.re2j.Pattern;
-
-import javax.lang.model.SourceVersion;
-import java.util.List;
-import java.util.Objects;
 
 @Data
 @Builder(toBuilder = true)
@@ -150,7 +149,7 @@ public class ComponentPropertyMeta {
     @JsonSetter(nulls = Nulls.SKIP)         // If the supplied value is null, ignore it.
     @Builder.Default
     @SuppressWarnings("rawtypes")
-    private Class propertyDataType = java.lang.String.class;    // Of the property
+    private Class propertyDataType = String.class;    // Of the property
     private boolean readOnlyProperty;       // The property can be viewed but not changed
     @JsonSetter(nulls = Nulls.SKIP)                             // If the supplied value is null, ignore it.
     @Builder.Default
@@ -275,7 +274,7 @@ public class ComponentPropertyMeta {
                 throw new IllegalArgumentException("RE2/J validation expression exceeds " + MAX_VALIDATION_EXPRESSION_LENGTH + " characters");
             try {
                 validationPattern = Pattern.compile(validation);
-            } catch (com.google.re2j.PatternSyntaxException invalid) {
+            } catch (PatternSyntaxException invalid) {
                 throw new IllegalArgumentException("Unsupported RE2/J validation expression: " + invalid.getMessage(), invalid);
             }
         }

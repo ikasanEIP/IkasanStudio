@@ -1,21 +1,20 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.*;
-
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.io.IOException;
 import java.util.ArrayList;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 public class DebugTransitionComponentTemplateTest {
 
     @BeforeAll
@@ -26,7 +25,7 @@ public class DebugTransitionComponentTemplateTest {
     }
 
     /**
-     * @See resources/studio/templates/org/ikasan/studio/generator/{version}/Module/DebugTransitionComponent.java
+     * Expected output is recorded in the pack-specific {@code Module/DebugTransitionComponent.java} test fixture.
      */
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")

@@ -1,28 +1,38 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.generator.*;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.api.io.TempDir;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
+import java.io.StringReader;
+import java.lang.reflect.Field;
+import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
-import static org.junit.jupiter.api.Assertions.*;
-import java.lang.reflect.Field;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.StringCollectionValues;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@org.junit.jupiter.api.Tag("packs")
+import static org.junit.jupiter.api.Assertions.*;
+
+@Tag("packs")
 class DemoGenerationRegressionTest {
     @TempDir Path temp;
 
@@ -47,15 +57,15 @@ class DemoGenerationRegressionTest {
         local.setPropertyValue("filenames", pattern);
         flow.setConsumer(local);
         Properties loaded = new Properties();
-        loaded.load(new java.io.ByteArrayInputStream(PropertiesTemplate.create(module).getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        loaded.load(new ByteArrayInputStream(PropertiesTemplate.create(module).getBytes(StandardCharsets.UTF_8)));
         String restored = loaded.getProperty(flow.getJavaPackageName() + ".file.consumer.filenames");
-        if (org.ikasan.studio.core.model.StringCollectionValues.supports(local.getComponentMeta()
+        if (StringCollectionValues.supports(local.getComponentMeta()
                 .getAllowableProperties().get("filenames").getPropertyDataType())) {
-            restored = new com.fasterxml.jackson.databind.ObjectMapper().readTree(restored).get(0).asText();
+            restored = new ObjectMapper().readTree(restored).get(0).asText();
         }
         assertEquals(pattern, restored);
-        assertTrue(java.util.regex.Pattern.matches(restored, "/tmp/Demo12.txt"));
-        assertFalse(java.util.regex.Pattern.matches(restored, "/tmp/Demo12Xtxt"));
+        assertTrue(Pattern.matches(restored, "/tmp/Demo12.txt"));
+        assertFalse(Pattern.matches(restored, "/tmp/Demo12Xtxt"));
     }
 
     @ParameterizedTest
@@ -64,14 +74,14 @@ class DemoGenerationRegressionTest {
         ComponentPropertyMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Scheduled Consumer")
                 .getMetadata("messageProvider");
         assertTrue(meta.isProtectFromOverwrite());
-        ComponentProperty property = new org.ikasan.studio.core.model.ikasan.instance.ComponentProperty(meta, "Samples");
+        ComponentProperty property = new ComponentProperty(meta, "Samples");
         String source = FlowsUserImplementedClassPropertyTemplate.create(pack, property, "example", "Samples", "demo");
         write("org/springframework/stereotype/Component.java", "package org.springframework.stereotype; public @interface Component { String value(); }");
         write("org/quartz/JobExecutionContext.java", "package org.quartz; public interface JobExecutionContext {}");
         write("org/ikasan/component/endpoint/quartz/consumer/MessageProvider.java", "package org.ikasan.component.endpoint.quartz.consumer; public interface MessageProvider<T> { T invoke(org.quartz.JobExecutionContext context); }");
         write("example/Samples.java", source);
         compile(pack);
-        try (URLClassLoader loader = new URLClassLoader(new java.net.URL[]{temp.toUri().toURL()}, null)) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{temp.toUri().toURL()}, null)) {
             Class<?> type = loader.loadClass("example.Samples");
             assertNotNull(type.getMethod("invoke", loader.loadClass("org.quartz.JobExecutionContext")));
         }
@@ -112,12 +122,12 @@ class DemoGenerationRegressionTest {
                 + "String myFlow1OutputLogProducerRegExpPattern, myFlow1OutputLogProducerReplacementText; "
                 + method + " }");
         compile(pack);
-        try (URLClassLoader loader = new URLClassLoader(new java.net.URL[]{temp.toUri().toURL()}, null)) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{temp.toUri().toURL()}, null)) {
             Class<?> type = loader.loadClass("example.Factory");
             Object instance = type.getConstructor().newInstance();
             Properties properties = new Properties();
-            properties.load(new java.io.StringReader(PropertiesTemplate.create(module)));
-            for (String name : java.util.List.of("regExpPattern", "replacementText")) {
+            properties.load(new StringReader(PropertiesTemplate.create(module)));
+            for (String name : List.of("regExpPattern", "replacementText")) {
                 Field field = type.getDeclaredField("myFlow1OutputLogProducer" + Character.toUpperCase(name.charAt(0)) + name.substring(1));
                 field.setAccessible(true);
                 field.set(instance, properties.getProperty("myflow1.output.log.producer." + name));
@@ -139,7 +149,7 @@ class DemoGenerationRegressionTest {
             args.add(0, "javac");
             Path output = temp.resolve("javac.txt");
             Process process = new ProcessBuilder(args).redirectErrorStream(true).redirectOutput(output.toFile()).start();
-            if (!process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS)) {
+            if (!process.waitFor(30, TimeUnit.SECONDS)) {
                 process.destroyForcibly(); fail("javac timed out");
             }
             assertEquals(0, process.exitValue(), Files.readString(output));

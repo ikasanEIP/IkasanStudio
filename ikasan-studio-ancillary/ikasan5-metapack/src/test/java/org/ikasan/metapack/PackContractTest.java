@@ -1,10 +1,14 @@
 package org.ikasan.metapack;
 
+import java.nio.file.Path;
+import java.util.List;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.testkit.MetaPackContract;
 import org.junit.jupiter.api.Test;
-import java.util.List;
+import org.w3c.dom.Document;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class PackContractTest extends MetaPackContract {
@@ -15,8 +19,8 @@ class PackContractTest extends MetaPackContract {
                 .h2WebPortNumber("8093").flows(List.of()).build();
     }
     @Test void pomRevisionMatchesManifest() throws Exception {
-        org.w3c.dom.Document document = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder()
-                .parse(java.nio.file.Path.of("pom.xml").toFile());
+        Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                .parse(Path.of("pom.xml").toFile());
         assertEquals(ComponentLibrary.getMetaPackManifest(packId()).packVersion(),
                 document.getElementsByTagName("version").item(0).getTextContent());
     }

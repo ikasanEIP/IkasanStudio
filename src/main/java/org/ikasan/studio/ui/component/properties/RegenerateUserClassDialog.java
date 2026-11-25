@@ -1,16 +1,15 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.StudioBundle;
-
-import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.util.List;
+import javax.swing.*;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
 
 /** Native controls avoid the checkbox-message dialog's limited HTML message renderer. */
 final class RegenerateUserClassDialog extends StudioDialogWrapper {
@@ -42,7 +41,7 @@ final class RegenerateUserClassDialog extends StudioDialogWrapper {
         if (!allowManualUpdate) return super.createActions();
         Action manual = new AbstractAction(StudioBundle.message("button.UpdateUserCodeMyself")) {
             @Override
-            public void actionPerformed(java.awt.event.ActionEvent event) {
+            public void actionPerformed(ActionEvent event) {
                 manualUpdate = true;
                 close(OK_EXIT_CODE);
             }

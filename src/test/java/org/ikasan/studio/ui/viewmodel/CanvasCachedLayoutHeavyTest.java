@@ -1,21 +1,24 @@
 package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.StudioUIUtils;
-import javax.swing.JPanel;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JPanel;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
 
 import static org.junit.Assert.assertArrayEquals;
-import java.awt.Graphics2D;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 
 public class CanvasCachedLayoutHeavyTest extends HeavyPlatformTestCase {
     static {
@@ -49,7 +52,7 @@ public class CanvasCachedLayoutHeavyTest extends HeavyPlatformTestCase {
                 // Compactness is a layout constraint, independent of the host's font metrics.
                 // Keep the font-based clearance check above to catch actual overlap.
                 int baseline = Math.max(configured,
-                        org.ikasan.studio.intellij.settings.IkasanStudioSettings.DEFAULT_FLOW_X_START_POINT);
+                        IkasanStudioSettings.DEFAULT_FLOW_X_START_POINT);
                 assertTrue("Harness should add at most 110 pixels to the flow offset", left <= baseline + 110);
                 assertEquals("Idle layout preserves the configured offset", configured,
                         IkasanModuleViewHandler.flowXStartPoint(configured, false));
@@ -63,10 +66,10 @@ public class CanvasCachedLayoutHeavyTest extends HeavyPlatformTestCase {
         Flow branched = TestFixtures.getEventGeneratingConsumerRouterFlow(TestFixtures.BASE_META_PACK);
         branched.getFlowRoute().getChildRoutes().get(1).setRouteName("default");
         FlowElement router = branched.getFlowRoute().getFlowElements().get(1);
-        ComponentMeta endpointMeta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(
+        ComponentMeta endpointMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(
                 TestFixtures.BASE_META_PACK, router.getComponentMeta().getEndpointKey());
         for (FlowRoute route : branched.getFlowRoute().getChildRoutes()) {
-            FlowElement endpoint = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(
+            FlowElement endpoint = FlowElementFactory.createFlowElement(
                     TestFixtures.BASE_META_PACK, endpointMeta, branched, route, route.getRouteName());
             route.getFlowElements().add(0, endpoint);
         }

@@ -1,12 +1,12 @@
 package org.ikasan.studio.intellij.execution;
 
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.execution.application.ApplicationConfigurationType;
 import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.Executor;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
@@ -20,15 +20,16 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-
-import java.util.Objects;
-import java.util.List;
 import com.intellij.util.execution.ParametersListUtil;
-import org.ikasan.studio.core.configuration.EnvironmentProperties;
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
+import org.ikasan.studio.core.configuration.EnvironmentProperties;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 
 /**
  * Creates, selects, and runs the standard IntelliJ Java Application configuration
@@ -102,11 +103,11 @@ public final class IkasanRunConfigurationService implements Disposable {
                 && MAIN_CLASS_NAME.equals(configuration.getMainClassName())
                 && Objects.equals(configuration.getConfigurationModule().getModule(), module)
                 ? environmentOf(configuration.getProgramParameters()) : null;
-        java.util.Set<String> harnessSelection = selected != null
+        Set<String> harnessSelection = selected != null
                 && selected.getConfiguration() instanceof ApplicationConfiguration previous
                 && MAIN_CLASS_NAME.equals(previous.getMainClassName())
                 && Objects.equals(previous.getConfigurationModule().getModule(), module)
-                ? project.getService(HarnessOverrideService.class).selection(previous) : java.util.Set.of();
+                ? project.getService(HarnessOverrideService.class).selection(previous) : Set.of();
         RunnerAndConfigurationSettings settings = environment == null
                 ? findOrCreateConfiguration(module, debug, harnessSelection)
                 : findOrCreateEnvironmentConfiguration(module, debug, environment, harnessSelection);
@@ -126,7 +127,7 @@ public final class IkasanRunConfigurationService implements Disposable {
      * active - see {@link #STUDIO_DEBUG_PROGRAM_PARAMETERS} - so the generated app's /rest/studio/inject endpoint
      * is only reachable when launched via the Debug button, never via a plain Run or a real deployment.
      */
-    RunnerAndConfigurationSettings findOrCreateConfiguration(Module module, boolean debug, java.util.Set<String> harnessSelection) {
+    RunnerAndConfigurationSettings findOrCreateConfiguration(Module module, boolean debug, Set<String> harnessSelection) {
         RunManager runManager = RunManager.getInstance(project);
         RunnerAndConfigurationSettings existing = runManager.getAllSettings().stream()
                 .filter(settings -> settings.getConfiguration() instanceof ApplicationConfiguration)
@@ -215,11 +216,11 @@ public final class IkasanRunConfigurationService implements Disposable {
     }
 
     RunnerAndConfigurationSettings findOrCreateEnvironmentConfiguration(Module module, boolean debug, String environment) {
-        return findOrCreateEnvironmentConfiguration(module, debug, environment, java.util.Set.of());
+        return findOrCreateEnvironmentConfiguration(module, debug, environment, Set.of());
     }
 
     RunnerAndConfigurationSettings findOrCreateEnvironmentConfiguration(Module module, boolean debug, String environment,
-                                                                       java.util.Set<String> harnessSelection) {
+                                                                       Set<String> harnessSelection) {
         String parameters = environmentParameters(Objects.requireNonNull(project.getBasePath(), "Environment configurations require a project directory"), environment, debug);
         RunManager manager = RunManager.getInstance(project);
         Optional<RunnerAndConfigurationSettings> existing = manager.getAllSettings().stream()
@@ -250,7 +251,7 @@ public final class IkasanRunConfigurationService implements Disposable {
         // Validate even when called independently of the import UI.
         environment = new EnvironmentProperties.Selection("", environment, false).environment();
         String base = basePath.replace('\\', '/');
-        List<String> arguments = new java.util.ArrayList<>();
+        List<String> arguments = new ArrayList<>();
         arguments.add("--spring.config.additional-location=optional:file:" + base + "/config/,optional:file:" + base + "/config/local/");
         String profiles = environment + (debug ? (environment.isEmpty() ? "" : ",") + "studio-debug" : "");
         if (!profiles.isEmpty()) arguments.add("--spring.profiles.active=" + profiles);
@@ -265,7 +266,7 @@ public final class IkasanRunConfigurationService implements Disposable {
                 && p.contains("/config/,optional:file:") && p.endsWith("/config/local/"))) return null;
         String profiles = arguments.stream().filter(p -> p.startsWith("--spring.profiles.active="))
                 .map(p -> p.substring("--spring.profiles.active=".length())).findFirst().orElse("");
-        return java.util.Arrays.stream(profiles.split(",")).filter(p -> !p.equals("studio-debug"))
+        return Arrays.stream(profiles.split(",")).filter(p -> !p.equals("studio-debug"))
                 .findFirst().orElse("");
     }
 

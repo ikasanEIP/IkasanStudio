@@ -1,23 +1,24 @@
 package org.ikasan.studio.core.persistence.json;
 
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.api.Test;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.persistence.json.FlowClipboard.Sources;
 import org.ikasan.studio.core.persistence.json.FlowClipboard.Transfer;
+import org.junit.jupiter.api.Test;
+
+import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
+import static org.junit.jupiter.api.Assertions.*;
 
 class FlowClipboardTest {
     private Flow copy(Flow flow) throws Exception {
@@ -33,10 +34,10 @@ class FlowClipboardTest {
         consumer.setPropertyValue("filenames", expected);
         Module module = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, new ArrayList<>(List.of(source)));
         for (int i = 0; i < 3; i++) {
-            String json = org.ikasan.studio.core.io.ComponentIO.toJson(module);
+            String json = ComponentIO.toJson(module);
             JsonNode tree = StudioJson.newObjectMapper().readTree(json);
             assertEquals(StudioJson.newObjectMapper().valueToTree(expected), tree.get("flows").get(0).get("consumer").get("filenames"));
-            module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(json, "filename round trip", false);
+            module = ComponentIO.validatePersistedModuleJson(json, "filename round trip", false);
             assertEquals(expected, module.getFlows().get(0).getConsumer().getPropertyValue("filenames"));
         }
         Flow pasted = copy(source);
@@ -103,7 +104,7 @@ class FlowClipboardTest {
         assertThrows(IOException.class, () -> FlowClipboard.decode(FlowClipboard.PREFIX + "{}", BASE_META_PACK));
         ObjectMapper mapper = StudioJson.newObjectMapper();
         JsonNode root = mapper.readTree(clipboard.substring(FlowClipboard.PREFIX.length()));
-        ((com.fasterxml.jackson.databind.node.ObjectNode) root.path("consumer")).put("implementingClass", "missing.Component");
+        ((ObjectNode) root.path("consumer")).put("implementingClass", "missing.Component");
         assertThrows(IOException.class, () -> FlowClipboard.decode(FlowClipboard.PREFIX + mapper.writeValueAsString(root), BASE_META_PACK));
     }
 
@@ -143,7 +144,7 @@ class FlowClipboardTest {
     @Test void transfersSourcesWithoutChangingLegacyClipboardSupport() throws Exception {
         Flow flow = TestFixtures.getEventGeneratingConsumerRouterFlow(BASE_META_PACK);
         Map<String,Object> snapshot = FlowClipboard.capture(flow, BASE_META_PACK);
-        Sources sources = new FlowClipboard.Sources("example.flow", java.util.Map.of(
+        Sources sources = new FlowClipboard.Sources("example.flow", Map.of(
                 "Custom.java", "package example.flow; class Custom {}",
                 "helpers/Helper.java", "package example.flow.helpers; class Helper {}"));
         String text = FlowClipboard.encode(snapshot, sources);
@@ -159,12 +160,12 @@ class FlowClipboardTest {
     @Test void rejectsUnsafeSourcePathsAndOversizedPayloads() throws Exception {
         Map<String,Object> snapshot = FlowClipboard.capture(TestFixtures.getEventGeneratingConsumerRouterFlow(BASE_META_PACK), BASE_META_PACK);
         for (String path : List.of("../Outside.java", "/Outside.java", "nested/../../Outside.java", "nested//Outside.java", "pom.xml")) {
-            Sources sources = new FlowClipboard.Sources("example.flow", java.util.Map.of(path, "text"));
+            Sources sources = new FlowClipboard.Sources("example.flow", Map.of(path, "text"));
             assertThrows(IOException.class, () -> FlowClipboard.encode(snapshot, sources), path);
         }
         String hostile = FlowClipboard.SOURCE_PREFIX + "{\"flow\":{},\"sources\":{\"packageName\":\"example.flow\",\"files\":{\"../Outside.java\":\"text\"}}}";
         assertThrows(IOException.class, () -> FlowClipboard.decodeTransfer(hostile, BASE_META_PACK));
-        Sources oversized = new FlowClipboard.Sources("example.flow", java.util.Map.of("Large.java", "x".repeat(8 * 1024 * 1024)));
+        Sources oversized = new FlowClipboard.Sources("example.flow", Map.of("Large.java", "x".repeat(8 * 1024 * 1024)));
         assertThrows(IOException.class, () -> FlowClipboard.encode(snapshot, oversized));
     }
 

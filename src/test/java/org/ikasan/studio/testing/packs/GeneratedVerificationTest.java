@@ -1,15 +1,19 @@
 package org.ikasan.studio.testing.packs;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.security.MessageDigest;
+import java.util.HexFormat;
+import java.util.Map;
+import org.ikasan.studio.core.generator.GeneratedVerification.Bundle;
 import org.ikasan.studio.core.generator.GeneratedVerification;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.migration.*;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import java.nio.file.*;
+
 import static org.junit.jupiter.api.Assertions.*;
-import java.util.Map;
-import org.ikasan.studio.core.generator.GeneratedVerification.Bundle;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class GeneratedVerificationTest {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
@@ -22,8 +26,8 @@ class GeneratedVerificationTest {
         assertEquals(parent, bundle.rootPom());
         assertEquals(bundle.rootPom(), GeneratedVerification.render(module, model, bundle.rootPom(), application).rootPom());
         assertEquals(model, bundle.files().get("resources/studio-verification/baseline-model.json"));
-        String modelHash = java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
-                .digest(model.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        String modelHash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                .digest(model.getBytes(StandardCharsets.UTF_8)));
         String support = bundle.files().get("java/org/ikasan/studio/verification/GeneratedVerificationSupport.java");
         assertTrue(support.contains("BASELINE_MODEL_SHA256 = \"" + modelHash + "\";"));
         assertTrue(support.contains("!BASELINE_MODEL_SHA256.equals(hash.toString())"));

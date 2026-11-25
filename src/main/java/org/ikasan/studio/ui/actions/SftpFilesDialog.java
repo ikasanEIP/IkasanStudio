@@ -1,7 +1,5 @@
 package org.ikasan.studio.ui.actions;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -11,28 +9,33 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.*;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.integration.sftp.RemoteFilesClient;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.ui.StudioBundle;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
+import javax.swing.*;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.integration.sftp.LocalSftpHarness;
 import org.ikasan.studio.integration.sftp.RemoteFilesClient.Connection;
 import org.ikasan.studio.integration.sftp.RemoteFilesClient.Entry;
+import org.ikasan.studio.integration.sftp.RemoteFilesClient;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.runtime.HarnessEndpointSettings;
 import org.ikasan.studio.intellij.runtime.TestSftpServerService;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.jetbrains.annotations.NotNull;
 
 /** Session-only connection settings. All SSH and local file IO runs on a pooled thread. */
 public final class SftpFilesDialog extends StudioDialogWrapper {
@@ -54,14 +57,14 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
     private volatile RemoteFilesClient active;
 
     public static void open(Project project, FlowElement component) {
-        TestSftpServerService harness = project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
-        if (org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, component)) {
-            String remote = "/component-" + org.ikasan.studio.core.model.analysis.HarnessOverrides.id(component);
+        TestSftpServerService harness = project.getService(TestSftpServerService.class);
+        if (HarnessEndpointSettings.effective(project, component)) {
+            String remote = "/component-" + HarnessOverrides.id(component);
             ApplicationManager.getApplication().executeOnPooledThread(() -> {
                 try {
                     // The project service owns this server and closes it on stop/disposal.
                     @SuppressWarnings("resource") LocalSftpHarness server = harness.start();
-                    java.nio.file.Files.createDirectories(server.home().resolve(remote.substring(1)));
+                    Files.createDirectories(server.home().resolve(remote.substring(1)));
                     Connection connection = server.connection();
                     ApplicationManager.getApplication().invokeLater(() -> {
                         if (project.isDisposed()) return;
@@ -71,7 +74,7 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
                     });
                 } catch (Exception failure) {
                     ApplicationManager.getApplication().invokeLater(() -> {
-                        if (!project.isDisposed()) org.ikasan.studio.ui.StudioUIUtils.displayIdeaErrorMessage(project,
+                        if (!project.isDisposed()) StudioUIUtils.displayIdeaErrorMessage(project,
                                 StudioBundle.message("sftpHarness.failed", failure.getClass().getSimpleName()));
                     });
                 }
@@ -205,7 +208,7 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
             } catch (Exception e) {
                 // Do not expose credentials, key material or server-controlled exception text.
                 failure = !connected ? StudioBundle.message("sftpBrowser.connectionFailed") :
-                        e instanceof java.nio.file.FileAlreadyExistsException ? StudioBundle.message("sftpBrowser.exists") :
+                        e instanceof FileAlreadyExistsException ? StudioBundle.message("sftpBrowser.exists") :
                         e instanceof RemoteFilesClient.ChangedFileException ? StudioBundle.message("sftpBrowser.changed") : StudioBundle.message("sftpBrowser.failed");
             } finally { active = null; }
             Result complete = result;

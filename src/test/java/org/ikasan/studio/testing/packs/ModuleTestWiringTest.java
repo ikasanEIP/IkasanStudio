@@ -1,25 +1,29 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.generator.*;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.nio.file.*;
 import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
-import com.fasterxml.jackson.databind.JsonNode;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold;
+import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.migration.ModelMigration.Plan;
+import org.ikasan.studio.core.migration.ModelMigration;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class ModuleTestWiringTest {
-    @org.junit.jupiter.api.Test
+    @Test
     void migrationBaselineHasGeneratedWiring() throws Exception {
-        Plan plan = org.ikasan.studio.core.migration.ModelMigration.analyse(
+        Plan plan = ModelMigration.analyse(
                 Files.readString(Path.of("regression-tests/migration/baseline.json")), "V4.1.6");
-        Module module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(plan.targetJson(), "wiring", false);
+        Module module = ComponentIO.validatePersistedModuleJson(plan.targetJson(), "wiring", false);
         assertNotNull(ModuleTestWiring.create(module));
     }
 

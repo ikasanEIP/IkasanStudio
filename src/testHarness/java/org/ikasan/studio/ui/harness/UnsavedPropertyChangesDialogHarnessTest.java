@@ -1,22 +1,8 @@
 package org.ikasan.studio.ui.harness;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.util.ui.UIUtil;
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
-import org.ikasan.studio.ui.component.properties.ComponentPropertyEditRow;
-import org.ikasan.studio.ui.component.properties.UnsavedPropertyChangesDialog;
-import org.junit.jupiter.api.Test;
-
-import org.ikasan.studio.ui.StudioUIUtils;
-
-import javax.swing.Action;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import java.awt.Component;
 import java.awt.Container;
 import java.lang.reflect.Field;
@@ -25,6 +11,21 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.text.JTextComponent;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
+import org.ikasan.studio.ui.component.properties.ComponentPropertyEditRow;
+import org.ikasan.studio.ui.component.properties.UnsavedPropertyChangesDialog;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
@@ -64,7 +65,7 @@ public class UnsavedPropertyChangesDialogHarnessTest extends ComponentTestHarnes
                         "Unsaved Property Changes", "'My Named Broker' has unsaved changes to: User Implemented Class Name.",
                         "My Named Broker", details);
                 try {
-                    JComponent center = invokeCreateCenterPanel(dialog);
+                    JComponent center = dialog.createCenterPanel();
 
                     assertThat(collectLabelTexts(center)).anyMatch(text -> text.contains(oldValue));
                     assertThat(collectLabelTexts(center)).anyMatch(text -> text.contains("myEditedBrokerClassName"));
@@ -161,12 +162,6 @@ public class UnsavedPropertyChangesDialogHarnessTest extends ComponentTestHarnes
         return (List<UnsavedPropertyChangesDialog.PropertyChangeDetail>) method.invoke(panel);
     }
 
-    private static JComponent invokeCreateCenterPanel(UnsavedPropertyChangesDialog dialog) throws Exception {
-        Method method = UnsavedPropertyChangesDialog.class.getDeclaredMethod("createCenterPanel");
-        method.setAccessible(true);
-        return (JComponent) method.invoke(dialog);
-    }
-
     private static Action[] invokeCreateActions(UnsavedPropertyChangesDialog dialog) throws Exception {
         Method method = UnsavedPropertyChangesDialog.class.getDeclaredMethod("createActions");
         method.setAccessible(true);
@@ -219,7 +214,7 @@ public class UnsavedPropertyChangesDialogHarnessTest extends ComponentTestHarnes
 
     private static void disposeDialog(UnsavedPropertyChangesDialog dialog) {
         try {
-            Method close = com.intellij.openapi.ui.DialogWrapper.class.getDeclaredMethod("dispose");
+            Method close = DialogWrapper.class.getDeclaredMethod("dispose");
             close.setAccessible(true);
             close.invoke(dialog);
         } catch (Exception ignored) {
@@ -233,10 +228,10 @@ public class UnsavedPropertyChangesDialogHarnessTest extends ComponentTestHarnes
         stack.push(root);
         while (!stack.isEmpty()) {
             Component c = stack.pop();
-            if (c instanceof javax.swing.JLabel label && label.getText() != null) {
+            if (c instanceof JLabel label && label.getText() != null) {
                 texts.add(label.getText());
             }
-            if (c instanceof javax.swing.text.JTextComponent text && text.getText() != null) {
+            if (c instanceof JTextComponent text && text.getText() != null) {
                 texts.add(text.getText());
             }
             if (c instanceof Container container) {

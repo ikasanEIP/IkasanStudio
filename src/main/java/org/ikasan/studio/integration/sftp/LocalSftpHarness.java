@@ -1,18 +1,20 @@
 package org.ikasan.studio.integration.sftp;
 
-import org.apache.sshd.server.SshServer;
-import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
-import org.apache.sshd.common.config.keys.PublicKeyEntry;
-import org.apache.sshd.common.signature.BuiltinSignatures;
-import org.apache.sshd.sftp.server.SftpSubsystemFactory;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.PublicKey;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.io.IOException;
-import java.security.PublicKey;
+import org.apache.sshd.common.config.keys.PublicKeyEntry;
+import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
+import org.apache.sshd.common.signature.BuiltinSignatures;
+import org.apache.sshd.server.SshServer;
+import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
+import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 
 /** Real loopback SFTP transport for manual development runs; files survive server restarts for inspection. */
 public final class LocalSftpHarness implements AutoCloseable {
@@ -56,8 +58,8 @@ public final class LocalSftpHarness implements AutoCloseable {
     }
     /** Stable, traversal-safe directory names shared with the generated development override. */
     public static String directory(String flow, String component) {
-        return "flow-" + java.net.URLEncoder.encode(flow, java.nio.charset.StandardCharsets.UTF_8)
-                + "/component-" + java.net.URLEncoder.encode(component, java.nio.charset.StandardCharsets.UTF_8);
+        return "flow-" + URLEncoder.encode(flow, StandardCharsets.UTF_8)
+                + "/component-" + URLEncoder.encode(component, StandardCharsets.UTF_8);
     }
     /** Non-blocking listener state for the canvas; performs no network probe. */
     public boolean isRunning() { return server.isStarted() && !server.isClosing(); }

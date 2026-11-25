@@ -1,27 +1,27 @@
 package org.ikasan.studio.testing.packs;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.nio.file.*;
+import java.nio.file.Path;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 import org.ikasan.studio.core.generator.ModelTemplate;
 import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.persistence.json.IkasanModelExporter;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.assertj.core.api.Assertions.*;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.nio.file.Path;
-import java.util.stream.Stream;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class IkasanModelExporterTest {
     @TempDir Path parent;
 
-    private org.ikasan.studio.core.model.ikasan.instance.Module module() throws Exception {
+    private Module module() throws Exception {
         return ComponentIO.validatePersistedModuleJson(Files.readString(Path.of(
                 "src/test/resources/org/ikasan/studio/populated_module.json")), "fixture", false);
     }
@@ -36,7 +36,7 @@ class IkasanModelExporterTest {
             assertThat(files.map(path -> path.getFileName().toString()).toList())
                     .containsExactlyInAnyOrder("module.json", "configuration.json", "studio.json");
         }
-        ObjectNode studio = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(output.resolve("studio.json").toFile());
+        ObjectNode studio = (ObjectNode) mapper.readTree(output.resolve("studio.json").toFile());
         ObjectNode reassembled = mapper.createObjectNode();
         reassembled.set("modelFormat", studio.remove("modelFormat"));
         reassembled.set("formatVersion", studio.remove("formatVersion"));
@@ -63,8 +63,8 @@ class IkasanModelExporterTest {
         Module module = module();
         AtomicInteger checks = new AtomicInteger();
         assertThatThrownBy(() -> IkasanModelExporter.export(module, parent, () -> {
-            if (checks.incrementAndGet() == 3) throw new java.util.concurrent.CancellationException();
-        })).isInstanceOf(java.util.concurrent.CancellationException.class);
+            if (checks.incrementAndGet() == 3) throw new CancellationException();
+        })).isInstanceOf(CancellationException.class);
         try (Stream<Path> paths = Files.list(parent)) { assertThat(paths.toList()).isEmpty(); }
     }
 }

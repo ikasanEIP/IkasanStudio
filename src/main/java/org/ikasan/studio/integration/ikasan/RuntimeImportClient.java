@@ -1,34 +1,38 @@
 package org.ikasan.studio.integration.ikasan;
 
+import com.fasterxml.jackson.core.JsonParser.Feature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.*;
+import java.net.http.HttpRequest.Builder;
+import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.Flow;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import java.net.http.HttpRequest.Builder;
-import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.concurrent.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Flow;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.logging.Logger;
+import org.ikasan.studio.core.persistence.json.StudioJson;
 
 /** Read-only acquisition of the documents accepted by the existing runtime importer. */
 public final class RuntimeImportClient {
-    private static final java.util.logging.Logger LOG = java.util.logging.Logger.getLogger(RuntimeImportClient.class.getName());
+    private static final Logger LOG = Logger.getLogger(RuntimeImportClient.class.getName());
     static final int MAX_BYTES = 8 * 1024 * 1024;
     private static final ObjectMapper JSON = StudioJson.newObjectMapper()
-            .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
-            .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+            .enable(Feature.STRICT_DUPLICATE_DETECTION)
+            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
     private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5))
             .followRedirects(HttpClient.Redirect.NEVER).build();
 
@@ -83,7 +87,7 @@ public final class RuntimeImportClient {
     /** The IDE supplies its logger at the integration boundary; only sanitized request diagnostics are emitted. */
     public static Documents fetch(URI base, String module, String username, char[] password,
                                   boolean includeConfiguration, Runnable cancelled,
-                                  java.util.function.Consumer<String> diagnostics) throws IOException, InterruptedException {
+                                  Consumer<String> diagnostics) throws IOException, InterruptedException {
         return fetch(base, module, username, password, includeConfiguration, cancelled, diagnostics, (stage, status) -> { });
     }
 
@@ -91,8 +95,8 @@ public final class RuntimeImportClient {
 
     public static Documents fetch(URI base, String module, String username, char[] password,
                                   boolean includeConfiguration, Runnable cancelled,
-                                  java.util.function.Consumer<String> diagnostics,
-                                  java.util.function.BiConsumer<RequestStage, Integer> responseStatus) throws IOException, InterruptedException {
+                                  Consumer<String> diagnostics,
+                                  BiConsumer<RequestStage, Integer> responseStatus) throws IOException, InterruptedException {
         Objects.requireNonNull(diagnostics);
         Objects.requireNonNull(responseStatus);
         base = baseUri(base.toString());
@@ -102,7 +106,7 @@ public final class RuntimeImportClient {
         if (username.isBlank() && password.length != 0) throw new IllegalArgumentException("Enter a username or clear the password for anonymous access.");
         String authorization = username.isBlank() ? null : "Basic " + Base64.getEncoder().encodeToString(
                 (username + ":" + new String(password)).getBytes(StandardCharsets.UTF_8));
-        org.ikasan.studio.integration.ikasan.RuntimeImportClient.LocatedMetadata located = locateMetadata(base, module, authorization, cancelled, diagnostics, responseStatus);
+        LocatedMetadata located = locateMetadata(base, module, authorization, cancelled, diagnostics, responseStatus);
         base = located.application();
         String metadata = located.json();
         JsonNode topology = parse(metadata, "Module metadata");
@@ -116,7 +120,7 @@ public final class RuntimeImportClient {
             if (!flow.path("name").isTextual() || flow.path("name").asText().isBlank()
                     || !names.add(flow.path("name").asText())) throw new IOException("Module metadata has invalid or duplicate flow names.");
         }
-        LinkedHashMap<String,JsonNode> records = new LinkedHashMap<String, JsonNode>();
+        LinkedHashMap<String,JsonNode> records = new LinkedHashMap<>();
         int total = 0;
         if (includeConfiguration) for (String flow : names) {
             // The unqualified /configuration/components endpoint selects the first module. Always scope it.
@@ -147,8 +151,8 @@ public final class RuntimeImportClient {
 
     /** Only probe the expected metadata endpoint on the same origin; never follow page links or redirects. */
     private static LocatedMetadata locateMetadata(URI base, String module, String authorization, Runnable cancelled,
-                                                  java.util.function.Consumer<String> diagnostics,
-                                                  java.util.function.BiConsumer<RequestStage, Integer> responseStatus)
+                                                  Consumer<String> diagnostics,
+                                                  BiConsumer<RequestStage, Integer> responseStatus)
             throws IOException, InterruptedException {
         ArrayList<URI> candidates = new ArrayList<>();
         String path = base.getRawPath();
@@ -196,15 +200,15 @@ public final class RuntimeImportClient {
     }
 
     private static String get(URI base, String path, String authorization, Runnable cancelled,
-                              java.util.function.Consumer<String> diagnostics,
-                              java.util.function.BiConsumer<RequestStage, Integer> responseStatus) throws IOException, InterruptedException {
+                              Consumer<String> diagnostics,
+                              BiConsumer<RequestStage, Integer> responseStatus) throws IOException, InterruptedException {
         return get(base, path, authorization, cancelled, diagnostics, responseStatus,
                 System.nanoTime() + Duration.ofSeconds(20).toNanos());
     }
 
     private static String get(URI base, String path, String authorization, Runnable cancelled,
-                              java.util.function.Consumer<String> diagnostics,
-                              java.util.function.BiConsumer<RequestStage, Integer> responseStatus, long deadline) throws IOException, InterruptedException {
+                              Consumer<String> diagnostics,
+                              BiConsumer<RequestStage, Integer> responseStatus, long deadline) throws IOException, InterruptedException {
         cancelled.run();
         URI endpoint = URI.create(base.toASCIIString() + path);
         responseStatus.accept(path.startsWith("/rest/metadata/") ? RequestStage.METADATA : RequestStage.CONFIGURATION, 0);

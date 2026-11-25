@@ -1,20 +1,21 @@
 package org.ikasan.studio.intellij.runtime;
 
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
-import org.ikasan.studio.ui.UiContext;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.assertj.core.api.Assertions;
+import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
+import org.ikasan.studio.ui.UiContext;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -30,7 +31,7 @@ class TestFtpServerServiceTest {
         TestFtpServerService second = new TestFtpServerService(projectAt(directory.resolve("second")));
         try {
             assertThat(first.localConfiguration().port()).isZero();
-            org.assertj.core.api.Assertions.assertThatThrownBy(first::launchProperties).isInstanceOf(IllegalStateException.class);
+            Assertions.assertThatThrownBy(first::launchProperties).isInstanceOf(IllegalStateException.class);
             Path firstRoot = first.startLocal();
             Path secondRoot = second.startLocal();
             TestFtpServerConfiguration firstAddress = first.localConfiguration();
@@ -56,7 +57,7 @@ class TestFtpServerServiceTest {
             first.stop();
             assertThat(first.listeningEndpoint()).isNull();
             assertThat(first.localConfiguration().port()).isZero();
-            org.assertj.core.api.Assertions.assertThatThrownBy(first::launchProperties).isInstanceOf(IllegalStateException.class);
+            Assertions.assertThatThrownBy(first::launchProperties).isInstanceOf(IllegalStateException.class);
             transferAndReadBack(secondAddress, "later.txt", "second still running");
             assertThat(second.isRunningAt(secondAddress)).isTrue();
             first.startLocal();
@@ -72,8 +73,8 @@ class TestFtpServerServiceTest {
         try {
             TestFtpServerConfiguration explicit = new TestFtpServerConfiguration("127.0.0.1", availablePort(), "original", "password");
             service.start(explicit);
-            org.assertj.core.api.Assertions.assertThatThrownBy(service::startLocal).isInstanceOf(IllegalStateException.class);
-            org.assertj.core.api.Assertions.assertThatThrownBy(service::launchProperties).isInstanceOf(IllegalStateException.class);
+            Assertions.assertThatThrownBy(service::startLocal).isInstanceOf(IllegalStateException.class);
+            Assertions.assertThatThrownBy(service::launchProperties).isInstanceOf(IllegalStateException.class);
             assertThat(service.isRunningAt(explicit)).isTrue();
         } finally { service.stop(); }
     }
@@ -169,8 +170,8 @@ class TestFtpServerServiceTest {
             TestFtpServerConfiguration configuration = new TestFtpServerConfiguration(
                     "127.0.0.1", external.getLocalPort(), "ikasan", "secret");
 
-            org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.start(configuration))
-                    .isInstanceOf(java.net.BindException.class);
+            Assertions.assertThatThrownBy(() -> service.start(configuration))
+                    .isInstanceOf(BindException.class);
             assertThat(external.isClosed()).isFalse();
             service.stop();
             assertThat(external.isClosed()).isFalse();

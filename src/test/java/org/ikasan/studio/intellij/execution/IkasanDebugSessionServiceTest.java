@@ -2,9 +2,11 @@ package org.ikasan.studio.intellij.execution;
 
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.application.ApplicationConfiguration;
+import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.module.Module;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,9 +77,9 @@ class IkasanDebugSessionServiceTest {
         when(configuration.getMainClassName()).thenReturn(mainClass);
         when(configuration.getProgramParameters()).thenReturn(parameters);
         when(configuration.getConfigurationModule()).thenReturn(mock(
-                com.intellij.execution.configurations.JavaRunConfigurationModule.class));
+                JavaRunConfigurationModule.class));
         when(configuration.getConfigurationModule().getModule())
-                .thenReturn(mock(com.intellij.openapi.module.Module.class));
+                .thenReturn(mock(Module.class));
         return environment;
     }
 }

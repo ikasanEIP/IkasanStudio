@@ -1,29 +1,31 @@
 package org.ikasan.studio.packs;
 
+import java.io.InputStream;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.Map;
+import org.apache.maven.model.Build;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold;
 import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest.BomImport;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import java.nio.file.*;
-import java.io.StringReader;
-import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Map.Entry;
-import org.apache.maven.model.Build;
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Plugin;
-import org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold;
-import org.ikasan.studio.core.metapack.model.MetaPackManifest;
-import org.ikasan.studio.core.metapack.model.MetaPackManifest.BomImport;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /** Rendering is portable; Maven compilation is a separate, explicit Java 25 development gate. */
 class DevelopmentFixtureTest {
@@ -41,7 +43,7 @@ class DevelopmentFixtureTest {
         Map<String,String> files = render(module);
         try (InputStream input = Objects.requireNonNull(getClass().getResourceAsStream("/application/console.java.txt"))) {
             files.put("src/test/java/org/ikasan/studio/flowtests/BlueConsoleTest.java",
-                    new String(input.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+                    new String(input.readAllBytes(), StandardCharsets.UTF_8));
         }
         Path destination = Path.of(System.getProperty("studio.v5.fixture", temporary.toString()));
         for (Entry<String,String> file : files.entrySet()) {
@@ -66,8 +68,8 @@ class DevelopmentFixtureTest {
         pom.addProperty("project.build.sourceEncoding", "UTF-8");
         for (BomImport bom : manifest.dependencyManagement()) pom.addOrUpdateBomImport(bom.groupId(), bom.artifactId(), bom.version());
         for (Dependency dependency : module.getAllUniqueSortedJarDependencies()) pom.checkIfDependancyAlreadyExists(dependency.clone());
-        Build build = new org.apache.maven.model.Build();
-        Plugin compiler = new org.apache.maven.model.Plugin();
+        Build build = new Build();
+        Plugin compiler = new Plugin();
         compiler.setArtifactId("maven-compiler-plugin"); compiler.setVersion("3.15.0"); build.addPlugin(compiler);
         model.setBuild(build);
         Map<String, String> files = new LinkedHashMap<>();

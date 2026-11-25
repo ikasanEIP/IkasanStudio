@@ -3,14 +3,15 @@ package org.ikasan.studio.intellij.project;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import org.ikasan.studio.intellij.navigation.NavigationTarget;
 import java.util.function.Consumer;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.vfs.VirtualFile;
+import java.util.function.Supplier;
+import org.ikasan.studio.intellij.navigation.NavigationTarget;
 
 /** No document loading, PSI validity checks or Java class lookup on the event dispatch thread. */
 final class NavigationTextReader {
@@ -21,7 +22,7 @@ final class NavigationTextReader {
         read(project, () -> file, apply);
     }
 
-    static void read(Project project, java.util.function.Supplier<PsiFile> resolve, Consumer<Snapshot> apply) {
+    static void read(Project project, Supplier<PsiFile> resolve, Consumer<Snapshot> apply) {
         // Project itself is deliberately not used as the expiry Disposable here - the platform's plugin
         // guidelines flag Project/Application as parents to avoid, since they can accumulate disposables for
         // the whole session; StudioProjectInitialisationService is this plugin's own project-scoped Disposable
@@ -30,7 +31,7 @@ final class NavigationTextReader {
         readComputed(project, () -> readSnapshot(resolve.get()), apply);
     }
 
-    static <T> void readComputed(Project project, java.util.function.Supplier<T> resolve, Consumer<T> apply) {
+    static <T> void readComputed(Project project, Supplier<T> resolve, Consumer<T> apply) {
         ReadAction.nonBlocking(resolve::get)
                 .expireWith(project.getService(StudioProjectInitialisationService.class))
                 .finishOnUiThread(ModalityState.defaultModalityState(), snapshot -> {

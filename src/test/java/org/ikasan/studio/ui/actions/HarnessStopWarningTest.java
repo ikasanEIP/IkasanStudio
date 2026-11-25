@@ -1,23 +1,25 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
+import java.awt.event.ActionEvent;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.intellij.execution.HarnessOverrideService;
 import org.ikasan.studio.intellij.runtime.*;
-import org.ikasan.studio.ui.UiContext;
-import org.junit.jupiter.api.Test;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-import java.util.List;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint;
 import org.ikasan.studio.intellij.runtime.TestFtpServerService;
 import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
 import org.ikasan.studio.intellij.runtime.TestSftpServerService;
+import org.ikasan.studio.ui.UiContext;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 class HarnessStopWarningTest {
     Project project(String name, FlowElement element) throws Exception {
@@ -84,7 +86,7 @@ class HarnessStopWarningTest {
         HarnessControlActions actions = new HarnessControlActions(owner, endpoints -> {
             assertThat(endpoints).hasSize(3); decisions.incrementAndGet(); return false;
         });
-        actions.stopAction().actionPerformed(new java.awt.event.ActionEvent(this, 0, "stop"));
+        actions.stopAction().actionPerformed(new ActionEvent(this, 0, "stop"));
         assertThat(decisions.get()).isOne();
         verify(ftp, never()).stop(); verify(sftp, never()).stop(); verify(mail, never()).stopAnyOwned();
     }

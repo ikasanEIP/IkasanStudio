@@ -1,15 +1,16 @@
 package org.ikasan.studio.packs;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
-import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Map;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /** Deliberate commit failures use real generated flows and real local endpoints. */
 class RollbackFixtureTest {
@@ -23,11 +24,11 @@ class RollbackFixtureTest {
                 if (scenario.equals("jms")) {
                     // This failure reaches the consumer error handler after the transaction has rolled back.
                     // Only this test fault is ignored: let the broker retry without stopping the flow.
-                    ExceptionResolution resolution = org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution
+                    ExceptionResolution resolution = ExceptionResolution
                             .exceptionResolutionBuilder().metapackVersion(DevelopmentFixtureTest.PACK)
                             .exceptionsCaught("org.example.transport.transport.CommitFailure.class").theAction("ignoreException")
                             .componentProperties(new LinkedHashMap<>()).build();
-                    flow.setExceptionResolver(org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver
+                    flow.setExceptionResolver(ExceptionResolver
                             .exceptionResolverBuilder().metapackVersion(DevelopmentFixtureTest.PACK)
                             .ikasanExceptionResolutionMap(Map.of("org.example.transport.transport.CommitFailure.class", resolution)).build());
                 }

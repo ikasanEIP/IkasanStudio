@@ -1,22 +1,25 @@
 package org.ikasan.studio.core.diagnostics;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.util.*;
-import java.util.zip.ZipFile;
-import static org.junit.jupiter.api.Assertions.*;
 import java.nio.file.Path;
+import java.util.*;
 import java.util.Enumeration;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class StudioDiagnosticBundleTest {
     @TempDir Path directory;
 
     @Test void eventsKeepContextAndCauseLocationsWithoutValuesOrMessages() {
         IllegalArgumentException failure = new IllegalArgumentException("password=CANARY_SECRET https://user:CANARY_SECRET@host",
-                new java.io.IOException("{model: CANARY_MODEL}"));
+                new IOException("{model: CANARY_MODEL}"));
         failure.setStackTrace(new StackTraceElement[] {
                 new StackTraceElement("org.ikasan.studio.core.generator.Example", "generate", "CANARY_PATH", 42)});
         String event = StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_FAILED,
@@ -48,7 +51,7 @@ class StudioDiagnosticBundleTest {
             Enumeration<? extends ZipEntry> entries = zip.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement(); names.add(entry.getName());
-                contents.append(new String(zip.getInputStream(entry).readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+                contents.append(new String(zip.getInputStream(entry).readAllBytes(), StandardCharsets.UTF_8));
             }
             assertEquals(Set.of("environment.txt", "studio-redacted.log", "README.txt"), names);
             assertFalse(contents.toString().contains("CANARY"));
@@ -87,11 +90,11 @@ class StudioDiagnosticBundleTest {
 
     @Test void failedExportPreservesDeveloperFileAndLeavesNoTemporaryFiles() throws Exception {
         Path model = directory.resolve("model.json"); Files.writeString(model, "developer data");
-        assertThrows(java.io.IOException.class, () -> StudioDiagnosticBundle.write(model, directory.resolve("missing.log"), Map.of()));
+        assertThrows(IOException.class, () -> StudioDiagnosticBundle.write(model, directory.resolve("missing.log"), Map.of()));
         assertEquals("developer data", Files.readString(model));
         Path destination = Files.createDirectory(directory.resolve("blocked.zip"));
         Files.writeString(destination.resolve("keep.txt"), "keep");
-        assertThrows(java.io.IOException.class, () -> StudioDiagnosticBundle.write(destination, directory.resolve("missing.log"), Map.of()));
+        assertThrows(IOException.class, () -> StudioDiagnosticBundle.write(destination, directory.resolve("missing.log"), Map.of()));
         assertEquals("keep", Files.readString(destination.resolve("keep.txt")));
         try (Stream<Path> files = Files.list(directory)) { assertFalse(files.anyMatch(f -> f.getFileName().toString().endsWith(".tmp"))); }
     }

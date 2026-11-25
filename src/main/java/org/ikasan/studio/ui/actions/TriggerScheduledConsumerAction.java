@@ -3,17 +3,18 @@ package org.ikasan.studio.ui.actions;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.integration.ikasan.StudioInjectClient;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 /**
  * Fires a time-event (Quartz-scheduled) Consumer's flow immediately, via the same /rest/studio/inject/{flowName}
@@ -75,7 +76,7 @@ public class TriggerScheduledConsumerAction implements ActionListener {
         if (criteriaNode == null || !criteriaNode.isObject() || criteriaNode.isEmpty()) {
             return StudioBundle.message("message.ScanCriteriaUnavailable");
         }
-        java.util.List<String> entries = new java.util.ArrayList<>();
+        List<String> entries = new ArrayList<>();
         criteriaNode.fieldNames().forEachRemaining(name ->
                 entries.add(name + "=" + nodeToText(criteriaNode.get(name))));
         return String.join(", ", entries);
@@ -83,7 +84,7 @@ public class TriggerScheduledConsumerAction implements ActionListener {
 
     private static String nodeToText(JsonNode node) {
         if (node.isArray()) {
-            java.util.List<String> items = new java.util.ArrayList<>();
+            List<String> items = new ArrayList<>();
             node.forEach(item -> items.add(item.asText()));
             return String.join(", ", items);
         }

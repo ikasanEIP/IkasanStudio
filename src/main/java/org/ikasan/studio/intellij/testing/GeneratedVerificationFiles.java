@@ -1,13 +1,16 @@
 package org.ikasan.studio.intellij.testing;
 
-import org.ikasan.studio.core.generator.GeneratedVerification;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.security.MessageDigest;
-import java.util.*;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
+import org.ikasan.studio.core.generator.GeneratedVerification;
 
 /** On-demand baseline writer. A refresh optionally archives the previous bundle and never merges Studio tests. */
 public final class GeneratedVerificationFiles {
@@ -21,7 +24,7 @@ public final class GeneratedVerificationFiles {
             for (Path path : paths.sorted().toList()) {
                 if (Files.isSymbolicLink(path)) throw new IOException("Verification directory contains a symbolic link: " + path);
                 if (Files.isRegularFile(path)) {
-                    hash.update(root.relativize(path).toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    hash.update(root.relativize(path).toString().getBytes(StandardCharsets.UTF_8));
                     hash.update((byte) 0);
                     hash.update(Files.readAllBytes(path));
                 }
@@ -75,7 +78,7 @@ public final class GeneratedVerificationFiles {
             if (archivePrevious) ensureBackupIgnoreRule(project);
             if (Files.exists(directory)) {
                 backup = directory.resolveSibling(archivePrevious
-                        ? "test.bak" + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")) + "-" + UUID.randomUUID()
+                        ? "test.bak" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")) + "-" + UUID.randomUUID()
                         : ".verification-previous-" + UUID.randomUUID());
                 Files.move(directory, backup, StandardCopyOption.ATOMIC_MOVE);
             }

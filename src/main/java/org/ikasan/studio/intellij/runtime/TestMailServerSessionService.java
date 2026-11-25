@@ -1,25 +1,25 @@
 package org.ikasan.studio.intellij.runtime;
 
-import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
-
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Alarm;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
-import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.actions.TestMailServerSupport;
-import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
-
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import com.intellij.openapi.application.Application;
-import java.util.Map.Entry;
+import java.util.function.BiPredicate;
+import java.util.function.LongSupplier;
+import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.actions.TestMailServerSupport;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 /**
  * Tracks which (mailSmtpHost, mailSmtpPort) addresses a locally-launched test mail server is actually
@@ -53,15 +53,15 @@ public final class TestMailServerSessionService implements Disposable {
     private final Map<String, OwnedHarness> ownedHarnesses = new ConcurrentHashMap<>();
     private volatile boolean disposed;
 
-    private final java.util.function.LongSupplier clock;
-    private final java.util.function.BiPredicate<String, Integer> listeningProbe;
+    private final LongSupplier clock;
+    private final BiPredicate<String, Integer> listeningProbe;
 
     public TestMailServerSessionService(Project project) {
         this(project, null, System::currentTimeMillis, TestMailServerSupport::isAlreadyListening);
     }
 
-    TestMailServerSessionService(Project project, Alarm alarm, java.util.function.LongSupplier clock,
-                                 java.util.function.BiPredicate<String, Integer> listeningProbe) {
+    TestMailServerSessionService(Project project, Alarm alarm, LongSupplier clock,
+                                 BiPredicate<String, Integer> listeningProbe) {
         this.project = project;
         this.clock = clock;
         this.listeningProbe = listeningProbe;
@@ -96,7 +96,7 @@ public final class TestMailServerSessionService implements Disposable {
         return ownedHarnesses.keySet().stream().anyMatch(listeningAddresses::contains);
     }
 
-    public java.util.List<HarnessStopImpact.Endpoint> ownedEndpoints() {
+    public List<HarnessStopImpact.Endpoint> ownedEndpoints() {
         return ownedHarnesses.values().stream().map(owned -> new HarnessStopImpact.Endpoint("SMTP", owned.host(), owned.port())).toList();
     }
 
@@ -106,7 +106,7 @@ public final class TestMailServerSessionService implements Disposable {
 
     /** Stops this project.s one owned MailHog instance even if the component address changed after launch. */
     public boolean stopAnyOwned() {
-        Entry<String,org.ikasan.studio.intellij.runtime.TestMailServerSessionService.OwnedHarness> entry = ownedHarnesses.entrySet().stream().findFirst().orElse(null);
+        Entry<String,OwnedHarness> entry = ownedHarnesses.entrySet().stream().findFirst().orElse(null);
         if (entry == null || !ownedHarnesses.remove(entry.getKey(), entry.getValue())) return false;
         entry.getValue().stopAction().run();
         return true;
@@ -164,7 +164,7 @@ public final class TestMailServerSessionService implements Disposable {
                 }
             }
         }
-        for (Entry<String,org.ikasan.studio.intellij.runtime.TestMailServerSessionService.OwnedHarness> entry : ownedHarnesses.entrySet()) {
+        for (Entry<String,OwnedHarness> entry : ownedHarnesses.entrySet()) {
             OwnedHarness owned = entry.getValue();
             if (listeningProbe.test(owned.host(), owned.port())) {
                 nowListening.add(entry.getKey());
@@ -207,7 +207,7 @@ public final class TestMailServerSessionService implements Disposable {
         disposed = true;
         alarm.cancelAllRequests();
         listeningAddresses = Set.of();
-        List<org.ikasan.studio.intellij.runtime.TestMailServerSessionService.OwnedHarness> owned = List.copyOf(ownedHarnesses.values());
+        List<OwnedHarness> owned = List.copyOf(ownedHarnesses.values());
         ownedHarnesses.clear();
         Runnable stopOwned = () -> owned.forEach(harness -> {
             try { harness.stopAction().run(); } catch (RuntimeException ignored) { }

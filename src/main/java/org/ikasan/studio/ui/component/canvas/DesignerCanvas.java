@@ -1,8 +1,9 @@
 package org.ikasan.studio.ui.component.canvas;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.DataSink;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -16,50 +17,12 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
-import com.intellij.ui.scale.JBUIScale;
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.StudioBuildUtils;
-import org.ikasan.studio.core.generation.GenerationRequest;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
-import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
-import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
-import org.ikasan.studio.core.model.analysis.FtpFlowConnections;
-import org.ikasan.studio.core.model.analysis.TestFtpServerLinks;
-import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
-import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
-import org.ikasan.studio.core.model.command.FlowElementMove;
-import org.ikasan.studio.core.model.ikasan.instance.*;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.intellij.psi.UserImplementedClassRelocator;
-import org.ikasan.studio.intellij.runtime.FlowErrorMonitorService;
-import org.ikasan.studio.intellij.runtime.TestFtpServerService;
-import org.ikasan.studio.intellij.runtime.TestSftpServerService;
-import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
-import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
-import org.ikasan.studio.runtime.state.FlowErrorStates;
-import org.ikasan.studio.runtime.state.FlowRuntimeStatuses;
-import org.ikasan.studio.ui.PaintMode;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.actions.*;
-import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
-import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
-import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
-import org.ikasan.studio.ui.icons.ComponentIconProvider;
-import org.ikasan.studio.ui.model.MutablePair;
-import org.ikasan.studio.ui.theme.ThemeAwareColors;
-import org.ikasan.studio.ui.viewmodel.*;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -72,30 +35,79 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
-
-import static org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInPascalCase;
-import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME;
-import java.awt.FontMetrics;
+import java.util.Set;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.UIManager;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.conversion.ConversionRecipeMatcher;
+import org.ikasan.studio.core.generation.GenerationRequest;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 import org.ikasan.studio.core.model.analysis.FtpFlowConnections.Link;
+import org.ikasan.studio.core.model.analysis.FtpFlowConnections;
 import org.ikasan.studio.core.model.analysis.HarnessOverrides.Target;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides;
+import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
 import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
+import org.ikasan.studio.core.model.analysis.TestFtpServerLinks;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
+import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
+import org.ikasan.studio.core.model.command.FlowElementMove;
+import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.ai.StudioAiConnectionAction;
 import org.ikasan.studio.intellij.execution.HarnessOverrideService;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
+import org.ikasan.studio.intellij.project.ModelImporter;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.psi.UserImplementedClassRelocator;
+import org.ikasan.studio.intellij.runtime.FlowErrorMonitorService;
+import org.ikasan.studio.intellij.runtime.HarnessEndpointSettings;
+import org.ikasan.studio.intellij.runtime.TestFtpServerService;
+import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
+import org.ikasan.studio.intellij.runtime.TestSftpServerService;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.runtime.state.FlowErrorStates;
+import org.ikasan.studio.runtime.state.FlowRuntimeStatuses;
+import org.ikasan.studio.ui.PaintMode;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.actions.*;
+import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
+import org.ikasan.studio.ui.component.properties.ExceptionResolverPanel;
+import org.ikasan.studio.ui.component.properties.PropertiesPopupDialogue;
+import org.ikasan.studio.ui.icons.ComponentIconProvider;
+import org.ikasan.studio.ui.model.MutablePair;
+import org.ikasan.studio.ui.theme.ThemeAwareColors;
+import org.ikasan.studio.ui.viewmodel.*;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 
+import static org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInPascalCase;
+import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME;
+
 /**
  * The main painting / design panel
  */
-public class DesignerCanvas extends JPanel implements com.intellij.openapi.actionSystem.UiDataProvider {
+public class DesignerCanvas extends JPanel implements UiDataProvider {
     private final FlowClipboardActions flowClipboardActions;
 
     @Override
-    public void uiDataSnapshot(com.intellij.openapi.actionSystem.DataSink sink) {
-        sink.set(com.intellij.openapi.actionSystem.PlatformDataKeys.COPY_PROVIDER, flowClipboardActions);
-        sink.set(com.intellij.openapi.actionSystem.PlatformDataKeys.PASTE_PROVIDER, flowClipboardActions);
+    public void uiDataSnapshot(DataSink sink) {
+        sink.set(PlatformDataKeys.COPY_PROVIDER, flowClipboardActions);
+        sink.set(PlatformDataKeys.PASTE_PROVIDER, flowClipboardActions);
     }
 
     FlowClipboardActions getFlowClipboardActions() { return flowClipboardActions; }
@@ -176,23 +188,23 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     }
 
     private List<String> availableMetaPacks = List.of();
-    private java.util.Set<String> snapshotMetaPacks = java.util.Set.of();
+    private Set<String> snapshotMetaPacks = Set.of();
 
     /** Called on the EDT after background initialization validates and classifies the packs. */
-    public void setAvailableMetaPacks(List<String> packs, java.util.Set<String> snapshots) {
+    public void setAvailableMetaPacks(List<String> packs, Set<String> snapshots) {
         availableMetaPacks = List.copyOf(packs);
-        snapshotMetaPacks = java.util.Set.copyOf(snapshots);
+        snapshotMetaPacks = Set.copyOf(snapshots);
         refreshMetaPackChoices();
     }
 
     /** Uses the background-validated index; does no discovery on settings Apply. */
     public void refreshMetaPackChoices() {
         if (availableMetaPacks.isEmpty()) return;
-        boolean allowSnapshots = org.ikasan.studio.intellij.settings.IkasanStudioSettings.areSnapshotMetaPacksAllowed();
+        boolean allowSnapshots = IkasanStudioSettings.areSnapshotMetaPacksAllowed();
         Object selected = metaDataVersionComboBox.getSelectedItem();
         ArrayList<String> sorted = new ArrayList<>(availableMetaPacks.stream().filter(id -> allowSnapshots || !snapshotMetaPacks.contains(id)).toList());
         sorted.sort(String::compareToIgnoreCase);
-        metaDataVersionComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(sorted.toArray(String[]::new)));
+        metaDataVersionComboBox.setModel(new DefaultComboBoxModel<>(sorted.toArray(String[]::new)));
         if (selected instanceof String version && sorted.contains(version)) metaDataVersionComboBox.setSelectedItem(version);
     }
 
@@ -364,7 +376,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         JButton importModelJsonButton = new JButton(StudioBundle.message("button.ImportModelJson"));
         importModelJsonButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         importModelJsonButton.addActionListener(event ->
-                org.ikasan.studio.intellij.project.ModelImporter.openImportDialog(this.project, this));
+                ModelImporter.openImportDialog(this.project, this));
         panel.add(importModelJsonButton);
 
         panel.add(Box.createVerticalStrut(JBUI.scale(24)));
@@ -380,7 +392,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         aiExplanation.setLineWrap(true);
         aiExplanation.setWrapStyleWord(true);
         aiExplanation.setOpaque(false);
-        aiExplanation.setFont(javax.swing.UIManager.getFont("Label.font"));
+        aiExplanation.setFont(UIManager.getFont("Label.font"));
         aiExplanation.setColumns(58);
         aiExplanation.setBorder(JBUI.Borders.empty());
         aiExplanation.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -391,7 +403,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         JButton connectAiButton = new JButton(StudioBundle.message("ai.ConnectionTitle"));
         connectAiButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         connectAiButton.addActionListener(event ->
-                org.ikasan.studio.intellij.ai.StudioAiConnectionAction.open(project));
+                StudioAiConnectionAction.open(project));
         panel.add(connectAiButton);
         return panel;
     }
@@ -632,7 +644,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             this.setToolTipText(((Flow) mouseSelectedComponent).getFlowIntegrityStatus());
         } else if (mouseSelectedComponent instanceof FlowElement flowElement) {
             String tooltip = buildInputOutputTooltip(flowElement);
-            HarnessOverrideService selections = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+            HarnessOverrideService selections = project.getService(HarnessOverrideService.class);
             if (selections != null && (selections.isEnabled(flowElement) || selections.isActive(flowElement))) {
                 tooltip += " — " + StudioBundle.message(selections.isActive(flowElement) ?
                         "harnessOverrides.active" : "harnessOverrides.enabled");
@@ -1277,7 +1289,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         }
         String upstreamOutputType = upstream.getEffectiveOutputTypeDescription();
         if (upstreamOutputType != null && !upstreamOutputType.isBlank()) {
-            newComponent.setPropertyValue(propertyName, org.ikasan.studio.core.conversion.ConversionRecipeMatcher.javaType(upstreamOutputType));
+            newComponent.setPropertyValue(propertyName, ConversionRecipeMatcher.javaType(upstreamOutputType));
         }
     }
 
@@ -1326,7 +1338,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             String simpleName = candidate.substring(candidate.lastIndexOf('.') + 1);
             return inputTypeIsUnconstrained(simpleName) ? null : candidate;
         }
-        java.util.List<ConversionRecipeMeta> recipes = newComponent.getComponentMeta().getConversionRecipes();
+        List<ConversionRecipeMeta> recipes = newComponent.getComponentMeta().getConversionRecipes();
         if (recipes == null) {
             return null;
         }
@@ -1355,7 +1367,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             candidate = nextFlowElement(flow, surrounding.getLeft());
         }
 
-        java.util.Set<FlowElement> visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        Set<FlowElement> visited = Collections.newSetFromMap(new IdentityHashMap<>());
         while (candidate != null && visited.add(candidate)) {
             String inputType = candidate.getEffectiveInputTypeDescription();
             String simpleName = inputType == null ? "" : inputType.substring(inputType.lastIndexOf('.') + 1);
@@ -1719,7 +1731,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     private boolean isIdentityTakenByAnotherComponent(String candidateIdentity, FlowElement debugComponent, Flow containingFlow) {
         return containingFlow.ftlGetConsumerAndFlowElements().stream()
                 .anyMatch(sibling -> sibling != debugComponent
-                        && org.ikasan.studio.core.StudioBuildUtils.sameGeneratedName(candidateIdentity, sibling.getIdentity()));
+                        && StudioBuildUtils.sameGeneratedName(candidateIdentity, sibling.getIdentity()));
     }
 
     /**
@@ -1809,16 +1821,16 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     }
 
     private List<TestFtpServerLinks.Link> effectiveFtpLinks(Module module) {
-        ArrayList<org.ikasan.studio.core.model.analysis.TestFtpServerLinks.Link> links = new java.util.ArrayList<>();
-        for (org.ikasan.studio.core.model.analysis.TestFtpServerLinks.Link original : TestFtpServerLinks.findLinks(module)) {
-            ArrayList<FlowElement> elements = new java.util.ArrayList<>(original.consumers());
+        ArrayList<TestFtpServerLinks.Link> links = new ArrayList<>();
+        for (TestFtpServerLinks.Link original : TestFtpServerLinks.findLinks(module)) {
+            ArrayList<FlowElement> elements = new ArrayList<>(original.consumers());
             elements.addAll(original.producers());
             for (FlowElement element : elements) {
-                TestFtpServerConfiguration configuration = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, element)
-                        ? org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.localFtp(project) : original.configuration();
-                org.ikasan.studio.core.model.analysis.TestFtpServerLinks.Link link = links.stream().filter(l -> l.configuration().sameAddressAs(configuration)).findFirst().orElse(null);
+                TestFtpServerConfiguration configuration = HarnessEndpointSettings.effective(project, element)
+                        ? HarnessEndpointSettings.localFtp(project) : original.configuration();
+                TestFtpServerLinks.Link link = links.stream().filter(l -> l.configuration().sameAddressAs(configuration)).findFirst().orElse(null);
                 if (link == null) {
-                    link = new TestFtpServerLinks.Link(configuration, new java.util.ArrayList<>(), new java.util.ArrayList<>());
+                    link = new TestFtpServerLinks.Link(configuration, new ArrayList<>(), new ArrayList<>());
                     links.add(link);
                 }
                 (element.getComponentMeta().isConsumer() ? link.consumers() : link.producers()).add(element);
@@ -1828,14 +1840,14 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     }
 
     private List<TestMailServerLinks.Link> effectiveMailLinks(Module module) {
-        ArrayList<org.ikasan.studio.core.model.analysis.TestMailServerLinks.Link> links = new java.util.ArrayList<>();
-        for (org.ikasan.studio.core.model.analysis.TestMailServerLinks.Link original : TestMailServerLinks.findLinks(module)) for (FlowElement element : original.producers()) {
-            boolean local = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, element);
+        ArrayList<TestMailServerLinks.Link> links = new ArrayList<>();
+        for (TestMailServerLinks.Link original : TestMailServerLinks.findLinks(module)) for (FlowElement element : original.producers()) {
+            boolean local = HarnessEndpointSettings.effective(project, element);
             String host = local ? TestMailServerLinks.DEFAULT_SMTP_HOST : original.host();
             int port = local ? TestMailServerLinks.DEFAULT_SMTP_PORT : original.port();
-            org.ikasan.studio.core.model.analysis.TestMailServerLinks.Link link = links.stream().filter(l -> l.host().equals(host) && l.port() == port).findFirst().orElse(null);
+            TestMailServerLinks.Link link = links.stream().filter(l -> l.host().equals(host) && l.port() == port).findFirst().orElse(null);
             if (link == null) {
-                link = new TestMailServerLinks.Link(host, port, new java.util.ArrayList<>());
+                link = new TestMailServerLinks.Link(host, port, new ArrayList<>());
                 links.add(link);
             }
             link.producers().add(element);
@@ -1844,16 +1856,16 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     }
 
     private void paintHarnessOverrideIndicators(Graphics graphics, Module module) {
-        HarnessOverrideService selections = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        HarnessOverrideService selections = project.getService(HarnessOverrideService.class);
         if (selections == null) return;
-        for (Target target : org.ikasan.studio.core.model.analysis.HarnessOverrides.targets(module)) {
+        for (Target target : HarnessOverrides.targets(module)) {
             if (!selections.isEnabled(target.element()) && !selections.isActive(target.element())) continue;
             AbstractViewHandlerIntellij handler = ViewHandlerCache.getAbstractViewHandler(project, target.element());
             if (handler == null) continue;
             Graphics badge = graphics.create();
             try {
-                badge.setColor(org.ikasan.studio.ui.theme.ThemeAwareColors.getSuccessColor());
-                badge.setFont(graphics.getFont().deriveFont(java.awt.Font.BOLD));
+                badge.setColor(ThemeAwareColors.getSuccessColor());
+                badge.setFont(graphics.getFont().deriveFont(Font.BOLD));
                 badge.drawString("H", handler.getRightX() - JBUI.scale(12), handler.getTopY() + JBUI.scale(12));
             } finally { badge.dispose(); }
         }
@@ -1937,7 +1949,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             return;
         }
         List<JmsFlowConnections.JmsLink> links = JmsFlowConnections.findMatchingLinks(ikasanModule, e ->
-                org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, e));
+                HarnessEndpointSettings.effective(project, e));
         if (links.isEmpty()) {
             return;
         }
@@ -2046,23 +2058,23 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
                 bounds.width + leftReserve + rightReserve, bounds.height + bottomReserve);
     }
 
-    static java.util.List<Point> jmsPerimeterRoute(Rectangle bounds, Point start, Point end, int index) {
+    static List<Point> jmsPerimeterRoute(Rectangle bounds, Point start, Point end, int index) {
         int laneOffset = index * JMS_CONNECTOR_STAGGER;
         int corridorY = bounds.y + bounds.height + JMS_CONNECTOR_GAP_CLEARANCE + laneOffset;
         int approachX = bounds.x - JMS_CONNECTOR_GUTTER_MARGIN - laneOffset;
         int standoffX = Math.max(start.x + JMS_CONNECTOR_STANDOFF,
                 bounds.x + bounds.width + JMS_CONNECTOR_GUTTER_MARGIN + laneOffset);
-        return java.util.List.of(new Point(start), new Point(standoffX, start.y),
+        return List.of(new Point(start), new Point(standoffX, start.y),
                 new Point(standoffX, corridorY), new Point(approachX, corridorY),
                 new Point(approachX, end.y), new Point(end));
     }
 
-    static java.util.List<Point> jmsAdjacentFlowRoute(Rectangle producerFlow, Rectangle consumerFlow,
+    static List<Point> jmsAdjacentFlowRoute(Rectangle producerFlow, Rectangle consumerFlow,
                                                       Point start, Point end) {
         int corridorY = (producerFlow.y + producerFlow.height + consumerFlow.y) / 2;
         int standoffX = start.x + JMS_CONNECTOR_STANDOFF;
         int approachX = end.x - JMS_CONNECTOR_STANDOFF;
-        return java.util.List.of(new Point(start), new Point(standoffX, start.y),
+        return List.of(new Point(start), new Point(standoffX, start.y),
                 new Point(standoffX, corridorY), new Point(approachX, corridorY),
                 new Point(approachX, end.y), new Point(end));
     }
@@ -2070,7 +2082,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     private void paintElbowConnector(Graphics2D g2d, Point start, Point end,
                                      IkasanFlowViewHandler producerFlow, IkasanFlowViewHandler consumerFlow,
                                      boolean consumerIsNextFlow, int index) {
-        java.util.List<Point> route;
+        List<Point> route;
         if (consumerIsNextFlow) {
             Rectangle producerBounds = new Rectangle(producerFlow.getLeftX(), producerFlow.getTopY(),
                     producerFlow.getWidth(), producerFlow.getHeight());
@@ -2198,7 +2210,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
 
     private List<FlowElement> selectedSftpMembers(Module module, boolean consumers) {
         return sftpMembers(module, consumers).stream()
-                .filter(e -> org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, e)).toList();
+                .filter(e -> HarnessEndpointSettings.effective(project, e)).toList();
     }
 
     private void paintTestSftpServerNode(Graphics graphics, Module module) {
@@ -2463,7 +2475,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     }
 
     private void paintTestJmsHarnessLink(Graphics graphics, Graphics2D g2d, TestJmsHarnessLinks.Link link) {
-        if (!org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, link.ownerProducer())) return;
+        if (!HarnessEndpointSettings.effective(project, link.ownerProducer())) return;
         Point anchorRight = jmsHarnessAnchorConnectorPoint(link.ownerProducer());
         if (anchorRight == null) {
             return;
@@ -2519,7 +2531,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             return null;
         }
         for (TestJmsHarnessLinks.Link link : TestJmsHarnessLinks.findLinks(ikasanModule)) {
-            if (!org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, link.ownerProducer())) continue;
+            if (!HarnessEndpointSettings.effective(project, link.ownerProducer())) continue;
             Point anchorRight = jmsHarnessAnchorConnectorPoint(link.ownerProducer());
             if (anchorRight == null) {
                 continue;
@@ -2903,7 +2915,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             // Match the painted, word-wrapped label instead of reserving an invisible
             // 160 px band that can intercept hover events intended for a nearby harness card.
             FontMetrics metrics = getFontMetrics(StudioUIUtils.getMainFont());
-            int labelWidth = java.util.Arrays.stream(flowStatusDisplayLabel(flowStatuses.getRawState(flow.getIdentity())).split(" "))
+            int labelWidth = Arrays.stream(flowStatusDisplayLabel(flowStatuses.getRawState(flow.getIdentity())).split(" "))
                     .mapToInt(metrics::stringWidth).max().orElse(0);
             if (xpos > labelLeftX && xpos < labelLeftX + labelWidth && ypos >= labelTopY && ypos <= labelBottomY) {
                 return flow;

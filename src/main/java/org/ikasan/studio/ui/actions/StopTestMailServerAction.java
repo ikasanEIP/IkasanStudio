@@ -7,15 +7,18 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.intellij.runtime.HarnessEndpointSettings;
+import org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint;
 import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Stops registered harnesses, or a verified MailHog descendant of this project's harness terminal. */
 public class StopTestMailServerAction implements ActionListener {
@@ -38,8 +41,8 @@ public class StopTestMailServerAction implements ActionListener {
                     StudioBundle.message("message.TestMailServerCanOnlyBeUsedOnEmailProducer"));
             return;
         }
-        String smtpHost = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effectiveMailHost(project, flowElement);
-        int smtpPort = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effectiveMailPort(project, flowElement);
+        String smtpHost = HarnessEndpointSettings.effectiveMailHost(project, flowElement);
+        int smtpPort = HarnessEndpointSettings.effectiveMailPort(project, flowElement);
         String smtpAddress = smtpHost + ":" + smtpPort;
         TestMailServerSessionService service = project.getService(TestMailServerSessionService.class);
         if (!confirmed && !HarnessStopWarning.confirm(project, service.ownedEndpoints())) return;
@@ -61,14 +64,14 @@ public class StopTestMailServerAction implements ActionListener {
                     try {
                         ProcessHandle harness = MailHarnessProcessRecovery.findHarness(shell, smtpHost, smtpPort);
                         if (harness != null) {
-                            AtomicBoolean allowed = new java.util.concurrent.atomic.AtomicBoolean(false);
+                            AtomicBoolean allowed = new AtomicBoolean(false);
                             ApplicationManager.getApplication().invokeAndWait(() -> allowed.set(!project.isDisposed()
-                                    && HarnessStopWarning.confirm(project, java.util.List.of(new org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint("SMTP", smtpHost, smtpPort)))));
+                                    && HarnessStopWarning.confirm(project, List.of(new Endpoint("SMTP", smtpHost, smtpPort)))));
                             if (!allowed.get()) return;
                             // Recheck the shell association immediately before requesting graceful termination.
                             if (project.isDisposed() || !shell.isAlive()) return;
                             if (!harness.destroy()) throw new IllegalStateException("Termination request was rejected");
-                            harness.onExit().get(3, java.util.concurrent.TimeUnit.SECONDS);
+                            harness.onExit().get(3, TimeUnit.SECONDS);
                             service.pollNow();
                             ApplicationManager.getApplication().invokeLater(() -> {
                                 if (!project.isDisposed()) StudioUIUtils.displayIdeaInfoMessage(project,

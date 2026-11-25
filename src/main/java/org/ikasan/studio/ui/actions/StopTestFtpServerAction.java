@@ -6,15 +6,15 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint;
 import org.ikasan.studio.intellij.runtime.TestFtpServerService;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint;
 
 /** Stops only the FTP server instance owned by this Studio project. */
 public final class StopTestFtpServerAction implements ActionListener {
@@ -38,7 +38,7 @@ public final class StopTestFtpServerAction implements ActionListener {
             return;
         }
         Endpoint endpoint = service.listeningEndpoint();
-        if (!confirmed && endpoint != null && !HarnessStopWarning.confirm(project, java.util.List.of(endpoint))) return;
+        if (!confirmed && endpoint != null && !HarnessStopWarning.confirm(project, List.of(endpoint))) return;
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Stopping test FTP server") {
             @SuppressWarnings("NullableProblems")
             @Override public void run(ProgressIndicator indicator) {

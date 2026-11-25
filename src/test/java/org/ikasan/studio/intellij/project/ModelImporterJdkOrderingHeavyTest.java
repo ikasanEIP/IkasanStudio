@@ -4,20 +4,19 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.generator.ModelTemplate;
 import org.ikasan.studio.intellij.migration.MigrationJdk;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import org.mockito.MockedStatic;
 
 import static org.mockito.Mockito.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import org.mockito.MockedStatic;
 
 public class ModelImporterJdkOrderingHeavyTest extends HeavyPlatformTestCase {
     public void testMavenRefreshFollowsCommittedGenerationAndJdkAlignment() throws Exception {
@@ -54,7 +53,7 @@ public class ModelImporterJdkOrderingHeavyTest extends HeavyPlatformTestCase {
         String source = ModelTemplate.create(TestFixtures.getMyFirstModuleIkasanModule("V3.3.9", List.of()));
         CompletableFuture<Void> completion = new CompletableFuture<>();
         MavenProjectsManager manager = mock(MavenProjectsManager.class);
-        AtomicBoolean warned = new java.util.concurrent.atomic.AtomicBoolean();
+        AtomicBoolean warned = new AtomicBoolean();
         try (MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class);
              MockedStatic<MigrationJdk> migration = mockStatic(MigrationJdk.class);
              MockedStatic<MavenProjectsManager> maven = mockStatic(MavenProjectsManager.class);

@@ -1,13 +1,17 @@
 package org.ikasan.studio.intellij.runtime;
 
-import org.junit.jupiter.api.Test;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Alarm;
-import org.ikasan.studio.ui.UiContext;
-import java.util.concurrent.atomic.AtomicLong;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import static org.mockito.Mockito.*;
+import java.util.concurrent.atomic.AtomicLong;
+import org.ikasan.studio.ui.UiContext;
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class TestMailServerFailureInjectionTest {
     @Test
@@ -18,7 +22,7 @@ class TestMailServerFailureInjectionTest {
                 (host, port) -> { throw new AssertionError("Snapshot must not probe sockets"); });
         try {
             service.registerOwned("localhost", 1025, () -> stopped.set(true));
-            assertEquals(java.util.List.of(new HarnessStopImpact.Endpoint("SMTP", "localhost", 1025)), service.ownedEndpoints());
+            assertEquals(List.of(new HarnessStopImpact.Endpoint("SMTP", "localhost", 1025)), service.ownedEndpoints());
             assertFalse(stopped.get());
             service.stopAnyOwned();
             assertTrue(service.ownedEndpoints().isEmpty());
@@ -31,11 +35,11 @@ class TestMailServerFailureInjectionTest {
         when(project.getService(UiContext.class)).thenReturn(mock(UiContext.class));
         AtomicLong clock = new AtomicLong(1000);
         AtomicBoolean stopped = new AtomicBoolean();
-        Process exited = new ProcessBuilder(java.nio.file.Path.of(System.getProperty("java.home"), "bin", "java").toString(),
+        Process exited = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "java").toString(),
                 "-failure-injection-invalid-option").redirectErrorStream(true)
                 .redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
         try {
-            assertTrue(exited.waitFor(5, java.util.concurrent.TimeUnit.SECONDS));
+            assertTrue(exited.waitFor(5, TimeUnit.SECONDS));
             assertNotEquals(0, exited.exitValue());
         } finally { exited.destroyForcibly(); }
         TestMailServerSessionService service = new TestMailServerSessionService(project, mock(Alarm.class), clock::get, (host, port) -> false);

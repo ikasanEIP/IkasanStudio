@@ -1,15 +1,17 @@
 package org.ikasan.studio.core.model.analysis;
 
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-
 import java.nio.charset.StandardCharsets;
+import java.util.Base64.Encoder;
 import java.util.Base64;
 import java.util.List;
-import java.util.Base64.Encoder;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.Link;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Stable launch identities, independent of configured endpoints and credentials. */
 public final class HarnessOverrides {
@@ -32,9 +34,9 @@ public final class HarnessOverrides {
     public static String kind(Module module, FlowElement element) {
         if (module == null || element == null || element.getComponentMeta() == null) return "";
         try {
-            MetaPackManifest manifest = org.ikasan.studio.core.metapack.ComponentLibrary.getMetaPackManifest(module.getMetaVersion());
+            MetaPackManifest manifest = ComponentLibrary.getMetaPackManifest(module.getMetaVersion());
             if (manifest.generatorApiVersion() == null || manifest.generatorApiVersion() < 4) return "";
-        } catch (org.ikasan.studio.core.StudioBuildException unavailable) {
+        } catch (StudioBuildException unavailable) {
             return ""; // Pack loading reports its own diagnostics; the selector offers no unsupported overrides.
         }
         ComponentMeta meta = element.getComponentMeta();
@@ -56,7 +58,7 @@ public final class HarnessOverrides {
     }
     // Called reflectively by the component factory FreeMarker templates.
     @SuppressWarnings("unused")
-    public static String selectionId(Module module, org.ikasan.studio.core.model.ikasan.instance.Flow flow, FlowElement element) {
+    public static String selectionId(Module module, Flow flow, FlowElement element) {
         for (Link link : TestJmsHarnessLinks.findLinks(module)) {
             if (link.harnessFlow().getConsumer() == element) return id(link.ownerProducer());
         }

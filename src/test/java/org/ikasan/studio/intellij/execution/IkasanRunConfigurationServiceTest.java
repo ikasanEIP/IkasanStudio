@@ -3,6 +3,7 @@ package org.ikasan.studio.intellij.execution;
 import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.openapi.module.Module;
+import com.intellij.util.execution.ParametersListUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,10 +16,10 @@ class IkasanRunConfigurationServiceTest {
     void environmentLaunchArgumentsRoundTripWithSpacesAndKeepDebugProfile() {
         String run = IkasanRunConfigurationService.environmentParameters("/tmp/my project", "dev", false);
         String debug = IkasanRunConfigurationService.environmentParameters("/tmp/my project", "dev", true);
-        assertThat(com.intellij.util.execution.ParametersListUtil.parse(run)).containsExactly(
+        assertThat(ParametersListUtil.parse(run)).containsExactly(
                 "--spring.config.additional-location=optional:file:/tmp/my project/config/,optional:file:/tmp/my project/config/local/",
                 "--spring.profiles.active=dev");
-        assertThat(com.intellij.util.execution.ParametersListUtil.parse(debug)).contains("--spring.profiles.active=dev,studio-debug");
+        assertThat(ParametersListUtil.parse(debug)).contains("--spring.profiles.active=dev,studio-debug");
         assertThat(IkasanRunConfigurationService.environmentOf(run)).isEqualTo("dev");
         assertThat(IkasanRunConfigurationService.environmentOf(debug)).isEqualTo("dev");
         assertThat(IkasanRunConfigurationService.environmentOf(

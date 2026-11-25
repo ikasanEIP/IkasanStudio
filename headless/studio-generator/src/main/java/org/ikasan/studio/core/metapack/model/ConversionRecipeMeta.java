@@ -1,10 +1,11 @@
 package org.ikasan.studio.core.metapack.model;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
-import org.ikasan.studio.core.conversion.ConversionRecipeMatcher;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
+import org.ikasan.studio.core.conversion.ConversionRecipeMatcher;
 
 /** A stable meta-pack recipe; multiple construction strategies may share a source/target pair. */
 @Data
@@ -20,7 +21,7 @@ public class ConversionRecipeMeta {
     private String helpText;
     private String extractionTemplate;
     private String constructionTemplate;
-    private java.util.List<String> configurationProperties;
+    private List<String> configurationProperties;
 
     public boolean matches(String source, String target) {
         return sourceType != null && targetType != null

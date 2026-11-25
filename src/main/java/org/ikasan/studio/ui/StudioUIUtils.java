@@ -1,22 +1,23 @@
 package org.ikasan.studio.ui;
 
-import com.intellij.util.ui.JBUI;
-
-import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
-
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
-
-import javax.swing.*;
-import javax.swing.border.Border;
+import com.intellij.util.ui.JBUI;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.swing.*;
+import javax.swing.border.Border;
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
 
 public class StudioUIUtils {
     public static final String NOTIFICATION_GROUP_ID = "Ikasan Studio";
@@ -444,24 +445,24 @@ public class StudioUIUtils {
      * @param textSupplier supplies the text to copy at click time, rather than a fixed String, so callers whose
      *                      label can change (e.g. a live cue appended to it) always copy the current text.
      */
-    public static void makeCopyable(JComponent component, java.util.function.Supplier<String> textSupplier) {
+    public static void makeCopyable(JComponent component, Supplier<String> textSupplier) {
         JPopupMenu copyMenu = new JPopupMenu();
         JMenuItem copyItem = new JMenuItem(StudioBundle.message("button.Copy"));
         copyItem.addActionListener(e -> {
             String text = textSupplier.get();
             if (text != null) {
-                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new java.awt.datatransfer.StringSelection(text), null);
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text), null);
             }
         });
         copyMenu.add(copyItem);
-        component.addMouseListener(new java.awt.event.MouseAdapter() {
-            private void maybeShowPopup(java.awt.event.MouseEvent e) {
+        component.addMouseListener(new MouseAdapter() {
+            private void maybeShowPopup(MouseEvent e) {
                 if (e.isPopupTrigger()) {
                     copyMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
-            @Override public void mousePressed(java.awt.event.MouseEvent e) { maybeShowPopup(e); }
-            @Override public void mouseReleased(java.awt.event.MouseEvent e) { maybeShowPopup(e); }
+            @Override public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
+            @Override public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
         });
     }
 

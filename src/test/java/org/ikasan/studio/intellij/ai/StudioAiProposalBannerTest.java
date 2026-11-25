@@ -1,9 +1,11 @@
 package org.ikasan.studio.intellij.ai;
 
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import com.intellij.openapi.Disposable;
+import com.intellij.util.ui.UIUtil;
+import java.util.Objects;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
@@ -16,30 +18,30 @@ public class StudioAiProposalBannerTest extends HeavyPlatformTestCase {
             properties.setValue(StudioAiProposalInboxService.PENDING, "old-draft.studio-proposal.json");
             properties.setValue(StudioAiProposalInboxService.REVISION, "old");
             StudioAiProposalBanner banner = new StudioAiProposalBanner(getProject(), owner);
-            CompletableFuture<Void> failed = new java.util.concurrent.CompletableFuture<>();
+            CompletableFuture<Void> failed = new CompletableFuture<>();
             inbox.clearPreviousAfterSuccess(failed);
             failed.completeExceptionally(new IllegalStateException("Generation failed"));
-            com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents();
+            UIUtil.dispatchAllInvocationEvents();
             assertTrue(banner.isVisible());
-            CompletableFuture<Void> generation = new java.util.concurrent.CompletableFuture<>();
+            CompletableFuture<Void> generation = new CompletableFuture<>();
             inbox.clearPreviousAfterSuccess(generation);
             assertTrue(banner.isVisible());
             generation.complete(null);
-            com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents();
+            UIUtil.dispatchAllInvocationEvents();
             assertFalse(banner.isVisible());
             assertNull(inbox.getPendingProposal());
 
             properties.setValue(StudioAiProposalInboxService.PENDING, "old-draft.studio-proposal.json");
             properties.setValue(StudioAiProposalInboxService.REVISION, "old");
-            CompletableFuture<Void> delayed = new java.util.concurrent.CompletableFuture<>();
+            CompletableFuture<Void> delayed = new CompletableFuture<>();
             inbox.clearPreviousAfterSuccess(delayed);
             properties.setValue(StudioAiProposalInboxService.PENDING, "new-request.studio-proposal.json");
             properties.setValue(StudioAiProposalInboxService.REVISION, "new");
             getProject().getMessageBus().syncPublisher(StudioAiProposalInboxService.CHANGED).run();
             delayed.complete(null);
-            com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents();
+            UIUtil.dispatchAllInvocationEvents();
             assertTrue(banner.isVisible());
-            assertEquals("new-request.studio-proposal.json", inbox.getPendingProposal().getFileName().toString());
+            assertEquals("new-request.studio-proposal.json", Objects.requireNonNull(inbox.getPendingProposal()).getFileName().toString());
         } finally {
             Disposer.dispose(owner);
             properties.unsetValue(StudioAiProposalInboxService.PENDING);
@@ -56,7 +58,7 @@ public class StudioAiProposalBannerTest extends HeavyPlatformTestCase {
             StudioAiProposalBanner banner = new StudioAiProposalBanner(getProject(), owner);
             assertTrue(banner.isVisible());
             StudioAiProposalInboxService inbox = getProject().getService(StudioAiProposalInboxService.class);
-            assertEquals("rename.studio-proposal.json", inbox.getPendingProposal().getFileName().toString());
+            assertEquals("rename.studio-proposal.json", Objects.requireNonNull(inbox.getPendingProposal()).getFileName().toString());
             Disposer.dispose(owner);
             owner = Disposer.newDisposable();
             StudioAiProposalBanner reopened = new StudioAiProposalBanner(getProject(), owner);

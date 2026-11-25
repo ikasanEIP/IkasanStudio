@@ -1,10 +1,10 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
-import org.ikasan.studio.core.model.command.FlowElementMove;
-
 import org.ikasan.studio.core.StudioBuildException;
-import org.junit.jupiter.api.Test;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.command.FlowElementMove;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
@@ -80,7 +80,7 @@ class FlowElementMoveTest {
     void rejectsMovingAnOrdinaryComponentAfterAnExistingRouter() throws StudioBuildException {
         Flow flow = new Flow(BASE_META_PACK);
         FlowElement ordinary = attachedBroker(flow, "ordinary");
-        FlowElement router = org.ikasan.studio.core.TestFixtures.getSingleRecipientRouter(BASE_META_PACK);
+        FlowElement router = TestFixtures.getSingleRecipientRouter(BASE_META_PACK);
         router.setContainingFlow(flow);
         router.setContainingFlowRoute(flow.getFlowRoute());
         flow.getFlowRoute().getFlowElements().add(router);
@@ -95,13 +95,13 @@ class FlowElementMoveTest {
     @Test
     void movesDebugToFirstRoutePositionImmediatelyAfterConsumer() throws StudioBuildException {
         Flow flow = new Flow(BASE_META_PACK);
-        flow.setConsumer(org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumer(BASE_META_PACK));
+        flow.setConsumer(TestFixtures.getEventGeneratingConsumer(BASE_META_PACK));
         FlowElement filter = attachedBroker(flow, "filter");
-        FlowElement debug = org.ikasan.studio.core.TestFixtures.getDebugTransition(BASE_META_PACK);
+        FlowElement debug = TestFixtures.getDebugTransition(BASE_META_PACK);
         debug.setContainingFlow(flow);
         debug.setContainingFlowRoute(flow.getFlowRoute());
         flow.getFlowRoute().getFlowElements().add(debug);
-        FlowElement router = org.ikasan.studio.core.TestFixtures.getSingleRecipientRouter(BASE_META_PACK);
+        FlowElement router = TestFixtures.getSingleRecipientRouter(BASE_META_PACK);
         router.setContainingFlow(flow);
         router.setContainingFlowRoute(flow.getFlowRoute());
         flow.getFlowRoute().getFlowElements().add(router);
@@ -122,7 +122,7 @@ class FlowElementMoveTest {
     }
 
     private static FlowElement producer(Flow flow, String name) throws StudioBuildException {
-        FlowElement element = org.ikasan.studio.core.TestFixtures.getGenericProducer(BASE_META_PACK);
+        FlowElement element = TestFixtures.getGenericProducer(BASE_META_PACK);
         element.setComponentName(name);
         element.setContainingFlow(flow);
         element.setContainingFlowRoute(flow.getFlowRoute());

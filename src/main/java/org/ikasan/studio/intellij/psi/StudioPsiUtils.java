@@ -1,5 +1,6 @@
 package org.ikasan.studio.intellij.psi;
 
+import com.intellij.ide.util.PackageChooserDialog;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.Disposable;
@@ -10,15 +11,13 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import com.intellij.ide.util.PackageChooserDialog;
-import com.intellij.psi.PsiPackage;
 
 /**
  * Centralised PSI API calls for UI classes that need to resolve/inspect project classes, so those classes
@@ -55,7 +54,7 @@ public final class StudioPsiUtils {
 
     /** Shows the native package chooser; cancellation leaves the caller's value unchanged. */
     public static String chooseProjectPackageQualifiedName(Project project, String dialogTitle) {
-        PackageChooserDialog chooser = new com.intellij.ide.util.PackageChooserDialog(dialogTitle, project);
+        PackageChooserDialog chooser = new PackageChooserDialog(dialogTitle, project);
         if (!chooser.showAndGet()) {
             return null;
         }

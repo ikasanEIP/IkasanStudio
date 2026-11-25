@@ -1,14 +1,16 @@
 package org.ikasan.studio.intellij.project;
 
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import org.ikasan.studio.intellij.diagnostics.RuntimeImportDiagnostics;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.Component;
+import java.util.Objects;
+import javax.swing.*;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTextArea;
 import org.ikasan.studio.core.diagnostics.RuntimeImportReport;
+import org.ikasan.studio.intellij.diagnostics.RuntimeImportDiagnostics;
 
 public class RuntimeImportReportDialogHeavyTest extends HeavyPlatformTestCase {
     public void testPageSelectionShowsBoundedDetailsAndReportSurvivesDialogClosure() {
@@ -17,9 +19,9 @@ public class RuntimeImportReportDialogHeavyTest extends HeavyPlatformTestCase {
         for (int i = 0; i < 30; i++) report.issue("F1/C1", "CONFIGURATION_NOT_SUPPLIED");
         RuntimeImportReportDialog dialog = new RuntimeImportReportDialog(getProject(), null);
         try {
-            JComponent panel = dialog.createCenterPanel();
-            JComboBox selector = find(panel, JComboBox.class);
-            JTextArea text = find(panel, JTextArea.class);
+            JComponent panel = Objects.requireNonNull(dialog.createCenterPanel());
+            JComboBox<?> selector = Objects.requireNonNull(find(panel, JComboBox.class));
+            JTextArea text = Objects.requireNonNull(find(panel, JTextArea.class));
             assertTrue(selector.getItemCount() > 1);
             assertTrue(text.getText().contains("PAGE 1 — SUMMARY"));
             assertFalse(text.isEditable());
@@ -27,7 +29,7 @@ public class RuntimeImportReportDialogHeavyTest extends HeavyPlatformTestCase {
             assertTrue(text.getText().contains("PAGE 2 — DETAILS"));
             assertFalse(text.getText().contains("PAGE 3 — DETAILS"));
             assertEquals(0, text.getCaretPosition());
-        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE); }
+        } finally { dialog.close(DialogWrapper.OK_EXIT_CODE); }
         assertSame(report, service.current());
         assertTrue(service.text().contains("IMPORT-030"));
     }

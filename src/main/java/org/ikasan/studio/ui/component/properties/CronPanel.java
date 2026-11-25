@@ -1,25 +1,24 @@
 package org.ikasan.studio.ui.component.properties;
 
-import com.intellij.ui.components.JBTextField;
-import com.intellij.ui.components.JBTextArea;
-import com.intellij.ui.components.JBLabel;
-
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBTextArea;
+import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.JBUI;
-import lombok.Getter;
-import lombok.Setter;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.theme.ThemeAwareColors;
-
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
-import java.awt.*;
+import javax.swing.text.Document;
+import lombok.Getter;
+import lombok.Setter;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.theme.ThemeAwareColors;
 
 import static org.ikasan.studio.ui.Styling.*;
 import static org.ikasan.studio.ui.component.properties.CronExpression.DAY_OF_MONTH;
@@ -230,7 +229,7 @@ public class CronPanel extends JBPanel {
     }
 
     public void editBoxChangeListener(DocumentEvent e, CronExpression cronField, JLabel description) {
-        javax.swing.text.Document doc = e.getDocument();
+        Document doc = e.getDocument();
         // Get the current text from the document
         String currentText;
         try {

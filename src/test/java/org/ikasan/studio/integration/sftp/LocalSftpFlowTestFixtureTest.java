@@ -1,19 +1,24 @@
 package org.ikasan.studio.integration.sftp;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
-import java.net.*;
-import java.nio.file.*;
-import java.util.*;
-import static org.junit.jupiter.api.Assertions.*;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.*;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.*;
+import java.util.*;
 import java.util.List;
+import org.apache.sshd.common.Factory;
+import org.apache.sshd.server.SshServer;
+import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 import org.ikasan.studio.integration.sftp.RemoteFilesClient.Entry;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class LocalSftpFlowTestFixtureTest {
     @TempDir Path temporary;
@@ -54,8 +59,8 @@ class LocalSftpFlowTestFixtureTest {
         assertEquals(template, Files.readString(Path.of("src/main/resources/studio/metapack/V4.1.6/" + relative)));
         Path source = temporary.resolve("LocalSftpTestServer.java");
         Files.writeString(source, template);
-        String cp = String.join(File.pathSeparator, jarPath(org.apache.sshd.server.SshServer.class),
-                jarPath(org.apache.sshd.common.Factory.class), jarPath(org.apache.sshd.sftp.server.SftpSubsystemFactory.class));
+        String cp = String.join(File.pathSeparator, jarPath(SshServer.class),
+                jarPath(Factory.class), jarPath(SftpSubsystemFactory.class));
         Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", "11", "-cp", cp, "-d", temporary.toString(), source.toString()).redirectErrorStream(true).start();
         String diagnostics = new String(compiler.getInputStream().readAllBytes());
@@ -78,7 +83,7 @@ class LocalSftpFlowTestFixtureTest {
                 Path input = (Path) type.getMethod("directory", String.class, String.class).invoke(server, "flow", "input");
                 Path output = (Path) type.getMethod("directory", String.class, String.class).invoke(server, "flow", "output");
                 assertNotEquals(input, output);
-                org.ikasan.studio.integration.sftp.LocalSftpFlowTestFixtureTest.Configuration config = consumer.configuration;
+                Configuration config = consumer.configuration;
                 port = config.port;
                 try (RemoteFilesClient client = new RemoteFilesClient()) {
                     client.connect(new RemoteFilesClient.Connection(config.host, config.port, config.username, config.password,
@@ -99,7 +104,7 @@ class LocalSftpFlowTestFixtureTest {
             }
         }
         try (Socket socket = new Socket()) {
-            assertThrows(java.io.IOException.class, () -> socket.connect(new InetSocketAddress("127.0.0.1", port), 1000));
+            assertThrows(IOException.class, () -> socket.connect(new InetSocketAddress("127.0.0.1", port), 1000));
         }
     }
 }

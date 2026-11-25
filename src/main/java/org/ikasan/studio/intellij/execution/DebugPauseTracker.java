@@ -5,9 +5,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XDebugSessionListener;
 import com.intellij.xdebugger.XSourcePosition;
-
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /** Project-owned pause locations. Selected editor files and selected caller frames do not affect these. */
 final class DebugPauseTracker {
@@ -41,8 +42,8 @@ final class DebugPauseTracker {
         XSourcePosition position = session.isSuspended() ? session.getTopFramePosition() : null;
         String source = position == null ? null : position.getFile().getPath();
         String previous = locations.put(session, source);
-        if (source != null && !java.util.Objects.equals(previous, source)) pauseRevision++;
-        if (!java.util.Objects.equals(previous, source) || session.isSuspended() && source == null) {
+        if (source != null && !Objects.equals(previous, source)) pauseRevision++;
+        if (!Objects.equals(previous, source) || session.isSuspended() && source == null) {
             LOG.info("STUDIO: Debug pause source=" + source + " session=" + session.getSessionName());
         }
         changed.run();
@@ -61,14 +62,14 @@ final class DebugPauseTracker {
         return sourcePath != null && locations.values().stream().anyMatch(sourcePath::equals);
     }
 
-    synchronized java.util.List<String> sourcePaths() {
-        return locations.values().stream().filter(java.util.Objects::nonNull).distinct().toList();
+    synchronized List<String> sourcePaths() {
+        return locations.values().stream().filter(Objects::nonNull).distinct().toList();
     }
 
     synchronized long getPauseRevision() { return pauseRevision; }
 
     synchronized boolean hasPausedLocation() {
-        return locations.values().stream().anyMatch(java.util.Objects::nonNull);
+        return locations.values().stream().anyMatch(Objects::nonNull);
     }
 
     synchronized void dispose() {

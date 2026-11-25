@@ -1,17 +1,26 @@
 package org.ikasan.studio.intellij.execution;
 
-import com.intellij.execution.process.*;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.HeavyPlatformTestCase;
-import org.mockito.ArgumentCaptor;
-import static org.mockito.Mockito.*;
+import com.intellij.execution.JavaRunConfigurationExtensionManager;
 import com.intellij.execution.application.ApplicationConfiguration;
+import com.intellij.execution.application.ApplicationConfigurationType;
 import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.*;
 import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessListener;
 import com.intellij.execution.process.ProcessOutputType;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import org.junit.Assert;
+import org.mockito.ArgumentCaptor;
+
+import static org.mockito.Mockito.*;
 
 public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
     public void testFailureIsVisibleWhileJvmRemainsAliveAndNewLaunchClearsIt() {
@@ -35,11 +44,11 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testRegisteredApplicationExtensionAttachesProjectStartupObserver() {
-        ApplicationConfiguration configuration = new com.intellij.execution.application.ApplicationConfiguration(
-                "Studio startup regression", getProject(), com.intellij.execution.application.ApplicationConfigurationType.getInstance());
+        ApplicationConfiguration configuration = new ApplicationConfiguration(
+                "Studio startup regression", getProject(), ApplicationConfigurationType.getInstance());
         configuration.setMainClassName("org.ikasan.studio.boot.Application");
         ProcessHandler handler = mock(ProcessHandler.class);
-        com.intellij.execution.JavaRunConfigurationExtensionManager.getInstance()
+        JavaRunConfigurationExtensionManager.getInstance()
                 .attachExtensionsToProcess(configuration, handler, null);
         ArgumentCaptor<ProcessListener> listener = ArgumentCaptor.forClass(ProcessListener.class);
         verify(handler, atLeastOnce()).addProcessListener(listener.capture());
@@ -56,7 +65,7 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
                 ProcessHandler handler = mock(ProcessHandler.class);
                 ProcessListener listener = attach(service, handler);
                 ProcessOutputType coloured = new ProcessOutputType("studio.startup.red", base);
-                org.junit.Assert.assertNotEquals(base, coloured);
+                Assert.assertNotEquals(base, coloured);
                 listener.onTextAvailable(new ProcessEvent(handler,
                         "APPLICATION FAILED TO START\nWeb server failed to start. Port 12450 was already in use."), coloured);
                 String message = service.message();
@@ -67,9 +76,9 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testRealColouredProcessReportsFailureEvenWithZeroExitCode() throws Exception {
-        Path directory = java.nio.file.Files.createTempDirectory("studio-coloured-startup");
+        Path directory = Files.createTempDirectory("studio-coloured-startup");
         Path source = directory.resolve("StartupFailureFixture.java");
-        java.nio.file.Files.writeString(source, """
+        Files.writeString(source, """
                 public class StartupFailureFixture {
                     public static void main(String[] args) {
                         System.out.println((char) 27 + "[31mAPPLICATION FAILED TO START" + (char) 27 + "[0m");
@@ -78,12 +87,12 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
                 }
                 """);
         ModuleStartupDiagnostics service = new ModuleStartupDiagnostics(getProject());
-        java.util.concurrent.Future<Boolean> task = null;
+        Future<Boolean> task = null;
         try {
-            task = com.intellij.openapi.application.ApplicationManager.getApplication().executeOnPooledThread(
+            task = ApplicationManager.getApplication().executeOnPooledThread(
                     () -> {
-                        String executable = java.nio.file.Path.of(System.getProperty("java.home"), "bin", "java").toString();
-                        GeneralCommandLine command = new com.intellij.execution.configurations.GeneralCommandLine(executable, source.toString())
+                        String executable = Path.of(System.getProperty("java.home"), "bin", "java").toString();
+                        GeneralCommandLine command = new GeneralCommandLine(executable, source.toString())
                                 .withWorkDirectory(directory.toFile());
                         ColoredProcessHandler handler = new ColoredProcessHandler(command);
                         try {
@@ -99,11 +108,11 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
                         }
                     });
             assertTrue("Real ANSI-coloured process output must produce the port-conflict diagnostic",
-                    task.get(20, java.util.concurrent.TimeUnit.SECONDS));
+                    task.get(20, TimeUnit.SECONDS));
         } finally {
             if (task != null && !task.isDone()) task.cancel(true);
             Disposer.dispose(service);
-            com.intellij.openapi.util.io.FileUtil.delete(directory.toFile());
+            FileUtil.delete(directory.toFile());
         }
     }
 
@@ -116,8 +125,10 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
                     "o.i.m.s.ModuleInitialisationServiceImpl : Shutting down Quartz scheduler with bean name: scheduler"),
                     ProcessOutputTypes.STDOUT);
             assertTrue(service.bannerMessage().contains("before startup completed"));
-            assertTrue(service.message().contains("No cause was reported"));
-            assertFalse(service.message().contains("12450"));
+            String message = service.message();
+            assertNotNull(message);
+            assertTrue(message.contains("No cause was reported"));
+            assertFalse(message.contains("12450"));
             verify(handler, never()).destroyProcess();
         } finally { Disposer.dispose(service); }
     }

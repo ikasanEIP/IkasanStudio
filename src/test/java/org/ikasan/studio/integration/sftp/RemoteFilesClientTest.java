@@ -1,22 +1,29 @@
 package org.ikasan.studio.integration.sftp;
 
-import org.apache.sshd.server.SshServer;
-import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
-import org.apache.sshd.common.config.keys.PublicKeyEntry;
-import org.apache.sshd.sftp.server.SftpSubsystemFactory;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
-
-import java.nio.file.*;
-import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
+import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
+import java.nio.file.*;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.util.Base64;
+import java.util.List;
+import org.apache.sshd.common.config.keys.PublicKeyEntry;
 import org.apache.sshd.common.config.keys.writer.openssh.OpenSSHKeyEncryptionContext;
+import org.apache.sshd.common.config.keys.writer.openssh.OpenSSHKeyPairResourceWriter;
+import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
+import org.apache.sshd.common.util.security.SecurityUtils;
+import org.apache.sshd.server.SshServer;
+import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
+import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 import org.ikasan.studio.integration.sftp.RemoteFilesClient.Entry;
 import org.ikasan.studio.integration.sftp.RemoteFilesClient.Listing;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class RemoteFilesClientTest {
     @TempDir Path temporary;
@@ -73,14 +80,14 @@ class RemoteFilesClientTest {
             Listing listing = client.list("/");
             for (Entry entry : listing.entries()) {
                 if (!entry.regular()) {
-                    assertThrows(java.io.IOException.class, () -> client.delete("/", entry));
-                    assertThrows(java.io.IOException.class, () -> client.download("/", entry, downloads));
+                    assertThrows(IOException.class, () -> client.delete("/", entry));
+                    assertThrows(IOException.class, () -> client.download("/", entry, downloads));
                 }
             }
             Entry old = listing.entries().stream().filter(e -> e.name().equals("order.txt")).findFirst().orElseThrow();
             Files.writeString(root.resolve("order.txt"), "changed contents");
-            assertThrows(java.io.IOException.class, () -> client.delete("/", old));
-            assertThrows(java.io.IOException.class, () -> client.download("/", old, downloads));
+            assertThrows(IOException.class, () -> client.delete("/", old));
+            assertThrows(IOException.class, () -> client.download("/", old, downloads));
             assertTrue(Files.exists(root.resolve("order.txt")));
             assertTrue(Files.isSymbolicLink(root.resolve("link.txt")));
             assertTrue(Files.isDirectory(root.resolve("sub")));
@@ -98,28 +105,28 @@ class RemoteFilesClientTest {
         }
     }
     @Test void supportsPrivateKeyAuthentication() throws Exception {
-        KeyPairGenerator generator = java.security.KeyPairGenerator.getInstance("RSA"); generator.initialize(2048);
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA"); generator.initialize(2048);
         KeyPair pair = generator.generateKeyPair();
         server.setPublickeyAuthenticator((user, key, session) -> user.equals("demo") && key.equals(pair.getPublic()));
         Path key = temporary.resolve("id_rsa");
-        Files.writeString(key, "-----BEGIN PRIVATE KEY-----\n" + java.util.Base64.getMimeEncoder(64, new byte[]{'\n'}).encodeToString(pair.getPrivate().getEncoded()) + "\n-----END PRIVATE KEY-----\n");
+        Files.writeString(key, "-----BEGIN PRIVATE KEY-----\n" + Base64.getMimeEncoder(64, new byte[]{'\n'}).encodeToString(pair.getPrivate().getEncoded()) + "\n-----END PRIVATE KEY-----\n");
         try (RemoteFilesClient client = new RemoteFilesClient()) {
             client.connect(new RemoteFilesClient.Connection("127.0.0.1", server.getPort(), "demo", "", key.toString(), "", hosts.toString()), temporary);
             assertEquals("/", client.list("/").directory());
         }
     }
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"RSA", "Ed25519"})
+    @ParameterizedTest
+    @ValueSource(strings = {"RSA", "Ed25519"})
     void supportsEncryptedOpenSshKeys(String algorithm) throws Exception {
-        KeyPairGenerator generator = org.apache.sshd.common.util.security.SecurityUtils.getKeyPairGenerator(algorithm.equals("Ed25519") ? "EdDSA" : algorithm);
+        KeyPairGenerator generator = SecurityUtils.getKeyPairGenerator(algorithm.equals("Ed25519") ? "EdDSA" : algorithm);
         if (algorithm.equals("RSA")) generator.initialize(2048);
         KeyPair pair = generator.generateKeyPair();
         server.setPublickeyAuthenticator((user, key, session) -> user.equals("demo") && key.equals(pair.getPublic()));
         Path key = temporary.resolve("encrypted_key");
-        OpenSSHKeyEncryptionContext encryption = new org.apache.sshd.common.config.keys.writer.openssh.OpenSSHKeyEncryptionContext();
+        OpenSSHKeyEncryptionContext encryption = new OpenSSHKeyEncryptionContext();
         encryption.setPassword("test-passphrase"); encryption.setCipherType("256");
         try (OutputStream output = Files.newOutputStream(key)) {
-            org.apache.sshd.common.config.keys.writer.openssh.OpenSSHKeyPairResourceWriter.INSTANCE
+            OpenSSHKeyPairResourceWriter.INSTANCE
                     .writePrivateKey(pair, "test", encryption, output);
         }
         try (RemoteFilesClient client = new RemoteFilesClient()) {
@@ -133,15 +140,15 @@ class RemoteFilesClientTest {
             Entry entry = client.list("/").entries().get(0);
             Files.delete(root.resolve("order.txt"));
             Files.createSymbolicLink(root.resolve("order.txt"), Path.of("elsewhere.txt"));
-            assertThrows(java.io.IOException.class, () -> client.delete("/", entry));
-            assertThrows(java.io.IOException.class, () -> client.download("/", entry, downloads));
+            assertThrows(IOException.class, () -> client.delete("/", entry));
+            assertThrows(IOException.class, () -> client.download("/", entry, downloads));
             client.close();
-            assertThrows(java.io.InterruptedIOException.class, () -> client.list("/"));
+            assertThrows(InterruptedIOException.class, () -> client.list("/"));
         }
     }
     @Test void rejectsUnsafeChildNamesAndUnresolvedPaths() {
         for (String name : List.of("..", "../file", "a/b", "a\\b", "a\nb"))
-            assertThrows(java.io.IOException.class, () -> RemoteFilesClient.child("/out", name));
-        assertThrows(java.io.IOException.class, () -> RemoteFilesClient.localPath("${KEY}", temporary));
+            assertThrows(IOException.class, () -> RemoteFilesClient.child("/out", name));
+        assertThrows(IOException.class, () -> RemoteFilesClient.localPath("${KEY}", temporary));
     }
 }

@@ -2,22 +2,23 @@ package org.ikasan.studio.intellij.project;
 
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import java.util.ArrayList;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.RejectedExecutionException;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.ui.UiContext;
 import org.junit.jupiter.api.Test;
-import java.util.ArrayList;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.RejectedExecutionException;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import com.intellij.openapi.application.ModalityState;
-import java.util.concurrent.CompletableFuture;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 // ApplicationManager::getApplication as a MockedStatic#when(Verification) argument is Mockito's own static-mocking
 // idiom, not a discarded real call - the IDE's "ignored result" inspection doesn't recognise that shape.
@@ -35,11 +36,11 @@ class GeneratedProjectSynchronizerFailureInjectionTest {
         StudioProjectInitialisationService lifetime = mock(StudioProjectInitialisationService.class);
         when(project.getService(StudioProjectInitialisationService.class)).thenReturn(lifetime);
         Application application = mock(Application.class);
-        when(application.getDefaultModalityState()).thenReturn(mock(com.intellij.openapi.application.ModalityState.class));
+        when(application.getDefaultModalityState()).thenReturn(mock(ModalityState.class));
         ArrayList<Runnable> queued = new ArrayList<>();
         when(application.executeOnPooledThread(any(Runnable.class))).thenAnswer(call -> {
             queued.add(call.getArgument(0));
-            return java.util.concurrent.CompletableFuture.completedFuture(null);
+            return CompletableFuture.completedFuture(null);
         });
         try (MockedStatic<ApplicationManager> applications = mockStatic(ApplicationManager.class)) {
             applications.when(ApplicationManager::getApplication).thenReturn(application);
@@ -73,7 +74,7 @@ class GeneratedProjectSynchronizerFailureInjectionTest {
         StudioProjectInitialisationService lifetime = mock(StudioProjectInitialisationService.class);
         when(project.getService(StudioProjectInitialisationService.class)).thenReturn(lifetime);
         Application application = mock(Application.class);
-        when(application.getDefaultModalityState()).thenReturn(mock(com.intellij.openapi.application.ModalityState.class));
+        when(application.getDefaultModalityState()).thenReturn(mock(ModalityState.class));
         RejectedExecutionException rejection = new RejectedExecutionException("Executor shutting down");
         when(application.executeOnPooledThread(any(Runnable.class))).thenThrow(rejection);
         try (MockedStatic<ApplicationManager> applications = mockStatic(ApplicationManager.class)) {
@@ -95,25 +96,25 @@ class GeneratedProjectSynchronizerFailureInjectionTest {
         StudioProjectInitialisationService lifetime = mock(StudioProjectInitialisationService.class);
         when(project.getService(StudioProjectInitialisationService.class)).thenReturn(lifetime);
         Application application = mock(Application.class);
-        ModalityState initiatingModality = mock(com.intellij.openapi.application.ModalityState.class);
-        ModalityState pooledModality = mock(com.intellij.openapi.application.ModalityState.class);
+        ModalityState initiatingModality = mock(ModalityState.class);
+        ModalityState pooledModality = mock(ModalityState.class);
         ArrayList<Runnable> background = new ArrayList<>();
         when(application.executeOnPooledThread(any(Runnable.class))).thenAnswer(call -> {
             background.add(call.getArgument(0));
-            return java.util.concurrent.CompletableFuture.completedFuture(null);
+            return CompletableFuture.completedFuture(null);
         });
         try (MockedStatic<ApplicationManager> applications = mockStatic(ApplicationManager.class);
-             MockedStatic<ModalityState> modalities = mockStatic(com.intellij.openapi.application.ModalityState.class);
+             MockedStatic<ModalityState> modalities = mockStatic(ModalityState.class);
              MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class)) {
             applications.when(ApplicationManager::getApplication).thenReturn(application);
-            modalities.when(com.intellij.openapi.application.ModalityState::defaultModalityState).thenReturn(initiatingModality);
+            modalities.when(ModalityState::defaultModalityState).thenReturn(initiatingModality);
             CompletableFuture<Void> completion = new GeneratedProjectSynchronizer(project)
                     .asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk(GenerationRequest.full());
-            modalities.when(com.intellij.openapi.application.ModalityState::defaultModalityState).thenReturn(pooledModality);
+            modalities.when(ModalityState::defaultModalityState).thenReturn(pooledModality);
             assertEquals(1, background.size());
             background.get(0).run();
             files.verify(() -> StudioProjectFiles.pomLoadFromVirtualDisk(project));
-            ArgumentCaptor<Runnable> commit = org.mockito.ArgumentCaptor.forClass(Runnable.class);
+            ArgumentCaptor<Runnable> commit = ArgumentCaptor.forClass(Runnable.class);
             verify(application).invokeLater(commit.capture(), same(initiatingModality));
             verify(application, never()).invokeLater(any(Runnable.class));
             assertFalse(completion.isDone());

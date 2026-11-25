@@ -1,30 +1,31 @@
 package org.ikasan.studio.packs;
 
+import java.nio.file.*;
+import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
+import java.util.Map;
+import java.util.TreeSet;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.core.model.ikasan.instance.*;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import java.nio.file.*;
-import java.util.*;
-import static org.junit.jupiter.api.Assertions.*;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeSet;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.metapack.model.ExceptionActionMeta;
 import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
+import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /** Compile-only catalogue fixture. Endpoint wiring and placeholder business stubs are not runtime scenarios. */
 class ComponentCoverageTest {
@@ -100,12 +101,12 @@ class ComponentCoverageTest {
         }
         flow.setFlowRoute(route);
         // Explicit Jakarta exception wiring is part of the compiled factory/flow surface.
-        ExceptionResolverMeta resolverMeta = (org.ikasan.studio.core.metapack.model.ExceptionResolverMeta)
+        ExceptionResolverMeta resolverMeta = (ExceptionResolverMeta)
                 ComponentLibrary.getIkasanComponentByKeyMandatory(PACK, "Exception Resolver");
-        LinkedHashMap<String,ExceptionResolution> resolutions = new LinkedHashMap<String, ExceptionResolution>();
+        LinkedHashMap<String,ExceptionResolution> resolutions = new LinkedHashMap<>();
         int index = 0;
         for (ExceptionActionMeta action : resolverMeta.getActionList()) {
-            LinkedHashMap<String,ComponentProperty> properties = new LinkedHashMap<String, ComponentProperty>();
+            LinkedHashMap<String,ComponentProperty> properties = new LinkedHashMap<>();
             for (Entry<String,ComponentPropertyMeta> entry : action.getActionProperties().entrySet()) {
                 Object value = entry.getValue().getDefaultValue();
                 properties.put(entry.getKey(), new ComponentProperty(entry.getValue(), value == null ? 3 : value));

@@ -1,13 +1,12 @@
 package org.ikasan.studio.ui;
 
-import org.junit.jupiter.api.Test;
-import javax.swing.*;
+import java.awt.AWTKeyStroke;
 import java.awt.KeyboardFocusManager;
 import java.util.ArrayList;
-import static org.junit.jupiter.api.Assertions.*;
-import java.awt.AWTKeyStroke;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.swing.*;
 import javax.swing.CellRendererPane;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -16,6 +15,11 @@ import javax.swing.JPasswordField;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextArea;
 import javax.swing.text.Document;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class StudioTextCopySupportTest {
     @Test void explanatoryTextCanBeSelectedAndCopiedWithoutBecomingEditable() throws Exception {
@@ -29,7 +33,7 @@ class StudioTextCopySupportTest {
             JPopupMenu menu = StudioTextCopySupport.popupFor(text, copied::add);
             assertNotNull(menu);
             ((JMenuItem) menu.getComponent(0)).doClick();
-            assertEquals(java.util.List.of("First"), copied);
+            assertEquals(List.of("First"), copied);
             ((JMenuItem) menu.getComponent(1)).doClick();
             assertEquals(text.getText(), text.getSelectedText());
             assertTrue(text.getFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS).contains(
@@ -84,7 +88,7 @@ class StudioTextCopySupportTest {
             text.setEditable(false); text.setEditable(true);
             assertEquals(traversal, text.getFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS));
             JButton button = new JButton("Review and import");
-            AtomicInteger clicks = new java.util.concurrent.atomic.AtomicInteger();
+            AtomicInteger clicks = new AtomicInteger();
             button.addActionListener(event -> clicks.incrementAndGet());
             StudioTextCopySupport.install(button); button.doClick();
             assertEquals(1, clicks.get());
@@ -114,13 +118,13 @@ class StudioTextCopySupportTest {
         SwingUtilities.invokeAndWait(() -> {
             JTextArea text = new JTextArea("Large read-only document");
             text.setEditable(false);
-            Document model = org.mockito.Mockito.spy(text.getDocument());
+            Document model = Mockito.spy(text.getDocument());
             text.setDocument(model);
-            org.mockito.Mockito.clearInvocations(model);
+            Mockito.clearInvocations(model);
             assertNotNull(StudioTextCopySupport.popupFor(text));
             assertDoesNotThrow(() -> {
-                org.mockito.Mockito.verify(model, org.mockito.Mockito.never()).getText(
-                        org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.anyInt());
+                Mockito.verify(model, Mockito.never()).getText(
+                        ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt());
             });
         });
     }

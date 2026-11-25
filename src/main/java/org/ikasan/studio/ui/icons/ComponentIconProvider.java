@@ -2,12 +2,12 @@ package org.ikasan.studio.ui.icons;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.IconLoader;
-import org.apache.commons.io.FilenameUtils;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-
+import java.net.URL;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import java.net.URL;
+import org.apache.commons.io.FilenameUtils;
+import org.ikasan.studio.core.metapack.loading.MetaPackResources;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 
 /** Resolves Swing/IntelliJ icons from the resource identifiers held by core component metadata. */
 public final class ComponentIconProvider {
@@ -63,7 +63,7 @@ public final class ComponentIconProvider {
     private static URL resource(String path) {
         // General UI artwork must not trigger archive discovery while the editor shell is constructed on the EDT.
         return path.startsWith("studio/metapack/")
-                ? org.ikasan.studio.core.metapack.loading.MetaPackResources.resource(path)
+                ? MetaPackResources.resource(path)
                 : ComponentIconProvider.class.getClassLoader().getResource(path);
     }
 

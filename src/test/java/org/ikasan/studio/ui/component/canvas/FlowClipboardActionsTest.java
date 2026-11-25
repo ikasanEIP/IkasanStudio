@@ -6,25 +6,29 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.command.undo.UndoableAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.InputValidator;
+import com.intellij.openapi.ui.Messages;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.FlowClipboard.Sources;
+import org.ikasan.studio.intellij.project.FlowSourceTransfer.DestinationExists;
+import org.ikasan.studio.intellij.project.FlowSourceTransfer;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import java.util.ArrayList;
+import org.mockito.MockedStatic;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import org.ikasan.studio.core.persistence.json.FlowClipboard.Sources;
-import org.ikasan.studio.intellij.project.FlowSourceTransfer;
-import org.mockito.MockedStatic;
 
 class FlowClipboardActionsTest {
     @Test void pasteRegistersOneUndoableInsertionAndResynchronizesOnUndoAndRedo() throws Exception {
@@ -57,7 +61,7 @@ class FlowClipboardActionsTest {
             new FlowClipboardActions(project, canvas).insert(module, flow);
             notifications.verify(() -> StudioUIUtils.displayIdeaInfoMessage(project,
                     StudioBundle.message("message.FlowPasted", flow.getIdentity())));
-            assertEquals(java.util.List.of(flow), module.getFlows());
+            assertEquals(List.of(flow), module.getFlows());
             ArgumentCaptor<UndoableAction> captured = ArgumentCaptor.forClass(UndoableAction.class);
             verify(undo).undoableActionPerformed(captured.capture());
             files.verify(() -> StudioProjectFiles.refreshCodeFromModelAndCauseRedraw(project, GenerationRequest.moduleStructure(flow)));
@@ -66,7 +70,7 @@ class FlowClipboardActionsTest {
             assertTrue(module.getFlows().isEmpty());
             verify(context).resetSelectionAfterDeletion();
             captured.getValue().redo();
-            assertEquals(java.util.List.of(flow), module.getFlows());
+            assertEquals(List.of(flow), module.getFlows());
             files.verify(() -> StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.moduleStructure(flow)), times(2));
         }
     }
@@ -89,7 +93,7 @@ class FlowClipboardActionsTest {
             messages.verify(() -> Messages.showInputDialog(eq(project),
                     eq(StudioBundle.message("message.PasteFlowName")), eq(StudioBundle.message("menu.PasteFlow")),
                     isNull(), eq("Same Name Copy"), any(InputValidator.class)));
-            assertEquals(java.util.List.of(existing), module.getFlows());
+            assertEquals(List.of(existing), module.getFlows());
             commands.verifyNoInteractions();
         }
     }
@@ -102,19 +106,19 @@ class FlowClipboardActionsTest {
         pasted.setName("Copied");
         when(project.getService(UiContext.class)).thenReturn(context);
         when(context.tryBeginMigration()).thenReturn(true);
-        Sources sources = new org.ikasan.studio.core.persistence.json.FlowClipboard.Sources("dest.copied",
-                java.util.Map.of("Custom.java", "package dest.copied; class Custom {}"));
+        Sources sources = new Sources("dest.copied",
+                Map.of("Custom.java", "package dest.copied; class Custom {}"));
         try (MockedStatic<CommandProcessor> commands = mockStatic(CommandProcessor.class);
              MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class);
-             MockedStatic<FlowSourceTransfer> sourceFiles = mockStatic(org.ikasan.studio.intellij.project.FlowSourceTransfer.class);
+             MockedStatic<FlowSourceTransfer> sourceFiles = mockStatic(FlowSourceTransfer.class);
              MockedStatic<StudioUIUtils> notifications = mockStatic(StudioUIUtils.class);
              MockedStatic<UndoManager> undos = mockStatic(UndoManager.class)) {
             CommandProcessor command = mock(CommandProcessor.class);
             commands.when(CommandProcessor::getInstance).thenReturn(command);
             doAnswer(call -> { call.getArgument(1, Runnable.class).run(); return null; })
                     .when(command).executeCommand(eq(project), any(Runnable.class), anyString(), isNull());
-            sourceFiles.when(() -> org.ikasan.studio.intellij.project.FlowSourceTransfer.install(project, sources))
-                    .thenThrow(new org.ikasan.studio.intellij.project.FlowSourceTransfer.DestinationExists("dest.copied"));
+            sourceFiles.when(() -> FlowSourceTransfer.install(project, sources))
+                    .thenThrow(new DestinationExists("dest.copied"));
             new FlowClipboardActions(project, canvas).completeInsertion(module, pasted, sources);
             assertTrue(module.getFlows().isEmpty());
             files.verifyNoInteractions();

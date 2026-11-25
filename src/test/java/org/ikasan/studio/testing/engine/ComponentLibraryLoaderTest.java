@@ -1,12 +1,14 @@
 package org.ikasan.studio.testing.engine;
 
-import org.ikasan.studio.core.metapack.loading.ComponentLibraryLoader;
-import org.junit.jupiter.api.Test;
-import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Map;
+import org.ikasan.studio.core.metapack.loading.ComponentLibraryLoader;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
-@org.junit.jupiter.api.Tag("engine")
+import static org.assertj.core.api.Assertions.assertThat;
+
+@Tag("engine")
 class ComponentLibraryLoaderTest {
     @Test
     void loadsMetadataWithResourceIdentifiersAndNoUiObjects() {

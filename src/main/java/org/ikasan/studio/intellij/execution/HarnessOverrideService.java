@@ -1,29 +1,29 @@
 package org.ikasan.studio.intellij.execution;
 
 import com.intellij.execution.*;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.execution.ParametersListUtil;
+import java.util.*;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides.Target;
 import org.ikasan.studio.core.model.analysis.HarnessOverrides;
 import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.intellij.runtime.TestSftpServerService;
 import org.ikasan.studio.ui.UiContext;
-
-import java.util.*;
-
-import org.jetbrains.annotations.NotNull;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import org.ikasan.studio.core.model.analysis.HarnessOverrides.Target;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
+import org.jetbrains.annotations.NotNull;
 
 /** Selection belongs to each standard Application configuration; live processes retain launch snapshots. */
 @Service(Service.Level.PROJECT)
@@ -89,7 +89,7 @@ public final class HarnessOverrideService implements Disposable {
     }
     public Set<String> nextSelection() { return selection(selectedConfiguration()); }
     public void saveSelection(ApplicationConfiguration configuration, Set<String> selected) {
-        Set<String> valid = targets().stream().map(HarnessOverrides.Target::id).collect(java.util.stream.Collectors.toSet());
+        Set<String> valid = targets().stream().map(HarnessOverrides.Target::id).collect(Collectors.toSet());
         if (!valid.containsAll(selected)) throw new IllegalArgumentException("Harness selection contains unavailable components");
         configuration.setVMParameters(withSelection(configuration.getVMParameters(), selected));
         repaint();
@@ -117,10 +117,10 @@ public final class HarnessOverrideService implements Disposable {
         targets().forEach(target -> names.put(target.id(), target.label()));
         synchronized (running) { running.values().forEach(labels -> labels.forEach(names::putIfAbsent)); }
         return ids.stream().sorted().map(id -> names.getOrDefault(id, id))
-                .collect(java.util.stream.Collectors.joining(", "));
+                .collect(Collectors.joining(", "));
     }
     public void repaint() {
-        com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater(() -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
             if (project.isDisposed()) return;
             DesignerCanvas canvas = project.getService(UiContext.class).getDesignerCanvas();
             if (canvas != null && !canvas.isDisposed()) { canvas.setInitialiseAllDimensions(true); canvas.repaint(); }

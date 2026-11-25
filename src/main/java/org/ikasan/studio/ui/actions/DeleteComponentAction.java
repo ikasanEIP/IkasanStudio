@@ -7,24 +7,24 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DoNotAskOption;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
-import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.command.FlowElementRemoval;
-import org.ikasan.studio.core.model.command.UserClassReference;
-import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.core.generation.GenerationRequest;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import org.ikasan.studio.core.generation.GenerationRequest;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
+import org.ikasan.studio.core.model.command.FlowElementRemoval;
+import org.ikasan.studio.core.model.command.UserClassReference;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
 
 public class DeleteComponentAction implements ActionListener {
    private static final Logger LOG = Logger.getInstance("#DeleteComponentAction");
@@ -99,7 +99,7 @@ public class DeleteComponentAction implements ActionListener {
                Module ikasanModule = uiContext.getIkasanModule();
                List<Flow> flows = ikasanModule.getFlows();
                int flowIndex = flows.indexOf(ikasanFlowToRemove);
-               boolean divertedHarness = org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.isDivertedHarness(ikasanFlowToRemove);
+               boolean divertedHarness = TestJmsHarnessLinks.isDivertedHarness(ikasanFlowToRemove);
                CommandProcessor.getInstance().executeCommand(project, () -> {
                   List<FlowElement> removedElements = ikasanFlowToRemove.getFlowElementsNoExternalEndPoints();
                   flows.remove(ikasanFlowToRemove);

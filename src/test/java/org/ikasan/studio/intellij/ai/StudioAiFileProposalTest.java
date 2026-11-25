@@ -2,32 +2,35 @@ package org.ikasan.studio.intellij.ai;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.application.*;
-import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.command.undo.UndoManager;
-import com.intellij.openapi.project.Project;
-import org.ikasan.studio.core.ai.*;
-import org.ikasan.studio.core.io.ComponentIO;
-import org.ikasan.studio.core.generation.GenerationRequest;
-import org.ikasan.studio.intellij.project.*;
-import org.ikasan.studio.ui.UiContext;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import java.nio.file.*;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.command.undo.UndoManager;
+import com.intellij.openapi.project.Project;
+import java.nio.file.*;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.ai.*;
+import org.ikasan.studio.core.generation.GenerationRequest;
+import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.ai.StudioAiService.Proposal;
+import org.ikasan.studio.intellij.project.*;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.ui.UiContext;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class StudioAiFileProposalTest {
     @TempDir Path directory;
@@ -64,7 +67,7 @@ class StudioAiFileProposalTest {
         Map<String,Object> before = LiveModelSnapshot.capture(live);
         AtomicReference<Proposal> reviewed = new AtomicReference<>();
         StudioAiService service = new StudioAiService(project);
-        try (MockedStatic<IkasanStudioSettings> settings = mockStatic(org.ikasan.studio.intellij.settings.IkasanStudioSettings.class);
+        try (MockedStatic<IkasanStudioSettings> settings = mockStatic(IkasanStudioSettings.class);
              MockedStatic<ApplicationManager> applications = mockStatic(ApplicationManager.class);
              MockedStatic<ModalityState> modalities = mockStatic(ModalityState.class);
              MockedStatic<CommandProcessor> commands = mockStatic(CommandProcessor.class);
@@ -72,8 +75,9 @@ class StudioAiFileProposalTest {
              MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class);
              MockedConstruction<StudioAiProposalDialog> dialogs = mockConstruction(StudioAiProposalDialog.class, (dialog, args) ->
                      reviewed.set((StudioAiService.Proposal) args.arguments().get(2)))) {
-            settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
+            settings.when(IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
             Application app = mock(Application.class);
+            //noinspection ResultOfMethodCallIgnored
             applications.when(ApplicationManager::getApplication).thenReturn(app);
             ModalityState writeSafeModality = mock(ModalityState.class);
             modalities.when(ModalityState::nonModal).thenReturn(writeSafeModality);
@@ -111,8 +115,8 @@ class StudioAiFileProposalTest {
             String addFlow = json.writeValueAsString(Map.of("formatVersion", 1,
                     "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
                     "operations", json.readTree("[{\"type\":\"addFlow\",\"flow\":\"bob\"}]")));
-            settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(false);
-            settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isConfirmAiDeletes).thenReturn(true);
+            settings.when(IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(false);
+            settings.when(IkasanStudioSettings::isConfirmAiDeletes).thenReturn(true);
             String deletion = json.writeValueAsString(Map.of("formatVersion", 1,
                     "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
                     "operations", json.readTree("[{\"type\":\"deleteFlow\",\"flow\":\"Transfer\"}]")));
@@ -122,17 +126,17 @@ class StudioAiFileProposalTest {
             assertThat(live.getFlows()).hasSize(1);
             service.cancel(reviewed.get());
             assertThat(live.getFlows()).hasSize(1);
-            settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isConfirmAiDeletes).thenReturn(false);
+            settings.when(IkasanStudioSettings::isConfirmAiDeletes).thenReturn(false);
             int reviewsBefore = dialogs.constructed().size();
             {
-                settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
+                settings.when(IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
                 assertThat(service.tryAutoImport(addFlow)).isFalse();
                 assertThat(live.getFlows()).hasSize(1);
                 service.importProposal(addFlow);
                 assertThat(dialogs.constructed()).hasSize(reviewsBefore + 1);
                 assertThat(live.getFlows()).hasSize(1);
                 service.cancel(reviewed.get());
-                settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(false);
+                settings.when(IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(false);
                 assertThat(service.tryAutoImport(addFlow)).isTrue();
                 assertThat(dialogs.constructed()).hasSize(reviewsBefore + 1);
                 assertThat(live.getFlows()).hasSize(2);
@@ -168,7 +172,7 @@ class StudioAiFileProposalTest {
                 String deleteBob = json.writeValueAsString(Map.of("formatVersion", 1,
                         "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
                         "operations", json.readTree("[{\"type\":\"deleteFlow\",\"flow\":\"bob\"}]")));
-                settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isConfirmAiDeletes).thenReturn(true);
+                settings.when(IkasanStudioSettings::isConfirmAiDeletes).thenReturn(true);
                 service.importProposal(deleteBob);
                 assertThat(reviewed.get().deletionReviewRequired).isTrue();
                 assertThat(live.getFlows()).hasSize(2);
@@ -178,14 +182,14 @@ class StudioAiFileProposalTest {
                 String deleteTransfer = json.writeValueAsString(Map.of("formatVersion", 1,
                         "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
                         "operations", json.readTree("[{\"type\":\"deleteFlow\",\"flow\":\"Transfer\"}]")));
-                settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isConfirmAiDeletes).thenReturn(false);
+                settings.when(IkasanStudioSettings::isConfirmAiDeletes).thenReturn(false);
                 int reviewsBeforeAutoDelete = dialogs.constructed().size();
                 assertThat(service.tryAutoImport(deleteTransfer)).isTrue();
                 assertThat(live.getFlows()).isEmpty();
                 assertThat(dialogs.constructed()).hasSize(reviewsBeforeAutoDelete);
                 files.verify(() -> StudioProjectFiles.deleteUserImplementedClassFile(any(), any()), never());
                 Module risky = ModelProposal.prepare(LiveModelSnapshot.capture(
-                        org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", java.util.List.of())),
+                        TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", List.of())),
                         json.readTree("""
                         [{"type":"addFlow","flow":"existing"},
                          {"type":"addComponent","flow":"existing","key":"Event Generating Consumer","name":"Input",

@@ -9,13 +9,15 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
-import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
-import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.awt.EventQueue;
+import java.awt.event.InputEvent;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.jetbrains.annotations.NotNull;
 
 @Service(Service.Level.PROJECT)
@@ -48,9 +50,9 @@ public final class IkasanStudioEditorService
                 FileEditorManagerListener.FILE_EDITOR_MANAGER,
                 new FileEditorManagerListener() {
                     @Override
-                    public void selectionChanged(FileEditorManagerEvent event) {
+                    public void selectionChanged(@NotNull FileEditorManagerEvent event) {
                         debugSelection.selectionChanged(event.getOldFile(), event.getNewFile(),
-                                java.awt.EventQueue.getCurrentEvent() instanceof java.awt.event.InputEvent);
+                                EventQueue.getCurrentEvent() instanceof InputEvent);
                     }
 
                     @Override

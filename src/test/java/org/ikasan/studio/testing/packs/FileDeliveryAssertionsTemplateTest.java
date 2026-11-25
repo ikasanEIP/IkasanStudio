@@ -1,19 +1,23 @@
 package org.ikasan.studio.testing.packs;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.io.TempDir;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.time.Duration;
-import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class FileDeliveryAssertionsTemplateTest {
     @TempDir Path root;
@@ -25,7 +29,7 @@ class FileDeliveryAssertionsTemplateTest {
         Files.writeString(source, template);
         Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", "11", "-d", root.toString(), source.toString()).redirectErrorStream(true).start();
-        String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        String diagnostics = new String(compiler.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
         try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
             Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FileDeliveryAssertions");
@@ -35,7 +39,7 @@ class FileDeliveryAssertionsTemplateTest {
             Path first = output.resolve("first.dat");
             Method quiet = type.getMethod("assertNoAdditionalFiles", Path.class, String.class, List.class);
             quiet.invoke(null, output, "*.dat", List.of());
-            ExecutorService delayed = java.util.concurrent.Executors.newSingleThreadExecutor();
+            ExecutorService delayed = Executors.newSingleThreadExecutor();
             try {
                 Future<Path> arrival = delayed.submit(() -> {
                     Thread.sleep(100);
@@ -47,7 +51,7 @@ class FileDeliveryAssertionsTemplateTest {
                 Files.delete(arrival.get());
             } finally { delayed.shutdownNow(); }
 
-            ExecutorService writer = java.util.concurrent.Executors.newSingleThreadExecutor();
+            ExecutorService writer = Executors.newSingleThreadExecutor();
             try {
                 Future<Path> written = writer.submit(() -> {
                     Thread.sleep(100);
@@ -94,7 +98,7 @@ class FileDeliveryAssertionsTemplateTest {
         }
         Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", "11", "-d", root.toString(), assertions.toString(), batches.toString()).redirectErrorStream(true).start();
-        String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        String diagnostics = new String(compiler.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
         try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
             Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FileDeliveryBatchAssertions");
@@ -123,7 +127,7 @@ class FileDeliveryAssertionsTemplateTest {
     }
 
     private static void fails(Method method, Object... arguments) {
-        Object[] timed = java.util.Arrays.copyOf(arguments, arguments.length + 1);
+        Object[] timed = Arrays.copyOf(arguments, arguments.length + 1);
         timed[arguments.length] = Duration.ofMillis(75);
         InvocationTargetException failure = assertThrows(InvocationTargetException.class, () -> method.invoke(null, timed));
         assertInstanceOf(AssertionError.class, failure.getCause());

@@ -1,39 +1,44 @@
 package org.ikasan.studio.testkit;
 
-import org.ikasan.studio.core.BuildContext;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.core.metapack.loading.*;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import java.io.*;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.util.*;
-import java.util.jar.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.*;
+import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.net.*;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.nio.file.Path;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.jar.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Stream;
+import org.ikasan.studio.core.BuildContext;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.loading.*;
 import org.ikasan.studio.core.metapack.loading.MetaPackArchive;
 import org.ikasan.studio.core.metapack.loading.MetaPackStore.Candidate;
 import org.ikasan.studio.core.metapack.loading.MetaPackStore.Entry;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class ExternalMetaPackTest {
     @TempDir Path temporary;
@@ -82,7 +87,7 @@ class ExternalMetaPackTest {
         MetaPackArchive archive = MetaPackArchive.open(customPack("ScopedPack", false));
         assertThrows(IOException.class, () -> MetaPackResources.inspect(archive, () -> {
             assertNotNull(MetaPackResources.resource("studio/metapack/ScopedPack/metapack.json"));
-            assertNull(java.util.concurrent.CompletableFuture.supplyAsync(() ->
+            assertNull(CompletableFuture.supplyAsync(() ->
                     MetaPackResources.resource("studio/metapack/ScopedPack/metapack.json")).get());
             throw new IOException("inspection failure");
         }));
@@ -209,14 +214,14 @@ class ExternalMetaPackTest {
         Path original = customPack("InterruptedPack", false);
         MetaPackInstaller.install(original, directory, () -> { });
         Path current = directory.resolve("InterruptedPack.jar");
-        try (FileChannel channel = java.nio.channels.FileChannel.open(directory.resolve(".management.lock"), StandardOpenOption.WRITE);
+        try (FileChannel channel = FileChannel.open(directory.resolve(".management.lock"), StandardOpenOption.WRITE);
              FileLock lock = channel.lock()) {
             assertTrue(lock.isValid());
             assertThrows(IOException.class, () -> MetaPackStore.stageRemoval(current, directory));
         }
         MetaPackStore.stageUpdate(customPack("InterruptedPack", false, "0.2.0"), current, directory, () -> { });
         Path pending = directory.resolve(".pending/InterruptedPack.json");
-        JsonNode plan = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(pending));
+        JsonNode plan = new ObjectMapper().readTree(Files.readString(pending));
         Path history = directory.resolve(".history/InterruptedPack");
         Files.createDirectories(history);
         Files.copy(current, history.resolve(plan.path("expectedSha256").asText() + ".jar"));
@@ -248,8 +253,8 @@ class ExternalMetaPackTest {
                 if (name.endsWith(".json")) bytes = new String(bytes, StandardCharsets.UTF_8)
                         .replace("V4.1.6", id).getBytes(StandardCharsets.UTF_8);
                 if (name.endsWith("/metapack.json")) {
-                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                    com.fasterxml.jackson.databind.node.ObjectNode manifest = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(bytes);
+                    ObjectMapper mapper = new ObjectMapper();
+                    ObjectNode manifest = (ObjectNode) mapper.readTree(bytes);
                     manifest.put("packVersion", revision);
                     bytes = mapper.writeValueAsBytes(manifest);
                 }
@@ -271,14 +276,14 @@ class ExternalMetaPackTest {
         Files.writeString(services.resolve(MetaPackDirectoryProvider.class.getName()), DirectoryProvider.class.getName());
         Files.writeString(configuration.resolve("installed-packs-location.txt"), installed.toString());
         ArrayList<URL> urls = new ArrayList<>();
-        for (String entry : System.getProperty("java.class.path").split(java.io.File.pathSeparator)) {
+        for (String entry : System.getProperty("java.class.path").split(File.pathSeparator)) {
             urls.add(Path.of(entry).toUri().toURL());
         }
         urls.add(configuration.toUri().toURL());
         try (URLClassLoader session = new URLClassLoader(urls.toArray(URL[]::new), ClassLoader.getPlatformClassLoader())) {
             try {
                 return Class.forName(RestartProbe.class.getName(), true, session).getMethod(method, parameters).invoke(null, args);
-            } catch (java.lang.reflect.InvocationTargetException e) { throw new AssertionError(e.getCause()); }
+            } catch (InvocationTargetException e) { throw new AssertionError(e.getCause()); }
         }
     }
 
@@ -304,7 +309,7 @@ class ExternalMetaPackTest {
         @SuppressWarnings("unused")
         public static boolean rejectsLockedModel(String source) {
             try { MetaPackTestKit.readModel(source, "revision lock test"); return false; }
-            catch (org.ikasan.studio.core.StudioBuildException failure) {
+            catch (StudioBuildException failure) {
                 assertTrue(failure.getMessage().contains("locked to revision")); return true;
             }
         }

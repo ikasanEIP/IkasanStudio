@@ -5,18 +5,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.io.ComponentIO;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-
+import java.math.BigInteger;
 import java.util.*;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import javax.lang.model.SourceVersion;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage;
+import org.ikasan.studio.core.diagnostics.RuntimeImportReport;
+import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
+import org.ikasan.studio.core.model.StringCollectionValues;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /**
  * Adapts Ikasan's runtime topology and separate ConfigurationMetaData JSON to a Studio design.
@@ -50,10 +54,10 @@ public final class IkasanRuntimeImport {
 
     /** Value-free inspection using the importer's actual matching rules; no input survives this call. */
     public static void diagnose(String moduleJson, String configurationJson, String pack,
-                                org.ikasan.studio.core.diagnostics.RuntimeImportReport report) {
+                                RuntimeImportReport report) {
         report.pack(pack);
         report.inspect(moduleJson, configurationJson);
-        report.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.MATCHING);
+        report.stage(Stage.MATCHING);
         try {
             report.revision(ComponentLibrary.getMetaPackManifest(pack).packVersion());
             JsonNode root = read(moduleJson);
@@ -62,7 +66,7 @@ public final class IkasanRuntimeImport {
             int f = 0;
             for (JsonNode flow : root.path("flows")) {
                 f++;
-                LinkedHashMap<String,JsonNode> nodes = new LinkedHashMap<String, JsonNode>();
+                LinkedHashMap<String,JsonNode> nodes = new LinkedHashMap<>();
                 if (flow.path("consumer").isObject()) nodes.put(flow.path("consumer").path("componentName").asText(), flow.path("consumer"));
                 for (JsonNode node : flow.path("flowElements")) {
                     if (nodes.size() > 500) break;
@@ -149,7 +153,7 @@ public final class IkasanRuntimeImport {
             PackRecommendation nearest = null;
             for (String pack : packs) {
                 String target = ComponentLibrary.getMetaPackManifest(pack).ikasanVersion();
-                org.ikasan.studio.core.importer.IkasanRuntimeImport.PackRecommendation candidate = new PackRecommendation(pack, source, target);
+                PackRecommendation candidate = new PackRecommendation(pack, source, target);
                 if (candidate.exact()) return Optional.of(candidate);
                 if (forwardRelease(source, target) && (nearest == null
                         || compareRelease(target, nearest.targetVersion()) < 0)) nearest = candidate;
@@ -163,14 +167,14 @@ public final class IkasanRuntimeImport {
         if (!source.matches("[0-9]+\\.[0-9]+\\.[0-9]+(?:-SNAPSHOT)?")
                 || !target.matches("[0-9]+\\.[0-9]+\\.[0-9]+")) return false;
         String base = source.replaceFirst("-SNAPSHOT$", "");
-        return new java.math.BigInteger(base.split("\\.")[0]).equals(
-                new java.math.BigInteger(target.split("\\.")[0])) && compareRelease(target, base) >= 0;
+        return new BigInteger(base.split("\\.")[0]).equals(
+                new BigInteger(target.split("\\.")[0])) && compareRelease(target, base) >= 0;
     }
 
     private static int compareRelease(String first, String second) {
         String[] left = first.split("\\."), right = second.split("\\.");
         for (int i = 0; i < 3; i++) {
-            int comparison = new java.math.BigInteger(left[i]).compareTo(new java.math.BigInteger(right[i]));
+            int comparison = new BigInteger(left[i]).compareTo(new BigInteger(right[i]));
             if (comparison != 0) return comparison;
         }
         return 0;
@@ -224,7 +228,7 @@ public final class IkasanRuntimeImport {
                 throw problem("Expected an Ikasan module metadata object with a flows array.");
             if (topology.has("applicationPackageName"))
                 throw problem("This is a Studio model. Use the Studio model import option.");
-            if (packageName == null || !javax.lang.model.SourceVersion.isName(packageName))
+            if (packageName == null || !SourceVersion.isName(packageName))
                 throw problem("Supply a valid application Java package.");
             MetaPackManifest manifest = ComponentLibrary.getMetaPackManifest(pack);
             String runtimeVersion = topology.path("ikasanVersion").asText("");
@@ -439,7 +443,7 @@ public final class IkasanRuntimeImport {
     private static ComponentMeta resolve(JsonNode raw, String pack, String selectedVariant,
                                          Map<String, JsonNode> configs) throws StudioBuildException {
         String type = required(raw, "componentType"), implementation = required(raw, "implementingClass");
-        if (!javax.lang.model.SourceVersion.isName(implementation))
+        if (!SourceVersion.isName(implementation))
             throw problem("Component " + required(raw, "componentName") + ": implementingClass must be a Java class name.");
         List<ComponentMeta> candidates = exactCandidates(raw, pack);
         if (selectedVariant != null) {
@@ -515,8 +519,8 @@ public final class IkasanRuntimeImport {
     }
 
     private static boolean compatible(JsonNode value, Class<?> type) {
-        if (org.ikasan.studio.core.model.StringCollectionValues.supports(type))
-            return org.ikasan.studio.core.model.StringCollectionValues.compatible(type, value);
+        if (StringCollectionValues.supports(type))
+            return StringCollectionValues.compatible(type, value);
         if (type == String.class) return value.isTextual();
         if (type == Boolean.class || type == boolean.class) return value.isBoolean();
         if (type == Integer.class || type == int.class) return value.isIntegralNumber() && value.canConvertToInt();

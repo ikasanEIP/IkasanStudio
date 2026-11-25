@@ -1,17 +1,19 @@
 package org.ikasan.studio.core.ai;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.nio.file.*;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-import static org.assertj.core.api.Assertions.*;
 import java.util.List;
 import org.ikasan.studio.core.ai.ImplementationReadiness.Finding;
 import org.ikasan.studio.core.ai.ImplementationReadiness.Report;
+import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.assertj.core.api.Assertions.*;
 
 class ImplementationReadinessTest {
     @TempDir Path root;
-    private com.fasterxml.jackson.databind.JsonNode model() throws Exception {
+    private JsonNode model() throws Exception {
         return StudioJson.newObjectMapper().readTree("""
                 {"applicationPackageName":"org.example","flows":[{"name":"Demo02 Order Audit and Fulfilment",
                 "flowElements":[{"componentName":"Create Accepted Order","userImplementedClassName":"CreateAcceptedOrder"}]}]}
@@ -60,9 +62,13 @@ class ImplementationReadinessTest {
 
     /** The converter stub has a TODO directly above its throw, and should be reported once, as the stronger finding. */
     @Test void aTodoDirectlyAboveAThrowingStubIsReportedOnce() throws Exception {
-        source("class CreateAcceptedOrder {\n Object convert(Object payload) {\n"
-                + "// TODO Implement the conversion. The target may be an interface.\n"
-                + "throw new UnsupportedOperationException(\"Conversion has not been implemented\");\n}}\n");
+        source("""
+                class CreateAcceptedOrder {
+                 Object convert(Object payload) {
+                // TODO Implement the conversion. The target may be an interface.
+                throw new UnsupportedOperationException("Conversion has not been implemented");
+                }}
+                """);
         List<Finding> findings = ImplementationReadiness.scan(root, model()).findings();
         assertThat(findings).hasSize(1);
         assertThat(findings.get(0).code()).isEqualTo("THROWING_STUB");

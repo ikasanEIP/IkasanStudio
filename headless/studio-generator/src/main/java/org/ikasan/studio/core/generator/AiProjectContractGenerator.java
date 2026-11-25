@@ -1,20 +1,23 @@
 package org.ikasan.studio.core.generator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
+import org.ikasan.studio.core.persistence.json.StudioJson;
 
 /** Generates the local, tool-neutral contract used by coding assistants working in a Studio project. */
 public final class AiProjectContractGenerator {
@@ -726,7 +729,7 @@ public final class AiProjectContractGenerator {
     public static String modelSchema() {
         try {
             ObjectMapper mapper = StudioJson.newObjectMapper();
-            ObjectNode schema = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(legacyModelSchema());
+            ObjectNode schema = (ObjectNode) mapper.readTree(legacyModelSchema());
             JsonNode required = schema.remove("required");
             ArrayNode alternatives = schema.putArray("oneOf");
             ObjectNode legacy = alternatives.addObject();
@@ -734,7 +737,7 @@ public final class AiProjectContractGenerator {
             legacy.putObject("not").putArray("required").add("modelFormat");
             alternatives.addObject().putArray("required").add("modelFormat").add("formatVersion")
                     .add("module").add("configuration").add("studio");
-            ObjectNode properties = (com.fasterxml.jackson.databind.node.ObjectNode) schema.get("properties");
+            ObjectNode properties = (ObjectNode) schema.get("properties");
             properties.putObject("modelFormat").put("const", "ikasan-studio-documents");
             properties.putObject("formatVersion").put("const", 1);
             properties.set("module", mapper.readTree("""
@@ -757,7 +760,7 @@ public final class AiProjectContractGenerator {
                      "required":["component","properties"],"properties":{"component":{"type":"string"},"properties":{"type":"object"}}}}}}}}}
                     """));
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(schema);
-        } catch (java.io.IOException e) { throw new IllegalStateException("Cannot build model schema", e); }
+        } catch (IOException e) { throw new IllegalStateException("Cannot build model schema", e); }
     }
 
     private static String legacyModelSchema() {
@@ -839,7 +842,7 @@ public final class AiProjectContractGenerator {
     }
 
     /** Null selects the full catalogue; an empty selection returns discovery metadata only. */
-    public static String componentCatalogue(String metapackVersion, java.util.Collection<String> componentKeys)
+    public static String componentCatalogue(String metapackVersion, Collection<String> componentKeys)
             throws StudioBuildException, JsonProcessingException {
         Map<String,ComponentMeta> library = ComponentLibrary.getIkasanComponents(metapackVersion);
         if (componentKeys != null) {
@@ -872,7 +875,7 @@ public final class AiProjectContractGenerator {
         String repository = "https://github.com/ikasanEIP/ikasan";
         reference.put("repository", repository);
         // Only emit release links verified for bundled targets; custom packs may use other tag conventions.
-        if (java.util.Set.of("3.3.9", "4.1.6").contains(version)) {
+        if (Set.of("3.3.9", "4.1.6").contains(version)) {
             String tag = "ikasaneip-" + version;
             reference.put("releaseTag", tag);
             reference.put("releaseSource", repository + "/tree/" + tag);
@@ -922,7 +925,7 @@ public final class AiProjectContractGenerator {
                 : meta.isEndpoint() ? "Associated endpoint; configure its owning component, do not add as a standalone processor."
                 : meta.isExceptionResolver() ? "Use setExceptionResolution to add or update a flow-wide exception rule."
                 : "Configure in Studio; this role is not a standalone processor.");
-        if (meta instanceof org.ikasan.studio.core.metapack.model.ExceptionResolverMeta resolver) {
+        if (meta instanceof ExceptionResolverMeta resolver) {
             result.put("exceptionsCaught", resolver.getExceptionsCaught());
             result.put("exceptionActions", resolver.getActionList().stream().map(action -> {
                 Map<String, Object> entry = new LinkedHashMap<>();
@@ -1005,7 +1008,7 @@ public final class AiProjectContractGenerator {
             result.put("defaultExpression", meta.getDefaultValue());
             result.put("defaultGuidance", "Studio resolves this expression when creating a component. Omit the property or supply a concrete value; never copy the expression into a proposal as a literal.");
         } else if (meta.getDefaultValue() != null) result.put("default", meta.getDefaultValue());
-        boolean structural = java.util.Set.of("componentName", "name", "version", "testHarnessOwner", "routeNames").contains(name)
+        boolean structural = Set.of("componentName", "name", "version", "testHarnessOwner", "routeNames").contains(name)
                 || meta.isIgnoreProperty();
         boolean implementationChange = meta.isAffectsUserImplementedClass()
                 && !(meta.isUserSuppliedClass() && meta.isProtectFromOverwrite());

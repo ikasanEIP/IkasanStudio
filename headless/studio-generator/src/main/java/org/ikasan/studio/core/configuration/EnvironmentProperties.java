@@ -1,16 +1,18 @@
 package org.ikasan.studio.core.configuration;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.io.BufferedWriter;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Developer-owned Spring configuration. Imported text retains comments and placeholders. */
 public final class EnvironmentProperties {
@@ -125,7 +127,7 @@ public final class EnvironmentProperties {
         String newline = text.contains("\r\n") ? "\r\n" : "\n";
         if (value == null) return text + (text.isEmpty() || text.endsWith("\n") || text.endsWith("\r") ? "" : newline)
                 + "spring.config.import=" + USER_IMPORT + newline;
-        Matcher matcher = java.util.regex.Pattern.compile("(?m)^(spring\\.config\\.import[ \t]*[=:][ \t]*)([^\r\n]*)").matcher(text);
+        Matcher matcher = Pattern.compile("(?m)^(spring\\.config\\.import[ \t]*[=:][ \t]*)([^\r\n]*)").matcher(text);
         if (!matcher.find() || matcher.group(2).stripTrailing().endsWith("\\"))
             throw new IOException("Regenerate application.properties before importing: its spring.config.import uses an unsupported layout.");
         String updated = matcher.group(1) + matcher.group(2).stripTrailing()
@@ -201,7 +203,7 @@ public final class EnvironmentProperties {
         return Files.readString(file, encoding(file));
     }
 
-    private static java.nio.charset.Charset encoding(Path file) {
+    private static Charset encoding(Path file) {
         return file.getFileName().toString().endsWith(".properties") ? StandardCharsets.ISO_8859_1 : StandardCharsets.UTF_8;
     }
 

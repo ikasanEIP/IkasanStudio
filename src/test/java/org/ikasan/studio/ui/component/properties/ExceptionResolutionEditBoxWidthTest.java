@@ -1,9 +1,9 @@
 package org.ikasan.studio.ui.component.properties;
 
 import com.intellij.openapi.ui.ComboBox;
-import org.junit.jupiter.api.Test;
-
+import java.awt.Dimension;
 import javax.swing.JComboBox;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -60,7 +60,7 @@ class ExceptionResolutionEditBoxWidthTest {
     void widenToFitContentsNeverShrinksAnAlreadyWiderComboBox() {
         ComboBox<String> comboBox = new ComboBox<>(new String[]{"short"});
         int before = comboBox.getPreferredSize().width;
-        comboBox.setPreferredSize(new java.awt.Dimension(before + 500, comboBox.getPreferredSize().height));
+        comboBox.setPreferredSize(new Dimension(before + 500, comboBox.getPreferredSize().height));
 
         ExceptionResolutionEditBox.widenToFitContents(comboBox, new String[]{"short"});
 

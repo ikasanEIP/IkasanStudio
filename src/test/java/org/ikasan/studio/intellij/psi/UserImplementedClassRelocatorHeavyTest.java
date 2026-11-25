@@ -1,15 +1,18 @@
 package org.ikasan.studio.intellij.psi;
 
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.PsiTestUtil;
+import java.util.List;
+import java.util.Objects;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
-
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -106,8 +109,8 @@ public class UserImplementedClassRelocatorHeavyTest extends HeavyPlatformTestCas
                 oldPackage, className, originalContent, null);
         VirtualFile sourceRoot = StudioProjectFiles.getUserImplementedClassFile(myProject, oldPackage, className).getParent();
         for (String ignored : oldPackage.split("\\.")) sourceRoot = sourceRoot.getParent();
-        com.intellij.testFramework.PsiTestUtil.addContentRoot(myModule, sourceRoot);
-        com.intellij.testFramework.PsiTestUtil.addSourceRoot(myModule, sourceRoot);
+        PsiTestUtil.addContentRoot(myModule, sourceRoot);
+        PsiTestUtil.addSourceRoot(myModule, sourceRoot);
         String callerPackage = "org.example.caller";
         StudioProjectFiles.createJavaSourceFile(myProject, StudioProjectFiles.USER_CONTENT_ROOT,
                 StudioProjectFiles.SRC_MAIN_JAVA_CODE, callerPackage, "BrokerCaller",
@@ -130,8 +133,8 @@ public class UserImplementedClassRelocatorHeavyTest extends HeavyPlatformTestCas
         assertThat("the relocated file's content should be readable", relocatedContent, notNullValue());
         assertThat("the hand-written body must survive the relocation intact",
                 relocatedContent.contains(distinctiveMarker), is(true));
-        String callerContent = com.intellij.openapi.application.ReadAction.compute(() ->
-                com.intellij.psi.PsiManager.getInstance(myProject).findFile(caller).getText());
+        String callerContent = ReadAction.compute(() ->
+                Objects.requireNonNull(PsiManager.getInstance(myProject).findFile(caller)).getText());
         assertTrue("Java usages must follow the moved class: " + callerContent,
                 callerContent.contains("import " + newPackage + "." + className + ";"));
     }
@@ -169,8 +172,8 @@ public class UserImplementedClassRelocatorHeavyTest extends HeavyPlatformTestCas
         for (String ignored : oldPackage.split("\\.")) {
             sourceRoot = sourceRoot.getParent();
         }
-        com.intellij.testFramework.PsiTestUtil.addContentRoot(myModule, sourceRoot);
-        com.intellij.testFramework.PsiTestUtil.addSourceRoot(myModule, sourceRoot);
+        PsiTestUtil.addContentRoot(myModule, sourceRoot);
+        PsiTestUtil.addSourceRoot(myModule, sourceRoot);
         StudioProjectFiles.createJavaSourceFile(myProject, StudioProjectFiles.USER_CONTENT_ROOT,
                 StudioProjectFiles.SRC_MAIN_JAVA_CODE, "org.springframework.stereotype", "Component",
                 "package org.springframework.stereotype; public @interface Component { String value(); }", null);
@@ -181,8 +184,8 @@ public class UserImplementedClassRelocatorHeavyTest extends HeavyPlatformTestCas
         String newPackage = GeneratorUtils.getUserImplementedClassesPackageName(module, flow2);
         VirtualFile relocated = StudioProjectFiles.getUserImplementedClassFile(myProject, newPackage, newName);
         assertNotNull(relocated);
-        String content = com.intellij.openapi.application.ReadAction.compute(() ->
-                com.intellij.psi.PsiManager.getInstance(myProject).findFile(relocated).getText());
+        String content = ReadAction.compute(() ->
+                Objects.requireNonNull(PsiManager.getInstance(myProject).findFile(relocated)).getText());
         String expectedBeanName = customBeanName == null ? newPackage + "." + newName : customBeanName;
         assertTrue(content, content.contains("package " + newPackage + ";"));
         assertTrue(content, content.contains("@Component(\"" + expectedBeanName + "\")"));

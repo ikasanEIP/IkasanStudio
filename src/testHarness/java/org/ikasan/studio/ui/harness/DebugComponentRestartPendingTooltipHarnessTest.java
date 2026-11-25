@@ -2,6 +2,15 @@ package org.ikasan.studio.ui.harness;
 
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ui.ImageUtil;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.image.BufferedImage;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -15,15 +24,6 @@ import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 import org.junit.jupiter.api.Test;
-
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.image.BufferedImage;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -70,7 +70,7 @@ public class DebugComponentRestartPendingTooltipHarnessTest extends ComponentTes
         Set<ProcessHandler> moduleProcesses = (Set<ProcessHandler>) moduleProcessesField.get(debugSessionService);
         moduleProcesses.add(mock(ProcessHandler.class));
 
-        BufferedImage img = com.intellij.util.ui.ImageUtil.createImage(2000, 2000, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage img = ImageUtil.createImage(2000, 2000, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         try {
             IkasanFlowViewHandler flowViewHandler = ViewHandlerCache.getFlowViewHandler(project, flow);

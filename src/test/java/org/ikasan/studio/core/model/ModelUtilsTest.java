@@ -1,10 +1,10 @@
 package org.ikasan.studio.core.model;
 
-import org.apache.maven.model.Dependency;
-import org.junit.jupiter.api.Test;
-
 import java.util.Arrays;
 import java.util.Set;
+import org.apache.maven.model.Dependency;
+import org.ikasan.studio.core.StudioBuildRuntimeException;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,17 +12,17 @@ class ModelUtilsTest {
 
     @Test
     public void conflictingExplicitVersionsAreRejected() {
-        Dependency d1 = createDependency("org", "bob", "1.1.1");
-        Dependency d2 = createDependency("org", "bob", "1.1.0");
+        Dependency d1 = createDependency("1.1.1");
+        Dependency d2 = createDependency("1.1.0");
 
-        assertThrows(org.ikasan.studio.core.StudioBuildRuntimeException.class,
+        assertThrows(StudioBuildRuntimeException.class,
                 () -> ModelUtils.getAllUniqueSortedDependenciesSet(Arrays.asList(d1, d2)));
     }
 
     @Test
     void bomManagedDependencyWinsOverAnExplicitVersion() {
-        Dependency explicit = createDependency("org", "bob", "1.1.1");
-        Dependency managed = createDependency("org", "bob", null);
+        Dependency explicit = createDependency("1.1.1");
+        Dependency managed = createDependency(null);
 
         Set<Dependency> actual = ModelUtils.getAllUniqueSortedDependenciesSet(Arrays.asList(explicit, managed));
 
@@ -46,10 +46,10 @@ class ModelUtilsTest {
         );
     }
 
-    private Dependency createDependency(String groupId, String artifactId, String version) {
+    private Dependency createDependency(String version) {
         Dependency dependency = new Dependency();
-        dependency.setGroupId(groupId);
-        dependency.setArtifactId(artifactId);
+        dependency.setGroupId("org");
+        dependency.setArtifactId("bob");
         dependency.setVersion(version);
         return dependency;
     }

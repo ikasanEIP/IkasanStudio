@@ -5,10 +5,11 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.jar.JarFile;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /** Indexed resource-only JAR. No classes or service providers from the JAR are loaded. */
 public final class MetaPackArchive {
@@ -74,7 +75,7 @@ public final class MetaPackArchive {
         } catch (IllegalArgumentException invalid) { throw new IOException("Invalid pack archive URL", invalid); }
     }
 
-    public java.util.List<String> templateNames(String prefix) {
+    public List<String> templateNames(String prefix) {
         return entries.stream().filter(name -> name.startsWith(prefix) && name.endsWith(".ftl"))
                 .map(name -> name.substring(prefix.length())).sorted().toList();
     }

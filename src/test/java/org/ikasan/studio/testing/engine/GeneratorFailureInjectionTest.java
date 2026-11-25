@@ -1,15 +1,16 @@
 package org.ikasan.studio.testing.engine;
 
-import org.ikasan.studio.core.generator.*;
-
-import org.junit.jupiter.api.Test;
-import org.ikasan.studio.core.io.ComponentIO;
-import org.ikasan.studio.core.StudioBuildException;
 import java.util.HashMap;
-import static org.junit.jupiter.api.Assertions.*;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.generator.StudioGeneratorException;
+import org.ikasan.studio.core.io.ComponentIO;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
-@org.junit.jupiter.api.Tag("engine")
+import static org.junit.jupiter.api.Assertions.*;
+
+@Tag("engine")
 class GeneratorFailureInjectionTest {
     @Test
     void missingMetaPackResourceFailsExplicitly() {

@@ -1,29 +1,32 @@
 package org.ikasan.studio.ui.actions;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.integration.ikasan.ExcludedEventsClient;
-import org.ikasan.studio.integration.ikasan.FileDuplicateHistoryClient;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.UiContext;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.net.ConnectException;
 import java.net.URI;
+import java.net.http.HttpTimeoutException;
 import java.util.List;
 import java.util.concurrent.Future;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.integration.ikasan.ExcludedEventsClient;
 import org.ikasan.studio.integration.ikasan.FileDuplicateHistoryClient.Entry;
+import org.ikasan.studio.integration.ikasan.FileDuplicateHistoryClient;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
+import org.ikasan.studio.ui.UiContext;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.PropertyKey;
 
 /** Project-bound, read-only file duplicate history browser. HTTP work never runs on the EDT. */
 // This dialog runs with project services in the local IDE; remote Split Mode needs a separate frontend and RPC boundary.
@@ -58,7 +61,7 @@ public final class FileDuplicateHistoryDialog extends StudioDialogWrapper {
         if (module == null || !module.isInitialised()) return;
         try { new FileDuplicateHistoryDialog(project, ExcludedEventsClient.endpoint(module).resolve("../filefilter/search"), initialClientId).show(); }
         catch (IllegalArgumentException e) {
-            com.intellij.openapi.ui.Messages.showWarningDialog(project, StudioBundle.message("fileHistory.configuration"), StudioBundle.message("fileHistory.title"));
+            Messages.showWarningDialog(project, StudioBundle.message("fileHistory.configuration"), StudioBundle.message("fileHistory.title"));
         }
     }
 
@@ -80,7 +83,7 @@ public final class FileDuplicateHistoryDialog extends StudioDialogWrapper {
         load(0, true);
     }
 
-    @Override protected Action @org.jetbrains.annotations.NotNull [] createActions() { return new Action[]{getCancelAction()}; }
+    @Override protected Action @NotNull [] createActions() { return new Action[]{getCancelAction()}; }
 
     @Override protected JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
@@ -110,7 +113,7 @@ public final class FileDuplicateHistoryDialog extends StudioDialogWrapper {
         return panel;
     }
 
-    private static void addField(JPanel panel, @org.jetbrains.annotations.PropertyKey(resourceBundle = "messages.studioBundle") String key, JBTextField field) {
+    private static void addField(JPanel panel, @PropertyKey(resourceBundle = "messages.studioBundle") String key, JBTextField field) {
         JBLabel label = new JBLabel(StudioBundle.message(key)); label.setLabelFor(field); panel.add(label); panel.add(field);
     }
 
@@ -134,7 +137,7 @@ public final class FileDuplicateHistoryDialog extends StudioDialogWrapper {
             catch (ExcludedEventsClient.HttpFailure e) {
                 failure = e.status == 401 || e.status == 403 ? StudioBundle.message("fileHistory.authentication")
                         : e.status == 404 ? StudioBundle.message("fileHistory.notFound") : StudioBundle.message("fileHistory.http", e.status);
-            } catch (java.net.ConnectException | java.net.http.HttpTimeoutException e) { failure = StudioBundle.message("fileHistory.connection"); }
+            } catch (ConnectException | HttpTimeoutException e) { failure = StudioBundle.message("fileHistory.connection"); }
             catch (Exception e) { failure = StudioBundle.message("fileHistory.failed"); }
             FileDuplicateHistoryClient.Page loaded = result;
             String error = failure;

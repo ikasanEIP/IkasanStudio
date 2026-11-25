@@ -1,8 +1,10 @@
 package org.ikasan.studio.intellij.testing;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.WriteIntentReadAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.progress.ProgressManager;
@@ -10,25 +12,29 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import org.ikasan.studio.core.generator.FlowTestScaffold;
+import org.ikasan.studio.core.generator.GeneratedVerification.Bundle;
+import org.ikasan.studio.core.generator.GeneratedVerification;
+import org.ikasan.studio.core.generator.ModelTemplate;
 import org.ikasan.studio.core.io.ComponentIO;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.migration.MigrationArtifacts;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.List;
-import java.util.ArrayList;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.vfs.VirtualFile;
-import java.util.Set;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 public final class GenerateFlowTestAction extends DumbAwareAction {
     private static final Logger LOG = Logger.getInstance(GenerateFlowTestAction.class);
@@ -62,7 +68,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             acquired = true;
             Path root = Path.of(basePath);
             AtomicReference<Exception> failure = new AtomicReference<>();
-            AtomicReference<org.ikasan.studio.core.generator.GeneratedVerification.Bundle> bundle = new AtomicReference<>();
+            AtomicReference<Bundle> bundle = new AtomicReference<>();
             AtomicReference<String> snapshot = new AtomicReference<>();
             AtomicReference<String> parent = new AtomicReference<>();
             AtomicReference<String> model = new AtomicReference<>();
@@ -71,11 +77,11 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                     model.set(Files.readString(root.resolve(MigrationArtifacts.MODEL)));
                     Module saved = ComponentIO.validatePersistedModuleJson(model.get(), "generated verification", false);
                     ObjectMapper mapper = StudioJson.newObjectMapper();
-                    if (!mapper.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(saved)).equals(mapper.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(live))))
+                    if (!mapper.readTree(ModelTemplate.create(saved)).equals(mapper.readTree(ModelTemplate.create(live))))
                         throw new IllegalStateException(StudioBundle.message("flowTest.canvasModelMismatch"));
                     parent.set(Files.readString(root.resolve("pom.xml")));
-                    snapshot.set(GeneratedVerificationFiles.snapshot(root.resolve(org.ikasan.studio.core.generator.GeneratedVerification.DIRECTORY)));
-                    bundle.set(org.ikasan.studio.core.generator.GeneratedVerification.render(saved, model.get(), parent.get(),
+                    snapshot.set(GeneratedVerificationFiles.snapshot(root.resolve(GeneratedVerification.DIRECTORY)));
+                    bundle.set(GeneratedVerification.render(saved, model.get(), parent.get(),
                             Files.readString(root.resolve("generated/pom.xml"))));
                 } catch (Exception ex) { failure.set(ex); }
             }, title, false, project);
@@ -125,19 +131,19 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             }
             String[] flows = live.getFlows().stream().map(Flow::getIdentity).toArray(String[]::new);
             if (flows.length == 0) throw new IllegalStateException(StudioBundle.message("flowTest.noFlows"));
-            java.util.Set<String> ftpFlows = live.getFlows().stream()
+            Set<String> ftpFlows = live.getFlows().stream()
                     .filter(flow -> flow.getFlowElementsNoExternalEndPoints().stream()
                             .anyMatch(element -> element.getComponentMeta().supportsTestFtpServer()))
-                    .map(Flow::getIdentity).collect(java.util.stream.Collectors.toSet());
-            java.util.Set<String> smtpFlows = live.getFlows().stream()
+                    .map(Flow::getIdentity).collect(Collectors.toSet());
+            Set<String> smtpFlows = live.getFlows().stream()
                     .filter(flow -> flow.getFlowElementsNoExternalEndPoints().stream()
                             .anyMatch(element -> element.getComponentMeta().supportsTestMailServer()))
-                    .map(Flow::getIdentity).collect(java.util.stream.Collectors.toSet());
-            java.util.Set<String> sftpFlows = live.getFlows().stream()
+                    .map(Flow::getIdentity).collect(Collectors.toSet());
+            Set<String> sftpFlows = live.getFlows().stream()
                     .filter(flow -> flow.getFlowElementsNoExternalEndPoints().stream()
                             .anyMatch(element -> element.getComponentMeta().supportsTestSftpServer()))
-                    .map(Flow::getIdentity).collect(java.util.stream.Collectors.toSet());
-            java.util.concurrent.atomic.AtomicBoolean stale = new java.util.concurrent.atomic.AtomicBoolean();
+                    .map(Flow::getIdentity).collect(Collectors.toSet());
+            AtomicBoolean stale = new AtomicBoolean();
             AtomicReference<Exception> fingerprintFailure = new AtomicReference<>();
             ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
                 try {
@@ -183,12 +189,12 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             acquired = true;
             if (!saveProjectDocumentsBeforeGeneration(project, basePath, title)) return;
             Path root = Path.of(basePath);
-            AtomicReference<com.intellij.openapi.vfs.VirtualFile> result = new AtomicReference<>();
+            AtomicReference<VirtualFile> result = new AtomicReference<>();
             AtomicReference<Exception> failure = new AtomicReference<>();
             AtomicReference<List<Path>> created = new AtomicReference<>(List.of());
             AtomicReference<FlowTestFiles.ExistingTestException> archiveApproval = new AtomicReference<>();
             AtomicReference<List<FlowTestFiles.ExistingTestException>> batchApproval = new AtomicReference<>();
-            java.util.concurrent.atomic.AtomicBoolean batchReviewed = new java.util.concurrent.atomic.AtomicBoolean();
+            AtomicBoolean batchReviewed = new AtomicBoolean();
             while (true) {
                 failure.set(null);
                 ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
@@ -196,7 +202,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                         String source = Files.readString(root.resolve(MigrationArtifacts.MODEL));
                         Module module = ComponentIO.validatePersistedModuleJson(source, "flow test generation", false);
                         ObjectMapper mapper = StudioJson.newObjectMapper();
-                        if (!mapper.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(module)).equals(mapper.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(live)))) {
+                        if (!mapper.readTree(ModelTemplate.create(module)).equals(mapper.readTree(ModelTemplate.create(live)))) {
                             throw new IllegalStateException(StudioBundle.message("flowTest.canvasModelMismatch"));
                         }
                         String pom = Files.readString(root.resolve("pom.xml"));
@@ -310,15 +316,15 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
     /** Prefer a generated scenario, then a preserved selected scenario; shared support is only a fallback. */
     static Path preferredTestToOpen(Path root, List<String> scenarioPaths, List<Path> written) {
         List<Path> scenarios = scenarioPaths.stream().map(path -> root.resolve(path).toAbsolutePath().normalize()).toList();
-        Set<Path> changed = written.stream().map(path -> path.toAbsolutePath().normalize()).collect(java.util.stream.Collectors.toSet());
+        Set<Path> changed = written.stream().map(path -> path.toAbsolutePath().normalize()).collect(Collectors.toSet());
         for (Path scenario : scenarios) if (changed.contains(scenario) && Files.isRegularFile(scenario)) return scenario;
         for (Path scenario : scenarios) if (Files.isRegularFile(scenario)) return scenario;
         return written.stream().filter(Files::isRegularFile).findFirst().orElse(null);
     }
 
-    private static List<com.intellij.openapi.editor.Document> unsavedProjectDocuments(
+    private static List<Document> unsavedProjectDocuments(
             FileDocumentManager manager, String basePath) {
-        List<com.intellij.openapi.editor.Document> documents = new ArrayList<>();
+        List<Document> documents = new ArrayList<>();
         for (Document document : manager.getUnsavedDocuments()) {
             VirtualFile file = manager.getFile(document);
             if (file != null && file.getPath().startsWith(basePath + "/")) documents.add(document);
@@ -327,10 +333,10 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
     }
 
     private static String unsavedFileNames(FileDocumentManager manager, String basePath,
-                                          List<com.intellij.openapi.editor.Document> documents) {
-        return documents.stream().map(manager::getFile).filter(java.util.Objects::nonNull)
+                                          List<Document> documents) {
+        return documents.stream().map(manager::getFile).filter(Objects::nonNull)
                 .map(file -> file.getPath().substring(basePath.length() + 1)).sorted()
-                .collect(java.util.stream.Collectors.joining("\n"));
+                .collect(Collectors.joining("\n"));
     }
 
 }

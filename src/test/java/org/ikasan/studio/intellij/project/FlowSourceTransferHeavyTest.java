@@ -2,26 +2,29 @@ package org.ikasan.studio.intellij.project;
 
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.NioFiles;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.FlowClipboard.Sources;
 import org.ikasan.studio.core.persistence.json.FlowClipboard;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
-import java.util.Map;
-import com.intellij.openapi.editor.Document;
-import java.lang.reflect.Method;
-import java.nio.file.Path;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.persistence.json.FlowClipboard.Sources;
 
 public class FlowSourceTransferHeavyTest extends HeavyPlatformTestCase {
     static {
@@ -58,12 +61,12 @@ public class FlowSourceTransferHeavyTest extends HeavyPlatformTestCase {
             Process compiler = new ProcessBuilder("javac", "-d", output.toString(),
                     file("another.project.orderscopy", "Convert").getPath(), file("another.project.orderscopy.helpers", "Helper").getPath())
                     .redirectErrorStream(true).redirectOutput(compilerLog.toFile()).start();
-            if (!compiler.waitFor(20, java.util.concurrent.TimeUnit.SECONDS)) {
+            if (!compiler.waitFor(20, TimeUnit.SECONDS)) {
                 compiler.destroyForcibly();
                 fail("javac timed out");
             }
             assertEquals(Files.readString(compilerLog), 0, compiler.exitValue());
-        } finally { com.intellij.openapi.util.io.NioFiles.deleteRecursively(output); }
+        } finally { NioFiles.deleteRecursively(output); }
     }
 
     public void testUpdatesSpringBeanReferencesWithoutRewritingOrdinaryStringsOrOtherPackages() throws Exception {
@@ -120,7 +123,7 @@ public class FlowSourceTransferHeavyTest extends HeavyPlatformTestCase {
         UiContext context = myProject.getService(UiContext.class);
         context.setIkasanModule(module);
         context.setViewHandlerFactory(new ViewHandlerCache(myProject));
-        Method generate = GeneratedProjectSynchronizer.class.getDeclaredMethod("generateAndSaveUserImplementClassStubsForFlow", com.intellij.openapi.project.Project.class, Module.class, Flow.class);
+        Method generate = GeneratedProjectSynchronizer.class.getDeclaredMethod("generateAndSaveUserImplementClassStubsForFlow", Project.class, Module.class, Flow.class);
         generate.setAccessible(true);
         for (int attempt = 0; attempt < 2; attempt++) {
             GenerationTransactionManager.begin();
@@ -138,6 +141,6 @@ public class FlowSourceTransferHeavyTest extends HeavyPlatformTestCase {
     }
     private VirtualFile file(String pkg, String name) { return StudioProjectFiles.getUserImplementedClassFile(myProject, pkg, name); }
     private String text(String pkg, String name) throws IOException {
-        return new String(file(pkg, name).contentsToByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+        return new String(file(pkg, name).contentsToByteArray(), StandardCharsets.UTF_8);
     }
 }

@@ -8,12 +8,12 @@ import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.StudioBundle;
-
-import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.function.IntConsumer;
+import javax.swing.*;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioTextCopySupport;
 
 /**
  * Empty-state content shown while Ikasan Studio prepares the current project.
@@ -116,7 +116,7 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
         add(Box.createVerticalGlue(), constraints);
 
         showWaitingForIndexes();
-        org.ikasan.studio.ui.StudioTextCopySupport.install(this);
+        StudioTextCopySupport.install(this);
     }
 
     private static void configureDescription(JBTextArea textArea) {

@@ -1,21 +1,27 @@
 package org.ikasan.studio.intellij.testing;
 
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.HeavyPlatformTestCase;
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import java.util.List;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.application.ApplicationConfiguration;
+import com.intellij.execution.application.ApplicationConfigurationType;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.PsiTestUtil;
+import java.util.List;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.Plan;
+import org.ikasan.studio.ui.UiContext;
 
 public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
     private Flow flow;
@@ -45,8 +51,8 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
                 """);
         write(RESOURCES + "Original_Flow/Old_Consumer/first.txt", "BUSINESS DATA");
         VirtualFile root = file("user-flow-tests/src/test/java");
-        com.intellij.testFramework.PsiTestUtil.addContentRoot(myModule, root);
-        com.intellij.testFramework.PsiTestUtil.addSourceRoot(myModule, root, true);
+        PsiTestUtil.addContentRoot(myModule, root);
+        PsiTestUtil.addSourceRoot(myModule, root, true);
     }
 
     public void testFlowRenamePreservesBusinessValuesAndMovesFixtures() {
@@ -174,13 +180,13 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
         Document document = FileDocumentManager.getInstance().getDocument(testFile);
         assertNotNull(document);
         WriteCommandAction.runWriteCommandAction(myProject, () -> document.insertString(0, "// unsaved read-only edit\n"));
-        com.intellij.openapi.application.WriteAction.run(() -> testFile.setWritable(false));
+        WriteAction.run(() -> testFile.setWritable(false));
         try {
             FlowTestRenameRefactoring.prepare(myProject, module, flow, flow.getConsumer(), "New Consumer");
             fail("Expected a blocked save");
         } catch (FlowTestRenameRefactoring.RenameBlockedException expected) {
             assertTrue(expected.getMessage().contains("rename was cancelled"));
-        } finally { com.intellij.openapi.application.WriteAction.run(() -> testFile.setWritable(true)); }
+        } finally { WriteAction.run(() -> testFile.setWritable(true)); }
         assertEquals("Old Consumer", flow.getConsumer().getIdentity());
         assertTrue(document.getText().startsWith("// unsaved read-only edit"));
         assertTrue(document.getText().contains("CONSUMER_NAME = \"Old Consumer\""));
@@ -188,10 +194,10 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testComponentRenamePersistsNameAndTestTogether() {
-        myProject.getService(org.ikasan.studio.ui.UiContext.class).setIkasanModule(module);
-        TestDialog previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(com.intellij.openapi.ui.TestDialog.OK);
+        myProject.getService(UiContext.class).setIkasanModule(module);
+        TestDialog previous = TestDialogManager.setTestDialog(TestDialog.OK);
         try { FlowTestRenameRefactoring.renameComponentAndSave(myProject, module, flow.getConsumer(), "New Consumer"); }
-        finally { com.intellij.openapi.ui.TestDialogManager.setTestDialog(previous); }
+        finally { TestDialogManager.setTestDialog(previous); }
         assertEquals("New Consumer", flow.getConsumer().getIdentity());
         assertTrue(text().contains("CONSUMER_NAME = \"New Consumer\""));
         assertTrue(readText("generated/src/main/model/model.json").contains("New Consumer"));
@@ -311,10 +317,10 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
 
     public void testRunConfigurationFollowsSuccessfulRenameOnly() {
         generatedTest();
-        RunManager manager = com.intellij.execution.RunManager.getInstance(myProject);
+        RunManager manager = RunManager.getInstance(myProject);
         RunnerAndConfigurationSettings settings = manager.createConfiguration("Test runner",
-                com.intellij.execution.application.ApplicationConfigurationType.getInstance().getConfigurationFactories()[0]);
-        ApplicationConfiguration config = (com.intellij.execution.application.ApplicationConfiguration) settings.getConfiguration();
+                ApplicationConfigurationType.getInstance().getConfigurationFactories()[0]);
+        ApplicationConfiguration config = (ApplicationConfiguration) settings.getConfiguration();
         config.setModule(myModule);
         config.setMainClassName("org.ikasan.studio.flowtests.OriginalFlowFlowTest");
         manager.addConfiguration(settings);
@@ -329,7 +335,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
         assertEquals("org.ikasan.studio.flowtests.RenamedFlowFlowTest", config.getMainClassName());
     }
 
-    private FlowTestRenameRefactoring.Plan inspect(org.ikasan.studio.core.model.ikasan.instance.FlowElement component, String name) {
+    private FlowTestRenameRefactoring.Plan inspect(FlowElement component, String name) {
         return ReadAction.compute(() -> FlowTestRenameRefactoring.inspect(myProject, module, flow, component, name));
     }
     private void write(String path, String content) {

@@ -4,17 +4,19 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import java.util.regex.Matcher;
 
 /** Explicit allowlist export. No project traversal and no model-file access. */
 public final class StudioDiagnosticBundle {
     public static final int MAX_LOG_BYTES = 2 * 1024 * 1024;
-    private static final java.util.regex.Pattern LOG_ENVELOPE = java.util.regex.Pattern.compile("[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:,.]+ +\\[ *[0-9]+] +(INFO|WARN|DEBUG|ERROR) +- +[#a-zA-Z0-9_.$]+ +- +");
-    private static final java.util.regex.Pattern EVENT_RECORD = java.util.regex.Pattern.compile("STUDIO-DIAG v1 event=[A-Z_]+ level=(INFO|WARN|DEBUG) module=(none|[a-f0-9]{16}) flow=(none|[a-f0-9]{16}) component=(none|[a-f0-9]{16})( error=[a-zA-Z0-9_.$]+| frame=org\\.ikasan\\.studio\\.[a-zA-Z0-9_.$]+:[0-9]+)*");
-    private static final java.util.regex.Pattern TIMESTAMP = java.util.regex.Pattern.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:,.]+)");
+    private static final Pattern LOG_ENVELOPE = Pattern.compile("[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:,.]+ +\\[ *[0-9]+] +(INFO|WARN|DEBUG|ERROR) +- +[#a-zA-Z0-9_.$]+ +- +");
+    private static final Pattern EVENT_RECORD = Pattern.compile("STUDIO-DIAG v1 event=[A-Z_]+ level=(INFO|WARN|DEBUG) module=(none|[a-f0-9]{16}) flow=(none|[a-f0-9]{16}) component=(none|[a-f0-9]{16})( error=[a-zA-Z0-9_.$]+| frame=org\\.ikasan\\.studio\\.[a-zA-Z0-9_.$]+:[0-9]+)*");
+    private static final Pattern TIMESTAMP = Pattern.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:,.]+)");
     private StudioDiagnosticBundle() { }
 
     public static String redactLogs(String source) {
@@ -47,7 +49,7 @@ public final class StudioDiagnosticBundle {
     }
 
     public static void write(Path target, Path ideaLog, Map<String, String> environment) throws IOException {
-        if (!target.getFileName().toString().toLowerCase(java.util.Locale.ROOT).endsWith(".zip"))
+        if (!target.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".zip"))
             throw new IOException("Diagnostics destination must have a .zip extension");
         String logs;
         if (Files.isRegularFile(ideaLog)) {

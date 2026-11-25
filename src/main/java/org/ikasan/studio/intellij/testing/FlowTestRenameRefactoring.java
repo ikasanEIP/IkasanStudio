@@ -1,42 +1,53 @@
 package org.ikasan.studio.intellij.testing;
 
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.WriteIntentReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.command.undo.DocumentReferenceManager;
+import com.intellij.openapi.command.undo.UndoManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.refactoring.rename.RenamePsiElementProcessor;
-import com.intellij.refactoring.rename.RenameUtil;
-import com.intellij.refactoring.rename.UnresolvableCollisionUsageInfo;
-import com.intellij.refactoring.listeners.RefactoringElementListener;
-import com.intellij.refactoring.listeners.RefactoringElementListenerProvider;
-import com.intellij.usageView.UsageInfo;
-import org.ikasan.studio.core.StudioBuildUtils;
-import org.ikasan.studio.core.generator.ModelTemplate;
-import org.ikasan.studio.core.io.ComponentIO;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.ui.StudioBundle;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import com.intellij.openapi.editor.Document;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.PsiStatement;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.refactoring.listeners.RefactoringElementListener;
+import com.intellij.refactoring.listeners.RefactoringElementListenerProvider;
+import com.intellij.refactoring.rename.RenamePsiElementProcessor;
+import com.intellij.refactoring.rename.RenameUtil;
+import com.intellij.refactoring.rename.UnresolvableCollisionUsageInfo;
+import com.intellij.usageView.UsageInfo;
+import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.generator.ModelTemplate;
+import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.Link;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
+import org.jetbrains.annotations.NotNull;
 
 /** Targeted refactoring of recognised test references; never regenerates business scenarios. */
 public final class FlowTestRenameRefactoring {
@@ -47,14 +58,14 @@ public final class FlowTestRenameRefactoring {
         protected RenameBlockedException(String message) { super(message); }
     }
     private static final class UnsavedDocumentException extends RenameBlockedException {
-        private final com.intellij.openapi.editor.Document document;
-        private UnsavedDocumentException(com.intellij.openapi.editor.Document document, String fileName) {
+        private final Document document;
+        private UnsavedDocumentException(Document document, String fileName) {
             super(StudioBundle.message("flowTest.renameUnsaved", fileName));
             this.document = document;
         }
     }
     private record Edit(SmartPsiElementPointer<PsiLiteralExpression> pointer, String before, String after) { }
-    private record TextEdit(com.intellij.openapi.editor.Document document, String before, String after) { }
+    private record TextEdit(Document document, String before, String after) { }
     private record Move(VirtualFile directory, String before, String after) { }
     private record ClassRename(SmartPsiElementPointer<PsiClass> pointer, VirtualFile file,
                                String before, String after, UsageInfo[] usages) { }
@@ -63,7 +74,7 @@ public final class FlowTestRenameRefactoring {
         private final List<Edit> edits = new ArrayList<>();
         private final List<TextEdit> textEdits = new ArrayList<>();
         private final List<ClassRename> classes = new ArrayList<>();
-        private final Map<com.intellij.openapi.editor.Document, String> classDocuments = new LinkedHashMap<>();
+        private final Map<Document, String> classDocuments = new LinkedHashMap<>();
         private final List<Move> moves = new ArrayList<>();
         private final Set<String> review = new TreeSet<>();
         private Plan(Project project) { this.project = project; }
@@ -71,7 +82,7 @@ public final class FlowTestRenameRefactoring {
 
         /** Called inside the rename write command. Restores test edits if model persistence fails. */
         public void apply(Runnable persistModel) {
-            Map<com.intellij.openapi.editor.Document, String> originals = new LinkedHashMap<>();
+            Map<Document, String> originals = new LinkedHashMap<>();
             // Package refactoring may already have updated imports in these documents.
             classDocuments.keySet().forEach(document -> originals.put(document, document.getText()));
             List<Runnable> notifications = new ArrayList<>();
@@ -137,7 +148,7 @@ public final class FlowTestRenameRefactoring {
                         if (rename.file().isValid() && !rename.file().getName().equals(rename.before() + ".java"))
                             rename.file().rename(this, rename.before() + ".java");
                     }
-                    originals.forEach(com.intellij.openapi.editor.Document::setText);
+                    originals.forEach(Document::setText);
                     PsiDocumentManager.getInstance(project).commitAllDocuments();
                     saveDocuments(originals.keySet());
                     saveDocuments(textEdits.stream().map(TextEdit::document).toList());
@@ -148,13 +159,13 @@ public final class FlowTestRenameRefactoring {
             for (Runnable notification : notifications) {
                 try { notification.run(); }
                 catch (RuntimeException failure) {
-                    com.intellij.openapi.diagnostic.Logger.getInstance(FlowTestRenameRefactoring.class)
+                    Logger.getInstance(FlowTestRenameRefactoring.class)
                             .warn("A test rename listener could not update its references", failure);
                     review.addAll(classes.stream().map(rename -> rename.after() + ".java").toList());
                 }
             }
         }
-        private void saveDocuments(Collection<com.intellij.openapi.editor.Document> documents) {
+        private void saveDocuments(Collection<Document> documents) {
             PsiDocumentManager psi = PsiDocumentManager.getInstance(project);
             psi.commitAllDocuments();
             for (Document document : documents) {
@@ -168,7 +179,7 @@ public final class FlowTestRenameRefactoring {
             PsiLiteralExpression literal = edit.pointer().getElement();
             if (literal == null) throw new IllegalStateException(StudioBundle.message("flowTest.renameChanged"));
             literal.replace(JavaPsiFacade.getElementFactory(project).createExpressionFromText(
-                    org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper().valueToTree(value).toString(), literal));
+                    StudioJson.newObjectMapper().valueToTree(value).toString(), literal));
         }
         private void saveEditedDocuments() {
             PsiDocumentManager psi = PsiDocumentManager.getInstance(project);
@@ -198,15 +209,15 @@ public final class FlowTestRenameRefactoring {
     public static Plan prepare(Project project, Module module, Flow flow, FlowElement component, String newName) {
         AtomicReference<Plan> result = new AtomicReference<>();
         AtomicReference<RuntimeException> failure = new AtomicReference<>();
-        com.intellij.openapi.application.WriteIntentReadAction.run((Runnable) () -> {
+        WriteIntentReadAction.run((Runnable) () -> {
             PsiDocumentManager psi = PsiDocumentManager.getInstance(project);
             psi.commitAllDocuments();
             while (true) {
                 failure.set(null);
                 ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
                     try { result.set(ReadAction.nonBlocking(() -> inspect(project, module, flow, component, newName))
-                            .expireWith(project.getService(org.ikasan.studio.intellij.project.StudioProjectInitialisationService.class)).executeSynchronously()); }
-                    catch (com.intellij.openapi.progress.ProcessCanceledException canceled) { throw canceled; }
+                            .expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously()); }
+                    catch (ProcessCanceledException canceled) { throw canceled; }
                     catch (RuntimeException ex) { failure.set(ex); }
                 }, StudioBundle.message("flowTest.renamePreparing"), false, project);
                 if (!(failure.get() instanceof UnsavedDocumentException unsaved)) break;
@@ -266,11 +277,11 @@ public final class FlowTestRenameRefactoring {
                 String after = before;
                 for (Entry<String,String> entry : keys.entrySet()) {
                     String oldKey = entry.getKey(), newKey = entry.getValue();
-                    String oldPattern = "(?m)^(\\s*)" + java.util.regex.Pattern.quote(oldKey) + "(?=\\s*[=:])";
-                    if (java.util.regex.Pattern.compile(oldPattern).matcher(after).find()
-                            && java.util.regex.Pattern.compile("(?m)^\\s*" + java.util.regex.Pattern.quote(newKey) + "\\s*[=:]").matcher(after).find())
+                    String oldPattern = "(?m)^(\\s*)" + Pattern.quote(oldKey) + "(?=\\s*[=:])";
+                    if (Pattern.compile(oldPattern).matcher(after).find()
+                            && Pattern.compile("(?m)^\\s*" + Pattern.quote(newKey) + "\\s*[=:]").matcher(after).find())
                         throw new IllegalStateException(StudioBundle.message("flowTest.renamePropertyConflict", newKey));
-                    after = after.replaceAll(oldPattern, "$1" + java.util.regex.Matcher.quoteReplacement(newKey));
+                    after = after.replaceAll(oldPattern, "$1" + Matcher.quoteReplacement(newKey));
                     after = after.replace("${" + oldKey + "}", "${" + newKey + "}")
                             .replace("${" + oldKey + ":", "${" + newKey + ":");
                 }
@@ -424,7 +435,7 @@ public final class FlowTestRenameRefactoring {
     private static Map<String, String> propertyRenames(Module module, Flow flow, FlowElement component, String name) {
         Module copy;
         try { copy = ComponentIO.validatePersistedModuleJson(ModelTemplate.create(module), "test rename", false); }
-        catch (org.ikasan.studio.core.StudioBuildException failure) { throw new IllegalStateException(failure); }
+        catch (StudioBuildException failure) { throw new IllegalStateException(failure); }
         Flow copyFlow = copy.getFlows().get(module.getFlows().indexOf(flow));
         List<FlowElement> originalElements = flow.getFlowElementsNoExternalEndPoints();
         List<FlowElement> copiedElements = copyFlow.getFlowElementsNoExternalEndPoints();
@@ -463,25 +474,25 @@ public final class FlowTestRenameRefactoring {
     // Required before entering a write command from a Swing callback without implicit read access.
     @SuppressWarnings("UnstableApiUsage")
     public static void renameComponentAndSave(Project project, Module module, FlowElement component, String newName) {
-        UiContext context = project.getService(org.ikasan.studio.ui.UiContext.class);
+        UiContext context = project.getService(UiContext.class);
         if (context.isModelPersistenceBlocked()) throw new IllegalStateException(context.getModelPersistenceBlockReason());
         Plan plan = prepare(project, module, component.getContainingFlow(), component, newName);
         String oldName = component.getIdentity();
         Map<Flow, String> owners = new LinkedHashMap<>();
-        List<Link> links = org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.findLinks(module).stream()
+        List<Link> links = TestJmsHarnessLinks.findLinks(module).stream()
                 .filter(link -> link.ownerProducer() == component).toList();
         links.forEach(link -> owners.put(link.harnessFlow(), (String) link.harnessFlow().getPropertyValue("testHarnessOwner")));
-        com.intellij.openapi.application.WriteIntentReadAction.run((Runnable) () ->
+        WriteIntentReadAction.run((Runnable) () ->
                 WriteCommandAction.runWriteCommandAction(project, () -> {
                     try {
                         component.setName(newName);
                         links.forEach(link -> link.harnessFlow().setPropertyValue("testHarnessOwner",
-                                org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.ownerKeyFor(component)));
+                                TestJmsHarnessLinks.ownerKeyFor(component)));
                         plan.apply(() -> StudioProjectFiles.replaceJsonModelFileSafely(project, ModelTemplate.create(module)));
                         VirtualFile base = StudioProjectFiles.getProjectBaseDir(project);
                         VirtualFile modelFile = base == null ? null : base.findFileByRelativePath("generated/src/main/model/model.json");
-                        if (modelFile != null) com.intellij.openapi.command.undo.UndoManager.getInstance(project)
-                                .nonundoableActionPerformed(com.intellij.openapi.command.undo.DocumentReferenceManager
+                        if (modelFile != null) UndoManager.getInstance(project)
+                                .nonundoableActionPerformed(DocumentReferenceManager
                                         .getInstance().create(modelFile), true);
                     } catch (RuntimeException failure) {
                         component.setName(oldName);
@@ -493,7 +504,7 @@ public final class FlowTestRenameRefactoring {
     }
 
     public static void reportReview(Plan plan) {
-        if (!plan.review.isEmpty()) com.intellij.openapi.ui.Messages.showWarningDialog(plan.project,
+        if (!plan.review.isEmpty()) Messages.showWarningDialog(plan.project,
                 StudioBundle.message("flowTest.renameReview", String.join("\n", plan.review)),
                 StudioBundle.message("flowTest.renamePreparing"));
     }

@@ -4,36 +4,45 @@ import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.WriteIntentReadAction;
-import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.command.undo.DocumentReferenceManager;
+import com.intellij.openapi.command.undo.UndoManager;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.usageView.UsageInfo;
+import com.intellij.usageView.UsageViewDescriptor;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generator.GeneratorUtils;
+import org.ikasan.studio.core.generator.ModelTemplate;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.Link;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
+import org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring;
 import org.ikasan.studio.ui.StudioBundle;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import com.intellij.openapi.editor.Document;
-import java.io.InputStream;
-import java.util.List;
-import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.Link;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.UiContext;
+import org.jetbrains.annotations.NotNull;
 
 /** Refactors the flow's implementation package before its name is committed to the model. */
 public final class FlowPackageRefactoring {
@@ -50,8 +59,8 @@ public final class FlowPackageRefactoring {
         boolean completed = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
             try {
                 plan.set(ReadAction.nonBlocking(() -> inspect(project, module, flow, newName))
-                        .expireWith(project.getService(org.ikasan.studio.intellij.project.StudioProjectInitialisationService.class)).executeSynchronously());
-            } catch (com.intellij.openapi.progress.ProcessCanceledException canceled) { throw canceled; }
+                        .expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously());
+            } catch (ProcessCanceledException canceled) { throw canceled; }
             catch (RuntimeException e) { failure.set(e); }
         }, StudioBundle.message("dialog.FlowPackageChange"), true, project);
         if (!completed) return null;
@@ -86,7 +95,7 @@ public final class FlowPackageRefactoring {
         if (source != null) {
             for (PsiDirectory directory : source.getDirectories(GlobalSearchScope.projectScope(project))) {
                 VirtualFile file = directory.getVirtualFile();
-                String relative = com.intellij.openapi.vfs.VfsUtilCore.getRelativePath(file, base);
+                String relative = VfsUtilCore.getRelativePath(file, base);
                 if (relative == null || !(relative.startsWith("user/src/") || relative.startsWith("generated/src/"))) {
                     throw new IllegalStateException(StudioBundle.message("message.FlowRenameOutsideSources", file.getPath()));
                 }
@@ -121,13 +130,13 @@ public final class FlowPackageRefactoring {
 
     /** Persist the new identity within the refactoring command, before generation is allowed to run. */
     public static boolean renameAndSave(Plan plan, Module module, Flow flow, String newName) {
-        UiContext context = plan.project().getService(org.ikasan.studio.ui.UiContext.class);
+        UiContext context = plan.project().getService(UiContext.class);
         if (context.isModelPersistenceBlocked()) throw new IllegalStateException(context.getModelPersistenceBlockReason());
-        org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.Plan tests = org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.prepare(
+        FlowTestRenameRefactoring.Plan tests = FlowTestRenameRefactoring.prepare(
                 plan.project(), module, flow, null, newName);
         String oldName = flow.getIdentity();
         Map<Flow, String> oldOwners = new LinkedHashMap<>();
-        List<Link> links = org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.findLinks(module).stream()
+        List<Link> links = TestJmsHarnessLinks.findLinks(module).stream()
                 .filter(link -> link.ownerProducer().getContainingFlow() == flow).toList();
         links.forEach(link -> oldOwners.put(link.harnessFlow(), (String) link.harnessFlow().getPropertyValue("testHarnessOwner")));
         Runnable restoreModel = () -> {
@@ -137,7 +146,7 @@ public final class FlowPackageRefactoring {
         Runnable applyModel = () -> {
             flow.setName(newName);
             links.forEach(link -> link.harnessFlow().setPropertyValue("testHarnessOwner",
-                    org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.ownerKeyFor(link.ownerProducer())));
+                    TestJmsHarnessLinks.ownerKeyFor(link.ownerProducer())));
         };
         boolean renamed = execute(plan, () -> {
             try {
@@ -145,20 +154,20 @@ public final class FlowPackageRefactoring {
                 if (base == null) throw new IllegalStateException(StudioBundle.message("message.FlowRenameNoProject"));
                 applyModel.run();
                 tests.apply(() -> StudioProjectFiles.replaceJsonModelFileSafely(plan.project(),
-                        org.ikasan.studio.core.generator.ModelTemplate.create(module)));
+                        ModelTemplate.create(module)));
                 // Protected atomic model writes and subsequent asynchronous generation are not one IDE
                 // undo transaction. Block a partial file-only undo; reverse through Rename flow instead.
                 VirtualFile modelFile = base.findFileByRelativePath("generated/src/main/model/model.json");
                 if (modelFile != null) {
-                    com.intellij.openapi.command.undo.UndoManager.getInstance(plan.project()).nonundoableActionPerformed(
-                            com.intellij.openapi.command.undo.DocumentReferenceManager.getInstance().create(modelFile), true);
+                    UndoManager.getInstance(plan.project()).nonundoableActionPerformed(
+                            DocumentReferenceManager.getInstance().create(modelFile), true);
                 }
             } catch (RuntimeException failure) {
                 restoreModel.run();
                 throw failure;
             }
         });
-        if (renamed) org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.reportReview(tests);
+        if (renamed) FlowTestRenameRefactoring.reportReview(tests);
         return renamed;
     }
 
@@ -177,7 +186,7 @@ public final class FlowPackageRefactoring {
 
     private static boolean executeWithReadAccess(Plan plan, Runnable afterPackageRename) {
         if (plan.source() == null) {
-            com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction(plan.project(), afterPackageRename);
+            WriteCommandAction.runWriteCommandAction(plan.project(), afterPackageRename);
             return true;
         }
         Processor processor = new Processor(plan, afterPackageRename);
@@ -186,7 +195,7 @@ public final class FlowPackageRefactoring {
         return processor.completed;
     }
 
-    private static void collectFiles(VirtualFile directory, java.util.function.Consumer<VirtualFile> consumer) {
+    private static void collectFiles(VirtualFile directory, Consumer<VirtualFile> consumer) {
         VfsUtilCore.iterateChildrenRecursively(directory, null, file -> {
             ProgressManager.checkCanceled();
             if (!file.isDirectory()) consumer.accept(file);
@@ -271,7 +280,7 @@ public final class FlowPackageRefactoring {
         }
 
         @Override
-        protected @NotNull Collection<? extends PsiElement> getElementsToWrite(@NotNull com.intellij.usageView.UsageViewDescriptor descriptor) {
+        protected @NotNull Collection<? extends PsiElement> getElementsToWrite(@NotNull UsageViewDescriptor descriptor) {
             List<PsiElement> elements = new ArrayList<>(super.getElementsToWrite(descriptor));
             for (BeanEdit edit : beanEdits) {
                 PsiElement literal = edit.literal().getElement();

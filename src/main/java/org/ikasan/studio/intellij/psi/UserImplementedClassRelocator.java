@@ -3,35 +3,37 @@ package org.ikasan.studio.intellij.psi;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.PsiManager;
-import com.intellij.refactoring.JavaRefactoringFactory;
 import com.intellij.psi.SmartPointerManager;
-import com.intellij.psi.PsiElement;
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.refactoring.JavaRefactoringFactory;
+import com.intellij.refactoring.MoveClassesOrPackagesRefactoring;
 import com.intellij.refactoring.rename.RenameProcessor;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generator.GeneratorUtils;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.REQUIRES_STUB;
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME;
-import com.intellij.psi.SmartPsiElementPointer;
-import com.intellij.refactoring.MoveClassesOrPackagesRefactoring;
 
 /**
  * Keeps a component's generated Java class in step with a cross-flow canvas move (drag-and-drop) - see
@@ -176,19 +178,19 @@ public final class UserImplementedClassRelocator {
         try {
             StudioProjectFiles.backupFile(project, oldFile);
             PsiFile psiFile = ReadAction.nonBlocking(() -> PsiManager.getInstance(project).findFile(oldFile))
-                    .expireWith(project).executeSynchronously();
+                    .expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously();
             if (psiFile instanceof PsiJavaFile javaFile && javaFile.getClasses().length > 0) {
                 PsiClass psiClass = javaFile.getClasses()[0];
                 String oldQualifiedName = psiClass.getQualifiedName();
                 VirtualFile destinationDir = StudioProjectFiles.ensureUserImplementedClassPackageDirectory(project, newPackageName);
                 if (destinationDir != null) {
                     PsiDirectory psiDestinationDir = ReadAction.nonBlocking(() -> PsiManager.getInstance(project).findDirectory(destinationDir))
-                            .expireWith(project).executeSynchronously();
+                            .expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously();
                     if (psiDestinationDir != null) {
                         SmartPsiElementPointer<PsiClass> pointer = SmartPointerManager.getInstance(project).createSmartPsiElementPointer(psiClass);
                         VirtualFile sourceRoot = ReadAction.nonBlocking(() -> ProjectRootManager.getInstance(project)
                                 .getFileIndex().getSourceRootForFile(destinationDir))
-                                .expireWith(project).executeSynchronously();
+                                .expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously();
                         if (sourceRoot == null) {
                             throw new IllegalStateException("Destination is not an imported Java source root");
                         }
@@ -214,7 +216,7 @@ public final class UserImplementedClassRelocator {
                     }
                 }
             }
-        } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+        } catch (ProcessCanceledException cancelled) {
             throw cancelled;
         } catch (Exception e) {
             LOG.warn("STUDIO: WARN: Unable to relocate user implemented class [" + movedElement.getComponentName() +

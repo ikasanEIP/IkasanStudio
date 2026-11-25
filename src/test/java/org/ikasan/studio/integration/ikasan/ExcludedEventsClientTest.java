@@ -1,14 +1,19 @@
 package org.ikasan.studio.integration.ikasan;
 
-import org.junit.jupiter.api.Test;
-import java.net.URI;
-import java.util.Base64;
-import static org.assertj.core.api.Assertions.*;
 import com.sun.net.httpserver.HttpServer;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeParseException;
+import java.util.Base64;
 import java.util.concurrent.atomic.AtomicReference;
 import org.ikasan.studio.integration.ikasan.ExcludedEventsClient.Event;
 import org.ikasan.studio.integration.ikasan.ExcludedEventsClient.Page;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.*;
 
 class ExcludedEventsClientTest {
     @Test void encodesFlowAsOneQueryValueAndValidatesDates() {
@@ -16,15 +21,15 @@ class ExcludedEventsClientTest {
         String query = ExcludedEventsClient.query(endpoint, 2, "Orders & Audit+1", "2026-09-21T12:00:00", "").getRawQuery();
         assertThat(query).contains("pageNumber=2", "flow=Orders+%26+Audit%2B1", "fromDateTime=2026-09-21T12%3A00%3A00");
         assertThatThrownBy(() -> ExcludedEventsClient.query(endpoint, 0, "", "2026-02-30T12:00:00", ""))
-                .isInstanceOf(java.time.format.DateTimeParseException.class);
+                .isInstanceOf(DateTimeParseException.class);
         assertThatThrownBy(() -> ExcludedEventsClient.query(endpoint, 0, "", "2026-09-22T12:00:00", "2026-09-21T12:00:00"))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test void fetchUsesReadOnlyAuthenticatedRequestAndReportsAccessFailure() throws Exception {
-        HttpServer server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
-        AtomicReference<String> method = new java.util.concurrent.atomic.AtomicReference<>();
-        AtomicReference<String> auth = new java.util.concurrent.atomic.AtomicReference<>();
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        AtomicReference<String> method = new AtomicReference<>();
+        AtomicReference<String> auth = new AtomicReference<>();
         server.createContext("/rest/exclusion/", exchange -> {
             method.set(exchange.getRequestMethod());
             auth.set(exchange.getRequestHeaders().getFirst("Authorization"));
@@ -36,23 +41,23 @@ class ExcludedEventsClientTest {
             assertThatThrownBy(() -> ExcludedEventsClient.fetch(uri))
                     .isInstanceOf(ExcludedEventsClient.HttpFailure.class).hasMessage("HTTP 403");
             assertThat(method.get()).isEqualTo("GET");
-            assertThat(auth.get()).isEqualTo("Basic " + Base64.getEncoder().encodeToString("admin:admin".getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            assertThat(auth.get()).isEqualTo("Basic " + Base64.getEncoder().encodeToString("admin:admin".getBytes(StandardCharsets.UTF_8)));
         } finally { server.stop(0); }
     }
 
     @Test void refusesOversizedHttpResponses() throws Exception {
-        HttpServer server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/rest/exclusion/", exchange -> {
             byte[] huge = new byte[4 * 1024 * 1024 + 1];
             exchange.sendResponseHeaders(200, huge.length);
             try (OutputStream out = exchange.getResponseBody()) { out.write(huge); }
-            catch (java.io.IOException ignored) { /* Expected when the client cancels. */ }
+            catch (IOException ignored) { /* Expected when the client cancels. */ }
             finally { exchange.close(); }
         });
         server.start();
         try {
             URI uri = URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/rest/exclusion/");
-            assertThatThrownBy(() -> ExcludedEventsClient.fetch(uri)).isInstanceOf(java.io.IOException.class)
+            assertThatThrownBy(() -> ExcludedEventsClient.fetch(uri)).isInstanceOf(IOException.class)
                     .hasMessageContaining("4 MiB");
         } finally { server.stop(0); }
     }
@@ -64,7 +69,7 @@ class ExcludedEventsClientTest {
     }
 
     @Test void readsPagingAndUtf8PayloadWithoutDroppingErrorIdentity() throws Exception {
-        Page page = ExcludedEventsClient.parse(response(Base64.getEncoder().encodeToString("<order>2</order>".getBytes(java.nio.charset.StandardCharsets.UTF_8))));
+        Page page = ExcludedEventsClient.parse(response(Base64.getEncoder().encodeToString("<order>2</order>".getBytes(StandardCharsets.UTF_8))));
         assertThat(page.total()).isEqualTo(21);
         assertThat(page.last()).isFalse();
         Event event = page.events().get(0);
@@ -79,6 +84,6 @@ class ExcludedEventsClientTest {
         assertThat(ExcludedEventsClient.parse(response(binary)).events().get(0).binary()).isTrue();
         assertThat(ExcludedEventsClient.parse(response(binary)).events().get(0).payload()).isEqualTo(binary);
         for (String json : new String[]{"null", "{}", "{\"pagedResults\":[]}", response("not base64!"), response("")+"{}"})
-            assertThatThrownBy(() -> ExcludedEventsClient.parse(json)).isInstanceOf(java.io.IOException.class);
+            assertThatThrownBy(() -> ExcludedEventsClient.parse(json)).isInstanceOf(IOException.class);
     }
 }

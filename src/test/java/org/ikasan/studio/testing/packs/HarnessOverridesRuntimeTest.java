@@ -1,20 +1,28 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.HarnessOverridesTemplate;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.lang.reflect.*;
+import java.lang.reflect.Proxy;
 import java.net.*;
+import java.net.URLClassLoader;
 import java.nio.file.*;
 import java.util.*;
-import static org.junit.jupiter.api.Assertions.*;
-import java.net.URLClassLoader;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate;
 import org.ikasan.studio.core.generator.HarnessOverridesTemplate.LaunchTarget;
+import org.ikasan.studio.core.generator.HarnessOverridesTemplate;
+import org.ikasan.studio.core.generator.PropertiesTemplate;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /** Executes the exact generated adapter, rather than comparing its source to itself. */
 class HarnessOverridesRuntimeTest {
@@ -71,7 +79,7 @@ class HarnessOverridesRuntimeTest {
                 "--release", "11", "-d", root.toString(), source.toString(), env.toString(), endpoint.toString())
                 .redirectErrorStream(true).redirectOutput(root.resolve("compiler.log").toFile()).start();
         try {
-            assertTrue(compile.waitFor(30, java.util.concurrent.TimeUnit.SECONDS));
+            assertTrue(compile.waitFor(30, TimeUnit.SECONDS));
             assertEquals(0, compile.exitValue(), Files.readString(root.resolve("compiler.log")));
         } finally { if (compile.isAlive()) compile.destroyForcibly(); }
         Map<String, String> saved = new HashMap<>();
@@ -85,7 +93,7 @@ class HarnessOverridesRuntimeTest {
             settings.put("studio.harness.ftp.username", "ikasan"); settings.put("studio.harness.ftp.password", "ikasan");
             settings.put("studio.harness.email.host", "127.0.0.1"); settings.put("studio.harness.email.port", "1025");
             settings.put("studio.harness.flow.jms.destination", "dynamicQueues/private-test");
-            Object properties = java.lang.reflect.Proxy.newProxyInstance(loader, new Class<?>[]{environment}, (p,m,args) -> {
+            Object properties = Proxy.newProxyInstance(loader, new Class<?>[]{environment}, (p,m,args) -> {
                 if (m.getDeclaringClass() == Object.class) {
                     return switch (m.getName()) {
                         case "equals" -> p == args[0];
@@ -138,28 +146,28 @@ class HarnessOverridesRuntimeTest {
             saved.forEach((key,value) -> { if (value == null) System.clearProperty(key); else System.setProperty(key,value); });
         }
     }
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
+    @ParameterizedTest
+    @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void inventoryAndFactoryUseTheSameComponentIdentity(String pack) throws Exception {
-        FlowElement producer = org.ikasan.studio.core.TestFixtures.getEmailProducer(pack);
+        FlowElement producer = TestFixtures.getEmailProducer(pack);
         producer.setComponentName("Local email");
-        Flow flow = new org.ikasan.studio.core.model.ikasan.instance.Flow(pack);
+        Flow flow = new Flow(pack);
         flow.setName("Orders / 日本語");
         producer.setContainingFlow(flow);
         producer.setContainingFlowRoute(flow.getFlowRoute());
         flow.getFlowRoute().getFlowElements().add(producer);
-        Module module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(pack,
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack,
                 new ArrayList<>(List.of(flow)));
         List<LaunchTarget> inventory = HarnessOverridesTemplate.launchTargets(HarnessOverridesTemplate.create(module));
         assertEquals(1, inventory.size());
-        String id = org.ikasan.studio.core.model.analysis.HarnessOverrides.id(producer);
+        String id = HarnessOverrides.id(producer);
         assertEquals(id, inventory.get(0).id());
         assertTrue(inventory.get(0).label().contains("日本語"));
-        String factory = org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.create(
+        String factory = FlowsComponentFactoryTemplate.create(
                 "org.ikasan.studio.boot.flow." + flow.getJavaPackageName(), module, flow);
         assertTrue(factory.contains("StudioHarnessOverrides.apply(studioHarnessEnvironment,"));
         assertTrue(factory.contains("\"" + id + "\""));
-        assertTrue(org.ikasan.studio.core.generator.PropertiesTemplate.create(module)
+        assertTrue(PropertiesTemplate.create(module)
                 .contains("spring.config.import=optional:classpath:studio-harness.properties"));
     }
 

@@ -1,15 +1,18 @@
 package org.ikasan.studio.core.migration;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
-import java.util.Map;
-import static org.assertj.core.api.Assertions.*;
 import java.util.List;
+import java.util.Map;
 import org.ikasan.studio.core.migration.MigrationWorkspace.Change;
 import org.ikasan.studio.core.migration.MigrationWorkspace.Snapshot;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.assertj.core.api.Assertions.*;
 
 class MigrationWorkspaceTest {
     @TempDir Path root;
@@ -20,16 +23,16 @@ class MigrationWorkspaceTest {
         String report = MigrationWorkspace.reportWithSaveLocation("Ikasan migration: V3.3.9 → V4.1.6\n\nREVIEW: example", expected);
         assertThat(report).contains("On apply, this report will be saved in " + expected);
         assertThat(expected).doesNotExist();
-        assertThat(MigrationWorkspace.commit(root, java.util.List.of(), report, id)).isEqualTo(expected);
+        assertThat(MigrationWorkspace.commit(root, List.of(), report, id)).isEqualTo(expected);
         assertThat(MigrationWorkspace.latest(root).report()).isEqualTo(report);
-        assertThatThrownBy(() -> MigrationWorkspace.commit(root, java.util.List.of(), report, id))
-                .isInstanceOf(java.io.IOException.class).hasMessageContaining("already exists");
-        assertThatThrownBy(() -> MigrationWorkspace.commit(root, java.util.List.of(), report, "../escape"))
-                .isInstanceOf(java.io.IOException.class).hasMessageContaining("Invalid");
+        assertThatThrownBy(() -> MigrationWorkspace.commit(root, List.of(), report, id))
+                .isInstanceOf(IOException.class).hasMessageContaining("already exists");
+        assertThatThrownBy(() -> MigrationWorkspace.commit(root, List.of(), report, "../escape"))
+                .isInstanceOf(IOException.class).hasMessageContaining("Invalid");
     }
 
     @Test void snapshotRestoresExactBytesAndRemovesNewFilesWhilePreservingUserCode() throws Exception {
-        byte[] original = "<project>café</project>\r\n".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        byte[] original = "<project>café</project>\r\n".getBytes(StandardCharsets.UTF_8);
         Files.write(root.resolve("pom.xml"), original);
         Files.createDirectories(root.resolve("user"));
         Files.writeString(root.resolve("user/Owned.java"), "keep");
@@ -46,7 +49,7 @@ class MigrationWorkspaceTest {
 
     @Test void stalePreviewAbortsBeforeWritingAnything() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
-        LinkedHashMap<String,String> proposed = new LinkedHashMap<String, String>();
+        LinkedHashMap<String,String> proposed = new LinkedHashMap<>();
         proposed.put("generated/new.txt", "must not appear");
         proposed.put("pom.xml", "target");
         List<Change> changes = MigrationWorkspace.prepare(root, proposed);
@@ -68,7 +71,7 @@ class MigrationWorkspaceTest {
         Files.writeString(root.resolve("pom.xml"), "original");
         Files.createDirectories(root.resolve("generated"));
         Files.writeString(root.resolve("generated/not-a-directory"), "keep");
-        LinkedHashMap<String,String> artifacts = new LinkedHashMap<String, String>();
+        LinkedHashMap<String,String> artifacts = new LinkedHashMap<>();
         artifacts.put("pom.xml", "target");
         artifacts.put("generated/not-a-directory/child.txt", "cannot write");
         List<Change> changes = MigrationWorkspace.prepare(root, artifacts);
@@ -79,7 +82,7 @@ class MigrationWorkspaceTest {
 
     @Test void refusesDeveloperPathsTraversalAndSymlinks() throws Exception {
         for (String path : new String[]{"user/Owned.java", "generated/../../outside", "/tmp/outside"}) {
-            assertThatThrownBy(() -> MigrationWorkspace.prepare(root, Map.of(path, "bad"))).isInstanceOf(java.io.IOException.class);
+            assertThatThrownBy(() -> MigrationWorkspace.prepare(root, Map.of(path, "bad"))).isInstanceOf(IOException.class);
         }
         Files.createSymbolicLink(root.resolve("generated"), root.resolve("user"));
         assertThatThrownBy(() -> MigrationWorkspace.prepare(root, Map.of("generated/Owned.java", "bad"))).hasMessageContaining("symbolic links");

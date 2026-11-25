@@ -1,18 +1,18 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.core.generation.GenerationRequest;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import org.ikasan.studio.ui.UiContext;
 
 public class DecoratorComponentAction implements ActionListener {
    private final Project project;
@@ -38,7 +38,7 @@ public class DecoratorComponentAction implements ActionListener {
          !(ikasanBasicElement.getComponentMeta().isDebug())) {
 
          if (decoratorType == DECORATOR_TYPE.Wiretap) {
-            project.getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule()
+            project.getService(UiContext.class).getIkasanModule()
                     .setWiretapManagementEnabled(true);
          }
 

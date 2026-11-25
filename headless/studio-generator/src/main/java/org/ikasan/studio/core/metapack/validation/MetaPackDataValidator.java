@@ -1,26 +1,28 @@
 package org.ikasan.studio.core.metapack.validation;
 
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
-import org.ikasan.studio.core.metapack.model.ComponentTypeMeta;
-import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
-import com.fasterxml.jackson.databind.JsonNode;
-import java.util.Map.Entry;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.loading.MetaPackResources;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ComponentTypeMeta;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 import org.ikasan.studio.core.metapack.model.ExceptionActionMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
 
 /** Structural and referential validation for the contents of a loaded meta-pack. */
 final class MetaPackDataValidator {
@@ -51,7 +53,7 @@ final class MetaPackDataValidator {
     }
 
     private static void validateContents(String pack, String platform, Map<String, ComponentMeta> components, List<String> problems, int generatorApi) {
-        Set<ComponentTypeMeta> checkedTypes = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
+        Set<ComponentTypeMeta> checkedTypes = Collections.newSetFromMap(new IdentityHashMap<>());
         Map<Integer, String> paletteOrders = new HashMap<>();
         Map<String, String> identities = new HashMap<>();
         for (Map.Entry<String, ComponentMeta> entry : components.entrySet()) {
@@ -161,7 +163,7 @@ final class MetaPackDataValidator {
             if (previous != null) add(problems, path, "duplicates deserialisation identity of '" + previous + "': " + identity);
 
             properties(pack, platform, component, path, problems, generatorApi);
-            if (component instanceof org.ikasan.studio.core.metapack.model.ExceptionResolverMeta resolver
+            if (component instanceof ExceptionResolverMeta resolver
                     && resolver.getActionList() != null) {
                 for (int i = 0; i < resolver.getActionList().size(); i++) {
                     ExceptionActionMeta action = resolver.getActionList().get(i);
@@ -362,7 +364,7 @@ final class MetaPackDataValidator {
 
     private static boolean missing(String resource) {
         return resource == null || resource.startsWith("null/")
-                || org.ikasan.studio.core.metapack.loading.MetaPackResources.resource(resource) == null;
+                || MetaPackResources.resource(resource) == null;
     }
 
     private static void required(List<String> problems, String path, String value) {

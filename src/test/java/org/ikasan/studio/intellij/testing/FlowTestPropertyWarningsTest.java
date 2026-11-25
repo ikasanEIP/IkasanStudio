@@ -1,51 +1,60 @@
 package org.ikasan.studio.intellij.testing;
 
-import org.junit.jupiter.api.Test;
-import static org.assertj.core.api.Assertions.assertThat;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.FlowTestScaffold;
+import org.ikasan.studio.core.generator.ModelTemplate;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.testing.FlowTestPropertyWarnings.Status;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class FlowTestPropertyWarningsTest {
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    @ParameterizedTest
+    @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void detectsSupportRenameAndRefreshIndependentlyOfProperties(String version,
-            @org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
-        Flow flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
-        Module module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
+            @TempDir Path root) throws Exception {
+        Flow flow = TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(version, List.of(flow));
         Path model = root.resolve("generated/src/main/model/model.json");
-        Path support = root.resolve(org.ikasan.studio.core.generator.FlowTestScaffold.SUPPORT_PATH);
-        java.nio.file.Files.createDirectories(model.getParent());
-        java.nio.file.Files.createDirectories(support.getParent());
-        java.nio.file.Files.writeString(model, org.ikasan.studio.core.generator.ModelTemplate.create(module));
+        Path support = root.resolve(FlowTestScaffold.SUPPORT_PATH);
+        Files.createDirectories(model.getParent());
+        Files.createDirectories(support.getParent());
+        Files.writeString(model, ModelTemplate.create(module));
         assertThat(FlowTestPropertyWarnings.inspect(root).needsRefresh()).isFalse(); // No tests yet.
         writeSupport(support, module);
         assertThat(FlowTestPropertyWarnings.inspect(root).needsRefresh()).isFalse();
         flow.setName("Renamed flow");
-        java.nio.file.Files.writeString(model, org.ikasan.studio.core.generator.ModelTemplate.create(module));
+        Files.writeString(model, ModelTemplate.create(module));
         assertThat(FlowTestPropertyWarnings.inspect(root).needsRefresh()).isFalse(); // Model edits no longer stale generic support.
-        java.nio.file.Files.writeString(support, "legacy support");
+        Files.writeString(support, "legacy support");
         Status stale = FlowTestPropertyWarnings.inspect(root);
         assertThat(stale.staleSupport()).isTrue();
         assertThat(stale.brokenReferences()).isEmpty();
-        Path props = root.resolve(org.ikasan.studio.core.generator.FlowTestScaffold.TEST_PROPERTIES_PATH);
+        Path props = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
         Path app = root.resolve("generated/src/main/resources/application.properties");
-        java.nio.file.Files.createDirectories(props.getParent());
-        java.nio.file.Files.createDirectories(app.getParent());
-        java.nio.file.Files.writeString(props, "test.jms.broker-url=${jms.old.url}\n");
-        java.nio.file.Files.writeString(app, "jms.new.url=local\n");
+        Files.createDirectories(props.getParent());
+        Files.createDirectories(app.getParent());
+        Files.writeString(props, "test.jms.broker-url=${jms.old.url}\n");
+        Files.writeString(app, "jms.new.url=local\n");
         assertThat(FlowTestPropertyWarnings.inspect(root).brokenReferences()).hasSize(1);
         writeSupport(support, module);
         assertThat(FlowTestPropertyWarnings.inspect(root).staleSupport()).isFalse();
         assertThat(FlowTestPropertyWarnings.inspect(root).needsRefresh()).isTrue();
-        java.nio.file.Files.writeString(props, "test.jms.broker-url=${jms.new.url}\n");
+        Files.writeString(props, "test.jms.broker-url=${jms.new.url}\n");
         assertThat(FlowTestPropertyWarnings.inspect(root).needsRefresh()).isFalse();
     }
 
-    private static void writeSupport(java.nio.file.Path path,
-            org.ikasan.studio.core.model.ikasan.instance.Module module) throws Exception {
-        java.nio.file.Files.writeString(path, "FlowTestFailureDiagnostics.contextualise(\nprotected void assertExpectedOutput(\nprotected final <I> void runBatches(\nFlowTestFailureCapture\nprotected final void runTest(TestScenario scenario) {}\nnew FileDeliveryBatchAssertions();\nprotected String formatOutputText(Object payload) {}\nWIRING_SCHEMA_VERSION = 1;\nSUPPORT_META_PACK = \""
+    private static void writeSupport(Path path,
+            Module module) throws Exception {
+        Files.writeString(path, "FlowTestFailureDiagnostics.contextualise(\nprotected void assertExpectedOutput(\nprotected final <I> void runBatches(\nFlowTestFailureCapture\nprotected final void runTest(TestScenario scenario) {}\nnew FileDeliveryBatchAssertions();\nprotected String formatOutputText(Object payload) {}\nWIRING_SCHEMA_VERSION = 1;\nSUPPORT_META_PACK = \""
                 + module.getMetaVersion() + "\";");
     }
 

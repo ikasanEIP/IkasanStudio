@@ -1,9 +1,11 @@
 package org.ikasan.studio.core.model;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.*;
+import java.util.Comparator;
 import java.util.Map;
 
 /** Strict value handling for Ikasan's List<String> and Map<String, String> configuration parameters. */
@@ -22,7 +24,7 @@ public final class StringCollectionValues {
             else {
                 try {
                     ObjectMapper mapper = new ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
-                            .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+                            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
                     value = mapper.readValue(text, Object.class);
                 } catch (Exception failure) {
                     // Old Studio versions wrote List.toString() text for recipient lists.
@@ -78,6 +80,6 @@ public final class StringCollectionValues {
                     String.join(", ", list.stream().map(StringCollectionValues::json).toList()) + "))";
         Map<?,?> map = (Map<?, ?>) checked;
         return "new java.util.LinkedHashMap<String, String>(java.util.Map.ofEntries(" +
-                String.join(", ", map.entrySet().stream().sorted(java.util.Comparator.comparing(e -> (String) e.getKey())).map(e -> "java.util.Map.entry(" + json(e.getKey()) + ", " + json(e.getValue()) + ")").toList()) + "))";
+                String.join(", ", map.entrySet().stream().sorted(Comparator.comparing(e -> (String) e.getKey())).map(e -> "java.util.Map.entry(" + json(e.getKey()) + ", " + json(e.getValue()) + ")").toList()) + "))";
     }
 }

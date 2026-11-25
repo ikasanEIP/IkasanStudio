@@ -1,14 +1,13 @@
 package org.ikasan.studio.core.io;
 
+import java.util.List;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,7 +60,7 @@ class ComponentIODeserializeTest {
 
     @Test
     public void modelResourceNamesCannotTraverseTheClasspath() {
-        for (String path : java.util.List.of("../org/ikasan/studio/model.json", "org/../model.json",
+        for (String path : List.of("../org/ikasan/studio/model.json", "org/../model.json",
                 "/org/ikasan/studio/model.json", "C:outside.json", "org\\ikasan\\studio\\model.json"))
             assertThrows(StudioBuildException.class, () -> ComponentIO.deserializeModuleInstance(path));
     }

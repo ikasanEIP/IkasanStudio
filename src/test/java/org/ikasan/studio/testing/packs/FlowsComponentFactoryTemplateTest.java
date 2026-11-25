@@ -1,28 +1,29 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.*;
-
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.io.IOException;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import java.util.Properties;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixtures {
     private static final String TEST_COMPONENT_FACTORY = "ComponentFactory";
 
@@ -32,19 +33,19 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
         Flow flow = TestFixtures.getUnbuiltFlow(pack).build();
         module.addFlow(flow);
-        for (String name : java.util.List.of("Output 1", "Output 3")) {
+        for (String name : List.of("Output 1", "Output 3")) {
             FlowElement producer = TestFixtures.getEmailProducer(pack);
             producer.setComponentName(name);
             producer.setPropertyValue("toRecipients", name.equals("Output 1") ? "[first@example.com]" : "[third@example.com]");
-            FlowRoute route = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
-                    .flow(flow).routeName(name).flowElements(java.util.List.of(producer)).build();
+            FlowRoute route = FlowRoute.flowRouteBuilder()
+                    .flow(flow).routeName(name).flowElements(List.of(producer)).build();
             producer.setContainingFlowRoute(route);
             flow.getFlowRoute().getChildRoutes().add(route);
         }
         String factory = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
         String properties = PropertiesTemplate.create(module);
-        for (String recipient : java.util.List.of("ToRecipients", "CcRecipients", "BccRecipients")) {
-            for (String name : java.util.List.of("output1", "output3")) {
+        for (String recipient : List.of("ToRecipients", "CcRecipients", "BccRecipients")) {
+            for (String name : List.of("output1", "output3")) {
                 String property = "myflow1." + name + ".email.producer." + Character.toLowerCase(recipient.charAt(0)) + recipient.substring(1);
                 assertTrue(factory.contains(".set" + recipient + "(studioStringList(\"" + property + "\"))"), factory);
             }
@@ -59,7 +60,7 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
         Flow flow = TestFixtures.getUnbuiltFlow(pack).build();
         module.addFlow(flow);
-        for (String name : java.util.List.of("Output 1", "Output 2")) {
+        for (String name : List.of("Output 1", "Output 2")) {
             FlowElement producer = FlowElement.flowElementBuilder()
                     .componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Email Producer"))
                     .componentName(name).build();
@@ -72,15 +73,15 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
             flow.getFlowRoute().getFlowElements().add(producer);
         }
         String factory = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
-        Properties properties = new java.util.Properties();
-        properties.load(new java.io.StringReader(PropertiesTemplate.create(module)));
+        Properties properties = new Properties();
+        properties.load(new StringReader(PropertiesTemplate.create(module)));
         for (int index = 1; index <= 2; index++) {
             String prefix = "myflow1.output" + index + ".email.producer.";
             String field = "myFlow1Output" + index + "EmailProducer";
             assertEquals(index == 1 ? "first@example.com" : "second@example.com", properties.getProperty(prefix + "toRecipient"));
             assertEquals("2525", properties.getProperty(prefix + "mailSmtpPort"));
             assertEquals("Orders: Output " + index, properties.getProperty(prefix + "mailSubject"));
-            for (String property : java.util.List.of("toRecipient", "from", "mailSmtpHost", "mailSmtpPort", "mailSubject")) {
+            for (String property : List.of("toRecipient", "from", "mailSmtpHost", "mailSmtpPort", "mailSubject")) {
                 assertTrue(factory.contains("@org.springframework.beans.factory.annotation.Value(\"${" + prefix + property + "}\")"), factory);
                 String suffix = Character.toUpperCase(property.charAt(0)) + property.substring(1);
                 assertTrue(factory.contains(".set" + suffix + "(" + field + suffix + ")"), factory);
@@ -466,8 +467,8 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         flowElement.setPropertyValue("ftpsKeyStoreFilePassword", password);
         flowElement.setPropertyValue("ftpsKeyStoreFilePath", path);
         String factory = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
-        Properties properties = new java.util.Properties();
-        properties.load(new java.io.StringReader(PropertiesTemplate.create(module)));
+        Properties properties = new Properties();
+        properties.load(new StringReader(PropertiesTemplate.create(module)));
         assertEquals(password, properties.getProperty("myflow1.myftpproducer.ftp.producer.ftpsKeyStoreFilePassword"));
         assertEquals(path, properties.getProperty("myflow1.myftpproducer.ftp.producer.ftpsKeyStoreFilePath"));
         assertFalse(factory.contains(password));

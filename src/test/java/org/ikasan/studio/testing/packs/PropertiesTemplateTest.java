@@ -1,26 +1,25 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.*;
-import static org.ikasan.studio.testing.packs.PackExpectations.assertDependencies;
-
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import static org.ikasan.studio.testing.packs.PackExpectations.assertDependencies;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
 
     @ParameterizedTest
@@ -105,9 +104,9 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     public void nonAsciiNamesAndValuesAreWrittenAsUnicodeEscapes(String metaPackVersion)
             throws StudioBuildException, StudioGeneratorException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
-        module.setName("Caf\u00e9");
+        module.setName("Café");
         Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion).metapackVersion(metaPackVersion).build();
-        flow.setName("Ordres \u00e9");
+        flow.setName("Ordres é");
         flow.setPropertyValue("flowStartupType", "AUTOMATIC");
         flow.setPropertyValue("isRecording", true);
 
@@ -123,7 +122,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     public void servletContextPathIsAsciiSoStudioCanReachTheModule(String metaPackVersion)
             throws StudioBuildException, StudioGeneratorException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
-        module.setName("Caf\u00e9 Orders");
+        module.setName("Café Orders");
 
         String generated = generatePropertiesTemplateString(metaPackVersion, module, List.of());
 
@@ -158,7 +157,7 @@ public class PropertiesTemplateTest extends AbstractGeneratorTestFixtures {
     public void tcpDatasourceUrlHasNoCharactersThatBreakTheUri(String metaPackVersion)
             throws StudioBuildException, StudioGeneratorException {
         // A name that already works keeps the plain ${module.name} placeholder, so its generated file is unchanged.
-        for (String[] c : new String[][]{{"A to B convert", "A_to_B_convert"}, {"MyModule", "${module.name}"}, {"Caf\u00e9 Orders", "Caf\\u00e9_Orders"}}) {
+        for (String[] c : new String[][]{{"A to B convert", "A_to_B_convert"}, {"MyModule", "${module.name}"}, {"Café Orders", "Caf\\u00e9_Orders"}}) {
             Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
             module.setName(c[0]);
             module.setPropertyValue("useEmbeddedH2", false);

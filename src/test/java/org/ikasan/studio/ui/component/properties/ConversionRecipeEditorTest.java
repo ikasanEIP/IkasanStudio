@@ -1,19 +1,22 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
-import org.junit.jupiter.api.Test;
-import javax.swing.*;
-import java.util.*;
-import static org.junit.jupiter.api.Assertions.*;
 import com.intellij.openapi.ui.ComboBox;
+import java.util.*;
+import javax.swing.*;
 import javax.swing.JTextArea;
+import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class ConversionRecipeEditorTest {
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    @ParameterizedTest
+    @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void showsOnlyApplicableSettingsAndPreservesHiddenDrafts(String pack) throws Exception {
         FlowElement converter = TestFixtures.getCustomConverter(pack);
         SwingUtilities.invokeAndWait(() -> {
@@ -23,7 +26,7 @@ class ConversionRecipeEditorTest {
                 rows.put(key, new ComponentPropertyEditRow(null,
                         new ComponentProperty(converter.getComponentMeta().getMetadata(key), converter.getPropertyValue(key)), false, () -> {}, rows));
             }
-            ConversionRecipeEditor.bind(converter.getComponentMeta().getConversionRecipes(), rows, new JTextArea(), null, null);
+            ConversionRecipeEditor.bind(converter.getComponentMeta().getConversionRecipes(), rows, new JTextArea());
             ComboBox<Object> choice = rows.get("conversionRecipeId").getInputField().getPropertyChoiceValueField();
             choice.setSelectedItem("jms-message-to-email-attachment");
             ComponentPropertyEditRow media = rows.get("recipeMediaType");
@@ -46,8 +49,8 @@ class ConversionRecipeEditorTest {
         });
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    @ParameterizedTest
+    @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void defaultsToTheTopSuggestionOnANewDraft(String pack) throws Exception {
         FlowElement converter = TestFixtures.getCustomConverter(pack);
         SwingUtilities.invokeAndWait(() -> {
@@ -63,7 +66,7 @@ class ConversionRecipeEditorTest {
         });
     }
 
-    private void assertDefault(org.ikasan.studio.core.model.ikasan.instance.FlowElement converter,
+    private void assertDefault(FlowElement converter,
                                boolean initialising, String saved, String source, String target, String expected) {
         Map<String, ComponentPropertyEditRow> rows = new HashMap<>();
         rows.put("conversionRecipeId", new ComponentPropertyEditRow(null,
@@ -89,15 +92,15 @@ class ConversionRecipeEditorTest {
             Map<String, ComponentPropertyEditRow> rows = new HashMap<>();
             rows.put("conversionRecipeId", new ComponentPropertyEditRow(null,
                     new ComponentProperty(converter.getComponentMeta().getMetadata("conversionRecipeId"), "removed-recipe"), false));
-            ConversionRecipeEditor.bind(converter.getComponentMeta().getConversionRecipes(), rows, new JTextArea(), null, null);
+            ConversionRecipeEditor.bind(converter.getComponentMeta().getConversionRecipes(), rows, new JTextArea());
             assertEquals("removed-recipe", rows.get("conversionRecipeId").getValue());
             assertFalse(rows.get("conversionRecipeId").propertyValueHasChanged());
             assertFalse(ConversionRecipeEditor.validate(converter.getComponentMeta().getConversionRecipes(), rows).isEmpty());
         });
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    @ParameterizedTest
+    @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void selectionChangesOnlyDraftAndSwitchingTypesRequiresReselection(String pack) throws Exception {
         FlowElement converter = TestFixtures.getCustomConverter(pack);
         SwingUtilities.invokeAndWait(() -> {
@@ -107,7 +110,7 @@ class ConversionRecipeEditorTest {
                 rows.put(key, new ComponentPropertyEditRow(null, property, false));
             }
             JTextArea details = new JTextArea();
-            ConversionRecipeEditor.bind(converter.getComponentMeta().getConversionRecipes(), rows, details, null, null);
+            ConversionRecipeEditor.bind(converter.getComponentMeta().getConversionRecipes(), rows, details);
             ComboBox<Object> combo = rows.get("conversionRecipeId").getInputField().getPropertyChoiceValueField();
             combo.setSelectedItem("string-to-email-attachment");
             assertEquals("java.lang.String", rows.get("fromType").getValue());

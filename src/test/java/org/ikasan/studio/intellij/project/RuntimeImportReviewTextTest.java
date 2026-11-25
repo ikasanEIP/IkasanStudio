@@ -1,15 +1,14 @@
 package org.ikasan.studio.intellij.project;
 
+import java.util.ArrayList;
+import java.util.List;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport.ReviewItem;
 import org.ikasan.studio.core.importer.IkasanRuntimeImport;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.ikasan.studio.core.importer.IkasanRuntimeImport.ReviewKind.*;
-import java.util.ArrayList;
-import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
-import org.ikasan.studio.core.importer.IkasanRuntimeImport.ReviewItem;
 
 class RuntimeImportReviewTextTest {
     @Test void groupsRepeatedClassesAndFieldsWithoutLosingLocationsOrOtherWarnings() {
@@ -19,7 +18,7 @@ class RuntimeImportReviewTextTest {
                 item(CONFIGURATION, "First", "Consumer", "privateKeyPassphrase", "", "configuration one"),
                 item(IMPLEMENTATION, "Second", "Producer", "example.Shared", "", "implementation two"),
                 item(CONFIGURATION, "Second", "Producer", "privateKeyPassphrase", "", "configuration two"));
-        ArrayList<String> review = new java.util.ArrayList<>(items.stream().map(IkasanRuntimeImport.ReviewItem::message).toList());
+        ArrayList<String> review = new ArrayList<>(items.stream().map(IkasanRuntimeImport.ReviewItem::message).toList());
         review.add("Patch upgrade: compile and test before running.");
         Result result = new IkasanRuntimeImport.Result("{}", review, items);
         String text = RuntimeImportReviewText.format(result);

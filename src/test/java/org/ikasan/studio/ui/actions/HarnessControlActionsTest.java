@@ -1,26 +1,28 @@
 package org.ikasan.studio.ui.actions;
 
+import com.intellij.openapi.project.Project;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.api.Test;
-import com.intellij.openapi.project.Project;
+import org.ikasan.studio.intellij.execution.HarnessOverrideService;
+import org.ikasan.studio.intellij.runtime.TestFtpServerService;
 import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
+import org.ikasan.studio.intellij.runtime.TestSftpServerService;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.ikasan.studio.intellij.execution.HarnessOverrideService;
-import org.ikasan.studio.intellij.runtime.TestFtpServerService;
-import org.ikasan.studio.intellij.runtime.TestSftpServerService;
 
 class HarnessControlActionsTest {
     @Test
@@ -63,11 +65,11 @@ class HarnessControlActionsTest {
     @Test
     void runningIndicatorsUseOnlyThisProjectsCachedServiceState() {
         Project project = mock(Project.class);
-        TestFtpServerService ftp = mock(org.ikasan.studio.intellij.runtime.TestFtpServerService.class);
-        TestSftpServerService sftp = mock(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
+        TestFtpServerService ftp = mock(TestFtpServerService.class);
+        TestSftpServerService sftp = mock(TestSftpServerService.class);
         TestMailServerSessionService mail = mock(TestMailServerSessionService.class);
-        when(project.getService(org.ikasan.studio.intellij.runtime.TestFtpServerService.class)).thenReturn(ftp);
-        when(project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class)).thenReturn(sftp);
+        when(project.getService(TestFtpServerService.class)).thenReturn(ftp);
+        when(project.getService(TestSftpServerService.class)).thenReturn(sftp);
         when(project.getService(TestMailServerSessionService.class)).thenReturn(mail);
         HarnessControlActions actions = new HarnessControlActions(project);
         assertThat(actions.runningHarnesses()).isEmpty();
@@ -96,16 +98,16 @@ class HarnessControlActionsTest {
         when(mail.isListening("127.0.0.1", 1025)).thenReturn(true);
         assertThat(actions.runningHarnesses()).isEmpty(); // An unrelated/default listener is not this component's endpoint.
         when(mail.isListening("localhost", 2525)).thenReturn(true);
-        assertThat(actions.runningHarnesses()).containsExactly(org.ikasan.studio.ui.StudioBundle.message("harness.smtp.sharedAvailable"));
+        assertThat(actions.runningHarnesses()).containsExactly(StudioBundle.message("harness.smtp.sharedAvailable"));
         assertThat(actions.status().owned()).isEmpty();
         assertThat(actions.status().shared()).hasSize(1);
-        org.mockito.Mockito.verify(mail, org.mockito.Mockito.never()).registerOwned(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.any());
+        Mockito.verify(mail, Mockito.never()).registerOwned(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt(), ArgumentMatchers.any());
         when(mail.isListening("localhost", 2525)).thenReturn(false);
         assertThat(actions.runningHarnesses()).isEmpty();
-        HarnessOverrideService overrides = mock(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
-        when(project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class)).thenReturn(overrides);
+        HarnessOverrideService overrides = mock(HarnessOverrideService.class);
+        when(project.getService(HarnessOverrideService.class)).thenReturn(overrides);
         when(overrides.hasRunningLaunches()).thenReturn(true); when(overrides.isActive(email)).thenReturn(true);
-        assertThat(actions.runningHarnesses()).containsExactly(org.ikasan.studio.ui.StudioBundle.message("harness.smtp.sharedAvailable"));
+        assertThat(actions.runningHarnesses()).containsExactly(StudioBundle.message("harness.smtp.sharedAvailable"));
         assertThat(actions.status().owned()).isEmpty();
         assertThat(actions.status().shared()).hasSize(1);
     }

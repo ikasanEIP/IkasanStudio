@@ -1,21 +1,23 @@
 package org.ikasan.studio.intellij.ai;
 
-import com.intellij.notification.*;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.util.messages.Topic;
+import com.intellij.notification.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import org.ikasan.studio.ui.StudioBundle;
-import java.nio.file.*;
-import java.util.concurrent.*;
+import com.intellij.util.messages.Topic;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.*;
 import org.ikasan.studio.intellij.ai.StudioAiProposalInbox.Stamp;
+import org.ikasan.studio.ui.StudioBundle;
 
 /** Project-local polling also detects files written outside IntelliJ's VFS. All I/O is off the EDT. */
 @Service(Service.Level.PROJECT)
@@ -62,7 +64,7 @@ public final class StudioAiProposalInboxService implements Disposable {
             byte[] bytes = input.readNBytes(1_048_577);
             if (bytes.length > 1_048_576 || disposed || project.isDisposed()) return false;
             return project.getService(StudioAiService.class)
-                    .tryAutoImport(new String(bytes, java.nio.charset.StandardCharsets.UTF_8), path);
+                    .tryAutoImport(new String(bytes, StandardCharsets.UTF_8), path);
         } catch (Exception failure) {
             // Retain the review banner for stale, incomplete, or temporarily blocked proposals.
             Logger.getInstance(StudioAiProposalInboxService.class).debug("AI proposal needs manual review", failure);
@@ -84,8 +86,8 @@ public final class StudioAiProposalInboxService implements Disposable {
     String pendingRevision() { return PropertiesComponent.getInstance(project).getValue(REVISION); }
 
     public void dismiss(Path expected, String revision) {
-        if (disposed || project.isDisposed() || !java.util.Objects.equals(expected, getPendingProposal())
-                || !java.util.Objects.equals(revision, pendingRevision())) return;
+        if (disposed || project.isDisposed() || !Objects.equals(expected, getPendingProposal())
+                || !Objects.equals(revision, pendingRevision())) return;
         PropertiesComponent.getInstance(project).unsetValue(PENDING);
         PropertiesComponent.getInstance(project).unsetValue(REVISION);
         if (notification != null) notification.expire();

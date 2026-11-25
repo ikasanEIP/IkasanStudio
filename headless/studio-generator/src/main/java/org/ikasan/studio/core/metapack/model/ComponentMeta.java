@@ -3,18 +3,20 @@ package org.ikasan.studio.core.metapack.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
-import lombok.extern.jackson.Jacksonized;
-import org.apache.maven.model.Dependency;
-import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
+import lombok.*;
+import lombok.Builder.Default;
+import lombok.NonNull;
+import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
+import org.apache.maven.model.Dependency;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 
 /**
  * See Readme.md for a description of the meta-pack and how it is used.
@@ -82,7 +84,7 @@ public class ComponentMeta implements IkasanMeta {
 
     // These fields map directly onto the values in component-meta_en_GB.json
     // DO NOT RENAME !!
-    @lombok.NonNull
+    @NonNull
     private String name;                            // Name of the component e.g. Email Producer, FTP Consumer
     private String additionalKey;                   // only used by components where componentType + implementingClass are not unique e.g. Local File Consumer, or to indicate the component is Generic
     @Builder.Default                                // The list of properties that this component is allowed to have e.g. 'name', 'port', 'url', these will be added to ComponentTypeMeta allowableProperties
@@ -155,7 +157,7 @@ public class ComponentMeta implements IkasanMeta {
     private boolean flowTestFileDelivery;            // Producer delivers files: offer receiver-side filesystem assertions.
     private boolean flowTestObservationOnly;          // Discard sinks only: invocation has no external delivery/content contract.
     /** Studio properties with verified runtime configuration bindings; names match unless explicitly mapped. */
-    @lombok.Builder.Default
+    @Default
     @JsonSetter(nulls = Nulls.SKIP)
     private List<String> runtimeConfigurationProperties = List.of();
     /** Optional runtime configuration type when no user-supplied configuration property is exposed. */
@@ -189,7 +191,7 @@ public class ComponentMeta implements IkasanMeta {
     /** Verified defaults of the generated runtime construction; used only to omit redundant import review items. */
     @Builder.Default
     @JsonSetter(nulls = Nulls.SKIP)
-    private Map<String, com.fasterxml.jackson.databind.JsonNode> runtimeConfigurationDefaults = Map.of();
+    private Map<String, JsonNode> runtimeConfigurationDefaults = Map.of();
     private String testPayloadAdapter;               // Optional metadata-driven adapter used by Send Test Message to construct an interface-based payload.
     private boolean isFileBasedConsumer;             // Consumer only: true if the payload it deals in is file content/a file path rather
                                                       // than a message (e.g. FTP/SFTP/Local File/Generic Consumer) - drives the canvas's

@@ -9,11 +9,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.UUID;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Replaces model.json only after validation, while retaining three last-known-good revisions.
@@ -24,7 +25,7 @@ public final class ProtectedModelFileWriter {
     public static final int BACKUP_COUNT = 3;
 
     private static final Object[] FILE_LOCKS = new Object[64];
-    static { java.util.Arrays.setAll(FILE_LOCKS, index -> new Object()); }
+    static { Arrays.setAll(FILE_LOCKS, index -> new Object()); }
     private static Object lockFor(Path target) {
         return FILE_LOCKS[Math.floorMod(target.toAbsolutePath().normalize().hashCode(), FILE_LOCKS.length)];
     }

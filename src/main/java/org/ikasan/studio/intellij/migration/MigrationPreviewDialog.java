@@ -1,30 +1,30 @@
 package org.ikasan.studio.intellij.migration;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
-import com.intellij.ui.JBSplitter;
-
 import com.intellij.diff.DiffContentFactory;
 import com.intellij.diff.DiffManager;
 import com.intellij.diff.DiffRequestPanel;
 import com.intellij.diff.requests.SimpleDiffRequest;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.*;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.core.migration.MigrationWorkspace;
-import org.ikasan.studio.ui.StudioBundle;
-
-import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Objects;
-import com.intellij.openapi.projectRoots.Sdk;
+import javax.swing.*;
 import org.ikasan.studio.core.migration.MigrationWorkspace.Change;
+import org.ikasan.studio.core.migration.MigrationWorkspace;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
 
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
 final class MigrationPreviewDialog extends StudioDialogWrapper {
-    private final com.intellij.openapi.ui.ComboBox<com.intellij.openapi.projectRoots.Sdk> jdks =
-            new com.intellij.openapi.ui.ComboBox<>();
+    private final ComboBox<Sdk> jdks =
+            new ComboBox<>();
     private final int requiredJava;
     private final boolean canApply;
     private final String report;
@@ -37,14 +37,14 @@ final class MigrationPreviewDialog extends StudioDialogWrapper {
         this.project = project;
         this.requiredJava = requiredJava;
         this.canApply = canApply;
-        for (Sdk sdk : com.intellij.openapi.projectRoots.ProjectJdkTable.getInstance().getAllJdks()) {
+        for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
             if (MigrationJdk.matches(sdk, requiredJava)) jdks.addItem(sdk);
         }
         jdks.setRenderer(new DefaultListCellRenderer() {
             @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                                     boolean selected, boolean focus) {
                 return super.getListCellRendererComponent(list,
-                        value instanceof com.intellij.openapi.projectRoots.Sdk sdk ? sdk.getName() : StudioBundle.message("label.NoMatchingJdkConfigured"),
+                        value instanceof Sdk sdk ? sdk.getName() : StudioBundle.message("label.NoMatchingJdkConfigured"),
                         index, selected, focus);
             }
         });
@@ -57,13 +57,13 @@ final class MigrationPreviewDialog extends StudioDialogWrapper {
         compile.setEnabled(canApply);
     }
 
-    com.intellij.openapi.projectRoots.Sdk selectedJdk() {
-        return (com.intellij.openapi.projectRoots.Sdk) jdks.getSelectedItem();
+    Sdk selectedJdk() {
+        return (Sdk) jdks.getSelectedItem();
     }
 
-    @Override protected com.intellij.openapi.ui.ValidationInfo doValidate() {
+    @Override protected ValidationInfo doValidate() {
         if (canApply && !MigrationJdk.matches(selectedJdk(), requiredJava)) {
-            return new com.intellij.openapi.ui.ValidationInfo(
+            return new ValidationInfo(
                     StudioBundle.message("message.ConfigureJdkInProjectStructure", requiredJava), jdks);
         }
         return null;

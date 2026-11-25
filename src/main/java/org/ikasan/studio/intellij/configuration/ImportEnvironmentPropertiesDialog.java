@@ -3,41 +3,50 @@ package org.ikasan.studio.intellij.configuration;
 import com.intellij.diff.DiffContentFactory;
 import com.intellij.diff.contents.DocumentContent;
 import com.intellij.diff.requests.SimpleDiffRequest;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.*;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.core.configuration.EnvironmentProperties;
-import org.ikasan.studio.intellij.execution.IkasanRunConfigurationService;
-import org.ikasan.studio.intellij.importer.SourceComparisonDialog;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.ui.StudioBundle;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.*;
 import org.ikasan.studio.core.configuration.EnvironmentProperties.Preview;
+import org.ikasan.studio.core.configuration.EnvironmentProperties;
 import org.ikasan.studio.core.importer.SourceModuleImport.PropertyFile;
+import org.ikasan.studio.intellij.execution.IkasanRunConfigurationService;
+import org.ikasan.studio.intellij.importer.SourceComparisonDialog;
+import org.ikasan.studio.intellij.project.ImportDialogWrapper;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.UiContext;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Original/destination comparison with explicit Copy all or Save preview approval before any write. */
-public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.intellij.project.ImportDialogWrapper {
+public final class ImportEnvironmentPropertiesDialog extends ImportDialogWrapper {
     private final Project project;
     private final Path root;
-    private final List<org.ikasan.studio.core.importer.SourceModuleImport.PropertyFile> discovered;
+    private final List<PropertyFile> discovered;
     private final JBTextArea contents = new JBTextArea(12, 75);
     private final FilesModel filesModel = new FilesModel();
     private final JBTable files = new JBTable(filesModel);
@@ -47,25 +56,25 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
     private DocumentContent destinationContent;
 
     public ImportEnvironmentPropertiesDialog(Project project) {
-        this(project, Path.of(java.util.Objects.requireNonNull(project.getBasePath(), "Import requires a project directory")));
+        this(project, Path.of(Objects.requireNonNull(project.getBasePath(), "Import requires a project directory")));
     }
 
-    public ImportEnvironmentPropertiesDialog(Project project, List<org.ikasan.studio.core.importer.SourceModuleImport.PropertyFile> discovered) {
-        this(project, Path.of(java.util.Objects.requireNonNull(project.getBasePath(), "Import requires a project directory")), discovered);
+    public ImportEnvironmentPropertiesDialog(Project project, List<PropertyFile> discovered) {
+        this(project, Path.of(Objects.requireNonNull(project.getBasePath(), "Import requires a project directory")), discovered);
     }
 
     ImportEnvironmentPropertiesDialog(Project project, Path root) { this(project, root, List.of()); }
 
     private ImportEnvironmentPropertiesDialog(Project project, Path root,
-            List<org.ikasan.studio.core.importer.SourceModuleImport.PropertyFile> discovered) {
-        super(project, project.getService(org.ikasan.studio.ui.UiContext.class).getDesignerCanvas());
+            List<PropertyFile> discovered) {
+        super(project, project.getService(UiContext.class).getDesignerCanvas());
         this.project = project;
         this.root = root;
         this.discovered = List.copyOf(discovered);
-        contents.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            @Override public void insertUpdate(javax.swing.event.DocumentEvent event) { changed(); }
-            @Override public void removeUpdate(javax.swing.event.DocumentEvent event) { changed(); }
-            @Override public void changedUpdate(javax.swing.event.DocumentEvent event) { changed(); }
+        contents.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent event) { changed(); }
+            @Override public void removeUpdate(DocumentEvent event) { changed(); }
+            @Override public void changedUpdate(DocumentEvent event) { changed(); }
             private void changed() {
                 sourceName = StudioBundle.message("environment.pasted");
                 discardSelection();
@@ -86,8 +95,8 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
         choose.addActionListener(event -> chooseFile());
         fields.add(choose);
         if (!discovered.isEmpty()) {
-            ComboBox<String> sources = new com.intellij.openapi.ui.ComboBox<>(discovered.stream()
-                    .map(org.ikasan.studio.core.importer.SourceModuleImport.PropertyFile::source).toArray(String[]::new));
+            ComboBox<String> sources = new ComboBox<>(discovered.stream()
+                    .map(PropertyFile::source).toArray(String[]::new));
             sources.getAccessibleContext().setAccessibleName(StudioBundle.message("sourceImport.discoveredProperties"));
             fields.add(sources);
             JButton use = new JButton(StudioBundle.message("sourceImport.useProperties"));
@@ -135,7 +144,7 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
         tableScroll.setPreferredSize(JBUI.size(780, 70));
         String guidance = StudioBundle.message("environment.compareHelp");
         JBLabel instruction = new JBLabel("<html><body style='width: " + JBUI.scale(760) + "px'>"
-                + com.intellij.openapi.util.text.StringUtil.escapeXmlEntities(guidance) + "</body></html>");
+                + StringUtil.escapeXmlEntities(guidance) + "</body></html>");
         files.getAccessibleContext().setAccessibleDescription(guidance);
         destination.add(instruction, BorderLayout.NORTH);
         destination.add(tableScroll, BorderLayout.CENTER);
@@ -209,7 +218,7 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
     @Nullable SimpleDiffRequest comparison() {
         if (destinationUnavailable()) return null;
         DiffContentFactory factory = DiffContentFactory.getInstance();
-        FileType type = com.intellij.openapi.fileTypes.FileTypeManager.getInstance().getFileTypeByExtension("properties");
+        FileType type = FileTypeManager.getInstance().getFileTypeByExtension("properties");
         DocumentContent original = factory.create(EnvironmentProperties.Selection.developerOwned(contents.getText()).text(), type);
         original.getDocument().setReadOnly(true);
         if (destinationContent == null) {
@@ -250,7 +259,7 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
         if (background(() -> { EnvironmentProperties.apply(root, List.of(selected), true); return Boolean.TRUE; }) == null) return;
         StudioProjectFiles.refreshConfigurationDirectory(project);
         super.doOKAction();
-        com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater(() -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
             if (project.isDisposed()) return;
             if (selected.applicationPrevious() == null) {
                 Messages.showInfoMessage(project, StudioBundle.message("environment.noApplication"),
@@ -262,7 +271,7 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
                         StudioBundle.message(success ? "environment.success" : "environment.noApplication"),
                         StudioBundle.message("environment.title"));
             });
-        }, com.intellij.openapi.application.ModalityState.nonModal());
+        }, ModalityState.nonModal());
     }
 
     private final class FilesModel extends AbstractTableModel {
@@ -303,7 +312,7 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
         AtomicReference<Exception> failure = new AtomicReference<>();
         ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
             try { result.set(work.run()); }
-            catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) { throw cancelled; }
+            catch (ProcessCanceledException cancelled) { throw cancelled; }
             catch (Exception problem) { failure.set(problem); }
         }, StudioBundle.message("environment.title"), false, project);
         if (failure.get() != null) error(failure.get().getMessage());

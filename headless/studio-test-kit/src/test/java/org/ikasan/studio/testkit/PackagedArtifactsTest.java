@@ -1,14 +1,16 @@
 package org.ikasan.studio.testkit;
 
+import java.net.URL;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import org.ikasan.studio.core.generator.ApplicationTemplate;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.api.Test;
-import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
-import java.net.URL;
-import java.util.Map;
-import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 
 class PackagedArtifactsTest {
     @Test
@@ -17,7 +19,7 @@ class PackagedArtifactsTest {
                 () -> Class.forName("com.intellij.openapi.application.ApplicationManager"));
         assertTrue(ApplicationTemplate.class.getProtectionDomain().getCodeSource().getLocation().getPath().endsWith(".jar"));
         List<String> expected = List.of("V3.3.9", "V4.1.6", "V5.1.0");
-        assertEquals(new java.util.HashSet<>(expected), new java.util.HashSet<>(ComponentLibrary.getMetapackList()));
+        assertEquals(new HashSet<>(expected), new HashSet<>(ComponentLibrary.getMetapackList()));
         for (String version : expected) {
             URL resource = getClass().getClassLoader().getResource("studio/metapack/" + version + "/metapack.json");
             assertNotNull(resource);

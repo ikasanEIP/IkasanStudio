@@ -1,8 +1,8 @@
 package org.ikasan.studio.core.conversion;
 
-import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 import java.util.*;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
@@ -27,7 +27,7 @@ public final class ConversionRecipeMatcher {
     }
 
     /** Nearest downstream contract within this route. Never guesses across a branching router. */
-    public static String downstreamTypes(org.ikasan.studio.core.model.ikasan.instance.FlowElement element) {
+    public static String downstreamTypes(FlowElement element) {
         Flow flow = element.getContainingFlow();
         if (flow == null || flow.getFlowRoute() == null) return null;
         FlowRoute route = flow.getFlowRouteContaining(flow.getFlowRoute(), element);

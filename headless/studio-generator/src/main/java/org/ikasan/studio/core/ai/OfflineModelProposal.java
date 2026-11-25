@@ -1,16 +1,17 @@
 package org.ikasan.studio.core.ai;
 
+import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import org.ikasan.studio.core.io.ComponentIO;
-import org.ikasan.studio.core.persistence.json.StudioJson;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.Map;
 import java.util.Set;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.StudioJson;
 
 /** File exchange contract: no transport or IDE dependency, and no model writes. */
 public final class OfflineModelProposal {
@@ -20,7 +21,7 @@ public final class OfflineModelProposal {
                                                  Map<String, Object> liveModel) throws Exception {
         if (proposalJson.length() > 1_048_576) throw new IllegalArgumentException("Proposal exceeds 1 MiB.");
         ObjectMapper json = StudioJson.newObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-                .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+                .enable(Feature.STRICT_DUPLICATE_DETECTION);
         JsonNode proposal = json.readTree(proposalJson);
         if (proposal == null || !proposal.isObject()) throw new IllegalArgumentException("Expected a Studio proposal JSON object.");
         Set<String> allowed = Set.of("formatVersion", "baseModelSha256", "operations");

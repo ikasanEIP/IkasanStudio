@@ -1,5 +1,9 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.ikasan.studio.SharedResourceExtension;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
@@ -7,11 +11,9 @@ import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE;
@@ -200,8 +202,8 @@ class FlowUpstreamTypeMismatchTest {
         assertTrue(router.getUpstreamTypeMismatchWarning().contains("java.lang.Integer"));
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.CsvSource({
+    @ParameterizedTest
+    @CsvSource({
             "V3.3.9, Single Recipient Router", "V3.3.9, Multi Recipient Router",
             "V4.1.6, Single Recipient Router", "V4.1.6, Multi Recipient Router"
     })
@@ -313,8 +315,8 @@ class FlowUpstreamTypeMismatchTest {
         assertEquals(converter, flow.skipNonPayloadBearingElements(router));
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    @ParameterizedTest
+    @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void nestedRouterUsesForwardedStringRatherThanRouteNamesOrEarlierConsumer(String pack) throws StudioBuildException {
         FlowElement earlier = TestFixtures.getCustomConverter(pack);
         FlowElement outer = TestFixtures.getMultiRecipientRouter(pack);

@@ -1,31 +1,33 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.JBUI;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.table.DefaultTableModel;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.StringCollectionValues;
 import org.ikasan.studio.ui.StudioBundle;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.BorderLayout;
-import java.util.*;
-import javax.swing.JPanel;
+import org.ikasan.studio.ui.StudioDialogWrapper;
+import org.jetbrains.annotations.NotNull;
 
 /** Edits string entries without comma splitting, value coercion or silent duplicate-key replacement. */
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
 final class StringCollectionDialog extends StudioDialogWrapper {
-    private final org.ikasan.studio.core.metapack.model.ComponentPropertyMeta meta;
+    private final ComponentPropertyMeta meta;
     private final boolean map;
     private final DefaultTableModel rows;
     private final JBTable table;
     private boolean useComponentDefault;
 
-    StringCollectionDialog(Project project, org.ikasan.studio.core.metapack.model.ComponentPropertyMeta meta, Object value) {
+    StringCollectionDialog(Project project, ComponentPropertyMeta meta, Object value) {
         super(project);
         this.meta = meta;
         String name = meta.getPropertyName();
@@ -57,12 +59,12 @@ final class StringCollectionDialog extends StudioDialogWrapper {
                     int[] selected = table.getSelectedRows();
                     for (int i = selected.length - 1; i >= 0; i--) rows.removeRow(selected[i]);
                 }).disableUpDownActions().createPanel(), BorderLayout.CENTER);
-        panel.setPreferredSize(com.intellij.util.ui.JBUI.size(520, 260));
+        panel.setPreferredSize(JBUI.size(520, 260));
         return panel;
     }
-    @Override protected Action @org.jetbrains.annotations.NotNull [] createLeftSideActions() {
+    @Override protected Action @NotNull [] createLeftSideActions() {
         return new Action[]{new AbstractAction(StudioBundle.message("collection.ClearAndUseDefault")) {
-            @Override public void actionPerformed(java.awt.event.ActionEvent event) {
+            @Override public void actionPerformed(ActionEvent event) {
                 // Discard any draft, including invalid entries, without running list/map validation.
                 if (table.isEditing()) table.getCellEditor().cancelCellEditing();
                 useComponentDefault = true;

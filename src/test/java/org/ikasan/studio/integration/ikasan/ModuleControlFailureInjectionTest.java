@@ -1,20 +1,23 @@
 package org.ikasan.studio.integration.ikasan;
 
 import com.sun.net.httpserver.HttpServer;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.api.Test;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.http.HttpTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import java.io.OutputStream;
-import java.net.http.HttpTimeoutException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.swing.SwingUtilities;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class ModuleControlFailureInjectionTest {
     @Test
@@ -30,13 +33,13 @@ class ModuleControlFailureInjectionTest {
         Module module = module(server.getAddress().getPort());
         server.start();
         try {
-            assertThrows(java.io.IOException.class, () -> ModuleControlClient.fetchFlowStates(module));
+            assertThrows(IOException.class, () -> ModuleControlClient.fetchFlowStates(module));
             mode.set(201);
-            assertThrows(java.io.IOException.class, () -> ModuleControlClient.fetchFlowStates(module));
+            assertThrows(IOException.class, () -> ModuleControlClient.fetchFlowStates(module));
             mode.set(200);
             assertEquals("running", ModuleControlClient.fetchFlowStates(module).get("flow"));
         } finally { server.stop(0); }
-        assertThrows(java.io.IOException.class, () -> ModuleControlClient.fetchFlowStates(module));
+        assertThrows(IOException.class, () -> ModuleControlClient.fetchFlowStates(module));
     }
 
     @Test
@@ -58,11 +61,11 @@ class ModuleControlFailureInjectionTest {
         ExecutorService pool = Executors.newSingleThreadExecutor();
         server.start();
         try {
-            Future<HttpTimeoutException> call = pool.submit(() -> assertThrows(java.net.http.HttpTimeoutException.class,
+            Future<HttpTimeoutException> call = pool.submit(() -> assertThrows(HttpTimeoutException.class,
                     () -> ModuleControlClient.fetchFlowStates(module)));
             assertTrue(accepted.await(5, TimeUnit.SECONDS));
             CompletableFuture<Boolean> heartbeat = new CompletableFuture<>();
-            javax.swing.SwingUtilities.invokeLater(() -> heartbeat.complete(true));
+            SwingUtilities.invokeLater(() -> heartbeat.complete(true));
             assertTrue(heartbeat.get(2, TimeUnit.SECONDS));
             call.get(8, TimeUnit.SECONDS);
         } finally { release.countDown(); server.stop(0); pool.shutdownNow(); }

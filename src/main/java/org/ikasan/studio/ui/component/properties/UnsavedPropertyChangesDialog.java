@@ -1,20 +1,20 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.StudioBundle;
-
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.util.List;
 import javax.swing.JTextArea;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
 
 /**
  * Resolves pending edits before a selection change or launch. Navigation is offered only for destinations
@@ -83,7 +83,7 @@ public class UnsavedPropertyChangesDialog extends StudioDialogWrapper {
                 c.weightx = 1;
                 c.insets = JBUI.insets(12, 0, 3, 0);
                 JTextArea heading = PropertyDialogLayout.wrappedText(change.label(), 520);
-                heading.setFont(heading.getFont().deriveFont(java.awt.Font.BOLD));
+                heading.setFont(heading.getFont().deriveFont(Font.BOLD));
                 details.add(heading, c);
                 c.gridwidth = 1;
                 PropertyDialogLayout.addRow(details, c, StudioBundle.message("label.SavedPropertyValue"), change.oldValueDisplay());
@@ -114,7 +114,7 @@ public class UnsavedPropertyChangesDialog extends StudioDialogWrapper {
                 close(NEXT_USER_EXIT_CODE);
             }
         };
-        java.util.List<Action> actions = new java.util.ArrayList<>(List.of(apply, discard));
+        List<Action> actions = new ArrayList<>(List.of(apply, discard));
         if (codeTargetName != null) {
             Action jumpToCode = new AbstractAction(StudioBundle.message("button.JumpToCode")) {
                 @Override public void actionPerformed(ActionEvent e) {

@@ -4,10 +4,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 
 public class StudioImportReadinessHeavyTest extends HeavyPlatformTestCase {
@@ -44,14 +46,14 @@ public class StudioImportReadinessHeavyTest extends HeavyPlatformTestCase {
         service.start();
         PlatformTestUtil.waitWithEventsDispatching("Waiting state was not reached",
                 () -> service.getState() == StudioProjectInitialisationService.State.WAITING_FOR_PROJECT_IMPORT, 10);
-        MavenProjectsManager manager = org.mockito.Mockito.mock(org.jetbrains.idea.maven.project.MavenProjectsManager.class);
-        try (MockedStatic<MavenProjectsManager> maven = org.mockito.Mockito.mockStatic(org.jetbrains.idea.maven.project.MavenProjectsManager.class)) {
-            maven.when(() -> org.jetbrains.idea.maven.project.MavenProjectsManager.getInstance(myProject)).thenReturn(manager);
+        MavenProjectsManager manager = Mockito.mock(MavenProjectsManager.class);
+        try (MockedStatic<MavenProjectsManager> maven = Mockito.mockStatic(MavenProjectsManager.class)) {
+            maven.when(() -> MavenProjectsManager.getInstance(myProject)).thenReturn(manager);
             service.reloadMavenProject();
-            org.mockito.Mockito.verify(manager).forceUpdateAllProjectsOrFindAllAvailablePomFiles();
+            Mockito.verify(manager).forceUpdateAllProjectsOrFindAllAvailablePomFiles();
             Disposer.dispose(service);
             service.reloadMavenProject();
-            org.mockito.Mockito.verifyNoMoreInteractions(manager);
+            Mockito.verifyNoMoreInteractions(manager);
         }
     }
 
@@ -67,7 +69,7 @@ public class StudioImportReadinessHeavyTest extends HeavyPlatformTestCase {
                 () -> service.getState() == StudioProjectInitialisationService.State.WAITING_FOR_PROJECT_IMPORT, 10);
         Disposer.dispose(service);
         int before = checks.get();
-        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(150);
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(150);
         PlatformTestUtil.waitWithEventsDispatching("EDT did not finish dispatching", () -> System.nanoTime() >= deadline, 5);
         assertEquals(before, checks.get());
     }

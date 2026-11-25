@@ -1,14 +1,15 @@
 package org.ikasan.studio.ui.component.properties;
 
+import com.intellij.openapi.ui.ComboBox;
+import javax.swing.*;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import javax.swing.*;
+
 import static org.junit.jupiter.api.Assertions.*;
-import com.intellij.openapi.ui.ComboBox;
 
 class ComponentPropertyAccessibilityTest {
     static ComponentMeta ftp;
@@ -35,7 +36,7 @@ class ComponentPropertyAccessibilityTest {
     }
     @Test void disablingAChoiceActuallyPreventsSelectionChangesThroughTheWidget() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            ComboBox<Object> combo = new com.intellij.openapi.ui.ComboBox<>(new Object[] {"one", "two"});
+            ComboBox<Object> combo = new ComboBox<>(new Object[] {"one", "two"});
             ComponentInput input = new ComponentInput(combo);
             input.setEnabled(false);
             assertFalse(combo.isEnabled());

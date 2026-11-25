@@ -1,18 +1,22 @@
 package org.ikasan.studio.intellij.ai;
 
-import org.ikasan.studio.core.ai.ImplementationReadiness;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.api.Test;
-import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import org.ikasan.studio.core.ai.ImplementationReadiness;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class StudioImplementationReadinessTest {
     @Test
@@ -32,28 +36,28 @@ class StudioImplementationReadinessTest {
     }
 
     @Test
-    void savesProjectEditsBeforeRescanningAndLeavesOtherProjectsAlone(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
-        FileDocumentManager manager = mock(com.intellij.openapi.fileEditor.FileDocumentManager.class);
-        Document edited = mock(com.intellij.openapi.editor.Document.class);
-        Document other = mock(com.intellij.openapi.editor.Document.class);
-        VirtualFile file = mock(com.intellij.openapi.vfs.VirtualFile.class);
-        VirtualFile otherFile = mock(com.intellij.openapi.vfs.VirtualFile.class);
+    void savesProjectEditsBeforeRescanningAndLeavesOtherProjectsAlone(@TempDir Path root) throws Exception {
+        FileDocumentManager manager = mock(FileDocumentManager.class);
+        Document edited = mock(Document.class);
+        Document other = mock(Document.class);
+        VirtualFile file = mock(VirtualFile.class);
+        VirtualFile otherFile = mock(VirtualFile.class);
         Path source = root.resolve("user/src/main/java/org/example/demo/Producer.java");
-        java.nio.file.Files.createDirectories(source.getParent());
-        java.nio.file.Files.writeString(source, "// TODO implement producer");
-        JsonNode model = org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper().readTree("""
+        Files.createDirectories(source.getParent());
+        Files.writeString(source, "// TODO implement producer");
+        JsonNode model = StudioJson.newObjectMapper().readTree("""
                 {"applicationPackageName":"org.example","flows":[{"name":"Demo","flowElements":[
                 {"componentName":"Output","userImplementedClassName":"Producer"}]}]}
                 """);
         assertFalse(ImplementationReadiness.scan(root, model).findings().isEmpty());
-        when(manager.getUnsavedDocuments()).thenReturn(new com.intellij.openapi.editor.Document[]{edited, other});
+        when(manager.getUnsavedDocuments()).thenReturn(new Document[]{edited, other});
         when(manager.getFile(edited)).thenReturn(file);
         when(manager.getFile(other)).thenReturn(otherFile);
         when(file.isInLocalFileSystem()).thenReturn(true);
         when(otherFile.isInLocalFileSystem()).thenReturn(true);
         when(file.getPath()).thenReturn(source.toString());
         when(otherFile.getPath()).thenReturn(root + "-other/Other.java");
-        doAnswer(invocation -> { java.nio.file.Files.writeString(source, "class Producer {}"); return null; })
+        doAnswer(invocation -> { Files.writeString(source, "class Producer {}"); return null; })
                 .when(manager).saveDocument(edited);
         StudioImplementationReadiness.saveProjectDocuments(manager, root);
         assertTrue(ImplementationReadiness.scan(root, model).findings().isEmpty());
@@ -62,16 +66,16 @@ class StudioImplementationReadinessTest {
 
     @Test
     void refusesToContinueWhenDocumentCannotBeSaved() {
-        FileDocumentManager manager = mock(com.intellij.openapi.fileEditor.FileDocumentManager.class);
-        Document document = mock(com.intellij.openapi.editor.Document.class);
-        VirtualFile file = mock(com.intellij.openapi.vfs.VirtualFile.class);
-        when(manager.getUnsavedDocuments()).thenReturn(new com.intellij.openapi.editor.Document[]{document});
+        FileDocumentManager manager = mock(FileDocumentManager.class);
+        Document document = mock(Document.class);
+        VirtualFile file = mock(VirtualFile.class);
+        when(manager.getUnsavedDocuments()).thenReturn(new Document[]{document});
         when(manager.getFile(document)).thenReturn(file);
         when(file.isInLocalFileSystem()).thenReturn(true);
         when(file.getPath()).thenReturn("/project/user/Example.java");
         when(manager.isDocumentUnsaved(document)).thenReturn(true);
         assertThrows(IllegalStateException.class, () ->
-                StudioImplementationReadiness.saveProjectDocuments(manager, java.nio.file.Path.of("/project")));
+                StudioImplementationReadiness.saveProjectDocuments(manager, Path.of("/project")));
     }
 
     private ImplementationReadiness.Finding finding(ImplementationReadiness.Target target, String component) {

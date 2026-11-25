@@ -1,14 +1,14 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import java.util.HashMap;
+import java.util.List;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
 
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,7 +48,7 @@ public class ComponentPropertyEditRowChoicesEditableTest {
                 .build();
         ComponentPropertyEditRow emailFormatRow = rowFor(flowElement, "emailFormat");
 
-        assertEquals(java.util.List.of("text/plain", "text/html"), emailFormatRow.getComponentProperty().getMeta().getChoices());
+        assertEquals(List.of("text/plain", "text/html"), emailFormatRow.getComponentProperty().getMeta().getChoices());
     }
 
     @Test

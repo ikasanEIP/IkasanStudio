@@ -1,44 +1,48 @@
 package org.ikasan.studio.ui.component.canvas;
 
-import com.intellij.ui.components.JBTextArea;
-
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.ui.PopupHandler;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationActivationListener;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.ui.EditorNotificationPanel;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.ui.actions.*;
-import org.ikasan.studio.ui.theme.ThemeAwareColors;
-import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
-import javax.swing.text.DefaultCaret;
 import java.awt.*;
+import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Path2D;
 import java.util.List;
 import java.util.Set;
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import javax.swing.text.DefaultCaret;
+import org.ikasan.studio.intellij.configuration.HarnessOverridesDialog;
 import org.ikasan.studio.intellij.execution.HarnessOverrideService;
 import org.ikasan.studio.intellij.execution.ModuleStartupDiagnostics;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.intellij.testing.FlowTestPropertiesBanner;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.actions.*;
 import org.ikasan.studio.ui.actions.HarnessControlActions.HarnessStatus;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
+import org.ikasan.studio.ui.theme.ThemeAwareColors;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("rawtypes")
 public class CanvasPanel extends JBPanel implements Disposable {
@@ -64,7 +68,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
     // so it never depends on IconLoader's disabled-icon derivation of a baked two-tone icon.
     private static final Icon RESTART_ICON = new RestartIcon();
     private static final Icon RUNNING_HARNESS_ICON = harnessBadge(ThemeAwareColors.getSuccessColor());
-    private static final Icon SHARED_HARNESS_ICON = harnessBadge(new com.intellij.ui.JBColor(new Color(184, 116, 0), new Color(235, 180, 65)));
+    private static final Icon SHARED_HARNESS_ICON = harnessBadge(new JBColor(new Color(184, 116, 0), new Color(235, 180, 65)));
     private static Icon harnessBadge(Color color) { return new Icon() {
         @Override public int getIconWidth() { return AllIcons.Actions.Execute.getIconWidth(); }
         @Override public int getIconHeight() { return AllIcons.Actions.Execute.getIconHeight(); }
@@ -85,8 +89,8 @@ public class CanvasPanel extends JBPanel implements Disposable {
         }
     }; }
 
-    static void updateHarnessState(JButton start, JButton stop, java.util.List<String> running) {
-        updateHarnessState(start, stop, new HarnessControlActions.HarnessStatus(running, java.util.List.of()));
+    static void updateHarnessState(JButton start, JButton stop, List<String> running) {
+        updateHarnessState(start, stop, new HarnessControlActions.HarnessStatus(running, List.of()));
     }
 
     static String harnessTitle(HarnessControlActions.HarnessStatus state) {
@@ -151,7 +155,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
     JButton stopHarnessButton = new JButton(AllIcons.Actions.Suspend);
     private final JBPanel harnessGroupPanel;
     private final Timer harnessRefreshTimer;
-    private final com.intellij.ui.EditorNotificationPanel startupBanner = new com.intellij.ui.EditorNotificationPanel();
+    private final EditorNotificationPanel startupBanner = new EditorNotificationPanel();
     private final JButton harnessOverridesButton = new JButton(AllIcons.General.GearPlain);
     private final DesignerCanvas designerCanvas;
     // These are the less commonly needed controls, gated behind the "Show advanced controls" setting (see
@@ -192,7 +196,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
         startHarnessButton.getAccessibleContext().setAccessibleName(StudioBundle.message("accessible.StartHarnesses"));
         stopHarnessButton.getAccessibleContext().setAccessibleName(StudioBundle.message("accessible.StopHarnesses"));
         addButtonsToPanel(harnessGroupPanel, harnessOverridesButton, event ->
-                org.ikasan.studio.intellij.configuration.HarnessOverridesDialog.show(project),
+                HarnessOverridesDialog.show(project),
                 StudioBundle.message("harnessOverrides.manage"));
         harnessOverridesButton.getAccessibleContext().setAccessibleName(StudioBundle.message("harnessOverrides.manage"));
         harnessGroupPanel.setVisible(harnessActions.isAvailable());
@@ -221,12 +225,12 @@ public class CanvasPanel extends JBPanel implements Disposable {
 
         setLayout(new BorderLayout());
         headerPanel.add(canvasHeaderButtonPanel, BorderLayout.CENTER);
-        testPropertiesBanner = new org.ikasan.studio.intellij.testing.FlowTestPropertiesBanner(project);
+        testPropertiesBanner = new FlowTestPropertiesBanner(project);
         JPanel top = new JPanel(new BorderLayout());
         top.add(headerPanel, BorderLayout.NORTH);
         startupBanner.icon(AllIcons.General.Error);
         startupBanner.createActionLabel(StudioBundle.message("startup.output"), () ->
-                project.getService(org.ikasan.studio.intellij.execution.ModuleStartupDiagnostics.class).showOutput());
+                project.getService(ModuleStartupDiagnostics.class).showOutput());
         startupBanner.setVisible(false);
         JPanel banners = new JPanel();
         banners.setLayout(new BoxLayout(banners, BoxLayout.Y_AXIS));
@@ -261,7 +265,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
                 });
     }
 
-    private final org.ikasan.studio.intellij.testing.FlowTestPropertiesBanner testPropertiesBanner;
+    private final FlowTestPropertiesBanner testPropertiesBanner;
 
     public void refreshTestPropertyWarning() {
         if (testPropertiesBanner != null) testPropertiesBanner.requestCheck();
@@ -270,7 +274,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
     private final JPanel headerPanel = new JPanel(new BorderLayout());
 
     public void setSidebarToggle(JButton button) {
-        JPanel controls = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         controls.add(button);
         headerPanel.add(controls, BorderLayout.EAST);
         installToolbarContextMenu(controls, new DefaultActionGroup(new AdvancedControlsAction()));
@@ -305,12 +309,12 @@ public class CanvasPanel extends JBPanel implements Disposable {
      */
     private void refreshHarnessGroupVisibility(HarnessControlActions harnessActions) {
         if (project.isDisposed()) return;
-        ModuleStartupDiagnostics diagnostics = project.getService(org.ikasan.studio.intellij.execution.ModuleStartupDiagnostics.class);
+        ModuleStartupDiagnostics diagnostics = project.getService(ModuleStartupDiagnostics.class);
         String startupProblem = diagnostics.message();
         startupBanner.setText(diagnostics.bannerMessage());
         startupBanner.setToolTipText(startupProblem);
         startupBanner.setVisible(startupProblem != null);
-        HarnessOverrideService overrides = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        HarnessOverrideService overrides = project.getService(HarnessOverrideService.class);
         if (overrides != null) {
             Set<String> selected = overrides.nextSelection();
             String next = overrides.describe(selected);
@@ -345,7 +349,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
     @Override
     public void dispose() {
         harnessRefreshTimer.stop();
-        com.intellij.openapi.util.Disposer.dispose(testPropertiesBanner);
+        Disposer.dispose(testPropertiesBanner);
         designerCanvas.disposeCanvas();
         if (canvasTextArea.getCaret() instanceof DefaultCaret caret) {
             caret.setBlinkRate(0);

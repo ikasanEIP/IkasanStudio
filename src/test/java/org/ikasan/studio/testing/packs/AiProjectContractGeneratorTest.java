@@ -1,18 +1,21 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.*;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-import org.junit.jupiter.api.Test;
-
-
-import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.re2j.Pattern;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.assertj.core.api.Assertions;
+import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
-@org.junit.jupiter.api.Tag("packs")
+import static org.assertj.core.api.Assertions.assertThat;
+
+@Tag("packs")
 class AiProjectContractGeneratorTest {
     /** The metadata's human-written hint is what the UI shows a person; an AI needs the same explanation of a rule. */
     @Test
@@ -38,15 +41,15 @@ class AiProjectContractGeneratorTest {
             ObjectMapper mapper = StudioJson.newObjectMapper();
             JsonNode full = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version));
             JsonNode selected = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version,
-                    java.util.List.of("Converter", "Converter")));
+                    List.of("Converter", "Converter")));
             assertThat(selected.path("components")).hasSize(1);
             assertThat(selected.path("components").get(0)).isEqualTo(component(full, "Converter"));
             assertThat(selected.path("frameworkReference")).isEqualTo(full.path("frameworkReference"));
-            JsonNode discovery = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version, java.util.List.of()));
+            JsonNode discovery = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version, List.of()));
             assertThat(discovery.path("components")).isEmpty();
             assertThat(discovery.path("availableComponentKeys")).isEqualTo(full.path("availableComponentKeys"));
-            org.assertj.core.api.Assertions.assertThatThrownBy(() ->
-                    AiProjectContractGenerator.componentCatalogue(version, java.util.List.of("Not a component")))
+            Assertions.assertThatThrownBy(() ->
+                    AiProjectContractGenerator.componentCatalogue(version, List.of("Not a component")))
                     .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("availableComponentKeys");
         }
     }
@@ -108,7 +111,7 @@ class AiProjectContractGeneratorTest {
             assertThat(fileRecipe.path("toType").asText()).isEqualTo("java.lang.String");
             assertThat(component(catalogue, "Local File Consumer").path("producedOutputType").asText())
                     .isEqualTo(fileRecipe.path("fromType").asText());
-            for (String name : java.util.List.of("Single Recipient Router", "Multi Recipient Router")) {
+            for (String name : List.of("Single Recipient Router", "Multi Recipient Router")) {
                 assertThat(component(catalogue, name).path("proposalOperations").toString()).contains("addComponent", "configureRoutes");
             }
             assertThat(component(catalogue, "Flow").path("proposalOperations").toString()).contains("setFlowProperty");
@@ -159,16 +162,16 @@ class AiProjectContractGeneratorTest {
     void emailAddressRulesAcceptLongDomainSuffixesAndRejectMalformedAddresses() throws Exception {
         for (String version : PackExpectations.metaPacksToTest().toList()) {
             JsonNode catalogue = StudioJson.newObjectMapper().readTree(AiProjectContractGenerator.componentCatalogue(version));
-            java.util.Set<String> checked = new java.util.HashSet<>();
+            Set<String> checked = new HashSet<>();
             for (JsonNode property : component(catalogue, "Email Producer").path("properties")) {
                 String name = property.path("name").asText();
-                if (!java.util.Set.of("toRecipient", "from", "ccRecipient", "bccRecipient").contains(name)) continue;
-                Pattern rule = com.google.re2j.Pattern.compile(property.path("validation").asText());
-                for (String valid : java.util.List.of("audience@example.invalid", "studio@example.test",
+                if (!Set.of("toRecipient", "from", "ccRecipient", "bccRecipient").contains(name)) continue;
+                Pattern rule = Pattern.compile(property.path("validation").asText());
+                for (String valid : List.of("audience@example.invalid", "studio@example.test",
                         "developer@example.technology", "first.last+demo@example.com")) {
                     assertThat(rule.matcher(valid).matches()).as("%s %s accepts %s", version, name, valid).isTrue();
                 }
-                for (String invalid : java.util.List.of("audience", "@example.invalid", "audience@",
+                for (String invalid : List.of("audience", "@example.invalid", "audience@",
                         "audience example@test.com", "audience@example.invalid,other@example.com")) {
                     assertThat(rule.matcher(invalid).matches()).as("%s %s rejects %s", version, name, invalid).isFalse();
                 }

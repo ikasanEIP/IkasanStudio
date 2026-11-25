@@ -1,8 +1,12 @@
 package org.ikasan.studio.testing.packs;
 
-import java.util.stream.Stream;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** Reviewed expectations for official packs, independent of the descriptors being tested. */
@@ -38,7 +42,7 @@ public final class PackExpectations {
 
     /** Assert coordinates and scope: a wrong dependency can leave the total count unchanged. */
     public static void assertDependencies(Module module, String metaPackVersion, String... componentDependencies) {
-        java.util.Set<String> expected = new java.util.TreeSet<>(List.of(
+        Set<String> expected = new TreeSet<>(List.of(
                 "org.ikasan:ikasan-eip-standalone:compile",
                 "org.ikasan:ikasan-h2-standalone-persistence:compile",
                 "org.ikasan:ikasan-test-endpoint:compile"));
@@ -48,10 +52,10 @@ public final class PackExpectations {
             default -> throw new IllegalArgumentException("No dependency expectations for " + metaPackVersion);
         }
         expected.addAll(List.of(componentDependencies));
-        java.util.Set<String> actual = module.getAllUniqueSortedJarDependencies().stream()
+        Set<String> actual = module.getAllUniqueSortedJarDependencies().stream()
                 .map(dependency -> dependency.getGroupId() + ":" + dependency.getArtifactId() + ":"
                         + (dependency.getScope() == null ? "compile" : dependency.getScope()))
-                .collect(java.util.stream.Collectors.toCollection(java.util.TreeSet::new));
+                .collect(Collectors.toCollection(TreeSet::new));
         assertEquals(expected, actual, "Dependencies for " + metaPackVersion);
     }
 

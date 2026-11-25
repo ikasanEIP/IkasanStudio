@@ -2,6 +2,7 @@ package org.ikasan.studio.intellij.project;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 
 /** Small, PSI-independent JSON query used while locating Studio project metadata. */
 final class JsonAttributes {
@@ -23,7 +24,7 @@ final class JsonAttributes {
                         : root.path("studio").path("properties").get(attributeName);
             } else value = root == null ? null : root.get(attributeName);
             return value == null || value.isNull() ? null : value.asText();
-        } catch (java.io.IOException ignored) {
+        } catch (IOException ignored) {
             return null;
         }
     }

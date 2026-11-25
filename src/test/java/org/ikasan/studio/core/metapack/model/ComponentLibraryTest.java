@@ -1,17 +1,17 @@
 package org.ikasan.studio.core.metapack.model;
 
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-
-import org.ikasan.studio.ui.icons.ComponentIconProvider;
-
-import org.ikasan.studio.core.StudioBuildException;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import javax.swing.*;
 import java.awt.*;
 import java.util.Map;
 import java.util.TreeSet;
+import javax.swing.*;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.ui.icons.ComponentIconProvider;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.ikasan.studio.core.metapack.ComponentLibrary.getDeserialisationKey;
@@ -140,34 +140,34 @@ class ComponentLibraryTest {
                 () -> assertEquals(expectedIconDimension(13), squid13Icon.getIconHeight()),
                 () -> assertEquals(expectedIconDimension(378), squidHeadIcon.getIconWidth()),
                 () -> assertEquals(expectedIconDimension(496), squidHeadIcon.getIconHeight()),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(helpIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(sendTestMessageIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(wiretapIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(logWiretapIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(searchIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(replayIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(resubmitIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(ignoreIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(errorIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(mappingIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(wiretapServiceIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(configurationServiceIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(hospitalServiceIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(replayServiceIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(requestReplyIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(deadEndPointIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(deadLetterChannelIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(fileLocationIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(ftpLocationIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(computerIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(emptyControlIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(largeWiretapIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(largeLogWiretapIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(help30Icon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(help40Icon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(studioIcon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(squid13Icon instanceof ImageIcon),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(squidHeadIcon instanceof ImageIcon)
+                () -> Assertions.assertFalse(helpIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(sendTestMessageIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(wiretapIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(logWiretapIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(searchIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(replayIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(resubmitIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(ignoreIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(errorIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(mappingIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(wiretapServiceIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(configurationServiceIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(hospitalServiceIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(replayServiceIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(requestReplyIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(deadEndPointIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(deadLetterChannelIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(fileLocationIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(ftpLocationIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(computerIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(emptyControlIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(largeWiretapIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(largeLogWiretapIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(help30Icon instanceof ImageIcon),
+                () -> Assertions.assertFalse(help40Icon instanceof ImageIcon),
+                () -> Assertions.assertFalse(studioIcon instanceof ImageIcon),
+                () -> Assertions.assertFalse(squid13Icon instanceof ImageIcon),
+                () -> Assertions.assertFalse(squidHeadIcon instanceof ImageIcon)
         );
     }
 
@@ -241,10 +241,10 @@ class ComponentLibraryTest {
 
     @Test
     void emailProducerResolvesToAnEmailEndpointLabelledWithItsToRecipient() throws Exception {
-        org.ikasan.studio.core.model.ikasan.instance.FlowElement emailProducer =
-                org.ikasan.studio.core.TestFixtures.getEmailProducer(BASE_META_PACK);
+        FlowElement emailProducer =
+                TestFixtures.getEmailProducer(BASE_META_PACK);
 
-        org.ikasan.studio.core.model.ikasan.instance.FlowElement endpoint =
+        FlowElement endpoint =
                 ComponentLibrary.getEndpointForGivenComponent(BASE_META_PACK, emailProducer);
 
         assertAll(

@@ -1,8 +1,5 @@
 package org.ikasan.studio.core.model.analysis;
 
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,6 +7,8 @@ import java.util.Locale;
 import java.util.Map;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Possible file hand-offs, inferred from configured endpoints; never executable flow routes. */
 public final class FtpFlowConnections {
@@ -35,7 +34,7 @@ public final class FtpFlowConnections {
             for (FlowElement element : flow.ftlGetConsumerAndFlowElements()) {
                 Endpoint endpoint = endpointOf(element);
                 if (endpoint == null) continue;
-                Map<org.ikasan.studio.core.model.analysis.FtpFlowConnections.Endpoint,List<FlowElement>> target = element.getComponentMeta().isProducer() ? producers : consumers;
+                Map<Endpoint,List<FlowElement>> target = element.getComponentMeta().isProducer() ? producers : consumers;
                 target.computeIfAbsent(endpoint, ignored -> new ArrayList<>()).add(element);
             }
         }
@@ -63,6 +62,7 @@ public final class FtpFlowConnections {
         String implicit = secure ? value(element, "ftpsIsImplicit") : "false";
         if (!("true".equals(implicit) || "false".equals(implicit))) return null;
         String port = value(element, secure ? "ftpsPort" : "remotePort");
+        if (port == null) return null;
         try {
             int number = Integer.parseInt(port);
             if (number < 1 || number > 65535) return null;

@@ -1,25 +1,25 @@
 package org.ikasan.studio.intellij.testing;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.*;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.StudioBundle;
-import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import com.intellij.ui.components.JBCheckBox;
+import java.util.Set;
+import javax.swing.*;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
 
 /** Module-level flow selection; large modules scroll instead of stretching the dialog. */
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
 final class FlowTestsDialog extends StudioDialogWrapper {
     private final List<JBCheckBox> choices = new ArrayList<>();
-    private final com.intellij.ui.components.JBCheckBox regenerateSupport = new com.intellij.ui.components.JBCheckBox(
+    private final JBCheckBox regenerateSupport = new JBCheckBox(
             StudioBundle.message("flowTest.regenerateSupport"), false);
-    private final com.intellij.ui.components.JBCheckBox refreshProperties = new com.intellij.ui.components.JBCheckBox(
+    private final JBCheckBox refreshProperties = new JBCheckBox(
             StudioBundle.message("flowTest.refreshProperties"), false);
     void setRefreshProperties(boolean selected) { refreshProperties.setSelected(selected); }
     boolean refreshProperties() { return refreshProperties.isSelected(); }
@@ -35,31 +35,31 @@ final class FlowTestsDialog extends StudioDialogWrapper {
         if (getWindow() != null) getWindow().pack();
     }
 
-    private final java.util.Set<String> sftpFlows;
-    private final com.intellij.ui.components.JBCheckBox localSftp = new com.intellij.ui.components.JBCheckBox(
+    private final Set<String> sftpFlows;
+    private final JBCheckBox localSftp = new JBCheckBox(
             StudioBundle.message("flowTest.localSftp"), true);
     boolean useLocalSftp() { return localSftp.isEnabled() && localSftp.isSelected(); }
-    private final java.util.Set<String> ftpFlows;
-    private final com.intellij.ui.components.JBCheckBox localFtp = new com.intellij.ui.components.JBCheckBox(
+    private final Set<String> ftpFlows;
+    private final JBCheckBox localFtp = new JBCheckBox(
             StudioBundle.message("flowTest.localFtp"), true);
-    private final java.util.Set<String> smtpFlows;
-    private final com.intellij.ui.components.JBCheckBox localSmtp = new com.intellij.ui.components.JBCheckBox(
+    private final Set<String> smtpFlows;
+    private final JBCheckBox localSmtp = new JBCheckBox(
             StudioBundle.message("flowTest.localSmtp"), true);
     boolean useLocalSmtp() { return localSmtp.isEnabled() && localSmtp.isSelected(); }
     boolean useLocalFtp() { return localFtp.isEnabled() && localFtp.isSelected(); }
     boolean regenerateSupport() { return regenerateSupport.isSelected() || useLocalFtp() || useLocalSmtp() || useLocalSftp(); }
 
 
-    FlowTestsDialog(Project project, String[] names, java.util.Set<String> ftpFlows, java.util.Set<String> smtpFlows, java.util.Set<String> sftpFlows) {
+    FlowTestsDialog(Project project, String[] names, Set<String> ftpFlows, Set<String> smtpFlows, Set<String> sftpFlows) {
         super(project);
-        this.sftpFlows = java.util.Set.copyOf(sftpFlows);
+        this.sftpFlows = Set.copyOf(sftpFlows);
         localSftp.setToolTipText(StudioBundle.message("flowTest.localSftp.help"));
         localSftp.addActionListener(e -> {
             if (staleSupport || useLocalFtp() || useLocalSmtp() || useLocalSftp()) regenerateSupport.setSelected(true);
             regenerateSupport.setEnabled(!(staleSupport || useLocalFtp() || useLocalSmtp() || useLocalSftp()));
         });
-        this.smtpFlows = java.util.Set.copyOf(smtpFlows);
-        this.ftpFlows = java.util.Set.copyOf(ftpFlows);
+        this.smtpFlows = Set.copyOf(smtpFlows);
+        this.ftpFlows = Set.copyOf(ftpFlows);
         localSmtp.setToolTipText(StudioBundle.message("flowTest.localSmtp.help"));
         localSmtp.addActionListener(e -> {
             if (staleSupport || useLocalFtp() || useLocalSmtp() || useLocalSftp()) regenerateSupport.setSelected(true);

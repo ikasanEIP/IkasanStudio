@@ -1,16 +1,18 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.migration.*;
-import org.junit.jupiter.api.Test;
+import java.util.List;
 import java.util.Map;
-import static org.junit.jupiter.api.Assertions.*;
+import org.ikasan.studio.core.migration.*;
 import org.ikasan.studio.core.migration.MigrationRules;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class UserImportMigrationTest {
     @Test void reportListsAffectedSourcesAndEndsWithNotes() {
-        String original = new ModelMigration.Plan("V3.3.9", "V4.1.6", "{}", "{}", java.util.List.of()).report();
+        String original = new ModelMigration.Plan("V3.3.9", "V4.1.6", "{}", "{}", List.of()).report();
         String path = "user/src/main/java/example/Converter.java";
-        String report = UserImportMigration.report(original, java.util.List.of(new MigrationWorkspace.Change(path, null, null)));
+        String report = UserImportMigration.report(original, List.of(new MigrationWorkspace.Change(path, null, null)));
         assertTrue(report.contains("User classes affected by recommended migration search and replace\n" + path));
         assertFalse(report.contains("IMPORT UPDATE:"));
         assertFalse(report.contains("User import migration:"));
@@ -20,7 +22,7 @@ class UserImportMigrationTest {
                 Files with Unicode escapes are left unchanged.
                 To revert this migration, use Tools → Ikasan Studio → Restore Previous Ikasan Migration…
                 """));
-        assertTrue(UserImportMigration.report(original, java.util.List.of()).contains("search and replace\nNone.\n"));
+        assertTrue(UserImportMigration.report(original, List.of()).contains("search and replace\nNone.\n"));
         assertTrue(original.endsWith("To revert this migration, use Tools → Ikasan Studio → Restore Previous Ikasan Migration…\n"));
     }
 

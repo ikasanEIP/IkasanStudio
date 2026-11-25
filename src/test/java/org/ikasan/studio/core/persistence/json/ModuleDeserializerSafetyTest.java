@@ -1,5 +1,9 @@
 package org.ikasan.studio.core.persistence.json;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.generator.TestUtils;
 import org.ikasan.studio.core.io.ComponentIO;
@@ -8,11 +12,11 @@ import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.nio.file.Path;
 
 class ModuleDeserializerSafetyTest {
     @BeforeAll
@@ -44,16 +48,16 @@ class ModuleDeserializerSafetyTest {
     }
 
     @Test
-    void truncatedAndMalformedModelBytesRemainAvailableForRecovery(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
+    void truncatedAndMalformedModelBytesRemainAvailableForRecovery(@TempDir Path directory) throws Exception {
         String valid = fixture();
-        for (String damaged : java.util.List.of(valid.substring(0, valid.length() / 2), "{\"flows\": [}", "")) {
+        for (String damaged : List.of(valid.substring(0, valid.length() / 2), "{\"flows\": [}", "")) {
             Path model = directory.resolve("model.json");
-            java.nio.file.Files.writeString(model, damaged);
+            Files.writeString(model, damaged);
             assertThrows(StudioBuildException.class,
                     () -> ComponentIO.deserializeModuleInstanceString(damaged, "failure injection"));
-            assertThrows(java.io.IOException.class, () -> ProtectedModelFileWriter.write(model, valid,
+            assertThrows(IOException.class, () -> ProtectedModelFileWriter.write(model, valid,
                     json -> ComponentIO.deserializeModuleInstanceString(json, "protected write")));
-            assertEquals(damaged, java.nio.file.Files.readString(model));
+            assertEquals(damaged, Files.readString(model));
         }
     }
 

@@ -1,21 +1,26 @@
 package org.ikasan.studio.testing.packs;
 
+import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 import com.icegreen.greenmail.util.ServerSetup;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.io.TempDir;
-import java.nio.file.*;
-import java.net.*;
-import java.time.Duration;
-import java.util.List;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import static org.junit.jupiter.api.Assertions.*;
 import java.lang.reflect.Method;
+import java.net.*;
 import java.net.Socket;
 import java.net.URLClassLoader;
+import java.nio.file.*;
+import java.time.Duration;
+import java.util.List;
+import javax.mail.Part;
+import org.junit.Assert;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class LocalSmtpFlowTestFixtureTest {
     @TempDir Path root;
@@ -26,7 +31,7 @@ class LocalSmtpFlowTestFixtureTest {
         Files.writeString(source, Files.readString(Path.of("src/main/resources/studio/metapack", pack,
                 "templates/org/ikasan/studio/generator/localSmtpTestServerTemplate_en.ftl")));
         String classpath = String.join(File.pathSeparator, List.of(
-                location(com.icegreen.greenmail.util.GreenMail.class), location(javax.mail.Part.class), location(org.junit.Assert.class)));
+                location(GreenMail.class), location(Part.class), location(Assert.class)));
         Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", pack.equals("V3.3.9") ? "11" : "17", "-cp", classpath, "-d", root.toString(), source.toString()).redirectErrorStream(true).start();
         String diagnostics = new String(compiler.getInputStream().readAllBytes());
@@ -76,7 +81,7 @@ class LocalSmtpFlowTestFixtureTest {
             }
         }
         try (Socket socket = new Socket()) {
-            assertThrows(java.io.IOException.class, () -> socket.connect(new InetSocketAddress("127.0.0.1", port), 200));
+            assertThrows(IOException.class, () -> socket.connect(new InetSocketAddress("127.0.0.1", port), 200));
         }
     }
     private static String location(Class<?> type) {

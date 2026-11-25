@@ -1,14 +1,16 @@
 package org.ikasan.studio.testing.packs;
 
+import java.util.ArrayList;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import java.util.ArrayList;
+
 import static org.assertj.core.api.Assertions.*;
 
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 class TrustedObjectPackagesTemplateTest extends AbstractGeneratorTestFixtures {
     static FlowElement jms(String pack, String role) throws Exception {
         FlowElement component = FlowElement.flowElementBuilder()

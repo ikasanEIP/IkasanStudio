@@ -1,6 +1,9 @@
 package org.ikasan.studio.ui.actions;
 
 import com.intellij.openapi.project.Project;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Locale;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
@@ -11,16 +14,13 @@ import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.FlowClipboard;
 import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Locale;
 
 /** Creates a visible, disposable JMS sink flow for exercising a producer against its real broker settings. */
 public class CreateTestJmsConsumerFlowAction implements ActionListener {
@@ -121,7 +121,7 @@ public class CreateTestJmsConsumerFlowAction implements ActionListener {
 
     private static boolean containsFlowNamed(Module module, String name) {
         // Compare generated Java names too: "Test a.b" and "Test a b" are different text but the same class.
-        return !org.ikasan.studio.core.persistence.json.FlowClipboard.nameAvailable(module, name);
+        return !FlowClipboard.nameAvailable(module, name);
     }
 
     private static String stringValue(FlowElement element, String propertyName) {

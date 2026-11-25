@@ -1,30 +1,30 @@
 package org.ikasan.studio.core.importer;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseResult;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.ReturnStmt;
-import org.ikasan.studio.core.generator.*;
-import org.ikasan.studio.core.io.ComponentIO;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.javaparser.ParseResult;
-import com.github.javaparser.ast.ImportDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.Expression;
 import java.util.List;
 import java.util.Map.Entry;
+import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate;
+import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.StudioJson;
 
 /** Reviewed recovery of pack-declared class-valued builder arguments; never executes original code. */
 public final class SourceBuilderSettingsRecovery {
@@ -37,7 +37,7 @@ public final class SourceBuilderSettingsRecovery {
         String model = read(analysis.destinationRoot(), ProjectArtifactRenderer.MODEL);
         if (model == null) return null;
         // Source import also supports non-Studio projects/tests without a complete saved design.
-        JsonNode tree = org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper().readTree(model);
+        JsonNode tree = StudioJson.newObjectMapper().readTree(model);
         if (!tree.has("modelFormat")) return null;
         Module module = ComponentIO.validatePersistedModuleJson(model, "builder settings source review", false);
         JavaParser parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE));
@@ -72,7 +72,7 @@ public final class SourceBuilderSettingsRecovery {
             for (FlowElement component : flow.getFlowElementsNoExternalEndPoints()) {
                 ComponentMeta meta = component.getComponentMeta();
                 if (!meta.isUsesBuilderInFactory()) continue;
-                List<MethodDeclaration> methods = unit.findAll(com.github.javaparser.ast.body.MethodDeclaration.class).stream()
+                List<MethodDeclaration> methods = unit.findAll(MethodDeclaration.class).stream()
                         .filter(m -> m.getNameAsString().equals("get" + component.getJavaClassName()) && m.getParameters().isEmpty()).toList();
                 if (methods.size() != 1) continue;
                 List<ReturnStmt> returns = methods.get(0).findAll(ReturnStmt.class);

@@ -1,18 +1,18 @@
 package org.ikasan.studio.intellij.migration;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.StudioBundle;
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
 
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
 final class MigrationTargetDialog extends StudioDialogWrapper {
-    private final JCheckBox updateImports = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("migration.updateUserImports"), true);
+    private final JCheckBox updateImports = new JBCheckBox(StudioBundle.message("migration.updateUserImports"), true);
     private final String current;
     private final ComboBox<String> versions;
 

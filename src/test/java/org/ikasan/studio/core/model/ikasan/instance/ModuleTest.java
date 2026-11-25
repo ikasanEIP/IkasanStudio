@@ -1,19 +1,23 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import com.google.re2j.Pattern;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+import javax.swing.*;
 import org.apache.maven.model.Dependency;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioComparitors;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.ikasan.studio.core.TestFixtures.*;
@@ -28,14 +32,14 @@ class ModuleTest {
         ComponentLibrary.refreshComponentLibrary(BASE_META_PACK);
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
+    @ParameterizedTest
+    @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void h2DefaultsFollowHttpOnlyWhileUnset(String pack) throws Exception {
         Module module = new Module(pack);
         module.setPort("12410"); module.defaultUnsetMandatoryProperties();
         assertEquals("12411", module.getH2PortNumber()); assertEquals("12412", module.getH2WebPortNumber());
         assertTrue(module.hasAutomaticH2Default("h2DbPortNumber"));
-        assertFalse(org.ikasan.studio.core.io.ComponentIO.toJson(module).contains("automaticH2Defaults"));
+        assertFalse(ComponentIO.toJson(module).contains("automaticH2Defaults"));
         module.setPort("12500"); module.defaultUnsetMandatoryProperties();
         assertEquals("12411", module.getH2PortNumber()); assertEquals("12412", module.getH2WebPortNumber());
         module.setH2DbPortNumber("23000"); module.setH2WebPortNumber(null); module.defaultUnsetMandatoryProperties();
@@ -76,7 +80,7 @@ class ModuleTest {
                         .ignoringFields("jarDependencies", "iconResourceDirectory", "allowableProperties.version.choices")
                         .withEqualsForType(StudioComparitors::imageIconsEqual, Icon.class)
                         // com.google.re2j.Pattern has no equals(), so compare validation patterns by their text.
-                        .withComparatorForType(java.util.Comparator.nullsFirst(java.util.Comparator.comparing(com.google.re2j.Pattern::pattern)), com.google.re2j.Pattern.class)
+                        .withComparatorForType(Comparator.nullsFirst(Comparator.comparing(Pattern::pattern)), Pattern.class)
                         .isEqualTo(oldModule.getComponentMeta()),
                 () -> assertEquals(jarDependenciesOld, new TreeSet<>(oldModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString()),
                 () -> assertEquals(jarDependenciesNew, new TreeSet<>(newModule.getComponentMeta().getJarDependencies().stream().map(Dependency::toString).collect(Collectors.toList())).toString())

@@ -1,6 +1,13 @@
 package org.ikasan.studio.core.model.ikasan.instance;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.regex.Pattern;
+import javax.swing.*;
 import org.apache.maven.model.Dependency;
+import org.assertj.core.api.Assertions;
 import org.ikasan.studio.SharedResourceExtension;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioComparitors;
@@ -9,13 +16,6 @@ import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
@@ -627,7 +627,7 @@ class FlowRouteTest {
         // An empty branch may be removed, but a populated one must never disappear silently.
         assertThat(root.validateChildRouteNames(List.of("odd"))).contains("contains components");
         router.setPropertyValue(ComponentPropertyMeta.ROUTE_NAMES, List.of("odd"));
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> root.syncChildRoutesForRouter(BASE_META_PACK, router))
+        Assertions.assertThatThrownBy(() -> root.syncChildRoutesForRouter(BASE_META_PACK, router))
                 .isInstanceOf(StudioBuildException.class);
         assertThat(root.getChildRoutes()).containsExactly(second, first);
         router.setPropertyValue(ComponentPropertyMeta.ROUTE_NAMES, List.of("even"));

@@ -4,26 +4,16 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.ui.UiContext;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.terminal.ui.TerminalWidget;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
-import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
-import org.jetbrains.plugins.terminal.TerminalToolWindowFactory;
-import org.jetbrains.plugins.terminal.TerminalToolWindowManager;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -31,11 +21,24 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Locale;
+import org.ikasan.studio.core.model.analysis.TestMailServerLinks;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.intellij.configuration.HarnessOverridesDialog;
+import org.ikasan.studio.intellij.runtime.HarnessEndpointSettings;
+import org.ikasan.studio.intellij.runtime.TestMailServerSessionService;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
+import org.jetbrains.plugins.terminal.TerminalToolWindowFactory;
+import org.jetbrains.plugins.terminal.TerminalToolWindowManager;
 
 /**
  * Downloads (once, cached under PathManager's system directory - no existing per-plugin cache convention in
@@ -79,13 +82,13 @@ public class StartTestMailServerAction implements ActionListener {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestMailServerUnsavedProperties"));
             return;
         }
-        if (!org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.enabled(project, flowElement)
+        if (!HarnessEndpointSettings.enabled(project, flowElement)
                 && TestMailServerLinks.needsLocalConfiguration(flowElement)) {
-            org.ikasan.studio.intellij.configuration.HarnessOverridesDialog.show(project);
+            HarnessOverridesDialog.show(project);
             return;
         }
-        String smtpHost = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.mailHost(project, flowElement);
-        int smtpPort = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.mailPort(project, flowElement);
+        String smtpHost = HarnessEndpointSettings.mailHost(project, flowElement);
+        int smtpPort = HarnessEndpointSettings.mailPort(project, flowElement);
         String smtpAddress = smtpHost + ":" + smtpPort;
         String uiUrl = "http://" + TestMailServerSupport.UI_HOST + ":" + TestMailServerSupport.UI_PORT;
 
@@ -236,8 +239,8 @@ public class StartTestMailServerAction implements ActionListener {
     }
 
     static String mailHogAssetName(String osName, String archName) throws UnsupportedPlatformException {
-        String os = osName.toLowerCase(java.util.Locale.ROOT);
-        String arch = archName.toLowerCase(java.util.Locale.ROOT);
+        String os = osName.toLowerCase(Locale.ROOT);
+        String arch = archName.toLowerCase(Locale.ROOT);
         boolean is64Bit = arch.contains("64");
         if (os.startsWith("windows")) {
             return is64Bit ? "MailHog_windows_amd64.exe" : "MailHog_windows_386.exe";
@@ -296,7 +299,7 @@ public class StartTestMailServerAction implements ActionListener {
             String command = quotedBinaryPath + " " + TestMailServerSupport.smtpBindAddrArgument(smtpHost + ":" + smtpPort)
                     + " -api-bind-addr " + uiAddress + " -ui-bind-addr " + uiAddress;
             terminalWidget.sendCommandToExecute(command);
-            java.util.Arrays.stream(contentManager.getContents())
+            Arrays.stream(contentManager.getContents())
                     .filter(content -> TerminalToolWindowManager.findWidgetByContent(content) == terminalWidget)
                     .findFirst().ifPresent(ownedTab ->
                             project.getService(TestMailServerSessionService.class).registerOwned(smtpHost, smtpPort, () -> {

@@ -1,31 +1,56 @@
 package org.ikasan.studio.intellij.project;
 
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.HeavyPlatformTestCase;
-import org.ikasan.studio.StudioRuntimeException;
-
-import java.nio.charset.StandardCharsets;
-
-import static org.junit.Assert.assertNotEquals;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.IndexNotReadyException;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
+import com.intellij.testFramework.DumbModeTestUtils;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystemException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.LockSupport;
+import org.ikasan.studio.StudioRuntimeException;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.AiProjectContractGenerator;
+import org.ikasan.studio.core.generator.GeneratorUtils;
+import org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate;
+import org.ikasan.studio.core.generator.StudioAiSkillTemplates;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.ProtectedModelFileWriter;
 import org.ikasan.studio.intellij.project.GenerationTransactionManager.Snapshot;
+import org.mockito.ArgumentMatchers;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+
+import static org.junit.Assert.assertNotEquals;
 
 /** Exercises the file-ownership and all-or-nothing guarantees against a real project VFS. */
 public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase {
@@ -49,20 +74,20 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
     
     public void testScheduledProviderIsCreatedInUserAndSurvivesRegeneration() throws Exception {
         String pack = "V3.3.9";
-        Module module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(pack, new java.util.ArrayList<>());
-        Flow flow = org.ikasan.studio.core.TestFixtures.getUnbuiltFlow(pack).build();
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
+        Flow flow = TestFixtures.getUnbuiltFlow(pack).build();
         module.addFlow(flow);
-        FlowElement consumer = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(pack,
-                org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Scheduled Consumer"),
+        FlowElement consumer = FlowElementFactory.createFlowElement(pack,
+                ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Scheduled Consumer"),
                 flow, flow.getFlowRoute(), "Clock");
         consumer.setPropertyValue("messageProvider", "Samples");
         flow.setConsumer(consumer);
-        String pkg = org.ikasan.studio.core.generator.GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
+        String pkg = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
         String userPath = "user/src/main/java/" + pkg.replace('.', '/') + "/Samples.java";
         Method method = GeneratedProjectSynchronizer.class.getDeclaredMethod("generateAndSaveUserImplementClassStubsForFlow",
-                com.intellij.openapi.project.Project.class,
-                org.ikasan.studio.core.model.ikasan.instance.Module.class,
-                org.ikasan.studio.core.model.ikasan.instance.Flow.class);
+                Project.class,
+                Module.class,
+                Flow.class);
         method.setAccessible(true);
         GeneratedProjectSynchronizer synchronizer = new GeneratedProjectSynchronizer(myProject);
         GenerationTransactionManager.begin();
@@ -100,33 +125,33 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
     }
 
     public void testStartupGuidanceExistsBeforeAnyGenerationAndPreservesCustomisations() throws Exception {
-        assertTrue(com.intellij.openapi.application.ApplicationManager.getApplication().isDispatchThread());
+        assertTrue(ApplicationManager.getApplication().isDispatchThread());
         String basePath = myProject.getBasePath();
         assertNotNull("Test project must have a base path", basePath);
-        java.nio.file.Path root = java.nio.file.Path.of(basePath);
+        Path root = Path.of(basePath);
         // The production worker asserts it is not on the EDT. Waiting here does not need EDT work
         // because its VFS refresh is asynchronous, so this also catches accidental invokeAndWait.
-        StudioProjectFiles.createStartupGuidanceIfMissing(myProject).get(10, java.util.concurrent.TimeUnit.SECONDS);
-        String path = org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.FILE_NAME;
-        assertEquals(org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.content(),
-                java.nio.file.Files.readString(root.resolve(path)));
-        assertEquals(org.ikasan.studio.core.generator.AiProjectContractGenerator.agentsGuide(),
-                java.nio.file.Files.readString(root.resolve("AGENTS.md")));
-        for (Entry<String,String> entry : org.ikasan.studio.core.generator.StudioAiSkillTemplates.files().entrySet()) {
-            assertEquals(entry.getValue(), java.nio.file.Files.readString(root.resolve(entry.getKey())));
+        StudioProjectFiles.createStartupGuidanceIfMissing(myProject).get(10, TimeUnit.SECONDS);
+        String path = LocalTestEnvironmentTemplate.FILE_NAME;
+        assertEquals(LocalTestEnvironmentTemplate.content(),
+                Files.readString(root.resolve(path)));
+        assertEquals(AiProjectContractGenerator.agentsGuide(),
+                Files.readString(root.resolve("AGENTS.md")));
+        for (Entry<String,String> entry : StudioAiSkillTemplates.files().entrySet()) {
+            assertEquals(entry.getValue(), Files.readString(root.resolve(entry.getKey())));
         }
-        java.nio.file.Files.writeString(root.resolve(path), "My local settings");
-        java.nio.file.Files.writeString(root.resolve("AGENTS.md"), "Team instructions");
+        Files.writeString(root.resolve(path), "My local settings");
+        Files.writeString(root.resolve("AGENTS.md"), "Team instructions");
         CompletableFuture<Void> first = StudioProjectFiles.createStartupGuidanceIfMissing(myProject);
         CompletableFuture<Void> second = StudioProjectFiles.createStartupGuidanceIfMissing(myProject);
-        java.util.concurrent.CompletableFuture.allOf(first, second).get(10, java.util.concurrent.TimeUnit.SECONDS);
-        assertEquals("My local settings", java.nio.file.Files.readString(root.resolve(path)));
-        assertEquals("Team instructions", java.nio.file.Files.readString(root.resolve("AGENTS.md")));
+        CompletableFuture.allOf(first, second).get(10, TimeUnit.SECONDS);
+        assertEquals("My local settings", Files.readString(root.resolve(path)));
+        assertEquals("Team instructions", Files.readString(root.resolve("AGENTS.md")));
     }
 
     public void testLocalEnvironmentTemplateIsCreatedOnceAndPreservesDeveloperEdits() throws Exception {
-        String path = org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.FILE_NAME;
-        String template = org.ikasan.studio.core.generator.LocalTestEnvironmentTemplate.content();
+        String path = LocalTestEnvironmentTemplate.FILE_NAME;
+        String template = LocalTestEnvironmentTemplate.content();
         VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);
         GenerationTransactionManager.begin();
@@ -137,10 +162,10 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         StudioProjectFiles.createFileWithDirectories(myProject, path, "Developer test settings", null);
         VirtualFile file = base.findFileByRelativePath(path);
         assertNotNull(path, file);
-        FileDocumentManager documents = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
+        FileDocumentManager documents = FileDocumentManager.getInstance();
         Document document = documents.getDocument(file);
         assertNotNull(document);
-        com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction(myProject,
+        WriteCommandAction.runWriteCommandAction(myProject,
                 () -> document.setText("Unsaved developer settings"));
         GenerationTransactionManager.begin();
         StudioProjectFiles.createFileWithDirectoriesIfMissing(myProject, path, template);
@@ -153,7 +178,7 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
     public void testProjectSkillFilesAreCreatedAndCustomisationsSurviveGeneration() throws Exception {
         VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);
-        Map<String,String> files = org.ikasan.studio.core.generator.StudioAiSkillTemplates.files();
+        Map<String,String> files = StudioAiSkillTemplates.files();
         GenerationTransactionManager.begin();
         files.forEach((path, content) -> StudioProjectFiles.createFileWithDirectoriesIfMissing(myProject, path, content));
         GenerationTransactionManager.commit(myProject);
@@ -230,7 +255,7 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         StudioProjectFiles.createFileWithDirectories(myProject, "generated/new.txt", "new", null);
         StudioProjectFiles.createFileWithDirectories(myProject, "generated/fails.txt", "cannot fit", null);
         StudioRuntimeException diskFullFailure = expectGenerationFailure(() -> GenerationTransactionManager.commit(myProject, (path, index) -> {
-            if (index == 2) throw new java.nio.file.FileSystemException(path, null, "No space left on device");
+            if (index == 2) throw new FileSystemException(path, null, "No space left on device");
         }));
         assertTrue(diskFullFailure.getMessage().contains("previously existing generated files were restored"));
         assertEquals("original", read(base, "generated/existing.txt"));
@@ -250,7 +275,7 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         GenerationTransactionManager.begin();
         StudioProjectFiles.createFileWithDirectories(myProject, "generated/existing.txt", "replacement", null);
         StudioRuntimeException accessDeniedFailure = expectGenerationFailure(() -> GenerationTransactionManager.commit(myProject, (path, index) -> {
-            throw new java.nio.file.AccessDeniedException(path);
+            throw new AccessDeniedException(path);
         }));
         assertTrue(accessDeniedFailure.getMessage().contains("previously existing generated files were restored"));
         assertEquals("original", read(base, "generated/existing.txt"));
@@ -260,57 +285,59 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);
         StudioProjectFiles.createFileWithDirectories(myProject, "user/owned.txt", "developer", null);
-        Path model = java.nio.file.Path.of(base.getPath(), "generated", "concurrent-model.json");
-        java.nio.file.Files.createDirectories(model.getParent());
-        java.nio.file.Files.writeString(model, "{\"revision\":0}");
-        CountDownLatch started = new java.util.concurrent.CountDownLatch(1);
-        ExecutorService pool = java.util.concurrent.Executors.newSingleThreadExecutor();
+        Path model = Path.of(base.getPath(), "generated", "concurrent-model.json");
+        Files.createDirectories(model.getParent());
+        Files.writeString(model, "{\"revision\":0}");
+        CountDownLatch started = new CountDownLatch(1);
+        ExecutorService pool = Executors.newSingleThreadExecutor();
         try {
             GenerationTransactionManager.begin();
             StudioProjectFiles.createFileWithDirectories(myProject, "generated/concurrent.txt", "generated", null);
             Future<?> saves = pool.submit(() -> {
                 started.countDown();
                 try {
-                    ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    ObjectMapper mapper = new ObjectMapper();
                     for (int i = 1; i <= 20; i++) {
-                        org.ikasan.studio.core.persistence.json.ProtectedModelFileWriter.write(model,
+                        ProtectedModelFileWriter.write(model,
                                 "{\"revision\":" + i + "}", mapper::readTree);
                     }
                 } catch (Exception e) { throw new RuntimeException(e); }
             });
-            assertTrue(started.await(5, java.util.concurrent.TimeUnit.SECONDS));
+            assertTrue(started.await(5, TimeUnit.SECONDS));
             GenerationTransactionManager.commit(myProject);
-            saves.get(10, java.util.concurrent.TimeUnit.SECONDS);
-            assertEquals("{\"revision\":20}", java.nio.file.Files.readString(model));
-            assertEquals("{\"revision\":19}", java.nio.file.Files.readString(model.resolveSibling("concurrent-model.json.bak.1")));
+            saves.get(10, TimeUnit.SECONDS);
+            assertEquals("{\"revision\":20}", Files.readString(model));
+            assertEquals("{\"revision\":19}", Files.readString(model.resolveSibling("concurrent-model.json.bak.1")));
             assertEquals("generated", read(base, "generated/concurrent.txt"));
             assertEquals("developer", read(base, "user/owned.txt"));
         } finally { pool.shutdownNow(); }
     }
 
     public void testIndexAccessFailureDuringShorteningKeepsOriginalJavaSource() throws Exception {
-        JavaCodeStyleManager style = org.mockito.Mockito.mock(com.intellij.psi.codeStyle.JavaCodeStyleManager.class);
-        org.mockito.Mockito.when(style.shortenClassReferences(org.mockito.ArgumentMatchers.any(com.intellij.psi.PsiElement.class)))
-                .thenThrow(com.intellij.openapi.project.IndexNotReadyException.create());
-        try (MockedStatic<JavaCodeStyleManager> styles = org.mockito.Mockito.mockStatic(com.intellij.psi.codeStyle.JavaCodeStyleManager.class)) {
-            styles.when(() -> com.intellij.psi.codeStyle.JavaCodeStyleManager.getInstance(myProject)).thenReturn(style);
+        JavaCodeStyleManager style = Mockito.mock(JavaCodeStyleManager.class);
+        Mockito.when(style.shortenClassReferences(ArgumentMatchers.any(PsiElement.class)))
+                .thenThrow(IndexNotReadyException.create());
+        try (MockedStatic<JavaCodeStyleManager> styles = Mockito.mockStatic(JavaCodeStyleManager.class)) {
+            styles.when(() -> JavaCodeStyleManager.getInstance(myProject)).thenReturn(style);
             String path = "generated/src/main/java/example/IndexRace.java";
             String source = "package example; public class IndexRace { java.util.List<String> values; }";
             GenerationTransactionManager.begin();
             StudioProjectFiles.createFileWithDirectories(myProject, path, source, null);
             assertEquals(1, GenerationTransactionManager.commit(myProject).created());
-            assertEquals(source, read(StudioProjectFiles.getProjectBaseDir(myProject), path));
-            org.mockito.Mockito.verify(style).shortenClassReferences(org.mockito.ArgumentMatchers.any(com.intellij.psi.PsiElement.class));
+            VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
+            assertNotNull(base);
+            assertEquals(source, read(base, path));
+            Mockito.verify(style).shortenClassReferences(ArgumentMatchers.any(PsiElement.class));
         }
     }
 
-    public void testJavaGenerationCommitsWhileIndexingWithoutChangingSource() throws Exception {
+    public void testJavaGenerationCommitsWhileIndexingWithoutChangingSource() {
         VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);
         String path = "generated/src/main/java/example/Imported.java";
         String source = "package example; public class Imported { java.util.List<String> values; }";
         StudioProjectFiles.createFileWithDirectories(myProject, "generated/import-state.txt", "before", null);
-        com.intellij.testFramework.DumbModeTestUtils.runInDumbModeSynchronously(myProject, () -> {
+        DumbModeTestUtils.runInDumbModeSynchronously(myProject, () -> {
             GenerationTransactionManager.begin();
             StudioProjectFiles.createFileWithDirectories(myProject, "generated/import-state.txt", "after", null);
             StudioProjectFiles.createFileWithDirectories(myProject, path, source, null);
@@ -339,9 +366,9 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         assertEquals(initialStamp, file.getModificationStamp());
         assertEquals(formatted, read(base, path));
 
-        com.intellij.openapi.application.WriteAction.run(() -> {
+        WriteAction.run(() -> {
             try { file.setBinaryContent((formatted + "\n// external generated-file edit\n").getBytes(StandardCharsets.UTF_8)); }
-            catch (java.io.IOException e) { throw new RuntimeException(e); }
+            catch (IOException e) { throw new RuntimeException(e); }
         });
         StudioProjectFiles.createFileWithDirectories(myProject, path, source, null);
         assertFalse(read(base, path).contains("external generated-file edit"));
@@ -360,35 +387,35 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         VirtualFile second = base.findFileByRelativePath(secondPath);
         assertNotNull(first);
         assertNotNull(second);
-        CountDownLatch reachedSecond = new java.util.concurrent.CountDownLatch(1);
-        AtomicBoolean firstAttempt = new java.util.concurrent.atomic.AtomicBoolean(true);
-        AtomicBoolean writeFinished = new java.util.concurrent.atomic.AtomicBoolean();
+        CountDownLatch reachedSecond = new CountDownLatch(1);
+        AtomicBoolean firstAttempt = new AtomicBoolean(true);
+        AtomicBoolean writeFinished = new AtomicBoolean();
         // Pause after the first rollback entry has been collected. A real pending EDT write
         // cancels the read; its retry must discard that partial list and read the new bytes.
-        VirtualFile observedBase = org.mockito.Mockito.spy(base);
-        org.mockito.Mockito.doAnswer(invocation -> {
+        VirtualFile observedBase = Mockito.spy(base);
+        Mockito.doAnswer(invocation -> {
             if (firstAttempt.compareAndSet(true, false)) {
                 reachedSecond.countDown();
-                long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(10);
+                long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
                 while (!writeFinished.get()) {
-                    com.intellij.openapi.progress.ProgressManager.checkCanceled();
+                    ProgressManager.checkCanceled();
                     if (System.nanoTime() > deadline) throw new AssertionError("Pending write did not cancel the read");
-                    java.util.concurrent.locks.LockSupport.parkNanos(java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(1));
+                    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(1));
                 }
             }
             return second;
         }).when(observedBase).findFileByRelativePath(secondPath);
-        Future<List<Snapshot>> future = com.intellij.openapi.application.ApplicationManager.getApplication().executeOnPooledThread(() ->
-                GenerationTransactionManager.prepareSnapshots(myProject, observedBase, java.util.List.of(
+        Future<List<Snapshot>> future = ApplicationManager.getApplication().executeOnPooledThread(() ->
+                GenerationTransactionManager.prepareSnapshots(myProject, observedBase, List.of(
                         new GenerationBatch.Artifact(firstPath, "replacement", null),
                         new GenerationBatch.Artifact(secondPath, "replacement", null))));
         try {
-            assertTrue("Read must reach the second artifact", reachedSecond.await(10, java.util.concurrent.TimeUnit.SECONDS));
-            com.intellij.openapi.application.WriteAction.run(() -> {
+            assertTrue("Read must reach the second artifact", reachedSecond.await(10, TimeUnit.SECONDS));
+            WriteAction.run(() -> {
                 first.setBinaryContent("after write".getBytes(StandardCharsets.UTF_8));
                 writeFinished.set(true);
             });
-            List<Snapshot> snapshots = future.get(10, java.util.concurrent.TimeUnit.SECONDS);
+            List<Snapshot> snapshots = future.get(10, TimeUnit.SECONDS);
             assertEquals("An interrupted attempt must not leave extra rollback entries", 2, snapshots.size());
             assertEquals("after write", new String(snapshots.get(0).bytes(), StandardCharsets.UTF_8));
             assertEquals("second", new String(snapshots.get(1).bytes(), StandardCharsets.UTF_8));
@@ -405,14 +432,14 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         String path = "generated/snapshot.txt";
         StudioProjectFiles.createFileWithDirectories(myProject, path, "original", null);
         List<Snapshot> snapshots = GenerationTransactionManager.prepareSnapshots(myProject, base,
-                java.util.List.of(new GenerationBatch.Artifact(path, "replacement", null)));
+                List.of(new GenerationBatch.Artifact(path, "replacement", null)));
         assertEquals("original", new String(snapshots.get(0).bytes(), StandardCharsets.UTF_8));
         snapshots.get(0).verifyUnchanged(base);
         VirtualFile file = base.findFileByRelativePath(path);
         assertNotNull(path, file);
-        com.intellij.openapi.application.WriteAction.run(() -> {
+        WriteAction.run(() -> {
             try { file.setBinaryContent("external edit".getBytes(StandardCharsets.UTF_8)); }
-            catch (java.io.IOException e) { throw new RuntimeException(e); }
+            catch (IOException e) { throw new RuntimeException(e); }
         });
         assertTrue(expectGenerationFailure(() -> snapshots.get(0).verifyUnchanged(base)).getMessage().contains("File changed"));
         assertEquals("external edit", read(base, path));

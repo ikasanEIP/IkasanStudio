@@ -1,21 +1,22 @@
 package org.ikasan.studio.testing.packs;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate;
+import org.ikasan.studio.core.generator.HarnessOverridesTemplate;
 import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides;
 import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.Link;
 import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
-import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.Link;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class TestJmsDiversionTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
@@ -47,11 +48,11 @@ class TestJmsDiversionTest extends AbstractGeneratorTestFixtures {
         assertEquals("originalQueue", producer.getPropertyValue("destinationJndiName"));
         assertEquals("originalQueue", consumer.getPropertyValue("destinationJndiName"));
         assertTrue(JmsFlowConnections.findMatchingLinks(module).isEmpty());
-        String id = org.ikasan.studio.core.model.analysis.HarnessOverrides.id(producer);
+        String id = HarnessOverrides.id(producer);
         String override = "\"" + id + "\", \"JMS\"";
         assertTrue(FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, upstream).contains(override));
         assertTrue(FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, harness).contains(override));
-        assertTrue(org.ikasan.studio.core.generator.HarnessOverridesTemplate.create(module).contains(privateDestination));
+        assertTrue(HarnessOverridesTemplate.create(module).contains(privateDestination));
         assertTrue(JmsFlowConnections.findMatchingLinks(module, element -> false).stream()
                 .anyMatch(l -> l.producer() == producer && l.consumer() == consumer));
         assertEquals(downstreamWiring, FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, downstream));

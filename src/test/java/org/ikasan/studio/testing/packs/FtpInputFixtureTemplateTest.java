@@ -1,16 +1,20 @@
 package org.ikasan.studio.testing.packs;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import java.nio.file.*;
-import java.net.URLClassLoader;
-import java.net.URL;
 import java.lang.reflect.InvocationTargetException;
-import static org.junit.jupiter.api.Assertions.*;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class FtpInputFixtureTemplateTest {
     @TempDir Path root;
@@ -26,7 +30,7 @@ class FtpInputFixtureTemplateTest {
         Files.writeString(source, template);
         Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", "11", "-d", root.toString(), source.toString(), shared.toString()).redirectErrorStream(true).start();
-        String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        String diagnostics = new String(compiler.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
         try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
             Method write = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FtpInputFixture")
@@ -78,7 +82,7 @@ class FtpInputFixtureTemplateTest {
             Path published = (Path) publish.invoke(null, scanned, "input/orders-2.csv");
             assertTrue(matcher.matches(published.getFileName()));
             try (Stream<Path> scan = Files.walk(scanned)) {
-                assertEquals(java.util.List.of(published), scan.filter(path -> matcher.matches(path.getFileName())).toList());
+                assertEquals(List.of(published), scan.filter(path -> matcher.matches(path.getFileName())).toList());
             }
             assertArrayEquals(Files.readAllBytes(resources.resolve("orders-2.csv")), Files.readAllBytes(published));
             Files.delete(published);
@@ -94,8 +98,8 @@ class FtpInputFixtureTemplateTest {
             String[] paths = {"/input/first[1].xml", "/input/second.xml"};
             String expression = (String) pattern.invoke(null, localHome, paths);
             String filenameRegex = expression.substring(expression.lastIndexOf('/') + 1);
-            assertTrue(java.util.regex.Pattern.matches(filenameRegex, "first[1].xml"));
-            assertFalse(java.util.regex.Pattern.matches(filenameRegex, "first1.xml"));
+            assertTrue(Pattern.matches(filenameRegex, "first[1].xml"));
+            assertFalse(Pattern.matches(filenameRegex, "first1.xml"));
             Files.writeString(localHome.resolve("keep.txt"), "unrelated");
             prepare.invoke(null, localHome, 1, paths);
             assertEquals("first XML", Files.readString(localHome.resolve("first[1].xml")));

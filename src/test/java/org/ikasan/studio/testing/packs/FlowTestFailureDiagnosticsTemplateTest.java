@@ -1,13 +1,15 @@
 package org.ikasan.studio.testing.packs;
 
+import java.net.*;
+import java.net.URLClassLoader;
+import java.nio.file.*;
+import java.util.concurrent.TimeUnit;
+import org.junit.Assert;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import java.nio.file.*;
-import java.net.*;
-import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
-import java.net.URLClassLoader;
 
 class FlowTestFailureDiagnosticsTemplateTest {
     @TempDir Path root;
@@ -203,7 +205,7 @@ class FlowTestFailureDiagnosticsTemplateTest {
                     }
                 }
                 """);
-        URL junitResource = org.junit.Assert.class.getResource("/org/junit/Assert.class");
+        URL junitResource = Assert.class.getResource("/org/junit/Assert.class");
         assertNotNull(junitResource, "JUnit Assert.class must be available to compile the diagnostics probe");
         String resource = junitResource.toExternalForm();
         String junit = Path.of(URI.create(resource.substring(4, resource.indexOf("!/")))).toString();

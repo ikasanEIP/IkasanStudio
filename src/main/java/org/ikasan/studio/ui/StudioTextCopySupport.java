@@ -2,28 +2,32 @@ package org.ikasan.studio.ui;
 
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.SystemInfo;
-
-import javax.swing.*;
-import javax.swing.plaf.basic.BasicHTML;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.parser.ParserDelegator;
 import java.awt.*;
+import java.awt.KeyboardFocusManager;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
+import java.io.IOException;
 import java.io.StringReader;
-import java.awt.KeyboardFocusManager;
+import java.util.Set;
+import java.util.function.Consumer;
+import javax.swing.*;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.plaf.basic.BasicHTML;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.MutableAttributeSet;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.parser.ParserDelegator;
 
 /** Scoped to Studio component trees: no polling, global event hooks or document listeners. EDT only. */
 public final class StudioTextCopySupport {
     private static final String INSTALLED = StudioTextCopySupport.class.getName() + ".installed";
     private static final String TRAVERSAL = StudioTextCopySupport.class.getName() + ".traversal";
-    private record Traversal(java.util.Set<AWTKeyStroke> forward, java.util.Set<AWTKeyStroke> backward) { }
+    private record Traversal(Set<AWTKeyStroke> forward, Set<AWTKeyStroke> backward) { }
     private static final ContainerListener CHILDREN = new ContainerAdapter() {
         @Override public void componentAdded(ContainerEvent event) { install(event.getChild()); }
     };
@@ -108,7 +112,7 @@ public final class StudioTextCopySupport {
         return popupFor(control, value -> CopyPasteManager.getInstance().setContents(new StringSelection(value)));
     }
 
-    static JPopupMenu popupFor(JComponent control, java.util.function.Consumer<String> clipboard) {
+    static JPopupMenu popupFor(JComponent control, Consumer<String> clipboard) {
         if (control instanceof JPasswordField || (control instanceof JTextComponent text && text.isEditable())) return null;
         // Do not read large documents or parse HTML just to open a context menu.
         boolean hasText = control instanceof JTextComponent text ? text.getDocument().getLength() > 0
@@ -141,7 +145,7 @@ public final class StudioTextCopySupport {
             try {
                 String all = text.getDocument().getText(0, text.getDocument().getLength());
                 return text.getDocument() instanceof HTMLDocument ? all.strip() : all;
-            } catch (javax.swing.text.BadLocationException ignored) { return null; }
+            } catch (BadLocationException ignored) { return null; }
         }
         String value = control instanceof JLabel label ? label.getText()
                 : control instanceof AbstractButton button ? button.getText() : null;
@@ -158,7 +162,7 @@ public final class StudioTextCopySupport {
                 private void lineBreak() {
                     if (!plain.isEmpty() && plain.charAt(plain.length() - 1) != '\n') plain.append('\n');
                 }
-                @Override public void handleStartTag(HTML.Tag tag, javax.swing.text.MutableAttributeSet attributes, int pos) {
+                @Override public void handleStartTag(HTML.Tag tag, MutableAttributeSet attributes, int pos) {
                     if (hiddenTag(tag)) hidden++;
                     else if (hidden == 0 && tag.breaksFlow()) lineBreak();
                 }
@@ -166,12 +170,12 @@ public final class StudioTextCopySupport {
                     if (hiddenTag(tag)) hidden = Math.max(0, hidden - 1);
                     else if (hidden == 0 && tag.breaksFlow()) lineBreak();
                 }
-                @Override public void handleSimpleTag(HTML.Tag tag, javax.swing.text.MutableAttributeSet attributes, int pos) {
+                @Override public void handleSimpleTag(HTML.Tag tag, MutableAttributeSet attributes, int pos) {
                     if (hidden == 0 && tag == HTML.Tag.BR) lineBreak();
                 }
                 @Override public void handleText(char[] data, int pos) { if (hidden == 0) plain.append(data); }
             }, true);
             return plain.toString().strip();
-        } catch (java.io.IOException ignored) { return value; }
+        } catch (IOException ignored) { return value; }
     }
 }

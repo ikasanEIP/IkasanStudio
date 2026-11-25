@@ -1,18 +1,17 @@
 package org.ikasan.studio.ui.component.canvas;
 
 import com.intellij.icons.AllIcons;
-import org.ikasan.studio.ui.StudioBundle;
-import org.junit.jupiter.api.Test;
-
-import javax.swing.JButton;
-import javax.swing.SwingUtilities;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.SwingUtilities;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.actions.HarnessControlActions.HarnessStatus;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import java.awt.Graphics2D;
-import javax.swing.Icon;
-import org.ikasan.studio.ui.actions.HarnessControlActions.HarnessStatus;
 
 class HarnessToolbarStateTest {
     @Test
@@ -37,7 +36,7 @@ class HarnessToolbarStateTest {
             finally { graphics.dispose(); }
 
             Icon ownedIcon = start.getIcon();
-            HarnessStatus shared = new org.ikasan.studio.ui.actions.HarnessControlActions.HarnessStatus(List.of(), List.of(StudioBundle.message("harness.smtp.sharedAvailable")));
+            HarnessStatus shared = new HarnessStatus(List.of(), List.of(StudioBundle.message("harness.smtp.sharedAvailable")));
             CanvasPanel.updateHarnessState(start, stop, shared);
             assertThat(start.getIcon()).isNotSameAs(AllIcons.Actions.Execute).isNotSameAs(ownedIcon);
             assertThat(CanvasPanel.harnessTitle(shared)).isEqualTo(StudioBundle.message("label.HarnessSharedOnly"));

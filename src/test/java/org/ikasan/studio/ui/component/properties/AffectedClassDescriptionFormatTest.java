@@ -1,15 +1,17 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.ikasan.studio.ui.StudioBundle;
-import org.junit.jupiter.api.Test;
-import javax.swing.*;
+import com.intellij.util.ui.JBUI;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
+import javax.swing.*;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JTextArea;
+import org.ikasan.studio.ui.StudioBundle;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class AffectedClassDescriptionFormatTest {
     @Test
@@ -19,7 +21,7 @@ class AffectedClassDescriptionFormatTest {
             JComponent content = RegenerateUserClassDialog.buildContent(
                     StudioBundle.message("message.ConfirmRegenerateUserImplementedClassNamed", "toType"),
                     List.of(new RegenerateUserClassDialog.AffectedClass("Filters Flow", "Broker", "MessageGenerator")), backup);
-            assertThat(content.getPreferredSize().width).isLessThan(com.intellij.util.ui.JBUI.scale(700));
+            assertThat(content.getPreferredSize().width).isLessThan(JBUI.scale(700));
             content.setSize(content.getPreferredSize());
             for (int i = 0; i < 3; i++) layout(content);
             List<Component> all = new ArrayList<>();

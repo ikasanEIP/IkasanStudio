@@ -1,22 +1,29 @@
 package org.ikasan.studio.integration.sftp;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
+import java.nio.file.*;
+import java.security.KeyPair;
+import java.time.Duration;
+import java.util.*;
+import java.util.List;
 import org.apache.sshd.client.SshClient;
+import org.apache.sshd.client.auth.password.UserAuthPasswordFactory;
+import org.apache.sshd.client.auth.pubkey.UserAuthPublicKeyFactory;
+import org.apache.sshd.client.config.hosts.HostConfigEntryResolver;
 import org.apache.sshd.client.keyverifier.KnownHostsServerKeyVerifier;
 import org.apache.sshd.client.keyverifier.RejectAllServerKeyVerifier;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.keyprovider.FileKeyPairProvider;
-import org.apache.sshd.sftp.client.SftpClient;
-import org.apache.sshd.sftp.client.SftpClientFactory;
-import java.io.IOException;
-import java.nio.file.*;
-import java.time.Duration;
-import java.util.*;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.KeyPair;
+import org.apache.sshd.common.keyprovider.KeyIdentityProvider;
+import org.apache.sshd.core.CoreModuleProperties;
 import org.apache.sshd.sftp.client.SftpClient.Attributes;
 import org.apache.sshd.sftp.client.SftpClient.CloseableHandle;
 import org.apache.sshd.sftp.client.SftpClient.DirEntry;
+import org.apache.sshd.sftp.client.SftpClient;
+import org.apache.sshd.sftp.client.SftpClientFactory;
 
 /** One background operation per connection. Never logs credentials; rejects links when checking file operations. */
 public final class RemoteFilesClient implements AutoCloseable {
@@ -45,9 +52,9 @@ public final class RemoteFilesClient implements AutoCloseable {
     public RemoteFilesClient() {
         client = SshClient.setUpDefaultClient();
         // Do not silently load unrelated ~/.ssh/config entries or default identities.
-        client.setHostConfigEntryResolver(org.apache.sshd.client.config.hosts.HostConfigEntryResolver.EMPTY);
-        client.setKeyIdentityProvider(org.apache.sshd.common.keyprovider.KeyIdentityProvider.EMPTY_KEYS_PROVIDER);
-        org.apache.sshd.core.CoreModuleProperties.IDLE_TIMEOUT.set(client, Duration.ofSeconds(30));
+        client.setHostConfigEntryResolver(HostConfigEntryResolver.EMPTY);
+        client.setKeyIdentityProvider(KeyIdentityProvider.EMPTY_KEYS_PROVIDER);
+        CoreModuleProperties.IDLE_TIMEOUT.set(client, Duration.ofSeconds(30));
     }
     public void connect(Connection config, Path projectRoot) throws Exception {
         checkOpen();
@@ -55,8 +62,8 @@ public final class RemoteFilesClient implements AutoCloseable {
         if (!Files.isRegularFile(hosts)) throw new IOException("known_hosts file is missing: " + hosts);
         client.setServerKeyVerifier(new KnownHostsServerKeyVerifier(RejectAllServerKeyVerifier.INSTANCE, hosts));
         client.setUserAuthFactories(config.password.isEmpty()
-                ? List.of(org.apache.sshd.client.auth.pubkey.UserAuthPublicKeyFactory.INSTANCE)
-                : List.of(org.apache.sshd.client.auth.password.UserAuthPasswordFactory.INSTANCE));
+                ? List.of(UserAuthPublicKeyFactory.INSTANCE)
+                : List.of(UserAuthPasswordFactory.INSTANCE));
         client.start();
         session = client.connect(config.username, config.host, config.port).verify(Duration.ofSeconds(15)).getSession();
         checkOpen();
@@ -77,7 +84,7 @@ public final class RemoteFilesClient implements AutoCloseable {
         List<Entry> entries = new ArrayList<>();
         boolean truncated = false;
         try (CloseableHandle handle = sftp.openDir(canonical)) {
-            java.util.List<SftpClient.DirEntry> batch;
+            List<SftpClient.DirEntry> batch;
             outer: while ((batch = sftp.readDir(handle)) != null) {
                 for (DirEntry item : batch) {
                     checkOpen();
@@ -140,7 +147,7 @@ public final class RemoteFilesClient implements AutoCloseable {
         return root.resolve(value).normalize();
     }
     private void checkOpen() throws IOException {
-        if (closed || Thread.currentThread().isInterrupted()) throw new java.io.InterruptedIOException("Operation cancelled.");
+        if (closed || Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Operation cancelled.");
     }
     @Override public void close() {
         closed = true;

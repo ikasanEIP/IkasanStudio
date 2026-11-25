@@ -1,6 +1,11 @@
 package org.ikasan.studio.ui.harness;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ui.ImageUtil;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -11,11 +16,6 @@ import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 import org.junit.jupiter.api.Test;
-
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -50,7 +50,7 @@ public class RouterChildRouteLayoutHarnessTest extends ComponentTestHarness {
         uiContext.setViewHandlerFactory(new ViewHandlerCache(project));
         uiContext.setIkasanModule(module);
 
-        BufferedImage img = com.intellij.util.ui.ImageUtil.createImage(2000, 2000, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage img = ImageUtil.createImage(2000, 2000, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         try {
             // First paint pass, matching what happens when a router is dropped with no routes populated yet -

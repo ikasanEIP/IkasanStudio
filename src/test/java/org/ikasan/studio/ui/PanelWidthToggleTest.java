@@ -1,13 +1,13 @@
 package org.ikasan.studio.ui;
 
-import org.junit.jupiter.api.Test;
+import com.intellij.ui.JBSplitter;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
-import java.util.concurrent.atomic.AtomicBoolean;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
-import com.intellij.ui.JBSplitter;
 
 class PanelWidthToggleTest {
     @Test
@@ -72,7 +72,7 @@ class PanelWidthToggleTest {
         });
     }
 
-    private static int width(com.intellij.ui.JBSplitter splitter) {
+    private static int width(JBSplitter splitter) {
         return Math.round((splitter.getWidth() - splitter.getDividerWidth()) * (1 - splitter.getProportion()));
     }
 }

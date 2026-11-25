@@ -1,12 +1,12 @@
 package org.ikasan.studio.ui.theme;
 
 import com.intellij.ui.JBColor;
+import java.awt.*;
+import java.util.Arrays;
+import javax.swing.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.swing.*;
-import java.awt.*;
 
 import static org.junit.Assert.*;
 
@@ -74,7 +74,7 @@ public class ThemeAwareColorsTest {
         String[] keys = {"EditorPane.background", "Panel.background", "TextArea.foreground",
                 "Separator.separatorColor", "List.selectionBackground", "List.selectionForeground",
                 "TextArea.inactiveForeground", "Notifications.successForeground"};
-        Object[] previous = java.util.Arrays.stream(keys).map(UIManager::get).toArray();
+        Object[] previous = Arrays.stream(keys).map(UIManager::get).toArray();
         try {
             for (String key : keys) UIManager.put(key, new Color(20, 30, 40));
             Color[] colors = {ThemeAwareColors.getBackgroundColor(), ThemeAwareColors.getHeaderColor(),

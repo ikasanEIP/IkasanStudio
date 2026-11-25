@@ -1,39 +1,43 @@
 package org.ikasan.studio.intellij.settings;
 
-import org.junit.jupiter.api.Test;
-
-import javax.swing.JComponent;
-import javax.swing.JSpinner;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.Component;
 import java.awt.Container;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
+import org.ikasan.studio.ui.StudioBundle;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class IkasanStudioSettingsConfigurableTest {
     @Test
     void settingsRemainScrollableAtRequestedUiScalesAndNarrowViewport() throws Exception {
-        javax.swing.SwingUtilities.invokeAndWait(() -> {
-            float original = com.intellij.ui.scale.JBUIScale.scale(1f);
+        SwingUtilities.invokeAndWait(() -> {
+            float original = JBUIScale.scale(1f);
             try {
                 for (float scale : new float[] {1.25f, 1.5f, 2f}) {
-                    com.intellij.ui.scale.JBUIScale.setUserScaleFactorForTest(scale);
-                    assertThat(com.intellij.ui.scale.JBUIScale.scale(1f)).isEqualTo(scale);
+                    JBUIScale.setUserScaleFactorForTest(scale);
+                    assertThat(JBUIScale.scale(1f)).isEqualTo(scale);
                     IkasanStudioSettingsConfigurable configurable = new IkasanStudioSettingsConfigurable();
-                    JScrollPane scroll = (javax.swing.JScrollPane) configurable.createComponent();
+                    JScrollPane scroll = (JScrollPane) configurable.createComponent();
                     assertThat(scroll).isNotNull();
                     scroll.setSize(320, 240);
                     layoutUsingAssignedSizes(scroll);
                     assertThat(scroll.getVerticalScrollBar().isVisible()).isTrue();
                     assertThat(descendantsOfType(scroll, JSpinner.class)).hasSize(4);
-                    assertThat(configurable.getPreferredFocusedComponent()).isInstanceOf(javax.swing.JCheckBox.class);
+                    assertThat(configurable.getPreferredFocusedComponent()).isInstanceOf(JCheckBox.class);
                     configurable.disposeUIResources();
                 }
-            } finally { com.intellij.ui.scale.JBUIScale.setUserScaleFactorForTest(original); }
+            } finally { JBUIScale.setUserScaleFactorForTest(original); }
         });
     }
 
@@ -104,7 +108,7 @@ class IkasanStudioSettingsConfigurableTest {
             settings.setSize(width, settings.getPreferredSize().height);
             layoutUsingAssignedSizes(settings);
 
-            List<javax.swing.JLabel> wrappingNotes = descendantsOfType(settings, javax.swing.JLabel.class).stream()
+            List<JLabel> wrappingNotes = descendantsOfType(settings, JLabel.class).stream()
                     .filter(label -> label.getText() != null && label.getText().startsWith("<html>"))
                     .toList();
             assertThat(wrappingNotes).hasSizeGreaterThanOrEqualTo(7);
@@ -116,14 +120,14 @@ class IkasanStudioSettingsConfigurableTest {
 
     @Test
     void aiSectionFillsWidthAndDescriptionsRewrapWhenSettingsResize() throws Exception {
-        javax.swing.SwingUtilities.invokeAndWait(() -> {
+        SwingUtilities.invokeAndWait(() -> {
             IkasanStudioSettingsConfigurable configurable = new IkasanStudioSettingsConfigurable();
-            JScrollPane scroll = (javax.swing.JScrollPane) configurable.createComponent();
-            List<JPanel> sections = descendantsOfType(scroll, javax.swing.JPanel.class).stream()
-                    .filter(panel -> panel.getBorder() instanceof javax.swing.border.TitledBorder).toList();
-            JPanel ai = sections.stream().filter(panel -> ((javax.swing.border.TitledBorder) panel.getBorder())
-                    .getTitle().equals(org.ikasan.studio.ui.StudioBundle.message("ai.SettingsHeading"))).findFirst().orElseThrow();
-            JLabel note = descendantsOfType(ai, javax.swing.JLabel.class).stream()
+            JScrollPane scroll = (JScrollPane) configurable.createComponent();
+            List<JPanel> sections = descendantsOfType(scroll, JPanel.class).stream()
+                    .filter(panel -> panel.getBorder() instanceof TitledBorder).toList();
+            JPanel ai = sections.stream().filter(panel -> ((TitledBorder) panel.getBorder())
+                    .getTitle().equals(StudioBundle.message("ai.SettingsHeading"))).findFirst().orElseThrow();
+            JLabel note = descendantsOfType(ai, JLabel.class).stream()
                     .filter(label -> label.getText().startsWith("<html>")).findFirst().orElseThrow();
             int narrowHeight = 0;
             for (int width : new int[] {520, 1100, 520}) {

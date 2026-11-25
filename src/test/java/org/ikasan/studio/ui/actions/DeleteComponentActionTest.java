@@ -6,21 +6,21 @@ import com.intellij.openapi.command.undo.UndoableAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
+import java.util.List;
+import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.command.UserClassReference;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.ikasan.studio.ui.UiContext;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -117,7 +117,7 @@ class DeleteComponentActionTest {
 
             assertThat(flow.getFlowRoute().getFlowElements()).doesNotContain(converter);
             studioProjectFilesStatic.verify(() -> StudioProjectFiles.deleteUserImplementedClassFile(
-                    eq(project), eq(new org.ikasan.studio.core.model.command.UserClassReference(
+                    eq(project), eq(new UserClassReference(
                             module.getApplicationPackageName() + "." + flow.getJavaPackageName(), "myConverter"))));
             verify(uiContext).resetSelectionAfterDeletion();
         }
@@ -176,10 +176,10 @@ class DeleteComponentActionTest {
                     .doesNotContain(converterToRemove)
                     .contains(converterToKeep);
             studioProjectFilesStatic.verify(() -> StudioProjectFiles.deleteUserImplementedClassFile(
-                    eq(project), eq(new org.ikasan.studio.core.model.command.UserClassReference(
+                    eq(project), eq(new UserClassReference(
                             module.getApplicationPackageName() + "." + flow.getJavaPackageName(), "myConverter"))));
             studioProjectFilesStatic.verify(() -> StudioProjectFiles.deleteUserImplementedClassFile(
-                    eq(project), eq(new org.ikasan.studio.core.model.command.UserClassReference(
+                    eq(project), eq(new UserClassReference(
                             module.getApplicationPackageName() + "." + flow.getJavaPackageName(), "myOtherConverter"))), never());
         }
     }

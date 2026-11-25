@@ -1,15 +1,17 @@
 package org.ikasan.studio.intellij.ai;
 
-import org.ikasan.studio.ui.StudioBundle;
 import com.intellij.util.ui.JBUI;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Insets;
+import javax.swing.JButton;
 import javax.swing.JTextPane;
 import javax.swing.UIManager;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.View;
-import java.awt.Dimension;
-import java.awt.Insets;
-import javax.swing.JButton;
+import org.ikasan.studio.ui.StudioBundle;
 
 /** Selectable, wrapping instructions with IDE action labels emphasised. */
 final class StudioAiConnectionInstructions extends JTextPane {
@@ -46,8 +48,8 @@ final class StudioAiConnectionInstructions extends JTextPane {
         String settingsLabel = StudioBundle.message("ai.OpenMcpSettings");
         int settingsPosition = instructions.indexOf(settingsLabel);
         if (settingsPosition >= 0) {
-            JButton settings = new javax.swing.JButton(settingsLabel);
-            settings.setFont(getFont().deriveFont(java.awt.Font.BOLD));
+            JButton settings = new JButton(settingsLabel);
+            settings.setFont(getFont().deriveFont(Font.BOLD));
             settings.setMargin(JBUI.insets(1, 4));
             settings.addActionListener(event -> openSettings.run());
             SimpleAttributeSet componentStyle = new SimpleAttributeSet();
@@ -57,7 +59,7 @@ final class StudioAiConnectionInstructions extends JTextPane {
                 // Keep the object replacement character visible as an escape.
                 //noinspection UnnecessaryUnicodeEscape
                 getStyledDocument().insertString(settingsPosition, "\uFFFC", componentStyle);
-            } catch (javax.swing.text.BadLocationException exception) {
+            } catch (BadLocationException exception) {
                 throw new IllegalStateException("Cannot insert MCP settings control", exception);
             }
         }

@@ -1,51 +1,71 @@
 package org.ikasan.studio.intellij.importer;
 
+import com.intellij.CommonBundle;
+import com.intellij.diff.DiffContentFactory;
+import com.intellij.diff.DiffManager;
+import com.intellij.diff.contents.DocumentContent;
+import com.intellij.diff.requests.SimpleDiffRequest;
+import com.intellij.diff.util.DiffUserDataKeys;
+import com.intellij.icons.AllIcons.General;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.*;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.core.importer.SourceModuleImport;
-import org.ikasan.studio.core.importer.SourceBuilderSettingsRecovery;
-import org.ikasan.studio.core.importer.SourceCheckoutIdentity;
-import org.ikasan.studio.intellij.configuration.ImportEnvironmentPropertiesDialog;
-import org.ikasan.studio.intellij.project.ImportDialogWrapper;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.UiContext;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
+import com.intellij.util.ui.UIUtil;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import com.intellij.diff.DiffContentFactory;
-import com.intellij.diff.contents.DocumentContent;
-import com.intellij.diff.requests.SimpleDiffRequest;
-import com.intellij.openapi.editor.Document;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBTextArea;
-import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
+import javax.swing.*;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.RowFilter;
+import javax.swing.Timer;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import org.ikasan.studio.core.generator.ProjectArtifactRenderer;
 import org.ikasan.studio.core.importer.SourceBuilderSettingsRecovery.Plan;
+import org.ikasan.studio.core.importer.SourceBuilderSettingsRecovery;
 import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate;
 import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Check;
 import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Inspection;
+import org.ikasan.studio.core.importer.SourceCheckoutIdentity;
 import org.ikasan.studio.core.importer.SourceModuleImport.Analysis;
 import org.ikasan.studio.core.importer.SourceModuleImport.DependencyChoice;
 import org.ikasan.studio.core.importer.SourceModuleImport.DependencyComparison;
@@ -54,8 +74,19 @@ import org.ikasan.studio.core.importer.SourceModuleImport.ManagedFile;
 import org.ikasan.studio.core.importer.SourceModuleImport.PropertyFile;
 import org.ikasan.studio.core.importer.SourceModuleImport.ReviewAction;
 import org.ikasan.studio.core.importer.SourceModuleImport.SpringRegistration;
+import org.ikasan.studio.core.importer.SourceModuleImport;
+import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.configuration.ImportEnvironmentPropertiesDialog;
+import org.ikasan.studio.intellij.project.ImportDialogWrapper;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioDialogWrapper;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
+import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Second stage of the module wizard. Analysis is read-only; apply transfers only explicitly reviewed items. */
 public final class ImportSourceModuleDialog extends ImportDialogWrapper {
@@ -84,7 +115,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     private boolean analysing;
     private String lastAttempt = "";
     private final Map<String, String> stagedJava = new LinkedHashMap<>();
-    private final Map<String, com.intellij.diff.contents.DocumentContent> mergeDocuments = new HashMap<>();
+    private final Map<String, DocumentContent> mergeDocuments = new HashMap<>();
     private final JBLabel stagedSummary = new JBLabel();
     private final JPanel registrationPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, JBUI.scale(8), 0));
     private final JButton registrationButton = new JButton(StudioBundle.message("sourceImport.registration.review"));
@@ -98,12 +129,12 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     private record ReviewState(List<SourceModuleImport.ReviewAction> actions, SourceModuleImport.SpringRegistration registration,
                                SourceBuilderSettingsRecovery.Plan builderSettings) { }
 
-    private final javax.swing.Timer mergeRefresh = new javax.swing.Timer(120, event -> {
+    private final Timer mergeRefresh = new Timer(120, event -> {
         if (!isDisposed() && analysis != null) { table.repaint(); refreshReview(); }
     });
     private Path analysedSource;
     private final AtomicLong reviewSequence = new AtomicLong();
-    private final java.util.concurrent.ExecutorService reviewWorker = com.intellij.util.concurrency.AppExecutorUtil
+    private final ExecutorService reviewWorker = AppExecutorUtil
             .createBoundedApplicationPoolExecutor("Ikasan source review", 1);
     private final Set<String> selectedFiles = new LinkedHashSet<>(), selectedDependencies = new LinkedHashSet<>();
 
@@ -119,14 +150,14 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         setOKButtonText(StudioBundle.message("sourceImport.apply"));
         init();
         mergeRefresh.setRepeats(false);
-        com.intellij.openapi.util.Disposer.register(getDisposable(), () -> StudioUIUtils.setAttentionPulse(registrationButton, false));
-        com.intellij.openapi.util.Disposer.register(getDisposable(), mergeRefresh::stop);
-        com.intellij.openapi.util.Disposer.register(getDisposable(), () -> StudioUIUtils.setAttentionPulse(builderSettingsButton, false));
-        com.intellij.openapi.util.Disposer.register(getDisposable(), () -> { reviewSequence.incrementAndGet(); reviewWorker.shutdownNow(); });
+        Disposer.register(getDisposable(), () -> StudioUIUtils.setAttentionPulse(registrationButton, false));
+        Disposer.register(getDisposable(), mergeRefresh::stop);
+        Disposer.register(getDisposable(), () -> StudioUIUtils.setAttentionPulse(builderSettingsButton, false));
+        Disposer.register(getDisposable(), () -> { reviewSequence.incrementAndGet(); reviewWorker.shutdownNow(); });
         setOKActionEnabled(false);
     }
 
-    @Override protected @org.jetbrains.annotations.NotNull JComponent createStudioContent() {
+    @Override protected @NotNull JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
         JPanel top = new JPanel(new BorderLayout(0, JBUI.scale(6)));
         JBTextArea help = new JBTextArea(StudioBundle.message("sourceImport.help"));
@@ -146,11 +177,11 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         path.add(browse, BorderLayout.EAST); top.add(path, BorderLayout.CENTER);
         source.setToolTipText(StudioBundle.message("sourceImport.pathHint"));
         source.addActionListener(event -> analyse());
-        source.addFocusListener(new java.awt.event.FocusAdapter() {
-            @Override public void focusLost(java.awt.event.FocusEvent event) {
+        source.addFocusListener(new FocusAdapter() {
+            @Override public void focusLost(FocusEvent event) {
                 if (event.isTemporary() || event.getOppositeComponent() == browse) return;
                 if (event.getOppositeComponent() instanceof AbstractButton button
-                        && (button.getAction() == getCancelAction() || com.intellij.CommonBundle.getCancelButtonText().equals(button.getText()))) return;
+                        && (button.getAction() == getCancelAction() || CommonBundle.getCancelButtonText().equals(button.getText()))) return;
                 if (!source.getText().trim().equals(lastAttempt)) analyse();
             }
         });
@@ -163,10 +194,10 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         JBTextArea comparisonHint = new JBTextArea(StudioBundle.message("sourceImport.comparisonHint"));
         comparisonHint.setEditable(false); comparisonHint.setLineWrap(true); comparisonHint.setWrapStyleWord(true);
         comparisonHint.setOpaque(false); comparisonHint.setFocusable(false);
-        comparisonHint.setFont(com.intellij.util.ui.UIUtil.getLabelFont());
+        comparisonHint.setFont(UIUtil.getLabelFont());
         identitySummary.setEditable(false); identitySummary.setLineWrap(true); identitySummary.setWrapStyleWord(true);
         identitySummary.setOpaque(false); identitySummary.setFocusable(false);
-        identitySummary.setFont(com.intellij.util.ui.UIUtil.getLabelFont()); identitySummary.setVisible(false);
+        identitySummary.setFont(UIUtil.getLabelFont()); identitySummary.setVisible(false);
         acceptIdentity.setVisible(false);
         acceptIdentity.addActionListener(event -> {
             if (analysis != null && analysis.identity().requiresApproval()) {
@@ -186,8 +217,8 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         JBScrollPane files = new JBScrollPane(table); files.setMinimumSize(new Dimension(0, 0));
         table.setAutoCreateRowSorter(true);
         table.getEmptyText().setText(StudioBundle.message("sourceImport.files.allIdentical"));
-        ((javax.swing.table.TableRowSorter<?>) table.getRowSorter()).setRowFilter(new javax.swing.RowFilter<javax.swing.table.TableModel, Integer>() {
-            @Override public boolean include(Entry<? extends javax.swing.table.TableModel, ? extends Integer> entry) {
+        ((TableRowSorter<?>) table.getRowSorter()).setRowFilter(new RowFilter<TableModel, Integer>() {
+            @Override public boolean include(Entry<? extends TableModel, ? extends Integer> entry) {
                 if (analysis == null) return false;
                 int row = entry.getIdentifier();
                 if (row >= analysis.files().size()) return true;
@@ -196,7 +227,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                         || !file.identicalToDestination() || !rowActions(table, row).isEmpty();
             }
         });
-        ((javax.swing.table.TableRowSorter<?>) table.getRowSorter()).setSortsOnUpdates(true);
+        ((TableRowSorter<?>) table.getRowSorter()).setSortsOnUpdates(true);
         showIdenticalFiles.addActionListener(event -> {
             if (table.isEditing()) table.getCellEditor().stopCellEditing();
             refreshFileVisibility();
@@ -238,8 +269,8 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         });
         supportTable.setAutoCreateRowSorter(true);
         supportTable.getEmptyText().setText(StudioBundle.message("sourceImport.support.allIdentical"));
-        ((javax.swing.table.TableRowSorter<?>) supportTable.getRowSorter()).setRowFilter(new javax.swing.RowFilter<javax.swing.table.TableModel, Integer>() {
-            @Override public boolean include(Entry<? extends javax.swing.table.TableModel, ? extends Integer> entry) {
+        ((TableRowSorter<?>) supportTable.getRowSorter()).setRowFilter(new RowFilter<TableModel, Integer>() {
+            @Override public boolean include(Entry<? extends TableModel, ? extends Integer> entry) {
                 if (analysis == null) return false;
                 ManagedFile file = analysis.managedFiles().get(entry.getIdentifier());
                 return showIdenticalSupport.isSelected() || selectedFiles.contains(file.source())
@@ -247,7 +278,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                         || file.status() == SourceModuleImport.SupportStatus.DESTINATION_MISSING;
             }
         });
-        ((javax.swing.table.TableRowSorter<?>) supportTable.getRowSorter()).setSortsOnUpdates(true);
+        ((TableRowSorter<?>) supportTable.getRowSorter()).setSortsOnUpdates(true);
         registerComparison(supportTable);
         supportTable.getColumnModel().getColumn(1).setMaxWidth(JBUI.scale(100));
         supportTable.setDefaultRenderer(Boolean.class, table.getDefaultRenderer(Boolean.class));
@@ -284,9 +315,9 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
             try { selected = Path.of(source.getText().trim()).toAbsolutePath().normalize(); }
             catch (RuntimeException failure) { showAnalysisProblem(StudioBundle.message("sourceImport.chooseCheckout")); return; }
             if (source.getText().isBlank()) { error(StudioBundle.message("sourceImport.chooseCheckout")); return; }
-            StudioProjectFiles.saveConfigurationDocuments(project, List.of("pom.xml", org.ikasan.studio.core.generator.ProjectArtifactRenderer.MODEL, "src/main/model/model.json"));
+            StudioProjectFiles.saveConfigurationDocuments(project, List.of("pom.xml", ProjectArtifactRenderer.MODEL, "src/main/model/model.json"));
             clearAnalysis();
-            Path destination = Path.of(java.util.Objects.requireNonNull(project.getBasePath(), "Import requires a project directory"));
+            Path destination = Path.of(Objects.requireNonNull(project.getBasePath(), "Import requires a project directory"));
             Inspection inspection = work(() -> SourceCheckoutIdentity.inspect(selected, destination, ProgressManager::checkCanceled), true);
             if (inspection == null || project.isDisposed() || isDisposed()) return;
             Candidate candidate = inspection.automaticCandidate();
@@ -319,7 +350,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     }
 
     private void showAnalysisProblem(String message) {
-        identitySummary.setForeground(com.intellij.ui.JBColor.namedColor("Label.errorForeground", com.intellij.ui.JBColor.RED));
+        identitySummary.setForeground(JBColor.namedColor("Label.errorForeground", JBColor.RED));
         identitySummary.setText(StudioBundle.message("sourceImport.analysisProblem", message));
         identitySummary.setVisible(true); setOKActionEnabled(false);
     }
@@ -338,8 +369,8 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         String names = check.names().isEmpty() ? StudioBundle.message("sourceImport.identity.unknownName") : String.join(", ", check.names());
         String scope = check.candidate() == null || check.candidate().directory().isEmpty() ? "." : check.candidate().directory();
         identitySummary.setForeground(check.requiresApproval()
-                ? com.intellij.ui.JBColor.namedColor("Label.errorForeground", com.intellij.ui.JBColor.RED)
-                : com.intellij.util.ui.UIUtil.getLabelForeground());
+                ? JBColor.namedColor("Label.errorForeground", JBColor.RED)
+                : UIUtil.getLabelForeground());
         identitySummary.setText(StudioBundle.message("sourceImport.identity." + check.status().name(), expected, names, scope)
                 + "\n" + StudioBundle.message("sourceImport.identity.references", check.matchedImplementations().size()));
         identitySummary.setVisible(check.requiresApproval());
@@ -370,19 +401,19 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         Analysis reviewed = analysis;
         Set<String> files = Set.copyOf(selectedFiles); Set<String> dependencies = Set.copyOf(selectedDependencies);
         Map<String,String> merges = Map.copyOf(stagedJava);
-        java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+        CompletableFuture.supplyAsync(() -> {
                     if (sequence != reviewSequence.get()) return new ReviewState(List.of(), null, null);
                     try {
                         return new ReviewState(SourceModuleImport.reviewActions(reviewed, files, dependencies, merges),
                                 SourceModuleImport.previewSpringRegistration(reviewed, files, merges), SourceBuilderSettingsRecovery.preview(reviewed));
-                    } catch (Exception failure) { throw new java.util.concurrent.CompletionException(failure); }
+                    } catch (Exception failure) { throw new CompletionException(failure); }
                 }, reviewWorker)
                 .whenComplete((actions, failure) -> ApplicationManager.getApplication().invokeLater(() -> {
                     if (isDisposed() || project.isDisposed() || analysis != reviewed || sequence != reviewSequence.get()) return;
                     if (failure != null) {
                         registrationCandidate = null; approvedRegistration = null; registrationPanel.setVisible(false); StudioUIUtils.setAttentionPulse(registrationButton, false);
                         resetBuilderSettings();
-                        com.intellij.openapi.diagnostic.Logger.getInstance(ImportSourceModuleDialog.class).warn("Could not prepare source review actions", failure);
+                        Logger.getInstance(ImportSourceModuleDialog.class).warn("Could not prepare source review actions", failure);
                         attachActions(List.of(new SourceModuleImport.ReviewAction(SourceModuleImport.ReviewKind.SCAN,
                                 StudioBundle.message("sourceImport.reviewAction.failed"), List.of())));
                         return;
@@ -411,13 +442,13 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
 
     private void refreshFileVisibility() {
         if (analysis == null) return;
-        ((javax.swing.table.TableRowSorter<?>) table.getRowSorter()).sort();
+        ((TableRowSorter<?>) table.getRowSorter()).sort();
         updateDetails(table);
     }
 
     private void refreshSupportVisibility() {
         if (analysis == null) return;
-        ((javax.swing.table.TableRowSorter<?>) supportTable.getRowSorter()).sort();
+        ((TableRowSorter<?>) supportTable.getRowSorter()).sort();
         int shown = supportTable.getRowCount();
         supportNotice.setText(StudioBundle.message("sourceImport.support.notice", shown, analysis.managedFiles().size() - shown));
         updateDetails(supportTable);
@@ -487,7 +518,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
 
     private void configureDetails(JTable view, JBTextArea details, JBScrollPane pane) {
         details.setEditable(false); details.setLineWrap(true); details.setWrapStyleWord(true);
-        details.setFont(com.intellij.util.ui.UIUtil.getLabelFont());
+        details.setFont(UIUtil.getLabelFont());
         details.getAccessibleContext().setAccessibleName(StudioBundle.message("sourceImport.inline.details"));
         pane.setPreferredSize(JBUI.size(0, 105)); pane.setMinimumSize(new Dimension(0, 0)); pane.setVisible(false);
         view.getSelectionModel().addListSelectionListener(event -> { if (!event.getValueIsAdjusting()) updateDetails(view); });
@@ -497,7 +528,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         JBTextArea details = view == supportTable ? supportDetails : fileDetails;
         JBScrollPane pane = view == supportTable ? supportDetailsPane : fileDetailsPane;
         int selected = view.getSelectedRow();
-        List<ReviewAction> actions = selected >= 0 && selected < view.getRowCount() ? rowActions(view, view.convertRowIndexToModel(selected)) : List.<SourceModuleImport.ReviewAction>of();
+        List<ReviewAction> actions = selected >= 0 && selected < view.getRowCount() ? rowActions(view, view.convertRowIndexToModel(selected)) : List.of();
         StringBuilder text = new StringBuilder();
         if (analysis != null && view == table && selected >= 0 && selected < view.getRowCount()) {
             int row = view.convertRowIndexToModel(selected);
@@ -522,12 +553,12 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     }
 
     private void configureInlineRenderer(JTable view) {
-        view.setDefaultRenderer(String.class, new javax.swing.table.DefaultTableCellRenderer() {
+        view.setDefaultRenderer(String.class, new DefaultTableCellRenderer() {
             @Override public Component getTableCellRendererComponent(JTable tableView, Object value, boolean selected, boolean focused, int row, int column) {
                 super.getTableCellRendererComponent(tableView, value, selected, focused, row, column);
                 List<ReviewAction> actions = rowActions(tableView, tableView.convertRowIndexToModel(row));
                 boolean attention = tableView != supportTable && !actions.isEmpty() && tableView.convertColumnIndexToModel(column) == 2;
-                setIcon(attention ? com.intellij.icons.AllIcons.General.Warning : null);
+                setIcon(attention ? General.Warning : null);
                 setToolTipText(actions.isEmpty() ? String.valueOf(value) : actionMessage(actions.get(0)));
                 int modelRow = tableView.convertRowIndexToModel(row);
                 if (analysis != null && tableView == table && modelRow < analysis.files().size()
@@ -560,10 +591,10 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         if (candidate == null) return;
         String changes = candidate.settings().stream().map(setting -> setting.flow() + " → " + setting.component()
                 + "\n  " + setting.property() + " = " + setting.value() + "\n  " + setting.evidence())
-                .collect(java.util.stream.Collectors.joining("\n\n"));
+                .collect(Collectors.joining("\n\n"));
         StudioUIUtils.setAttentionPulse(builderSettingsButton, false);
         // Bound the preview so a large module does not create a screen-height message dialog.
-        StudioDialogWrapper review = new org.ikasan.studio.ui.StudioDialogWrapper(project) {
+        StudioDialogWrapper review = new StudioDialogWrapper(project) {
             { setTitle(StudioBundle.message("sourceImport.builder.title"));
               setOKButtonText(StudioBundle.message("sourceImport.builder.stage")); init(); }
             @Override protected JComponent createStudioContent() {
@@ -587,7 +618,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         SpringRegistration candidate = registrationCandidate;
         if (candidate == null) return;
         // This review runs in the local IDE, like ImportDialogWrapper.
-        StudioDialogWrapper review = new org.ikasan.studio.ui.StudioDialogWrapper(project) {
+        StudioDialogWrapper review = new StudioDialogWrapper(project) {
             { setTitle(StudioBundle.message("sourceImport.registration.title"));
               setOKButtonText(StudioBundle.message("sourceImport.registration.stage")); init(); }
             @Override protected JComponent createStudioContent() {
@@ -628,14 +659,14 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
             Set<String> files = Set.copyOf(selectedFiles); Set<String> dependencies = Set.copyOf(selectedDependencies);
             boolean identityApproved = acceptIdentity.isSelected();
             Map<String,String> merges = stagedJava.entrySet().stream().filter(entry -> files.contains(entry.getKey()))
-                    .collect(java.util.stream.Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
             // Copy all / Save preview explicitly authorise replacement of these selected files only.
             SpringRegistration registration = approvedRegistration;
             Plan builderSettings = approvedBuilderSettings;
             savedReport = work(() -> SourceModuleImport.apply(analysis, files, dependencies, true, identityApproved, merges, registration, builderSettings), false);
             if (savedReport != null && builderSettings != null) {
-                Module restored = work(() -> org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(
-                        builderSettings.outputs().get(org.ikasan.studio.core.generator.ProjectArtifactRenderer.MODEL), "recovered builder settings", false), false);
+                Module restored = work(() -> ComponentIO.validatePersistedModuleJson(
+                        builderSettings.outputs().get(ProjectArtifactRenderer.MODEL), "recovered builder settings", false), false);
                 if (restored != null) {
                     context.setIkasanModule(restored);
                     if (context.getViewHandlerFactory() != null) context.getViewHandlerFactory().clear();
@@ -660,8 +691,8 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
 
     private void registerComparison(JBTable target) {
         target.setToolTipText(StudioBundle.message("sourceImport.compareGesture"));
-        target.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override public void mouseClicked(java.awt.event.MouseEvent event) {
+        target.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() != 2 || !SwingUtilities.isLeftMouseButton(event)) return;
                 int row = target.rowAtPoint(event.getPoint()), column = target.columnAtPoint(event.getPoint());
                 if (row < 0 || column < 0 || (target == table && target.convertColumnIndexToModel(column) == 0
@@ -670,23 +701,23 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                 compare(target);
             }
         });
-        target.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ENTER, 0), "studio.compareSource");
+        target.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "studio.compareSource");
         target.getActionMap().put("studio.compareSource", new AbstractAction() {
-            @Override public void actionPerformed(java.awt.event.ActionEvent event) { compare(target); }
+            @Override public void actionPerformed(ActionEvent event) { compare(target); }
         });
     }
 
     private void compare(JTable selectedTable) {
         SimpleDiffRequest request = comparison(selectedTable);
         if (request == null) return;
-        if (request.getContents().get(1) instanceof com.intellij.diff.contents.DocumentContent destination
+        if (request.getContents().get(1) instanceof DocumentContent destination
                 && destination.getDocument().isWritable())
             new SourceComparisonDialog(project, getContentPane(), request).show();
-        else com.intellij.diff.DiffManager.getInstance().showDiff(project, request);
+        else DiffManager.getInstance().showDiff(project, request);
     }
 
     /** Build a read-only diff from the reviewed snapshots, preserving sorted-table row mapping. */
-    @Nullable com.intellij.diff.requests.SimpleDiffRequest comparison(JTable selectedTable) {
+    @Nullable SimpleDiffRequest comparison(JTable selectedTable) {
         if (analysis == null || selectedTable.getSelectedRow() < 0) return null;
         int row = selectedTable.convertRowIndexToModel(selectedTable.getSelectedRow());
         if (selectedTable == table && row >= analysis.files().size() + analysis.dependencies().size()) return null;
@@ -723,12 +754,12 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
 
     // Studio runs in the local IDE; backend classification comes from transitive plugin dependencies.
     @SuppressWarnings("SplitModeApiUsage")
-    private com.intellij.diff.requests.SimpleDiffRequest editableComparison(SourceModuleImport.FileChoice file) {
-        DiffContentFactory factory = com.intellij.diff.DiffContentFactory.getInstance();
-        DocumentContent left = factory.create(utf8(file.bytes()), com.intellij.ide.highlighter.JavaFileType.INSTANCE);
+    private SimpleDiffRequest editableComparison(SourceModuleImport.FileChoice file) {
+        DiffContentFactory factory = DiffContentFactory.getInstance();
+        DocumentContent left = factory.create(utf8(file.bytes()), JavaFileType.INSTANCE);
         left.getDocument().setReadOnly(true);
         DocumentContent right = mergeDocuments.computeIfAbsent(file.source(), key -> {
-            DocumentContent content = factory.create(selectedFiles.contains(file.source()) ? utf8(plannedBytes(file)) : file.previous() == null ? "" : utf8(file.previous()), com.intellij.ide.highlighter.JavaFileType.INSTANCE);
+            DocumentContent content = factory.create(selectedFiles.contains(file.source()) ? utf8(plannedBytes(file)) : file.previous() == null ? "" : utf8(file.previous()), JavaFileType.INSTANCE);
             Document document = content.getDocument(); document.setReadOnly(false);
             String baseline = file.previous() == null ? "" : utf8(file.previous()).replace("\r\n", "\n").replace("\r", "\n");
             String originalText = file.previous() == null ? utf8(file.bytes()) : utf8(file.previous());
@@ -737,7 +768,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                     : newline < 0 && originalText.indexOf('\r') >= 0 ? "\r" : "\n";
             Analysis reviewed = analysis;
             document.addDocumentListener(new com.intellij.openapi.editor.event.DocumentListener() {
-                @Override public void documentChanged(@org.jetbrains.annotations.NotNull com.intellij.openapi.editor.event.DocumentEvent event) {
+                @Override public void documentChanged(@NotNull com.intellij.openapi.editor.event.DocumentEvent event) {
                     if (isDisposed() || project.isDisposed() || analysis != reviewed
                             || analysis.identity().requiresApproval() && !acceptIdentity.isSelected()) return;
                     String text = event.getDocument().getText();
@@ -748,24 +779,24 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
             }, getDisposable());
             return content;
         });
-        @org.jetbrains.annotations.Nls String title = file.destination();
-        return new com.intellij.diff.requests.SimpleDiffRequest(title, left, right,
+        @Nls String title = file.destination();
+        return new SimpleDiffRequest(title, left, right,
                 StudioBundle.message("sourceImport.originalVersion"), StudioBundle.message("sourceImport.mergeDestination"));
     }
 
-    private com.intellij.diff.requests.SimpleDiffRequest comparison(@org.jetbrains.annotations.Nls String title,
-            String before, String after, @org.jetbrains.annotations.Nls String beforeTitle, @org.jetbrains.annotations.Nls String afterTitle) {
-        DiffContentFactory factory = com.intellij.diff.DiffContentFactory.getInstance();
+    private SimpleDiffRequest comparison(@Nls String title,
+            String before, String after, @Nls String beforeTitle, @Nls String afterTitle) {
+        DiffContentFactory factory = DiffContentFactory.getInstance();
         DocumentContent left = factory.create(before); DocumentContent right = factory.create(after);
         left.getDocument().setReadOnly(true); right.getDocument().setReadOnly(true);
-        SimpleDiffRequest request = new com.intellij.diff.requests.SimpleDiffRequest(title, left, right, beforeTitle, afterTitle);
-        request.putUserData(com.intellij.diff.util.DiffUserDataKeys.FORCE_READ_ONLY, true);
+        SimpleDiffRequest request = new SimpleDiffRequest(title, left, right, beforeTitle, afterTitle);
+        request.putUserData(DiffUserDataKeys.FORCE_READ_ONLY, true);
         return request;
     }
     private static String utf8(String encoded) { return new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8); }
     private interface Work<T> { T run() throws Exception; }
     private <T> T work(Work<T> work, boolean cancellable) {
-        AtomicReference<T> result = new AtomicReference<>(); AtomicReference<Exception> failure = new AtomicReference<Exception>();
+        AtomicReference<T> result = new AtomicReference<>(); AtomicReference<Exception> failure = new AtomicReference<>();
         boolean finished = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
             try { result.set(work.run()); } catch (ProcessCanceledException cancelled) { throw cancelled; } catch (Exception problem) { failure.set(problem); }
         }, StudioBundle.message("sourceImport.progress"), cancellable, project);
@@ -796,7 +827,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         DocumentContent content = mergeDocuments.get(id);
         if (content != null) {
             String text = copy ? utf8(file.bytes()) : file.previous() == null ? "" : utf8(file.previous());
-            com.intellij.openapi.application.WriteAction.run(() -> content.getDocument().setText(text.replace("\r\n", "\n").replace("\r", "\n")));
+            WriteAction.run(() -> content.getDocument().setText(text.replace("\r\n", "\n").replace("\r", "\n")));
             stagedJava.remove(id);
         }
         if (copy) selectedFiles.add(id); else selectedFiles.remove(id);
@@ -826,7 +857,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         }
     }
 
-    private static final class CopyButtonEditor extends AbstractCellEditor implements javax.swing.table.TableCellEditor {
+    private static final class CopyButtonEditor extends AbstractCellEditor implements TableCellEditor {
         private final JButton button = new JButton();
         private boolean selected;
         CopyButtonEditor() {

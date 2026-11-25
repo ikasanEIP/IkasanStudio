@@ -1,17 +1,24 @@
 package org.ikasan.studio.core.io;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Objects;
 import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-import java.util.HashMap;
 
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,7 +37,7 @@ class ComponentIOFailureTest {
         String json = ComponentIO.toValidatedModuleJson(original);
         Module imported = ComponentIO.validatePersistedModuleJson("\uFEFF" + json, "BOM model.json", false);
         Module withoutBom = ComponentIO.validatePersistedModuleJson(json, "plain model.json", false);
-        org.junit.jupiter.api.Assertions.assertEquals(ComponentIO.toValidatedModuleJson(withoutBom),
+        Assertions.assertEquals(ComponentIO.toValidatedModuleJson(withoutBom),
                 ComponentIO.toValidatedModuleJson(imported));
     }
 
@@ -75,15 +82,15 @@ class ComponentIOFailureTest {
     }
 
     private static String withValueAt(String json, String pointer, String replacementJson) throws Exception {
-        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        com.fasterxml.jackson.databind.JsonNode root = mapper.readTree(json);
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(json);
         int slash = pointer.lastIndexOf('/');
-        com.fasterxml.jackson.databind.JsonNode parent = slash < 0 ? root : root.at("/" + pointer.substring(0, slash));
+        JsonNode parent = slash < 0 ? root : root.at("/" + pointer.substring(0, slash));
         String last = pointer.substring(slash + 1);
-        com.fasterxml.jackson.databind.JsonNode replacement = mapper.readTree(replacementJson);
+        JsonNode replacement = mapper.readTree(replacementJson);
         assertFalse(parent.isMissingNode(), "test path does not exist: " + pointer);
-        if (parent.isArray()) ((com.fasterxml.jackson.databind.node.ArrayNode) parent).set(Integer.parseInt(last), replacement);
-        else ((com.fasterxml.jackson.databind.node.ObjectNode) parent).set(last, replacement);
+        if (parent.isArray()) ((ArrayNode) parent).set(Integer.parseInt(last), replacement);
+        else ((ObjectNode) parent).set(last, replacement);
         return mapper.writeValueAsString(root);
     }
 
@@ -108,7 +115,7 @@ class ComponentIOFailureTest {
             StudioBuildException failure = assertThrows(StudioBuildException.class,
                     () -> ComponentIO.validatePersistedModuleJson(damaged, "damaged model.json", false),
                     damage[0] + " <- " + damage[1]);
-            org.junit.jupiter.api.Assertions.assertTrue(failure.getMessage().contains("/" + damage[0]),
+            Assertions.assertTrue(failure.getMessage().contains("/" + damage[0]),
                     "the message should name the damaged path: " + failure.getMessage());
         }
     }
@@ -117,15 +124,15 @@ class ComponentIOFailureTest {
     @Test
     void anExceptionResolutionThatIsNotAPopulatedObjectIsRejectedOnLoad() throws Exception {
         String json = populatedModelJson();
-        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
         String key = mapper.readTree(json).at("/flows/0/exceptionResolver").fieldNames().next();
         for (String damage : new String[]{"null", "\"x\"", "5", "[]", "{}"}) {
-            com.fasterxml.jackson.databind.node.ObjectNode edited = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(json);
-            ((com.fasterxml.jackson.databind.node.ObjectNode) edited.at("/flows/0/exceptionResolver")).set(key, mapper.readTree(damage));
+            ObjectNode edited = (ObjectNode) mapper.readTree(json);
+            ((ObjectNode) edited.at("/flows/0/exceptionResolver")).set(key, mapper.readTree(damage));
             String damaged = mapper.writeValueAsString(edited);
             StudioBuildException failure = assertThrows(StudioBuildException.class,
                     () -> ComponentIO.validatePersistedModuleJson(damaged, "damaged model.json", false), damage);
-            org.junit.jupiter.api.Assertions.assertTrue(failure.getMessage().contains(key), failure.getMessage());
+            Assertions.assertTrue(failure.getMessage().contains(key), failure.getMessage());
         }
     }
 
@@ -135,20 +142,20 @@ class ComponentIOFailureTest {
                 Collections.singletonList(TestFixtures.getExceptionResolverFlow(BASE_META_PACK)));
         String json = ComponentIO.toValidatedModuleJson(original);
 
-        org.junit.jupiter.api.Assertions.assertNotNull(ComponentIO.validatePersistedModuleJson(json, "as saved", false));
+        Assertions.assertNotNull(ComponentIO.validatePersistedModuleJson(json, "as saved", false));
         for (String[] form : new String[][]{
                 {"flows", "[]"}, {"flows", "null"}, {"flows/0/consumer", "null"}, {"flows/0/consumer", "{}"},
                 {"flows/0/flowElements", "null"}, {"flows/0/flowElements", "[]"},
                 {"flows/0/transitions", "null"}, {"flows/0/transitions", "[]"}, {"flows/0/exceptionResolver", "null"}}) {
             String legal = withValueAt(json, form[0], form[1]);
-            org.junit.jupiter.api.Assertions.assertNotNull(
+            Assertions.assertNotNull(
                     ComponentIO.validatePersistedModuleJson(legal, "legal model.json", false), form[0] + " <- " + form[1]);
         }
     }
 
     private static String populatedModelJson() throws Exception {
-        try (java.io.InputStream in = ComponentIOFailureTest.class.getResourceAsStream("/org/ikasan/studio/populated_full_module_with_exception_resolver.json")) {
-            return new String(java.util.Objects.requireNonNull(in).readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        try (InputStream in = ComponentIOFailureTest.class.getResourceAsStream("/org/ikasan/studio/populated_full_module_with_exception_resolver.json")) {
+            return new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
@@ -161,31 +168,31 @@ class ComponentIOFailureTest {
     void unexpectedDeserializerFailuresBecomeAStudioBuildException() throws Exception {
         String json = populatedModelJson();
         assertFalse(ComponentIO.validatePersistedModuleJson(json, "as shipped", false).getFlows().isEmpty());
-        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        com.fasterxml.jackson.databind.node.ObjectNode noName = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(json);
-        ((com.fasterxml.jackson.databind.node.ObjectNode) noName.at("/flows/0/consumer")).remove("componentName");
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode noName = (ObjectNode) mapper.readTree(json);
+        ((ObjectNode) noName.at("/flows/0/consumer")).remove("componentName");
         String damaged = mapper.writeValueAsString(noName);
 
         StudioBuildException failure = assertThrows(StudioBuildException.class,
                 () -> ComponentIO.validatePersistedModuleJson(damaged, "damaged model.json", false));
-        org.junit.jupiter.api.Assertions.assertTrue(failure.getMessage().contains("damaged model.json"), failure.getMessage());
-        org.junit.jupiter.api.Assertions.assertNotNull(failure.getCause(), "the original failure should be kept for diagnosis");
+        Assertions.assertTrue(failure.getMessage().contains("damaged model.json"), failure.getMessage());
+        Assertions.assertNotNull(failure.getCause(), "the original failure should be kept for diagnosis");
     }
 
     /** Unquoted numbers are the natural way to hand-edit a port or a numeric name; they used to crash the loader. */
     @Test
     void aNumberWhereTextIsExpectedIsReadAsTextAndSavedAsText() throws Exception {
-        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        com.fasterxml.jackson.databind.node.ObjectNode edited = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(populatedModelJson());
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode edited = (ObjectNode) mapper.readTree(populatedModelJson());
         edited.put("name", 12345);
         edited.put("port", 8080);
 
         Module module = ComponentIO.validatePersistedModuleJson(mapper.writeValueAsString(edited), "hand-edited model.json", false);
 
-        org.junit.jupiter.api.Assertions.assertEquals("12345", module.getIdentity());
-        org.junit.jupiter.api.Assertions.assertEquals("8080", module.getPort());
-        com.fasterxml.jackson.databind.JsonNode saved = mapper.readTree(ComponentIO.toValidatedModuleJson(module));
-        org.junit.jupiter.api.Assertions.assertTrue(saved.get("name").isTextual(), "saved as text: " + saved.get("name"));
-        org.junit.jupiter.api.Assertions.assertTrue(saved.get("port").isTextual(), "saved as text: " + saved.get("port"));
+        Assertions.assertEquals("12345", module.getIdentity());
+        Assertions.assertEquals("8080", module.getPort());
+        JsonNode saved = mapper.readTree(ComponentIO.toValidatedModuleJson(module));
+        Assertions.assertTrue(saved.get("name").isTextual(), "saved as text: " + saved.get("name"));
+        Assertions.assertTrue(saved.get("port").isTextual(), "saved as text: " + saved.get("port"));
     }
 }

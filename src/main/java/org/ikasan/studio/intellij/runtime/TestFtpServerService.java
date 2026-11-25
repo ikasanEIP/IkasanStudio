@@ -1,18 +1,12 @@
 package org.ikasan.studio.intellij.runtime;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
-import org.apache.ftpserver.FtpServer;
-import org.apache.ftpserver.FtpServerFactory;
-import org.apache.ftpserver.listener.ListenerFactory;
-import org.apache.ftpserver.usermanager.impl.BaseUser;
-import org.apache.ftpserver.usermanager.impl.WritePermission;
-import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
-import org.ikasan.studio.ui.UiContext;
-
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -20,7 +14,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import com.intellij.openapi.application.Application;
+import java.util.Map;
+import org.apache.ftpserver.FtpServer;
+import org.apache.ftpserver.FtpServerFactory;
+import org.apache.ftpserver.listener.ListenerFactory;
+import org.apache.ftpserver.usermanager.impl.BaseUser;
+import org.apache.ftpserver.usermanager.impl.WritePermission;
+import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 /** Project-owned embedded FTP server used to exercise local FTP consumers. */
@@ -45,7 +47,7 @@ public final class TestFtpServerService implements Disposable {
     public synchronized Path startLocal() throws Exception {
         if (disposed || project.isDisposed()) throw new IllegalStateException("Project is disposed");
         if (isRunning() && !localHarness)
-            throw new IllegalStateException(org.ikasan.studio.ui.StudioBundle.message("harnessOverrides.stopConfiguredFtp"));
+            throw new IllegalStateException(StudioBundle.message("harnessOverrides.stopConfiguredFtp"));
         if (isRunning()) return rootDirectory;
         return start(new TestFtpServerConfiguration("127.0.0.1", 0, "ikasan", "ikasan"), true);
     }
@@ -56,10 +58,10 @@ public final class TestFtpServerService implements Disposable {
                 : new TestFtpServerConfiguration("127.0.0.1", 0, "ikasan", "ikasan");
     }
 
-    public synchronized java.util.Map<String, String> launchProperties() {
+    public synchronized Map<String, String> launchProperties() {
         if (!isRunning() || !localHarness)
-            throw new IllegalStateException(org.ikasan.studio.ui.StudioBundle.message("harnessOverrides.startFtp"));
-        return java.util.Map.of("studio.harness.ftp.host", configuration.host(),
+            throw new IllegalStateException(StudioBundle.message("harnessOverrides.startFtp"));
+        return Map.of("studio.harness.ftp.host", configuration.host(),
                 "studio.harness.ftp.port", Integer.toString(configuration.port()),
                 "studio.harness.ftp.username", configuration.username(),
                 "studio.harness.ftp.password", configuration.password(),
@@ -118,7 +120,7 @@ public final class TestFtpServerService implements Disposable {
         return isRunning() && requested != null && requested.sameAddressAs(configuration);
     }
     public synchronized Path getRootDirectory() { return rootDirectory; }
-    public synchronized Path getOrCreateTestFile() throws java.io.IOException {
+    public synchronized Path getOrCreateTestFile() throws IOException {
         if (!isRunning() || rootDirectory == null) return null;
         Path testFile = rootDirectory.resolve("test-file.txt");
         if (Files.notExists(testFile))

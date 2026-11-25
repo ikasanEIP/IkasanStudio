@@ -3,19 +3,19 @@ package org.ikasan.studio.core.metapack.loading;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ikasan.studio.core.io.ComponentIO;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 import java.io.IOException;
-import java.nio.file.*;
-import java.util.*;
-import java.util.jar.JarFile;
 import java.net.URL;
+import java.nio.file.*;
 import java.nio.file.Path;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.jar.JarFile;
 import java.util.stream.Stream;
+import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Portable, read-only resource packs. Checksums identify artifacts; they are not publisher signatures. */
 public final class OfflinePackBundle {
@@ -63,14 +63,14 @@ public final class OfflinePackBundle {
             if (!expected.equals(MetaPackInstaller.validate(MetaPackArchive.open(destination))))
                 throw new IOException("The exported pack does not match the project's selected metadata");
         }
-        ArrayList<org.ikasan.studio.core.metapack.loading.OfflinePackBundle.Pack> packs = new ArrayList<>();
+        ArrayList<Pack> packs = new ArrayList<>();
         for (Path file : archives) {
             checkCancelled.run();
             MetaPackManifest manifest = MetaPackInstaller.validate(MetaPackArchive.open(file));
             packs.add(new Pack(manifest.id(), manifest.packVersion(), tools.relativize(file).toString().replace('\\', '/'), MetaPackStore.sha256(file)));
         }
         packs.sort(Comparator.comparing(Pack::id));
-        org.ikasan.studio.core.metapack.loading.OfflinePackBundle.Manifest manifest = new Manifest(1, required, packs);
+        Manifest manifest = new Manifest(1, required, packs);
         Files.writeString(tools.resolve(MANIFEST), JSON.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + "\n", StandardOpenOption.CREATE_NEW);
         verify(tools, checkCancelled);
         return manifest;
@@ -84,7 +84,7 @@ public final class OfflinePackBundle {
     public static Manifest verify(Path tools, Runnable checkCancelled) throws Exception {
         Path root = tools.toRealPath();
         if (Files.isSymbolicLink(root.resolve(MANIFEST))) throw new IOException("Offline pack manifest must not be a symlink");
-        org.ikasan.studio.core.metapack.loading.OfflinePackBundle.Manifest manifest = JSON.readValue(Files.readString(root.resolve(MANIFEST)), Manifest.class);
+        Manifest manifest = JSON.readValue(Files.readString(root.resolve(MANIFEST)), Manifest.class);
         if (manifest.formatVersion() != 1 || manifest.packs().isEmpty()) throw new IOException("Unsupported or empty offline pack manifest");
         HashSet<String> ids = new HashSet<>();
         HashSet<Path> expected = new HashSet<>();

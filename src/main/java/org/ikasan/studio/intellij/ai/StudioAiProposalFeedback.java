@@ -1,14 +1,18 @@
 package org.ikasan.studio.intellij.ai;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-import java.nio.file.*;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.concurrent.CompletableFuture;
-import java.io.InputStream;
+import org.ikasan.studio.core.ai.ImplementationReadiness;
+import org.ikasan.studio.core.persistence.json.StudioJson;
 
 /** Ordered, atomic sidecar receipts. Never writes the proposal or the Studio model. */
 final class StudioAiProposalFeedback {
@@ -24,14 +28,14 @@ final class StudioAiProposalFeedback {
     }
     static String sha256(byte[] bytes) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes)); }
-        catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
+        catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
     }
     static Path resultPath(Path source) { return source.resolveSibling(source.getFileName() + ".result.json"); }
     synchronized void publish(String status, String message) {
         writes = writes.handle((unused, failure) -> null).thenRunAsync(() -> {
             try { write(status, message); }
             catch (Exception failure) {
-                com.intellij.openapi.diagnostic.Logger.getInstance(StudioAiProposalFeedback.class)
+                Logger.getInstance(StudioAiProposalFeedback.class)
                         .warn("Could not write AI proposal result: " + resultPath(source), failure);
             }
         }, AppExecutorUtil.getAppExecutorService());
@@ -41,17 +45,17 @@ final class StudioAiProposalFeedback {
         byte[] current;
         try (InputStream input = Files.newInputStream(source)) { current = input.readNBytes(1_048_577); }
         if (!hash.equals(sha256(current))) return;
-        LinkedHashMap<String,Object> data = new LinkedHashMap<String, Object>();
+        LinkedHashMap<String,Object> data = new LinkedHashMap<>();
         data.put("formatVersion", 1);
         data.put("proposalFile", source.getFileName().toString());
         data.put("proposalSha256", hash);
         data.put("status", status);
-        data.put("updatedAt", java.time.Instant.now().toString());
+        data.put("updatedAt", Instant.now().toString());
         data.put("message", message == null ? "" : message);
         data.put("implementationReadinessReport", "generated/implementation-readiness.json");
         data.put("runtimeVerified", false);
         if ("applied".equals(status) && projectRoot != null) {
-            try { data.put("implementationReadiness", org.ikasan.studio.core.ai.ImplementationReadiness.scanProject(projectRoot)); }
+            try { data.put("implementationReadiness", ImplementationReadiness.scanProject(projectRoot)); }
             catch (Exception failure) { data.put("implementationReadinessError", "Could not inspect saved source. Run Validate Module in Studio."); }
         }
         data.put("nextStep", switch (status) {

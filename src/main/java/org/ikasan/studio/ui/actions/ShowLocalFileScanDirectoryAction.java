@@ -1,20 +1,20 @@
 package org.ikasan.studio.ui.actions;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.integration.ikasan.StudioInjectClient;
 import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import com.fasterxml.jackson.databind.JsonNode;
-import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Reads the module's live scan configuration without doing network work on the EDT. */
 public final class ShowLocalFileScanDirectoryAction implements ActionListener {
@@ -42,7 +42,7 @@ public final class ShowLocalFileScanDirectoryAction implements ActionListener {
                             + (response.statusCode() == 404 ? " (Update Code and restart Debug module to install the scan-directory endpoint.)" : ""));
                 }
                 JsonNode body = StudioInjectClient.readJson(response.body());
-                ArrayList<String> directories = new java.util.ArrayList<>();
+                ArrayList<String> directories = new ArrayList<>();
                 body.path("directories").forEach(path -> directories.add(path.asText()));
                 String details = StudioBundle.message("message.LocalFileScanDetails", String.join("\n", directories),
                         body.path("patterns").toString(), body.path("directoryDepth").asText());

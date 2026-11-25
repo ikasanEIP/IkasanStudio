@@ -2,23 +2,24 @@ package org.ikasan.studio.testing.packs;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 import org.ikasan.studio.SharedResourceExtension;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.ai.LiveModelSnapshot;
 import org.ikasan.studio.core.ai.ModelProposal;
 import org.ikasan.studio.core.generator.AiProjectContractGenerator;
+import org.ikasan.studio.core.generator.ModelTemplate;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import java.util.Map.Entry;
 
 /**
  * The generated model.schema.json is what an AI or an editor checks a model against. It used to reject models Studio
@@ -28,7 +29,7 @@ import java.util.Map.Entry;
  * no extra dependency.
  */
 @ExtendWith(SharedResourceExtension.class)
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 class ModelSchemaTest {
     private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -59,7 +60,7 @@ class ModelSchemaTest {
 
         List<String> errors = new ArrayList<>();
         validate(schema, JSON.readTree(ComponentIO.toValidatedModuleJson(live)), schema, "$", errors);
-        validate(schema, JSON.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(live)), schema, "$", errors);
+        validate(schema, JSON.readTree(ModelTemplate.create(live)), schema, "$", errors);
         assertThat(errors).as(pack + " model written by Studio").isEmpty();
     }
 

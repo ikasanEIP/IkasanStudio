@@ -1,14 +1,18 @@
 package org.ikasan.studio.testing.packs;
 
+import java.io.File;
+import java.net.*;
+import java.net.URLClassLoader;
+import java.nio.file.*;
+import java.util.*;
+import java.util.regex.Pattern;
+import javax.tools.ToolProvider;
+import org.ikasan.studio.core.generator.FreemarkerUtils;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import java.nio.file.*;
-import java.net.*;
-import java.util.*;
-import javax.tools.ToolProvider;
+
 import static org.junit.jupiter.api.Assertions.*;
-import java.net.URLClassLoader;
 
 class JmsObjectFixtureRuntimeTest {
     @TempDir Path root;
@@ -19,7 +23,7 @@ class JmsObjectFixtureRuntimeTest {
         String namespace = variant.equals("v3") ? "javax.jms" : "jakarta.jms";
         String classpath = Objects.requireNonNull(System.getProperty("studio.activemq." + variant + ".classpath"));
         List<Path> sources = new ArrayList<>();
-        sources.add(write("JmsFlowTestSupport", org.ikasan.studio.core.generator.FreemarkerUtils.generateFromTemplate(pack,
+        sources.add(write("JmsFlowTestSupport", FreemarkerUtils.generateFromTemplate(pack,
                 "jmsFlowTestSupportTemplate_en.ftl", new HashMap<>())));
         sources.add(write("ModuleFlowTestSupport", """
                 package org.ikasan.studio.flowtests.support;
@@ -96,7 +100,7 @@ class JmsObjectFixtureRuntimeTest {
         sources.forEach(p -> args.add(p.toString()));
         assertEquals(0, ToolProvider.getSystemJavaCompiler().run(null, null, null, args.toArray(String[]::new)));
         List<URL> urls = new ArrayList<>(); urls.add(root.toUri().toURL());
-        for (String entry : classpath.split(java.util.regex.Pattern.quote(java.io.File.pathSeparator))) urls.add(Path.of(entry).toUri().toURL());
+        for (String entry : classpath.split(Pattern.quote(File.pathSeparator))) urls.add(Path.of(entry).toUri().toURL());
         try (URLClassLoader loader = new URLClassLoader(urls.toArray(URL[]::new), ClassLoader.getPlatformClassLoader())) {
             loader.loadClass("Probe").getMethod("run").invoke(null);
         }

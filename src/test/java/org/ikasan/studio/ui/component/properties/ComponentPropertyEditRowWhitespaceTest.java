@@ -1,11 +1,14 @@
 package org.ikasan.studio.ui.component.properties;
 
+import java.util.HashMap;
+import java.util.List;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.junit.jupiter.api.Test;
-import java.util.HashMap;
+
 import static org.junit.jupiter.api.Assertions.*;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
 
 class ComponentPropertyEditRowWhitespaceTest {
     private ComponentPropertyEditRow row(boolean preserve, String initial) {
@@ -38,7 +41,7 @@ class ComponentPropertyEditRowWhitespaceTest {
     @Test
     void trimsLiveEditableDropdownBeforeFocusCommit() {
         ComponentPropertyMeta meta = ComponentPropertyMeta.builder().propertyName("format")
-                .choices(java.util.List.of("text/plain")).choicesEditable(true).build();
+                .choices(List.of("text/plain")).choicesEditable(true).build();
         ComponentPropertyEditRow row = new ComponentPropertyEditRow(null, new ComponentProperty(meta, "text/plain"),
                 false, () -> {}, new HashMap<>());
         row.resetDataEntryComponentsWithNewValues();
@@ -49,13 +52,13 @@ class ComponentPropertyEditRowWhitespaceTest {
 
     @Test
     void bundledMetadataPreservesSensitiveFields() throws Exception {
-        for (String pack : java.util.List.of("V3.3.9", "V4.1.6")) {
-            ComponentMeta logging = org.ikasan.studio.core.metapack.ComponentLibrary
+        for (String pack : List.of("V3.3.9", "V4.1.6")) {
+            ComponentMeta logging = ComponentLibrary
                     .getIkasanComponentByKeyMandatory(pack, "Logging Producer");
             assertTrue(logging.getMetadata("replacementText").isPreserveWhitespace());
             assertTrue(logging.getMetadata("regExpPattern").isPreserveWhitespace());
             assertFalse(logging.getMetadata("componentName").isPreserveWhitespace());
-            ComponentMeta email = org.ikasan.studio.core.metapack.ComponentLibrary
+            ComponentMeta email = ComponentLibrary
                     .getIkasanComponentByKeyMandatory(pack, "Email Producer");
             assertTrue(email.getMetadata("mailPassword").isPreserveWhitespace());
             assertTrue(email.getMetadata("emailBody").isPreserveWhitespace());

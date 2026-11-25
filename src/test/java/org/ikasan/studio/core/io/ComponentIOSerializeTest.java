@@ -1,18 +1,17 @@
 package org.ikasan.studio.core.io;
 
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.generator.TestUtils;
-import org.ikasan.studio.core.model.ikasan.instance.*;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.TestUtils;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,7 +66,7 @@ class ComponentIOSerializeTest {
         String componentMetaKey = "booleanComponentMeta";
         ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
                 .propertyName(componentMetaKey)
-                .propertyDataType(java.lang.Boolean.class)
+                .propertyDataType(Boolean.class)
                 .defaultValue(false)
                 .build();
         ComponentProperty componentProperty = new ComponentProperty(componentMeta, true);
@@ -82,7 +81,7 @@ class ComponentIOSerializeTest {
         String componentMetaKey = "integerComponentMeta";
         ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
                 .propertyName(componentMetaKey)
-                .propertyDataType(java.lang.Integer.class)
+                .propertyDataType(Integer.class)
                 .defaultValue(false)
                 .build();
         ComponentProperty componentProperty = new ComponentProperty(componentMeta, 99);
@@ -97,7 +96,7 @@ class ComponentIOSerializeTest {
         String componentMetaKey = "longComponentMeta";
         ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
                 .propertyName(componentMetaKey)
-                .propertyDataType(java.lang.Long.class)
+                .propertyDataType(Long.class)
                 .defaultValue(false)
                 .build();
         ComponentProperty componentProperty = new ComponentProperty(componentMeta, 99L);
@@ -112,7 +111,7 @@ class ComponentIOSerializeTest {
         String componentMetaKey = "shortComponentMeta";
         ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
                 .propertyName(componentMetaKey)
-                .propertyDataType(java.lang.Short.class)
+                .propertyDataType(Short.class)
                 .defaultValue(false)
                 .build();
         ComponentProperty componentProperty = new ComponentProperty(componentMeta, 99);
@@ -127,7 +126,7 @@ class ComponentIOSerializeTest {
         String componentMetaKey = "doubleComponentMeta";
         ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
                 .propertyName(componentMetaKey)
-                .propertyDataType(java.lang.Double.class)
+                .propertyDataType(Double.class)
                 .defaultValue(false)
                 .build();
         ComponentProperty componentProperty = new ComponentProperty(componentMeta, 99.0);
@@ -142,7 +141,7 @@ class ComponentIOSerializeTest {
         String componentMetaKey = "floatComponentMeta";
         ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
                 .propertyName(componentMetaKey)
-                .propertyDataType(java.lang.Double.class)
+                .propertyDataType(Double.class)
                 .defaultValue(false)
                 .build();
         ComponentProperty componentProperty = new ComponentProperty(componentMeta, 99.9);
@@ -157,7 +156,7 @@ class ComponentIOSerializeTest {
         String componentMetaKey = "stringComponentMeta";
         ComponentPropertyMeta componentMeta = ComponentPropertyMeta.builder()
                 .propertyName(componentMetaKey)
-                .propertyDataType(java.lang.Double.class)
+                .propertyDataType(Double.class)
                 .defaultValue(false)
                 .build();
         ComponentProperty componentProperty = new ComponentProperty(componentMeta, "bob");

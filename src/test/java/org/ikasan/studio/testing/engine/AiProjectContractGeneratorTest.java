@@ -1,21 +1,23 @@
 package org.ikasan.studio.testing.engine;
 
-import org.ikasan.studio.core.generator.*;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-import org.junit.jupiter.api.Test;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import java.util.Map;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Map;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
+import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 
-@org.junit.jupiter.api.Tag("engine")
+import static org.assertj.core.api.Assertions.assertThat;
+
+@Tag("engine")
 class AiProjectContractGeneratorTest {
     @Test
     void archetypeDiscoveryInstructionsMatchGeneratedInstructions() throws Exception {
@@ -34,9 +36,9 @@ class AiProjectContractGeneratorTest {
         assertThat(template).contains("${IKASAN_TEST_FTP_PASSWORD}", "env:IKASAN_TEST_SFTP_KEY_FILE",
                 "sftp.remoteHost=", "sftp.directory=", "ftp.password=",
                 "smtp.toRecipient=", "jms.destinationJndiName=");
-        Document doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
                 .parse(resources.resolve("META-INF/maven/archetype-metadata.xml").toFile());
-        XPath xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath();
+        XPath xpath = XPathFactory.newInstance().newXPath();
         String filtered = xpath.evaluate("//fileSet[includes/include='LOCAL_TEST_ENVIRONMENT.md']/@filtered", doc);
         assertThat(filtered).isNotEqualTo("true");
         assertThat(template).contains("root `.gitignore`");
@@ -54,10 +56,10 @@ class AiProjectContractGeneratorTest {
             assertThat(Path.of(entry.getKey()).normalize().startsWith("..")).isFalse();
         }
         assertThat(files.get(StudioAiSkillTemplates.CLAUDE_PATH)).contains(StudioAiSkillTemplates.WORKFLOW_PATH);
-        Document doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
                 .parse(resources.resolve("META-INF/maven/archetype-metadata.xml").toFile());
-        XPath xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath();
-        for (String directory : java.util.List.of(".agents/skills", ".claude/skills")) {
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        for (String directory : List.of(".agents/skills", ".claude/skills")) {
             assertThat(xpath.evaluate("//fileSet[directory='" + directory + "']/@filtered", doc)).isEqualTo("false");
         }
     }

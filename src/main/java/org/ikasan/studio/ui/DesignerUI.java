@@ -1,29 +1,28 @@
 package org.ikasan.studio.ui;
 
-import com.intellij.ui.JBSplitter;
-import com.intellij.openapi.ui.Splitter;
-
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
+import java.awt.*;
+import javax.swing.*;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.ui.component.canvas.CanvasPanel;
+import org.ikasan.studio.intellij.metapack.RepairModelAction;
+import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
+import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
 import org.ikasan.studio.ui.component.StudioInitialisationPanel;
+import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
-import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
-import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
-
-import javax.swing.*;
-import java.awt.*;
 /**
  * Create all onscreen components and register inter-thread communication components with uiContext
  */
@@ -65,7 +64,7 @@ public class DesignerUI implements Disposable {
         this.initialisationService = project.getService(StudioProjectInitialisationService.class);
         this.initialisationPanel = new StudioInitialisationPanel(initialisationService::start,
                 initialisationService::restoreModelBackup,
-                () -> org.ikasan.studio.intellij.metapack.RepairModelAction.review(project),
+                () -> RepairModelAction.review(project),
                 initialisationService::reloadMavenProject);
         project.getMessageBus().connect(this).subscribe(
                 StudioProjectInitialisationService.Listener.TOPIC,

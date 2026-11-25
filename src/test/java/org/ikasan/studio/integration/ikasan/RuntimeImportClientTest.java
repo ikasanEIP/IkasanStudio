@@ -1,41 +1,50 @@
 package org.ikasan.studio.integration.ikasan;
 
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpExchange;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
-import java.io.IOException;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringReader;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate;
+import org.ikasan.studio.core.generator.ModelTemplate;
+import org.ikasan.studio.core.generator.PropertiesTemplate;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport.ComponentRef;
 import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport;
+import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class RuntimeImportClientTest {
     private static final String MODULE = "{\"name\":\"Demo module\",\"flows\":[{\"name\":\"Flow 1\"},{\"name\":\"Flow/2\"}]}";
@@ -60,8 +69,8 @@ class RuntimeImportClientTest {
         }, base -> {
             Documents result = RuntimeImportClient.fetch(base, "Demo module", "user", "secret".toCharArray(), true, () -> {});
             assertEquals(MODULE, result.moduleJson());
-            assertEquals(new com.fasterxml.jackson.databind.ObjectMapper().readTree("[" + RECORD + "]"),
-                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(result.configurationJson()));
+            assertEquals(new ObjectMapper().readTree("[" + RECORD + "]"),
+                    new ObjectMapper().readTree(result.configurationJson()));
             assertTrue(result.configurationJson().contains("\n"));
             assertEquals(List.of("/ctx/rest/metadata/module/Demo%20module",
                     "/ctx/rest/configuration/Demo%20module/Flow%201/components",
@@ -70,7 +79,7 @@ class RuntimeImportClientTest {
     }
 
     @Test void formatsLargeConfigurationForDisplayWithoutChangingUnicodeOrEscapedValues() throws Exception {
-        ObjectMapper json = new com.fasterxml.jackson.databind.ObjectMapper();
+        ObjectMapper json = new ObjectMapper();
         ArrayNode records = json.createArrayNode();
         for (int index = 0; index < 1000; index++) {
             ObjectNode record = records.addObject().put("configurationId", "config-" + index);
@@ -88,11 +97,11 @@ class RuntimeImportClientTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void fetchedDocumentsUseTheExistingImporterAndPreserveDeclaredStartup(String pack) throws Exception {
-        ObjectMapper json = new com.fasterxml.jackson.databind.ObjectMapper();
+        ObjectMapper json = new ObjectMapper();
         ObjectNode topology = json.createObjectNode().put("name", "Demo module").put("ikasanVersion", pack.substring(1));
         ObjectNode flow = topology.putArray("flows").addObject().put("name", "Orders").put("flowStartupType", "AUTOMATIC");
-        ComponentMeta consumerMeta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Scheduled Consumer");
-        ComponentMeta producerMeta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Logging Producer");
+        ComponentMeta consumerMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Scheduled Consumer");
+        ComponentMeta producerMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Logging Producer");
         ObjectNode consumer = json.createObjectNode().put("componentName", "Poll").put("componentType", consumerMeta.getComponentType())
                 .put("implementingClass", consumerMeta.getImplementingClass()).put("configurationId", "poll-config");
         flow.set("consumer", consumer);
@@ -103,9 +112,9 @@ class RuntimeImportClientTest {
                 + "\"parameters\":[{\"name\":\"cronExpression\",\"value\":\"0/10 * * * * ?\"}]}]";
         withServer(exchange -> respond(exchange, 200, exchange.getRequestURI().getPath().contains("/metadata/") ? topology.toString() : config), base -> {
             Documents documents = RuntimeImportClient.fetch(base, "Demo module", "", new char[0], true, () -> {});
-            Result converted = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(documents.moduleJson(), documents.configurationJson(), pack,
-                    "org.example.imported", Map.of(new org.ikasan.studio.core.importer.IkasanRuntimeImport.ComponentRef("Orders", "Poll"), "Scheduled Consumer"));
-            Module module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(converted.studioJson(), "REST test", false);
+            Result converted = IkasanRuntimeImport.convert(documents.moduleJson(), documents.configurationJson(), pack,
+                    "org.example.imported", Map.of(new ComponentRef("Orders", "Poll"), "Scheduled Consumer"));
+            Module module = ComponentIO.validatePersistedModuleJson(converted.studioJson(), "REST test", false);
             assertEquals("AUTOMATIC", module.getFlows().get(0).getPropertyValue("flowStartupType"));
             assertEquals("0/10 * * * * ?", module.getFlows().get(0).getConsumer().getPropertyValue("cronExpression"));
         });
@@ -113,7 +122,7 @@ class RuntimeImportClientTest {
 
     /** REST-only fixture: deliberately different from every Studio broker default. */
     private String[] jmsDocuments(String pack) throws Exception {
-        ObjectMapper json = new com.fasterxml.jackson.databind.ObjectMapper();
+        ObjectMapper json = new ObjectMapper();
         ObjectNode module = json.createObjectNode().put("name", "Demo module").put("ikasanVersion", pack.substring(1));
         ObjectNode flow = module.putArray("flows").addObject().put("name", "REST JMS").put("flowStartupType", "AUTOMATIC");
         ArrayNode elements = flow.putArray("flowElements");
@@ -121,7 +130,7 @@ class RuntimeImportClientTest {
         for (String variant : List.of("Spring JMS Consumer", "Spring JMS Producer")) {
             boolean consumer = variant.endsWith("Consumer");
             String name = consumer ? "Receive" : "Send";
-            ComponentMeta meta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, variant);
+            ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, variant);
             ObjectNode element = elements.addObject().put("componentName", name).put("componentType", meta.getComponentType())
                     .put("implementingClass", meta.getImplementingClass()).put("configurationId", name + "-config");
             if (consumer) flow.set("consumer", element.deepCopy());
@@ -149,31 +158,31 @@ class RuntimeImportClientTest {
         withServer(exchange -> respond(exchange, 200,
                 exchange.getRequestURI().getPath().contains("/metadata/") ? fixture[0] : fixture[1]), base -> {
             Documents documents = RuntimeImportClient.fetch(base, "Demo module", "", new char[0], true, () -> {});
-            Result converted = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(
+            Result converted = IkasanRuntimeImport.convert(
                     documents.moduleJson(), documents.configurationJson(), pack, "org.example.imported");
             assertFalse(converted.review().toString().contains("configuration fields not applied"));
             assertFalse(converted.review().toString().contains("private-jndi-password"));
-            Module module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(converted.studioJson(), "REST JMS", false);
-            module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(
-                    org.ikasan.studio.core.generator.ModelTemplate.create(module), "REST JMS reload", false);
+            Module module = ComponentIO.validatePersistedModuleJson(converted.studioJson(), "REST JMS", false);
+            module = ComponentIO.validatePersistedModuleJson(
+                    ModelTemplate.create(module), "REST JMS reload", false);
             Flow flow = module.getFlows().get(0);
             List<FlowElement> endpoints = List.of(flow.getConsumer(), flow.getFlowRoute().getFlowElements().get(0));
             Properties properties = new Properties();
-            properties.load(new java.io.StringReader(org.ikasan.studio.core.generator.PropertiesTemplate.create(module)));
-            ObjectMapper json = new com.fasterxml.jackson.databind.ObjectMapper();
+            properties.load(new StringReader(PropertiesTemplate.create(module)));
+            ObjectMapper json = new ObjectMapper();
             for (FlowElement endpoint : endpoints) {
                 Map<?,?> factory = (Map<?, ?>) endpoint.getPropertyValue("connectionFactoryJndiProperties");
                 assertEquals("tcp://remote-broker.example:61618", factory.get("java.naming.provider.url"));
                 assertEquals("private-jndi-password", factory.get("java.naming.security.credentials"));
                 assertEquals("keep-me", factory.get("custom.provider.option"));
                 for (String field : List.of("connectionFactoryJndiProperties", "destinationJndiProperties")) {
-                    String key = org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
+                    String key = StudioBuildUtils.substitutePlaceholderInLowerCase(
                             module, flow, endpoint, endpoint.getProperty(field).getMeta().getPropertyConfigFileLabel());
                     assertEquals(endpoint.getPropertyValue(field), json.readValue(properties.getProperty(key), Map.class));
                 }
             }
             assertEquals(Map.of(), endpoints.get(1).getPropertyValue("destinationJndiProperties"));
-            String generated = org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.create("org.example.imported", module, flow);
+            String generated = FlowsComponentFactoryTemplate.create("org.example.imported", module, flow);
             assertTrue(generated.contains(".setConnectionFactoryJndiProperties(studioStringMap("));
             assertTrue(generated.contains(".setDestinationJndiProperties(studioStringMap("));
             for (String prefix : List.of("ConnectionFactoryJndiProperty", "DestinationJndiProperty"))
@@ -185,18 +194,18 @@ class RuntimeImportClientTest {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void invalidJndiMapsAndMismatchedClassesRemainUnappliedAndFlagged(String pack) throws Exception {
         String[] fixture = jmsDocuments(pack);
-        ObjectMapper json = new com.fasterxml.jackson.databind.ObjectMapper();
+        ObjectMapper json = new ObjectMapper();
         JsonNode configs = json.readTree(fixture[1]);
-        ObjectNode producer = (com.fasterxml.jackson.databind.node.ObjectNode) configs.get(1);
-        ((com.fasterxml.jackson.databind.node.ObjectNode) producer.path("parameters").get(1).path("value"))
+        ObjectNode producer = (ObjectNode) configs.get(1);
+        ((ObjectNode) producer.path("parameters").get(1).path("value"))
                 .putObject("unsupported.nested.option").put("value", "private-value");
-        Result invalid = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(fixture[0], configs.toString(), pack, "org.example");
+        Result invalid = IkasanRuntimeImport.convert(fixture[0], configs.toString(), pack, "org.example");
         assertTrue(invalid.review().toString().contains("Send: review configuration fields not applied: connectionFactoryJndiProperties"));
         assertFalse(invalid.review().toString().contains("private-value"));
-        Module module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(invalid.studioJson(), "invalid map", false);
+        Module module = ComponentIO.validatePersistedModuleJson(invalid.studioJson(), "invalid map", false);
         assertNull(module.getFlows().get(0).getFlowRoute().getFlowElements().get(0).getPropertyValue("connectionFactoryJndiProperties"));
         producer.put("implementingClass", "example.DifferentConfiguration");
-        Result mismatch = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(fixture[0], configs.toString(), pack, "org.example");
+        Result mismatch = IkasanRuntimeImport.convert(fixture[0], configs.toString(), pack, "org.example");
         assertTrue(mismatch.review().toString().contains("destinationJndiProperties"));
     }
 
@@ -427,7 +436,7 @@ class RuntimeImportClientTest {
     }
 
     private interface Check { void run(URI base) throws Exception; }
-    private static void withServer(com.sun.net.httpserver.HttpHandler handler, Check check) throws Exception {
+    private static void withServer(HttpHandler handler, Check check) throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/", handler); server.start();
         try { check.run(URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/ctx/")); }

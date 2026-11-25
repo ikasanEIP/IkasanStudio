@@ -1,9 +1,9 @@
 package org.ikasan.studio.intellij.metapack;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
 public final class ManageMetaPacksAction extends DumbAwareAction {
     @Override public @NotNull ActionUpdateThread getActionUpdateThread() { return ActionUpdateThread.BGT; }
@@ -15,7 +15,7 @@ public final class ManageMetaPacksAction extends DumbAwareAction {
     }
 
     /** Opens the same manager from the menu or a notification action, on the EDT. */
-    public static void open(com.intellij.openapi.project.Project project) {
+    public static void open(Project project) {
         if (project == null || project.isDisposed()) return;
         MetaPackManagerDialog dialog = new MetaPackManagerDialog(project);
         dialog.reload();

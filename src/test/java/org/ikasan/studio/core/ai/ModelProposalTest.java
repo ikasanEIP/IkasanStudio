@@ -1,22 +1,30 @@
 package org.ikasan.studio.core.ai;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.ai.ModelProposal.ChangeSet;
+import org.ikasan.studio.core.ai.ModelProposal.Prepared;
+import org.ikasan.studio.core.generator.FlowTemplate;
+import org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate;
+import org.ikasan.studio.core.generator.FlowsUserImplementedComponentTemplate;
+import org.ikasan.studio.core.generator.ModuleConfigTemplate;
+import org.ikasan.studio.core.generator.PropertiesTemplate;
 import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import java.util.List;
+
 import static org.assertj.core.api.Assertions.*;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.util.Map;
-import org.ikasan.studio.core.ai.ModelProposal.ChangeSet;
-import org.ikasan.studio.core.ai.ModelProposal.Prepared;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 
 public class ModelProposalTest {
     private static final ObjectMapper JSON = new ObjectMapper();
@@ -31,7 +39,7 @@ public class ModelProposalTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void typedCollectionEditsPreserveStructureAndUndo(String version) throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         JsonNode operations = JSON.readTree("""
                 [{"type":"addFlow","flow":"Mail"},
                  {"type":"addComponent","flow":"Mail","key":"Generic Consumer","name":"Input"},
@@ -44,7 +52,7 @@ public class ModelProposalTest {
         changes.apply();
         FlowElement producer = live.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
         assertThat(producer.getPropertyValue("toRecipients")).isEqualTo(List.of("a@example.com", "a@example.com"));
-        assertThat(producer.getPropertyValue("extendedMailSessionProperties")).isEqualTo(java.util.Map.of("mail.smtp.auth", "true"));
+        assertThat(producer.getPropertyValue("extendedMailSessionProperties")).isEqualTo(Map.of("mail.smtp.auth", "true"));
         assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
                 [{"type":"setProperty","flow":"Mail","component":"Output","property":"toRecipients","value":[1]}]
                 """))).isInstanceOf(IllegalArgumentException.class);
@@ -54,7 +62,7 @@ public class ModelProposalTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void flowStartupPropertyPersistsGeneratesAndSupportsUndoRedo(String version) throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         live.setPropertyValue("flowStartupType", "AUTOMATIC");
         ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree(CREATE))).apply();
         Flow flow = live.getFlows().get(0);
@@ -72,7 +80,7 @@ public class ModelProposalTest {
         String after = ComponentIO.toValidatedModuleJson(live);
         assertThat(ComponentIO.validatePersistedModuleJson(after, "test", false).getFlows().get(0)
                 .getPropertyValue("flowStartupType")).isEqualTo("MANUAL");
-        assertThat(org.ikasan.studio.core.generator.PropertiesTemplate.create(live))
+        assertThat(PropertiesTemplate.create(live))
                 .contains("defaultStartupType=AUTOMATIC", "flowStartupTypes[0]=Transfer,MANUAL");
         changes.undo();
         assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(before);
@@ -82,14 +90,14 @@ public class ModelProposalTest {
                 [{"type":"setFlowProperty","flow":"Transfer","property":"flowStartupType","value":null}]
                 """)));
         clear.apply();
-        assertThat(org.ikasan.studio.core.generator.PropertiesTemplate.create(live)).doesNotContain("flowStartupTypes[0]");
+        assertThat(PropertiesTemplate.create(live)).doesNotContain("flowStartupTypes[0]");
         clear.undo();
         assertThat(ComponentIO.toValidatedModuleJson(live)).isEqualTo(after);
     }
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void flowPropertyRejectsInvalidChoicesTypesAndStructuralEditsWithoutChangingLiveModel(String version) throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree(CREATE))).apply();
         String before = ComponentIO.toValidatedModuleJson(live);
         for (String property : List.of("name", "version", "testHarnessOwner", "configurationId", "unknown")) {
@@ -108,7 +116,7 @@ public class ModelProposalTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void nestedFanoutRoutesPersistAndNewBranchesOnExistingFlowsUndo(String version) throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
                 [{"type":"addFlow","flow":"Nested"},
                  {"type":"addComponent","flow":"Nested","key":"Generic Consumer","name":"Input"}]
@@ -141,11 +149,11 @@ public class ModelProposalTest {
         Module reloaded = ComponentIO.validatePersistedModuleJson(saved, "route test", false);
         assertThat(reloaded.getFlows().get(0).getFlowIntegrityStatus()).isBlank();
         assertThat(saved).contains("AuditLog", "Fanout", "excludeEvent");
-        String generated = org.ikasan.studio.core.generator.FlowTemplate.create(TestFixtures.DEFAULT_PACKAGE, reloaded, reloaded.getFlows().get(0));
+        String generated = FlowTemplate.create(TestFixtures.DEFAULT_PACKAGE, reloaded, reloaded.getFlows().get(0));
         assertThat(generated).contains("Accepted", "Rejected", "Audit", "Delivery", "OnException.excludeEvent()");
         for (FlowElement component : reloaded.getFlows().get(0).ftlGetConsumerAndFlowElements()) {
             if (component.getComponentMeta().isRouter()) {
-                String implementation = org.ikasan.studio.core.generator.FlowsUserImplementedComponentTemplate.create(
+                String implementation = FlowsUserImplementedComponentTemplate.create(
                         TestFixtures.DEFAULT_PACKAGE, reloaded, reloaded.getFlows().get(0), component);
                 assertThat(implementation).contains("route");
             }
@@ -159,7 +167,7 @@ public class ModelProposalTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void buildsBranchesAndExceptionPolicyAndPreservesObjectsAcrossUndo(String version) throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         Prepared initial = ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
                 [{"type":"addFlow","flow":"Routing"},
                  {"type":"addComponent","flow":"Routing","key":"Generic Consumer","name":"Input"},
@@ -206,7 +214,7 @@ public class ModelProposalTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void validatesDetachedThenAppliesAndUndoesCompleteFlow(String version) throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         Map<String,Object> before = LiveModelSnapshot.capture(live);
         Prepared prepared = ModelProposal.prepare(before, JSON.readTree(CREATE));
         assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
@@ -224,12 +232,12 @@ public class ModelProposalTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void emptyFlowCanBeReviewedAppliedGeneratedAndUndoneThroughEitherProposalRoute(String version) throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         Map<String,Object> before = LiveModelSnapshot.capture(live);
         JsonNode operations = JSON.readTree("[{\"type\":\"addFlow\",\"flow\":\"bob\"}]");
         Prepared prepared = ModelProposal.prepare(before, operations);
-        byte[] saved = ComponentIO.toValidatedModuleJson(live).getBytes(java.nio.charset.StandardCharsets.UTF_8);
-        String file = JSON.writeValueAsString(java.util.Map.of("formatVersion", 1,
+        byte[] saved = ComponentIO.toValidatedModuleJson(live).getBytes(StandardCharsets.UTF_8);
+        String file = JSON.writeValueAsString(Map.of("formatVersion", 1,
                 "baseModelSha256", OfflineModelProposal.sha256(saved), "operations", operations));
         assertThat(OfflineModelProposal.prepare(file, saved, before).summary()).isEqualTo(prepared.summary());
         assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
@@ -243,11 +251,11 @@ public class ModelProposalTest {
         String persisted = ComponentIO.toValidatedModuleJson(live);
         assertThat(ComponentIO.validatePersistedModuleJson(persisted, "test", false).getFlows()).hasSize(1);
         // Generation must support the same incomplete scaffold as a manually added Studio flow.
-        assertThat(org.ikasan.studio.core.generator.FlowTemplate.create(TestFixtures.DEFAULT_PACKAGE, live, bob))
+        assertThat(FlowTemplate.create(TestFixtures.DEFAULT_PACKAGE, live, bob))
                 .contains("class Bob");
-        assertThat(org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, live, bob))
+        assertThat(FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, live, bob))
                 .contains("ComponentFactoryBob");
-        assertThat(org.ikasan.studio.core.generator.ModuleConfigTemplate.create(live)).contains("getBob()");
+        assertThat(ModuleConfigTemplate.create(live)).contains("getBob()");
         changes.undo();
         assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
         changes.apply();
@@ -258,7 +266,7 @@ public class ModelProposalTest {
     void existingFlowWithNameOutsideNewNamePatternCanStillBeEditedAndDeleted(String version) throws Exception {
         // Studio does not restrict flow names in the UI, so a developer can legitimately have "Order-Flow".
         // The new-name pattern must apply only to names the proposal introduces, not to existing flows.
-        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live),
                 JSON.readTree("[{\"type\":\"addFlow\",\"flow\":\"Transfer\"}]"))).apply();
         live.getFlows().get(0).setName("Order-Flow");
@@ -279,7 +287,7 @@ public class ModelProposalTest {
     /** The AI reads this message to correct itself, so "Meta cant be null" (no key, no suggestion) is not enough. */
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void anUnknownComponentKeyNamesTheKeyAndHowToFixIt(String version) throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         Map<String,Object> snapshot = LiveModelSnapshot.capture(live);
         String add = "[{\"type\":\"addFlow\",\"flow\":\"T\"},{\"type\":\"addComponent\",\"flow\":\"T\",\"key\":\"%s\",\"name\":\"X\"}]";
 
@@ -297,7 +305,7 @@ public class ModelProposalTest {
     /** A rejected value should say what is acceptable, without echoing the value (it may be a credential). */
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void aRejectedValueExplainsTheRuleOrTheAllowedChoices(String version) throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         Map<String,Object> snapshot = LiveModelSnapshot.capture(live);
         String start = "{\"type\":\"addFlow\",\"flow\":\"T\"},{\"type\":\"addComponent\",\"flow\":\"T\",\"key\":\"Event Generating Consumer\",\"name\":\"Start\"},";
 
@@ -321,7 +329,7 @@ public class ModelProposalTest {
     /** An AI is likely to write a sentence or a Unix cron; Quartz rejects both and the flow then cannot start. */
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void aCronExpressionQuartzWouldRejectIsExplainedToTheAi(String version) throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         Map<String,Object> snapshot = LiveModelSnapshot.capture(live);
         for (String bad : new String[]{"every 5 minutes", "*/5 * * * *"}) {
             assertThatThrownBy(() -> ModelProposal.prepare(snapshot, JSON.readTree(
@@ -340,7 +348,7 @@ public class ModelProposalTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void buildsFlowIncrementallyAcrossSeparateReviews(String version) throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         Prepared create = ModelProposal.prepare(LiveModelSnapshot.capture(live),
                 JSON.readTree("[{\"type\":\"addFlow\",\"flow\":\"bob\"}]"));
         ModelProposal.changes(live, create).apply();
@@ -365,7 +373,7 @@ public class ModelProposalTest {
     }
 
     @Test void canAddProducerToAnExistingFlowBeforeItsConsumer() throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", new ArrayList<>());
         ModelProposal.changes(live, ModelProposal.prepare(LiveModelSnapshot.capture(live),
                 JSON.readTree("[{\"type\":\"addFlow\",\"flow\":\"bob\"}]"))).apply();
         Prepared proposal = ModelProposal.prepare(LiveModelSnapshot.capture(live), JSON.readTree("""
@@ -482,15 +490,15 @@ public class ModelProposalTest {
         changes.apply();
         assertThat(consumer.getPropertyValue("endpointEventProvider")).isEqualTo("MinuteEventProvider");
         consumer.getProperty("endpointEventProvider").setOverwriteEnabled(true);
-        ((com.fasterxml.jackson.databind.node.ObjectNode) operations.get(0)).put("value", "OtherProvider");
+        ((ObjectNode) operations.get(0)).put("value", "OtherProvider");
         Prepared overwriteProposal = ModelProposal.prepare(LiveModelSnapshot.capture(live), operations);
         assertThatThrownBy(() -> ModelProposal.changes(live, overwriteProposal))
                 .hasMessageContaining("Turn off source overwrite");
         assertThat(consumer.getPropertyValue("endpointEventProvider")).isEqualTo("MinuteEventProvider");
-        ((com.fasterxml.jackson.databind.node.ObjectNode) operations.get(0)).put("value", "minuteEventProvider");
+        ((ObjectNode) operations.get(0)).put("value", "minuteEventProvider");
         assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(live), operations))
                 .hasMessageContaining("validation rule");
-        ((com.fasterxml.jackson.databind.node.ObjectNode) operations.get(0)).put("property", "managedEventIdentifierService")
+        ((ObjectNode) operations.get(0)).put("property", "managedEventIdentifierService")
                 .put("value", "CustomIdentifierService");
         assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(live), operations))
                 .hasMessageContaining("Edit implementation class properties in Studio");
@@ -536,7 +544,7 @@ public class ModelProposalTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void explicitRecipeTypeMismatchExplainsTheRequiredConfiguration(String version) throws Exception {
-        Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree("""
                 [{"type":"addFlow","flow":"Delivery"},
                  {"type":"addComponent","flow":"Delivery","key":"Converter","name":"Build Payload",
@@ -550,7 +558,7 @@ public class ModelProposalTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void genericProducerAcceptsAndGeneratesParameterizedPayloadType(String version) throws Exception {
-        Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         Prepared prepared = ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree("""
                 [{"type":"addFlow","flow":"Map Delivery"},
                  {"type":"addComponent","flow":"Map Delivery","key":"Generic Producer","name":"Record Processed Line",
@@ -560,7 +568,7 @@ public class ModelProposalTest {
         Flow flow = module.getFlows().get(0);
         FlowElement producer = flow.getFlowRoute().getFlowElements().stream()
                 .filter(e -> "Record Processed Line".equals(e.getIdentity())).findFirst().orElseThrow();
-        String generated = org.ikasan.studio.core.generator.FlowsUserImplementedComponentTemplate.create(
+        String generated = FlowsUserImplementedComponentTemplate.create(
                 TestFixtures.DEFAULT_PACKAGE, module, flow, producer);
         assertThat(generated).contains("Producer<java.util.Map<java.lang.String,java.lang.String>>",
                 "invoke(java.util.Map<java.lang.String,java.lang.String> payload)");
@@ -570,7 +578,7 @@ public class ModelProposalTest {
     void newRecipeConvertersInferOnlyOmittedTypes(String version) throws Exception {
         for (String extra : List.of("", ",\"fromType\":\"java.lang.String\"",
                 ",\"toType\":\"org.ikasan.filetransfer.Payload\"")) {
-            Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+            Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
             Prepared prepared = ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree("""
                     [{"type":"addFlow","flow":"Delivery"},
                      {"type":"addComponent","flow":"Delivery","key":"Converter","name":"Encode",
@@ -595,7 +603,7 @@ public class ModelProposalTest {
     }
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void derivedImplementationDefaultsGenerateDistinctClassesAndAllowOnlyPlaceholderRepairs(String version) throws Exception {
-        Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, new java.util.ArrayList<>());
+        Module empty = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         Prepared prepared = ModelProposal.prepare(LiveModelSnapshot.capture(empty), JSON.readTree("""
                 [{"type":"addFlow","flow":"Delivery"},
                  {"type":"addComponent","flow":"Delivery","key":"Scheduled Consumer","name":"Schedule"},
@@ -611,8 +619,8 @@ public class ModelProposalTest {
         FlowElement second = flow.getFlowRoute().getFlowElements().get(1);
         assertThat(first.getPropertyValueAsString("userImplementedClassName")).isEqualTo("CreateText");
         assertThat(second.getPropertyValueAsString("userImplementedClassName")).isEqualTo("BuildPayload");
-        for (FlowElement component : java.util.List.of(first, second)) {
-            assertThat(org.ikasan.studio.core.generator.FlowsUserImplementedComponentTemplate.create(
+        for (FlowElement component : List.of(first, second)) {
+            assertThat(FlowsUserImplementedComponentTemplate.create(
                     TestFixtures.DEFAULT_PACKAGE, module, flow, component))
                     .contains("class " + component.getPropertyValueAsString("userImplementedClassName"))
                     .doesNotContain("__fieldName:");
@@ -630,16 +638,16 @@ public class ModelProposalTest {
         assertThat(first.getPropertyValueAsString("userImplementedClassName")).isEqualTo("CreateDeliveryText");
         changes.undo();
         assertThat(first.getPropertyValueAsString("userImplementedClassName")).isEqualTo("__fieldName:componentName");
-        for (String invalid : java.util.List.of("../Bad", "class", "bad-name")) {
+        for (String invalid : List.of("../Bad", "class", "bad-name")) {
             JsonNode invalidRepair = repair.deepCopy();
-            ((com.fasterxml.jackson.databind.node.ObjectNode) invalidRepair.get(0)).put("value", invalid);
+            ((ObjectNode) invalidRepair.get(0)).put("value", invalid);
             assertThatThrownBy(() -> ModelProposal.prepare(LiveModelSnapshot.capture(module), invalidRepair))
                     .hasMessageContaining("Edit implementation class properties in Studio");
         }
     }
 
     @Test void numberedFlowNameFailureIdentifiesTheNameAndLeavesModelUntouched() throws Exception {
-        Module live = TestFixtures.getMyFirstModuleIkasanModule("V3.3.9", new java.util.ArrayList<>());
+        Module live = TestFixtures.getMyFirstModuleIkasanModule("V3.3.9", new ArrayList<>());
         Map<String,Object> before = LiveModelSnapshot.capture(live);
         assertThatThrownBy(() -> ModelProposal.prepare(before, JSON.readTree(
                 "[{\"type\":\"addFlow\",\"flow\":\"01 JMS Publish Orders\"}]")))

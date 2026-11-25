@@ -1,32 +1,36 @@
 package org.ikasan.studio.ui.actions;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.integration.ikasan.WiretapEventsClient;
-import org.ikasan.studio.integration.ikasan.ExcludedEventsClient;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.UiContext;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.net.ConnectException;
 import java.net.URI;
+import java.net.http.HttpTimeoutException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.concurrent.Future;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.integration.ikasan.ExcludedEventsClient;
 import org.ikasan.studio.integration.ikasan.WiretapEventsClient.Event;
+import org.ikasan.studio.integration.ikasan.WiretapEventsClient;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
+import org.ikasan.studio.ui.UiContext;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.PropertyKey;
 
 /** Project-bound, read-only wiretap browser. HTTP work never runs on the EDT. */
 // This dialog runs with project services in the local IDE; remote Split Mode needs a separate frontend and RPC boundary.
@@ -61,7 +65,7 @@ public final class WiretapEventsDialog extends StudioDialogWrapper {
         if (module == null || !module.isInitialised()) return;
         try { new WiretapEventsDialog(project, ExcludedEventsClient.endpoint(module).resolve("../wiretap/"), flowName, componentName).show(); }
         catch (IllegalArgumentException e) {
-            com.intellij.openapi.ui.Messages.showWarningDialog(project, StudioBundle.message("wiretapEvents.configuration"), StudioBundle.message("wiretapEvents.title"));
+            Messages.showWarningDialog(project, StudioBundle.message("wiretapEvents.configuration"), StudioBundle.message("wiretapEvents.title"));
         }
     }
 
@@ -86,7 +90,7 @@ public final class WiretapEventsDialog extends StudioDialogWrapper {
         load(0, true);
     }
 
-    @Override protected Action @org.jetbrains.annotations.NotNull [] createActions() { return new Action[]{getCancelAction()}; }
+    @Override protected Action @NotNull [] createActions() { return new Action[]{getCancelAction()}; }
 
     @Override protected JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
@@ -117,7 +121,7 @@ public final class WiretapEventsDialog extends StudioDialogWrapper {
         return panel;
     }
 
-    private static void addField(JPanel panel, @org.jetbrains.annotations.PropertyKey(resourceBundle = "messages.studioBundle") String key, JBTextField field) {
+    private static void addField(JPanel panel, @PropertyKey(resourceBundle = "messages.studioBundle") String key, JBTextField field) {
         JBLabel label = new JBLabel(StudioBundle.message(key)); label.setLabelFor(field); panel.add(label); panel.add(field);
     }
 
@@ -128,7 +132,7 @@ public final class WiretapEventsDialog extends StudioDialogWrapper {
         String end = newSearch ? until.getText() : activeUntil;
         final URI uri;
         try { uri = WiretapEventsClient.query(endpoint, targetPage, f, c, start, end); }
-        catch (IllegalArgumentException | java.time.format.DateTimeParseException e) {
+        catch (IllegalArgumentException | DateTimeParseException e) {
             status.setText(StudioBundle.message("wiretapEvents.invalidDates")); return;
         }
         long ticket = ++generation;
@@ -143,7 +147,7 @@ public final class WiretapEventsDialog extends StudioDialogWrapper {
             catch (ExcludedEventsClient.HttpFailure e) {
                 failure = e.status == 401 || e.status == 403 ? StudioBundle.message("wiretapEvents.authentication")
                         : e.status == 404 ? StudioBundle.message("wiretapEvents.notFound") : StudioBundle.message("wiretapEvents.http", e.status);
-            } catch (java.net.ConnectException | java.net.http.HttpTimeoutException e) { failure = StudioBundle.message("wiretapEvents.connection"); }
+            } catch (ConnectException | HttpTimeoutException e) { failure = StudioBundle.message("wiretapEvents.connection"); }
             catch (Exception e) { failure = StudioBundle.message("wiretapEvents.failed"); }
             WiretapEventsClient.Page loaded = result;
             String error = failure;

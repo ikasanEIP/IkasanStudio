@@ -3,12 +3,13 @@ package org.ikasan.studio.testing.engine;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.ikasan.studio.core.io.ComponentIO;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@org.junit.jupiter.api.Tag("engine")
+@Tag("engine")
 class MetaPackSchemaTest {
     @Test
     void publishedSchemasAreValidJsonSchemas() {

@@ -1,24 +1,29 @@
 package org.ikasan.studio.core.persistence.json;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.stream.Stream;
 
 class ProtectedModelFileWriterTest {
     @TempDir
@@ -90,18 +95,18 @@ class ProtectedModelFileWriterTest {
     @Test
     void simulatedPermissionFailurePreservesOriginal() throws Exception {
         Path model = model("{\"revision\":1}");
-        assertThrows(java.nio.file.AccessDeniedException.class, () ->
+        assertThrows(AccessDeniedException.class, () ->
                 ProtectedModelFileWriter.write(model, "{\"revision\":2}", objectValidator,
-                        () -> { throw new java.nio.file.AccessDeniedException(model.toString()); }));
+                        () -> { throw new AccessDeniedException(model.toString()); }));
         assertEquals("{\"revision\":1}", Files.readString(model));
     }
 
     @Test
     void simulatedDiskFullFailurePreservesOriginal() throws Exception {
         Path model = model("{\"revision\":1}");
-        assertThrows(java.nio.file.FileSystemException.class, () ->
+        assertThrows(FileSystemException.class, () ->
                 ProtectedModelFileWriter.write(model, "{\"revision\":2}", objectValidator,
-                        () -> { throw new java.nio.file.FileSystemException(model.toString(), null, "No space left on device"); }));
+                        () -> { throw new FileSystemException(model.toString(), null, "No space left on device"); }));
         assertEquals("{\"revision\":1}", Files.readString(model));
     }
 
@@ -111,7 +116,7 @@ class ProtectedModelFileWriterTest {
         Files.writeString(directory.resolve("model.json.bak.1"), "{\"revision\":3}");
         Files.writeString(directory.resolve("model.json.bak.2"), "damaged backup");
         Files.writeString(directory.resolve("model.json.bak.3"), "{\"revision\":1}");
-        assertEquals(java.util.List.of(1, 3), ProtectedModelFileWriter.validBackupIndexes(model, objectValidator));
+        assertEquals(List.of(1, 3), ProtectedModelFileWriter.validBackupIndexes(model, objectValidator));
     }
 
     @Test
@@ -137,11 +142,11 @@ class ProtectedModelFileWriterTest {
         Path model = model("{\"revision\":1}");
         Path user = directory.resolve("Owned.java");
         Files.writeString(user, "// developer implementation");
-        assertThrows(java.nio.file.FileSystemException.class, () ->
+        assertThrows(FileSystemException.class, () ->
                 ProtectedModelFileWriter.writeWithCandidateWriter(model, "{\"revision\":2}", objectValidator,
                         (temporary, candidate) -> {
                             Files.writeString(temporary, candidate.substring(0, 5));
-                            throw new java.nio.file.FileSystemException(temporary.toString(), null, "No space left on device");
+                            throw new FileSystemException(temporary.toString(), null, "No space left on device");
                         }));
         assertEquals("{\"revision\":1}", Files.readString(model));
         assertEquals("{\"revision\":1}", Files.readString(directory.resolve("model.json.bak.1")));
@@ -156,19 +161,19 @@ class ProtectedModelFileWriterTest {
     @Test
     void concurrentSavesKeepEveryBackupValidAndReleaseLockAfterFailure() throws Exception {
         Path model = model("{\"revision\":0}");
-        ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(4);
+        ExecutorService pool = Executors.newFixedThreadPool(4);
         try {
-            ArrayList<Future<?>> jobs = new java.util.ArrayList<>();
+            ArrayList<Future<?>> jobs = new ArrayList<>();
             for (int i = 1; i <= 20; i++) {
                 final int revision = i;
                 jobs.add(pool.submit(() -> {
                     try { ProtectedModelFileWriter.write(model, "{\"revision\":" + revision + "}", objectValidator); }
-                    catch (IOException failure) { throw new java.io.UncheckedIOException(failure); }
+                    catch (IOException failure) { throw new UncheckedIOException(failure); }
                 }));
             }
-            for (Future<?> job : jobs) job.get(10, java.util.concurrent.TimeUnit.SECONDS);
-            ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            HashSet<Integer> revisions = new java.util.HashSet<>();
+            for (Future<?> job : jobs) job.get(10, TimeUnit.SECONDS);
+            ObjectMapper mapper = new ObjectMapper();
+            HashSet<Integer> revisions = new HashSet<>();
             revisions.add(mapper.readTree(Files.readString(model)).get("revision").asInt());
             for (int i = 1; i <= 3; i++) {
                 revisions.add(mapper.readTree(Files.readString(directory.resolve("model.json.bak." + i))).get("revision").asInt());

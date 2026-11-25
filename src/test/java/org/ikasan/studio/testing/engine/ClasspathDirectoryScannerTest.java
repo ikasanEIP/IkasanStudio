@@ -1,16 +1,19 @@
 package org.ikasan.studio.testing.engine;
 
-import org.ikasan.studio.core.metapack.loading.ClasspathDirectoryScanner;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+import org.ikasan.studio.core.metapack.loading.ClasspathDirectoryScanner;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
-@org.junit.jupiter.api.Tag("engine")
+@Tag("engine")
 class ClasspathDirectoryScannerTest {
     @TempDir Path temp;
 
@@ -25,7 +28,7 @@ class ClasspathDirectoryScannerTest {
                 jar.closeEntry();
             }
         }
-        try (URLClassLoader loader = new URLClassLoader(new java.net.URL[]{engine.toUri().toURL(), pack.toUri().toURL()}, null)) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{engine.toUri().toURL(), pack.toUri().toURL()}, null)) {
             assertArrayEquals(new String[]{"studio/metapack/Example", "studio/metapack/schema"},
                     ClasspathDirectoryScanner.getDirectories("studio/metapack", loader));
             assertArrayEquals(new String[0], ClasspathDirectoryScanner.getDirectories("missing", loader));

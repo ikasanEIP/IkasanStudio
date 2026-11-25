@@ -6,19 +6,18 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.undo.*;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.model.analysis.ModelReferenceReplacement;
+import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
+import org.jetbrains.annotations.NotNull;
 
 public final class ReplaceReferencesAction extends DumbAwareAction {
     @Override public @NotNull ActionUpdateThread getActionUpdateThread() { return ActionUpdateThread.EDT; }
@@ -56,15 +55,15 @@ public final class ReplaceReferencesAction extends DumbAwareAction {
         new ReplaceReferencesDialog(project, context.getIkasanModule()).show();
     }
 
-    static java.util.concurrent.CompletableFuture<Void> apply(Project project, Module module, List<ModelReferenceReplacement.Change> changes) {
+    static CompletableFuture<Void> apply(Project project, Module module, List<ModelReferenceReplacement.Change> changes) {
         requireCurrent(project, module);
-        if (changes.isEmpty()) return java.util.concurrent.CompletableFuture.completedFuture(null);
+        if (changes.isEmpty()) return CompletableFuture.completedFuture(null);
         GenerationRequest request = changes.stream().map(change -> GenerationRequest.flow(change.flow()))
                 .reduce(GenerationRequest.modelOnly(), GenerationRequest::merge);
         // Initialise the undo listener before its command starts (also needed on a fresh project).
         UndoManager undoManager = UndoManager.getInstance(project);
         ModelReferenceReplacement.apply(module, changes, true);
-        java.util.concurrent.CompletableFuture<Void> generation;
+        CompletableFuture<Void> generation;
         try { generation = StudioProjectFiles.refreshCodeFromModel(project, request); }
         catch (RuntimeException failure) {
             ModelReferenceReplacement.apply(module, changes, false);

@@ -6,16 +6,17 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.net.BindException;
+import java.nio.file.Path;
 import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.intellij.runtime.HarnessEndpointSettings;
 import org.ikasan.studio.intellij.runtime.TestFtpServerService;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.nio.file.Path;
 
 /** Starts Studio\x27s project-scoped embedded FTP server for an FTP Consumer. */
 public final class StartTestFtpServerAction implements ActionListener {
@@ -29,8 +30,8 @@ public final class StartTestFtpServerAction implements ActionListener {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.TestFtpServerCanOnlyBeUsedOnFtpConsumer"));
             return;
         }
-        TestFtpServerConfiguration configuration = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.ftp(project, flowElement);
-        boolean harnessOverride = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.enabled(project, flowElement);
+        TestFtpServerConfiguration configuration = HarnessEndpointSettings.ftp(project, flowElement);
+        boolean harnessOverride = HarnessEndpointSettings.enabled(project, flowElement);
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Starting test FTP server") {
             @SuppressWarnings("NullableProblems")
             @Override public void run(ProgressIndicator indicator) {
@@ -74,7 +75,7 @@ public final class StartTestFtpServerAction implements ActionListener {
      */
     private static boolean isPortConflict(Throwable error) {
         for (Throwable t = error; t != null; t = t.getCause()) {
-            if (t instanceof java.net.BindException) {
+            if (t instanceof BindException) {
                 return true;
             }
         }

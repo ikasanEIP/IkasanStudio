@@ -3,27 +3,34 @@ package org.ikasan.studio.ui.component.canvas;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import org.ikasan.studio.intellij.migration.MigrationController;
+import java.awt.event.MouseEvent;
+import java.util.List;
+import javax.swing.*;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.analysis.JmsFlowConnections;
-import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_POSITION;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.DECORATOR_TYPE;
+import org.ikasan.studio.intellij.ai.StudioImplementationReadiness;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
+import org.ikasan.studio.intellij.migration.MigrationController;
+import org.ikasan.studio.intellij.project.ModelImporter;
+import org.ikasan.studio.intellij.runtime.HarnessEndpointSettings;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.intellij.testing.GenerateFlowTestAction;
+import org.ikasan.studio.intellij.testing.NavigateToFlowTestAction;
+import org.ikasan.studio.intellij.testing.RunFlowTestAction;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.actions.*;
-import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
+import org.ikasan.studio.ui.actions.ReplaceReferencesAction;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowRouteViewHandler;
-
-import javax.swing.*;
-import java.awt.event.MouseEvent;
-import java.util.List;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
 
 public class DesignCanvasContextMenu {
     public static final Logger LOG = Logger.getInstance("DesignCanvasContextMenu");
@@ -52,7 +59,7 @@ public class DesignCanvasContextMenu {
                 menu.add(canvas.getFlowClipboardActions().pasteItem());
             }
             JMenuItem flowTest = new JMenuItem(StudioBundle.message("flowTest.title"));
-            flowTest.addActionListener(e -> org.ikasan.studio.intellij.testing.GenerateFlowTestAction.open(project, flow.getIdentity()));
+            flowTest.addActionListener(e -> GenerateFlowTestAction.open(project, flow.getIdentity()));
             menu.add(flowTest);
             menu.addSeparator();
 
@@ -68,10 +75,10 @@ public class DesignCanvasContextMenu {
                 menu.add(createNavigateToCode(project, ikasanBasicElement, false));
             }
             JMenuItem jumpToTest = new JMenuItem(StudioBundle.message("menu.JumpToFlowTest"));
-            jumpToTest.addActionListener(e -> org.ikasan.studio.intellij.testing.NavigateToFlowTestAction.open(project, flow));
+            jumpToTest.addActionListener(e -> NavigateToFlowTestAction.open(project, flow));
             menu.add(jumpToTest);
             JMenuItem runTest = new JMenuItem(StudioBundle.message("menu.RunFlowTest"));
-            runTest.addActionListener(e -> org.ikasan.studio.intellij.testing.RunFlowTestAction.run(project, flow));
+            runTest.addActionListener(e -> RunFlowTestAction.run(project, flow));
             menu.add(runTest);
             addNavigateToPropertiesMenuItemIfAvailable(menu, project, ikasanBasicElement);
 
@@ -105,7 +112,7 @@ public class DesignCanvasContextMenu {
             }
             if (flowElement.getComponentMeta().isTimeEventConsumer()
                     && (flowElement.getComponentMeta().isLocalFileConsumer()
-                    || org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER
+                    || ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER
                     .equals(flowElement.getComponentMeta().getTestPayloadAdapter()))) {
                 JMenuItem scan = new JMenuItem(StudioBundle.message("menu.TriggerLocalFileScan"));
                 scan.addActionListener(new TriggerScheduledConsumerAction(project, flowElement));
@@ -131,7 +138,7 @@ public class DesignCanvasContextMenu {
                 JMenuItem harness = new JMenuItem(StudioBundle.message("sftpHarness.title"));
                 harness.addActionListener(e -> SftpHarnessAction.choose(project));
                 menu.add(harness);
-                if (org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, flowElement)) {
+                if (HarnessEndpointSettings.effective(project, flowElement)) {
                     JMenuItem files = new JMenuItem(StudioBundle.message("sftpHarness.files"));
                     files.addActionListener(e -> SftpHarnessAction.showFiles(project));
                     menu.add(files);
@@ -169,22 +176,22 @@ public class DesignCanvasContextMenu {
         }
         if (ikasanBasicElement instanceof Module module) {
             JMenuItem readiness = new JMenuItem(StudioBundle.message("readiness.action"));
-            readiness.addActionListener(e -> org.ikasan.studio.intellij.ai.StudioImplementationReadiness.check(project, true));
+            readiness.addActionListener(e -> StudioImplementationReadiness.check(project, true));
             menu.add(readiness);
             JMenuItem verification = new JMenuItem(StudioBundle.message("verification.title"));
             verification.setEnabled(module.isInitialised());
-            verification.addActionListener(e -> org.ikasan.studio.intellij.testing.GenerateFlowTestAction.openVerification(project));
+            verification.addActionListener(e -> GenerateFlowTestAction.openVerification(project));
             menu.add(verification);
             JMenuItem flowTests = new JMenuItem(StudioBundle.message("flowTest.batchTitle"));
             flowTests.setEnabled(module.isInitialised());
-            flowTests.addActionListener(e -> org.ikasan.studio.intellij.testing.GenerateFlowTestAction.openAll(project));
+            flowTests.addActionListener(e -> GenerateFlowTestAction.openAll(project));
             menu.add(flowTests);
 
             JCheckBoxMenuItem keepCanvas = new JCheckBoxMenuItem(
                     StudioBundle.message("checkbox.KeepCanvasSelectedAtDebugBreakpoints"),
-                    org.ikasan.studio.intellij.settings.IkasanStudioSettings.isKeepCanvasSelectedAtDebugBreakpoints());
+                    IkasanStudioSettings.isKeepCanvasSelectedAtDebugBreakpoints());
             keepCanvas.setToolTipText(StudioBundle.message("tooltip.KeepCanvasSelectedAtDebugBreakpointsMenu"));
-            keepCanvas.addActionListener(event -> org.ikasan.studio.intellij.settings.IkasanStudioSettings
+            keepCanvas.addActionListener(event -> IkasanStudioSettings
                     .setKeepCanvasSelectedAtDebugBreakpoints(keepCanvas.isSelected()));
             menu.add(keepCanvas);
             menu.addSeparator();
@@ -203,7 +210,7 @@ public class DesignCanvasContextMenu {
             JMenuItem importModel = new JMenuItem(StudioBundle.message("button.ImportModelJson"));
             importModel.setToolTipText(StudioBundle.message("tooltip.ImportModelJson"));
             importModel.addActionListener(event ->
-                    org.ikasan.studio.intellij.project.ModelImporter.openImportDialog(project, canvas));
+                    ModelImporter.openImportDialog(project, canvas));
             menu.add(importModel);
             JMenuItem migrate = new JMenuItem(StudioBundle.message("action.IkasanStudio.MigrateVersion.text"));
             migrate.setToolTipText(StudioBundle.message("action.IkasanStudio.MigrateVersion.description"));
@@ -221,7 +228,7 @@ public class DesignCanvasContextMenu {
             menu.add(createLoadMenuItem(project));
             JMenuItem replaceReferences = new JMenuItem(StudioBundle.message("action.IkasanStudio.ReplaceReferences.text"));
             replaceReferences.setEnabled(module.isInitialised());
-            replaceReferences.addActionListener(event -> org.ikasan.studio.ui.actions.ReplaceReferencesAction.open(project));
+            replaceReferences.addActionListener(event -> ReplaceReferencesAction.open(project));
             menu.add(replaceReferences);
             if (canvas != null) menu.add(canvas.getFlowClipboardActions().pasteItem());
         }
@@ -378,7 +385,7 @@ public class DesignCanvasContextMenu {
         }
         if (flowElement.getComponentMeta().isTimeEventConsumer()
                 && (flowElement.getComponentMeta().isLocalFileConsumer()
-                || org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER
+                || ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER
                 .equals(flowElement.getComponentMeta().getTestPayloadAdapter()))) {
             JMenuItem scan = new JMenuItem(StudioBundle.message("menu.TriggerLocalFileScan"));
             scan.addActionListener(new TriggerScheduledConsumerAction(project, flowElement));

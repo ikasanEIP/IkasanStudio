@@ -1,14 +1,16 @@
 package org.ikasan.studio.intellij.testing;
 
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.stream.Stream;
+import org.ikasan.studio.core.generator.GeneratedVerification.Bundle;
 import org.ikasan.studio.core.generator.GeneratedVerification;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import java.nio.file.*;
-import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
-import java.nio.file.Path;
-import java.util.stream.Stream;
-import org.ikasan.studio.core.generator.GeneratedVerification.Bundle;
 
 class GeneratedVerificationFilesTest {
     @TempDir Path root;
@@ -46,7 +48,7 @@ class GeneratedVerificationFilesTest {
         String snapshot = GeneratedVerificationFiles.snapshot(directory);
         Files.writeString(directory.resolve("java/OtherTest.java"), "new developer edit");
         Bundle bundle = new GeneratedVerification.Bundle("new root", "application", "new application", Map.of());
-        assertThrows(java.io.IOException.class,
+        assertThrows(IOException.class,
                 () -> GeneratedVerificationFiles.write(root, "original", snapshot, bundle, false));
         assertEquals("new developer edit", Files.readString(directory.resolve("java/OtherTest.java")));
         assertEquals("original", Files.readString(root.resolve("pom.xml")));
@@ -87,7 +89,7 @@ class GeneratedVerificationFilesTest {
         Files.writeString(directory.resolve("java/OtherTest.java"), "unrelated");
         String initial = GeneratedVerificationFiles.snapshot(directory);
         Files.writeString(test, "developer correction");
-        assertThrows(java.io.IOException.class, () -> GeneratedVerificationFiles.write(root, "updated", initial, bundle));
+        assertThrows(IOException.class, () -> GeneratedVerificationFiles.write(root, "updated", initial, bundle));
         assertEquals("developer correction", Files.readString(test));
         Path backup = GeneratedVerificationFiles.write(root, "updated", GeneratedVerificationFiles.snapshot(directory), bundle);
         assertEquals("developer correction", Files.readString(backup.resolve("java/org/ikasan/studio/verification/Test.java")));
@@ -97,7 +99,7 @@ class GeneratedVerificationFilesTest {
         assertEquals("application source", Files.readString(root.resolve("generated/src/main/application.txt")));
         String approved = GeneratedVerificationFiles.snapshot(directory);
         Files.writeString(root.resolve("generated/pom.xml"), "external edit");
-        assertThrows(java.io.IOException.class, () -> GeneratedVerificationFiles.write(root, "updated", approved, bundle));
+        assertThrows(IOException.class, () -> GeneratedVerificationFiles.write(root, "updated", approved, bundle));
         assertEquals("external edit", Files.readString(root.resolve("generated/pom.xml")));
     }
 }

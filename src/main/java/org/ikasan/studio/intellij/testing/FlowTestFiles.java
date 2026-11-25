@@ -1,16 +1,25 @@
 package org.ikasan.studio.intellij.testing;
 
-import org.ikasan.studio.core.generator.FlowTestScaffold;
 import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.util.*;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold;
+import org.ikasan.studio.core.generator.FlowTestScaffold;
+import org.ikasan.studio.core.generator.ModuleTestWiring;
 
 /** Background-only writer. Existing tests are preserved unless explicitly archived for regeneration. */
 public final class FlowTestFiles {
@@ -69,7 +78,7 @@ public final class FlowTestFiles {
             for (Entry<String,String> entry : scaffold.files().entrySet()) {
                 String path = entry.getKey();
                 if (path.startsWith("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/")
-                        || path.equals(org.ikasan.studio.core.generator.ModuleTestWiring.PATH)
+                        || path.equals(ModuleTestWiring.PATH)
                         || path.equals(FlowTestScaffold.TEST_PROPERTIES_PATH) || path.equals("user-flow-tests/pom.xml")) {
                     String previous = shared.putIfAbsent(path, entry.getValue());
                     if (previous != null && !previous.equals(entry.getValue()))
@@ -104,9 +113,9 @@ public final class FlowTestFiles {
         if (!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS))
             throw new IOException("Expected a properties file: " + file);
         byte[] original = Files.readAllBytes(file);
-        contents = preserveLocalServiceChoices(new String(original, java.nio.charset.StandardCharsets.UTF_8), contents);
-        Path backup = file.resolveSibling(file.getFileName() + ".bak" + java.time.LocalDateTime.now()
-                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")) + "-" + UUID.randomUUID());
+        contents = preserveLocalServiceChoices(new String(original, StandardCharsets.UTF_8), contents);
+        Path backup = file.resolveSibling(file.getFileName() + ".bak" + LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")) + "-" + UUID.randomUUID());
         Path temporary = Files.createTempFile(file.getParent(), ".test-properties-", ".tmp");
         try {
             Files.writeString(temporary, contents);
@@ -122,7 +131,7 @@ public final class FlowTestFiles {
 
     private static String preserveLocalServiceChoices(String original, String fresh) throws IOException {
         Properties previous = new Properties();
-        previous.load(new java.io.StringReader(original));
+        previous.load(new StringReader(original));
         StringBuilder retained = new StringBuilder();
         for (String protocol : List.of("ftp", "sftp", "smtp")) {
             String key = "test." + protocol + ".enabled";
@@ -130,7 +139,7 @@ public final class FlowTestFiles {
             if (value == null) continue;
             // Match the support helpers' Boolean.parseBoolean semantics, including duplicate-key precedence.
             boolean enabled = Boolean.parseBoolean(value);
-            fresh = fresh.replaceAll("(?m)^" + java.util.regex.Pattern.quote(key)
+            fresh = fresh.replaceAll("(?m)^" + Pattern.quote(key)
                     + "[ \t]*[=:][^\r\n]*(?:\r?\n|$)", "");
             retained.append(key).append('=').append(enabled).append('\n');
         }
@@ -154,7 +163,7 @@ public final class FlowTestFiles {
             if (!selected.add(safe(root, scaffold.testPath()))) throw new IOException("Selected flows produce the same test class.");
         }
         Set<Path> approvals = new HashSet<>();
-        for (org.ikasan.studio.intellij.testing.FlowTestFiles.ExistingTestException test : approved) {
+        for (ExistingTestException test : approved) {
             if (!selected.contains(test.path) || !approvals.add(test.path)
                     || !Arrays.equals(Files.readAllBytes(test.path), test.contents))
                 throw new IOException("The existing tests changed. Review them before regenerating.");
@@ -164,8 +173,8 @@ public final class FlowTestFiles {
         for (Scaffold scaffold : scaffolds) for (String output : scaffold.files().keySet()) safe(root, output);
         Map<Path, Path> backups = new LinkedHashMap<>();
         try {
-            for (org.ikasan.studio.intellij.testing.FlowTestFiles.ExistingTestException test : approved) {
-                String timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS").format(java.time.LocalDateTime.now());
+            for (ExistingTestException test : approved) {
+                String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS").format(LocalDateTime.now());
                 Path backup = test.path.resolveSibling(test.path.getFileName() + ".bak" + timestamp + "-" + UUID.randomUUID());
                 Files.move(test.path, backup);
                 backups.put(test.path, backup);
@@ -189,8 +198,8 @@ public final class FlowTestFiles {
         if (!test.equals(approved.path) || !Arrays.equals(Files.readAllBytes(test), approved.contents))
             throw new IOException("The existing test changed. Review it before regenerating.");
         if (!Files.readString(safe(root, "pom.xml")).equals(originalPom)) throw new IOException("pom.xml changed. Generate the test again.");
-        String timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")
-                .format(java.time.LocalDateTime.now());
+        String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")
+                .format(LocalDateTime.now());
         Path backup = test.resolveSibling(test.getFileName() + ".bak" + timestamp + "-" + UUID.randomUUID());
         // Rename preserves the exact file; regeneration creates a new file at the original path.
         Files.move(test, backup);
@@ -272,8 +281,8 @@ public final class FlowTestFiles {
             }
             if (newTestPom != null && !newTestPom.equals(oldTestPom)) {
                 if (!Files.readString(testPom).equals(oldTestPom)) throw new IOException("Flow-test pom.xml changed; retry generation.");
-                Path backup = testPom.resolveSibling("pom.xml.bak" + java.time.LocalDateTime.now()
-                        .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")) + "-" + UUID.randomUUID());
+                Path backup = testPom.resolveSibling("pom.xml.bak" + LocalDateTime.now()
+                        .format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")) + "-" + UUID.randomUUID());
                 Files.copy(testPom, backup);
                 Path temp = Files.createTempFile(testPom.getParent(), ".test-pom-", ".tmp");
                 try {
@@ -281,9 +290,9 @@ public final class FlowTestFiles {
                     Files.move(temp, testPom, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
                 } finally { Files.deleteIfExists(temp); }
             }
-            String wiring = scaffold.files().get(org.ikasan.studio.core.generator.ModuleTestWiring.PATH);
+            String wiring = scaffold.files().get(ModuleTestWiring.PATH);
             if (wiring != null) {
-                Path target = safe(root, org.ikasan.studio.core.generator.ModuleTestWiring.PATH);
+                Path target = safe(root, ModuleTestWiring.PATH);
                 Path temporary = Files.createTempFile(target.getParent(), ".flow-test-wiring-", ".tmp");
                 try {
                     Files.writeString(temporary, wiring);
@@ -304,14 +313,14 @@ public final class FlowTestFiles {
     /** Adds missing fixture defaults and an inferred embedded JMS reference; explicit developer values win. */
     static void addMissingFixtureInputDefaults(Path root, String generated) throws IOException {
         if (generated == null) return;
-        java.util.Properties defaults = new java.util.Properties();
-        defaults.load(new java.io.StringReader(generated));
+        Properties defaults = new Properties();
+        defaults.load(new StringReader(generated));
         Path file = safe(root.toAbsolutePath().normalize(), FlowTestScaffold.TEST_PROPERTIES_PATH);
         String original = Files.readString(file);
-        java.util.Properties current = new java.util.Properties();
-        current.load(new java.io.StringReader(original));
+        Properties current = new Properties();
+        current.load(new StringReader(original));
         StringBuilder added = new StringBuilder();
-        for (String key : new java.util.TreeSet<>(defaults.stringPropertyNames())) {
+        for (String key : new TreeSet<>(defaults.stringPropertyNames())) {
             if (key.startsWith("studio.sample-consumer.") && key.endsWith(".fixture-input-enabled")
                     && "true".equals(defaults.getProperty(key)) && !current.containsKey(key)) {
                 added.append(key).append("=true\n");
@@ -323,8 +332,8 @@ public final class FlowTestFiles {
                     .append("test.jms.broker-url=").append(broker).append('\n');
         }
         if (added.isEmpty()) return;
-        Path backup = file.resolveSibling(file.getFileName() + ".bak" + java.time.LocalDateTime.now()
-                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")) + "-" + UUID.randomUUID());
+        Path backup = file.resolveSibling(file.getFileName() + ".bak" + LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS")) + "-" + UUID.randomUUID());
         Path temporary = Files.createTempFile(file.getParent(), ".fixture-input-", ".tmp");
         try {
             Files.writeString(temporary, original + "\n\n# Missing test defaults added by Generate Flow Test; existing settings are preserved.\n" + added);
@@ -354,7 +363,7 @@ public final class FlowTestFiles {
                 : "smtp".equals(protocol) ? localSmtpProperties(original) : localFtpProperties(original);
         if (updated.equals(original)) return;
         Path backup = properties.resolveSibling(properties.getFileName() + ".bak"
-                + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS"))
+                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS"))
                 + "-" + UUID.randomUUID());
         Path temporary = Files.createTempFile(properties.getParent(), ".test-properties-", ".tmp");
         try {
@@ -366,7 +375,7 @@ public final class FlowTestFiles {
     }
 
     /** Replace only the selected property, preserving unrelated logical entries and comments verbatim. */
-    private static String setFixtureProperty(String original, String key, String value) throws IOException {
+    private static String enableFixtureProperty(String original, String key) throws IOException {
         StringBuilder result = new StringBuilder();
         StringBuilder entry = new StringBuilder();
         boolean replaced = false;
@@ -379,10 +388,10 @@ public final class FlowTestFiles {
             boolean comment = trimmed.startsWith("#") || trimmed.startsWith("!");
             if (!comment && slashes % 2 == 1 && line.endsWith("\n")) continue;
             Properties parsed = new Properties();
-            parsed.load(new java.io.StringReader(entry.toString()));
+            parsed.load(new StringReader(entry.toString()));
             if (parsed.containsKey(key)) {
                 if (!replaced) {
-                    result.append(key).append('=').append(value).append('\n');
+                    result.append(key).append("=true\n");
                     replaced = true;
                 }
             } else result.append(entry);
@@ -390,17 +399,17 @@ public final class FlowTestFiles {
         }
         if (!replaced) {
             if (!result.isEmpty() && result.charAt(result.length() - 1) != '\n') result.append('\n');
-            result.append(key).append('=').append(value).append('\n');
+            result.append(key).append("=true\n");
         }
         return result.toString();
     }
 
     /** Preserve custom credentials when enabling local FTP. */
     static String localFtpProperties(String original) throws IOException {
-        java.util.Properties properties = new java.util.Properties();
-        properties.load(new java.io.StringReader(original));
+        Properties properties = new Properties();
+        properties.load(new StringReader(original));
         if (properties.containsKey("test.ftp.enabled"))
-            return setFixtureProperty(original, "test.ftp.enabled", "true");
+            return enableFixtureProperty(original, "test.ftp.enabled");
         StringBuilder result = new StringBuilder(original).append("\n\n# Enabled by Generate Flow Test: disposable loopback FTP, allocated port, temporary home.\n")
                 .append("# Applies to all FTP endpoints in this test application; original settings above are retained.\n")
                 .append("test.ftp.enabled=true\n");
@@ -415,18 +424,18 @@ public final class FlowTestFiles {
 
     static String localSftpProperties(String original) throws IOException {
         Properties properties = new Properties();
-        properties.load(new java.io.StringReader(original));
+        properties.load(new StringReader(original));
         if (properties.containsKey("test.sftp.enabled"))
-            return setFixtureProperty(original, "test.sftp.enabled", "true");
+            return enableFixtureProperty(original, "test.sftp.enabled");
         return original + "\n\n# Local test SFTP: loopback, allocated port, trusted temporary key and endpoint directories.\n"
                 + "test.sftp.enabled=true\n";
     }
 
     static String localSmtpProperties(String original) throws IOException {
         Properties properties = new Properties();
-        properties.load(new java.io.StringReader(original));
+        properties.load(new StringReader(original));
         if (properties.containsKey("test.smtp.enabled"))
-            return setFixtureProperty(original, "test.smtp.enabled", "true");
+            return enableFixtureProperty(original, "test.smtp.enabled");
         return original + "\n\n# Local test SMTP inbox: loopback only, allocated port, no forwarding.\n"
                 + "# Overrides all mail producer connections in this test application.\ntest.smtp.enabled=true\n";
     }
@@ -435,21 +444,21 @@ public final class FlowTestFiles {
     static String withFtpTestDependencies(String existing, Map<String, String> generated) throws IOException {
         if (!generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java")) return existing;
         try {
-            MavenXpp3Reader reader = new org.apache.maven.model.io.xpp3.MavenXpp3Reader();
-            Model model = reader.read(new java.io.StringReader(existing));
+            MavenXpp3Reader reader = new MavenXpp3Reader();
+            Model model = reader.read(new StringReader(existing));
             StringBuilder additions = new StringBuilder();
             List<String[]> dependencies = new ArrayList<>(List.of(
                     new String[]{"org.apache.ftpserver", "ftpserver-core", "1.2.1"},
                     new String[]{"org.apache.mina", "mina-core", "2.2.9"}));
             if (generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSmtpTestServer.java")) {
-                Model templatePom = reader.read(new java.io.StringReader(generated.get("user-flow-tests/pom.xml")));
+                Model templatePom = reader.read(new StringReader(generated.get("user-flow-tests/pom.xml")));
                 Dependency smtp = templatePom.getDependencies().stream()
                         .filter(d -> "com.icegreen".equals(d.getGroupId()) && "greenmail".equals(d.getArtifactId()))
                         .findFirst().orElseThrow(() -> new IOException("Missing GreenMail dependency in generated test POM"));
                 dependencies.add(new String[]{smtp.getGroupId(), smtp.getArtifactId(), smtp.getVersion()});
             }
             if (generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSftpTestServer.java")) {
-                Model templatePom = reader.read(new java.io.StringReader(generated.get("user-flow-tests/pom.xml")));
+                Model templatePom = reader.read(new StringReader(generated.get("user-flow-tests/pom.xml")));
                 for (String artifact : List.of("sshd-sftp", "sshd-core", "sshd-common")) {
                     Dependency dependency = templatePom.getDependencies().stream()
                             .filter(d -> "org.apache.sshd".equals(d.getGroupId()) && artifact.equals(d.getArtifactId()))
@@ -466,7 +475,7 @@ public final class FlowTestFiles {
             }
             if (additions.isEmpty()) return existing;
             return insertProjectDependencies(existing, additions.toString());
-        } catch (org.codehaus.plexus.util.xml.pull.XmlPullParserException failure) {
+        } catch (XmlPullParserException failure) {
             throw new IOException("Cannot update user-flow-tests/pom.xml", failure);
         }
     }
@@ -476,9 +485,9 @@ public final class FlowTestFiles {
      * profiles, plugin dependencies, dependency management, comments and formatting remain untouched.
      */
     private static String insertProjectDependencies(String xml, String additions) throws IOException {
-        Matcher tokens = java.util.regex.Pattern.compile(
+        Matcher tokens = Pattern.compile(
                 "<!--.*?-->|<!\\[CDATA\\[.*?]]>|<\\?.*?\\?>|<(?:\"[^\"]*\"|'[^']*'|[^'\">])*>",
-                java.util.regex.Pattern.DOTALL).matcher(xml);
+                Pattern.DOTALL).matcher(xml);
         int depth = 0;
         String projectPrefix = "";
         while (tokens.find()) {
@@ -513,7 +522,7 @@ public final class FlowTestFiles {
     private static Path safe(Path root, String relative) throws IOException {
         Path path = root.resolve(relative).normalize();
         if (!path.startsWith(root) || Path.of(relative).isAbsolute()
-                || !(relative.equals("pom.xml") || relative.equals(org.ikasan.studio.core.generator.ModuleTestWiring.PATH)
+                || !(relative.equals("pom.xml") || relative.equals(ModuleTestWiring.PATH)
                 || relative.startsWith("user-flow-tests/"))) {
             throw new IOException("Invalid flow test path: " + relative);
         }

@@ -1,11 +1,13 @@
 package org.ikasan.studio.intellij.ai;
 
-import org.junit.jupiter.api.Test;
-import javax.swing.SwingUtilities;
 import java.awt.Font;
-import static org.assertj.core.api.Assertions.assertThat;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.JButton;
+import javax.swing.SwingUtilities;
+import javax.swing.text.StyleConstants;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class StudioAiConnectionTextTest {
     @Test void initialWrappingDoesNotDemandScreenHeight() throws Exception {
@@ -41,7 +43,7 @@ class StudioAiConnectionTextTest {
             StudioAiConnectionInstructions instructions = new StudioAiConnectionInstructions(() -> { });
             int position = instructions.getText().indexOf("Enable MCP Server");
             assertThat(position).isGreaterThanOrEqualTo(0);
-            assertThat(javax.swing.text.StyleConstants.isBold(instructions.getStyledDocument()
+            assertThat(StyleConstants.isBold(instructions.getStyledDocument()
                     .getCharacterElement(position).getAttributes())).isTrue();
             assertThat(instructions.getPreferredSize().height).isBetween(50, 500);
             assertThat(instructions.getMinimumSize().height).isLessThan(40);
@@ -49,13 +51,13 @@ class StudioAiConnectionTextTest {
     }
     @Test void inlineSettingsButtonInvokesSettingsAction() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            AtomicBoolean opened = new java.util.concurrent.atomic.AtomicBoolean();
+            AtomicBoolean opened = new AtomicBoolean();
             StudioAiConnectionInstructions instructions = new StudioAiConnectionInstructions(() -> opened.set(true));
             // Keep the object replacement character visible as an escape.
             //noinspection UnnecessaryUnicodeEscape
             int position = instructions.getText().indexOf('\uFFFC');
             assertThat(position).isGreaterThanOrEqualTo(0);
-            JButton button = (javax.swing.JButton) javax.swing.text.StyleConstants.getComponent(
+            JButton button = (JButton) StyleConstants.getComponent(
                     instructions.getStyledDocument().getCharacterElement(position).getAttributes());
             assertThat(button.getText()).isEqualTo("Open IntelliJ MCP settings");
             assertThat(button.getFont().isBold()).isTrue();

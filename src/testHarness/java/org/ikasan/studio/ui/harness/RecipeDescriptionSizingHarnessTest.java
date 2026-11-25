@@ -1,14 +1,15 @@
 package org.ikasan.studio.ui.harness;
 
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
-import org.junit.jupiter.api.Test;
-
-import javax.swing.*;
+import com.intellij.util.ui.UIUtil;
 import java.awt.*;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import javax.swing.*;
+import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Regression guard for a real layout bug (confirmed via this test before the fix): the "Recipe description"
@@ -31,7 +32,7 @@ public class RecipeDescriptionSizingHarnessTest extends ComponentTestHarness {
         converter.setPropertyValue("toType", "org.ikasan.component.endpoint.email.producer.EmailPayload");
         converter.setPropertyValue("conversionRecipeId", "file-transfer-payload-to-email-attachment");
 
-        com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded(() -> {
+        UIUtil.invokeAndWaitIfNeeded(() -> {
             ComponentPropertiesPanel panel = new ComponentPropertiesPanel(getProject(), false);
             panel.updateTargetComponent(converter);
 
@@ -49,12 +50,12 @@ public class RecipeDescriptionSizingHarnessTest extends ComponentTestHarness {
             // TestCase/Assert) provides instance methods of the same name but with message-first parameter order,
             // which silently shadows a static import of the JUnit 5 Assertions of the same name (see
             // FlowsUserImplementedComponentTemplateTest/ConversionRecipeEditorTest for the same workaround).
-            org.junit.jupiter.api.Assertions.assertNotNull(recipeHelp, "Recipe description text area was not found in the properties panel");
+            Assertions.assertNotNull(recipeHelp, "Recipe description text area was not found in the properties panel");
             Container scroll = recipeHelp.getParent().getParent(); // JViewport -> JScrollPane
-            org.junit.jupiter.api.Assertions.assertInstanceOf(JScrollPane.class, scroll, "Expected the text area's grandparent to be its JScrollPane");
+            Assertions.assertInstanceOf(JScrollPane.class, scroll, "Expected the text area's grandparent to be its JScrollPane");
             int minimumHeight = scroll.getMinimumSize().height;
-            org.junit.jupiter.api.Assertions.assertTrue(minimumHeight >= 40, "Recipe description scrollpane has no meaningful minimum height guard: " + minimumHeight);
-            org.junit.jupiter.api.Assertions.assertTrue(scroll.getSize().height >= minimumHeight,
+            Assertions.assertTrue(minimumHeight >= 40, "Recipe description scrollpane has no meaningful minimum height guard: " + minimumHeight);
+            Assertions.assertTrue(scroll.getSize().height >= minimumHeight,
                     "Recipe description was squeezed below its own declared minimum height: actual=" + scroll.getSize().height + " minimum=" + minimumHeight);
 
             frame.dispose();

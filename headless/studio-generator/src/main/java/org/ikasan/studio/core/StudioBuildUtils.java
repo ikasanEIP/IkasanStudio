@@ -1,5 +1,12 @@
 package org.ikasan.studio.core;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.text.Normalizer.Form;
+import java.text.Normalizer;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.ikasan.studio.core.generation.JavaSourceNames;
 import org.ikasan.studio.core.metapack.loading.ClasspathDirectoryScanner;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
@@ -7,12 +14,6 @@ import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
 
@@ -149,7 +150,7 @@ public class StudioBuildUtils {
         if (input != null && !input.isEmpty()) {
             // Fold accents and drop anything else non-ASCII: this is a servlet context path, which Spring Boot would
             // misread (it reads .properties as ISO-8859-1) and Studio's own URLs cannot rely on.
-            String ascii = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD)
+            String ascii = Normalizer.normalize(input, Form.NFD)
                     .replaceAll("\\p{M}+", "")
                     .replaceAll("[^\\x00-\\x7F]", "");
             // Tomcat registers the context path as a JMX object name (a quote, comma, equals, colon, asterisk or question

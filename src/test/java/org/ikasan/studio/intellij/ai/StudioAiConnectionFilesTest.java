@@ -1,9 +1,11 @@
 package org.ikasan.studio.intellij.ai;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
 import static org.assertj.core.api.Assertions.*;
 
 class StudioAiConnectionFilesTest {
@@ -17,7 +19,11 @@ class StudioAiConnectionFilesTest {
             connection = first.connection();
             adapter = first.adapter();
             first.publish("first-session");
-            assertThatThrownBy(() -> StudioAiConnectionFiles.open(root, project, new byte[]{3}))
+            assertThatThrownBy(() -> {
+                try (StudioAiConnectionFiles duplicate = StudioAiConnectionFiles.open(root, project, new byte[]{3})) {
+                    fail("A duplicate session acquired " + duplicate.connection());
+                }
+            })
                     .hasMessageContaining("another IDE session");
             assertThat(Files.readString(connection)).isEqualTo("first-session");
             try (StudioAiConnectionFiles other = StudioAiConnectionFiles.open(root, root.resolve("other").toString(), new byte[]{4})) {
@@ -25,7 +31,7 @@ class StudioAiConnectionFilesTest {
             }
             if (Files.getFileStore(connection).supportsFileAttributeView("posix")) {
                 assertThat(Files.getPosixFilePermissions(connection)).isEqualTo(
-                        java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"));
+                        PosixFilePermissions.fromString("rw-------"));
             }
         }
         assertThat(connection).doesNotExist();

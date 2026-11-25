@@ -1,21 +1,22 @@
 package org.ikasan.studio.intellij.ai;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.ai.*;
 import org.ikasan.studio.core.model.ikasan.instance.*;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.api.Test;
-import java.util.List;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class StudioAiApprovalPolicyTest {
     @Test void checksTransientProtectedPropertyFlagsInLiveModelEvenForUnchangedFlows() throws Exception {
-        ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
         Module empty = TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", List.of());
         Module live = ModelProposal.prepare(LiveModelSnapshot.capture(empty), mapper.readTree("""
                 [{"type":"addFlow","flow":"existing"},

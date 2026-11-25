@@ -1,6 +1,13 @@
 package org.ikasan.studio.ui.harness;
 
 import com.intellij.openapi.project.Project;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import javax.imageio.ImageIO;
+import javax.swing.JTextArea;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -10,12 +17,6 @@ import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 import org.junit.jupiter.api.Test;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,7 +54,7 @@ public class SaveAsImageTightContentSizeHarnessTest extends ComponentTestHarness
         uiContext.setIkasanModule(module);
         // saveAsImage's own success/failure notification reads this back via StudioUIUtils - normally wired
         // up by CanvasPanel, which this minimal test doesn't construct.
-        uiContext.setCanvasTextArea(new javax.swing.JTextArea());
+        uiContext.setCanvasTextArea(new JTextArea());
 
         DesignerCanvas designerCanvas = new DesignerCanvas(project);
         // Simulate a tall IDE window / scroll-pane viewport - far larger than one small flow needs - the same
@@ -83,10 +84,13 @@ public class SaveAsImageTightContentSizeHarnessTest extends ComponentTestHarness
             assertThat(designerCanvas.getWidth()).isEqualTo(3000);
             assertThat(designerCanvas.getHeight()).isEqualTo(3000);
         } finally {
-            savedFile.delete();
             // saveAsImage's paint pass can start DesignerCanvas's flow-error-flash Timer; without disposal it
             // leaks past this test and trips the harness's disposed-Swing-Timer check on later tests.
-            designerCanvas.disposeCanvas();
+            try {
+                designerCanvas.disposeCanvas();
+            } finally {
+                Files.deleteIfExists(savedFile.toPath());
+            }
         }
     }
 }

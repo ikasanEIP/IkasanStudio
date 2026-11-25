@@ -1,10 +1,12 @@
 package org.ikasan.studio.intellij.execution;
 
+import java.util.List;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -42,12 +44,12 @@ class ComponentBreakpointSourceTest {
 
     @Test void userFilterIsEligibleForCanvasRetentionButAmbiguousAndUnrelatedSourcesAreNot() {
         when(element.getPropertyValue("userImplementedClassName")).thenReturn("DefaultFilterRemoval");
-        when(module.getFlows()).thenReturn(java.util.List.of(flow));
-        when(flow.getFlowElementsNoExternalEndPoints()).thenReturn(java.util.List.of(element));
+        when(module.getFlows()).thenReturn(List.of(flow));
+        when(flow.getFlowElementsNoExternalEndPoints()).thenReturn(List.of(element));
         String source = "/project/user/src/main/java/org/example/flow/DefaultFilterRemoval.java";
         assertThat(ComponentBreakpointSource.uniqueMatch("/project", module, source)).isSameAs(element);
         assertThat(ComponentBreakpointSource.uniqueMatch("/project", module, source.replace("DefaultFilterRemoval", "Helper"))).isNull();
-        when(flow.getFlowElementsNoExternalEndPoints()).thenReturn(java.util.List.of(element, element));
+        when(flow.getFlowElementsNoExternalEndPoints()).thenReturn(List.of(element, element));
         assertThat(ComponentBreakpointSource.uniqueMatch("/project", module, source)).isNull();
     }
 

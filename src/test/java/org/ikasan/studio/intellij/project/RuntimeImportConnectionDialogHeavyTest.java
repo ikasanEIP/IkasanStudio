@@ -1,17 +1,23 @@
 package org.ikasan.studio.intellij.project;
 
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.util.xmlb.XmlSerializer;
 import com.sun.net.httpserver.HttpServer;
-import javax.swing.JTextField;
-import javax.swing.JPasswordField;
-import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import org.jdom.Element;
 
 public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCase {
@@ -35,7 +41,7 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
             assertEquals(root, dialog.documents().applicationUri().toString());
             assertEquals(root, getProject().getService(RuntimeImportConnectionSettings.class).getState().applicationUrl);
         } finally {
-            if (!dialog.isDisposed()) dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+            if (!dialog.isDisposed()) dialog.close(DialogWrapper.CANCEL_EXIT_CODE);
             server.stop(0);
         }
     }
@@ -45,7 +51,7 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
         try {
             JTextField url = (JTextField) field(dialog, "url");
             JTextField module = (JTextField) field(dialog, "module");
-            JTextArea preview = (javax.swing.JTextArea) field(dialog, "endpointPreview");
+            JTextArea preview = (JTextArea) field(dialog, "endpointPreview");
             module.setText("Demo module");
             url.setText("http://localhost:12620/My%20Context/login.jsp?token=private-query#login");
             assertTrue(preview.isVisible());
@@ -58,7 +64,7 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
             url.setText("http://localhost:12620/ctx");
             module.setText("");
             assertFalse(preview.isVisible());
-        } finally { dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+        } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
     }
 
     public void testLoginPageFetchUsesTheApplicationRoot() throws Exception {
@@ -91,7 +97,7 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
     }
 
     public void testRetryReusesPasswordWithoutReentryAndClearsItOnSuccess() throws Exception {
-        CopyOnWriteArrayList<String> headers = new java.util.concurrent.CopyOnWriteArrayList<>();
+        CopyOnWriteArrayList<String> headers = new CopyOnWriteArrayList<>();
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/", exchange -> {
             headers.add(exchange.getRequestHeaders().getFirst("Authorization"));
@@ -107,7 +113,7 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
             ((JTextField) field(dialog, "username")).setText("demo-user");
             JPasswordField password = (JPasswordField) field(dialog, "password");
             password.setText("temporary-secret");
-            JButton reportButton = (javax.swing.JButton) field(dialog, "reportButton");
+            JButton reportButton = (JButton) field(dialog, "reportButton");
             assertFalse(reportButton.isVisible());
             dialog.doOKAction();
             assertFalse(dialog.isDisposed());
@@ -115,15 +121,15 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
             assertEquals("temporary-secret".length(), password.getPassword().length);
             // Retry without setting the password again: both HTTP requests must authenticate identically.
             dialog.doOKAction();
-            String expected = "Basic " + java.util.Base64.getEncoder().encodeToString(
+            String expected = "Basic " + Base64.getEncoder().encodeToString(
                     "demo-user:temporary-secret".getBytes(StandardCharsets.UTF_8));
-            assertEquals(java.util.List.of(expected, expected), headers);
+            assertEquals(List.of(expected, expected), headers);
             assertNotNull(dialog.documents());
             assertTrue(dialog.isDisposed());
             assertFalse(reportButton.isVisible());
             assertEquals(0, password.getPassword().length);
         } finally {
-            if (!dialog.isDisposed()) dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+            if (!dialog.isDisposed()) dialog.close(DialogWrapper.CANCEL_EXIT_CODE);
             server.stop(0);
         }
     }
@@ -132,11 +138,11 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
         RuntimeImportConnectionDialog dialog = new RuntimeImportConnectionDialog(getProject());
         JPasswordField password = (JPasswordField) field(dialog, "password");
         password.setText("temporary-secret");
-        dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+        dialog.close(DialogWrapper.CANCEL_EXIT_CODE);
         assertEquals(0, password.getPassword().length);
         RuntimeImportConnectionDialog reopened = new RuntimeImportConnectionDialog(getProject());
         try { assertEquals(0, ((JPasswordField) field(reopened, "password")).getPassword().length); }
-        finally { reopened.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+        finally { reopened.close(DialogWrapper.CANCEL_EXIT_CODE); }
     }
 
     public void testClosingAndReopeningRemembersConnectionWithoutPassword() throws Exception {
@@ -144,26 +150,26 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
         ((JTextField) field(dialog, "url")).setText("http://localhost:12450/demo/swagger-ui/index.html?token=discard#/module");
         ((JTextField) field(dialog, "module")).setText(" Demo ");
         ((JTextField) field(dialog, "username")).setText("demo-user");
-        ((javax.swing.JCheckBox) field(dialog, "configuration")).setSelected(false);
+        ((JCheckBox) field(dialog, "configuration")).setSelected(false);
         ((JPasswordField) field(dialog, "password")).setText("never-persist-this");
-        dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+        dialog.close(DialogWrapper.CANCEL_EXIT_CODE);
 
         // Round-trip through the platform serializer, as when the workspace is reopened.
         RuntimeImportConnectionSettings service = getProject().getService(RuntimeImportConnectionSettings.class);
-        Element xml = com.intellij.util.xmlb.XmlSerializer.serialize(service.getState());
-        String serialized = com.intellij.openapi.util.JDOMUtil.writeElement(xml);
+        Element xml = XmlSerializer.serialize(service.getState());
+        String serialized = JDOMUtil.writeElement(xml);
         assertFalse(serialized.contains("never-persist-this"));
         assertFalse(serialized.contains("token"));
-        service.loadState(com.intellij.util.xmlb.XmlSerializer.deserialize(xml,
+        service.loadState(XmlSerializer.deserialize(xml,
                 RuntimeImportConnectionSettings.Settings.class));
         RuntimeImportConnectionDialog reopened = new RuntimeImportConnectionDialog(getProject());
         try {
             assertEquals("http://localhost:12450/demo", ((JTextField) field(reopened, "url")).getText());
             assertEquals("Demo", ((JTextField) field(reopened, "module")).getText());
             assertEquals("demo-user", ((JTextField) field(reopened, "username")).getText());
-            assertFalse(((javax.swing.JCheckBox) field(reopened, "configuration")).isSelected());
+            assertFalse(((JCheckBox) field(reopened, "configuration")).isSelected());
             assertEquals(0, ((JPasswordField) field(reopened, "password")).getPassword().length);
-        } finally { reopened.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE); }
+        } finally { reopened.close(DialogWrapper.CANCEL_EXIT_CODE); }
     }
 
     public void testInvalidUrlCannotOverwriteLastUsableConnection() {
@@ -180,7 +186,7 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
     }
 
     private void exerciseFetch(int status, String body, boolean success, String suffix) throws Exception {
-        AtomicReference<String> requested = new java.util.concurrent.atomic.AtomicReference<>();
+        AtomicReference<String> requested = new AtomicReference<>();
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/", exchange -> {
             requested.compareAndSet(null, exchange.getRequestURI().toASCIIString());
@@ -191,7 +197,7 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
         server.start();
         RuntimeImportConnectionDialog dialog = new RuntimeImportConnectionDialog(getProject());
         try {
-            JButton reportButton = (javax.swing.JButton) field(dialog, "reportButton");
+            JButton reportButton = (JButton) field(dialog, "reportButton");
             assertFalse(reportButton.isVisible());
             ((JTextField) field(dialog, "url")).setText("http://127.0.0.1:" + server.getAddress().getPort() + suffix);
             ((JTextField) field(dialog, "module")).setText("Demo");
@@ -216,7 +222,7 @@ public class RuntimeImportConnectionDialogHeavyTest extends HeavyPlatformTestCas
                 assertNull(dialog.documents()); assertFalse(dialog.isDisposed());
             }
         } finally {
-            if (!dialog.isDisposed()) dialog.close(com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE);
+            if (!dialog.isDisposed()) dialog.close(DialogWrapper.CANCEL_EXIT_CODE);
             server.stop(0);
         }
     }

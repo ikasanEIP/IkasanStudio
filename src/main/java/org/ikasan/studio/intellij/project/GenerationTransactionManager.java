@@ -1,27 +1,34 @@
 package org.ikasan.studio.intellij.project;
 
 import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.ikasan.studio.StudioRuntimeException;
-import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
-
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.intellij.project.GenerationBatch.Artifact;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 
 /** Stages, validates, commits and—on failure—rolls back one coherent source-generation update. */
 final class GenerationTransactionManager {
@@ -162,12 +169,12 @@ final class GenerationTransactionManager {
     }
 
     record Snapshot(String path, VirtualFile file, byte[] bytes, long stamp,
-                            com.intellij.openapi.editor.Document document, long documentStamp) {
+                            Document document, long documentStamp) {
         void verifyUnchanged(VirtualFile baseDir) {
             VirtualFile current = baseDir.findFileByRelativePath(path);
-            FileDocumentManager manager = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
+            FileDocumentManager manager = FileDocumentManager.getInstance();
             Document currentDocument = current == null ? null : manager.getCachedDocument(current);
-            if (!java.util.Objects.equals(current, file) || (file != null && (!file.isValid() || file.getModificationStamp() != stamp))
+            if (!Objects.equals(current, file) || (file != null && (!file.isValid() || file.getModificationStamp() != stamp))
                     || (document != null && (currentDocument != document || document.getModificationStamp() != documentStamp))
                     || (document == null && currentDocument != null && manager.isDocumentUnsaved(currentDocument)))
                 throw new StudioRuntimeException("File changed while preparing generation; regenerate: " + path);
@@ -178,19 +185,19 @@ final class GenerationTransactionManager {
     static List<Snapshot> prepareSnapshots(Project project, VirtualFile baseDir,
                                                    List<GenerationBatch.Artifact> artifacts) {
         List<Snapshot> snapshots = new ArrayList<>();
-        java.util.concurrent.atomic.AtomicReference<RuntimeException> failure = new java.util.concurrent.atomic.AtomicReference<>();
+        AtomicReference<RuntimeException> failure = new AtomicReference<>();
         Runnable prepare = () -> {
             try {
                 // A pending write may restart this read. Publish only a complete attempt so
                 // rollback snapshots cannot be duplicated or retain bytes from an aborted read.
-                List<org.ikasan.studio.intellij.project.GenerationTransactionManager.Snapshot> prepared = com.intellij.openapi.application.ReadAction.nonBlocking(() -> {
+                List<Snapshot> prepared = ReadAction.nonBlocking(() -> {
                     List<Snapshot> attempt = new ArrayList<>();
                     for (Artifact artifact : artifacts) {
-                        com.intellij.openapi.progress.ProgressManager.checkCanceled();
+                        ProgressManager.checkCanceled();
                         VirtualFile file = baseDir.findFileByRelativePath(artifact.relativePath());
                         try {
                             byte[] bytes = file == null ? null : readBytes(file);
-                            Document document = file == null ? null : com.intellij.openapi.fileEditor.FileDocumentManager.getInstance().getCachedDocument(file);
+                            Document document = file == null ? null : FileDocumentManager.getInstance().getCachedDocument(file);
                             Snapshot snapshot = new Snapshot(artifact.relativePath(), file, bytes, file == null ? -1 : file.getModificationStamp(),
                                     document, document == null ? -1 : document.getModificationStamp());
                             snapshot.verifyUnchanged(baseDir);
@@ -200,13 +207,18 @@ final class GenerationTransactionManager {
                         }
                     }
                     return attempt;
-                }).expireWith(project).executeSynchronously();
+                }).expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously();
                 snapshots.addAll(prepared);
-            } catch (RuntimeException error) { failure.set(error); }
+            } catch (ProcessCanceledException canceled) {
+                throw canceled;
+            } catch (RuntimeException error) {
+                failure.set(error);
+            }
         };
-        if (com.intellij.openapi.application.ApplicationManager.getApplication().isDispatchThread()) {
-            com.intellij.openapi.progress.ProgressManager.getInstance().runProcessWithProgressSynchronously(
-                    prepare, org.ikasan.studio.ui.StudioBundle.message("generation.preparingFiles"), false, project);
+        if (ApplicationManager.getApplication().isDispatchThread()) {
+            boolean completed = ProgressManager.getInstance().runProcessWithProgressSynchronously(
+                    prepare, StudioBundle.message("generation.preparingFiles"), false, project);
+            if (!completed) throw new ProcessCanceledException();
         } else prepare.run();
         if (failure.get() != null) throw failure.get();
         return snapshots;
@@ -214,9 +226,9 @@ final class GenerationTransactionManager {
 
     /** Raw VFS access retains support for remote projects; callers run in background preparation. */
     private static byte[] readBytes(VirtualFile file) throws IOException {
-        if (com.intellij.openapi.application.ApplicationManager.getApplication().isDispatchThread())
+        if (ApplicationManager.getApplication().isDispatchThread())
             throw new IllegalStateException("Generation snapshots must be read off the EDT");
-        try (java.io.InputStream in = file.getInputStream()) {
+        try (InputStream in = file.getInputStream()) {
             return in.readAllBytes();
         }
     }

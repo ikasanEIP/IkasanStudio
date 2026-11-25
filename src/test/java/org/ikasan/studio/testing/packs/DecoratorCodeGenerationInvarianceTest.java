@@ -1,16 +1,15 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.*;
-
+import java.util.ArrayList;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * shortcut becomes wrong (stale generated code, not just a stale cache) and these tests will fail,
  * flagging that DecoratorComponentAction needs to move off modelOnly.
  */
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 public class DecoratorCodeGenerationInvarianceTest extends AbstractGeneratorTestFixtures {
 
     private Decorator wiretap(String position, String componentName) {

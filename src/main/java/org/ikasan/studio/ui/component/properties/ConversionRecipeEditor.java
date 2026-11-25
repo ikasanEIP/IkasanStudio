@@ -1,21 +1,24 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
-import org.ikasan.studio.core.conversion.ConversionRecipeMatcher;
-import org.ikasan.studio.ui.StudioBundle;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ValidationInfo;
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.List;
-import com.intellij.openapi.ui.ComboBox;
 import java.util.Optional;
+import javax.swing.*;
+import org.ikasan.studio.core.conversion.ConversionRecipeMatcher;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
+import org.ikasan.studio.ui.StudioBundle;
 
 /** Edits widget values only: the properties panel owns commit, cancellation and overwrite approval. */
 final class ConversionRecipeEditor {
     private ConversionRecipeEditor() {}
     static void bind(List<ConversionRecipeMeta> recipes, Map<String, ComponentPropertyEditRow> rows,
-                     JTextArea details, String downstreamTypes, SimpleChangeListener changed) {
-        bind(recipes, rows, details, downstreamTypes, changed, false);
+                     JTextArea details) {
+        bind(recipes, rows, details, null, null, false);
     }
 
     static void bind(List<ConversionRecipeMeta> recipes, Map<String, ComponentPropertyEditRow> rows,
@@ -25,7 +28,7 @@ final class ConversionRecipeEditor {
         if (row == null || recipes == null) return;
         ComboBox<Object> combo = row.getInputField().getPropertyChoiceValueField();
         if (combo == null) return;
-        combo.setMinimumSize(new java.awt.Dimension(0, combo.getPreferredSize().height));
+        combo.setMinimumSize(new Dimension(0, combo.getPreferredSize().height));
         Object initial = row.getComponentProperty().getValue();
         combo.removeAllItems();
         combo.addItem("");
@@ -36,7 +39,7 @@ final class ConversionRecipeEditor {
         List<ConversionRecipeMeta> recommended = ConversionRecipeMatcher.matching(recipes, value(rows, "fromType"),
                 downstreamTypes == null ? value(rows, "toType") : downstreamTypes);
         combo.setRenderer(new DefaultListCellRenderer() {
-            @Override public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus) {
+            @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus) {
                 super.getListCellRendererComponent(list, value, index, selected, focus);
                 setText(recipes.stream().filter(r -> r.getId().equals(value)).map(ConversionRecipeMeta::getDisplayName)
                         .findFirst().orElse(value == null || value.toString().isBlank() ? StudioBundle.message("conversion.BlankCustomConverter") : value.toString()));
@@ -93,7 +96,7 @@ final class ConversionRecipeEditor {
         boolean usesCharset = recipes.stream().filter(r -> r.getId().equals(id))
                 .anyMatch(r -> r.getConfigurationProperties() != null && r.getConfigurationProperties().contains("recipeCharset"));
         if (usesCharset && !charset.isBlank()) {
-            try { java.nio.charset.Charset.forName(charset); }
+            try { Charset.forName(charset); }
             catch (IllegalArgumentException e) { return List.of(new ValidationInfo(StudioBundle.message("conversion.InvalidCharset"), rows.get("recipeCharset").getInputField().getFirstFocusComponent())); }
         }
         return List.of();

@@ -1,7 +1,5 @@
 package org.ikasan.studio.intellij.execution;
 
-import org.ikasan.studio.intellij.runtime.FlowErrorMonitorService;
-
 import com.intellij.execution.ExecutionListener;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -16,20 +14,22 @@ import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Alarm;
-import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XDebugProcess;
-import com.intellij.xdebugger.XDebuggerManagerListener;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XDebuggerManager;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.integration.ikasan.ModuleControlClient;
-import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
-
+import com.intellij.xdebugger.XDebuggerManagerListener;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.integration.ikasan.ModuleControlClient;
+import org.ikasan.studio.intellij.runtime.FlowErrorMonitorService;
+import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 /** Tracks live Studio module launches for this project, including the debug subset. */
 @Service(Service.Level.PROJECT)
@@ -133,24 +133,24 @@ public final class IkasanDebugSessionService implements Disposable {
     }
 
     /** Records model/code changes that the current module process cannot yet contain. */
-    public void markRestartRequired(org.ikasan.studio.core.model.ikasan.instance.BasicElement changed) {
+    public void markRestartRequired(BasicElement changed) {
         recordRestartRequired(project.getService(UiContext.class), changed, !isModuleStopped());
         repaintCanvas();
     }
 
     static void recordRestartRequired(UiContext context,
-            org.ikasan.studio.core.model.ikasan.instance.BasicElement changed, boolean running) {
+            BasicElement changed, boolean running) {
         if (!running || changed == null) return;
         if (changed instanceof FlowElement element) {
             context.markRestartPending(UiContext.restartPendingKey(element));
-        } else if (changed instanceof org.ikasan.studio.core.model.ikasan.instance.Flow flow) {
+        } else if (changed instanceof Flow flow) {
             markFlowRestartRequired(context, flow);
         } else if (changed instanceof Module module && module.getFlows() != null) {
             module.getFlows().forEach(flow -> markFlowRestartRequired(context, flow));
         }
     }
 
-    private static void markFlowRestartRequired(UiContext context, org.ikasan.studio.core.model.ikasan.instance.Flow flow) {
+    private static void markFlowRestartRequired(UiContext context, Flow flow) {
         context.markRestartPending(UiContext.restartPendingKey(flow));
         flow.getFlowElementsNoExternalEndPoints().forEach(element ->
                 context.markRestartPending(UiContext.restartPendingKey(element)));

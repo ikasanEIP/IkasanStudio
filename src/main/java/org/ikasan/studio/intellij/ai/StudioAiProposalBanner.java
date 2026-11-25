@@ -1,15 +1,16 @@
 package org.ikasan.studio.intellij.ai;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.JBColor;
-import javax.swing.Timer;
+import com.intellij.util.ui.JBUI;
 import java.awt.*;
 import java.awt.event.HierarchyEvent;
-import com.intellij.openapi.project.Project;
-import com.intellij.ui.EditorNotificationPanel;
-import org.ikasan.studio.ui.StudioBundle;
 import java.nio.file.Path;
+import javax.swing.Timer;
+import org.ikasan.studio.ui.StudioBundle;
 
 /** Editor-owned view of project-owned inbox state; switching or closing tabs cannot dismiss a proposal. */
 public final class StudioAiProposalBanner extends EditorNotificationPanel {
@@ -58,7 +59,7 @@ public final class StudioAiProposalBanner extends EditorNotificationPanel {
             g.setComposite(AlphaComposite.SrcOver.derive(alpha));
             g.fillRect(0, 0, getWidth(), getHeight());
             g.setComposite(AlphaComposite.SrcOver);
-            g.fillRect(0, 0, com.intellij.util.ui.JBUI.scale(4), getHeight());
+            g.fillRect(0, 0, JBUI.scale(4), getHeight());
         } finally {
             g.dispose();
         }

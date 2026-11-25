@@ -4,13 +4,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.generation.JavaSourceNames;
+import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
+import org.ikasan.studio.core.model.StringCollectionValues;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
@@ -212,10 +217,10 @@ public final class IkasanModelDocuments {
         StudioDocumentMetadata.normalize(studio);
         knownFields(studio, Set.of("metaPack", "metaPackRevision", "properties", "flows"));
         String pack = text(studio, "metaPack");
-        final org.ikasan.studio.core.metapack.model.MetaPackManifest manifest;
+        final MetaPackManifest manifest;
         try {
             manifest = ComponentLibrary.getMetaPackManifest(pack);
-        } catch (org.ikasan.studio.core.StudioBuildException e) {
+        } catch (StudioBuildException e) {
             throw new IOException("This model requires meta-pack " + pack
                     + (studio.has("metaPackRevision") ? " at revision " + text(studio, "metaPackRevision") : "")
                     + ", which is unavailable or invalid. Install the required pack, or explicitly update the model to a supported pack after review. The model is unchanged.", e);
@@ -305,7 +310,7 @@ public final class IkasanModelDocuments {
                     && !meta.getRuntimeConfigurationMappings().containsValue(key)
                     // These XML settings lived in Studio properties before runtime mapping was corrected.
                     && !"org.ikasan.component.converter.xml.ObjectToXMLStringConverter".equals(meta.getImplementingClass())
-                    && !org.ikasan.studio.core.model.StringCollectionValues.supports(
+                    && !StringCollectionValues.supports(
                     meta.getAllowableProperties().get(key).getPropertyDataType())) {
                 rejectFields(result, List.of(key), "component properties");
             }
@@ -387,8 +392,8 @@ public final class IkasanModelDocuments {
 
     private static JsonNode scalarValue(ComponentMeta meta, String key, JsonNode value) throws IOException {
         Class<?> type = meta.getAllowableProperties().get(key).getPropertyDataType();
-        if (org.ikasan.studio.core.model.StringCollectionValues.supports(type)) {
-            try { return JSON.valueToTree(org.ikasan.studio.core.model.StringCollectionValues.normalize(type, JSON.convertValue(value, Object.class))); }
+        if (StringCollectionValues.supports(type)) {
+            try { return JSON.valueToTree(StringCollectionValues.normalize(type, JSON.convertValue(value, Object.class))); }
             catch (IllegalArgumentException failure) { throw invalid("Invalid collection configuration for " + key); }
         }
         if (!value.isTextual() || type == String.class) return value;
@@ -404,7 +409,7 @@ public final class IkasanModelDocuments {
 
     private static void checkValue(ComponentMeta meta, String key, JsonNode value) throws IOException {
         Class<?> type = meta.getAllowableProperties().get(key).getPropertyDataType();
-        boolean valid = value.isNull() || org.ikasan.studio.core.model.StringCollectionValues.compatible(type, value) || type == String.class && value.isTextual()
+        boolean valid = value.isNull() || StringCollectionValues.compatible(type, value) || type == String.class && value.isTextual()
                 || (type == Boolean.class || type == boolean.class) && value.isBoolean()
                 || (type == Integer.class || type == int.class) && value.isIntegralNumber() && value.canConvertToInt()
                 || (type == Long.class || type == long.class) && value.isIntegralNumber() && value.canConvertToLong();
@@ -417,7 +422,7 @@ public final class IkasanModelDocuments {
     }
 
     private static void applyGeneratedImplementations(ObjectNode legacy, ObjectNode topology, boolean validate) throws Exception {
-        Module model = org.ikasan.studio.core.io.ComponentIO.deserializeModuleInstanceString(legacy.toString(), "implementation names");
+        Module model = ComponentIO.deserializeModuleInstanceString(legacy.toString(), "implementation names");
         Map<String, ObjectNode> flows = index((ArrayNode) topology.get("flows"), "name", "flows");
         for (Flow flow : model.getFlows()) {
             ObjectNode nativeFlow = flows.get(flow.getIdentity());
@@ -429,7 +434,7 @@ public final class IkasanModelDocuments {
                 String className = component.getPropertyValueAsString("userImplementedClassName");
                 if (className == null || className.isBlank()) continue;
                 String actual = model.getApplicationPackageName() + "." + flow.getJavaPackageName() + "."
-                        + org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInPascalCase(model, flow, component, className);
+                        + StudioBuildUtils.substitutePlaceholderInPascalCase(model, flow, component, className);
                 ObjectNode nativeComponent = components.get(component.getComponentName());
                 if (nativeComponent == null) continue;
                 if (validate && !actual.equals(nativeComponent.path("implementingClass").asText()))
@@ -442,10 +447,10 @@ public final class IkasanModelDocuments {
     }
 
     private static String resolveId(String expression, String module, String flow, String component) {
-        String value = expression.replace("__module", org.ikasan.studio.core.generation.JavaSourceNames.toVariableName(module))
-                .replace("__flow", org.ikasan.studio.core.generation.JavaSourceNames.toVariableName(flow))
-                .replace("__component", org.ikasan.studio.core.generation.JavaSourceNames.toVariableName(component));
-        return org.ikasan.studio.core.StudioBuildUtils.toJavaIdentifier(value.replace("-", " "));
+        String value = expression.replace("__module", JavaSourceNames.toVariableName(module))
+                .replace("__flow", JavaSourceNames.toVariableName(flow))
+                .replace("__component", JavaSourceNames.toVariableName(component));
+        return StudioBuildUtils.toJavaIdentifier(value.replace("-", " "));
     }
 
     /** Same default identity algorithm as Ikasan 3/4 FlowBuilder for component configurations. */

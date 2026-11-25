@@ -1,15 +1,16 @@
 package org.ikasan.studio.core.persistence.json;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Map;
+import org.ikasan.studio.core.model.StringCollectionValues;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
-
-import java.io.IOException;
-import java.util.Map;
-import com.fasterxml.jackson.databind.JsonNode;
-import java.util.Map.Entry;
 
 public class BasicElementSerializer extends StdSerializer<BasicElement> {
 
@@ -46,7 +47,7 @@ public class BasicElementSerializer extends StdSerializer<BasicElement> {
                     if (componentProperty.getValue() != null) {
                         // Since we need to cast, have to identify type explicitly
                         Class<?> clazz = componentProperty.getValue().getClass();
-                        if (org.ikasan.studio.core.model.StringCollectionValues.supports(componentProperty.getMeta().getPropertyDataType())) {
+                        if (StringCollectionValues.supports(componentProperty.getMeta().getPropertyDataType())) {
                             jsonGenerator.writeObjectField(componentProperty.getMeta().getPropertyName(), componentProperty.getValue());
                         } else if (clazz == Boolean.class) {
                             jsonGenerator.writeBooleanField(
@@ -75,7 +76,7 @@ public class BasicElementSerializer extends StdSerializer<BasicElement> {
                         } else {
                             jsonGenerator.writeStringField(
                                     componentProperty.getMeta().getPropertyName(),
-                                    componentProperty.getValue() instanceof java.util.List<?>
+                                    componentProperty.getValue() instanceof List<?>
                                             ? componentProperty.getValueString() : componentProperty.getValue().toString());
                         }
                     }

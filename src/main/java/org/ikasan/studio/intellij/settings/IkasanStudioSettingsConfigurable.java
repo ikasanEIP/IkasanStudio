@@ -1,35 +1,42 @@
 package org.ikasan.studio.intellij.settings;
 
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBCheckBox;
-
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.UiContext;
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.intellij.util.ui.UIUtil;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.JCheckBox;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.Scrollable;
 import javax.swing.SpinnerNumberModel;
-import java.awt.BorderLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import com.intellij.ui.components.JBScrollPane;
-import java.awt.Container;
-import java.awt.Insets;
+import javax.swing.plaf.basic.BasicHTML;
 import javax.swing.text.View;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioTextCopySupport;
+import org.ikasan.studio.ui.UiContext;
+import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Provides the Ikasan Studio settings page under Settings → Tools → Ikasan Studio. */
 // Local-IDE settings UI; remote Split Mode requires a frontend UI and RPC service boundary.
@@ -117,7 +124,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         JLabel flowErrorMonitoringNote = wrappingNote("label.FlowErrorMonitoringNote");
         flowErrorMonitoringPanel.add(flowErrorMonitoringNote, BorderLayout.CENTER);
 
-        keepCanvasSelectedCheckBox = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("checkbox.KeepCanvasSelectedAtDebugBreakpoints"));
+        keepCanvasSelectedCheckBox = new JBCheckBox(StudioBundle.message("checkbox.KeepCanvasSelectedAtDebugBreakpoints"));
         JPanel debugCanvasPanel = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         debugCanvasPanel.add(keepCanvasSelectedCheckBox, BorderLayout.NORTH);
         debugCanvasPanel.add(wrappingNote("label.KeepCanvasSelectedAtDebugBreakpointsNote"), BorderLayout.CENTER);
@@ -212,10 +219,10 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         panel.add(northPanel, BorderLayout.NORTH);
 
         reset();
-        JBScrollPane scrollPane = new com.intellij.ui.components.JBScrollPane(panel);
+        JBScrollPane scrollPane = new JBScrollPane(panel);
         scrollPane.setBorder(JBUI.Borders.empty());
         scrollPane.getAccessibleContext().setAccessibleName(getDisplayName());
-        org.ikasan.studio.ui.StudioTextCopySupport.install(scrollPane);
+        StudioTextCopySupport.install(scrollPane);
         return scrollPane;
     }
 
@@ -349,45 +356,45 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
 
     /** Wrap help text to its section's actual width, without a fixed HTML column width. */
     private static JLabel wrappingNote(String messageKey) {
-        JLabel note = new JBLabel("<html>" + com.intellij.openapi.util.text.StringUtil.escapeXmlEntities(
+        JLabel note = new JBLabel("<html>" + StringUtil.escapeXmlEntities(
                 StudioBundle.message(messageKey)).replace("\n", "<br>") + "</html>") {
-            @Override public java.awt.Dimension getPreferredSize() {
+            @Override public Dimension getPreferredSize() {
                 Container parent = getParent();
                 int width = JBUI.scale(500);
                 if (parent != null && parent.getWidth() > 0) {
                     Insets padding = parent.getInsets();
                     width = Math.max(1, parent.getWidth() - padding.left - padding.right);
                 }
-                View view = (javax.swing.text.View) getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
+                View view = (View) getClientProperty(BasicHTML.propertyKey);
                 if (view == null) return super.getPreferredSize();
                 Insets padding = getInsets();
                 view.setSize(Math.max(1, width - padding.left - padding.right), 0);
-                return new java.awt.Dimension(width,
-                        (int) Math.ceil(view.getPreferredSpan(javax.swing.text.View.Y_AXIS)) + padding.top + padding.bottom);
+                return new Dimension(width,
+                        (int) Math.ceil(view.getPreferredSpan(View.Y_AXIS)) + padding.top + padding.bottom);
             }
-            @Override public java.awt.Dimension getMinimumSize() {
-                return new java.awt.Dimension(0, getFontMetrics(getFont()).getHeight());
+            @Override public Dimension getMinimumSize() {
+                return new Dimension(0, getFontMetrics(getFont()).getHeight());
             }
         };
         note.setFont(JBUI.Fonts.smallFont());
-        note.setForeground(com.intellij.util.ui.UIUtil.getContextHelpForeground());
+        note.setForeground(UIUtil.getContextHelpForeground());
         note.setBorder(JBUI.Borders.emptyLeft(24));
-        note.addComponentListener(new java.awt.event.ComponentAdapter() {
-            @Override public void componentResized(java.awt.event.ComponentEvent event) { note.revalidate(); }
+        note.addComponentListener(new ComponentAdapter() {
+            @Override public void componentResized(ComponentEvent event) { note.revalidate(); }
         });
         return note;
     }
 
     /** Settings should wrap to the viewport instead of requesting a horizontal scrolling canvas. */
-    private static final class SettingsContent extends JPanel implements javax.swing.Scrollable {
+    private static final class SettingsContent extends JPanel implements Scrollable {
         SettingsContent() { super(new BorderLayout()); }
-        @Override public java.awt.Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
         @Override public boolean getScrollableTracksViewportWidth() { return true; }
         @Override public boolean getScrollableTracksViewportHeight() { return false; }
-        @Override public int getScrollableUnitIncrement(java.awt.Rectangle visible, int orientation, int direction) {
+        @Override public int getScrollableUnitIncrement(Rectangle visible, int orientation, int direction) {
             return JBUI.scale(16);
         }
-        @Override public int getScrollableBlockIncrement(java.awt.Rectangle visible, int orientation, int direction) {
+        @Override public int getScrollableBlockIncrement(Rectangle visible, int orientation, int direction) {
             return Math.max(JBUI.scale(16), visible.height - JBUI.scale(16));
         }
     }

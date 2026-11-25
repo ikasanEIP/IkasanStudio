@@ -1,23 +1,31 @@
 package org.ikasan.studio.integration.ikasan;
 
-import org.junit.jupiter.api.Test;
-
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import java.net.URI;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class ModuleControlClientTest {
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {
+    @ParameterizedTest
+    @ValueSource(strings = {
             "{", "null", "{}", "{\"flows\":[null]}", "{\"flows\":[{\"name\":\"f\"}]}",
             "{\"flows\":[{\"name\":\"f\",\"state\":\"running\"},{\"name\":\"f\",\"state\":\"stopped\"}]}",
             "{\"flows\":[]} {}", "{\"flows\":[],\"flows\":[]}"
     })
     void rejectsMalformedRestDataAsRecoverableIoFailure(String json) {
-        org.junit.jupiter.api.Assertions.assertThrows(java.io.IOException.class,
+        Assertions.assertThrows(IOException.class,
                 () -> ModuleControlClient.parseFlowStates(json));
     }
 
@@ -126,9 +134,9 @@ class ModuleControlClientTest {
         assertThat(body).isEqualTo("{\"moduleName\":\"untitled104\",\"flowName\":\"f4\",\"action\":\"start\"}");
     }
 
-    private static org.ikasan.studio.core.model.ikasan.instance.Module moduleNamed(String name) throws Exception {
-        Module module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(
-                org.ikasan.studio.core.TestFixtures.BASE_META_PACK, new java.util.ArrayList<>());
+    private static Module moduleNamed(String name) throws Exception {
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(
+                TestFixtures.BASE_META_PACK, new ArrayList<>());
         module.setName(name);
         module.setPort("8391");
         return module;
@@ -149,15 +157,15 @@ class ModuleControlClientTest {
                 {"C++ Import", "C%2B%2B+Import"},
                 {"a=b;c", "a%3Db%3Bc"},
                 {"100% Flow", "100%25+Flow"},
-                {"Caf\u00e9 Orders", "Caf%C3%A9+Orders"},
+                {"Café Orders", "Caf%C3%A9+Orders"},
                 {"plain", "plain"}};
         for (String[] c : cases) {
             URI uri = ModuleControlClient.endpointUri(module, "/rest/error/", ModuleControlClient.latestErrorQuery(c[0]));
             assertThat(uri.toASCIIString()).as(c[0]).isEqualTo(prefix + c[1]);
             // Whatever the name, the value must decode back to exactly the flow name and stay a single parameter.
-            String value = java.util.Arrays.stream(uri.getRawQuery().split("&"))
+            String value = Arrays.stream(uri.getRawQuery().split("&"))
                     .filter(p -> p.startsWith("flow=")).map(p -> p.substring(5)).findFirst().orElseThrow();
-            assertThat(java.net.URLDecoder.decode(value, java.nio.charset.StandardCharsets.UTF_8)).isEqualTo(c[0]);
+            assertThat(URLDecoder.decode(value, StandardCharsets.UTF_8)).isEqualTo(c[0]);
             assertThat(uri.getRawQuery().split("&")).hasSize(5);
         }
     }

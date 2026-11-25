@@ -1,10 +1,11 @@
 package org.ikasan.studio.testkit;
 
+import java.util.List;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-import java.util.List;
+import org.junit.jupiter.api.Tag;
 
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 class V4PackContractTest extends MetaPackContract {
     @Override protected String packId() { return "V4.1.6"; }
     @Override protected Module sampleModule() throws Exception {

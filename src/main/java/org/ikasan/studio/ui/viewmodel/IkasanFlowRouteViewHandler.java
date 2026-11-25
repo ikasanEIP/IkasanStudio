@@ -2,6 +2,10 @@ package org.ikasan.studio.ui.viewmodel;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.awt.*;
+import java.util.*;
+import java.util.List;
+import javax.swing.*;
 import lombok.Getter;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
@@ -10,11 +14,6 @@ import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.icons.ComponentIconProvider;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.*;
-import java.util.List;
 
 import static org.ikasan.studio.core.metapack.ComponentLibrary.getEndpointForGivenComponent;
 
@@ -198,7 +197,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
             // Position and draw the endpoint
             IkasanFlowComponentViewHandler targetFlowElementViewHandler = getOrCreateFlowComponentViewHandler(project, targetFlowElement);
             IkasanFlowComponentViewHandler endpointViewHandler = new IkasanFlowComponentViewHandler(endpointFlowElement);
-            if (targetFlowElementViewHandler != null && endpointViewHandler != null) {
+            if (targetFlowElementViewHandler != null) {
 
                 cachedOwnerToEndpoint.put(targetFlowElement, endpointViewHandler);
                 endpointViewHandler.setWidth(targetFlowElementViewHandler.getWidth());
@@ -358,7 +357,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
         syncChildFlowRouteViewHandlers();
         this.setTopY( topYForElements);
         this.setLeftX(currentX);
-        java.util.List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
+        List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
         if (!flowElementList.isEmpty()) {
             for (FlowElement ikasanFlowComponent : flowElementList) {
                 AbstractViewHandlerIntellij flowComponentViewHandler = getOrCreateAbstractViewHandler(project, ikasanFlowComponent);
@@ -417,7 +416,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
      * @return the smallest (most left) TestV1 value for the route
      */
     public int getFlowElementsMinX() {
-        java.util.List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
+        List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
@@ -437,7 +436,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
      * @return the smallest y value for the route
      */
     public int getFlowElementsMinY() {
-        java.util.List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
+        List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
@@ -455,7 +454,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
     }
 
     public int getFlowElementsRightX() {
-        java.util.List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
+        List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
         if (flowElementList.isEmpty()) {
             return 0;
         } else {
@@ -488,7 +487,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
      * @return maximum (right most) X of any element in any contained route
      */
     public int getAllRouteMaxX(int currentMax) {
-        java.util.List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
+        List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
         if (!flowElementList.isEmpty()) {
             int thisRouteMaxX = getFlowElementsRightX();
             if (thisRouteMaxX > currentMax) {
@@ -505,7 +504,7 @@ public class IkasanFlowRouteViewHandler extends AbstractViewHandlerIntellij {
      * @return maximum (bottom most) Y of any element in any contained route
      */
     public int getAllRouteMaxY(Graphics g, int currentMax) {
-        java.util.List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
+        List<FlowElement> flowElementList = flowRoute.getConsumerAndFlowRouteElements();
         if (!flowElementList.isEmpty()) {
             int thisRouteMaxY = getFlowElementsBottomY(g);
             if (thisRouteMaxY > currentMax) {

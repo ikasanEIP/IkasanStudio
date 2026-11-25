@@ -1,15 +1,21 @@
 package org.ikasan.metapack;
 
-import java.nio.file.Path;
+import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.JarFile;
-import org.junit.jupiter.api.Test;
+import java.util.stream.Collectors;
 import org.ikasan.studio.core.metapack.loading.MetaPackArchive;
 import org.ikasan.studio.core.metapack.loading.MetaPackInstaller;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class PackArchiveIT {
-    @org.junit.jupiter.api.io.TempDir Path temporary;
+    @TempDir Path temporary;
 
     @Test void installAndRestartDiscoverTheExternalPackWithoutBundledResources() throws Exception {
         Path installed = temporary.resolve("installed");
@@ -20,15 +26,15 @@ class PackArchiveIT {
     }
 
     private void probe(Path directory, String mode, String argument) throws Exception {
-        String classpath = java.util.Arrays.stream(System.getProperty("java.class.path").split(java.io.File.pathSeparator))
+        String classpath = Arrays.stream(System.getProperty("java.class.path").split(File.pathSeparator))
                 .filter(entry -> !Path.of(entry).toAbsolutePath().normalize().equals(Path.of("target/classes").toAbsolutePath().normalize()))
                 .filter(entry -> !Path.of(entry).toAbsolutePath().normalize().equals(Path.of("target/ikasan5-metapack-1.0.4.jar").toAbsolutePath().normalize()))
-                .collect(java.util.stream.Collectors.joining(java.io.File.pathSeparator));
+                .collect(Collectors.joining(File.pathSeparator));
         Process process = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "java").toString(),
                 "-Ddemo.pack.directory=" + directory.toAbsolutePath(), "-cp", classpath,
                 ExternalPackProbe.class.getName(), mode, argument).redirectErrorStream(true)
                 .redirectOutput(Path.of("target/probe-" + mode + ".log").toFile()).start();
-        if (!process.waitFor(60, java.util.concurrent.TimeUnit.SECONDS)) {
+        if (!process.waitFor(60, TimeUnit.SECONDS)) {
             process.destroyForcibly(); fail("External pack probe timed out: " + mode);
         }
         assertEquals(0, process.exitValue(), Files.readString(Path.of("target/probe-" + mode + ".log")));

@@ -1,27 +1,26 @@
 package org.ikasan.studio.ui.actions;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.*;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.core.model.analysis.ModelReferenceReplacement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.intellij.psi.StudioPsiUtils;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.table.DefaultTableModel;
 import org.ikasan.studio.core.model.analysis.ModelReferenceReplacement.Change;
+import org.ikasan.studio.core.model.analysis.ModelReferenceReplacement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.project.StudioReplaceInFiles;
+import org.ikasan.studio.intellij.psi.StudioPsiUtils;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
+import org.jetbrains.annotations.NotNull;
 
 final class ReplaceReferencesDialog extends StudioDialogWrapper {
     private final Project project;
@@ -138,7 +137,7 @@ final class ReplaceReferencesDialog extends StudioDialogWrapper {
             String replacementText = replacement.getText().trim();
             boolean openFiles = openReplaceInFiles.isSelected();
             super.doOKAction();
-            if (openFiles) org.ikasan.studio.intellij.project.StudioReplaceInFiles.afterGeneration(
+            if (openFiles) StudioReplaceInFiles.afterGeneration(
                     project, module, generation, findText, replacementText);
         } catch (RuntimeException failure) {
             setErrorText(StudioBundle.message("message.ReplaceReferencesApplyFailed"));

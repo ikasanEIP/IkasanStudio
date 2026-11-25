@@ -1,23 +1,27 @@
 package org.ikasan.studio.core.migration;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.ikasan.studio.SharedResourceExtension;
-import org.ikasan.studio.core.io.ComponentIO;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import static org.assertj.core.api.Assertions.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Map;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.ikasan.studio.SharedResourceExtension;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.migration.ModelMigration.Finding;
 import org.ikasan.studio.core.migration.ModelMigration.Plan;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(SharedResourceExtension.class)
 class ModelMigrationTest {
@@ -26,7 +30,7 @@ class ModelMigrationTest {
                 {"flows":[{"name":"Orders","consumer":{"componentName":"Receive orders"},
                 "flowElements":[{"componentName":"Convert order"}]}]}
                 """;
-        List<Finding> findings = java.util.List.of(
+        List<Finding> findings = List.of(
                 new ModelMigration.Finding(false, "/flows/0/consumer", "Review consumer"),
                 new ModelMigration.Finding(false, "/flows/0/flowElements/0/toType", "Review type"),
                 new ModelMigration.Finding(false, "/flows/0/exceptionResolver", "Review resolver"),
@@ -121,7 +125,7 @@ class ModelMigrationTest {
         ObjectNode legacy = (ObjectNode) json.readTree(saved);
         for (JsonNode flow : legacy.path("flows")) for (JsonNode component : flow.path("flowElements")) {
             if (component.has("routeNames")) {
-                List<String> names = org.ikasan.studio.core.StudioBuildUtils.stringToList(component.path("routeNames").asText());
+                List<String> names = StudioBuildUtils.stringToList(component.path("routeNames").asText());
                 ((ObjectNode) component).put("routeNames", names.toString());
             }
         }
@@ -134,7 +138,7 @@ class ModelMigrationTest {
     }
 
     @Test void reportsBlockersBeforeReviewNotes() {
-        Plan plan = new ModelMigration.Plan("V3.3.9", "V4.1.6", "", "", java.util.List.of(
+        Plan plan = new ModelMigration.Plan("V3.3.9", "V4.1.6", "", "", List.of(
                 new ModelMigration.Finding(false, "/review", "Review implementation"),
                 new ModelMigration.Finding(true, "/blocked", "Cannot migrate")));
         assertThat(plan.report().indexOf("BLOCKED:")).isLessThan(plan.report().indexOf("REVIEW:"));
@@ -144,7 +148,7 @@ class ModelMigrationTest {
         ObjectMapper json = StudioJson.newObjectMapper();
         ObjectNode source = (ObjectNode) json.readTree(fixture());
         ObjectNode flow = (ObjectNode) source.path("flows").get(0);
-        ((com.fasterxml.jackson.databind.node.ArrayNode) flow.path("flowElements")).remove(0);
+        ((ArrayNode) flow.path("flowElements")).remove(0);
         flow.set("transitions", json.readTree("[{\"from\":\"My Event Generating Consumer\",\"to\":\"My DevNull Producer\",\"name\":\"default\"}]"));
         String pom = "<project><modelVersion>4.0.0</modelVersion><groupId>example</groupId><artifactId>migration-smoke</artifactId><version>1</version>"
                 + "<build><sourceDirectory>generated/src/main/java</sourceDirectory><plugins><plugin><artifactId>maven-compiler-plugin</artifactId><version>3.8.0</version></plugin></plugins></build></project>";
@@ -159,7 +163,7 @@ class ModelMigrationTest {
                 Files.createDirectories(target.getParent());
                 Files.writeString(target, entry.getValue());
                 if (entry.getKey().endsWith(".java")) {
-                    Matcher declaration = java.util.regex.Pattern.compile("(?m)^public (?:final )?class (\\w+)").matcher(entry.getValue());
+                    Matcher declaration = Pattern.compile("(?m)^public (?:final )?class (\\w+)").matcher(entry.getValue());
                     assertThat(declaration.find()).as(entry.getKey()).isTrue();
                     assertThat(target.getFileName().toString()).isEqualTo(declaration.group(1) + ".java");
                 }

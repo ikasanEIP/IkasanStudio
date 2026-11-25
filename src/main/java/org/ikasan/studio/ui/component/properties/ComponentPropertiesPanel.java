@@ -1,55 +1,67 @@
 package org.ikasan.studio.ui.component.properties;
 
-import com.intellij.ui.components.JBTextArea;
-
-import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
-
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.wm.WindowManager;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.JBUI;
+import java.awt.*;
+import java.awt.Dimension;
+import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
+import javax.swing.*;
+import javax.swing.JLabel;
+import javax.swing.border.TitledBorder;
+import org.ikasan.studio.StudioRuntimeException;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.conversion.ConversionRecipeMatcher;
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
 import org.ikasan.studio.core.generation.GenerationRequest;
 import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides;
 import org.ikasan.studio.core.model.command.UserClassReference;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.configuration.HarnessOverridesDialog;
 import org.ikasan.studio.intellij.editor.IkasanStudioEditorService;
+import org.ikasan.studio.intellij.execution.HarnessOverrideService;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.psi.FlowPackageRefactoring.Plan;
+import org.ikasan.studio.intellij.psi.FlowPackageRefactoring;
 import org.ikasan.studio.intellij.psi.StudioPsiUtils;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.intellij.testing.FlowTestPropertyWarnings;
+import org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.RenameBlockedException;
+import org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.actions.ComponentNavigationAvailability;
 import org.ikasan.studio.ui.actions.NavigateToCodeAction;
 import org.ikasan.studio.ui.actions.NavigateToPropertiesAction;
-import org.ikasan.studio.ui.actions.ComponentNavigationAvailability;
+import org.ikasan.studio.ui.component.properties.RegenerateUserClassDialog.AffectedClass;
 import org.ikasan.studio.ui.theme.ThemeAwareColors;
-
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CompletableFuture;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.VERSION;
 import static org.ikasan.studio.ui.UiContext.PALETTE_TAB_INDEX;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.components.JBScrollPane;
-import java.util.HashSet;
-import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
-import org.ikasan.studio.intellij.execution.HarnessOverrideService;
-import org.ikasan.studio.intellij.psi.FlowPackageRefactoring.Plan;
-import org.ikasan.studio.ui.component.properties.RegenerateUserClassDialog.AffectedClass;
 
 /**
  * Encapsulate the properties entry from a UI and validity perspective.
@@ -89,7 +101,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private JButton regenerateClassButton;
     private boolean updateUserCodeManually;
     private JButton cancelEditsButton;
-    private javax.swing.JLabel harnessOverrideStatus;
+    private JLabel harnessOverrideStatus;
     private final SimpleChangeListener listenerForAnyEditChanges;
     /** Reveal a reported property, including optional rows hidden by the current search/collapse state. */
     public void revealProperty(String property) {
@@ -236,7 +248,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             // If the meta version has changed, we need to rerender the screen
             boolean metaPackChanged = getSelectedComponent().getComponentMeta().isModule() && propertyHasChanged(VERSION);
             updateComponentsWithNewValues();
-            project.getService(org.ikasan.studio.intellij.execution.IkasanDebugSessionService.class)
+            project.getService(IkasanDebugSessionService.class)
                     .markRestartRequired(getSelectedComponent());
             if (getSelectedComponent() instanceof FlowElement router
                     && router.getComponentMeta().isRouter()
@@ -277,7 +289,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             }
             latestGeneration = StudioProjectFiles.refreshCodeFromModel(project, generationRequest);
             if (renamed) latestGeneration.thenRun(() ->
-                    org.ikasan.studio.intellij.testing.FlowTestPropertyWarnings.checkAfterRename(project));
+                    FlowTestPropertyWarnings.checkAfterRename(project));
             if (updateUserCodeManually) {
                 StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.UpdateUserCodeManuallyReminder"));
             }
@@ -417,7 +429,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         }
         StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.CodeGenerationInProgressPleaseWait"));
         flowUserImplementedElement.setOverwriteEnabled(true);
-        project.getService(org.ikasan.studio.intellij.execution.IkasanDebugSessionService.class)
+        project.getService(IkasanDebugSessionService.class)
                 .markRestartRequired(flowUserImplementedElement);
         StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flowUserImplementedElement.getContainingFlow()));
     }
@@ -438,7 +450,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         return getChangedPropertyLabels(meta -> true);
     }
 
-    private List<String> getChangedPropertyLabels(java.util.function.Predicate<ComponentPropertyMeta> includeIf) {
+    private List<String> getChangedPropertyLabels(Predicate<ComponentPropertyMeta> includeIf) {
         List<String> changedPropertyLabels = new ArrayList<>();
         if (componentPropertyEditRowList != null) {
             for (ComponentPropertyEditRow componentPropertyEditRow : componentPropertyEditRowList) {
@@ -519,12 +531,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             return false;
         }
         try {
-            org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.renameComponentAndSave(
+            FlowTestRenameRefactoring.renameComponentAndSave(
                     project, context.getIkasanModule(), element, name);
             return true;
-        } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+        } catch (ProcessCanceledException cancelled) {
             throw cancelled;
-        } catch (org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.RenameBlockedException blocked) {
+        } catch (RenameBlockedException blocked) {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("flowTest.renameFailed", blocked.getMessage()));
             return false;
         } catch (RuntimeException failure) {
@@ -543,20 +555,20 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         Module module = context.getIkasanModule();
         String oldPackage = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
         String newPackage = module.getApplicationPackageName() + "."
-                + org.ikasan.studio.core.StudioBuildUtils.toJavaPackageName(name);
+                + StudioBuildUtils.toJavaPackageName(name);
         if (!context.tryBeginMigration()) {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.FlowRenameBusy"));
             return false;
         }
         try {
-            Plan plan = org.ikasan.studio.intellij.psi.FlowPackageRefactoring.prepare(project, module, flow, name);
+            Plan plan = FlowPackageRefactoring.prepare(project, module, flow, name);
             if (plan == null) return false;
             if (!oldPackage.equals(newPackage)
                     && !new FlowPackageChangeDialog(project, oldPackage, newPackage, plan.files()).showAndGet()) return false;
-            return org.ikasan.studio.intellij.psi.FlowPackageRefactoring.renameAndSave(plan, module, flow, name);
-        } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+            return FlowPackageRefactoring.renameAndSave(plan, module, flow, name);
+        } catch (ProcessCanceledException cancelled) {
             throw cancelled;
-        } catch (org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.RenameBlockedException blocked) {
+        } catch (RenameBlockedException blocked) {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.FlowRenameFailed", blocked.getMessage()));
             return false;
         } catch (RuntimeException failure) {
@@ -650,7 +662,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 for (AffectedUserImplementedClass affectedClass : affected) {
                     StudioProjectFiles.backupUserImplementedClassFile(project, affectedClass.userClassReference());
                 }
-            } catch (org.ikasan.studio.StudioRuntimeException failure) {
+            } catch (StudioRuntimeException failure) {
                 LOG.warn("User class backup failed; regeneration cancelled", failure);
                 Messages.showWarningDialog(project,
                         StudioBundle.message("message.UserClassBackupFailed", failure.getMessage()),
@@ -975,7 +987,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 recipeDescriptionLabel.setLabelFor(recipeHelp);
                 mandatoryPropertiesEditorPanel.add(recipeDescriptionLabel, recipeGc);
                 recipeGc.gridy = mandatoryTabley++;
-                JBScrollPane recipeHelpScroll = new com.intellij.ui.components.JBScrollPane(recipeHelp,
+                JBScrollPane recipeHelpScroll = new JBScrollPane(recipeHelp,
                         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
                 recipeHelpScroll.setBorder(JBUI.Borders.empty());
                 // Every row in this GridBagLayout has weighty 0 (the default), so whenever this section ends up
@@ -988,11 +1000,11 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 // the true root cause (adding weighty to every mandatory row) risks unbalancing the whole
                 // section's layout; a minimum height is the targeted fix - it forces any real shortfall up to the
                 // panel's own outer JBScrollPane (see PropertiesPanel), which already scrolls correctly.
-                recipeHelpScroll.setMinimumSize(new java.awt.Dimension(0, JBUI.scale(70)));
+                recipeHelpScroll.setMinimumSize(new Dimension(0, JBUI.scale(70)));
                 mandatoryPropertiesEditorPanel.add(recipeHelpScroll, recipeGc);
                 ConversionRecipeEditor.bind(getSelectedComponent().getComponentMeta().getConversionRecipes(),
                         componentPropertyEditBoxMap, recipeHelp, getSelectedComponent() instanceof FlowElement element
-                                ? org.ikasan.studio.core.conversion.ConversionRecipeMatcher.downstreamTypes(element) : null, listenerForAnyEditChanges, componentInitialisation);
+                                ? ConversionRecipeMatcher.downstreamTypes(element) : null, listenerForAnyEditChanges, componentInitialisation);
             }
             alignPropertyLabelColumnWidths(mandatorySectionGroups);
             alignPropertyLabelColumnWidths(optionalSectionGroups);
@@ -1015,12 +1027,12 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             }
             harnessOverrideStatus = null;
             if (getSelectedComponent() instanceof FlowElement endpoint
-                    && !org.ikasan.studio.core.model.analysis.HarnessOverrides.kind(
+                    && !HarnessOverrides.kind(
                     project.getService(UiContext.class).getIkasanModule(), endpoint).isEmpty()) {
                 JBPanel harnessStatusPanel = new JBPanel(new BorderLayout(0, JBUI.scale(4)));
-                harnessOverrideStatus = new com.intellij.ui.components.JBLabel();
+                harnessOverrideStatus = new JBLabel();
                 JButton manage = new JButton(StudioBundle.message("harnessOverrides.manage"));
-                manage.addActionListener(event -> org.ikasan.studio.intellij.configuration.HarnessOverridesDialog.show(project));
+                manage.addActionListener(event -> HarnessOverridesDialog.show(project));
                 harnessStatusPanel.add(harnessOverrideStatus, BorderLayout.NORTH);
                 harnessStatusPanel.add(manage, BorderLayout.SOUTH);
                 setSubPanel(propertiesEditorPanel, harnessStatusPanel, null, null, gc1);
@@ -1057,7 +1069,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
     public void refreshHarnessOverrideStatus() {
         if (harnessOverrideStatus == null || !(getSelectedComponent() instanceof FlowElement endpoint)) return;
-        HarnessOverrideService service = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        HarnessOverrideService service = project.getService(HarnessOverrideService.class);
         if (service == null) return;
         boolean enabled = service.isEnabled(endpoint);
         boolean active = service.isActive(endpoint);
@@ -1471,7 +1483,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         }
         ComponentPropertyMeta uiMeta = property.getMeta().toBuilder()
                 .choices(componentInitialisation
-                        ? ComponentLibrary.getMetapackList(org.ikasan.studio.intellij.settings.IkasanStudioSettings.areSnapshotMetaPacksAllowed())
+                        ? ComponentLibrary.getMetapackList(IkasanStudioSettings.areSnapshotMetaPacksAllowed())
                         : List.copyOf(ComponentLibrary.getMetapackList()))
                 .build();
         ComponentProperty uiProperty = new ComponentProperty(uiMeta, property.getValue());
@@ -1600,7 +1612,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     static List<ValidationInfo> validateModulePorts(Map<String, ComponentPropertyEditRow> rows) {
         List<ValidationInfo> result = new ArrayList<>();
-        HashSet<Integer> ports = new java.util.HashSet<>();
+        HashSet<Integer> ports = new HashSet<>();
         for (String key : List.of(ComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME,
                 ComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME)) {
             ComponentPropertyEditRow row = rows.get(key);
@@ -1614,7 +1626,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         return result;
     }
 
-    protected java.util.List<ValidationInfo> doValidateAll() {
+    protected List<ValidationInfo> doValidateAll() {
         List<ValidationInfo> result = new ArrayList<>();
         for (final ComponentPropertyEditRow editPair: getComponentPropertyEditBoxList()) {
             result.addAll(editPair.doValidateAll());

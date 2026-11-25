@@ -3,13 +3,13 @@ package org.ikasan.studio.intellij.editor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.io.IOException;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
-
-import java.io.File;
 
 /**
  * Optional, best-effort "save a ModuleDiagram-&lt;name&gt;.png at the project root whenever the project
@@ -48,7 +48,7 @@ public final class ModuleDiagramAutoSaver {
         }
     }
 
-    private static void saveNow(Project project) throws java.io.IOException {
+    private static void saveNow(Project project) throws IOException {
         if (project.isDisposed()) {
             return;
         }

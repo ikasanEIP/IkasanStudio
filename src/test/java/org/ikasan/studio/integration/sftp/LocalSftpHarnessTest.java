@@ -1,27 +1,31 @@
 package org.ikasan.studio.integration.sftp;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Map;
+import org.apache.sshd.client.SshClient;
+import org.apache.sshd.client.keyverifier.KnownHostsServerKeyVerifier;
+import org.apache.sshd.client.keyverifier.RejectAllServerKeyVerifier;
+import org.apache.sshd.client.session.ClientSession;
+import org.apache.sshd.sftp.client.SftpClient;
+import org.apache.sshd.sftp.client.SftpClientFactory;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.*;
-import java.io.OutputStream;
-import java.lang.reflect.Method;
-import java.util.Map.Entry;
-import org.apache.sshd.client.SshClient;
-import org.apache.sshd.client.session.ClientSession;
-import org.apache.sshd.sftp.client.SftpClient;
 
 class LocalSftpHarnessTest {
     @TempDir Path temporary;
@@ -54,13 +58,13 @@ class LocalSftpHarnessTest {
              URLClassLoader loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()}, getClass().getClassLoader())) {
             port = server.port();
             Method method = loader.loadClass("HarnessSettings").getMethod("configure", Object.class, boolean.class);
-            org.ikasan.studio.integration.sftp.LocalSftpHarnessTest.Endpoint external = new Endpoint();
+            Endpoint external = new Endpoint();
             assertSame(external, method.invoke(null, external, true));
             assertEquals("external-settings", external.configurationId);
             assertEquals("existing-algorithm", external.configuration.keyExchangeAlgorithm);
             server.launchProperties().forEach((key, value) -> { previous.put(key, System.getProperty(key)); System.setProperty(key, value); });
-            org.ikasan.studio.integration.sftp.LocalSftpHarnessTest.Endpoint consumer = new Endpoint();
-            org.ikasan.studio.integration.sftp.LocalSftpHarnessTest.Endpoint producer = new Endpoint();
+            Endpoint consumer = new Endpoint();
+            Endpoint producer = new Endpoint();
             method.invoke(null, consumer, true);
             method.invoke(null, producer, false);
             assertTrue(consumer.configurationId.startsWith("studio-test-sftp-"));
@@ -76,23 +80,23 @@ class LocalSftpHarnessTest {
                 for (Entry<String,String> expectedFile : expectedFiles) {
                     Path file = server.home().resolve(consumer.configuration.directory.substring(1)).resolve(expectedFile.getKey());
                     Files.writeString(file, expectedFile.getValue());
-                    org.ikasan.studio.integration.sftp.RemoteFilesClient.Entry entry = client.list(consumer.configuration.directory).entries().stream()
+                    RemoteFilesClient.Entry entry = client.list(consumer.configuration.directory).entries().stream()
                             .filter(e -> e.name().equals(expectedFile.getKey())).findFirst().orElseThrow();
                     assertEquals(expectedFile.getValue(), Files.readString(client.download(consumer.configuration.directory, entry, temporary)));
                 }
                 assertTrue(client.list(producer.configuration.directory).entries().isEmpty());
-                try (SshClient ssh = org.apache.sshd.client.SshClient.setUpDefaultClient()) {
-                    ssh.setServerKeyVerifier(new org.apache.sshd.client.keyverifier.KnownHostsServerKeyVerifier(
-                            org.apache.sshd.client.keyverifier.RejectAllServerKeyVerifier.INSTANCE,
+                try (SshClient ssh = SshClient.setUpDefaultClient()) {
+                    ssh.setServerKeyVerifier(new KnownHostsServerKeyVerifier(
+                            RejectAllServerKeyVerifier.INSTANCE,
                             Path.of(producer.configuration.hosts)));
                     ssh.start();
                     try (ClientSession session = ssh.connect("ikasan", "127.0.0.1", port).verify(5000).getSession()) {
                         session.addPasswordIdentity(producer.configuration.password);
                         session.auth().verify(5000);
-                        try (SftpClient sftp = org.apache.sshd.sftp.client.SftpClientFactory.instance().createSftpClient(session)) {
+                        try (SftpClient sftp = SftpClientFactory.instance().createSftpClient(session)) {
                             for (Entry<String,String> expectedFile : expectedFiles) {
                                 try (OutputStream stream = sftp.write(producer.configuration.directory + "/" + expectedFile.getKey())) {
-                                    stream.write(expectedFile.getValue().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                                    stream.write(expectedFile.getValue().getBytes(StandardCharsets.UTF_8));
                                 }
                                 assertEquals(expectedFile.getValue(), Files.readString(server.home().resolve(
                                         producer.configuration.directory.substring(1)).resolve(expectedFile.getKey())));
@@ -110,7 +114,7 @@ class LocalSftpHarnessTest {
             previous.forEach((key, value) -> { if (value == null) System.clearProperty(key); else System.setProperty(key, value); });
         }
         try (Socket socket = new Socket()) {
-            assertThrows(java.io.IOException.class, () -> socket.connect(new InetSocketAddress("127.0.0.1", port), 1000));
+            assertThrows(IOException.class, () -> socket.connect(new InetSocketAddress("127.0.0.1", port), 1000));
         }
         assertTrue(Files.exists(temporary.resolve("server/home")), "Manual harness files remain available for inspection");
     }

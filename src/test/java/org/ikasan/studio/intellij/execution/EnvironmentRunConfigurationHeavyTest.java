@@ -1,9 +1,10 @@
 package org.ikasan.studio.intellij.execution;
 
 import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import com.intellij.execution.RunnerAndConfigurationSettings;
+import java.util.List;
 
 public class EnvironmentRunConfigurationHeavyTest extends HeavyPlatformTestCase {
     public void testEnvironmentsAndDebugHaveIndependentReusableLocalConfigurations() {
@@ -33,7 +34,7 @@ public class EnvironmentRunConfigurationHeavyTest extends HeavyPlatformTestCase 
             assertFalse(IkasanRunConfigurationService.matches(app, myModule, false));
         } finally {
             RunManager manager = RunManager.getInstance(getProject());
-            for (RunnerAndConfigurationSettings settings : java.util.List.of(dev, debug, integration, shared)) manager.removeConfiguration(settings);
+            for (RunnerAndConfigurationSettings settings : List.of(dev, debug, integration, shared)) manager.removeConfiguration(settings);
         }
     }
 }

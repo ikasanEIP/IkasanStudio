@@ -1,13 +1,13 @@
 package org.ikasan.studio.intellij.runtime;
 
 import com.intellij.openapi.project.Project;
-import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
-import org.ikasan.studio.ui.UiContext;
 import java.util.*;
 import java.util.ArrayList;
+import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.UiContext;
 
 /** Cached ownership/model inspection only: no socket probes, DNS or process discovery. */
 public final class HarnessStopImpact {
@@ -22,9 +22,9 @@ public final class HarnessStopImpact {
     }
     public record Impact(String project, Endpoint endpoint) { }
     public static List<Endpoint> owned(Project project) {
-        ArrayList<org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint> result = new ArrayList<>();
-        org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint ftp = project.getService(TestFtpServerService.class).listeningEndpoint();
-        org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint sftp = project.getService(TestSftpServerService.class).listeningEndpoint();
+        ArrayList<Endpoint> result = new ArrayList<>();
+        Endpoint ftp = project.getService(TestFtpServerService.class).listeningEndpoint();
+        Endpoint sftp = project.getService(TestSftpServerService.class).listeningEndpoint();
         if (ftp != null) result.add(ftp);
         if (sftp != null) result.add(sftp);
         result.addAll(project.getService(TestMailServerSessionService.class).ownedEndpoints());

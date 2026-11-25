@@ -1,14 +1,19 @@
 package org.ikasan.studio.core.diagnostics;
 
+import com.fasterxml.jackson.core.JsonParser.Feature;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-import java.util.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.*;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map.Entry;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.persistence.json.StudioJson;
 
 /** Bounded, value-free report. Never stores input documents, application names, URLs or exception messages. */
 public final class RuntimeImportReport {
@@ -52,10 +57,10 @@ public final class RuntimeImportReport {
         Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<>());
         for (Throwable t = failure; t != null && seen.add(t) && seen.size() <= 4; t = t.getCause()) {
             // Private exception class names can themselves disclose internal implementations.
-            failures.add(t instanceof org.ikasan.studio.core.StudioBuildException
-                    ? org.ikasan.studio.core.StudioBuildException.class.getName()
+            failures.add(t instanceof StudioBuildException
+                    ? StudioBuildException.class.getName()
                     : t.getClass().getName().startsWith("java.") ? t.getClass().getName() : "External exception (type omitted)");
-            if (t instanceof com.fasterxml.jackson.core.JsonProcessingException parse && parse.getLocation() != null)
+            if (t instanceof JsonProcessingException parse && parse.getLocation() != null)
                 failures.add("  JSON line " + Math.max(0, parse.getLocation().getLineNr()) + ", column " + Math.max(0, parse.getLocation().getColumnNr()));
             int count = 0;
             for (StackTraceElement frame : t.getStackTrace()) if (isStudioFrame(frame.getClassName()) && count++ < 4)
@@ -75,8 +80,8 @@ public final class RuntimeImportReport {
                 issue("DOCUMENT", "DOCUMENT_TOO_LARGE"); return;
             }
             ObjectMapper mapper = StudioJson.newObjectMapper()
-                    .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
-                    .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+                    .enable(Feature.STRICT_DUPLICATE_DETECTION)
+                    .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
             JsonNode root = mapper.readTree(module);
             if (root == null || !root.path("flows").isArray()) { issue("DOCUMENT", "RUNTIME_FLOWS_ARRAY_MISSING"); return; }
             version = safeVersion(root.path("ikasanVersion").asText());
@@ -152,7 +157,7 @@ public final class RuntimeImportReport {
             pending.addAll(edges.getOrDefault(node, List.of()));
         }
         if (!reached.containsAll(nodes.keySet())) issue(location, "DISCONNECTED_COMPONENTS");
-        HashMap<String,Integer> degrees = new HashMap<String, Integer>();
+        HashMap<String,Integer> degrees = new HashMap<>();
         nodes.keySet().forEach(node -> degrees.put(node, 0));
         edges.forEach((from, targets) -> { if (nodes.containsKey(from)) targets.forEach(to -> { if (nodes.containsKey(to)) degrees.merge(to, 1, Integer::sum); }); });
         ArrayDeque<String> ready = new ArrayDeque<>();
@@ -184,8 +189,8 @@ public final class RuntimeImportReport {
                 .append("\nIssues: ").append(issues.size()).append("; omitted: ").append(omitted)
                 .append("\nF/C/P references follow REST document order; application names and values are excluded.\n")
                 .append("This is a structural diagnostic, not proof of runtime compatibility.\n");
-        LinkedHashMap<String,Integer> representatives = new LinkedHashMap<String, Integer>();
-        HashMap<String,Integer> occurrences = new HashMap<String, Integer>();
+        LinkedHashMap<String,Integer> representatives = new LinkedHashMap<>();
+        HashMap<String,Integer> occurrences = new HashMap<>();
         for (int i = 0; i < issues.size(); i++) {
             String code = issues.get(i).split(" — ", 2)[1];
             representatives.putIfAbsent(code, i); occurrences.merge(code, 1, Integer::sum);
@@ -212,7 +217,7 @@ public final class RuntimeImportReport {
         return text.toString();
     }
     private void appendIssue(StringBuilder text, int index, boolean detail) {
-        text.append(String.format(java.util.Locale.ROOT, "IMPORT-%03d: ", index + 1)).append(issues.get(index)).append('\n');
+        text.append(String.format(Locale.ROOT, "IMPORT-%03d: ", index + 1)).append(issues.get(index)).append('\n');
         if (detail) {
             String location = issues.get(index).split(" — ")[0];
             String component = location.replaceFirst("/P[0-9]+$", "");

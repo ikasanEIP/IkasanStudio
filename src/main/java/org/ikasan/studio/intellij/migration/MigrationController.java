@@ -1,37 +1,42 @@
 package org.ikasan.studio.intellij.migration;
 
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import org.jetbrains.idea.maven.project.MavenProjectsManager;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
 import org.ikasan.studio.core.generator.AiProjectContractGenerator;
+import org.ikasan.studio.core.generator.ModelTemplate;
 import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.migration.*;
+import org.ikasan.studio.core.migration.MigrationWorkspace.Change;
+import org.ikasan.studio.core.migration.MigrationWorkspace.Snapshot;
+import org.ikasan.studio.core.migration.ModelMigration.Plan;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicReference;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.vfs.VirtualFile;
-import java.util.ArrayList;
-import java.util.Map;
-import org.ikasan.studio.core.migration.MigrationWorkspace.Change;
-import org.ikasan.studio.core.migration.MigrationWorkspace.Snapshot;
-import org.ikasan.studio.core.migration.ModelMigration.Plan;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
 /** Modal review keeps canvas edits out of a background migration; file preconditions cover external edits. */
 public final class MigrationController {
@@ -81,8 +86,8 @@ public final class MigrationController {
                 }
                 String source = Files.readString(root.resolve(MigrationArtifacts.MODEL));
                 Module persisted = ComponentIO.validatePersistedModuleJson(source, "migration source", false);
-                if (!StudioJson.newObjectMapper().readTree(org.ikasan.studio.core.generator.ModelTemplate.create(persisted)).equals(
-                        StudioJson.newObjectMapper().readTree(org.ikasan.studio.core.generator.ModelTemplate.create(context.getIkasanModule())))) {
+                if (!StudioJson.newObjectMapper().readTree(ModelTemplate.create(persisted)).equals(
+                        StudioJson.newObjectMapper().readTree(ModelTemplate.create(context.getIkasanModule())))) {
                     throw new IllegalStateException(StudioBundle.message("message.TheCanvasAndSavedModelDiffer"));
                 }
                 Plan plan = ModelMigration.analyse(source, selectedTarget);
@@ -90,8 +95,8 @@ public final class MigrationController {
                 String sourcePom = Files.readString(root.resolve("pom.xml"));
                 Map<String,String> artifacts = MigrationArtifacts.render(plan, sourcePom);
                 if (!Files.exists(root.resolve("AGENTS.md"))) artifacts.put("AGENTS.md", AiProjectContractGenerator.agentsGuide());
-                ArrayList<Change> changes = new java.util.ArrayList<>(MigrationWorkspace.prepare(root, artifacts));
-                List<Change> importChanges = selectedUpdateImports ? UserImportMigration.prepare(root, plan) : List.<MigrationWorkspace.Change>of();
+                ArrayList<Change> changes = new ArrayList<>(MigrationWorkspace.prepare(root, artifacts));
+                List<Change> importChanges = selectedUpdateImports ? UserImportMigration.prepare(root, plan) : List.of();
                 changes.addAll(importChanges);
                 if (changes.stream().anyMatch(c -> c.path().equals("AGENTS.md") && c.before() != null)) {
                     throw new IllegalStateException(StudioBundle.message("message.ProjectInstructionsWereAddedWhilePreparingMigration"));
@@ -107,7 +112,7 @@ public final class MigrationController {
             });
             if (project.isDisposed()) return;
             int requiredJava = preview.module() == null ? 0 : background(project, "Checking target Java version", () ->
-                    Integer.parseInt(org.ikasan.studio.core.metapack.ComponentLibrary
+                    Integer.parseInt(ComponentLibrary
                             .getMetaPackManifest(preview.module().getMetaVersion()).javaVersion()));
             String snapshotId = MigrationWorkspace.newSnapshotId();
             String savedReport = MigrationWorkspace.reportWithSaveLocation(preview.report(),
@@ -120,7 +125,7 @@ public final class MigrationController {
             Sdk selectedJdk = dialog.selectedJdk();
             Path snapshot = background(project, "Applying Ikasan migration", () -> {
                 if (selectedJdk == null || selectedJdk.getHomePath() == null
-                        || !com.intellij.openapi.projectRoots.JavaSdk.getInstance().isValidSdkHome(selectedJdk.getHomePath())) {
+                        || !JavaSdk.getInstance().isValidSdkHome(selectedJdk.getHomePath())) {
                     throw new IllegalStateException(StudioBundle.message("message.TheSelectedJdkIsUnavailable", requiredJava));
                 }
                 return MigrationWorkspace.commit(root, preview.changes(), savedReport, snapshotId);
@@ -144,7 +149,7 @@ public final class MigrationController {
                 context.getDesignerCanvas().repaint();
             }
             if (context.getCanvasPanel() != null) context.getCanvasPanel().disableH2Button(migratedModule.getUseEmbeddedH2());
-            com.intellij.openapi.application.ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            ApplicationManager.getApplication().executeOnPooledThread(() -> {
                 if (!project.isDisposed() && context.getIkasanModule() == migratedModule) {
                     try { new GeneratedProjectSynchronizer(project).initialisePsiFileHandles(); }
                     catch (RuntimeException ex) { LOG.warn("Could not refresh migration navigation targets", ex); }
@@ -153,7 +158,7 @@ public final class MigrationController {
             MavenProjectsManager maven = MavenProjectsManager.getInstance(project);
             if (maven != null && dialog.shouldCompile()) {
                 importBeforeCompile(maven, project, snapshot, () ->
-                        com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater(() -> {
+                        ApplicationManager.getApplication().invokeLater(() -> {
                             if (project.isDisposed()) return;
                             DumbService.getInstance(project).smartInvokeLater(() -> {
                                 if (context.getIkasanModule() != migratedModule) return;
@@ -161,10 +166,10 @@ public final class MigrationController {
                                     String result = aborted ? StudioBundle.message("message.BuildCancelled")
                                             : errors == 0 ? StudioBundle.message("message.BuildPassed")
                                             : StudioBundle.message("message.BuildFailedWithNErrors", errors);
-                                    com.intellij.notification.NotificationGroupManager.getInstance().getNotificationGroup("Ikasan Studio")
+                                    NotificationGroupManager.getInstance().getNotificationGroup("Ikasan Studio")
                                             .createNotification(StudioBundle.message("message.IkasanMigrationResult", result),
                                                     StudioBundle.message("message.RecoverySnapshotRunApplicationTests", snapshot),
-                                                    errors == 0 && !aborted ? com.intellij.notification.NotificationType.INFORMATION : com.intellij.notification.NotificationType.WARNING)
+                                                    errors == 0 && !aborted ? NotificationType.INFORMATION : NotificationType.WARNING)
                                             .notify(project);
                                 });
                             });
@@ -194,10 +199,10 @@ public final class MigrationController {
 
     private static void notifyImportFailure(Project project, Path snapshot) {
         if (project.isDisposed()) return;
-        com.intellij.notification.NotificationGroupManager.getInstance().getNotificationGroup("Ikasan Studio")
+        NotificationGroupManager.getInstance().getNotificationGroup("Ikasan Studio")
                 .createNotification(StudioBundle.message("message.IkasanMigrationMavenImportFailed"),
                         StudioBundle.message("message.FilesWereMigratedButCompilationCouldNotStart", snapshot),
-                        com.intellij.notification.NotificationType.WARNING).notify(project);
+                        NotificationType.WARNING).notify(project);
     }
 
     private static void checkUnsaved(Project project) {

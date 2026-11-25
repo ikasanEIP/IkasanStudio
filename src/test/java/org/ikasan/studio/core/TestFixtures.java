@@ -1,14 +1,15 @@
 package org.ikasan.studio.core;
 
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-
-import org.apache.maven.model.Dependency;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.model.ikasan.instance.*;
-import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
-import org.ikasan.studio.core.metapack.model.*;
-
 import java.util.*;
+import java.util.Map;
+import java.util.TreeMap;
+import org.apache.maven.model.Dependency;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.*;
+import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator;
+import org.ikasan.studio.testing.packs.PackExpectations;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
 /**
@@ -18,8 +19,8 @@ import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
  */
 public class TestFixtures {
     public static final String DEFAULT_PACKAGE = "org.ikasan";
-    public static final String META_IKASAN_PACK_3_3_9 = org.ikasan.studio.testing.packs.PackExpectations.META_IKASAN_PACK_3_3_9;
-    public static final String META_IKASAN_PACK_4_1_6 = org.ikasan.studio.testing.packs.PackExpectations.META_IKASAN_PACK_4_1_6;
+    public static final String META_IKASAN_PACK_3_3_9 = PackExpectations.META_IKASAN_PACK_3_3_9;
+    public static final String META_IKASAN_PACK_4_1_6 = PackExpectations.META_IKASAN_PACK_4_1_6;
 
     // For many tests, the actual meta pack to use is less critical, this is where we are testing functionality
     // that is not specific to a particular meta pack version. By default, the oldest supported meta pack is used.
@@ -268,7 +269,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
         flowElement.setPropertyValue("configurationId", "__module__flow__component");
         flowElement.setPropertyValue("connectionFactory", "myConnectionFactory");
-        flowElement.setPropertyValue("connectionFactoryJndiProperties", new java.util.TreeMap<>(java.util.Map.of("key1", "value1", "key2", "value2")));
+        flowElement.setPropertyValue("connectionFactoryJndiProperties", new TreeMap<>(Map.of("key1", "value1", "key2", "value2")));
         flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
         flowElement.setPropertyValue("connectionFactoryJndiPropertySecurityCredentials", "myConnectionFactoryJndiPropertySecurityCredentials");
@@ -280,7 +281,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("connectionPassword", "myConnectionPassword");
         flowElement.setPropertyValue("connectionUsername", "myConnectionUsername");
         flowElement.setPropertyValue("destinationJndiName", "myDestinationJndiName");
-        flowElement.setPropertyValue("destinationJndiProperties", java.util.Map.of("java.naming.provider.url", "tcp://localhost:61616"));
+        flowElement.setPropertyValue("destinationJndiProperties", Map.of("java.naming.provider.url", "tcp://localhost:61616"));
         flowElement.setPropertyValue("destinationJndiPropertyFactoryInitial", "myDestinationJndiPropertyFactoryInitial");
         flowElement.setPropertyValue("destinationJndiPropertyProviderUrl", "myDestinationJndiPropertyProviderUrl");
         flowElement.setPropertyValue("destinationJndiPropertySecurityCredentials", "myDestinationJndiPropertySecurityCredentials");
@@ -411,7 +412,7 @@ public class TestFixtures {
 
     // ------------------------- ExceptionResolver -------------------------
     public static ExceptionResolution getTestJMSExceptionResolution(String metaPackVersion) throws StudioBuildException {
-        String jmsExceptionClass = org.ikasan.studio.testing.packs.PackExpectations.enterpriseNamespace(metaPackVersion) + ".jms.JMSException.class";
+        String jmsExceptionClass = PackExpectations.enterpriseNamespace(metaPackVersion) + ".jms.JMSException.class";
         return ExceptionResolution.exceptionResolutionBuilder()
                 .metapackVersion(metaPackVersion)
                 .exceptionsCaught(jmsExceptionClass)
@@ -421,7 +422,7 @@ public class TestFixtures {
     }
 
     public static ExceptionResolution getTestResourceExceptionResolution(String metaPackVersion) throws StudioBuildException {
-        String resourceExceptionClass = org.ikasan.studio.testing.packs.PackExpectations.enterpriseNamespace(metaPackVersion) + ".resource.ResourceException.class";
+        String resourceExceptionClass = PackExpectations.enterpriseNamespace(metaPackVersion) + ".resource.ResourceException.class";
         return ExceptionResolution.exceptionResolutionBuilder()
                 .metapackVersion(metaPackVersion)
                 .exceptionsCaught(resourceExceptionClass)
@@ -630,7 +631,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("criticalOnStartup", true);
         flowElement.setPropertyValue("emailBody", "myEmailBody");
         flowElement.setPropertyValue("emailFormat", "html");
-        flowElement.setPropertyValue("extendedMailSessionProperties", new java.util.TreeMap<>(java.util.Map.of("key1", "value1", "key2", "value2")));
+        flowElement.setPropertyValue("extendedMailSessionProperties", new TreeMap<>(Map.of("key1", "value1", "key2", "value2")));
         flowElement.setPropertyValue("from", "FromAddress");
         flowElement.setPropertyValue("hasAttachment", true);
         flowElement.setPropertyValue("mailDebug", true);
@@ -703,7 +704,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("configuration", "MyConfigurationClass");
         flowElement.setPropertyValue("configuredResourceId", "__module.__flow.__component");
         flowElement.setPropertyValue("connectionFactory", "myConnectionFactory");
-        flowElement.setPropertyValue("connectionFactoryJndiProperties", new java.util.TreeMap<>(java.util.Map.of("key1", "value1", "key2", "value2")));
+        flowElement.setPropertyValue("connectionFactoryJndiProperties", new TreeMap<>(Map.of("key1", "value1", "key2", "value2")));
         flowElement.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "myConnectionFactoryJndiPropertyFactoryInitial");
         flowElement.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "myConnectionFactoryJndiPropertyProviderUrl");
         flowElement.setPropertyValue("connectionFactoryJndiPropertySecurityCredentials", "myConnectionFactoryJndiPropertySecurityCredentials");
@@ -717,7 +718,7 @@ public class TestFixtures {
         flowElement.setPropertyValue("deliveryMode", 1);
         flowElement.setPropertyValue("deliveryPersistent", true);
         flowElement.setPropertyValue("destinationJndiName", "myDestinationJndiName");
-        flowElement.setPropertyValue("destinationJndiProperties", java.util.Map.of("java.naming.provider.url", "tcp://localhost:61616"));
+        flowElement.setPropertyValue("destinationJndiProperties", Map.of("java.naming.provider.url", "tcp://localhost:61616"));
         flowElement.setPropertyValue("destinationJndiPropertyFactoryInitial", "myDestinationJndiPropertyFactoryInitial");
         flowElement.setPropertyValue("destinationJndiPropertyProviderUrl", "myDestinationJndiPropertyProviderUrl");
         flowElement.setPropertyValue("destinationJndiPropertySecurityCredentials", "myDestinationJndiPropertySecurityCredentials");

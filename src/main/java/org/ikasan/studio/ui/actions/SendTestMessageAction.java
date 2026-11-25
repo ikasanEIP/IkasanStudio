@@ -5,19 +5,19 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.integration.ikasan.StudioInjectClient;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.List;
 
 /**
  * Prompts for a payload and POSTs it to the running module's /rest/studio/inject/{flowName} endpoint (generated
@@ -54,7 +54,7 @@ public class SendTestMessageAction implements ActionListener {
         String componentKey = module.getIdentity() + "/" + flowName + "/" + flowElement.getIdentity();
 
         String testPayloadAdapter = flowElement.getComponentMeta().getTestPayloadAdapter();
-        if (org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER.equals(testPayloadAdapter)) {
+        if (ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER.equals(testPayloadAdapter)) {
             chooseTestPayloadFile(chosenFile -> {
                 if (chosenFile == null) {
                     return;
@@ -95,7 +95,7 @@ public class SendTestMessageAction implements ActionListener {
                         preparedPayload.payloadClassName(), preparedPayload.payloadAdapter(), preparedPayload.payloadFilename()),
                 responseBody -> {
                     if (("studio-local-file-list".equals(preparedPayload.payloadAdapter())
-                            || org.ikasan.studio.core.metapack.model.ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER.equals(preparedPayload.payloadAdapter()))
+                            || ComponentMeta.FILE_TRANSFER_TEST_PAYLOAD_ADAPTER.equals(preparedPayload.payloadAdapter()))
                             && !"invoked".equals(responseBody.path("status").asText())) {
                         return TestInjectionTask.Notice.warning(StudioBundle.message("message.LocalFileTestNeedsRegeneration"));
                     }

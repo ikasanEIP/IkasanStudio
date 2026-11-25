@@ -1,24 +1,27 @@
 package org.ikasan.studio.ui;
 
 import com.intellij.openapi.components.Service;
-import org.ikasan.studio.ui.state.StudioSessionOptions;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
+import javax.swing.*;
+import org.ikasan.studio.core.generation.GenerationRequest;
+import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
-import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
 import org.ikasan.studio.ui.component.canvas.CanvasPanel;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 import org.ikasan.studio.ui.component.palette.PaletteTabPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 import org.ikasan.studio.ui.component.properties.ComponentPropertiesTabPanel;
-import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
-import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.ikasan.studio.ui.state.StudioSessionOptions;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
-
-import javax.swing.*;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Project-level service that manages UI context and state for a given project.
@@ -56,13 +59,13 @@ public final class UiContext {
     private static final String SELECTED_COMPONENT = "selectedComponent";
 
     private final Map<String, Object> cache = new TreeMap<>();
-    private final java.util.Set<String> restartPendingElements = new java.util.HashSet<>();
+    private final Set<String> restartPendingElements = new HashSet<>();
     private volatile boolean modelPersistenceAllowed = true;
     private boolean migrationActive;
     private int activeGenerations;
     private long generationRevision;
-    private org.ikasan.studio.core.generation.GenerationRequest pendingGenerationRequest;
-    private java.util.concurrent.CompletableFuture<Void> latestGeneration = java.util.concurrent.CompletableFuture.completedFuture(null);
+    private GenerationRequest pendingGenerationRequest;
+    private CompletableFuture<Void> latestGeneration = CompletableFuture.completedFuture(null);
 
     public synchronized boolean tryBeginMigration() {
         if (migrationActive || activeGenerations != 0) return false;
@@ -72,22 +75,22 @@ public final class UiContext {
     public synchronized void endMigration() { migrationActive = false; }
     public synchronized boolean isMigrationActive() { return migrationActive; }
     public synchronized boolean tryBeginGeneration() {
-        return beginGenerationRequest(new java.util.concurrent.CompletableFuture<>()) >= 0;
+        return beginGenerationRequest(new CompletableFuture<>()) >= 0;
     }
-    public synchronized long beginGenerationRequest(java.util.concurrent.CompletableFuture<Void> completion) {
-        return beginGenerationRequest(completion, org.ikasan.studio.core.generation.GenerationRequest.full());
+    public synchronized long beginGenerationRequest(CompletableFuture<Void> completion) {
+        return beginGenerationRequest(completion, GenerationRequest.full());
     }
-    public synchronized long beginGenerationRequest(java.util.concurrent.CompletableFuture<Void> completion,
-            org.ikasan.studio.core.generation.GenerationRequest request) {
+    public synchronized long beginGenerationRequest(CompletableFuture<Void> completion,
+            GenerationRequest request) {
         if (migrationActive) return -1;
         pendingGenerationRequest = activeGenerations == 0 ? request : pendingGenerationRequest.merge(request);
         activeGenerations++;
         latestGeneration = completion;
         return ++generationRevision;
     }
-    public synchronized org.ikasan.studio.core.generation.GenerationRequest getPendingGenerationRequest() { return pendingGenerationRequest; }
+    public synchronized GenerationRequest getPendingGenerationRequest() { return pendingGenerationRequest; }
     public synchronized boolean isLatestGeneration(long revision) { return generationRevision == revision; }
-    public synchronized java.util.concurrent.CompletableFuture<Void> getLatestGeneration() { return latestGeneration; }
+    public synchronized CompletableFuture<Void> getLatestGeneration() { return latestGeneration; }
     public synchronized void endGeneration() { activeGenerations--; }
 
     private volatile String modelPersistenceBlockReason;

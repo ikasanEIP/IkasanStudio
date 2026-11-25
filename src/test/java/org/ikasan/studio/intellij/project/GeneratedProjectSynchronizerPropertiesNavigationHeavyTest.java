@@ -1,25 +1,36 @@
 package org.ikasan.studio.intellij.project;
 
+import com.intellij.openapi.application.impl.NonBlockingReadActionImpl;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Objects;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.Generator;
+import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.generator.PropertiesTemplate;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.navigation.NavigationTarget;
 import org.ikasan.studio.ui.UiContext;
 import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
-import java.util.List;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import com.intellij.openapi.vfs.VirtualFile;
-import java.lang.reflect.Method;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
-import org.ikasan.studio.intellij.navigation.NavigationTarget;
 
 /**
  * "Jump to Properties": verifies {@link GeneratedProjectSynchronizer#initialisePsiFileHandles()} - the same public entry
@@ -64,7 +75,7 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
         Flow flow = TestFixtures.getUnbuiltFlow(pack)
                 .consumer(TestFixtures.getEventGeneratingConsumer(pack)).build();
         FlowRoute root = flow.getFlowRoute();
-        FlowRoute branch = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
+        FlowRoute branch = FlowRoute.flowRouteBuilder()
                 .flow(flow).routeName("route1").build();
         root.getChildRoutes().add(branch);
         FlowElement rootRouter = router(pack, flow, root, "Multi Recipient Router", "RootRouter");
@@ -75,36 +86,37 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
         UiContext context = myProject.getService(UiContext.class);
         context.setIkasanModule(module);
         context.setViewHandlerFactory(new ViewHandlerCache(myProject));
-        String flowPackage = org.ikasan.studio.core.generator.Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();
-        String userPackage = org.ikasan.studio.core.generator.GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
+        String flowPackage = Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();
+        String userPackage = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
         String flowPath = "generated/src/main/java/" + flowPackage.replace('.', '/') + "/" + flow.getJavaClassName() + ".java";
         VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
-        com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction(myProject, () -> {
+        WriteCommandAction.runWriteCommandAction(myProject, () -> {
             try {
-                com.intellij.openapi.vfs.VfsUtil.saveText(
-                        com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing(base, flowPath.substring(0, flowPath.lastIndexOf('/')))
+                VfsUtil.saveText(
+                        VfsUtil.createDirectoryIfMissing(base, flowPath.substring(0, flowPath.lastIndexOf('/')))
                                 .findOrCreateChildData(this, flow.getJavaClassName() + ".java"),
                         "package " + flowPackage + "; public class " + flow.getJavaClassName() + " {}");
-                VirtualFile userDir = com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing(base,
+                VirtualFile userDir = VfsUtil.createDirectoryIfMissing(base,
                         "user/src/main/java/" + userPackage.replace('.', '/'));
                 for (String name : List.of("RootRouter", "EitherOrRouter", "NestedMultiRouter")) {
-                    com.intellij.openapi.vfs.VfsUtil.saveText(userDir.findOrCreateChildData(this, name + ".java"),
+                    VfsUtil.saveText(userDir.findOrCreateChildData(this, name + ".java"),
                             "package " + userPackage + "; public class " + name + " {}");
                 }
-            } catch (java.io.IOException e) {
-                throw new java.io.UncheckedIOException(e);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         });
         for (int refresh = 0; refresh < 2; refresh++) {
             new GeneratedProjectSynchronizer(myProject).initialisePsiFileHandles();
-            com.intellij.openapi.application.impl.NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
+            NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
             for (FlowElement router : List.of(rootRouter, single, multi)) {
                 NavigationTarget target = ViewHandlerCache.getFlowComponentViewHandler(myProject, router).getCodeNavigationTarget();
                 assertTrue(target.isPresent());
-                assertEquals(router.getComponentName() + ".java", target.psiFile().getName());
+                assertEquals(router.getComponentName() + ".java", Objects.requireNonNull(target.psiFile()).getName());
             }
             assertEquals(flow.getJavaClassName() + ".java",
-                    ViewHandlerCache.getFlowComponentViewHandler(myProject, missing).getCodeNavigationTarget().psiFile().getName());
+                    Objects.requireNonNull(ViewHandlerCache.getFlowComponentViewHandler(myProject, missing)
+                            .getCodeNavigationTarget().psiFile()).getName());
         }
     }
 
@@ -116,7 +128,7 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
         UiContext context = myProject.getService(UiContext.class);
         context.setIkasanModule(module);
         context.setViewHandlerFactory(new ViewHandlerCache(myProject));
-        String root = org.ikasan.studio.core.generator.Generator.STUDIO_FLOW_PACKAGE;
+        String root = Generator.STUDIO_FLOW_PACKAGE;
         StudioProjectFiles.createJavaSourceFile(myProject, StudioProjectFiles.GENERATED_CONTENT_ROOT,
                 StudioProjectFiles.SRC_MAIN_JAVA_CODE, root + ".flow1", "Flow1",
                 "package " + root + ".flow1; public class Flow1 {}", null);
@@ -124,14 +136,14 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
         assertNotNull(base);
         VirtualFile oldFile = base.findFileByRelativePath("generated/src/main/java/" + root.replace('.', '/') + "/flow1/Flow1.java");
         assertNotNull(oldFile);
-        NavigationTarget oldTarget = org.ikasan.studio.intellij.navigation.NavigationTarget.forFile(
-                com.intellij.psi.PsiManager.getInstance(myProject).findFile(oldFile));
+        NavigationTarget oldTarget = NavigationTarget.forFile(
+                PsiManager.getInstance(myProject).findFile(oldFile));
         ViewHandlerCache.getFlowViewHandler(myProject, flow).setCodeNavigationTarget(oldTarget);
         ViewHandlerCache.getFlowComponentViewHandler(myProject, consumer).setCodeNavigationTarget(oldTarget);
         flow.setName("Transform The Order");
         GeneratedProjectSynchronizer synchronizer = new GeneratedProjectSynchronizer(myProject);
         Method generate = GeneratedProjectSynchronizer.class.getDeclaredMethod("generateAndSaveJavaCodeIkasanFlow",
-                com.intellij.openapi.project.Project.class, Module.class, String.class, Flow.class);
+                Project.class, Module.class, String.class, Flow.class);
         generate.setAccessible(true);
         GenerationTransactionManager.begin();
         try {
@@ -141,19 +153,19 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
             GenerationTransactionManager.abort();
         }
         StudioProjectFiles.deleteFile(myProject, oldFile);
-        com.intellij.openapi.application.impl.NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
+        NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
         NavigationTarget target = ViewHandlerCache.getFlowComponentViewHandler(myProject, consumer).getCodeNavigationTarget();
         assertTrue(target.isPresent());
-        assertTrue(target.psiFile().isValid());
-        assertEquals("TransformTheOrder.java", target.psiFile().getName());
+        assertTrue(Objects.requireNonNull(target.psiFile()).isValid());
+        assertEquals("TransformTheOrder.java", Objects.requireNonNull(target.psiFile()).getName());
         assertTrue(target.elementToNavigateTo().isValid());
     }
 
     private FlowElement router(String pack, Flow flow,
-                               org.ikasan.studio.core.model.ikasan.instance.FlowRoute route,
+                               FlowRoute route,
                                String type, String name) throws Exception {
-        ComponentMeta meta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, type);
-        FlowElement router = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, type);
+        FlowElement router = FlowElementFactory
                 .createFlowElement(pack, meta, flow, route, name);
         router.setPropertyValue("userImplementedClassName", name);
         route.getFlowElements().add(router);
@@ -191,14 +203,14 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
                 consumerViewHandlerBefore.hasPropertiesNavigationTarget(), is(false));
 
         new GeneratedProjectSynchronizer(myProject).initialisePsiFileHandles();
-        com.intellij.openapi.application.impl.NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
+        NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
 
         // Component target: FtpConsumer's alphabetically-first externalized property is active.
         AbstractViewHandlerIntellij consumerViewHandler = ViewHandlerCache.getFlowComponentViewHandler(myProject, ftpConsumer);
         assertThat(consumerViewHandler.hasPropertiesNavigationTarget(), is(true));
         // Read back from the resolved PsiFile itself, not the pre-write local string - IntelliJ may reformat
         // the written file (e.g. line-ending/whitespace normalisation), which would shift offsets.
-        String writtenText = consumerViewHandler.getPropertiesNavigationTarget().psiFile().getText();
+        String writtenText = Objects.requireNonNull(consumerViewHandler.getPropertiesNavigationTarget().psiFile()).getText();
         int consumerOffset = consumerViewHandler.getPropertiesNavigationTarget().offset();
         String expectedConsumerKey = "myflow1.myftpconsumer.ftp.consumer.active=";
         assertThat(writtenText.substring(consumerOffset, consumerOffset + expectedConsumerKey.length()), is(expectedConsumerKey));

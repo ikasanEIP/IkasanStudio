@@ -1,30 +1,32 @@
 package org.ikasan.studio.core.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.ikasan.studio.core.StudioBuildUtils;
-import org.ikasan.studio.core.io.ComponentIO;
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-import org.ikasan.studio.core.model.ikasan.instance.*;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-
 import java.util.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.lang.model.SourceVersion;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 import org.ikasan.studio.core.metapack.model.ExceptionActionMeta;
 import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
+import org.ikasan.studio.core.model.StringCollectionValues;
+import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.StudioJson;
 
 /** Validates an AI edit on an isolated model and prepares reversible edits retaining live object identity. */
 public final class ModelProposal {
@@ -121,8 +123,8 @@ public final class ModelProposal {
                         boolean repairsUnresolvedClass = property.equals("userImplementedClassName")
                                 && element.getPropertyValueAsString(property).startsWith("__fieldName:")
                                 && op.path("value").isTextual()
-                                && javax.lang.model.SourceVersion.isIdentifier(op.path("value").asText())
-                                && !javax.lang.model.SourceVersion.isKeyword(op.path("value").asText());
+                                && SourceVersion.isIdentifier(op.path("value").asText())
+                                && !SourceVersion.isKeyword(op.path("value").asText());
                         if (meta != null && meta.isAffectsUserImplementedClass() && !repairsUnresolvedClass
                                 && !(meta.isUserSuppliedClass() && meta.isProtectFromOverwrite()))
                             fail("Edit implementation class properties in Studio: " + property);
@@ -233,14 +235,14 @@ public final class ModelProposal {
     }
 
     /** Resolve a component key, or fail with a message the AI can act on (the raw library error names nothing). */
-    private static org.ikasan.studio.core.metapack.model.ComponentMeta componentMeta(Module draft, String key) throws Exception {
+    private static ComponentMeta componentMeta(Module draft, String key) throws Exception {
         ComponentMeta meta = ComponentLibrary.getIkasanComponentByKey(draft.getVersion(), key);
         if (meta != null) return meta;
         Map<String,ComponentMeta> all = ComponentLibrary.getIkasanComponents(draft.getVersion());
         String sameIgnoringCase = all.keySet().stream().filter(k -> k.equalsIgnoreCase(key)).findFirst().orElse(null);
         String valid = all.entrySet().stream()
                 .filter(e -> !(e.getValue().isModule() || e.getValue().isFlow() || e.getValue().isEndpoint() || e.getValue().isExceptionResolver()))
-                .map(Map.Entry::getKey).sorted().collect(java.util.stream.Collectors.joining(", "));
+                .map(Map.Entry::getKey).sorted().collect(Collectors.joining(", "));
         throw new IllegalArgumentException("Unknown component key '" + key + "'. Keys are case-sensitive and exact."
                 + (sameIgnoringCase == null ? "" : " Did you mean '" + sameIgnoringCase + "'?")
                 + " Valid keys: " + valid + ". See studio_catalogue for details.");
@@ -309,10 +311,10 @@ public final class ModelProposal {
         }
     }
 
-    private static Object propertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta meta, String key, JsonNode value) {
-        if (org.ikasan.studio.core.model.StringCollectionValues.supports(meta.getPropertyDataType())) {
+    private static Object propertyValue(ComponentPropertyMeta meta, String key, JsonNode value) {
+        if (StringCollectionValues.supports(meta.getPropertyDataType())) {
             if (value.isNull()) return null;
-            if (!org.ikasan.studio.core.model.StringCollectionValues.compatible(meta.getPropertyDataType(), value))
+            if (!StringCollectionValues.compatible(meta.getPropertyDataType(), value))
                 fail("Expected a string collection for " + key);
             return StudioJson.newObjectMapper().convertValue(value, Object.class);
         }
@@ -482,14 +484,14 @@ public final class ModelProposal {
     private static void setExceptionResolution(Module draft, Flow flow, JsonNode op) throws Exception {
         String exception = text(op, "exception");
         if (exception.endsWith(".class")) exception = exception.substring(0, exception.length()-6);
-        if (!javax.lang.model.SourceVersion.isName(exception) || !exception.contains(".")) fail("Use a fully qualified exception class name.");
+        if (!SourceVersion.isName(exception) || !exception.contains(".")) fail("Use a fully qualified exception class name.");
         exception += ".class";
         ExceptionResolverMeta meta = ComponentLibrary.getExceptionResolverMetaMandatory(draft.getVersion());
         ExceptionActionMeta action = meta.getExceptionActionWithName(text(op, "action"));
         if (action == null) fail("Unknown exception action: " + text(op, "action"));
         JsonNode values = op.path("properties");
         if (!values.isMissingNode() && !values.isObject()) fail("Exception properties must be an object.");
-        LinkedHashMap<String,ComponentProperty> properties = new LinkedHashMap<String, ComponentProperty>();
+        LinkedHashMap<String,ComponentProperty> properties = new LinkedHashMap<>();
         Map<String,ComponentPropertyMeta> allowed = action.getActionProperties();
         for (Entry<String,JsonNode> entry : values.properties()) if (!allowed.containsKey(entry.getKey())) fail("Unknown exception action property: " + entry.getKey());
         for (Entry<String,ComponentPropertyMeta> entry : allowed.entrySet()) {

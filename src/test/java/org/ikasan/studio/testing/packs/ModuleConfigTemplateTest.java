@@ -1,26 +1,28 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.*;
-
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
 import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
 
     /**
@@ -36,13 +38,13 @@ public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
         flow.setName("Order \"A\"");
         flow.setPropertyValue("description", "Flow \"desc\" C:\\in");
         module.addFlow(flow);
-        FlowElement consumer = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(metaPackVersion,
-                org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Event Generating Consumer"),
+        FlowElement consumer = FlowElementFactory.createFlowElement(metaPackVersion,
+                ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Event Generating Consumer"),
                 flow, flow.getFlowRoute(), "Read \"in\"");
         consumer.defaultUnsetMandatoryProperties();
         flow.setConsumer(consumer);
-        FlowElement producer = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(metaPackVersion,
-                org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Dev Null Producer"),
+        FlowElement producer = FlowElementFactory.createFlowElement(metaPackVersion,
+                ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Dev Null Producer"),
                 flow, flow.getFlowRoute(), "Sink \\ end");
         producer.defaultUnsetMandatoryProperties();
         flow.getFlowRoute().insertFlowElement(0, producer);
@@ -67,8 +69,8 @@ public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
         Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion).build();
         flow.setName("Import");
         module.addFlow(flow);
-        FlowElement consumer = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(metaPackVersion,
-                org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Event Generating Consumer"),
+        FlowElement consumer = FlowElementFactory.createFlowElement(metaPackVersion,
+                ComponentLibrary.getIkasanComponentByKeyMandatory(metaPackVersion, "Event Generating Consumer"),
                 flow, flow.getFlowRoute(), "Default");
         consumer.defaultUnsetMandatoryProperties();
         flow.setConsumer(consumer);
@@ -79,7 +81,7 @@ public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
         String flowSource = FlowTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
         assertTrue(flowSource.contains("Flow import_ = flowBuilder"), flowSource);
         String factory = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
-        assertTrue(!factory.matches("(?s).*\\b(default|import)\\s*;.*"), factory);
+        assertFalse(factory.matches("(?s).*\\b(default|import)\\s*;.*"), factory);
     }
 
     /** A flow named entirely in non-Latin script must not generate an empty package segment ("flow..."). */
@@ -88,11 +90,11 @@ public class ModuleConfigTemplateTest extends AbstractGeneratorTestFixtures {
     public void flowNamedEntirelyInNonLatinScriptGeneratesALegalPackage(String metaPackVersion) throws Exception {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         Flow flow = TestFixtures.getUnbuiltFlow(metaPackVersion).build();
-        flow.setName("\u65e5\u672c\u8a9e");
+        flow.setName("日本語");
         module.addFlow(flow);
 
         String moduleConfig = ModuleConfigTemplate.create(module);
-        assertTrue(!moduleConfig.contains("flow.."), moduleConfig);
+        assertFalse(moduleConfig.contains("flow.."), moduleConfig);
         assertTrue(moduleConfig.matches("(?s).*flow\\._[0-9a-f]+\\.\\S+ \\S+;.*"), moduleConfig);
     }
 

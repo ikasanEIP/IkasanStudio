@@ -1,19 +1,19 @@
 package org.ikasan.studio.core.metapack.loading;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.util.*;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.*;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.TreeSet;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Session-fixed pack sources shared by metadata, templates and icons; never an active pack selection. */
 public final class MetaPackResources {
@@ -26,8 +26,8 @@ public final class MetaPackResources {
     private static ClassLoader bundled() { return MetaPackResources.class.getClassLoader(); }
 
     private static SourceIndex discover() {
-        LinkedHashMap<String,String> problems = new LinkedHashMap<String, String>();
-        LinkedHashMap<String,MetaPackArchive> result = new LinkedHashMap<String, MetaPackArchive>();
+        LinkedHashMap<String,String> problems = new LinkedHashMap<>();
+        LinkedHashMap<String,MetaPackArchive> result = new LinkedHashMap<>();
         HashSet<String> conflicts = new HashSet<>();
         for (MetaPackDirectoryProvider provider : ServiceLoader.load(MetaPackDirectoryProvider.class, bundled())) {
             Path directory = provider.directory();
@@ -84,7 +84,7 @@ public final class MetaPackResources {
         return connection.getInputStream();
     }
 
-    public static String[] directories(String path) throws IOException, java.net.URISyntaxException {
+    public static String[] directories(String path) throws IOException, URISyntaxException {
         path = ClasspathResourcePaths.metaPackResource(path);
         if (path == null) throw new IOException("Meta-pack directory must be a canonical path beneath studio/metapack");
         MetaPackArchive archive = archive(path);

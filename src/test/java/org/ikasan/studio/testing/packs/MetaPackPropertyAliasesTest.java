@@ -1,29 +1,29 @@
 package org.ikasan.studio.testing.packs;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.StringReader;
+import java.util.List;
+import java.util.Properties;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate;
 import org.ikasan.studio.core.generator.ModelTemplate;
 import org.ikasan.studio.core.generator.PropertiesTemplate;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.StringReader;
-import java.util.List;
-import java.util.Properties;
-
 import static org.assertj.core.api.Assertions.*;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
 
 class MetaPackPropertyAliasesTest {
     private static final ObjectMapper JSON = new ObjectMapper();
@@ -91,7 +91,7 @@ class MetaPackPropertyAliasesTest {
         ObjectNode document = (ObjectNode) JSON.readTree(ModelTemplate.create(module(pack, true)));
         JsonNode flowSettings = document.path("studio").path("flows").elements().next().path("components");
         for (JsonNode record : document.path("configuration")) {
-            ArrayNode parameters = (com.fasterxml.jackson.databind.node.ArrayNode) record.path("parameters");
+            ArrayNode parameters = (ArrayNode) record.path("parameters");
             for (int i = parameters.size() - 1; i >= 0; i--) {
                 String name = parameters.get(i).path("name").asText();
                 if (List.of("hasAttachment", "knownHostsFilename", "cleanUpChunks").contains(name)) parameters.remove(i);
@@ -127,7 +127,7 @@ class MetaPackPropertyAliasesTest {
         ArrayNode edges = flow.putArray("transitions");
         edges.addObject().put("from", "SFTP Consumer").put("to", "SFTP Producer").put("name", "default");
         edges.addObject().put("from", "SFTP Producer").put("to", "Email Producer").put("name", "default");
-        Result imported = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(topology.toString(), records.toString(), pack, "org.example");
+        Result imported = IkasanRuntimeImport.convert(topology.toString(), records.toString(), pack, "org.example");
         assertThat(imported.review().toString()).doesNotContain("configuration fields not applied");
         Module restored = ComponentIO.validatePersistedModuleJson(imported.studioJson(), "runtime corrected fields", false);
         Flow restoredFlow = restored.getFlows().get(0);

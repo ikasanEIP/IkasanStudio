@@ -2,15 +2,15 @@ package org.ikasan.studio.core.persistence.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+import javax.lang.model.SourceVersion;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
 
 /** Detached clipboard data. Unlike saved transitions, the route tree also preserves unfinished flows. */
 public final class FlowClipboard {
@@ -25,7 +25,7 @@ public final class FlowClipboard {
         public static Sources empty() { return new Sources("", Map.of()); }
 
         public void validate() throws IOException {
-            if (!files.isEmpty() && (packageName == null || !javax.lang.model.SourceVersion.isName(packageName))) {
+            if (!files.isEmpty() && (packageName == null || !SourceVersion.isName(packageName))) {
                 throw new IOException("Invalid source package");
             }
             for (String path : files.keySet()) {
@@ -35,7 +35,7 @@ public final class FlowClipboard {
                 String[] parts = path.substring(0, path.length() - 5).split("/", -1);
                 for (int i = 0; i < parts.length; i++) {
                     boolean packageInfo = i == parts.length - 1 && parts[i].equals("package-info");
-                    if ((!packageInfo && !javax.lang.model.SourceVersion.isName(parts[i])) || parts[i].contains(".")) {
+                    if ((!packageInfo && !SourceVersion.isName(parts[i])) || parts[i].contains(".")) {
                         throw new IOException("Invalid source path");
                     }
                 }

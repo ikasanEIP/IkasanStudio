@@ -1,31 +1,31 @@
 package org.ikasan.studio.intellij.metapack;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.*;
+import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.core.metapack.loading.MetaPackStore;
-import org.ikasan.studio.ui.StudioBundle;
-import javax.swing.*;
 import java.awt.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.ui.components.JBList;
-import com.intellij.ui.components.JBScrollPane;
+import javax.swing.*;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
+import org.ikasan.studio.core.metapack.loading.MetaPackInstaller;
 import org.ikasan.studio.core.metapack.loading.MetaPackStore.Candidate;
 import org.ikasan.studio.core.metapack.loading.MetaPackStore.Entry;
+import org.ikasan.studio.core.metapack.loading.MetaPackStore;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
+import org.jetbrains.annotations.NotNull;
 
 /** External-pack lifecycle UI; bundled packs continue to be managed by the plugin distribution. */
 final class MetaPackManagerDialog extends StudioDialogWrapper {
@@ -110,7 +110,7 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
         if (Messages.showYesNoDialog(project, review, StudioBundle.message("metaPack.Update"), Messages.getQuestionIcon()) != Messages.YES) return;
         if ("removed".equals(selected.pending())) {
             MetaPackUiTasks.run(project, StudioBundle.message("metaPack.Progress"), () ->
-                    org.ikasan.studio.core.metapack.loading.MetaPackInstaller.install(source, directory, ProgressManager::checkCanceled, candidate));
+                    MetaPackInstaller.install(source, directory, ProgressManager::checkCanceled, candidate));
         } else {
             MetaPackUiTasks.run(project, StudioBundle.message("metaPack.Progress"), () -> MetaPackStore.stageUpdate(source, selected.file(), directory,
                     ProgressManager::checkCanceled, candidate, selected.sha256()));
@@ -143,7 +143,7 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
         if (selected == null) return;
         perform(() -> {
             List<Previous> previous = MetaPackUiTasks.run(project, StudioBundle.message("metaPack.Loading"), () -> {
-                ArrayList<org.ikasan.studio.intellij.metapack.MetaPackManagerDialog.Previous> result = new ArrayList<>();
+                ArrayList<Previous> result = new ArrayList<>();
                 for (Path file : MetaPackStore.history(directory, selected.id())) {
                     MetaPackManifest manifest = MetaPackStore.manifest(file);
                     if ("removed".equals(selected.pending()) || !manifest.packVersion().equals(selected.revision())) result.add(new Previous(manifest.packVersion(), file));
@@ -153,7 +153,7 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
             if (previous.isEmpty()) {
                 Messages.showInfoMessage(project, StudioBundle.message("metaPack.NoHistory"), StudioBundle.message("metaPack.Restore")); return;
             }
-            JBList<org.ikasan.studio.intellij.metapack.MetaPackManagerDialog.Previous> choices = new JBList<>(previous); choices.setSelectedIndex(0);
+            JBList<Previous> choices = new JBList<>(previous); choices.setSelectedIndex(0);
             StudioDialogWrapper picker = new StudioDialogWrapper(project, true) {
                 { setTitle(StudioBundle.message("metaPack.Restore")); init(); }
                 @Override protected JComponent createStudioContent() { return new JBScrollPane(choices); }
@@ -167,7 +167,7 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
     @FunctionalInterface private interface Work { void run() throws Exception; }
     private void perform(Work work) {
         try { work.run(); }
-        catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) { throw cancelled; }
+        catch (ProcessCanceledException cancelled) { throw cancelled; }
         catch (Exception e) { Messages.showErrorDialog(project, StudioBundle.message("metaPack.Failed", e.getMessage()), StudioBundle.message("metaPack.Manage")); }
     }
 }

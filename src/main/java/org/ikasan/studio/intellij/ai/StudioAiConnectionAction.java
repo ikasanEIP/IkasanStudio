@@ -1,7 +1,6 @@
 package org.ikasan.studio.intellij.ai;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -9,21 +8,25 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBTextArea;
-import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
-import org.jetbrains.annotations.NotNull;
-import javax.swing.*;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.BorderLayout;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.components.JBTextArea;
+import com.intellij.util.ui.JBUI;
+import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.jetbrains.annotations.NotNull;
 
 public final class StudioAiConnectionAction extends DumbAwareAction {
     @Override public @NotNull ActionUpdateThread getActionUpdateThread() { return ActionUpdateThread.BGT; }
@@ -66,7 +69,7 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
         @Override protected JComponent createStudioContent() {
             JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(12)));
             panel.add(text(StudioBundle.message("ai.ConnectionExplanation")), BorderLayout.NORTH);
-            JTabbedPane tabs = new com.intellij.ui.components.JBTabbedPane();
+            JTabbedPane tabs = new JBTabbedPane();
             boolean nativeAvailable = StudioNativeMcpSupport.available();
             if (nativeAvailable) {
                 JPanel nativePanel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
@@ -94,37 +97,37 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
             tabs.addTab(StudioBundle.message("ai.FileTab"), fileSetup);
             panel.add(tabs, BorderLayout.CENTER);
             JPanel footer = new JPanel(new BorderLayout(0, JBUI.scale(8)));
-            JBCheckBox reconnect = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("ai.Reconnect"),
+            JBCheckBox reconnect = new JBCheckBox(StudioBundle.message("ai.Reconnect"),
                     PropertiesComponent.getInstance(project).getBoolean(StudioAiStartupActivity.RECONNECT, true));
             PropertiesComponent.getInstance(project).setValue(StudioAiStartupActivity.RECONNECT,
                     Boolean.toString(reconnect.isSelected()));
             reconnect.addActionListener(event -> PropertiesComponent.getInstance(project)
                     .setValue(StudioAiStartupActivity.RECONNECT, Boolean.toString(reconnect.isSelected())));
             footer.add(reconnect, BorderLayout.NORTH);
-            JPanel checklist = new JPanel(new java.awt.GridBagLayout());
-            checklist.setBorder(javax.swing.BorderFactory.createTitledBorder(StudioBundle.message("ai.ChecklistTitle")));
-            JBLabel access = new com.intellij.ui.components.JBLabel();
-            JBLabel model = new com.intellij.ui.components.JBLabel();
-            JBLabel route = new com.intellij.ui.components.JBLabel();
-            JBLabel client = new com.intellij.ui.components.JBLabel();
-            JBLabel routeLabel = new com.intellij.ui.components.JBLabel();
-            javax.swing.JLabel[] labels = {
-                    new com.intellij.ui.components.JBLabel(StudioBundle.message("ai.CheckAccessLabel")),
-                    new com.intellij.ui.components.JBLabel(StudioBundle.message("ai.CheckModelLabel")),
+            JPanel checklist = new JPanel(new GridBagLayout());
+            checklist.setBorder(BorderFactory.createTitledBorder(StudioBundle.message("ai.ChecklistTitle")));
+            JBLabel access = new JBLabel();
+            JBLabel model = new JBLabel();
+            JBLabel route = new JBLabel();
+            JBLabel client = new JBLabel();
+            JBLabel routeLabel = new JBLabel();
+            JLabel[] labels = {
+                    new JBLabel(StudioBundle.message("ai.CheckAccessLabel")),
+                    new JBLabel(StudioBundle.message("ai.CheckModelLabel")),
                     routeLabel,
-                    new com.intellij.ui.components.JBLabel(StudioBundle.message("ai.CheckClientLabel"))};
-            javax.swing.JLabel[] values = {access, model, route, client};
+                    new JBLabel(StudioBundle.message("ai.CheckClientLabel"))};
+            JLabel[] values = {access, model, route, client};
             for (int row = 0; row < labels.length; row++) {
-                GridBagConstraints constraints = new java.awt.GridBagConstraints();
+                GridBagConstraints constraints = new GridBagConstraints();
                 constraints.gridy = row;
                 constraints.gridx = 0;
-                constraints.anchor = java.awt.GridBagConstraints.LINE_START;
+                constraints.anchor = GridBagConstraints.LINE_START;
                 constraints.insets = JBUI.insets(2, 0, 2, 12);
                 labels[row].setLabelFor(values[row]);
                 checklist.add(labels[row], constraints);
                 constraints.gridx = 1;
                 constraints.weightx = 1;
-                constraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+                constraints.fill = GridBagConstraints.HORIZONTAL;
                 constraints.insets = JBUI.insets(2, 0);
                 checklist.add(values[row], constraints);
             }

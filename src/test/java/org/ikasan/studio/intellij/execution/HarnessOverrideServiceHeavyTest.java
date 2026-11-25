@@ -1,24 +1,25 @@
 package org.ikasan.studio.intellij.execution;
 
 import com.intellij.execution.*;
-import com.intellij.execution.application.*;
-import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.testFramework.HeavyPlatformTestCase;
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.analysis.HarnessOverrides;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.ui.UiContext;
-
-import java.util.ArrayList;
-import java.util.Set;
-import static org.mockito.Mockito.*;
 import com.intellij.execution.ExecutionListener;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.application.*;
 import com.intellij.execution.application.ApplicationConfiguration;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.UiContext;
+
+import static org.mockito.Mockito.*;
 
 public class HarnessOverrideServiceHeavyTest extends HeavyPlatformTestCase {
     public void testDebugVariantsPreserveExistingSavedCombinations() {
@@ -43,7 +44,7 @@ public class HarnessOverrideServiceHeavyTest extends HeavyPlatformTestCase {
         producer.setContainingFlow(flow);
         producer.setContainingFlowRoute(flow.getFlowRoute());
         flow.getFlowRoute().getFlowElements().add(producer);
-        Module module = TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", new ArrayList<>(java.util.List.of(flow)));
+        Module module = TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", new ArrayList<>(List.of(flow)));
         getProject().getService(UiContext.class).setIkasanModule(module);
         RunManager manager = RunManager.getInstance(getProject());
         RunnerAndConfigurationSettings settings = manager.createConfiguration("Harness selection test",

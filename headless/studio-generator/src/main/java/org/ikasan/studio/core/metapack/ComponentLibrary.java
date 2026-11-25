@@ -1,25 +1,23 @@
 package org.ikasan.studio.core.metapack;
 
-import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
-
-import org.ikasan.studio.core.metapack.model.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 import org.apache.commons.io.FilenameUtils;
 import org.ikasan.studio.core.StudioBuildException;
 import org.ikasan.studio.core.StudioBuildRuntimeException;
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
 import org.ikasan.studio.core.metapack.loading.ComponentLibraryLoader;
+import org.ikasan.studio.core.metapack.loading.MetaPackResources;
+import org.ikasan.studio.core.metapack.model.*;
 import org.ikasan.studio.core.metapack.validation.MetaPackValidator;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory;
-
-import java.util.*;
-import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.ikasan.studio.core.metapack.model.ComponentMeta.GENERIC_KEY;
-import java.util.LinkedHashMap;
 
 /**
  * This class aggregates all the defined Ikasan components
@@ -140,7 +138,7 @@ public final class ComponentLibrary {
 
     /** Startup diagnostics for rejected sources; querying on a background thread also warms the session index. */
     public static Map<String, String> getUnavailableMetaPacks() {
-        LinkedHashMap<String,String> problems = new LinkedHashMap<>(org.ikasan.studio.core.metapack.loading.MetaPackResources.installationProblems());
+        LinkedHashMap<String,String> problems = new LinkedHashMap<>(MetaPackResources.installationProblems());
         Libraries.PACKAGED.forEach((id, library) -> {
             if (library.validationError() != null) problems.put(id, library.validationError());
         });

@@ -1,11 +1,10 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.metapack.model.*;
-
-import org.ikasan.studio.core.metapack.ComponentLibrary;
-
 import org.ikasan.studio.SharedResourceExtension;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.*;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -23,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * instead, i.e. what a freshly-dropped instance would start with before the user changes anything.
  */
 @ExtendWith(SharedResourceExtension.class)
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 class ComponentMetaTest {
 
     @Test

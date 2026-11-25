@@ -1,18 +1,25 @@
 package org.ikasan.studio.testing.packs;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.lang.reflect.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Proxy;
+import java.net.*;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.*;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import org.ikasan.studio.core.model.StringCollectionValues;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import java.nio.file.*;
-import java.net.*;
-import java.lang.reflect.*;
-import java.util.*;
+
 import static org.assertj.core.api.Assertions.*;
-import java.lang.reflect.Field;
-import java.net.URL;
-import java.net.URLClassLoader;
 
 class StringCollectionRuntimeTest {
     @TempDir Path root;
@@ -31,14 +38,14 @@ class StringCollectionRuntimeTest {
         Files.writeString(environment, "package org.springframework.core.env; public interface Environment { String getRequiredProperty(String key); }");
         Path autowired = root.resolve("Autowired.java");
         Files.writeString(autowired, "package org.springframework.beans.factory.annotation; public @interface Autowired {}");
-        String classpath = String.join(java.io.File.pathSeparator, List.of(location(ObjectMapper.class),
-                location(com.fasterxml.jackson.core.JsonParser.class), location(com.fasterxml.jackson.annotation.JsonProperty.class)));
+        String classpath = String.join(File.pathSeparator, List.of(location(ObjectMapper.class),
+                location(JsonParser.class), location(JsonProperty.class)));
         Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", pack.equals("V3.3.9") ? "11" : "17", "-encoding", "UTF-8", "-cp", classpath,
                 "-d", root.toString(), source.toString(), environment.toString(), autowired.toString())
                 .redirectErrorStream(true).redirectOutput(root.resolve("compiler.log").toFile()).start();
         try {
-            assertThat(compiler.waitFor(30, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            assertThat(compiler.waitFor(30, TimeUnit.SECONDS)).isTrue();
             assertThat(compiler.exitValue()).withFailMessage(Files.readString(root.resolve("compiler.log"))).isZero();
         } finally { if (compiler.isAlive()) compiler.destroyForcibly(); }
         try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
@@ -47,7 +54,7 @@ class StringCollectionRuntimeTest {
             Field field = type.getDeclaredField("studioEnvironment"); field.setAccessible(true);
             Map<String, String> values = new HashMap<>();
             values.put("list", StringCollectionValues.json(list)); values.put("map", StringCollectionValues.json(map));
-            field.set(probe, java.lang.reflect.Proxy.newProxyInstance(loader, new Class<?>[]{field.getType()}, (p, method, args) -> {
+            field.set(probe, Proxy.newProxyInstance(loader, new Class<?>[]{field.getType()}, (p, method, args) -> {
                 if (method.getDeclaringClass() == Object.class) {
                     return switch (method.getName()) {
                         case "equals" -> p == args[0];
@@ -80,7 +87,7 @@ class StringCollectionRuntimeTest {
         URL resource = Objects.requireNonNull(type.getResource(type.getSimpleName() + ".class"),
                 "Missing class resource for " + type.getName());
         String url = resource.toExternalForm();
-        if (url.contains("!/")) return Path.of(java.net.URI.create(url.substring(url.indexOf("file:"), url.indexOf("!/")))).toString();
+        if (url.contains("!/")) return Path.of(URI.create(url.substring(url.indexOf("file:"), url.indexOf("!/")))).toString();
         Path location = Path.of(resource.toURI());
         for (String ignored : type.getName().split("\\.")) location = location.getParent();
         return location.toString();

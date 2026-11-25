@@ -1,17 +1,16 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfoRt;
+import java.awt.*;
+import java.util.List;
+import javax.swing.*;
+import org.ikasan.studio.ui.StudioDialogWrapper;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * The popup wrapper for the Properties panel.
@@ -102,7 +101,7 @@ public class PropertiesPopupDialogue extends StudioDialogWrapper {
      */
     @NotNull
     @Override
-    protected java.util.List<ValidationInfo> doValidateAll() {
+    protected List<ValidationInfo> doValidateAll() {
 
         return propertiesPanel.doValidateAll();
     }

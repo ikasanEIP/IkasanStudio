@@ -1,34 +1,36 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.*;
-
-import org.ikasan.studio.core.StudioBuildException;
-import org.ikasan.studio.core.TestFixtures;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.TestFixtures;
+import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import java.util.List;
-import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 public class FlowsUserImplementedComponentTemplateTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void inputNamesDistinguishPayloadsFromFullEvents(String pack) throws Exception {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
-        for (FlowElement component : java.util.List.of(TestFixtures.getCustomConverter(pack),
+        for (FlowElement component : List.of(TestFixtures.getCustomConverter(pack),
                 TestFixtures.getEmailConverter(pack), TestFixtures.getBroker(pack),
                 TestFixtures.getCustomSplitter(pack))) {
-            for (String inputType : java.util.List.of("java.lang.String",
+            for (String inputType : List.of("java.lang.String",
                     "org.ikasan.spec.flow.FlowEvent",
                     "org.ikasan.spec.flow.FlowEvent<java.lang.String, java.lang.String>")) {
                 component.setPropertyValue("fromType", inputType);
@@ -48,10 +50,10 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     }
 
     @ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void customComponentsIncludeLoggingExamples(String version) throws Exception {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
-        for (FlowElement component : java.util.List.of(TestFixtures.getGenericConsumer(version),
+        for (FlowElement component : List.of(TestFixtures.getGenericConsumer(version),
                 TestFixtures.getGenericProducer(version), TestFixtures.getBroker(version),
                 TestFixtures.getCustomConverter(version), TestFixtures.getEmailConverter(version))) {
             String generated = generateUserImplementedComponentTemplate(version, module, component);
@@ -123,7 +125,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     }
 
     @ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
+    @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     public void testFileTransferToEmailAttachmentRecipe(String metaPackVersion) throws Exception {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement converter = TestFixtures.getCustomConverter(metaPackVersion);
@@ -132,7 +134,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         List<ConversionRecipeMeta> matches = converter.getComponentMeta().getConversionRecipes().stream()
                 .filter(recipe -> recipe.matches(converter.getPropertyValueAsString("fromType"),
                         converter.getPropertyValueAsString("toType"))).toList();
-        org.junit.jupiter.api.Assertions.assertEquals(2, matches.size());
+        Assertions.assertEquals(2, matches.size());
         converter.setPropertyValue("conversionRecipeId", matches.stream().filter(r -> r.getId().equals("file-transfer-payload-to-email-attachment")).findFirst().orElseThrow().getId());
         String generated = generateUserImplementedComponentTemplate(metaPackVersion, module, converter);
         assertTrue(generated.contains("implements Converter<org.ikasan.filetransfer.Payload, org.ikasan.component.endpoint.email.producer.EmailPayload>"));
@@ -146,7 +148,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         assertFalse(generated.toLowerCase().contains("please see the attached file"));
         assertTrue(generated.contains("payload.getAttribute(\"fileName\")"));
         assertTrue(generated.contains("throw new TransformationException"));
-        org.junit.jupiter.api.Assertions.assertFalse(generated.contains("payload.toString()"));
+        Assertions.assertFalse(generated.contains("payload.toString()"));
     }
 
     //  ------------------------------- CONVERTER ----------------------------------
@@ -173,9 +175,9 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         String jmsMessageType = PackExpectations.enterpriseNamespace(metaPackVersion) + ".jms.Message";
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE, jmsMessageType);
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.TO_TYPE, "org.ikasan.filetransfer.Payload");
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.CONVERSION_RECIPE_ID,
+        flowElement.setPropertyValue(ComponentPropertyMeta.FROM_TYPE, jmsMessageType);
+        flowElement.setPropertyValue(ComponentPropertyMeta.TO_TYPE, "org.ikasan.filetransfer.Payload");
+        flowElement.setPropertyValue(ComponentPropertyMeta.CONVERSION_RECIPE_ID,
                 "jms-message-to-file-transfer-payload");
 
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
@@ -190,9 +192,9 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     public void testAutoConvertedJmsContentRecipeSelectsPayloadWrapperTemplate(String metaPackVersion) throws Exception {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE, "java.lang.Object (auto-converted)");
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.TO_TYPE, "org.ikasan.filetransfer.Payload");
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.CONVERSION_RECIPE_ID,
+        flowElement.setPropertyValue(ComponentPropertyMeta.FROM_TYPE, "java.lang.Object (auto-converted)");
+        flowElement.setPropertyValue(ComponentPropertyMeta.TO_TYPE, "org.ikasan.filetransfer.Payload");
+        flowElement.setPropertyValue(ComponentPropertyMeta.CONVERSION_RECIPE_ID,
                 "auto-converted-jms-content-to-file-transfer-payload");
 
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
@@ -215,10 +217,10 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         String jmsPackage = PackExpectations.enterpriseNamespace(metaPackVersion) + ".jms";
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE, jmsMessageType);
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.TO_TYPE,
+        flowElement.setPropertyValue(ComponentPropertyMeta.FROM_TYPE, jmsMessageType);
+        flowElement.setPropertyValue(ComponentPropertyMeta.TO_TYPE,
                 "org.ikasan.component.endpoint.email.producer.EmailPayload");
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.CONVERSION_RECIPE_ID,
+        flowElement.setPropertyValue(ComponentPropertyMeta.CONVERSION_RECIPE_ID,
                 "jms-message-to-email-payload");
 
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
@@ -234,11 +236,11 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     public void testAutoConvertedJmsContentToEmailRecipeUsesEmailTemplate(String metaPackVersion) throws Exception {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getCustomConverter(metaPackVersion);
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE,
+        flowElement.setPropertyValue(ComponentPropertyMeta.FROM_TYPE,
                 "java.lang.Object (auto-converted)");
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.TO_TYPE,
+        flowElement.setPropertyValue(ComponentPropertyMeta.TO_TYPE,
                 "org.ikasan.component.endpoint.email.producer.EmailPayload");
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.CONVERSION_RECIPE_ID,
+        flowElement.setPropertyValue(ComponentPropertyMeta.CONVERSION_RECIPE_ID,
                 "auto-converted-jms-content-to-email-payload");
 
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
@@ -273,7 +275,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     public void testCreateFlowWith_emailConverterComponent_stripsAnAutoConvertedAnnotationFromFromType(String metaPackVersion) throws StudioBuildException, StudioGeneratorException {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(metaPackVersion, new ArrayList<>());
         FlowElement flowElement = TestFixtures.getEmailConverter(metaPackVersion);
-        flowElement.setPropertyValue(org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.FROM_TYPE, "java.lang.Object (auto-converted)");
+        flowElement.setPropertyValue(ComponentPropertyMeta.FROM_TYPE, "java.lang.Object (auto-converted)");
         String templateString = generateUserImplementedComponentTemplate(metaPackVersion, module, flowElement);
         assertNotNull(templateString);
         assertTrue(templateString.contains("Converter<java.lang.Object, EmailPayload>"));

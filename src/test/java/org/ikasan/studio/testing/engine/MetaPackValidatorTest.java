@@ -1,26 +1,32 @@
 package org.ikasan.studio.testing.engine;
 
-import org.ikasan.studio.core.metapack.validation.MetaPackValidator;
-
-import org.apache.maven.model.Dependency;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.metapack.model.MetaPackManifest;
-import org.junit.jupiter.api.Test;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.time.Duration;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import org.apache.maven.model.Dependency;
+import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.metapack.model.ComponentTypeMeta;
 import org.ikasan.studio.core.metapack.model.ExceptionActionMeta;
 import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest.MavenPlugin;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
+import org.ikasan.studio.core.metapack.validation.MetaPackValidator;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
-@org.junit.jupiter.api.Tag("engine")
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+
+@Tag("engine")
 class MetaPackValidatorTest {
     private static MetaPackManifest withPlugins(int api, List<MetaPackManifest.MavenPlugin> plugins) {
         MetaPackManifest base = manifest();
@@ -37,16 +43,16 @@ class MetaPackValidatorTest {
                 .hasMessageContaining("duplicate Maven plugin");
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"LATEST", "[3,4)", "${team.version}", "3.+", ""})
+    @ParameterizedTest
+    @ValueSource(strings = {"LATEST", "[3,4)", "${team.version}", "3.+", ""})
     void rejectsUnresolvedOrDynamicPluginDefaults(String version) {
         MavenPlugin plugin = new MetaPackManifest.MavenPlugin("org.apache.maven.plugins", "maven-compiler-plugin", version);
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", withPlugins(5, List.of(plugin)), validComponents()))
-                .isInstanceOf(org.ikasan.studio.core.StudioBuildException.class);
+                .isInstanceOf(StudioBuildException.class);
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {
+    @ParameterizedTest
+    @ValueSource(strings = {
             "int", "byte[]", "org.example.Outer$Inner", "org.example.Outer$1", "$", "$$$",
             "org.example.$Factory_1", "java.util.List<java.lang.String>",
             "java.util.Map<String, java.util.List<Integer>>", "java.lang.String[] (auto-converted)"
@@ -58,8 +64,8 @@ class MetaPackValidatorTest {
         MetaPackValidator.validate("SyntheticValidator", manifest(), components);
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {
+    @ParameterizedTest
+    @ValueSource(strings = {
             ".Type", "org..Type", "org.Type.", "1Type", "Type!", "List<String", "Type[][]"
     })
     void rejectsMalformedJavaTypes(String type) {
@@ -82,7 +88,7 @@ class MetaPackValidatorTest {
         component.setImplementingClass(type);
         component.setProducedOutputType(type);
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), components))
-                .isInstanceOf(org.ikasan.studio.core.StudioBuildException.class)
+                .isInstanceOf(StudioBuildException.class)
                 .hasMessageContaining("invalid qualified Java name")
                 .hasMessageContaining("invalid Java type declaration");
     }
@@ -124,42 +130,42 @@ class MetaPackValidatorTest {
 
     @Test
     void preservesLegacySchemaOneWithoutInventingARevision() throws Exception {
-        MetaPackManifest legacy = new com.fasterxml.jackson.databind.ObjectMapper().readValue("""
+        MetaPackManifest legacy = new ObjectMapper().readValue("""
                 {"schemaVersion":1,"id":"SyntheticValidator","ikasanVersion":"9.8.7",
                  "javaVersion":"17","dependencyManagement":[
                  {"groupId":"org.ikasan","artifactId":"ikasan-eip-standalone-bom","version":"9.8.7"}]}
                 """, MetaPackManifest.class);
-        org.junit.jupiter.api.Assertions.assertNull(legacy.packVersion());
+        Assertions.assertNull(legacy.packVersion());
         MetaPackValidator.validate("SyntheticValidator", legacy, validComponents());
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"1.0.0", "2.7.1-SNAPSHOT"})
+    @ParameterizedTest
+    @ValueSource(strings = {"1.0.0", "2.7.1-SNAPSHOT"})
     void packRevisionIsIndependentOfRuntimeVersion(String revision) throws Exception {
         MetaPackValidator.validate("SyntheticValidator", revisionManifest(revision, 1), validComponents());
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.NullAndEmptySource
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"latest", "1.+", "[1,2)", "1.0"})
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"latest", "1.+", "[1,2)", "1.0"})
     void rejectsMissingOrDynamicPackRevisions(String revision) {
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", revisionManifest(revision, 1), Map.of()))
                 .hasMessageContaining("packVersion");
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.NullSource
-    @org.junit.jupiter.params.provider.ValueSource(ints = {0, 6})
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(ints = {0, 6})
     void rejectsMissingOrIncompatibleGeneratorApi(Integer api) {
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", revisionManifest("1.0.0", api), Map.of()))
                 .hasMessageContaining("generatorApiVersion");
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"(?=a)a", "(a)\\1", "a++", "["})
+    @ParameterizedTest
+    @ValueSource(strings = {"(?=a)a", "(a)\\1", "a++", "["})
     void rejectsUnsupportedExternalPackExpressionsWithPropertyContext(String expression) {
         Map<String,ComponentMeta> components = validComponents();
-        ComponentPropertyMeta property = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
+        ComponentPropertyMeta property = ComponentPropertyMeta.builder()
                 .propertyName("customerRule").validation(expression).build();
         components.values().iterator().next().setAllowableProperties(Map.of("customerRule", property));
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), components))
@@ -171,7 +177,7 @@ class MetaPackValidatorTest {
     @Test
     void semanticValidationRequiresApiTwoAndUnknownRulesAreRejected() throws Exception {
         Map<String,ComponentMeta> components = validComponents();
-        ComponentPropertyMeta property = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
+        ComponentPropertyMeta property = ComponentPropertyMeta.builder()
                 .propertyName("packageName").validationKind("JAVA_PACKAGE").build();
         components.values().iterator().next().setAllowableProperties(Map.of("packageName", property));
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", revisionManifest("1.0.0", 1), components))
@@ -186,15 +192,15 @@ class MetaPackValidatorTest {
     void checksCategoryAndExceptionActionExpressionsBeforeEditorUse() {
         Map<String,ComponentMeta> components = validComponents();
         ComponentMeta component = components.values().iterator().next();
-        ComponentPropertyMeta property = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
+        ComponentPropertyMeta property = ComponentPropertyMeta.builder()
                 .propertyName("nestedRule").validation("(?=a)a").build();
         component.getComponentTypeMeta().setAllowableProperties(Map.of("nestedRule", property));
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), components))
                 .hasMessageContaining("category.allowableProperties.nestedRule.validation");
         component.getComponentTypeMeta().setAllowableProperties(Map.of());
-        ExceptionActionMeta action = org.ikasan.studio.core.metapack.model.ExceptionActionMeta.builder()
+        ExceptionActionMeta action = ExceptionActionMeta.builder()
                 .actionName("retry").actionProperties(Map.of("nestedRule", property)).build();
-        ExceptionResolverMeta resolver = org.ikasan.studio.core.metapack.model.ExceptionResolverMeta.builder()
+        ExceptionResolverMeta resolver = ExceptionResolverMeta.builder()
                 .name(component.getName()).componentType("End Point").implementingClass("")
                 .componentTypeMeta(component.getComponentTypeMeta()).allowableProperties(Map.of())
                 .actionList(List.of(action)).build();
@@ -214,7 +220,7 @@ class MetaPackValidatorTest {
     }
 
     private static Map<String, ComponentMeta> validComponents() {
-        ComponentTypeMeta category = org.ikasan.studio.core.metapack.model.ComponentTypeMeta.builder().componentShortType("End Point").build();
+        ComponentTypeMeta category = ComponentTypeMeta.builder().componentShortType("End Point").build();
         category.setComponentShortType("End Point");
         ComponentMeta component = new ComponentMeta();
         component.setName("Synthetic endpoint");

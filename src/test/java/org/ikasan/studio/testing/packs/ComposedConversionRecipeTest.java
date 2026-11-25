@@ -1,20 +1,21 @@
 package org.ikasan.studio.testing.packs;
 
-import org.ikasan.studio.core.generator.*;
-
+import java.nio.file.*;
+import java.util.*;
+import java.util.List;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.conversion.ConversionRecipeMatcher;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import java.util.*;
-import java.nio.file.*;
-import static org.junit.jupiter.api.Assertions.*;
-import java.util.List;
+import org.ikasan.studio.core.generator.*;
 import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-@org.junit.jupiter.api.Tag("packs")
+import static org.junit.jupiter.api.Assertions.*;
+
+@Tag("packs")
 class ComposedConversionRecipeTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void everyRecipeRendersAndRetainsItsIdentity(String version) throws Exception {

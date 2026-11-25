@@ -1,27 +1,34 @@
 package org.ikasan.studio.intellij.configuration;
 
+import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.*;
-import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.intellij.execution.HarnessOverrideService;
-import org.ikasan.studio.ui.StudioBundle;
-import java.awt.*;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import javax.swing.*;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
+import java.awt.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import javax.swing.*;
 import org.ikasan.studio.core.model.analysis.HarnessOverrides.Target;
+import org.ikasan.studio.intellij.execution.HarnessOverrideService;
+import org.ikasan.studio.intellij.execution.IkasanRunConfigurationService;
+import org.ikasan.studio.intellij.project.ImportDialogWrapper;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.UiContext;
 
 /** Enable harness-owned settings without editing endpoint values or the model. */
-public final class HarnessOverridesDialog extends org.ikasan.studio.intellij.project.ImportDialogWrapper {
+public final class HarnessOverridesDialog extends ImportDialogWrapper {
     private final Project project;
-    private final com.intellij.execution.application.ApplicationConfiguration configuration;
+    private final ApplicationConfiguration configuration;
     private final Map<String, JBCheckBox> choices = new LinkedHashMap<>();
     HarnessOverridesDialog(Project project) {
-        super(project, project.getService(org.ikasan.studio.ui.UiContext.class).getDesignerCanvas());
+        super(project, project.getService(UiContext.class).getDesignerCanvas());
         this.project = project;
         configuration = project.getService(HarnessOverrideService.class).selectedConfiguration();
         setTitle(StudioBundle.message("harnessOverrides.title"));
@@ -31,8 +38,8 @@ public final class HarnessOverridesDialog extends org.ikasan.studio.intellij.pro
     }
     public static void show(Project project) {
         if (project.getService(HarnessOverrideService.class).selectedConfiguration() == null) {
-            project.getService(org.ikasan.studio.intellij.execution.IkasanRunConfigurationService.class)
-                    .prepareEnvironments(java.util.List.of(""), ready -> {
+            project.getService(IkasanRunConfigurationService.class)
+                    .prepareEnvironments(List.of(""), ready -> {
                         if (!project.isDisposed()) new HarnessOverridesDialog(project).show();
                     });
         } else new HarnessOverridesDialog(project).show();
@@ -46,7 +53,7 @@ public final class HarnessOverridesDialog extends org.ikasan.studio.intellij.pro
         // A wrapped text area with no laid-out width can request one line per character at pack time.
         // Give the HTML label a wrapping width so its preferred height reflects the actual explanation.
         JBLabel help = new JBLabel("<html><body style='width: " + width + "px'>"
-                + com.intellij.openapi.util.text.StringUtil.escapeXmlEntities(explanation) + "</body></html>");
+                + StringUtil.escapeXmlEntities(explanation) + "</body></html>");
         panel.add(help, BorderLayout.NORTH);
         JPanel rows = new JPanel();
         rows.setLayout(new BoxLayout(rows, BoxLayout.Y_AXIS));
@@ -70,7 +77,7 @@ public final class HarnessOverridesDialog extends org.ikasan.studio.intellij.pro
     @Override protected void doOKAction() {
         if (configuration == null) return;
         Set<String> selected = choices.entrySet().stream().filter(e -> e.getValue().isSelected()).map(Map.Entry::getKey)
-                .collect(java.util.stream.Collectors.toSet());
+                .collect(Collectors.toSet());
         project.getService(HarnessOverrideService.class).saveSelection(configuration, selected);
         super.doOKAction();
     }

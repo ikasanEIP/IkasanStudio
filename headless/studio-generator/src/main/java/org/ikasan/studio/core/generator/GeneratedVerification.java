@@ -1,19 +1,20 @@
 package org.ikasan.studio.core.generator;
 
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.Optional;
+import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Explicitly generated, frozen verification; ordinary application generation never calls this renderer. */
 public final class GeneratedVerification {
@@ -70,7 +71,7 @@ public final class GeneratedVerification {
             if (application.getDependencies().stream().noneMatch(d -> d.getGroupId().equals(dependency.getGroupId())
                     && d.getArtifactId().equals(dependency.getArtifactId()))) application.addDependency(dependency);
         }
-        if (application.getBuild() == null) application.setBuild(new org.apache.maven.model.Build());
+        if (application.getBuild() == null) application.setBuild(new Build());
         for (Plugin plugin : testConfiguration.getBuild().getPlugins()) {
             Optional<Plugin> existing = application.getBuild().getPlugins().stream().filter(p -> p.getKey().equals(plugin.getKey())).findFirst();
             if (existing.isEmpty()) application.getBuild().addPlugin(plugin);

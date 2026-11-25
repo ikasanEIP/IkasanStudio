@@ -1,19 +1,23 @@
 package org.ikasan.studio.intellij.migration;
 
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.Project;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.jetbrains.annotations.NotNull;
-import java.io.IOException;
-import java.nio.file.Path;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.project.Project;
-import java.io.InputStream;
 
 /** Exports the saved project's required pack when configured; generic exports remain available. */
 public final class ExportOfflineToolsAction extends DumbAwareAction {
@@ -35,10 +39,10 @@ public final class ExportOfflineToolsAction extends DumbAwareAction {
                 @Override public void run(@NotNull ProgressIndicator indicator) {
                     try (InputStream input=ExportOfflineToolsAction.class.getResourceAsStream(OfflineToolsExporter.RESOURCE)) {
                         if (input==null) throw new IOException("Bundled offline tools archive is missing");
-                        Path model = com.intellij.openapi.application.ReadAction.nonBlocking(() ->
-                                org.ikasan.studio.intellij.project.StudioProjectFiles.getModelJsonPath(project))
-                                .expireWith(project).executeSynchronously();
-                        String savedModel = model != null && java.nio.file.Files.isRegularFile(model) ? java.nio.file.Files.readString(model) : null;
+                        Path model = ReadAction.nonBlocking(() ->
+                                StudioProjectFiles.getModelJsonPath(project))
+                                .expireWith(project.getService(StudioProjectInitialisationService.class)).executeSynchronously();
+                        String savedModel = model != null && Files.isRegularFile(model) ? Files.readString(model) : null;
                         exported=OfflineToolsExporter.export(input, parent, savedModel, indicator::checkCanceled);
                     } catch (IOException failure) { throw new IllegalStateException(failure.getMessage(), failure); }
                 }

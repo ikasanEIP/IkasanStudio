@@ -1,12 +1,19 @@
 package org.ikasan.studio.core.generator;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.TreeSet;
+import org.ikasan.studio.core.configuration.EnvironmentProperties;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides.Target;
 import org.ikasan.studio.core.model.analysis.HarnessOverrides;
 import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import java.util.ArrayList;
-import java.util.Properties;
-import org.ikasan.studio.core.model.analysis.HarnessOverrides.Target;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Harness-owned settings use a private namespace; loading the file alone enables nothing. */
 public final class HarnessOverridesTemplate {
@@ -31,10 +38,10 @@ public final class HarnessOverridesTemplate {
             text.append(prefix).append(".kind=").append(target.kind()).append("\n");
             text.append(prefix).append(".factory=org/ikasan/studio/boot/flow/").append(flow.getJavaPackageName())
                     .append("/ComponentFactory").append(flow.getJavaClassName()).append(".java\n");
-            text.append(prefix).append(".label=").append(java.util.Base64.getEncoder().encodeToString(
-                    target.label().getBytes(java.nio.charset.StandardCharsets.UTF_8))).append("\n");
+            text.append(prefix).append(".label=").append(Base64.getEncoder().encodeToString(
+                    target.label().getBytes(StandardCharsets.UTF_8))).append("\n");
             if ("JMS".equals(target.kind())) {
-                String value = java.util.Objects.requireNonNull(
+                String value = Objects.requireNonNull(
                         TestJmsHarnessLinks.destinationOverride(module, target.element()),
                         "JMS harness target has no destination: " + target.id());
                 text.append("studio.harness.").append(target.id()).append(".destination=")
@@ -47,25 +54,25 @@ public final class HarnessOverridesTemplate {
     public record LaunchTarget(String id, String kind, String factory, String label) { }
 
     /** Launch inventory avoids depending on an open Studio editor or a loaded live model. */
-    public static java.util.List<LaunchTarget> launchTargets(String text) throws java.io.IOException {
-        Properties properties = org.ikasan.studio.core.configuration.EnvironmentProperties.parse(text);
-        ArrayList<org.ikasan.studio.core.generator.HarnessOverridesTemplate.LaunchTarget> targets = new java.util.ArrayList<>();
+    public static List<LaunchTarget> launchTargets(String text) throws IOException {
+        Properties properties = EnvironmentProperties.parse(text);
+        ArrayList<LaunchTarget> targets = new ArrayList<>();
         String prefix = "studio.harness.target.";
-        for (String key : new java.util.TreeSet<>(properties.stringPropertyNames())) {
+        for (String key : new TreeSet<>(properties.stringPropertyNames())) {
             if (!key.startsWith(prefix) || !key.endsWith(".kind")) continue;
             String id = key.substring(prefix.length(), key.length() - ".kind".length());
             String factory = properties.getProperty(prefix + id + ".factory");
             String label = properties.getProperty(prefix + id + ".label");
             if (factory == null || label == null || !validFactoryPath(factory))
-                throw new java.io.IOException("Invalid generated harness inventory; regenerate code.");
+                throw new IOException("Invalid generated harness inventory; regenerate code.");
             try {
                 targets.add(new LaunchTarget(id, properties.getProperty(key), factory,
-                        new String(java.util.Base64.getDecoder().decode(label), java.nio.charset.StandardCharsets.UTF_8)));
+                        new String(Base64.getDecoder().decode(label), StandardCharsets.UTF_8)));
             } catch (IllegalArgumentException failure) {
-                throw new java.io.IOException("Invalid generated harness inventory; regenerate code.", failure);
+                throw new IOException("Invalid generated harness inventory; regenerate code.", failure);
             }
         }
-        return java.util.List.copyOf(targets);
+        return List.copyOf(targets);
     }
 
     private static boolean validFactoryPath(String factory) {

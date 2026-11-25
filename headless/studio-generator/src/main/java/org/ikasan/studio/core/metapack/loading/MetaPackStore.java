@@ -3,21 +3,22 @@ package org.ikasan.studio.core.metapack.loading;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.nio.file.*;
-import java.security.MessageDigest;
-import java.util.*;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.*;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Stream;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 
 /** Restart-bound external-pack changes. Active JARs are never changed by a management operation. */
 public final class MetaPackStore {
@@ -41,7 +42,7 @@ public final class MetaPackStore {
             try (FileLock lock = channel.tryLock()) {
                 if (lock == null) throw new IOException("Another IDE is managing this meta-pack directory; try again later");
                 return operation.run();
-            } catch (java.nio.channels.OverlappingFileLockException e) {
+            } catch (OverlappingFileLockException e) {
                 throw new IOException("Another task is managing this meta-pack directory; try again later", e);
             }
         }
@@ -63,7 +64,7 @@ public final class MetaPackStore {
     public static List<Entry> list(Path directory) throws IOException {
         MetaPackResources.initialize();
         if (!Files.exists(directory)) return List.of();
-        ArrayList<org.ikasan.studio.core.metapack.loading.MetaPackStore.Entry> result = new ArrayList<>();
+        ArrayList<Entry> result = new ArrayList<>();
         try (Stream<Path> files = Files.list(directory)) {
             for (Path file : files.filter(p -> p.getFileName().toString().endsWith(".jar")).sorted().toList()) {
                 try {
@@ -193,7 +194,7 @@ public final class MetaPackStore {
 
     /** Called once before session discovery. Failure leaves the plan and original/backup available for recovery. */
     static Map<String, String> activatePending(Path directory) {
-        LinkedHashMap<String,String> problems = new LinkedHashMap<String, String>();
+        LinkedHashMap<String,String> problems = new LinkedHashMap<>();
         if (!Files.exists(pending(directory))) return problems;
         try {
             locked(directory, () -> {

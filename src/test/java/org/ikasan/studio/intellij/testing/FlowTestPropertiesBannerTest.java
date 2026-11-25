@@ -2,13 +2,15 @@ package org.ikasan.studio.intellij.testing;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import org.ikasan.studio.core.generator.FlowTestScaffold;
+import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import static org.mockito.Mockito.*;
+import java.util.Comparator;
 import java.util.stream.Stream;
+import org.ikasan.studio.core.generator.FlowTestScaffold;
+
+import static org.mockito.Mockito.*;
 
 public class FlowTestPropertiesBannerTest extends BasePlatformTestCase {
     public void testOpenRepairReopenAndDispose() throws Exception {
@@ -35,7 +37,7 @@ public class FlowTestPropertiesBannerTest extends BasePlatformTestCase {
             Disposer.dispose(reopened);
             reopened.requestCheck(); // Disposed editors cannot queue work.
             try (Stream<Path> paths = Files.walk(root)) {
-                for (Path path : paths.sorted(java.util.Comparator.reverseOrder()).toList()) Files.delete(path);
+                for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) Files.delete(path);
             }
         }
     }

@@ -1,19 +1,20 @@
 package org.ikasan.studio.testing.packs;
 
+import java.util.List;
+import java.util.Map;
 import org.ikasan.studio.SharedResourceExtension;
 import org.ikasan.studio.core.generator.IndependentH2Template;
 import org.ikasan.studio.core.generator.ProjectArtifactRenderer;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
-import java.util.Map;
 
 @ExtendWith(SharedResourceExtension.class)
-@org.junit.jupiter.api.Tag("packs")
+@Tag("packs")
 class IndependentH2GenerationTest {
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")

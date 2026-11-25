@@ -4,31 +4,30 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Map;
+import java.util.Properties;
 import org.ikasan.studio.core.StudioBuildUtils;
 import org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate;
 import org.ikasan.studio.core.generator.ModelTemplate;
 import org.ikasan.studio.core.generator.PropertiesTemplate;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
 import org.ikasan.studio.core.importer.IkasanRuntimeImport;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.validation.MetaPackValidator;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.StringReader;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
 import static org.assertj.core.api.Assertions.*;
-import java.util.ArrayList;
-import java.util.Map.Entry;
-import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
-import org.ikasan.studio.core.metapack.model.ComponentMeta;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 class RuntimeConfigurationMappingsTest {
     private static final ObjectMapper JSON = new ObjectMapper();
@@ -92,7 +91,7 @@ class RuntimeConfigurationMappingsTest {
             JsonNode document = JSON.readTree(saved);
             for (JsonNode record : document.path("configuration")) {
                 JsonNode parameters = record.path("parameters");
-                ArrayList<String> names = new java.util.ArrayList<>();
+                ArrayList<String> names = new ArrayList<>();
                 parameters.forEach(p -> names.add(p.path("name").asText()));
                 if (record.path("configurationId").asText().equals("Email Producer-config")) {
                     assertThat(names).containsAll(EMAIL.keySet()).doesNotContain("mailhost", "mailPassword", "mailRuntimeEnvironment", "mailSubject", "from", "transportProtocol");
@@ -133,7 +132,7 @@ class RuntimeConfigurationMappingsTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void wrongClassWrongTypeAndUnknownSpellingAreNotGuessed(String pack) throws Exception {
-        org.ikasan.studio.testing.packs.RuntimeConfigurationMappingsTest.Fixture fixture = fixture(pack);
+        Fixture fixture = fixture(pack);
         ObjectNode email = (ObjectNode) fixture.configuration().get(2);
         ArrayNode parameters = (ArrayNode) email.path("parameters");
         parameters.addObject().put("name", "mailSmtHost").put("value", "never-guess.example");

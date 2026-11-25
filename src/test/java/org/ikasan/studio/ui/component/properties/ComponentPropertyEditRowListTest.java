@@ -1,10 +1,12 @@
 package org.ikasan.studio.ui.component.properties;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.regex.Pattern;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.junit.jupiter.api.Test;
-import java.util.HashMap;
-import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ComponentPropertyEditRowListTest {
@@ -59,8 +61,8 @@ class ComponentPropertyEditRowListTest {
             assertFalse(row.propertyValueHasChanged());
             String saved = row.updateValueObjectWithEnteredValues().getValueString();
             assertEquals(pattern, saved);
-            assertTrue(java.util.regex.Pattern.compile(saved).matcher("invoice.txt").matches());
-            assertFalse(java.util.regex.Pattern.compile(saved).matcher("123.txt").matches());
+            assertTrue(Pattern.compile(saved).matcher("invoice.txt").matches());
+            assertFalse(Pattern.compile(saved).matcher("123.txt").matches());
         }
     }
 

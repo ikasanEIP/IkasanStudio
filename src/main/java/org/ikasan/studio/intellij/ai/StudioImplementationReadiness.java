@@ -1,33 +1,42 @@
 package org.ikasan.studio.intellij.ai;
 
-import org.ikasan.studio.ui.StudioDialogWrapper;
-
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
-import com.intellij.util.ui.JBUI;
-import java.awt.Dimension;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
-import org.ikasan.studio.core.ai.ImplementationReadiness;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-import org.ikasan.studio.intellij.navigation.StudioNavigator;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.UiContext;
-import org.ikasan.studio.intellij.editor.IkasanStudioEditorService;
-import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import com.intellij.util.ui.JBUI;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.nio.file.*;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Objects;
+import javax.swing.*;
 import javax.swing.JFrame;
+import javax.swing.table.DefaultTableModel;
 import org.ikasan.studio.core.ai.ImplementationReadiness.Finding;
 import org.ikasan.studio.core.ai.ImplementationReadiness.Report;
+import org.ikasan.studio.core.ai.ImplementationReadiness;
+import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.ikasan.studio.intellij.editor.IkasanStudioEditorService;
+import org.ikasan.studio.intellij.navigation.StudioNavigator;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioDialogWrapper;
+import org.ikasan.studio.ui.UiContext;
+import org.jetbrains.annotations.NotNull;
 
 /** Saves editor documents through the platform before scanning on a worker. Never rewrites user code. */
 public final class StudioImplementationReadiness {
@@ -44,9 +53,9 @@ public final class StudioImplementationReadiness {
                     saveProjectDocuments(FileDocumentManager.getInstance(), Path.of(base));
                     scan(project, base, true);
                 } catch (Exception failure) {
-                    com.intellij.openapi.diagnostic.Logger.getInstance(StudioImplementationReadiness.class)
+                    Logger.getInstance(StudioImplementationReadiness.class)
                             .warn("Could not save documents before module validation", failure);
-                    com.intellij.openapi.ui.Messages.showWarningDialog(project,
+                    Messages.showWarningDialog(project,
                             StudioBundle.message("readiness.saveFailed"), StudioBundle.message("readiness.title"));
                 }
             };
@@ -82,24 +91,24 @@ public final class StudioImplementationReadiness {
                     if (!project.isDisposed()) new Results(project, root, report).show();
                 });
             } catch (Exception failure) {
-                com.intellij.openapi.diagnostic.Logger.getInstance(StudioImplementationReadiness.class).warn("Implementation readiness check failed", failure);
+                Logger.getInstance(StudioImplementationReadiness.class).warn("Implementation readiness check failed", failure);
                 if (show) ApplicationManager.getApplication().invokeLater(() -> {
-                    if (!project.isDisposed()) com.intellij.openapi.ui.Messages.showWarningDialog(project,
+                    if (!project.isDisposed()) Messages.showWarningDialog(project,
                             StudioBundle.message("readiness.failed"), StudioBundle.message("readiness.title"));
                 });
             }
         });
     }
-    static BasicElement resolveTarget(org.ikasan.studio.core.model.ikasan.instance.Module module,
+    static BasicElement resolveTarget(Module module,
                                       ImplementationReadiness.Finding finding) {
         if (module == null || finding.target() == null) return null;
         if (finding.target() == ImplementationReadiness.Target.MODULE) return module;
         for (Flow flow : module.getFlows()) {
-            if (!java.util.Objects.equals(flow.getIdentity(), finding.flow())) continue;
+            if (!Objects.equals(flow.getIdentity(), finding.flow())) continue;
             if (finding.target() == ImplementationReadiness.Target.FLOW) return flow;
             if (finding.target() == ImplementationReadiness.Target.EXCEPTION_RESOLVER) return flow.getExceptionResolver();
             for (FlowElement element : flow.ftlGetConsumerAndFlowElements())
-                if (java.util.Objects.equals(element.getIdentity(), finding.component())) return element;
+                if (Objects.equals(element.getIdentity(), finding.component())) return element;
         }
         return null;
     }
@@ -117,7 +126,7 @@ public final class StudioImplementationReadiness {
         Results(Project project, Path root, ImplementationReadiness.Report report) {
             super(project, false); this.project = project; this.root = root; this.report = report;
             JFrame frame = WindowManager.getInstance().getFrame(project);
-            Dimension available = frame == null ? java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment()
+            Dimension available = frame == null ? GraphicsEnvironment.getLocalGraphicsEnvironment()
                     .getMaximumWindowBounds().getSize() : frame.getSize();
             contentWidth = Math.min(JBUI.scale(900), Math.max(1, available.width - JBUI.scale(100)));
             heightLimit = Math.max(1, available.height / 2);
@@ -128,8 +137,8 @@ public final class StudioImplementationReadiness {
             table = new JBTable(model); table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             table.getSelectionModel().addListSelectionListener(event -> updateSelection());
             table.getEmptyText().setText(StudioBundle.message("readiness.empty"));
-            table.addMouseListener(new java.awt.event.MouseAdapter() {
-                @Override public void mouseClicked(java.awt.event.MouseEvent event) {
+            table.addMouseListener(new MouseAdapter() {
+                @Override public void mouseClicked(MouseEvent event) {
                     if (event.getClickCount() != 2 || !SwingUtilities.isLeftMouseButton(event)) return;
                     int row = table.rowAtPoint(event.getPoint());
                     if (row < 0) return;
@@ -146,7 +155,7 @@ public final class StudioImplementationReadiness {
             setSize(size.width, Math.min(size.height, heightLimit));
         }
         @Override protected JComponent createStudioContent() {
-            JPanel panel = new JPanel(new java.awt.BorderLayout(0, JBUI.scale(8)));
+            JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
             StudioAiConnectionText description = new StudioAiConnectionText(StudioBundle.message("readiness.scope"));
             description.setEditable(false); description.setLineWrap(true); description.setWrapStyleWord(true);
             description.setOpaque(false);
@@ -155,15 +164,15 @@ public final class StudioImplementationReadiness {
             // Fit the actual rows, leaving enough space for the empty-state message.
             int rowsHeight = (int) Math.min((long) Math.max(2, table.getRowCount()) * table.getRowHeight(), heightLimit);
             table.setPreferredScrollableViewportSize(new Dimension(contentWidth, rowsHeight));
-            panel.add(description, java.awt.BorderLayout.NORTH);
+            panel.add(description, BorderLayout.NORTH);
             panel.add(new JBScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED), java.awt.BorderLayout.CENTER);
+                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED), BorderLayout.CENTER);
             details.setEditable(false);
             details.setLineWrap(true);
             details.setWrapStyleWord(true);
             details.setFont(UIManager.getFont("Label.font"));
             details.getAccessibleContext().setAccessibleName(StudioBundle.message("readiness.details"));
-            panel.add(new JBScrollPane(details), java.awt.BorderLayout.SOUTH);
+            panel.add(new JBScrollPane(details), BorderLayout.SOUTH);
             return panel;
         }
         private static boolean isModelFinding(ImplementationReadiness.Finding finding) {
@@ -197,7 +206,7 @@ public final class StudioImplementationReadiness {
                 UiContext context = project.getService(UiContext.class);
                 BasicElement target = resolveTarget(context.getIkasanModule(), finding);
                 if (target == null || context.getDesignerCanvas() == null || context.getDesignerUI() == null) {
-                    com.intellij.openapi.ui.Messages.showInfoMessage(project,
+                    Messages.showInfoMessage(project,
                             StudioBundle.message("readiness.targetUnavailable"), StudioBundle.message("readiness.title"));
                     return;
                 }
@@ -215,14 +224,14 @@ public final class StudioImplementationReadiness {
             ApplicationManager.getApplication().executeOnPooledThread(() -> StudioNavigator.openFileByNioPath(project, file, finding.line()));
         }
 
-        @Override protected Action @org.jetbrains.annotations.NotNull [] createActions() {
+        @Override protected Action @NotNull [] createActions() {
             navigateAction = new AbstractAction(StudioBundle.message("readiness.open")) {
-                @Override public void actionPerformed(java.awt.event.ActionEvent event) {
+                @Override public void actionPerformed(ActionEvent event) {
                     openSelectedSource();
                 }
             };
             return new Action[]{navigateAction, new AbstractAction(StudioBundle.message("readiness.refresh")) {
-                @Override public void actionPerformed(java.awt.event.ActionEvent event) { close(CANCEL_EXIT_CODE); check(project, true); }
+                @Override public void actionPerformed(ActionEvent event) { close(CANCEL_EXIT_CODE); check(project, true); }
             }, getCancelAction()};
         }
     }

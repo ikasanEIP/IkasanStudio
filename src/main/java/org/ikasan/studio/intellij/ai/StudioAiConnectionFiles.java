@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.HexFormat;
 
 /** Stable per-project discovery, with an exclusive owner and atomically rotated session data. */
@@ -36,7 +37,7 @@ final class StudioAiConnectionFiles implements AutoCloseable {
             // This adapter is stored in the local IDE system directory for a local client process.
             // Avoid replacing a JAR held open by an existing client on Windows.
             //noinspection UseOptimizedEelFunctions
-            if (!Files.exists(jar) || !java.util.Arrays.equals(Files.readAllBytes(jar), adapter)) files.write(jar, adapter);
+            if (!Files.exists(jar) || !Arrays.equals(Files.readAllBytes(jar), adapter)) files.write(jar, adapter);
             return files;
         } catch (Exception failure) { files.close(); throw failure; }
     }

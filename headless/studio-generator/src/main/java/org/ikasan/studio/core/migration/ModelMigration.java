@@ -1,30 +1,35 @@
 package org.ikasan.studio.core.migration;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.util.*;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.ikasan.studio.core.StudioBuildException;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
-import org.ikasan.studio.core.persistence.json.StudioJson;
-import org.ikasan.studio.core.persistence.json.IkasanModelDocuments;
-import org.ikasan.studio.core.persistence.json.ComponentImplementationAliases;
-
-import java.util.*;
-import java.util.List;
-import java.util.Map.Entry;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.persistence.json.ComponentImplementationAliases;
+import org.ikasan.studio.core.persistence.json.IkasanModelDocuments;
+import org.ikasan.studio.core.persistence.json.StudioJson;
 
 /** Offline, non-mutating migration analysis. Only explicitly supported version pairs are eligible. */
 public final class ModelMigration {
     private static final ObjectMapper JSON = StudioJson.newObjectMapper()
             .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
-            .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
     public static final List<String> SUPPORTED_VERSIONS = List.of("V3.3.9", "V4.1.6");
     private static final Set<String> TYPE_PROPERTIES = Set.of("fromType", "toType", "type", "objectClass");
     private static final Set<String> STRUCTURAL = Set.of("flows", "consumer", "flowElements", "transitions",
@@ -44,13 +49,13 @@ public final class ModelMigration {
             StringBuilder text = new StringBuilder("Ikasan migration: " + sourceVersion + " → " + targetVersion + "\n\n");
             JsonNode source;
             try { source = IkasanModelDocuments.toLegacy(JSON.readTree(sourceJson)); }
-            catch (java.io.IOException ex) { source = JSON.missingNode(); }
+            catch (IOException ex) { source = JSON.missingNode(); }
             JsonNode reportSource = source;
             findings.stream().filter(Finding::blocking).forEach(f -> text.append("BLOCKED: ")
                     .append(reportLocation(reportSource, f.path())).append(" — ").append(f.message()).append('\n'));
             findings.stream().filter(f -> !f.blocking() && "/version".equals(f.path()))
                     .forEach(f -> text.append(f.message()).append('\n'));
-            List<org.ikasan.studio.core.migration.ModelMigration.Finding> reviews = findings.stream().filter(f -> !f.blocking() && !"/version".equals(f.path())).toList();
+            List<Finding> reviews = findings.stream().filter(f -> !f.blocking() && !"/version".equals(f.path())).toList();
             if (!reviews.isEmpty()) {
                 text.append("\nYou are advised to review the following after the upgrade completes:\n\n");
                 reviews.forEach(f -> text.append("REVIEW: ").append(reportLocation(reportSource, f.path()))
@@ -220,7 +225,7 @@ public final class ModelMigration {
                 String name = component.getPropertyValueAsString("userImplementedClassName");
                 if (name == null || name.isBlank() || name.startsWith("__")) return null;
                 return name.contains(".") ? name
-                        : org.ikasan.studio.core.generator.GeneratorUtils.getUserImplementedClassesPackageName(module, flow) + "." + name;
+                        : GeneratorUtils.getUserImplementedClassesPackageName(module, flow) + "." + name;
             }
         }
         return null;
@@ -243,7 +248,7 @@ public final class ModelMigration {
                         && ComponentPropertyMeta.STRING_LIST.equals(old.getUsageDataType())
                         && ComponentPropertyMeta.STRING_LIST.equals(next.getUsageDataType())) {
                     String original = object.path(name).asText();
-                    String canonical = String.join(",", org.ikasan.studio.core.StudioBuildUtils.stringToList(original));
+                    String canonical = String.join(",", StudioBuildUtils.stringToList(original));
                     if (!original.equals(canonical)) {
                         object.put(name, canonical);
                         findings.add(new Finding(false, path + "/" + name,
@@ -288,8 +293,8 @@ public final class ModelMigration {
         String old = node.path(field).asText();
         String value = old;
         for (Entry<String,String> mapping : rules.typePrefixes().entrySet()) {
-            value = value.replaceAll("(?<![\\w.])" + java.util.regex.Pattern.quote(mapping.getKey()),
-                    java.util.regex.Matcher.quoteReplacement(mapping.getValue()));
+            value = value.replaceAll("(?<![\\w.])" + Pattern.quote(mapping.getKey()),
+                    Matcher.quoteReplacement(mapping.getValue()));
         }
         if (!old.equals(value)) {
             node.put(field, value);

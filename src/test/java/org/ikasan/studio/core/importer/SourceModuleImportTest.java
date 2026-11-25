@@ -1,22 +1,24 @@
 package org.ikasan.studio.core.importer;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-
+import java.io.IOException;
 import java.io.StringReader;
-import java.nio.file.*;
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.nio.file.Path;
+import java.util.*;
+import java.util.Objects;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.ikasan.studio.core.generator.DebugTransitionComponentTemplate;
+import org.ikasan.studio.core.generator.DeepCopyUtilTemplate;
+import org.ikasan.studio.core.generator.ModelTemplate;
 import org.ikasan.studio.core.importer.SourceModuleImport.Analysis;
 import org.ikasan.studio.core.importer.SourceModuleImport.DependencyChoice;
 import org.ikasan.studio.core.importer.SourceModuleImport.DependencyComparison;
@@ -25,6 +27,13 @@ import org.ikasan.studio.core.importer.SourceModuleImport.ManagedFile;
 import org.ikasan.studio.core.importer.SourceModuleImport.ReviewAction;
 import org.ikasan.studio.core.importer.SourceModuleImport.SpringRegistration;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class SourceModuleImportTest {
     @TempDir Path temporary;
@@ -117,9 +126,9 @@ class SourceModuleImportTest {
         Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", "17", "-d", classes.toString(), stub.toString(), target().resolve(helper.destination()).toString())
                 .redirectErrorStream(true).start();
-        String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        String diagnostics = new String(compiler.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         assertThat(compiler.waitFor()).as(diagnostics).isZero();
-        try (URLClassLoader loader = new java.net.URLClassLoader(new java.net.URL[]{classes.toUri().toURL()}, null)) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{classes.toUri().toURL()}, null)) {
             Class<?> loaded = Class.forName(CONTEXT_BINARY, true, loader);
             assertThat(loaded.getMethod("initialFactoryName", String.class).invoke(null, "unused")).isEqualTo(CONTEXT_BINARY);
             assertThat(loaded.getMethod("configure").invoke(null)).isEqualTo(List.of("org.example.cat.domain"));
@@ -192,7 +201,8 @@ class SourceModuleImportTest {
         Set<String> selected = Set.of("src/main/java/org/customer/ConcreteRule.java");
         assertThat(SourceModuleImport.reviewActions(analysis, Set.of(), Set.of()))
                 .anyMatch(a -> a.kind() == SourceModuleImport.ReviewKind.SOURCE && a.subject().endsWith("ConcreteRule.java"));
-        assertThat(SourceModuleImport.previewSpringRegistration(analysis, selected, Map.of()).components())
+        assertThat(Objects.requireNonNull(SourceModuleImport.previewSpringRegistration(analysis, selected, Map.of()))
+                .components())
                 .containsExactly("org.customer.ConcreteRule");
     }
 
@@ -228,7 +238,7 @@ class SourceModuleImportTest {
     @Test void liveReviewContainsOnlyConcreteDecisionsAndUpdatesWithPendingCopies() throws Exception {
         fixture(); Analysis analysis = analyse();
         Set<String> dependencies = analysis.dependencies().stream().filter(SourceModuleImport.DependencyChoice::importable)
-                .map(SourceModuleImport.DependencyChoice::id).collect(java.util.stream.Collectors.toSet());
+                .map(SourceModuleImport.DependencyChoice::id).collect(Collectors.toSet());
         List<ReviewAction> actions = SourceModuleImport.reviewActions(analysis, Set.of(), dependencies);
         assertThat(actions).anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().contains("renamedBean"));
         assertThat(actions).anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.SOURCE && action.subject().endsWith("Bespoke.java"));
@@ -236,7 +246,7 @@ class SourceModuleImportTest {
         assertThat(actions).noneMatch(action -> action.subject().contains("Unrelated.java") || action.subject().contains("ikasan-parent")
                 || action.kind() == SourceModuleImport.ReviewKind.DEPENDENCY || action.subject().contains("Module identity"));
         Set<String> files = analysis.files().stream().filter(SourceModuleImport.FileChoice::recommended)
-                .map(SourceModuleImport.FileChoice::source).collect(java.util.stream.Collectors.toSet());
+                .map(SourceModuleImport.FileChoice::source).collect(Collectors.toSet());
         assertThat(SourceModuleImport.reviewActions(analysis, files, dependencies)).noneMatch(action ->
                 action.kind() == SourceModuleImport.ReviewKind.SOURCE || action.kind() == SourceModuleImport.ReviewKind.RESOURCE);
         files.remove("src/main/java/org/customer/Bespoke.java");
@@ -582,7 +592,7 @@ class SourceModuleImportTest {
         Analysis refreshed = analyse();
         write(target(), "user/src/main/resources", "existing file blocks a resource directory");
         LinkedHashSet<String> selected = new LinkedHashSet<>(); selected.add(bespoke); selected.add("src/main/resources/bespoke.properties");
-        assertThatThrownBy(() -> SourceModuleImport.apply(refreshed, selected, Set.of(), false)).isInstanceOf(java.io.IOException.class);
+        assertThatThrownBy(() -> SourceModuleImport.apply(refreshed, selected, Set.of(), false)).isInstanceOf(IOException.class);
         assertThat(target().resolve("user/src/main/java/org/customer/Bespoke.java")).doesNotExist();
         assertThat(Files.readString(target().resolve("user/src/main/resources"))).isEqualTo("existing file blocks a resource directory");
         assertThat(target().resolve("user/import-reviews")).doesNotExist();
@@ -596,19 +606,19 @@ class SourceModuleImportTest {
 
     private void supportFixture(String pack) throws Exception {
         fixture();
-        Module module = org.ikasan.studio.core.model.ikasan.instance.Module.moduleBuilder().version(pack)
+        Module module = Module.moduleBuilder().version(pack)
                 .name("Support example").applicationPackageName("org.example").port("8080")
                 .h2PortNumber("8092").h2WebPortNumber("8093").flows(List.of()).build();
-        write(target(), MODEL, org.ikasan.studio.core.generator.ModelTemplate.create(module));
+        write(target(), MODEL, ModelTemplate.create(module));
         write(source(), "src/main/resources/application.properties", "module.name=Support example\n");
-        String debug = org.ikasan.studio.core.generator.DebugTransitionComponentTemplate.create(module);
-        String copy = org.ikasan.studio.core.generator.DeepCopyUtilTemplate.create(module);
+        String debug = DebugTransitionComponentTemplate.create(module);
+        String copy = DeepCopyUtilTemplate.create(module);
         write(target(), DEBUG, debug); write(target(), COPY, copy);
         write(source(), DEBUG, debug); write(source(), COPY, copy);
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
+    @ParameterizedTest
+    @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void supportVerificationUsesTheSavedPackAndIgnoresFormattingAndComments(String pack) throws Exception {
         supportFixture(pack);
         String original = "// Original checkout header\n" + Files.readString(source().resolve(DEBUG)).replace("    ", "\t");

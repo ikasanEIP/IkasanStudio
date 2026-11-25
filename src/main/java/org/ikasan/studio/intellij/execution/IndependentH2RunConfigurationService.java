@@ -1,6 +1,8 @@
 package org.ikasan.studio.intellij.execution;
 
 import com.intellij.execution.*;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.execution.application.ApplicationConfigurationType;
 import com.intellij.execution.executors.DefaultRunExecutor;
@@ -18,25 +20,24 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.messages.Topic;
-import org.ikasan.studio.core.generator.IndependentH2Template;
-import org.ikasan.studio.intellij.project.StudioProjectFiles;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
-import org.ikasan.studio.ui.UiContext;
-
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.openapi.vfs.VirtualFile;
-import java.io.OutputStream;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.ikasan.studio.core.generator.IndependentH2Template;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
+import org.jetbrains.annotations.NotNull;
 
 /** Owns the independent development server's actual Java processes, separately from editor/menu lifetimes. */
 @Service(Service.Level.PROJECT)
@@ -60,10 +61,10 @@ public final class IndependentH2RunConfigurationService implements Disposable {
     public IndependentH2RunConfigurationService(Project project) {
         this.project = project;
         project.getMessageBus().connect(this).subscribe(ExecutionManager.EXECUTION_TOPIC, new ExecutionListener() {
-            @Override public void processStartScheduled(String executorId, ExecutionEnvironment environment) {
+            @Override public void processStartScheduled(@NotNull String executorId, @NotNull ExecutionEnvironment environment) {
                 if (isOurs(environment.getRunProfile())) { preparing = true; publish(); }
             }
-            @Override public void processNotStarted(String executorId, ExecutionEnvironment environment) {
+            @Override public void processNotStarted(@NotNull String executorId, @NotNull ExecutionEnvironment environment) {
                 if (isOurs(environment.getRunProfile())) { preparing = false; publish(); }
             }
         });
@@ -140,11 +141,11 @@ public final class IndependentH2RunConfigurationService implements Disposable {
 
     /** Called by the Java run extension before process notifications, including launches from the IDE Run menu. */
     void attach(ProcessHandler handler) {
-        org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationService.OwnedProcess entry = new OwnedProcess();
+        OwnedProcess entry = new OwnedProcess();
         if (processes.putIfAbsent(handler, entry) != null) return;
         preparing = false;
         handler.addProcessListener(new ProcessListener() {
-            @Override public void onTextAvailable(ProcessEvent event, Key outputType) {
+            @Override public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
                 if (!ProcessOutputTypes.STDOUT.equals(outputType) || entry.ready) return;
                 synchronized (entry.output) {
                     entry.output.append(event.getText());
@@ -159,10 +160,10 @@ public final class IndependentH2RunConfigurationService implements Disposable {
                     if (entry.output.length() > 8192) entry.output.delete(0, entry.output.length() - 4096);
                 }
             }
-            @Override public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
+            @Override public void processWillTerminate(@NotNull ProcessEvent event, boolean willBeDestroyed) {
                 entry.stopping = true; publish();
             }
-            @Override public void processTerminated(ProcessEvent event) {
+            @Override public void processTerminated(@NotNull ProcessEvent event) {
                 processes.remove(handler);
                 if (entry.stopTimeout != null) entry.stopTimeout.cancel(false);
                 publish();
@@ -182,7 +183,7 @@ public final class IndependentH2RunConfigurationService implements Disposable {
                     OutputStream input = handler.getProcessInput();
                     if (input == null) handler.destroyProcess();
                     else { input.write("STOP\n".getBytes(StandardCharsets.UTF_8)); input.flush(); }
-                } catch (java.io.IOException failure) { handler.destroyProcess(); }
+                } catch (IOException failure) { handler.destroyProcess(); }
             });
             entry.stopTimeout = AppExecutorUtil.getAppScheduledExecutorService().schedule(() -> ui(() -> {
                 if (handler.isProcessTerminated()) return;
@@ -212,7 +213,7 @@ public final class IndependentH2RunConfigurationService implements Disposable {
                 try {
                     OutputStream input = handler.getProcessInput();
                     if (input != null) { input.write("STOP\n".getBytes(StandardCharsets.UTF_8)); input.flush(); }
-                } catch (java.io.IOException ignored) { }
+                } catch (IOException ignored) { }
                 if (!handler.isProcessTerminated()) handler.destroyProcess();
             });
         });

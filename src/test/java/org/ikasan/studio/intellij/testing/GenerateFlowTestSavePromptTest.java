@@ -1,12 +1,13 @@
 package org.ikasan.studio.intellij.testing;
 
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.ui.TestDialogManager;
-import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import java.nio.charset.StandardCharsets;
 
 public class GenerateFlowTestSavePromptTest extends BasePlatformTestCase {
     public void testCancelListsFileAndPreservesUnsavedChanges() throws Exception {
@@ -24,7 +25,7 @@ public class GenerateFlowTestSavePromptTest extends BasePlatformTestCase {
                     getProject(), file.getParent().getPath(), "Generate tests"));
             assertTrue(manager.isDocumentUnsaved(document));
             assertEquals("edited", document.getText());
-            assertEquals("original", new String(file.contentsToByteArray(), java.nio.charset.StandardCharsets.UTF_8));
+            assertEquals("original", new String(file.contentsToByteArray(), StandardCharsets.UTF_8));
         } finally { TestDialogManager.setTestDialog(previous); }
     }
 
@@ -50,7 +51,7 @@ public class GenerateFlowTestSavePromptTest extends BasePlatformTestCase {
                     getProject(), file.getParent().getPath(), "Generate tests"));
             assertFalse(manager.isDocumentUnsaved(document));
             assertTrue(manager.isDocumentUnsaved(otherDocument));
-            assertEquals("edited", new String(file.contentsToByteArray(), java.nio.charset.StandardCharsets.UTF_8));
+            assertEquals("edited", new String(file.contentsToByteArray(), StandardCharsets.UTF_8));
         } finally { TestDialogManager.setTestDialog(previous); }
     }
 }

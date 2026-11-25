@@ -2,6 +2,9 @@ package org.ikasan.metapack;
 
 import java.nio.file.*;
 import java.util.*;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold;
+import org.ikasan.studio.core.generator.FlowTestScaffold;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.loading.MetaPackInstaller;
 import org.ikasan.studio.core.model.ikasan.instance.*;
@@ -34,15 +37,15 @@ public class ExternalPackProbe {
                     .applicationPackageName("org.example.demo").port("8080").h2PortNumber("8092")
                     .h2WebPortNumber("8093").flows(List.of(flow)).build();
             Path output = Path.of(args[1]);
-            for (java.util.Map.Entry<String, String> artifact : MetaPackTestKit.render(module).entrySet()) {
+            for (Entry<String, String> artifact : MetaPackTestKit.render(module).entrySet()) {
                 Path target = output.resolve(artifact.getKey());
                 Files.createDirectories(target.getParent()); Files.writeString(target, artifact.getValue());
             }
-            org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold scaffold = org.ikasan.studio.core.generator.FlowTestScaffold.render(module, flow,
+            Scaffold scaffold = FlowTestScaffold.render(module, flow,
                     "<project><modelVersion>4.0.0</modelVersion><groupId>org.example</groupId><artifactId>demo</artifactId>"
                     + "<version>1</version><packaging>pom</packaging><properties><version.ikasan>5.1.0</version.ikasan></properties></project>",
                     "<project><modelVersion>4.0.0</modelVersion><groupId>org.example</groupId><artifactId>generated</artifactId><version>1</version></project>");
-            for (java.util.Map.Entry<String, String> artifact : scaffold.files().entrySet()) {
+            for (Entry<String, String> artifact : scaffold.files().entrySet()) {
                 Path target = output.resolve(artifact.getKey());
                 Files.createDirectories(target.getParent()); Files.writeString(target, artifact.getValue());
             }

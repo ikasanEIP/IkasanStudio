@@ -11,16 +11,36 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
-import com.intellij.util.messages.Topic;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.Alarm.ThreadToUse;
+import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import lombok.Getter;
-import org.ikasan.studio.ui.UiContext;
-
+import com.intellij.util.messages.Topic;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import lombok.Getter;
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent.Event;
+import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
+import org.ikasan.studio.core.generator.ProjectArtifactRenderer;
+import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.ModelPackRepair.Plan;
+import org.ikasan.studio.core.metapack.ModelPackRepair;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.metapack.MetaPackNotifications;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.ui.UiContext;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
 /**
  * Project-scoped owner of the Ikasan Studio initialization lifecycle.
@@ -49,8 +69,8 @@ public final class StudioProjectInitialisationService implements Disposable {
     record ImportReadiness(boolean imported, String detail) { }
 
     private final Project project;
-    private final com.intellij.util.Alarm importRecheck;
-    private final java.util.function.Supplier<ImportReadiness> importReadiness;
+    private final Alarm importRecheck;
+    private final Supplier<ImportReadiness> importReadiness;
     private final int importRecheckDelay;
     private static final int IMPORT_RECHECK_DELAY_MS = 1000;
     private final AtomicBoolean inProgress = new AtomicBoolean();
@@ -65,7 +85,7 @@ public final class StudioProjectInitialisationService implements Disposable {
     @Getter
     private volatile List<String> availableMetaPacks = List.of();
     @Getter
-    private volatile java.util.Set<String> snapshotMetaPacks = java.util.Set.of();
+    private volatile Set<String> snapshotMetaPacks = Set.of();
 
     public List<Integer> getValidModelBackupIndexes() {
         return validModelBackupIndexes;
@@ -75,11 +95,11 @@ public final class StudioProjectInitialisationService implements Disposable {
         this(project, () -> inspectImportReadiness(project), IMPORT_RECHECK_DELAY_MS);
     }
 
-    StudioProjectInitialisationService(Project project, java.util.function.Supplier<ImportReadiness> readiness, int retryDelay) {
+    StudioProjectInitialisationService(Project project, Supplier<ImportReadiness> readiness, int retryDelay) {
         this.project = project;
         this.importReadiness = readiness;
         this.importRecheckDelay = retryDelay;
-        this.importRecheck = new com.intellij.util.Alarm(com.intellij.util.Alarm.ThreadToUse.SWING_THREAD, this);
+        this.importRecheck = new Alarm(ThreadToUse.SWING_THREAD, this);
         project.getMessageBus().connect(this).subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
             // Deliberately not @NotNull-annotated: this project avoids @NotNull (see CLAUDE.md)
             // because the IntelliJ Gradle plugin instruments it with a runtime assertion that
@@ -112,7 +132,7 @@ public final class StudioProjectInitialisationService implements Disposable {
                 .onError(failure -> {
                     inProgress.set(false);
                     if (!disposed && !project.isDisposed() && !(failure instanceof ProcessCanceledException)) {
-                        fail(org.ikasan.studio.ui.StudioBundle.message("initialisation.ImportCheckFailed"),
+                        fail(StudioBundle.message("initialisation.ImportCheckFailed"),
                                 failure instanceof Exception exception ? exception : new RuntimeException(failure));
                     }
                 });
@@ -122,15 +142,15 @@ public final class StudioProjectInitialisationService implements Disposable {
     public void reloadMavenProject() {
         if (disposed || project.isDisposed() || state != State.WAITING_FOR_PROJECT_IMPORT) return;
         try {
-            org.jetbrains.idea.maven.project.MavenProjectsManager.getInstance(project)
+            MavenProjectsManager.getInstance(project)
                     .forceUpdateAllProjectsOrFindAllAvailablePomFiles();
             LOG.info("STUDIO: Requested Maven project reimport for " + project.getName());
             start();
         } catch (ProcessCanceledException cancelled) { throw cancelled; }
         catch (Exception failure) {
             LOG.warn("STUDIO: Could not request Maven project reimport", failure);
-            org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage(project,
-                    org.ikasan.studio.ui.StudioBundle.message("initialisation.ReloadMavenFailed", failure.getMessage()));
+            StudioUIUtils.displayIdeaWarnMessage(project,
+                    StudioBundle.message("initialisation.ReloadMavenFailed", failure.getMessage()));
         }
     }
 
@@ -148,8 +168,8 @@ public final class StudioProjectInitialisationService implements Disposable {
 
     public void fail(String userMessage, Exception exception) {
         if (exception != null) {
-            LOG.warn(org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent.format(
-                    org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent.Event.CONFIGURATION_INVALID, exception, null, null, null));
+            LOG.warn(StudioDiagnosticEvent.format(
+                    Event.CONFIGURATION_INVALID, exception, null, null, null));
         }
         inProgress.set(false);
         transition(State.FAILED, userMessage);
@@ -164,25 +184,25 @@ public final class StudioProjectInitialisationService implements Disposable {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
                 if (disposed || project.isDisposed()) return;
-                org.ikasan.studio.intellij.project.StudioProjectInitialisationService.ImportReadiness readiness = ReadAction.nonBlocking(importReadiness::get).expireWith(this).executeSynchronously();
+                ImportReadiness readiness = ReadAction.nonBlocking(importReadiness::get).expireWith(this).executeSynchronously();
                 if (!readiness.imported()) {
                     waitForProjectImport(readiness.detail());
                     return;
                 }
                 if (!packDiagnosticsShown) {
-                    Map<String,String> problems = org.ikasan.studio.core.metapack.ComponentLibrary.getUnavailableMetaPacks();
+                    Map<String,String> problems = ComponentLibrary.getUnavailableMetaPacks();
                     packDiagnosticsShown = true;
                     if (!problems.isEmpty()) {
                         String details = problems.entrySet().stream()
                                 .map(entry -> entry.getKey() + ": " + entry.getValue())
-                                .collect(java.util.stream.Collectors.joining("\n"));
-                        org.ikasan.studio.intellij.metapack.MetaPackNotifications.showUnavailable(project, details);
+                                .collect(Collectors.joining("\n"));
+                        MetaPackNotifications.showUnavailable(project, details);
                     }
                 }
-                availableMetaPacks = List.copyOf(org.ikasan.studio.core.metapack.ComponentLibrary.getMetapackList());
-                List<String> released = org.ikasan.studio.core.metapack.ComponentLibrary.getMetapackList(false);
+                availableMetaPacks = List.copyOf(ComponentLibrary.getMetapackList());
+                List<String> released = ComponentLibrary.getMetapackList(false);
                 snapshotMetaPacks = availableMetaPacks.stream().filter(id -> !released.contains(id))
-                        .collect(java.util.stream.Collectors.toUnmodifiableSet());
+                        .collect(Collectors.toUnmodifiableSet());
                 UiContext uiContext = project.getService(UiContext.class);
                 validModelBackupIndexes = List.of();
                 StudioProjectFiles.synchGenerateModelInstanceFromJSON(project);
@@ -192,15 +212,15 @@ public final class StudioProjectInitialisationService implements Disposable {
                     String basePath = project.getBasePath();
                     try {
                         if (modelPath != null && basePath != null) {
-                            org.ikasan.studio.core.metapack.ModelPackRepair.Plan update =
-                                    org.ikasan.studio.core.metapack.ModelPackRepair.preview(Files.readString(modelPath));
+                            Plan update =
+                                    ModelPackRepair.preview(Files.readString(modelPath));
                             if (update.isRevisionUpdate()) {
-                                org.ikasan.studio.core.model.ikasan.instance.Module proposed =
-                                        org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(update.targetJson(), "revision update preview", false);
-                                org.ikasan.studio.core.generator.ProjectArtifactRenderer.render(proposed,
+                                Module proposed =
+                                        ComponentIO.validatePersistedModuleJson(update.targetJson(), "revision update preview", false);
+                                ProjectArtifactRenderer.render(proposed,
                                         Files.readString(Path.of(basePath, StudioProjectFiles.POM_XML)));
                                 inProgress.set(false);
-                                transition(State.UPDATE_AVAILABLE, org.ikasan.studio.ui.StudioBundle.message(
+                                transition(State.UPDATE_AVAILABLE, StudioBundle.message(
                                         "modelUpdate.Detail", update.targetPack(), update.previousRevision(), update.targetRevision()));
                                 return;
                             }
@@ -211,8 +231,8 @@ public final class StudioProjectInitialisationService implements Disposable {
                     }
                     validModelBackupIndexes = StudioProjectFiles.getValidModelBackupIndexes(project);
                     String recoveryGuidance = validModelBackupIndexes.isEmpty()
-                            ? org.ikasan.studio.ui.StudioBundle.message("modelRepair.NoBackupGuidance")
-                            : org.ikasan.studio.ui.StudioBundle.message("modelRepair.BackupGuidance");
+                            ? StudioBundle.message("modelRepair.NoBackupGuidance")
+                            : StudioBundle.message("modelRepair.BackupGuidance");
                     fail("Studio opened in recovery mode because model.json could not be loaded safely. " +
                             "The original file is preserved. " + uiContext.getModelPersistenceBlockReason() + " " + recoveryGuidance, null);
                     return;
@@ -243,8 +263,8 @@ public final class StudioProjectInitialisationService implements Disposable {
         transition(State.READING_PROJECT, "Restoring and validating model.json.bak." + index);
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
-                java.nio.file.Path rejected = StudioProjectFiles.restoreModelBackup(project, index);
-                org.ikasan.studio.ui.StudioUIUtils.displayIdeaInfoMessage(project,
+                Path rejected = StudioProjectFiles.restoreModelBackup(project, index);
+                StudioUIUtils.displayIdeaInfoMessage(project,
                         "Restored model.json.bak." + index + ". The rejected model was preserved as " +
                                 (rejected == null ? "a diagnostic copy." : rejected.getFileName() + "."));
                 validModelBackupIndexes = List.of();
@@ -260,17 +280,17 @@ public final class StudioProjectInitialisationService implements Disposable {
     private static ImportReadiness inspectImportReadiness(Project project) {
         boolean imported = StudioProjectFiles.hasGeneratedContentRoot(project);
         if (imported) return new ImportReadiness(true, null);
-        String roots = java.util.Arrays.stream(com.intellij.openapi.roots.ProjectRootManager.getInstance(project).getContentRoots())
-                .filter(com.intellij.openapi.vfs.VirtualFile::isValid)
-                .map(com.intellij.openapi.vfs.VirtualFile::getPath).sorted().collect(java.util.stream.Collectors.joining("\n"));
+        String roots = Arrays.stream(ProjectRootManager.getInstance(project).getContentRoots())
+                .filter(VirtualFile::isValid)
+                .map(VirtualFile::getPath).sorted().collect(Collectors.joining("\n"));
         String expected = project.getBasePath() + StudioProjectFiles.GENERATED_CONTENT_ROOT;
-        return new ImportReadiness(false, org.ikasan.studio.ui.StudioBundle.message("initialisation.ImportRoots", expected,
-                roots.isEmpty() ? org.ikasan.studio.ui.StudioBundle.message("initialisation.NoContentRoots") : roots));
+        return new ImportReadiness(false, StudioBundle.message("initialisation.ImportRoots", expected,
+                roots.isEmpty() ? StudioBundle.message("initialisation.NoContentRoots") : roots));
     }
 
     private void waitForProjectImport(String reason) {
         inProgress.set(false);
-        if (state != State.WAITING_FOR_PROJECT_IMPORT || !java.util.Objects.equals(detail, reason))
+        if (state != State.WAITING_FOR_PROJECT_IMPORT || !Objects.equals(detail, reason))
             LOG.info("STUDIO: Waiting for generated module registration. " + reason);
         transition(State.WAITING_FOR_PROJECT_IMPORT, reason);
         // A rootsChanged event can arrive while a readiness read is still in progress,

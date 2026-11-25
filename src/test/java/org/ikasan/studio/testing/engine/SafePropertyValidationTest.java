@@ -1,15 +1,15 @@
 package org.ikasan.studio.testing.engine;
 
+import java.time.Duration;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.time.Duration;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-@org.junit.jupiter.api.Tag("engine")
+@Tag("engine")
 class SafePropertyValidationTest {
     @Test
     void nestedQuantifiersCannotCauseCatastrophicBacktracking() {

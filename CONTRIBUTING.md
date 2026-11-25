@@ -17,6 +17,8 @@ Use the repository's [bug report](.github/ISSUE_TEMPLATE/bug_report.yml) or [fea
 
 Use explicit Java variable types, including in tests, examples and generated Java templates. Preserve generic type information and use interface types where appropriate. Kotlin's `val` and `var` are unaffected.
 
+Use imports and simple type names in Java code. Keep fully qualified names when required to disambiguate types or preserve portable generated-source contracts.
+
 The plugin uses:
 
 - JDK 17 for the main plugin and headless engine; the optional native MCP module uses a JDK 21 toolchain and emits JVM 17 bytecode

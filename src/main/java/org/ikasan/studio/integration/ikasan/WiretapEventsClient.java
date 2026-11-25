@@ -1,20 +1,22 @@
 package org.ikasan.studio.integration.ikasan;
 
+import com.fasterxml.jackson.core.JsonParser.Feature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.net.http.HttpResponse;
 
 /** Read-only module-local Ikasan 3/4 wiretap search. Stored events are text, not Base64. */
 public final class WiretapEventsClient {
     private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-            .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .enable(Feature.STRICT_DUPLICATE_DETECTION);
     private WiretapEventsClient() { }
     public record Event(long identifier, String module, String flow, String component, String eventId,
                         String relatedEventId, long timestamp, boolean harvested, String payload) { }

@@ -1,29 +1,40 @@
 package org.ikasan.studio.ui.component.properties;
 
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBCheckBox;
-
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
-import org.ikasan.studio.core.StudioBuildUtils;
-import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
-import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
-import org.ikasan.studio.intellij.psi.StudioPsiUtils;
-import org.ikasan.studio.ui.StudioBundle;
-import org.ikasan.studio.ui.StudioUIUtils;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.JTextComponent;
+import org.ikasan.studio.core.StudioBuildUtils;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.StringCollectionValues;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.psi.StudioPsiUtils;
+import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.ui.StudioUIUtils;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.*;
 
@@ -55,7 +66,7 @@ public class ComponentPropertyEditRow {
     // change to its source field live. A genuine keystroke in this field clears it permanently, the same way
     // showingDefaultOnly is cleared, so a deliberate override is never silently clobbered by further auto-sync.
     private boolean autoDerivedValue = false;
-    private java.util.function.Supplier<Object> contextualDefault;
+    private Supplier<Object> contextualDefault;
     private JButton defaultValueButton;
     private JButton chooseValueButton;
     private JCheckBox rowOverwriteCheckBox;
@@ -136,7 +147,7 @@ public class ComponentPropertyEditRow {
             // stay one click away, but typing any other value directly into the field is also accepted.
             if (meta.isChoicesEditable()) {
                 propertyChoiceValueField.setEditable(true);
-                if (listenerFoAnyEditChanges != null && propertyChoiceValueField.getEditor().getEditorComponent() instanceof javax.swing.text.JTextComponent editorField) {
+                if (listenerFoAnyEditChanges != null && propertyChoiceValueField.getEditor().getEditorComponent() instanceof JTextComponent editorField) {
                     editorField.getDocument().addDocumentListener(new DocumentListener() {
                         @Override
                         public void insertUpdate(DocumentEvent e) {
@@ -170,7 +181,7 @@ public class ComponentPropertyEditRow {
                     listenerFoAnyEditChanges.actionEvent();
                 });
             }
-        } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
+        } else if (meta.getPropertyDataType() == Integer.class || meta.getPropertyDataType() == Long.class) {
             // NUMERIC INPUT
             NumberFormat amountFormat = NumberFormat.getNumberInstance();
             // Grouping is on by default, which renders values like a port or timeout as "2,121" - not wanted for any property here.
@@ -202,7 +213,7 @@ public class ComponentPropertyEditRow {
                     }
                 });
             }
-        } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
+        } else if (meta.getPropertyDataType() == Boolean.class) {
             boolean isMandatory = componentProperty.getMeta().isMandatory();
             // BOOLEAN INPUT
             propertyBooleanFieldTrue = new JBCheckBox();
@@ -246,7 +257,7 @@ public class ComponentPropertyEditRow {
                     if (dialog.showAndGet()) {
                         Object edited = dialog.value();
                         showingDefaultOnly = false;
-                        propertyValueField.setText(edited == null ? "" : org.ikasan.studio.core.model.StringCollectionValues.json(edited));
+                        propertyValueField.setText(edited == null ? "" : StringCollectionValues.json(edited));
                     }
                 });
             }
@@ -455,8 +466,8 @@ public class ComponentPropertyEditRow {
         if (project == null || project.isDisposed()) {
             return;
         }
-        if (com.intellij.openapi.project.DumbService.isDumb(project)) {
-            com.intellij.openapi.project.DumbService.getInstance(project)
+        if (DumbService.isDumb(project)) {
+            DumbService.getInstance(project)
                     .showDumbModeNotification(StudioBundle.message("message.PackageChooserIndexing"));
             return;
         }
@@ -464,11 +475,11 @@ public class ComponentPropertyEditRow {
             String selected = StudioPsiUtils.chooseProjectPackageQualifiedName(project,
                     StudioBundle.message("dialog.AddPackage"));
             appendSelectedPackage(selected);
-        } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) {
+        } catch (ProcessCanceledException cancelled) {
             throw cancelled;
         } catch (Exception failure) {
             LOG.warn("Unable to open package chooser", failure);
-            com.intellij.openapi.ui.Messages.showWarningDialog(project,
+            Messages.showWarningDialog(project,
                     StudioBundle.message("message.PackageChooserFailed"), StudioBundle.message("dialog.AddPackage"));
         }
     }
@@ -478,7 +489,7 @@ public class ComponentPropertyEditRow {
             return;
         }
         String existing = propertyValueField.getText().trim();
-        boolean alreadyPresent = java.util.Arrays.stream(existing.split(","))
+        boolean alreadyPresent = Arrays.stream(existing.split(","))
                 .map(String::trim).anyMatch(selected::equals);
         if (!alreadyPresent) {
             // Goes through the document listener so the normal unsaved-edit and validation behavior applies.
@@ -575,7 +586,7 @@ public class ComponentPropertyEditRow {
     }
 
     void configureModulePortDefault(ComponentPropertyEditRow http, int offset, boolean initialisation, boolean automaticallyDefaulted) {
-        contextualDefault = () -> org.ikasan.studio.core.model.ikasan.instance.Module.derivedH2Port(
+        contextualDefault = () -> Module.derivedH2Port(
                 Objects.toString(http.getValue(), ""), offset);
         if (initialisation && (initialValue == null || automaticallyDefaulted)) {
             autoDerivedValue = true;
@@ -600,7 +611,7 @@ public class ComponentPropertyEditRow {
             showingDefaultOnly = false;
             if (meta.getChoices() != null) {
                 propertyChoiceValueField.setSelectedItem("");
-            } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
+            } else if (meta.getPropertyDataType() == Boolean.class) {
                 if (propertyBooleanFieldTrue != null) propertyBooleanFieldTrue.setSelected(false);
                 if (propertyBooleanFieldFalse != null) propertyBooleanFieldFalse.setSelected(false);
             } else {
@@ -614,7 +625,7 @@ public class ComponentPropertyEditRow {
         if (isTypedCollection()) {
             Object display = value != null ? value : previewableDefault();
             suppressChangeDetection = true;
-            try { propertyValueField.setText(display == null ? "" : display instanceof String ? display.toString() : org.ikasan.studio.core.model.StringCollectionValues.json(display)); }
+            try { propertyValueField.setText(display == null ? "" : display instanceof String ? display.toString() : StringCollectionValues.json(display)); }
             finally { suppressChangeDetection = false; }
             showingDefaultOnly = value == null && display != null;
             return;
@@ -633,7 +644,7 @@ public class ComponentPropertyEditRow {
                     suppressChangeDetection = false;
                 }
             }
-        } else if (meta.getPropertyDataType() == java.lang.Integer.class || meta.getPropertyDataType() == java.lang.Long.class) {
+        } else if (meta.getPropertyDataType() == Integer.class || meta.getPropertyDataType() == Long.class) {
             // NUMERIC INPUT
             if (value != null) {
                 // Coming from a property this may not be the correct type yet
@@ -664,7 +675,7 @@ public class ComponentPropertyEditRow {
                     this.propertyValueField.setValue(null);
                 }
             }
-        } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
+        } else if (meta.getPropertyDataType() == Boolean.class) {
             // Fall back to the meta-declared default purely for display - the property itself stays
             // unset (componentProperty.getValue() still returns null) until the user actually interacts
             // with it. Without this, a never-set boolean (e.g. a brand new Flow's isRecording) left both
@@ -746,7 +757,7 @@ public class ComponentPropertyEditRow {
             return null;
         }
         if (isTypedCollection()) {
-            try { return org.ikasan.studio.core.model.StringCollectionValues.normalize(meta.getPropertyDataType(), propertyValueField.getText()); }
+            try { return StringCollectionValues.normalize(meta.getPropertyDataType(), propertyValueField.getText()); }
             catch (IllegalArgumentException failure) { return propertyValueField.getText(); }
         }
         Object returnValue = null;
@@ -755,7 +766,7 @@ public class ComponentPropertyEditRow {
                     : propertyChoiceValueField.getSelectedItem();
             if (selected instanceof String text && meta.isChoicesEditable()) selected = normalizeEditedText(text);
             returnValue = (selected == null || "".equals(selected)) ? null : selected;
-        } else if (meta.getPropertyDataType() == java.lang.Boolean.class) {
+        } else if (meta.getPropertyDataType() == Boolean.class) {
             // It is possible that neither are currently selected i.e. the property is unset
             if (isBooleanProperty() && propertyBooleanFieldTrue.isSelected()) {
                 returnValue = true;
@@ -773,7 +784,7 @@ public class ComponentPropertyEditRow {
             // already-null default.
             if (!rawValue.isBlank()) {
                 List<String> rawList = Arrays.asList(rawValue.split("\\s*,\\s*", -1));
-                Set<String> deduplicate = new java.util.LinkedHashSet<>(rawList);
+                Set<String> deduplicate = new LinkedHashSet<>(rawList);
                 if (rawList.size() > deduplicate.size()) {
                     StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.DuplicatesInTheListWillBeRemoved"));
                     returnValue = new ArrayList<>(deduplicate);
@@ -781,7 +792,7 @@ public class ComponentPropertyEditRow {
                     returnValue = rawList;
                 }
             }
-        } else if (meta.getPropertyDataType() == java.lang.String.class) {
+        } else if (meta.getPropertyDataType() == String.class) {
             // The formatter would be null if this was a standard text field.
             returnValue = normalizeEditedText(propertyValueField.getText());
         } else {
@@ -796,7 +807,7 @@ public class ComponentPropertyEditRow {
      */
     private String normalizeEditedText(String text) {
         return meta.isPreserveWhitespace() || meta.isReadOnlyProperty()
-                || java.util.Objects.equals(text, initialValue) ? text : text.strip();
+                || Objects.equals(text, initialValue) ? text : text.strip();
     }
 
     /** JFormattedTextField does not update getValue() until focus is committed; parse its document instead. */
@@ -812,7 +823,7 @@ public class ComponentPropertyEditRow {
         try {
             Object parsed = propertyValueField.getFormatter().stringToValue(text);
             if (parsed instanceof Number number) {
-                if (meta.getPropertyDataType() == java.lang.Integer.class) {
+                if (meta.getPropertyDataType() == Integer.class) {
                     return number.intValue();
                 }
                 return number.longValue();
@@ -860,7 +871,7 @@ public class ComponentPropertyEditRow {
      * @return true if the field is empty or unset
      */
     private boolean isTypedCollection() {
-        return org.ikasan.studio.core.model.StringCollectionValues.supports(meta.getPropertyDataType());
+        return StringCollectionValues.supports(meta.getPropertyDataType());
     }
 
     public boolean inputfieldIsUnset() {
@@ -875,9 +886,9 @@ public class ComponentPropertyEditRow {
             List<?> listValue = (List<?>) value;
             fieldNotSet = listValue.isEmpty() ||
                     (listValue.size() == 1 && listValue.get(0) instanceof String && ((String)listValue.get(0)).isEmpty());
-        } else if (meta.getPropertyDataType() == java.lang.String.class) {
+        } else if (meta.getPropertyDataType() == String.class) {
             fieldNotSet = ((String)value).isEmpty();
-        } else if (meta.getPropertyDataType() == java.lang.Long.class || meta.getPropertyDataType() == java.lang.Integer.class) {
+        } else if (meta.getPropertyDataType() == Long.class || meta.getPropertyDataType() == Integer.class) {
             if (value instanceof Long) {
                 fieldNotSet = ((Long)value == 0);
             } else if (value instanceof Integer) {
@@ -893,17 +904,17 @@ public class ComponentPropertyEditRow {
      */
     private boolean missingRequiredValue() {
         Object value = getValue();
-        return inputfieldIsUnset() || value instanceof java.util.Collection<?> entries && entries.isEmpty()
-                || value instanceof java.util.Map<?, ?> mappings && mappings.isEmpty();
+        return inputfieldIsUnset() || value instanceof Collection<?> entries && entries.isEmpty()
+                || value instanceof Map<?, ?> mappings && mappings.isEmpty();
     }
 
-    protected java.util.List<ValidationInfo> doValidateAll() {
+    protected List<ValidationInfo> doValidateAll() {
         //@todo setup once in class and clear down
         List<ValidationInfo> result = new ArrayList<>();
         if (isTypedCollection() && getValue() instanceof String)
             result.add(new ValidationInfo(StudioBundle.message("collection.InvalidLegacy"), propertyValueField));
-        if ((meta.getPropertyDataType() == java.lang.Integer.class
-                || meta.getPropertyDataType() == java.lang.Long.class)
+        if ((meta.getPropertyDataType() == Integer.class
+                || meta.getPropertyDataType() == Long.class)
                 && getValue() instanceof String) {
             result.add(new ValidationInfo(meta.getPropertyName() + " must be a valid number", getOverridingInputField()));
         }
@@ -1060,7 +1071,7 @@ public class ComponentPropertyEditRow {
         if (isList && initialValue instanceof String text) {
             String displayed = getListAsText(text);
             Object initialList = displayed.isBlank() ? null : Arrays.asList(displayed.split("\\s*,\\s*"));
-            return !java.util.Objects.equals(initialList, enteredValue);
+            return !Objects.equals(initialList, enteredValue);
         }
         return ((initialValue == null && editBoxHasValue()) ||
                 (initialValue != null && !initialValue.equals(enteredValue)));

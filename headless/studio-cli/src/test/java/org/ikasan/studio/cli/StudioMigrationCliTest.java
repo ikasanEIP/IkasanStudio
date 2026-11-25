@@ -1,16 +1,23 @@
 package org.ikasan.studio.cli;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.ikasan.studio.core.migration.MigrationWorkspace;
-import java.io.*;
-import java.nio.file.*;
-import static org.junit.jupiter.api.Assertions.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.*;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.util.Base64;
+import java.util.Map;
 import org.ikasan.studio.core.migration.MigrationWorkspace.Snapshot;
+import org.ikasan.studio.core.migration.MigrationWorkspace;
+import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class StudioMigrationCliTest {
     @TempDir Path project;
@@ -114,14 +121,14 @@ class StudioMigrationCliTest {
     }
     @Test void allowsRenderedJsonKeyOrdering() throws Exception {
         Path plan=setup(); assertEquals(0, preview(plan,"V4.1.6"));
-        ObjectMapper json=org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper();
+        ObjectMapper json=StudioJson.newObjectMapper();
         JsonNode tree=json.readTree(Files.readString(plan));
         for(JsonNode change:tree.path("changes")) {
             if (change.path("path").asText().endsWith("component-catalogue.json")) {
-                String text=new String(java.util.Base64.getDecoder().decode(change.path("after").asText()), java.nio.charset.StandardCharsets.UTF_8);
-                byte[] sorted=json.writer().with(com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
-                        .writeValueAsBytes(json.readValue(text, java.util.Map.class));
-                ((com.fasterxml.jackson.databind.node.ObjectNode)change).put("after", java.util.Base64.getEncoder().encodeToString(sorted));
+                String text=new String(Base64.getDecoder().decode(change.path("after").asText()), StandardCharsets.UTF_8);
+                byte[] sorted=json.writer().with(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+                        .writeValueAsBytes(json.readValue(text, Map.class));
+                ((ObjectNode)change).put("after", Base64.getEncoder().encodeToString(sorted));
             }
         }
         Files.writeString(plan,json.writeValueAsString(tree));

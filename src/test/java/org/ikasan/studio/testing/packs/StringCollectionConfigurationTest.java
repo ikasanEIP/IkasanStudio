@@ -1,25 +1,28 @@
 package org.ikasan.studio.testing.packs;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.StringReader;
+import java.util.*;
+import java.util.Properties;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.generator.*;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.model.StringCollectionValues;
 import org.ikasan.studio.core.model.ikasan.instance.*;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import java.util.*;
+
 import static org.assertj.core.api.Assertions.*;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.util.Properties;
-import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
-import org.ikasan.studio.core.model.ikasan.instance.Flow;
-import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
-import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class StringCollectionConfigurationTest {
     @ParameterizedTest @ValueSource(strings={"V3.3.9", "V4.1.6"})
@@ -42,7 +45,7 @@ class StringCollectionConfigurationTest {
         JsonNode document = mapper.readTree(saved);
         JsonNode parameters = document.path("configuration").findValue("parameters");
         assertThat(parameters.toString()).contains("ConfigurationParameterListImpl", "ConfigurationParameterMapImpl");
-        Result imported = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(
+        Result imported = IkasanRuntimeImport.convert(
                 document.path("module").toString(), document.path("configuration").toString(), pack, "org.example");
         Module importedModule = ComponentIO.validatePersistedModuleJson(imported.studioJson(), "runtime import", false);
         FlowElement importedProducer = importedModule.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
@@ -55,7 +58,7 @@ class StringCollectionConfigurationTest {
         String generated = FlowsComponentFactoryTemplate.create("org.example", loaded, loaded.getFlows().get(0));
         assertThat(generated).contains(".setToRecipients(studioStringList(", ".setExtendedMailSessionProperties(studioStringMap(", "STRICT_DUPLICATE_DETECTION");
         Properties spring = new Properties();
-        spring.load(new java.io.StringReader(PropertiesTemplate.create(loaded)));
+        spring.load(new StringReader(PropertiesTemplate.create(loaded)));
         String key = spring.stringPropertyNames().stream().filter(k -> k.endsWith("toRecipients")).findFirst().orElseThrow();
         assertThat(mapper.readValue(spring.getProperty(key), List.class)).isEqualTo(recipients);
         // Empty means an explicit setter value, not absent/default.
@@ -77,7 +80,7 @@ class StringCollectionConfigurationTest {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
         ObjectMapper mapper = StudioJson.newObjectMapper();
         JsonNode document = mapper.readTree(ModelTemplate.create(module));
-        ObjectNode settings = (com.fasterxml.jackson.databind.node.ObjectNode) document.path("studio")
+        ObjectNode settings = (ObjectNode) document.path("studio")
                 .path("flows").elements().next().path("components").path("Mail").path("properties");
         settings.put("toRecipients", "[first@example.com, second@example.com]");
         settings.put("extendedMailSessionProperties", "{\"mail.smtp.auth\":\"true\"}");
@@ -93,7 +96,7 @@ class StringCollectionConfigurationTest {
                 .getFlows().get(0).getFlowRoute().getFlowElements().get(0).getPropertyValue("toRecipients"))
                 .isEqualTo(restored.getPropertyValue("toRecipients"));
         // Ambiguous duplicate settings must still trigger recovery rather than lose user data.
-        ((com.fasterxml.jackson.databind.node.ObjectNode) saved.path("studio").path("flows").elements().next()
+        ((ObjectNode) saved.path("studio").path("flows").elements().next()
                 .path("components").path("Mail").path("properties")).put("toRecipients", "other@example.com");
         assertThatThrownBy(() -> ComponentIO.validatePersistedModuleJson(saved.toString(), "conflict", false))
                 .hasMessageContaining("Conflicting Studio and runtime configuration field toRecipients");

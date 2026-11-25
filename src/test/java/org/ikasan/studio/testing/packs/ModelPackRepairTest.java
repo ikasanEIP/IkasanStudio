@@ -1,25 +1,25 @@
 package org.ikasan.studio.testing.packs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import org.ikasan.studio.core.TestFixtures;
 import org.ikasan.studio.core.generator.ModelTemplate;
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
+import org.ikasan.studio.core.metapack.ModelPackRepair.Plan;
 import org.ikasan.studio.core.metapack.ModelPackRepair;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-import org.ikasan.studio.core.metapack.ModelPackRepair.Plan;
 
 class ModelPackRepairTest {
     @TempDir Path directory;
-    private final com.fasterxml.jackson.databind.ObjectMapper json = StudioJson.newObjectMapper();
+    private final ObjectMapper json = StudioJson.newObjectMapper();
 
     private ObjectNode document() throws Exception {
         return (ObjectNode) json.readTree(ModelTemplate.create(

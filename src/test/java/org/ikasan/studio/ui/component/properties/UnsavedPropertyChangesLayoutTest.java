@@ -1,12 +1,14 @@
 package org.ikasan.studio.ui.component.properties;
 
-import org.junit.jupiter.api.Test;
-import javax.swing.*;
+import com.intellij.util.ui.JBUI;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
+import javax.swing.*;
 import javax.swing.JComponent;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class UnsavedPropertyChangesLayoutTest {
     @Test
@@ -17,8 +19,8 @@ class UnsavedPropertyChangesLayoutTest {
             JComponent content = UnsavedPropertyChangesDialog.buildContent("Unsaved edits for Broker", "MessageGenerator",
                     List.of(new UnsavedPropertyChangesDialog.PropertyChangeDetail("Output type", oldValue, newValue),
                             new UnsavedPropertyChangesDialog.PropertyChangeDetail("Description", "old", "Long text & <tags> ".repeat(100))));
-            assertThat(content.getPreferredSize().width).isLessThan(com.intellij.util.ui.JBUI.scale(700));
-            assertThat(content.getPreferredSize().height).isLessThanOrEqualTo(com.intellij.util.ui.JBUI.scale(320));
+            assertThat(content.getPreferredSize().width).isLessThan(JBUI.scale(700));
+            assertThat(content.getPreferredSize().height).isLessThanOrEqualTo(JBUI.scale(320));
             content.setSize(content.getPreferredSize());
             for (int i = 0; i < 3; i++) layout(content);
             List<JTextArea> values = new ArrayList<>();
