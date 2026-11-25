@@ -36,11 +36,11 @@ class ActiveMqBrokerRuntimeTest {
                         broker.setPersistent(false);
                         broker.setUseJmx(false);
                         broker.setUseShutdownHook(false);
-                        var connector = broker.addConnector("tcp://127.0.0.1:0");
+                        org.apache.activemq.broker.TransportConnector connector = broker.addConnector("tcp://127.0.0.1:0");
                         try {
                             broker.start();
                             if (!broker.waitUntilStarted(10000)) throw new AssertionError("Broker did not start");
-                            var factory = new ActiveMQConnectionFactory(connector.getPublishableConnectString());
+                            ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(connector.getPublishableConnectString());
                             Connection connection = factory.createConnection();
                             try {
                                 Session session = connection.createSession(true, Session.SESSION_TRANSACTED);
@@ -78,8 +78,8 @@ class ActiveMqBrokerRuntimeTest {
                 "-d", directory.toString(), probe.toString()));
         List<URL> urls = new ArrayList<>(); urls.add(directory.toUri().toURL());
         for (String file : classpath.split(java.util.regex.Pattern.quote(File.pathSeparator))) urls.add(Path.of(file).toUri().toURL());
-        try (var loader = new URLClassLoader(urls.toArray(URL[]::new), ClassLoader.getPlatformClassLoader())) {
-            var thread = Thread.currentThread(); ClassLoader previous = thread.getContextClassLoader();
+        try (URLClassLoader loader = new URLClassLoader(urls.toArray(URL[]::new), ClassLoader.getPlatformClassLoader())) {
+            Thread thread = Thread.currentThread(); ClassLoader previous = thread.getContextClassLoader();
             try { thread.setContextClassLoader(loader); loader.loadClass("BrokerProbe").getMethod("run").invoke(null); }
             finally { thread.setContextClassLoader(previous); }
         }

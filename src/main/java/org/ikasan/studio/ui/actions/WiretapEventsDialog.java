@@ -26,6 +26,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.Future;
+import org.ikasan.studio.integration.ikasan.WiretapEventsClient.Event;
 
 /** Project-bound, read-only wiretap browser. HTTP work never runs on the EDT. */
 // This dialog runs with project services in the local IDE; remote Split Mode needs a separate frontend and RPC boundary.
@@ -151,7 +152,7 @@ public final class WiretapEventsDialog extends StudioDialogWrapper {
                 if (error != null) { last = true; page = 0; busy(false); status.setText(error); return; }
                 activeComponent = c; activeFlow = f; activeFrom = start; activeUntil = end;
                 page = targetPage; last = loaded.last(); rows = loaded.events();
-                for (var row : rows) model.addRow(new Object[]{time(row.timestamp()), row.flow(), row.component(), row.eventId(),
+                for (Event row : rows) model.addRow(new Object[]{time(row.timestamp()), row.flow(), row.component(), row.eventId(),
                         StudioBundle.message(row.harvested() ? "wiretapEvents.yes" : "wiretapEvents.no")});
                 status.setText(StudioBundle.message("wiretapEvents.page", page + 1, loaded.total()));
                 busy(false);
@@ -168,7 +169,7 @@ public final class WiretapEventsDialog extends StudioDialogWrapper {
     private void showSelected() {
         int index = table.getSelectedRow();
         if (index < 0 || index >= rows.size()) { details.setText(""); return; }
-        var row = rows.get(index);
+        Event row = rows.get(index);
         details.setText(StudioBundle.message("wiretapEvents.module") + ": " + row.module() + "\n" + StudioBundle.message("wiretapEvents.flow") + ": " + row.flow()
                 + "\n" + StudioBundle.message("wiretapEvents.identifier") + ": " + row.identifier() + "\n" + StudioBundle.message("wiretapEvents.component") + ": " + row.component()
                 + "\n" + StudioBundle.message("wiretapEvents.eventId") + ": " + row.eventId() + "\n" + StudioBundle.message("wiretapEvents.relatedEventId") + ": " + row.relatedEventId()

@@ -6,6 +6,8 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 
 import java.util.Map;
+import java.util.List;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 
 /**
  * Template to create the user implemented classes (stubs) i.e. those with property for
@@ -23,8 +25,8 @@ public class FlowsUserImplementedComponentTemplate extends Generator {
         Map<String, Object> configs = getBasicTemplateConfigs();
         Object recipeId = flowElement.getPropertyValue(ComponentPropertyMeta.CONVERSION_RECIPE_ID);
         if (recipeId != null && !recipeId.toString().isBlank()) {
-            var recipes = flowElement.getComponentMeta().getConversionRecipes();
-            var selected = (recipes == null ? java.util.stream.Stream.<org.ikasan.studio.core.metapack.model.ConversionRecipeMeta>empty() : recipes.stream())
+            List<ConversionRecipeMeta> recipes = flowElement.getComponentMeta().getConversionRecipes();
+            ConversionRecipeMeta selected = (recipes == null ? java.util.stream.Stream.<org.ikasan.studio.core.metapack.model.ConversionRecipeMeta>empty() : recipes.stream())
                     .filter(recipe -> recipeId.toString().equals(recipe.getId()))
                     .filter(recipe -> recipe.matches(flowElement.getPropertyValueAsString(ComponentPropertyMeta.FROM_TYPE),
                             flowElement.getPropertyValueAsString(ComponentPropertyMeta.TO_TYPE)))

@@ -9,6 +9,8 @@ import javax.lang.model.SourceVersion;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /** Previewable literal class/package replacements in configurable flow properties, never model identities. */
 public final class ModelReferenceReplacement {
@@ -26,9 +28,9 @@ public final class ModelReferenceReplacement {
         List<Change> changes = new ArrayList<>();
         for (Flow flow : module.getFlows()) {
             collect(changes, flow, flow, pattern, replacement);
-            for (var element : flow.getFlowElementsNoExternalEndPoints()) collect(changes, flow, element, pattern, replacement);
+            for (FlowElement element : flow.getFlowElementsNoExternalEndPoints()) collect(changes, flow, element, pattern, replacement);
             if (flow.getExceptionResolver() != null) {
-                for (var resolution : flow.getExceptionResolver().getExceptionResolutionList()) {
+                for (ExceptionResolution resolution : flow.getExceptionResolver().getExceptionResolutionList()) {
                     collect(changes, flow, resolution, pattern, replacement);
                 }
             }

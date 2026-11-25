@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.nio.file.Path;
 
 class ModuleDeserializerSafetyTest {
     @BeforeAll
@@ -46,7 +47,7 @@ class ModuleDeserializerSafetyTest {
     void truncatedAndMalformedModelBytesRemainAvailableForRecovery(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
         String valid = fixture();
         for (String damaged : java.util.List.of(valid.substring(0, valid.length() / 2), "{\"flows\": [}", "")) {
-            var model = directory.resolve("model.json");
+            Path model = directory.resolve("model.json");
             java.nio.file.Files.writeString(model, damaged);
             assertThrows(StudioBuildException.class,
                     () -> ComponentIO.deserializeModuleInstanceString(damaged, "failure injection"));

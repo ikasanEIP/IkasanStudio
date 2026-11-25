@@ -9,6 +9,7 @@ import java.awt.event.HierarchyEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.EditorNotificationPanel;
 import org.ikasan.studio.ui.StudioBundle;
+import java.nio.file.Path;
 
 /** Editor-owned view of project-owned inbox state; switching or closing tabs cannot dismiss a proposal. */
 public final class StudioAiProposalBanner extends EditorNotificationPanel {
@@ -64,7 +65,7 @@ public final class StudioAiProposalBanner extends EditorNotificationPanel {
     }
 
     private void refresh() {
-        var path = inbox.getPendingProposal();
+        Path path = inbox.getPendingProposal();
         setText(path == null ? "" : StudioBundle.message("ai.BannerReady", path.getFileName().toString()));
         setVisible(path != null);
         updatePulse();

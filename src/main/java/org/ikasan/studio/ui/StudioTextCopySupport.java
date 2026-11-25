@@ -14,6 +14,10 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.io.StringReader;
+import java.awt.KeyboardFocusManager;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
 /** Scoped to Studio component trees: no polling, global event hooks or document listeners. EDT only. */
 public final class StudioTextCopySupport {
@@ -81,7 +85,7 @@ public final class StudioTextCopySupport {
         text.setFocusable(true);
         if (text instanceof JTextArea) {
             // Informational paragraphs should not trap Tab like an editable multiline editor.
-            var focus = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+            KeyboardFocusManager focus = KeyboardFocusManager.getCurrentKeyboardFocusManager();
             text.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
                     focus.getDefaultFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS));
             text.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
@@ -91,7 +95,7 @@ public final class StudioTextCopySupport {
 
     private static void popup(MouseEvent event) {
         if (!event.isPopupTrigger() || event.isConsumed()) return;
-        var control = (JComponent) event.getComponent();
+        JComponent control = (JComponent) event.getComponent();
         if (control.getComponentPopupMenu() != null) return; // Preserve existing menus and actions.
         if (control instanceof JTextComponent text && text.isEditable()) return;
         JPopupMenu menu = popupFor(control);
@@ -111,16 +115,16 @@ public final class StudioTextCopySupport {
                 : control instanceof JLabel label ? label.getText() != null && !label.getText().isBlank()
                 : control instanceof AbstractButton button && button.getText() != null && !button.getText().isBlank();
         if (!hasText) return null;
-        var menu = new JPopupMenu();
+        JPopupMenu menu = new JPopupMenu();
         boolean selected = control instanceof JTextComponent text && text.getSelectedText() != null;
-        var copy = new JMenuItem(StudioBundle.message(selected ? "textCopy.selection" : "textCopy.text"));
+        JMenuItem copy = new JMenuItem(StudioBundle.message(selected ? "textCopy.selection" : "textCopy.text"));
         copy.addActionListener(event -> {
             String value = copyText(control);
             if (value != null) clipboard.accept(value);
         });
         menu.add(copy);
         if (control instanceof JTextComponent text) {
-            var select = new JMenuItem(StudioBundle.message("textCopy.selectAll"));
+            JMenuItem select = new JMenuItem(StudioBundle.message("textCopy.selectAll"));
             select.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
                     SystemInfo.isMac ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK));
             select.addActionListener(event -> { text.requestFocusInWindow(); text.selectAll(); });
@@ -144,7 +148,7 @@ public final class StudioTextCopySupport {
         if (!BasicHTML.isHTMLString(value)) return value;
         // A parser callback extracts visible text without constructing views, loading CSS,
         // following links or retrieving images. This runs only after an explicit copy request.
-        var plain = new StringBuilder();
+        StringBuilder plain = new StringBuilder();
         try {
             new ParserDelegator().parse(new StringReader(value), new HTMLEditorKit.ParserCallback() {
                 private int hidden;

@@ -22,6 +22,22 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.sun.net.httpserver.HttpServer;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.OutputStream;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
 
 /** Real platform widgets and core IO; opt-in, with no machine-dependent timing assertions. */
 public class StudioPerformanceTest extends HeavyPlatformTestCase {
@@ -36,9 +52,9 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
         createTestProjectStructure("src/test/testData/ikasanStandardSampleApps/general/");
         String fixturePom = Files.readString(Path.of("src/test/testData/ikasanStandardSampleApps/general/pom.xml"));
         com.intellij.openapi.application.WriteAction.run(() -> {
-            var root = org.ikasan.studio.intellij.project.StudioProjectFiles.getProjectBaseDir(myProject);
+            VirtualFile root = org.ikasan.studio.intellij.project.StudioProjectFiles.getProjectBaseDir(myProject);
             assertNotNull(root);
-            var pom = root.findOrCreateChildData(this, "pom.xml");
+            VirtualFile pom = root.findOrCreateChildData(this, "pom.xml");
             com.intellij.openapi.vfs.VfsUtil.saveText(pom, fixturePom);
         });
         samples = option("Samples", 7); warmups = option("Warmups", 2);
@@ -60,7 +76,7 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
         Files.createDirectories(model.getParent()); Files.writeString(model, json);
         report.put("modelBytes", Files.size(model));
         report.put("viewport", Map.of("width", 1440, "height", 900, "uiScale", com.intellij.util.ui.JBUI.scale(100) / 100.0));
-        var context = myProject.getService(UiContext.class);
+        UiContext context = myProject.getService(UiContext.class);
         context.setIkasanModule(module);
         myProject.getService(StudioProjectInitialisationService.class).markReady();
         try {
@@ -71,7 +87,7 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
             }));
             measure("generation.templates", () -> background(() -> render(module)));
             measure("editor.open.readyProject", () -> {
-                var editor = new IkasanStudioFileEditor(myProject, new IkasanStudioVirtualFile());
+                IkasanStudioFileEditor editor = new IkasanStudioFileEditor(myProject, new IkasanStudioVirtualFile());
                 editor.getComponent().setSize(1440, 900); editor.getComponent().doLayout();
                 return editor;
             }, result -> Disposer.dispose((IkasanStudioFileEditor) result));
@@ -79,7 +95,7 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
             measureGenerationCommit(module);
             measurePolling(module);
             blackhole = null;
-            var references = closeEditorAndReleaseReferences();
+            List<WeakReference<?>> references = closeEditorAndReleaseReferences();
             collect();
             report.put("memory.afterClose", Map.of("usedHeapBytes", usedHeap(),
                     "editorReachable", references.get(0).get() != null, "canvasReachable", references.get(1).get() != null,
@@ -90,32 +106,32 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
     }
 
     private void measureCanvas(Module module) throws Exception {
-        var editor = new IkasanStudioFileEditor(myProject, new IkasanStudioVirtualFile());
-        var context = myProject.getService(UiContext.class);
+        IkasanStudioFileEditor editor = new IkasanStudioFileEditor(myProject, new IkasanStudioVirtualFile());
+        UiContext context = myProject.getService(UiContext.class);
         DesignerCanvas canvas = context.getDesignerCanvas();
         canvas.setSize(1440, 900);
-        var image = com.intellij.util.ui.UIUtil.createImage(1440, 900, BufferedImage.TYPE_INT_ARGB);
-        var graphics = image.createGraphics();
+        BufferedImage image = com.intellij.util.ui.UIUtil.createImage(1440, 900, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = image.createGraphics();
         try {
             measure("canvas.layoutAndPaint", () -> { canvas.setInitialiseAllDimensions(true); canvas.paint(graphics); return null; });
             measure("canvas.repaint.cachedLayout", () -> { canvas.paint(graphics); return null; });
             int[] index = {0};
             measure("properties.selectionChange", () -> {
-                var flow = module.getFlows().get(index[0]++ % module.getFlows().size());
+                Flow flow = module.getFlows().get(index[0]++ % module.getFlows().size());
                 context.getPropertiesTabPanel().updateTargetComponent(flow.getConsumer()); return null;
             });
             Flow last = module.getFlows().get(module.getFlows().size() - 1);
-            var target = ViewHandlerCache.getFlowComponentViewHandler(myProject, last.getConsumer()).getCentrePoint();
+            Point target = ViewHandlerCache.getFlowComponentViewHandler(myProject, last.getConsumer()).getCentrePoint();
             FlowElement candidate = TestFixtures.getDebugTransition(module.getMetaVersion());
             measure("drag.hoverValidation.lastFlow", () -> {
                 blackhole = canvas.componentDraggedToFlowAction(target.x, target.y, candidate);
                 canvas.resetContextSensitiveHighlighting(); return null;
             });
-            var first = module.getFlows().get(0).getFlowRoute().getFlowElements();
+            List<FlowElement> first = module.getFlows().get(0).getFlowRoute().getFlowElements();
             canvas.setSelectedComponent(first.get(0));
             measure("drag.moveGesture", () -> {
-                var from = ViewHandlerCache.getFlowComponentViewHandler(myProject, first.get(0)).getCentrePoint();
-                var to = ViewHandlerCache.getFlowComponentViewHandler(myProject, first.get(1)).getCentrePoint();
+                Point from = ViewHandlerCache.getFlowComponentViewHandler(myProject, first.get(0)).getCentrePoint();
+                Point to = ViewHandlerCache.getFlowComponentViewHandler(myProject, first.get(1)).getCentrePoint();
                 long now = System.currentTimeMillis();
                 canvas.dispatchEvent(new java.awt.event.MouseEvent(canvas, java.awt.event.MouseEvent.MOUSE_PRESSED, now, 0, from.x, from.y, 1, false, 1));
                 canvas.dispatchEvent(new java.awt.event.MouseEvent(canvas, java.awt.event.MouseEvent.MOUSE_DRAGGED, now, java.awt.event.InputEvent.BUTTON1_DOWN_MASK, to.x, to.y, 0, false, 0));
@@ -127,9 +143,9 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
     }
 
     private void measureGenerationCommit(Module module) throws Exception {
-        var editor = new IkasanStudioFileEditor(myProject, new IkasanStudioVirtualFile());
+        IkasanStudioFileEditor editor = new IkasanStudioFileEditor(myProject, new IkasanStudioVirtualFile());
         try {
-            var synchronizer = new org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer(myProject);
+            GeneratedProjectSynchronizer synchronizer = new org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer(myProject);
             long started = System.nanoTime();
             await(synchronizer.asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk(
                     org.ikasan.studio.core.generation.GenerationRequest.full()));
@@ -141,11 +157,11 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
     }
 
     private void exportProject(Module module) throws Exception {
-        var baseDir = org.ikasan.studio.intellij.project.StudioProjectFiles.getProjectBaseDir(myProject);
+        VirtualFile baseDir = org.ikasan.studio.intellij.project.StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(baseDir);
         Path root = Path.of(baseDir.getPath());
         Path exported = exportedProject;
-        try (var files = Files.walk(root)) {
+        try (Stream<Path> files = Files.walk(root)) {
             for (Path source : files.filter(Files::isRegularFile).toList()) {
                 Path relative = root.relativize(source);
                 if (!relative.startsWith("generated") && !relative.startsWith("user") && !relative.toString().equals("AGENTS.md")) continue;
@@ -153,12 +169,12 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
                 Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
             }
         }
-        var reader = new org.apache.maven.model.io.xpp3.MavenXpp3Reader();
+        MavenXpp3Reader reader = new org.apache.maven.model.io.xpp3.MavenXpp3Reader();
         org.apache.maven.model.Model pom;
-        try (var input = Files.newBufferedReader(root.resolve("pom.xml"))) { pom = reader.read(input); }
+        try (BufferedReader input = Files.newBufferedReader(root.resolve("pom.xml"))) { pom = reader.read(input); }
         pom.setGroupId("org.ikasan.studio.performance"); pom.setArtifactId("performance"); pom.setVersion("1.0-SNAPSHOT");
         pom.setPackaging("pom"); pom.setModules(List.of("user", "generated"));
-        try (var writer = Files.newBufferedWriter(exported.resolve("pom.xml"))) {
+        try (BufferedWriter writer = Files.newBufferedWriter(exported.resolve("pom.xml"))) {
             new org.apache.maven.model.io.xpp3.MavenXpp3Writer().write(writer, pom);
         }
         Path archetype = Path.of("ikasan-studio-ancillary/ikasan-studio-project-archetype/src/main/resources/archetype-resources");
@@ -180,8 +196,8 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
 
     private List<WeakReference<?>> closeEditorAndReleaseReferences() {
         collect(); report.put("memory.beforeOpen.usedHeapBytes", usedHeap());
-        var editor = new IkasanStudioFileEditor(myProject, new IkasanStudioVirtualFile());
-        var context = myProject.getService(UiContext.class);
+        IkasanStudioFileEditor editor = new IkasanStudioFileEditor(myProject, new IkasanStudioVirtualFile());
+        UiContext context = myProject.getService(UiContext.class);
         List<WeakReference<?>> refs = List.of(new WeakReference<>(editor), new WeakReference<>(context.getDesignerCanvas()),
                 new WeakReference<>(context.getPropertiesPanel()));
         report.put("memory.open.usedHeapBytes", usedHeap());
@@ -191,13 +207,13 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
 
     private void measurePolling(Module module) throws Exception {
         int delay = option("PollDelayMs", 250);
-        var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("localhost", 0), 0);
+        HttpServer server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("localhost", 0), 0);
         byte[] response = new ObjectMapper().writeValueAsBytes(Map.of("flows", module.getFlows().stream()
                 .map(flow -> Map.of("name", flow.getIdentity(), "state", "running")).toList()));
         server.createContext("/", exchange -> {
             try { Thread.sleep(delay); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
             exchange.sendResponseHeaders(200, response.length);
-            try (var out = exchange.getResponseBody()) { out.write(response); }
+            try (OutputStream out = exchange.getResponseBody()) { out.write(response); }
         });
         String oldPort = module.getPort();
         module.setPropertyValue("port", Integer.toString(server.getAddress().getPort()));
@@ -205,12 +221,12 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
         try {
             report.put("polling.simulatedServerDelayMs", delay);
             measure("polling.slowServer.wall", () -> background(() -> ModuleControlClient.fetchFlowStates(module)));
-            var future = CompletableFuture.supplyAsync(() -> {
+            CompletableFuture<Map<String,String>> future = CompletableFuture.supplyAsync(() -> {
                 try { return ModuleControlClient.fetchFlowStates(module); }
                 catch (Exception e) { throw new CompletionException(e); }
             });
             measure("polling.edtHeartbeat", () -> {
-                var heartbeat = new CompletableFuture<Void>();
+                CompletableFuture<Void> heartbeat = new CompletableFuture<>();
                 javax.swing.SwingUtilities.invokeLater(() -> heartbeat.complete(null)); await(heartbeat); return null;
             });
             await(future);
@@ -230,7 +246,7 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
             consumer.setComponentName("Consumer " + i);
             Flow flow = TestFixtures.getUnbuiltFlow(pack).name(String.format(java.util.Locale.ROOT, "Flow %04d", i)).consumer(consumer).build();
             consumer.setContainingFlow(flow);
-            var elements = new ArrayList<FlowElement>();
+            ArrayList<FlowElement> elements = new ArrayList<>();
             for (int j = 1; j < components; j++) {
                 FlowElement element = j == components - 1
                         ? (i % 2 == 0 ? TestFixtures.getEmailProducer(pack) : TestFixtures.getJmsProducer(pack))
@@ -259,7 +275,7 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
     private void measure(String name, Callable<?> work) throws Exception { measure(name, work, ignored -> { }); }
     private void measure(String name, Callable<?> work, java.util.function.Consumer<Object> cleanup) throws Exception {
         for (int i = 0; i < warmups; i++) { blackhole = work.call(); cleanup.accept(blackhole); }
-        var values = new ArrayList<Double>(); timings.put(name, values);
+        ArrayList<Double> values = new ArrayList<>(); timings.put(name, values);
         for (int i = 0; i < samples; i++) {
             long start = System.nanoTime(); blackhole = work.call(); values.add((System.nanoTime() - start) / 1_000_000.0);
             cleanup.accept(blackhole);
@@ -288,7 +304,7 @@ public class StudioPerformanceTest extends HeavyPlatformTestCase {
     private void writeReport() throws Exception {
         Map<String, Object> metrics = new LinkedHashMap<>();
         timings.forEach((name, raw) -> {
-            var sorted = raw.stream().sorted().toList();
+            List<Double> sorted = raw.stream().sorted().toList();
             if (!sorted.isEmpty()) metrics.put(name, Map.of("samplesMs", raw, "p50Ms", sorted.get(sorted.size()/2),
                     "p95Ms", sorted.get(Math.min(sorted.size()-1, (int)Math.ceil(sorted.size()*.95)-1))));
         });

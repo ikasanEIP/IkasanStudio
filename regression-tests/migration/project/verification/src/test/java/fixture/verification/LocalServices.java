@@ -25,15 +25,15 @@ public final class LocalServices implements AutoCloseable {
     private void start() throws Exception {
         Path root=Files.createDirectories(Path.of("services").toAbsolutePath());
         Path ftpHome=Files.createDirectories(root.resolve("ftp"));Files.createDirectories(ftpHome.resolve("upload"));
-        var factory=new FtpServerFactory();var listener=new ListenerFactory();
+        FtpServerFactory factory=new FtpServerFactory();ListenerFactory listener=new ListenerFactory();
         listener.setServerAddress("127.0.0.1");listener.setPort(Boolean.getBoolean("fixture.fixedPorts")?2121:freePort());factory.addListener("default",listener.createListener());
-        var user=new BaseUser();user.setName("fixture");user.setPassword("fixture");user.setHomeDirectory(ftpHome.toString());user.setAuthorities(List.of(new WritePermission()));factory.getUserManager().save(user);
+        BaseUser user=new BaseUser();user.setName("fixture");user.setPassword("fixture");user.setHomeDirectory(ftpHome.toString());user.setAuthorities(List.of(new WritePermission()));factory.getUserManager().save(user);
         ftp=factory.createServer();ftp.start();
         int ftpPort=((org.apache.ftpserver.impl.DefaultFtpServer)ftp).getListener("default").getPort();
         for(String flow:List.of("ftpsender","ftpreceiver")) arguments.add("--"+flow+".ftp.consumer.remote-port="+ftpPort);
         Path sftpHome=Files.createDirectories(root.resolve("sftp"));Files.createDirectories(sftpHome.resolve("upload"));
         sftp=SshServer.setUpDefaultServer();sftp.setHost("127.0.0.1");sftp.setPort(Boolean.getBoolean("fixture.fixedPorts")?2222:0);
-        var hostKey=new SimpleGeneratorHostKeyProvider(root.resolve("host-key.ser"));hostKey.setAlgorithm("RSA");hostKey.setKeySize(2048);
+        SimpleGeneratorHostKeyProvider hostKey=new SimpleGeneratorHostKeyProvider(root.resolve("host-key.ser"));hostKey.setAlgorithm("RSA");hostKey.setKeySize(2048);
         sftp.setKeyPairProvider(hostKey);
         sftp.setSignatureFactories(List.of(org.apache.sshd.common.signature.BuiltinSignatures.rsaSHA512, org.apache.sshd.common.signature.BuiltinSignatures.rsaSHA256, org.apache.sshd.common.signature.BuiltinSignatures.rsa));
         sftp.setPasswordAuthenticator((name,password,session)->"fixture".equals(name)&&"fixture".equals(password));
@@ -50,7 +50,7 @@ public final class LocalServices implements AutoCloseable {
         smtpThread=new Thread(this::serveMail,"fixture-smtp");smtpThread.setDaemon(true);smtpThread.start();
     }
     int smtpPort(){return smtp.getLocalPort();}
-    private static int freePort() throws IOException { try(var socket=new ServerSocket(0,8,InetAddress.getLoopbackAddress())){return socket.getLocalPort();} }
+    private static int freePort() throws IOException { try(ServerSocket socket=new ServerSocket(0,8,InetAddress.getLoopbackAddress())){return socket.getLocalPort();} }
     public static void main(String[] args) throws Exception {
         System.setProperty("fixture.fixedPorts","true");
         LocalServices services=new LocalServices();
@@ -63,10 +63,10 @@ public final class LocalServices implements AutoCloseable {
         new java.util.concurrent.CountDownLatch(1).await();
     }
     private void serveMail(){
-        while(!smtp.isClosed())try(var client=smtp.accept()) {
+        while(!smtp.isClosed())try(java.net.Socket client=smtp.accept()) {
             client.setSoTimeout(5000);
-            var in=new BufferedReader(new InputStreamReader(client.getInputStream(),java.nio.charset.StandardCharsets.UTF_8));
-            var out=new PrintWriter(client.getOutputStream(),true);out.print("220 fixture ESMTP\r\n");out.flush();
+            BufferedReader in=new BufferedReader(new InputStreamReader(client.getInputStream(),java.nio.charset.StandardCharsets.UTF_8));
+            PrintWriter out=new PrintWriter(client.getOutputStream(),true);out.print("220 fixture ESMTP\r\n");out.flush();
             String line;boolean data=false;StringBuilder message=new StringBuilder();
             while((line=in.readLine())!=null){
                 if(data){if(line.equals(".")){mail.add(message.toString());data=false;out.print("250 stored\r\n");}else message.append(line).append('\n');}

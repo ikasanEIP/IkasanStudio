@@ -15,22 +15,26 @@ import javax.swing.JList;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
 import static org.mockito.Mockito.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import org.ikasan.studio.core.metapack.loading.MetaPackStore.Entry;
+import org.mockito.MockedStatic;
 
 public class MetaPackChooserHeavyTest extends HeavyPlatformTestCase {
     public void testInstallUsesWarmedChooserWhileModal() throws Exception {
-        var event = mock(AnActionEvent.class);
+        AnActionEvent event = mock(AnActionEvent.class);
         when(event.getProject()).thenReturn(getProject());
         assertWarmedChooser(() -> new InstallMetaPackAction().actionPerformed(event), "metaPack.ChooseJar");
     }
 
     @SuppressWarnings("unchecked")
     public void testUpdateUsesWarmedChooserWhileManagerIsModal() throws Exception {
-        var dialog = new MetaPackManagerDialog(getProject());
+        MetaPackManagerDialog dialog = new MetaPackManagerDialog(getProject());
         try {
-            var model = (DefaultListModel<MetaPackStore.Entry>) field(dialog, "model");
+            DefaultListModel<Entry> model = (DefaultListModel<MetaPackStore.Entry>) field(dialog, "model");
             model.addElement(new MetaPackStore.Entry("CustomPack", "1.0.0", Path.of("custom.jar"), null, null, "hash"));
             ((JList<?>) field(dialog, "packs")).setSelectedIndex(0);
-            var choose = MetaPackManagerDialog.class.getDeclaredMethod("chooseUpdate");
+            Method choose = MetaPackManagerDialog.class.getDeclaredMethod("chooseUpdate");
             choose.setAccessible(true);
             assertWarmedChooser(() -> {
                 try { choose.invoke(dialog); }
@@ -40,9 +44,9 @@ public class MetaPackChooserHeavyTest extends HeavyPlatformTestCase {
     }
 
     private void assertWarmedChooser(Runnable open, String titleKey) {
-        var captured = new AtomicReference<FileChooserDescriptor>();
-        var marker = new Object();
-        try (var chooser = mockStatic(FileChooser.class, invocation -> {
+        AtomicReference<FileChooserDescriptor> captured = new AtomicReference<>();
+        Object marker = new Object();
+        try (MockedStatic<FileChooser> chooser = mockStatic(FileChooser.class, invocation -> {
             if (invocation.getMethod().getName().equals("chooseFiles")) {
                 assertTrue(ApplicationManager.getApplication().isDispatchThread());
                 captured.set(invocation.getArgument(0));
@@ -61,7 +65,7 @@ public class MetaPackChooserHeavyTest extends HeavyPlatformTestCase {
     }
 
     private Object field(Object owner, String name) throws Exception {
-        var field = owner.getClass().getDeclaredField(name);
+        Field field = owner.getClass().getDeclaredField(name);
         field.setAccessible(true);
         return field.get(owner);
     }

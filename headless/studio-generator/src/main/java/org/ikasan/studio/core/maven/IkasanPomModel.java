@@ -11,6 +11,11 @@ import org.ikasan.studio.core.model.ModelUtils;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
+import org.apache.maven.model.Build;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginManagement;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest.BomImport;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest.MavenPlugin;
 
 /**
  * Used to model the top level pom for the project
@@ -43,22 +48,22 @@ public class IkasanPomModel {
         if (model.getProperties().containsKey("maven.compiler.release")) {
             addProperty("maven.compiler.release", manifest.javaVersion());
         }
-        for (var bom : manifest.dependencyManagement()) {
+        for (BomImport bom : manifest.dependencyManagement()) {
             addOrUpdateBomImport(bom.groupId(), bom.artifactId(), bom.version());
         }
-        for (var plugin : manifest.mavenPlugins()) addMissingPluginDefault(plugin);
+        for (MavenPlugin plugin : manifest.mavenPlugins()) addMissingPluginDefault(plugin);
     }
 
     /** Plugin management supplies defaults without activating plugins or replacing developer configuration. */
     private void addMissingPluginDefault(org.ikasan.studio.core.metapack.model.MetaPackManifest.MavenPlugin requested) {
         if (model.getBuild() == null) model.setBuild(new org.apache.maven.model.Build());
-        var build = model.getBuild();
+        Build build = model.getBuild();
         boolean explicit = build.getPlugins().stream().anyMatch(plugin -> samePlugin(plugin, requested)
                 && plugin.getVersion() != null && !plugin.getVersion().isBlank());
         if (explicit) return;
         if (build.getPluginManagement() == null) build.setPluginManagement(new org.apache.maven.model.PluginManagement());
-        var management = build.getPluginManagement();
-        var existing = management.getPlugins().stream().filter(plugin -> samePlugin(plugin, requested))
+        PluginManagement management = build.getPluginManagement();
+        Plugin existing = management.getPlugins().stream().filter(plugin -> samePlugin(plugin, requested))
                 .findFirst().orElse(null);
         if (existing != null && existing.getVersion() != null && !existing.getVersion().isBlank()) return;
         if (existing == null) {

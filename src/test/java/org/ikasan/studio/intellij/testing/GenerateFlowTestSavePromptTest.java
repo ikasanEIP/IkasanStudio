@@ -4,15 +4,18 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.vfs.VirtualFile;
 
 public class GenerateFlowTestSavePromptTest extends BasePlatformTestCase {
     public void testCancelListsFileAndPreservesUnsavedChanges() throws Exception {
-        var file = myFixture.getTempDirFixture().createFile("project/Scenario.txt", "original");
-        var manager = FileDocumentManager.getInstance();
-        var document = manager.getDocument(file);
+        VirtualFile file = myFixture.getTempDirFixture().createFile("project/Scenario.txt", "original");
+        FileDocumentManager manager = FileDocumentManager.getInstance();
+        Document document = manager.getDocument(file);
         assertNotNull(document);
         WriteCommandAction.runWriteCommandAction(getProject(), () -> document.setText("edited"));
-        var previous = TestDialogManager.setTestDialog(message -> {
+        TestDialog previous = TestDialogManager.setTestDialog(message -> {
             assertTrue(message.contains("Scenario.txt"));
             return 1;
         });
@@ -26,18 +29,18 @@ public class GenerateFlowTestSavePromptTest extends BasePlatformTestCase {
     }
 
     public void testSaveContinuesWithoutSavingAnotherProject() throws Exception {
-        var file = myFixture.getTempDirFixture().createFile("project/Scenario.txt", "original");
-        var other = myFixture.getTempDirFixture().createFile("other/Unrelated.txt", "original");
-        var manager = FileDocumentManager.getInstance();
-        var document = manager.getDocument(file);
-        var otherDocument = manager.getDocument(other);
+        VirtualFile file = myFixture.getTempDirFixture().createFile("project/Scenario.txt", "original");
+        VirtualFile other = myFixture.getTempDirFixture().createFile("other/Unrelated.txt", "original");
+        FileDocumentManager manager = FileDocumentManager.getInstance();
+        Document document = manager.getDocument(file);
+        Document otherDocument = manager.getDocument(other);
         assertNotNull(document);
         assertNotNull(otherDocument);
         WriteCommandAction.runWriteCommandAction(getProject(), () -> {
             document.setText("edited");
             otherDocument.setText("unrelated edit");
         });
-        var previous = TestDialogManager.setTestDialog(message -> {
+        TestDialog previous = TestDialogManager.setTestDialog(message -> {
             assertTrue(message.contains("Scenario.txt"));
             assertFalse(message.contains("Unrelated.txt"));
             return 0;

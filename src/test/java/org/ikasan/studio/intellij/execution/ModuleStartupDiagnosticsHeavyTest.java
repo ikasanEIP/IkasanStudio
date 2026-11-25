@@ -5,13 +5,20 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.Mockito.*;
+import com.intellij.execution.application.ApplicationConfiguration;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.ColoredProcessHandler;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessListener;
+import com.intellij.execution.process.ProcessOutputType;
+import java.nio.file.Path;
 
 public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
     public void testFailureIsVisibleWhileJvmRemainsAliveAndNewLaunchClearsIt() {
-        var service = new ModuleStartupDiagnostics(getProject());
+        ModuleStartupDiagnostics service = new ModuleStartupDiagnostics(getProject());
         try {
-            var first = mock(ProcessHandler.class);
-            var listener = attach(service, first);
+            ProcessHandler first = mock(ProcessHandler.class);
+            ProcessListener listener = attach(service, first);
             listener.onTextAvailable(new ProcessEvent(first,
                     "APPLICATION FAILED TO START\nWeb server failed to start. Port 12450 was already in use."),
                     ProcessOutputTypes.STDERR);
@@ -19,7 +26,7 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
             assertNotNull(message);
             assertTrue(message.contains("12450"));
             verify(first, never()).destroyProcess();
-            var second = mock(ProcessHandler.class);
+            ProcessHandler second = mock(ProcessHandler.class);
             attach(service, second);
             assertNull(service.message());
             listener.onTextAvailable(new ProcessEvent(first, "APPLICATION FAILED TO START"), ProcessOutputTypes.STDERR);
@@ -28,27 +35,27 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testRegisteredApplicationExtensionAttachesProjectStartupObserver() {
-        var configuration = new com.intellij.execution.application.ApplicationConfiguration(
+        ApplicationConfiguration configuration = new com.intellij.execution.application.ApplicationConfiguration(
                 "Studio startup regression", getProject(), com.intellij.execution.application.ApplicationConfigurationType.getInstance());
         configuration.setMainClassName("org.ikasan.studio.boot.Application");
-        var handler = mock(ProcessHandler.class);
+        ProcessHandler handler = mock(ProcessHandler.class);
         com.intellij.execution.JavaRunConfigurationExtensionManager.getInstance()
                 .attachExtensionsToProcess(configuration, handler, null);
-        var listener = ArgumentCaptor.forClass(ProcessListener.class);
+        ArgumentCaptor<ProcessListener> listener = ArgumentCaptor.forClass(ProcessListener.class);
         verify(handler, atLeastOnce()).addProcessListener(listener.capture());
-        for (var registered : listener.getAllValues()) registered.onTextAvailable(new ProcessEvent(handler,
+        for (ProcessListener registered : listener.getAllValues()) registered.onTextAvailable(new ProcessEvent(handler,
                 "APPLICATION FAILED TO START\nWeb server failed to start. Port 12450 was already in use."),
                 new ProcessOutputType("studio.startup.red", ProcessOutputType.STDOUT));
         assertNotNull(getProject().getService(ModuleStartupDiagnostics.class).message());
     }
 
     public void testFailureIsDetectedInIntellijColouredOutput() {
-        for (var base : new ProcessOutputType[]{ProcessOutputType.STDOUT, ProcessOutputType.STDERR}) {
-            var service = new ModuleStartupDiagnostics(getProject());
+        for (ProcessOutputType base : new ProcessOutputType[]{ProcessOutputType.STDOUT, ProcessOutputType.STDERR}) {
+            ModuleStartupDiagnostics service = new ModuleStartupDiagnostics(getProject());
             try {
-                var handler = mock(ProcessHandler.class);
-                var listener = attach(service, handler);
-                var coloured = new ProcessOutputType("studio.startup.red", base);
+                ProcessHandler handler = mock(ProcessHandler.class);
+                ProcessListener listener = attach(service, handler);
+                ProcessOutputType coloured = new ProcessOutputType("studio.startup.red", base);
                 org.junit.Assert.assertNotEquals(base, coloured);
                 listener.onTextAvailable(new ProcessEvent(handler,
                         "APPLICATION FAILED TO START\nWeb server failed to start. Port 12450 was already in use."), coloured);
@@ -60,8 +67,8 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testRealColouredProcessReportsFailureEvenWithZeroExitCode() throws Exception {
-        var directory = java.nio.file.Files.createTempDirectory("studio-coloured-startup");
-        var source = directory.resolve("StartupFailureFixture.java");
+        Path directory = java.nio.file.Files.createTempDirectory("studio-coloured-startup");
+        Path source = directory.resolve("StartupFailureFixture.java");
         java.nio.file.Files.writeString(source, """
                 public class StartupFailureFixture {
                     public static void main(String[] args) {
@@ -70,15 +77,15 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
                     }
                 }
                 """);
-        var service = new ModuleStartupDiagnostics(getProject());
+        ModuleStartupDiagnostics service = new ModuleStartupDiagnostics(getProject());
         java.util.concurrent.Future<Boolean> task = null;
         try {
             task = com.intellij.openapi.application.ApplicationManager.getApplication().executeOnPooledThread(
                     () -> {
                         String executable = java.nio.file.Path.of(System.getProperty("java.home"), "bin", "java").toString();
-                        var command = new com.intellij.execution.configurations.GeneralCommandLine(executable, source.toString())
+                        GeneralCommandLine command = new com.intellij.execution.configurations.GeneralCommandLine(executable, source.toString())
                                 .withWorkDirectory(directory.toFile());
-                        var handler = new ColoredProcessHandler(command);
+                        ColoredProcessHandler handler = new ColoredProcessHandler(command);
                         try {
                             service.attach(handler);
                             handler.startNotify();
@@ -101,10 +108,10 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testPrematureShutdownExplainsEvidenceAndUnknownCause() {
-        var service = new ModuleStartupDiagnostics(getProject());
+        ModuleStartupDiagnostics service = new ModuleStartupDiagnostics(getProject());
         try {
-            var handler = mock(ProcessHandler.class);
-            var listener = attach(service, handler);
+            ProcessHandler handler = mock(ProcessHandler.class);
+            ProcessListener listener = attach(service, handler);
             listener.onTextAvailable(new ProcessEvent(handler,
                     "o.i.m.s.ModuleInitialisationServiceImpl : Shutting down Quartz scheduler with bean name: scheduler"),
                     ProcessOutputTypes.STDOUT);
@@ -116,10 +123,10 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testExplicitOperatorStopDoesNotReportStartupFailure() {
-        var service = new ModuleStartupDiagnostics(getProject());
+        ModuleStartupDiagnostics service = new ModuleStartupDiagnostics(getProject());
         try {
-            var handler = mock(ProcessHandler.class);
-            var listener = attach(service, handler);
+            ProcessHandler handler = mock(ProcessHandler.class);
+            ProcessListener listener = attach(service, handler);
             listener.processWillTerminate(new ProcessEvent(handler), true);
             listener.onTextAvailable(new ProcessEvent(handler,
                     "o.i.m.s.ModuleInitialisationServiceImpl : Shutting down Quartz scheduler with bean name: scheduler"),
@@ -131,7 +138,7 @@ public class ModuleStartupDiagnosticsHeavyTest extends HeavyPlatformTestCase {
 
     private ProcessListener attach(ModuleStartupDiagnostics service, ProcessHandler handler) {
         service.attach(handler);
-        var listener = ArgumentCaptor.forClass(ProcessListener.class);
+        ArgumentCaptor<ProcessListener> listener = ArgumentCaptor.forClass(ProcessListener.class);
         verify(handler).addProcessListener(listener.capture());
         return listener.getValue();
     }

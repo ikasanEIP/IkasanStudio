@@ -67,7 +67,7 @@ public final class FlowTestPropertiesBanner extends EditorNotificationPanel impl
         checks.cancelAllRequests();
         checks.addRequest(() -> {
             try {
-                var checked = FlowTestPropertyWarnings.inspect(root);
+                FlowTestPropertyWarnings.Status checked = FlowTestPropertyWarnings.inspect(root);
                 ApplicationManager.getApplication().invokeLater(() -> {
                     if (disposed || project.isDisposed() || revision.get() != requested) return;
                     status = checked;

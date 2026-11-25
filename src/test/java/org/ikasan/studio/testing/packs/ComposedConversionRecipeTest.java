@@ -9,16 +9,20 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.*;
 import java.nio.file.*;
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 @org.junit.jupiter.api.Tag("packs")
 class ComposedConversionRecipeTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void everyRecipeRendersAndRetainsItsIdentity(String version) throws Exception {
-        var module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
-        var converter = TestFixtures.getCustomConverter(version);
-        var recipes = converter.getComponentMeta().getConversionRecipes();
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
+        FlowElement converter = TestFixtures.getCustomConverter(version);
+        List<ConversionRecipeMeta> recipes = converter.getComponentMeta().getConversionRecipes();
         assertTrue(recipes.size() >= 25);
-        for (var recipe : recipes) {
+        for (ConversionRecipeMeta recipe : recipes) {
             converter.setPropertyValue("conversionRecipeId", recipe.getId());
             converter.setPropertyValue("fromType", recipe.getSourceType());
             converter.setPropertyValue("toType", recipe.getTargetType());
@@ -44,8 +48,8 @@ class ComposedConversionRecipeTest extends AbstractGeneratorTestFixtures {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void invalidSavedRecipeFailsInsteadOfFallingBackAndConfigurationIsEscaped(String version) throws Exception {
-        var module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
-        var converter = TestFixtures.getCustomConverter(version);
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
+        FlowElement converter = TestFixtures.getCustomConverter(version);
         converter.setPropertyValue("conversionRecipeId", "not-in-this-pack");
         assertThrows(StudioGeneratorException.class, () -> generateUserImplementedComponentTemplate(version, module, converter));
         converter.setPropertyValue("conversionRecipeId", "string-to-email-attachment");
@@ -53,7 +57,7 @@ class ComposedConversionRecipeTest extends AbstractGeneratorTestFixtures {
         converter.setPropertyValue("toType", "org.ikasan.component.endpoint.email.producer.EmailPayload");
         converter.setPropertyValue("recipeFilename", "a\"b.txt");
         converter.setPropertyValue("recipeEmailBody", "line one\nline two");
-        var generated = generateUserImplementedComponentTemplate(version, module, converter);
+        String generated = generateUserImplementedComponentTemplate(version, module, converter);
         assertTrue(generated.contains("a\\\"b.txt"));
         assertTrue(generated.contains("line one\\nline two"));
         converter.setPropertyValue("toType", "java.lang.String");
@@ -71,11 +75,11 @@ class ComposedConversionRecipeTest extends AbstractGeneratorTestFixtures {
      */
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void ftpFilenamePolicyDefaultsToAutomaticAndEmailStaysIndependent(String version) throws Exception {
-        var module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
-        var converter = TestFixtures.getCustomConverter(version);
-        var recipes = converter.getComponentMeta().getConversionRecipes();
-        var ftpRecipe = recipes.stream().filter(r -> r.getId().equals("string-to-file-transfer-payload")).findFirst().orElseThrow();
-        var emailAttachmentRecipe = recipes.stream().filter(r -> r.getId().equals("string-to-email-attachment")).findFirst().orElseThrow();
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
+        FlowElement converter = TestFixtures.getCustomConverter(version);
+        List<ConversionRecipeMeta> recipes = converter.getComponentMeta().getConversionRecipes();
+        ConversionRecipeMeta ftpRecipe = recipes.stream().filter(r -> r.getId().equals("string-to-file-transfer-payload")).findFirst().orElseThrow();
+        ConversionRecipeMeta emailAttachmentRecipe = recipes.stream().filter(r -> r.getId().equals("string-to-email-attachment")).findFirst().orElseThrow();
 
         converter.setPropertyValue("conversionRecipeId", ftpRecipe.getId());
         converter.setPropertyValue("fromType", ftpRecipe.getSourceType());

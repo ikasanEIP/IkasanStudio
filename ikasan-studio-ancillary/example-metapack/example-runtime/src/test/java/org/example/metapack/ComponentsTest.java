@@ -3,7 +3,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 class ComponentsTest {
     @Test void convertsUsingStableLocaleAndRejectsNull() {
-        var converter = new UppercaseConverter();
+        UppercaseConverter converter = new UppercaseConverter();
         assertEquals("HELLO", converter.convert("Hello"));
         assertEquals("", converter.convert(""));
         assertThrows(NullPointerException.class, () -> converter.convert(null));

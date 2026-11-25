@@ -6,12 +6,15 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.*;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
+import java.nio.file.Path;
+import java.util.stream.Stream;
+import org.ikasan.studio.core.generator.GeneratedVerification.Bundle;
 
 class GeneratedVerificationFilesTest {
     @TempDir Path root;
     @Test void refreshWithoutArchivePreservesUnrelatedTestsAndRemovesOldStudioTests() throws Exception {
-        var directory = prepareExisting();
-        var bundle = new GeneratedVerification.Bundle("new root", "application", "new application",
+        Path directory = prepareExisting();
+        Bundle bundle = new GeneratedVerification.Bundle("new root", "application", "new application",
                 Map.of("java/org/ikasan/studio/verification/NewTest.java", "new test"));
         assertNull(GeneratedVerificationFiles.write(root, "original",
                 GeneratedVerificationFiles.snapshot(directory), bundle, false));
@@ -25,10 +28,10 @@ class GeneratedVerificationFilesTest {
     }
 
     @Test void failedUnarchivedRefreshRestoresTestsAndBothPoms() throws Exception {
-        var directory = prepareExisting();
+        Path directory = prepareExisting();
         String snapshot = GeneratedVerificationFiles.snapshot(directory);
         // Fail writing the root POM after the test tree and application POM were installed.
-        var bundle = new GeneratedVerification.Bundle(null, "application", "new application",
+        Bundle bundle = new GeneratedVerification.Bundle(null, "application", "new application",
                 Map.of("java/org/ikasan/studio/verification/NewTest.java", "new test"));
         assertThrows(NullPointerException.class,
                 () -> GeneratedVerificationFiles.write(root, "original", snapshot, bundle, false));
@@ -39,10 +42,10 @@ class GeneratedVerificationFilesTest {
     }
 
     @Test void unarchivedRefreshStillRejectsChangesAfterApproval() throws Exception {
-        var directory = prepareExisting();
+        Path directory = prepareExisting();
         String snapshot = GeneratedVerificationFiles.snapshot(directory);
         Files.writeString(directory.resolve("java/OtherTest.java"), "new developer edit");
-        var bundle = new GeneratedVerification.Bundle("new root", "application", "new application", Map.of());
+        Bundle bundle = new GeneratedVerification.Bundle("new root", "application", "new application", Map.of());
         assertThrows(java.io.IOException.class,
                 () -> GeneratedVerificationFiles.write(root, "original", snapshot, bundle, false));
         assertEquals("new developer edit", Files.readString(directory.resolve("java/OtherTest.java")));
@@ -61,7 +64,7 @@ class GeneratedVerificationFilesTest {
     }
 
     private void assertNoTemporaryOrArchiveFiles() throws Exception {
-        try (var paths = Files.walk(root)) {
+        try (Stream<Path> paths = Files.walk(root)) {
             assertFalse(paths.anyMatch(path -> path.getFileName().toString().startsWith(".verification-")
                     || path.getFileName().toString().startsWith("test.bak")));
         }
@@ -74,7 +77,7 @@ class GeneratedVerificationFilesTest {
         Files.writeString(root.resolve("generated/pom.xml"), "application");
         Files.createDirectories(root.resolve("generated/src/main"));
         Files.writeString(root.resolve("generated/src/main/application.txt"), "application source");
-        var bundle = new GeneratedVerification.Bundle("updated", "application", "application", Map.of("java/org/ikasan/studio/verification/Test.java", "generated", "resources/studio-verification/README.md", "readme"));
+        Bundle bundle = new GeneratedVerification.Bundle("updated", "application", "application", Map.of("java/org/ikasan/studio/verification/Test.java", "generated", "resources/studio-verification/README.md", "readme"));
         assertNull(GeneratedVerificationFiles.write(root, "original", "missing", bundle));
         String ignore = Files.readString(root.resolve(".gitignore"));
         assertTrue(ignore.startsWith("# Existing rules\ntarget/\n"));

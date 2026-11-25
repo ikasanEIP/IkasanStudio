@@ -13,6 +13,14 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.util.List;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
+import org.ikasan.studio.core.maven.IkasanPomModel;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 
 /**
  * Not many components result in the need for adsitional elements in the pom.
@@ -22,23 +30,23 @@ public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
     @org.junit.jupiter.params.provider.CsvSource({"V3.3.9,5.19.12", "V4.1.6,6.3.3", "V5.1.0,6.3.3"})
     void regenerationRepairsExistingJmsClientAndBrokerVersions(String pack, String patchedVersion) throws Exception {
-        var flow = TestFixtures.getUnbuiltFlow(pack)
+        Flow flow = TestFixtures.getUnbuiltFlow(pack)
                 .consumer(TrustedObjectPackagesTemplateTest.jms(pack, "Consumer")).build();
         flow.getFlowRoute().getFlowElements().add(TrustedObjectPackagesTemplateTest.jms(pack, "Producer"));
         Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, java.util.List.of(flow));
-        var model = new org.apache.maven.model.Model();
+        Model model = new org.apache.maven.model.Model();
         for (String artifact : java.util.List.of("activemq-client", "activemq-broker")) {
-            var old = new org.apache.maven.model.Dependency();
+            Dependency old = new org.apache.maven.model.Dependency();
             old.setGroupId("org.apache.activemq");
             old.setArtifactId(artifact);
             old.setVersion("5.16.3");
             model.addDependency(old);
         }
-        var pom = new org.ikasan.studio.core.maven.IkasanPomModel(model);
-        for (var dependency : module.getAllUniqueSortedJarDependencies()) {
+        IkasanPomModel pom = new org.ikasan.studio.core.maven.IkasanPomModel(model);
+        for (Dependency dependency : module.getAllUniqueSortedJarDependencies()) {
             pom.checkIfDependancyAlreadyExists(dependency);
         }
-        var jmsDependencies = model.getDependencies().stream()
+        List<Dependency> jmsDependencies = model.getDependencies().stream()
                 .filter(dependency -> "org.apache.activemq".equals(dependency.getGroupId())).toList();
         org.assertj.core.api.Assertions.assertThat(jmsDependencies).hasSize(2)
                 .allSatisfy(dependency -> org.assertj.core.api.Assertions.assertThat(dependency.getVersion())
@@ -50,9 +58,9 @@ public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"SFTP Consumer", "SFTP Producer"})
     void java11SftpComponentsDeclareEd25519Provider(String componentName) throws Exception {
-        var component = org.ikasan.studio.core.metapack.ComponentLibrary
+        ComponentMeta component = org.ikasan.studio.core.metapack.ComponentLibrary
                 .getIkasanComponentByKeyMandatory("V3.3.9", componentName);
-        var providers = component.getJarDependencies().stream()
+        List<Dependency> providers = component.getJarDependencies().stream()
                 .filter(dependency -> "org.bouncycastle".equals(dependency.getGroupId())
                         && "bcprov-jdk18on".equals(dependency.getArtifactId()))
                 .toList();
@@ -65,19 +73,19 @@ public class PomAffectingComponentsTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void nestedRoutesContributeDependenciesAndSpringImports(String pack) throws Exception {
-        var email = TestFixtures.getEmailProducer(pack);
-        var nestedEmail = TestFixtures.getEmailProducer(pack);
-        var support = org.ikasan.studio.core.model.ikasan.instance.FlowElement.flowElementBuilder()
+        FlowElement email = TestFixtures.getEmailProducer(pack);
+        FlowElement nestedEmail = TestFixtures.getEmailProducer(pack);
+        FlowElement support = org.ikasan.studio.core.model.ikasan.instance.FlowElement.flowElementBuilder()
                 .componentMeta(org.ikasan.studio.core.metapack.model.ComponentMeta.builder().name("Nested support").componentTypeMeta(email.getComponentMeta().getComponentTypeMeta())
                         .importResources(java.util.Set.of("classpath:nested-context.xml"))
                         .importConfigurationClasses(java.util.Set.of("example.NestedConfiguration"))
                         .build()).componentName("nested support").build();
-        var flow = TestFixtures.getUnbuiltFlow(pack)
+        Flow flow = TestFixtures.getUnbuiltFlow(pack)
                 .consumer(TestFixtures.getEventGeneratingConsumer(pack)).build();
-        var nested = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
+        FlowRoute nested = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
                 .flow(flow).routeName("nested")
                 .flowElements(java.util.List.of(nestedEmail, support)).build();
-        var branch = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
+        FlowRoute branch = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
                 .flow(flow).routeName("route2").flowElements(java.util.List.of(email))
                 .childRoutes(java.util.List.of(nested)).build();
         flow.setFlowRoute(org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()

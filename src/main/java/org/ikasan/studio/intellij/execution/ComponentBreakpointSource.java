@@ -3,6 +3,7 @@ package org.ikasan.studio.intellij.execution;
 import org.ikasan.studio.core.generator.GeneratorUtils;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import java.util.List;
 
 /** Pure source matching; no PSI, indexing or debugger evaluation on the paint thread. */
 final class ComponentBreakpointSource {
@@ -10,7 +11,7 @@ final class ComponentBreakpointSource {
 
     static FlowElement uniqueMatch(String basePath, Module module, String source) {
         if (module == null || module.getFlows() == null || source == null) return null;
-        var matches = module.getFlows().stream()
+        List<FlowElement> matches = module.getFlows().stream()
                 .flatMap(flow -> flow.getFlowElementsNoExternalEndPoints().stream())
                 .filter(element -> matches(basePath, module, element, source)).limit(2).toList();
         return matches.size() == 1 ? matches.get(0) : null;

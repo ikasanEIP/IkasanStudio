@@ -1,9 +1,9 @@
     @Test public void rollbackRedeliveryAndLaterDelivery() throws Exception {
         runTest(context -> {
-            try (var diagnostics = new RollbackDiagnostics()) {
-            var module = context.getBean(org.ikasan.spec.module.Module.class);
-            var flow = (org.ikasan.spec.flow.Flow) module.getFlow("Transport");
-            var probe = context.getBean(org.example.transport.transport.TransportConverter.class);
+            try (RollbackDiagnostics diagnostics = new RollbackDiagnostics()) {
+            org.ikasan.spec.module.Module module = context.getBean(org.ikasan.spec.module.Module.class);
+            org.ikasan.spec.flow.Flow flow = (org.ikasan.spec.flow.Flow) module.getFlow("Transport");
+            org.example.transport.transport.TransportConverter probe = context.getBean(org.example.transport.transport.TransportConverter.class);
             flow.start();
             try {
                 org.junit.Assert.assertEquals(org.ikasan.spec.flow.Flow.RUNNING, flow.getState());

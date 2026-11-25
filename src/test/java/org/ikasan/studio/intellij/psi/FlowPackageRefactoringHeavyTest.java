@@ -12,6 +12,14 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 
 import java.util.List;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ex.ApplicationEx;
+import com.intellij.openapi.editor.Document;
+import java.lang.reflect.Method;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.intellij.navigation.NavigationTarget;
+import org.ikasan.studio.intellij.psi.FlowPackageRefactoring.Plan;
+import org.ikasan.studio.ui.UiContext;
 
 public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
     private com.intellij.openapi.ui.TestDialog previousDialog;
@@ -56,15 +64,15 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
 
     // Test-only adapter: IntelliJ changed its internal unlock hook after our baseline SDK.
     private static void withoutWriteIntent(Runnable action) throws Exception {
-        var app = com.intellij.openapi.application.ApplicationManager.getApplication();
+        Application app = com.intellij.openapi.application.ApplicationManager.getApplication();
         try {
-            var legacy = app.getClass().getMethod("runUnlockingIntendedWrite", com.intellij.openapi.util.ThrowableComputable.class);
+            Method legacy = app.getClass().getMethod("runUnlockingIntendedWrite", com.intellij.openapi.util.ThrowableComputable.class);
             legacy.invoke(app, (com.intellij.openapi.util.ThrowableComputable<Void, RuntimeException>) () -> {
                 action.run(); return null;
             });
         } catch (NoSuchMethodException modern) {
             Object threading = app.getClass().getMethod("getThreadingSupport").invoke(app);
-            var contract = Class.forName("com.intellij.openapi.application.ThreadingSupport");
+            Class<?> contract = Class.forName("com.intellij.openapi.application.ThreadingSupport");
             contract.getMethod("releaseTheAcquiredWriteIntentLockThenExecuteActionAndTakeWriteIntentLockBack",
                     kotlin.jvm.functions.Function0.class).invoke(threading,
                     (kotlin.jvm.functions.Function0<kotlin.Unit>) () -> { action.run(); return kotlin.Unit.INSTANCE; });
@@ -72,7 +80,7 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testMovesHelpersAndUpdatesReferencesWithoutCommittingTheModelEarly() {
-        var plan = plan();
+        Plan plan = plan();
         assertEquals(2, plan.files().size());
         assertTrue(FlowPackageRefactoring.execute(plan));
         assertNull(file(oldPackage, "Implementation"));
@@ -84,9 +92,9 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
 
     // The internal test hook reproduces an EDT callback without the legacy implicit read lock.
     public void testRenameFromSwingCallbackWithoutImplicitReadAccess() throws Exception {
-        var plan = plan();
+        Plan plan = plan();
         myProject.getService(org.ikasan.studio.ui.UiContext.class).setIkasanModule(module);
-        var application = com.intellij.openapi.application.ex.ApplicationManagerEx.getApplicationEx();
+        ApplicationEx application = com.intellij.openapi.application.ex.ApplicationManagerEx.getApplicationEx();
         withoutWriteIntent(() -> {
             assertTrue(application.isDispatchThread());
             assertFalse(application.isReadAccessAllowed());
@@ -96,9 +104,9 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
         assertNull(file(oldPackage, "Implementation"));
         assertNotNull(file(newPackage, "Implementation"));
         assertTrue(text("outside", "Caller").contains(newPackage + ".Implementation"));
-        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);
-        var modelFile = base.findFileByRelativePath("generated/src/main/model/model.json");
+        VirtualFile modelFile = base.findFileByRelativePath("generated/src/main/model/model.json");
         assertNotNull(modelFile);
         String modelText = StudioProjectFiles.readVirtualFileAsString(modelFile);
         assertNotNull(modelText);
@@ -173,7 +181,7 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testExplicitExternalImplementationInFlowPackageBlocksRename() throws Exception {
-        var broker = TestFixtures.getBroker(TestFixtures.BASE_META_PACK);
+        FlowElement broker = TestFixtures.getBroker(TestFixtures.BASE_META_PACK);
         broker.setContainingFlow(flow);
         flow.getFlowRoute().getFlowElements().add(broker);
         broker.setPropertyValue("requiresStub", false);
@@ -195,13 +203,13 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testRenamePersistsModelAndReloadNavigationFindsMovedImplementation() throws Exception {
-        var broker = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(
+        FlowElement broker = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(
                 TestFixtures.BASE_META_PACK,
                 org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(TestFixtures.BASE_META_PACK, "Broker"),
                 flow, flow.getFlowRoute(), "Implementation");
         broker.setPropertyValue("userImplementedClassName", "Implementation");
         flow.getFlowRoute().getFlowElements().add(broker);
-        var context = myProject.getService(org.ikasan.studio.ui.UiContext.class);
+        UiContext context = myProject.getService(org.ikasan.studio.ui.UiContext.class);
         context.setIkasanModule(module);
         context.setViewHandlerFactory(new org.ikasan.studio.ui.viewmodel.ViewHandlerCache(myProject));
         assertTrue(FlowPackageRefactoring.renameAndSave(plan(), module, flow, "Renamed Flow"));
@@ -212,12 +220,12 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
                 "package " + flowPackage + "; public class " + flow.getJavaClassName() + " {}", null);
         new org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer(myProject).initialisePsiFileHandles();
         com.intellij.openapi.application.impl.NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
-        var target = org.ikasan.studio.ui.viewmodel.ViewHandlerCache.getFlowComponentViewHandler(myProject, broker).getCodeNavigationTarget();
+        NavigationTarget target = org.ikasan.studio.ui.viewmodel.ViewHandlerCache.getFlowComponentViewHandler(myProject, broker).getCodeNavigationTarget();
         assertTrue(target.isPresent());
         assertEquals(file(newPackage, "Implementation"), target.psiFile().getVirtualFile());
-        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);
-        var modelFile = base.findFileByRelativePath("generated/src/main/model/model.json");
+        VirtualFile modelFile = base.findFileByRelativePath("generated/src/main/model/model.json");
         assertNotNull(modelFile);
         String modelText = StudioProjectFiles.readVirtualFileAsString(modelFile);
         assertNotNull(modelText);
@@ -225,7 +233,7 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testModelSaveFailureRestoresCodeAndName() {
-        var context = myProject.getService(org.ikasan.studio.ui.UiContext.class);
+        UiContext context = myProject.getService(org.ikasan.studio.ui.UiContext.class);
         context.setIkasanModule(module);
         StudioProjectFiles.createFileWithDirectories(myProject, "/generated/src/main/model/model.json", "{broken", null);
         try {
@@ -239,10 +247,10 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testRenamingBackRestoresModelNameAndImplementationPackage() {
-        var context = myProject.getService(org.ikasan.studio.ui.UiContext.class);
+        UiContext context = myProject.getService(org.ikasan.studio.ui.UiContext.class);
         context.setIkasanModule(module);
         assertTrue(FlowPackageRefactoring.renameAndSave(plan(), module, flow, "Renamed Flow"));
-        var reverse = ReadAction.compute(() -> FlowPackageRefactoring.inspect(myProject, module, flow, "Original Flow"));
+        Plan reverse = ReadAction.compute(() -> FlowPackageRefactoring.inspect(myProject, module, flow, "Original Flow"));
         assertTrue(FlowPackageRefactoring.renameAndSave(reverse, module, flow, "Original Flow"));
         assertEquals("Original Flow", flow.getIdentity());
         assertNotNull(file(oldPackage, "Implementation"));
@@ -262,7 +270,7 @@ public class FlowPackageRefactoringHeavyTest extends HeavyPlatformTestCase {
     private VirtualFile file(String pkg, String name) { return StudioProjectFiles.getUserImplementedClassFile(myProject, pkg, name); }
     private String text(String pkg, String name) {
         VirtualFile file = file(pkg, name);
-        var document = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance().getDocument(file);
+        Document document = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance().getDocument(file);
         return document != null ? document.getText() : StudioProjectFiles.readVirtualFileAsString(file);
     }
 }

@@ -45,7 +45,7 @@ public final class LocalSftpTestServer implements AutoCloseable {
             fixture.server = SshServer.setUpDefaultServer();
             fixture.server.setHost("127.0.0.1");
             fixture.server.setPort(0);
-            var keys = new SimpleGeneratorHostKeyProvider(temporary.resolve("host-key.ser"));
+            SimpleGeneratorHostKeyProvider keys = new SimpleGeneratorHostKeyProvider(temporary.resolve("host-key.ser"));
             keys.setAlgorithm("RSA");
             keys.setKeySize(2048);
             fixture.server.setKeyPairProvider(keys);

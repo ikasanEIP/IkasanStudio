@@ -3,22 +3,25 @@ package org.ikasan.studio.intellij.ai;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.openapi.Disposable;
+import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
 public class StudioAiProposalBannerTest extends HeavyPlatformTestCase {
     public void testSuccessfulApplicationClearsEarlierBannerButFailureAndNewerProposalDoNot() {
-        var properties = PropertiesComponent.getInstance(getProject());
-        var inbox = getProject().getService(StudioAiProposalInboxService.class);
-        var owner = Disposer.newDisposable();
+        PropertiesComponent properties = PropertiesComponent.getInstance(getProject());
+        StudioAiProposalInboxService inbox = getProject().getService(StudioAiProposalInboxService.class);
+        Disposable owner = Disposer.newDisposable();
         try {
             properties.setValue(StudioAiProposalInboxService.PENDING, "old-draft.studio-proposal.json");
             properties.setValue(StudioAiProposalInboxService.REVISION, "old");
-            var banner = new StudioAiProposalBanner(getProject(), owner);
-            var failed = new java.util.concurrent.CompletableFuture<Void>();
+            StudioAiProposalBanner banner = new StudioAiProposalBanner(getProject(), owner);
+            CompletableFuture<Void> failed = new java.util.concurrent.CompletableFuture<>();
             inbox.clearPreviousAfterSuccess(failed);
             failed.completeExceptionally(new IllegalStateException("Generation failed"));
             com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents();
             assertTrue(banner.isVisible());
-            var generation = new java.util.concurrent.CompletableFuture<Void>();
+            CompletableFuture<Void> generation = new java.util.concurrent.CompletableFuture<>();
             inbox.clearPreviousAfterSuccess(generation);
             assertTrue(banner.isVisible());
             generation.complete(null);
@@ -28,7 +31,7 @@ public class StudioAiProposalBannerTest extends HeavyPlatformTestCase {
 
             properties.setValue(StudioAiProposalInboxService.PENDING, "old-draft.studio-proposal.json");
             properties.setValue(StudioAiProposalInboxService.REVISION, "old");
-            var delayed = new java.util.concurrent.CompletableFuture<Void>();
+            CompletableFuture<Void> delayed = new java.util.concurrent.CompletableFuture<>();
             inbox.clearPreviousAfterSuccess(delayed);
             properties.setValue(StudioAiProposalInboxService.PENDING, "new-request.studio-proposal.json");
             properties.setValue(StudioAiProposalInboxService.REVISION, "new");
@@ -45,21 +48,21 @@ public class StudioAiProposalBannerTest extends HeavyPlatformTestCase {
     }
 
     public void testPendingProposalRestoresAcrossEditorRecreationAndDismissPersists() {
-        var properties = PropertiesComponent.getInstance(getProject());
+        PropertiesComponent properties = PropertiesComponent.getInstance(getProject());
         properties.setValue(StudioAiProposalInboxService.PENDING, "rename.studio-proposal.json");
         properties.setValue(StudioAiProposalInboxService.REVISION, "revision-1");
-        var owner = Disposer.newDisposable();
+        Disposable owner = Disposer.newDisposable();
         try {
-            var banner = new StudioAiProposalBanner(getProject(), owner);
+            StudioAiProposalBanner banner = new StudioAiProposalBanner(getProject(), owner);
             assertTrue(banner.isVisible());
-            var inbox = getProject().getService(StudioAiProposalInboxService.class);
+            StudioAiProposalInboxService inbox = getProject().getService(StudioAiProposalInboxService.class);
             assertEquals("rename.studio-proposal.json", inbox.getPendingProposal().getFileName().toString());
             Disposer.dispose(owner);
             owner = Disposer.newDisposable();
-            var reopened = new StudioAiProposalBanner(getProject(), owner);
+            StudioAiProposalBanner reopened = new StudioAiProposalBanner(getProject(), owner);
             assertTrue(reopened.isVisible());
             // A newly constructed service restores from the same persisted workspace properties.
-            var restored = new StudioAiProposalInboxService(getProject());
+            StudioAiProposalInboxService restored = new StudioAiProposalInboxService(getProject());
             assertEquals(inbox.getPendingProposal(), restored.getPendingProposal());
             inbox.dismissPending();
             assertFalse(reopened.isVisible());
@@ -73,17 +76,17 @@ public class StudioAiProposalBannerTest extends HeavyPlatformTestCase {
     }
 
     public void testOlderReviewCannotClearNewerProposalAndUpdatesRefreshVisibleBanner() {
-        var properties = PropertiesComponent.getInstance(getProject());
-        var owner = Disposer.newDisposable();
+        PropertiesComponent properties = PropertiesComponent.getInstance(getProject());
+        Disposable owner = Disposer.newDisposable();
         try {
-            var banner = new StudioAiProposalBanner(getProject(), owner);
+            StudioAiProposalBanner banner = new StudioAiProposalBanner(getProject(), owner);
             assertFalse(banner.isVisible());
             properties.setValue(StudioAiProposalInboxService.PENDING, "rename.studio-proposal.json");
             properties.setValue(StudioAiProposalInboxService.REVISION, "revision-2");
             getProject().getMessageBus().syncPublisher(StudioAiProposalInboxService.CHANGED).run();
             assertTrue(banner.isVisible());
-            var inbox = getProject().getService(StudioAiProposalInboxService.class);
-            var path = inbox.getPendingProposal();
+            StudioAiProposalInboxService inbox = getProject().getService(StudioAiProposalInboxService.class);
+            Path path = inbox.getPendingProposal();
             inbox.dismiss(path, "revision-1");
             assertTrue(banner.isVisible());
             inbox.dismiss(path, "revision-2");

@@ -13,12 +13,18 @@ import org.ikasan.studio.ui.UiContext;
 import java.util.ArrayList;
 import java.util.Set;
 import static org.mockito.Mockito.*;
+import com.intellij.execution.ExecutionListener;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.application.ApplicationConfiguration;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 public class HarnessOverrideServiceHeavyTest extends HeavyPlatformTestCase {
     public void testDebugVariantsPreserveExistingSavedCombinations() {
-        var service = getProject().getService(IkasanRunConfigurationService.class);
-        var first = service.findOrCreateConfiguration(getModule(), true, Set.of("flow.email"));
-        var second = service.findOrCreateConfiguration(getModule(), true, Set.of("flow.sftp"));
+        IkasanRunConfigurationService service = getProject().getService(IkasanRunConfigurationService.class);
+        RunnerAndConfigurationSettings first = service.findOrCreateConfiguration(getModule(), true, Set.of("flow.email"));
+        RunnerAndConfigurationSettings second = service.findOrCreateConfiguration(getModule(), true, Set.of("flow.sftp"));
         assertNotSame(first, second);
         assertSame(first, service.findOrCreateConfiguration(getModule(), true, Set.of("flow.email")));
         assertEquals(Set.of("flow.email"), HarnessOverrideService.explicitSelection(
@@ -28,32 +34,32 @@ public class HarnessOverrideServiceHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testChangingNextLaunchDoesNotChangeRunningSnapshotOrComponentValues() throws Exception {
-        var producer = TestFixtures.getEmailProducer("V4.1.6");
+        FlowElement producer = TestFixtures.getEmailProducer("V4.1.6");
         producer.setComponentName("Send email");
         producer.setPropertyValue("mailSmtpHost", "dev.example.com");
         producer.setPropertyValue("mailSmtpPort", 465);
-        var flow = new Flow("V4.1.6");
+        Flow flow = new Flow("V4.1.6");
         flow.setName("Orders");
         producer.setContainingFlow(flow);
         producer.setContainingFlowRoute(flow.getFlowRoute());
         flow.getFlowRoute().getFlowElements().add(producer);
-        var module = TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", new ArrayList<>(java.util.List.of(flow)));
+        Module module = TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", new ArrayList<>(java.util.List.of(flow)));
         getProject().getService(UiContext.class).setIkasanModule(module);
-        var manager = RunManager.getInstance(getProject());
-        var settings = manager.createConfiguration("Harness selection test",
+        RunManager manager = RunManager.getInstance(getProject());
+        RunnerAndConfigurationSettings settings = manager.createConfiguration("Harness selection test",
                 ApplicationConfigurationType.getInstance().getConfigurationFactories()[0]);
-        var app = (ApplicationConfiguration) settings.getConfiguration();
+        ApplicationConfiguration app = (ApplicationConfiguration) settings.getConfiguration();
         app.setMainClassName("org.ikasan.studio.boot.Application");
         manager.addConfiguration(settings); manager.setSelectedConfiguration(settings);
-        var service = getProject().getService(HarnessOverrideService.class);
+        HarnessOverrideService service = getProject().getService(HarnessOverrideService.class);
         String id = HarnessOverrides.id(producer);
         service.saveSelection(app, Set.of(id));
         assertTrue(service.isEnabled(producer));
         app.putUserData(HarnessOverrideService.LAUNCH_SELECTION, Set.of(id));
-        var environment = mock(ExecutionEnvironment.class);
+        ExecutionEnvironment environment = mock(ExecutionEnvironment.class);
         when(environment.getRunProfile()).thenReturn(app);
-        var handler = mock(ProcessHandler.class);
-        var listener = getProject().getMessageBus().syncPublisher(ExecutionManager.EXECUTION_TOPIC);
+        ProcessHandler handler = mock(ProcessHandler.class);
+        ExecutionListener listener = getProject().getMessageBus().syncPublisher(ExecutionManager.EXECUTION_TOPIC);
         listener.processStarted("Run", environment, handler);
         assertTrue(service.isActive(producer));
         service.saveSelection(app, Set.of());

@@ -6,6 +6,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.FileTime;
 import java.util.Map;
 import static org.assertj.core.api.Assertions.*;
+import org.ikasan.studio.intellij.ai.StudioAiProposalInbox.Stamp;
 
 class StudioAiProposalInboxTest {
     @TempDir Path root;
@@ -13,7 +14,7 @@ class StudioAiProposalInboxTest {
     @Test void ignoresOldFilesAndAnnouncesNewFilesOnlyAfterTheyStopChanging() throws Exception {
         Path folder = Files.createDirectory(root.resolve("ai-proposals"));
         Path old = Files.writeString(folder.resolve("old.studio-proposal.json"), "old");
-        var inbox = new StudioAiProposalInbox();
+        StudioAiProposalInbox inbox = new StudioAiProposalInbox();
         assertThat(inbox.observe(StudioAiProposalInbox.scan(folder))).isEmpty();
         assertThat(inbox.observe(StudioAiProposalInbox.scan(folder))).isEmpty();
         Path fresh = Files.writeString(folder.resolve("new.studio-proposal.json"), "partial");
@@ -29,7 +30,7 @@ class StudioAiProposalInboxTest {
 
     @Test void supportsMissingFolderAndAtomicRenameAndIgnoresOtherFilesAndDirectories() throws Exception {
         Path folder = root.resolve("ai-proposals");
-        var inbox = new StudioAiProposalInbox();
+        StudioAiProposalInbox inbox = new StudioAiProposalInbox();
         assertThat(inbox.observe(StudioAiProposalInbox.scan(folder))).isEmpty();
         Files.createDirectory(folder);
         Path temporary = Files.writeString(folder.resolve("proposal.tmp"), "ready");
@@ -46,12 +47,12 @@ class StudioAiProposalInboxTest {
 
     @Test void latestUsesModificationTimeWithDeterministicTiesAndKeepsProjectsSeparate() {
         Path a = root.resolve("a.studio-proposal.json"), b = root.resolve("b.studio-proposal.json");
-        var older = new StudioAiProposalInbox.Stamp(1, FileTime.fromMillis(1));
-        var newer = new StudioAiProposalInbox.Stamp(1, FileTime.fromMillis(2));
+        Stamp older = new StudioAiProposalInbox.Stamp(1, FileTime.fromMillis(1));
+        Stamp newer = new StudioAiProposalInbox.Stamp(1, FileTime.fromMillis(2));
         assertThat(StudioAiProposalInbox.latest(Map.of(a, newer, b, older))).contains(a);
         assertThat(StudioAiProposalInbox.latest(Map.of(a, newer, b, newer))).contains(b);
-        var first = new StudioAiProposalInbox();
-        var second = new StudioAiProposalInbox();
+        StudioAiProposalInbox first = new StudioAiProposalInbox();
+        StudioAiProposalInbox second = new StudioAiProposalInbox();
         first.observe(Map.of()); second.observe(Map.of());
         first.observe(Map.of(a, newer));
         assertThat(second.observe(Map.of())).isEmpty();

@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME;
 import static org.ikasan.studio.intellij.project.StudioProjectFiles.replaceJsonModelFileSafely;
 import static org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage;
+import org.ikasan.studio.intellij.project.NavigationTextReader.Snapshot;
 
 /**
  * Encapsulates the Intellij representation of the ikasan Module
@@ -587,9 +588,9 @@ public class GeneratedProjectSynchronizer {
     private void withNavigationText(java.util.function.Supplier<PsiFile> resolve,
                                     java.util.function.Consumer<NavigationTextReader.Snapshot> apply) {
         UiContext context = project.getService(UiContext.class);
-        var owner = context.getViewHandlerFactory();
-        var module = context.getIkasanModule();
-        var generation = context.getLatestGeneration();
+        ViewHandlerCache owner = context.getViewHandlerFactory();
+        Module module = context.getIkasanModule();
+        CompletableFuture<Void> generation = context.getLatestGeneration();
         if (owner == null) return;
         Runnable read = () -> NavigationTextReader.read(project, resolve, snapshot -> {
             if (context.getViewHandlerFactory() == owner && context.getIkasanModule() == module
@@ -617,12 +618,12 @@ public class GeneratedProjectSynchronizer {
 
     private void setFlowComponentNavigationTargets(Flow ikasanFlow, java.util.function.Supplier<PsiFile> resolve) {
         UiContext context = project.getService(UiContext.class);
-        var owner = context.getViewHandlerFactory();
-        var module = context.getIkasanModule();
-        var generation = context.getLatestGeneration();
+        ViewHandlerCache owner = context.getViewHandlerFactory();
+        Module module = context.getIkasanModule();
+        CompletableFuture<Void> generation = context.getLatestGeneration();
         if (owner == null) return;
         Runnable read = () -> NavigationTextReader.readComputed(project, () -> {
-            var flowSnapshot = NavigationTextReader.readSnapshot(resolve.get());
+            Snapshot flowSnapshot = NavigationTextReader.readSnapshot(resolve.get());
             if (flowSnapshot == null) return null;
             java.util.List<ComponentCodeTarget> targets = new java.util.ArrayList<>();
             VirtualFile base = StudioProjectFiles.getProjectBaseDir(project);
@@ -645,7 +646,7 @@ public class GeneratedProjectSynchronizer {
                                 + GeneratorUtils.getUserImplementedClassesPackageName(module, ikasanFlow).replace('.', '/')
                                 + "/" + nameOfClass + ".java";
                         VirtualFile file = base.findFileByRelativePath(path);
-                        var implementation = file == null || !file.isValid() ? null
+                        Snapshot implementation = file == null || !file.isValid() ? null
                                 : NavigationTextReader.readSnapshot(PsiManager.getInstance(project).findFile(file));
                         if (implementation != null) target = implementation.target();
                     }
@@ -657,7 +658,7 @@ public class GeneratedProjectSynchronizer {
             if (targets == null || context.getViewHandlerFactory() != owner || context.getIkasanModule() != module
                     || context.getLatestGeneration() != generation) return;
             for (ComponentCodeTarget entry : targets) {
-                var handler = ViewHandlerCache.getFlowComponentViewHandler(project, entry.component());
+                IkasanFlowComponentViewHandler handler = ViewHandlerCache.getFlowComponentViewHandler(project, entry.component());
                 if (handler != null) handler.setCodeNavigationTarget(entry.target());
             }
         });

@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
+import org.ikasan.studio.core.metapack.ModelPackRepair.Plan;
 
 class ModelPackRepairTest {
     @TempDir Path directory;
@@ -26,16 +27,17 @@ class ModelPackRepairTest {
     }
 
     @Test void revisionRepairChangesOnlyTheLockAndPreservesExactOriginalBackup() throws Exception {
-        var source = document();
+        ObjectNode source = document();
         ((ObjectNode) source.get("studio")).put("metaPackRevision", "0.1.0-SNAPSHOT");
         String original = source.toPrettyString();
-        var plan = ModelPackRepair.preview(original);
-        var expected = source.deepCopy();
+        Plan plan = ModelPackRepair.preview(original);
+        assertThat(plan.isRevisionUpdate()).isTrue();
+        ObjectNode expected = source.deepCopy();
         ((ObjectNode) expected.get("studio")).put("metaPackRevision",
                 ComponentLibrary.getMetaPackManifest("V5.1.0").packVersion());
         assertThat(json.readTree(plan.targetJson())).isEqualTo(expected);
         assertThat(source.path("studio").path("metaPackRevision").asText()).isEqualTo("0.1.0-SNAPSHOT");
-        var model = directory.resolve("model.json");
+        Path model = directory.resolve("model.json");
         Files.writeString(model, original);
         ModelPackRepair.apply(model, plan);
         assertThat(Files.readString(directory.resolve("model.json.bak.1"))).isEqualTo(original);
@@ -43,11 +45,12 @@ class ModelPackRepairTest {
     }
 
     @Test void retiredSnapshotRepairChangesOnlyReviewedIdentityFields() throws Exception {
-        var source = document();
+        ObjectNode source = document();
         ((ObjectNode) source.get("studio")).put("metaPack", "V5.0.1-SNAPSHOT").put("metaPackRevision", "0.1.0-SNAPSHOT");
         ((ObjectNode) source.get("module")).put("ikasanVersion", "5.0.1-SNAPSHOT");
-        var expected = document();
-        var plan = ModelPackRepair.preview(source.toString());
+        ObjectNode expected = document();
+        Plan plan = ModelPackRepair.preview(source.toString());
+        assertThat(plan.isRevisionUpdate()).isFalse();
         assertThat(plan.previousRuntime()).isEqualTo("5.0.1-SNAPSHOT");
         assertThat(plan.targetRuntime()).isEqualTo("5.1.0");
         assertThat(plan.javaVersion()).isEqualTo("25");
@@ -55,7 +58,7 @@ class ModelPackRepairTest {
     }
 
     @Test void rejectsHealthyUnknownOrAmbiguousRuntimeWithoutGuessing() throws Exception {
-        var source = document();
+        ObjectNode source = document();
         assertThatThrownBy(() -> ModelPackRepair.preview(source.toString())).hasMessageContaining("already selects");
         ((ObjectNode) source.get("studio")).put("metaPack", "UnknownCustomerPack");
         assertThatThrownBy(() -> ModelPackRepair.preview(source.toString())).isInstanceOf(Exception.class);
@@ -65,7 +68,7 @@ class ModelPackRepairTest {
     }
 
     @Test void rejectsInvalidModelEvenWhenRevisionCouldBeChanged() throws Exception {
-        var source = document();
+        ObjectNode source = document();
         ((ObjectNode) source.get("studio")).put("metaPackRevision", "old");
         ((ObjectNode) source.get("module")).remove("flows");
         assertThatThrownBy(() -> ModelPackRepair.preview(source.toString())).isInstanceOf(Exception.class);
@@ -75,15 +78,15 @@ class ModelPackRepairTest {
     }
 
     @Test void staleAndForgedPlansCannotOverwriteTheModel() throws Exception {
-        var source = document();
+        ObjectNode source = document();
         ((ObjectNode) source.get("studio")).put("metaPackRevision", "old");
-        var plan = ModelPackRepair.preview(source.toString());
-        var model = directory.resolve("model.json");
+        Plan plan = ModelPackRepair.preview(source.toString());
+        Path model = directory.resolve("model.json");
         Files.writeString(model, source + "\n");
         assertThatThrownBy(() -> ModelPackRepair.apply(model, plan)).hasMessageContaining("changed after review");
         assertThat(Files.exists(directory.resolve("model.json.bak.1"))).isFalse();
         Files.writeString(model, plan.sourceJson());
-        var forged = new ModelPackRepair.Plan(plan.previousPack(), plan.targetPack(), plan.previousRevision(), plan.targetRevision(),
+        Plan forged = new ModelPackRepair.Plan(plan.previousPack(), plan.targetPack(), plan.previousRevision(), plan.targetRevision(),
                 plan.previousRuntime(), plan.targetRuntime(), plan.javaVersion(), plan.sourceJson(), "{}");
         assertThatThrownBy(() -> ModelPackRepair.apply(model, forged)).hasMessageContaining("review changed");
         assertThat(Files.readString(model)).isEqualTo(plan.sourceJson());

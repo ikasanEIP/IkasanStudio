@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 class IkasanStudioSettingsConfigurableTest {
     @Test
@@ -20,8 +23,8 @@ class IkasanStudioSettingsConfigurableTest {
                 for (float scale : new float[] {1.25f, 1.5f, 2f}) {
                     com.intellij.ui.scale.JBUIScale.setUserScaleFactorForTest(scale);
                     assertThat(com.intellij.ui.scale.JBUIScale.scale(1f)).isEqualTo(scale);
-                    var configurable = new IkasanStudioSettingsConfigurable();
-                    var scroll = (javax.swing.JScrollPane) configurable.createComponent();
+                    IkasanStudioSettingsConfigurable configurable = new IkasanStudioSettingsConfigurable();
+                    JScrollPane scroll = (javax.swing.JScrollPane) configurable.createComponent();
                     assertThat(scroll).isNotNull();
                     scroll.setSize(320, 240);
                     layoutUsingAssignedSizes(scroll);
@@ -114,13 +117,13 @@ class IkasanStudioSettingsConfigurableTest {
     @Test
     void aiSectionFillsWidthAndDescriptionsRewrapWhenSettingsResize() throws Exception {
         javax.swing.SwingUtilities.invokeAndWait(() -> {
-            var configurable = new IkasanStudioSettingsConfigurable();
-            var scroll = (javax.swing.JScrollPane) configurable.createComponent();
-            var sections = descendantsOfType(scroll, javax.swing.JPanel.class).stream()
+            IkasanStudioSettingsConfigurable configurable = new IkasanStudioSettingsConfigurable();
+            JScrollPane scroll = (javax.swing.JScrollPane) configurable.createComponent();
+            List<JPanel> sections = descendantsOfType(scroll, javax.swing.JPanel.class).stream()
                     .filter(panel -> panel.getBorder() instanceof javax.swing.border.TitledBorder).toList();
-            var ai = sections.stream().filter(panel -> ((javax.swing.border.TitledBorder) panel.getBorder())
+            JPanel ai = sections.stream().filter(panel -> ((javax.swing.border.TitledBorder) panel.getBorder())
                     .getTitle().equals(org.ikasan.studio.ui.StudioBundle.message("ai.SettingsHeading"))).findFirst().orElseThrow();
-            var note = descendantsOfType(ai, javax.swing.JLabel.class).stream()
+            JLabel note = descendantsOfType(ai, javax.swing.JLabel.class).stream()
                     .filter(label -> label.getText().startsWith("<html>")).findFirst().orElseThrow();
             int narrowHeight = 0;
             for (int width : new int[] {520, 1100, 520}) {

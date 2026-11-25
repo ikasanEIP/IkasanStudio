@@ -11,6 +11,10 @@ import org.ikasan.studio.ui.UiContext;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.ArrayList;
+import org.ikasan.studio.intellij.execution.HarnessOverrideService;
+import org.ikasan.studio.intellij.runtime.TestFtpServerService;
+import org.ikasan.studio.intellij.runtime.TestSftpServerService;
 
 /**
  * Project-aware aggregate start/stop control for test harnesses referenced by the current model. Start and Stop
@@ -68,17 +72,17 @@ public final class HarnessControlActions {
     /** Availability and ownership are separate; cached reads only on the EDT. */
     public HarnessStatus status() {
         if (project.isDisposed()) return new HarnessStatus(List.of(), List.of());
-        var running = new java.util.ArrayList<String>();
-        var shared = new java.util.ArrayList<String>();
-        var ftp = project.getService(org.ikasan.studio.intellij.runtime.TestFtpServerService.class);
-        var sftp = project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
-        var mail = project.getService(TestMailServerSessionService.class);
+        ArrayList<String> running = new java.util.ArrayList<>();
+        ArrayList<String> shared = new java.util.ArrayList<>();
+        TestFtpServerService ftp = project.getService(org.ikasan.studio.intellij.runtime.TestFtpServerService.class);
+        TestSftpServerService sftp = project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
+        TestMailServerSessionService mail = project.getService(TestMailServerSessionService.class);
         if (ftp != null && ftp.isRunning()) running.add("FTP");
         if (sftp != null && sftp.isRunning()) running.add("SFTP");
         if (mail != null && mail.hasAnyOwnedListening()) running.add("SMTP");
         else if (mail != null) {
-            var context = project.getService(UiContext.class);
-            var module = context == null ? null : context.getIkasanModule();
+            UiContext context = project.getService(UiContext.class);
+            Module module = context == null ? null : context.getIkasanModule();
             if (module != null && TestMailServerLinks.findLinks(module).stream().flatMap(link -> link.producers().stream())
                     .anyMatch(element -> mail.isListening(
                             org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effectiveMailHost(project, element),
@@ -95,7 +99,7 @@ public final class HarnessControlActions {
     }
 
     private void startHarnesses(Module module, ActionEvent event) {
-        var overrides = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        HarnessOverrideService overrides = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
         if (overrides != null && overrides.targets().stream().anyMatch(t -> "SFTP".equals(t.kind())
                 && overrides.nextSelection().contains(t.id()))) SftpHarnessAction.start(project);
         List<TestFtpServerLinks.Link> ftpLinks = TestFtpServerLinks.findLinks(module);
@@ -110,7 +114,7 @@ public final class HarnessControlActions {
         }
         List<TestMailServerLinks.Link> mailLinks = TestMailServerLinks.findLinks(module);
         if (!mailLinks.isEmpty() && !mailLinks.get(0).producers().isEmpty()) {
-            var owner = overrides == null ? mailLinks.get(0).producers().get(0) :
+            FlowElement owner = overrides == null ? mailLinks.get(0).producers().get(0) :
                     overrides.targets().stream().filter(t -> "Email".equals(t.kind()) && overrides.nextSelection().contains(t.id()))
                             .map(org.ikasan.studio.core.model.analysis.HarnessOverrides.Target::element)
                             .findFirst().orElse(mailLinks.get(0).producers().get(0));

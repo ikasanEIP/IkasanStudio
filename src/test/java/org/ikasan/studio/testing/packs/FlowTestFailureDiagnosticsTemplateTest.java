@@ -7,6 +7,7 @@ import java.nio.file.*;
 import java.net.*;
 import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
+import java.net.URLClassLoader;
 
 class FlowTestFailureDiagnosticsTemplateTest {
     @TempDir Path root;
@@ -64,15 +65,15 @@ class FlowTestFailureDiagnosticsTemplateTest {
                         }
                     }
                     static void verifyMappingDiagnostics() {
-                        var test = new TextTest();
-                        var batch = new FlowTestBatch<>(List.of(), Map.of("Send for Processing", List.of("expected order")));
-                        var observation = batch.observe(test::assertExpectedOutput);
+                        TextTest test = new TextTest();
+                        FlowTestBatch<Object> batch = new FlowTestBatch<>(List.of(), Map.of("Send for Processing", List.of("expected order")));
+                        FlowTestBatch<Object>.Observation observation = batch.observe(test::assertExpectedOutput);
                         observation.accept("Send for Processing", new Order());
                         try {
                             observation.verify(Duration.ofMillis(100), Duration.ofMillis(20), () -> {});
                             throw new IllegalStateException("Expected unsupported mapping");
                         } catch (AssertionError failure) {
-                            var report = FlowTestFailureDiagnostics.contextualise(
+                            AssertionError report = FlowTestFailureDiagnostics.contextualise(
                                     "Flow 'Create New Order', batch 1 of 2 failed: " + failure.getMessage(), failure, TextTest.class);
                             Assert.assertTrue(report.getMessage().contains("Expected: String (java.lang.String). Actual: Order (" + Order.class.getName() + ")"));
                             Assert.assertTrue(report.getMessage().contains("No text mapping is defined"));
@@ -88,13 +89,13 @@ class FlowTestFailureDiagnosticsTemplateTest {
                             Assert.assertTrue(Arrays.asList(failure.getCause().getStackTrace()).contains(report.getStackTrace()[0]));
                         } catch (Exception failure) { throw new AssertionError(failure); }
                         // Different Java types are valid when the developer supplies a text mapping.
-                        var mapped = new FlowTestBatch<>(List.of(), Map.of("P", List.of("mapped order")))
+                        FlowTestBatch<Object>.Observation mapped = new FlowTestBatch<>(List.of(), Map.of("P", List.of("mapped order")))
                                 .observe(new MappedTextTest()::assertExpectedOutput);
                         mapped.accept("P", new Order());
                         try { mapped.verify(Duration.ofMillis(100), Duration.ofMillis(20), () -> {}); }
                         catch (Exception failure) { throw new AssertionError(failure); }
                         // Malformed text is a decoding problem, not an unsupported business-object mapping.
-                        var malformed = batch.observe(test::assertExpectedOutput);
+                        FlowTestBatch<Object>.Observation malformed = batch.observe(test::assertExpectedOutput);
                         malformed.accept("Send for Processing", new byte[]{(byte) 0xc3, (byte) 0x28});
                         try {
                             malformed.verify(Duration.ofMillis(100), Duration.ofMillis(20), () -> {});
@@ -112,25 +113,25 @@ class FlowTestFailureDiagnosticsTemplateTest {
                             new InheritedTest().assertExpectedOutput("expected", "actual");
                             throw new IllegalStateException("Expected failure");
                         } catch (AssertionError failure) { original = failure; }
-                        var producer = new AssertionError("Producer 'Email', output 1 failed: " + original.getMessage(), original);
-                        var reported = FlowTestFailureDiagnostics.contextualise("Flow 'Example', batch 1: " + producer.getMessage(),
+                        AssertionError producer = new AssertionError("Producer 'Email', output 1 failed: " + original.getMessage(), original);
+                        AssertionError reported = FlowTestFailureDiagnostics.contextualise("Flow 'Example', batch 1: " + producer.getMessage(),
                                 producer, InheritedTest.class);
                         if (!(reported instanceof ComparisonFailure)) throw new AssertionError("Comparison type lost");
-                        var comparison = (ComparisonFailure) reported;
+                        ComparisonFailure comparison = (ComparisonFailure) reported;
                         Assert.assertEquals("expected", comparison.getExpected());
                         Assert.assertEquals("actual", comparison.getActual());
                         Assert.assertSame(producer, reported.getCause());
                         Assert.assertSame(original, reported.getCause().getCause());
                         Assert.assertTrue(reported.getMessage().contains("batch 1"));
                         Assert.assertTrue(reported.getMessage().contains("Producer 'Email'"));
-                        var first = reported.getStackTrace()[0];
+                        StackTraceElement first = reported.getStackTrace()[0];
                         Assert.assertEquals(BusinessTest.class.getName(), first.getClassName());
                         Assert.assertEquals("assertExpectedOutput", first.getMethodName());
                         Assert.assertTrue(first.getLineNumber() > 0);
                         Assert.assertTrue(java.util.Arrays.asList(original.getStackTrace()).contains(first));
                         try { new BusinessTest().assertExpectedOutput(1, 2); }
                         catch (AssertionError business) {
-                            var result = FlowTestFailureDiagnostics.contextualise("Business mismatch", business, BusinessTest.class);
+                            AssertionError result = FlowTestFailureDiagnostics.contextualise("Business mismatch", business, BusinessTest.class);
                             Assert.assertEquals("assertExpectedOutput", result.getStackTrace()[0].getMethodName());
                             Assert.assertSame(business, result.getCause());
                         }
@@ -138,7 +139,7 @@ class FlowTestFailureDiagnosticsTemplateTest {
                             new InheritedTest().verifyReceivedOutput();
                             throw new IllegalStateException("Expected receiver failure");
                         } catch (AssertionError receiver) {
-                            var result = FlowTestFailureDiagnostics.contextualise("Flow 'Example', batch 1: " + receiver.getMessage(),
+                            AssertionError result = FlowTestFailureDiagnostics.contextualise("Flow 'Example', batch 1: " + receiver.getMessage(),
                                     receiver, InheritedTest.class);
                             Assert.assertEquals("verifyReceivedOutput", result.getStackTrace()[0].getMethodName());
                             Assert.assertEquals(BusinessTest.class.getName(), result.getStackTrace()[0].getClassName());
@@ -148,25 +149,25 @@ class FlowTestFailureDiagnosticsTemplateTest {
                         }
                         try { new DecodeTest().assertExpectedOutput("text", null); }
                         catch (IllegalArgumentException decoding) {
-                            var wrapped = new AssertionError("Producer output failed", decoding);
-                            var result = FlowTestFailureDiagnostics.contextualise(wrapped.getMessage(), wrapped, DecodeTest.class);
+                            AssertionError wrapped = new AssertionError("Producer output failed", decoding);
+                            AssertionError result = FlowTestFailureDiagnostics.contextualise(wrapped.getMessage(), wrapped, DecodeTest.class);
                             Assert.assertEquals("assertExpectedOutput", result.getStackTrace()[0].getMethodName());
                             Assert.assertEquals(DecodeTest.class.getName(), result.getStackTrace()[0].getClassName());
                             Assert.assertSame(wrapped, result.getCause());
                         }
-                        var timeout = new AssertionError("Missing output");
-                        var fallback = FlowTestFailureDiagnostics.contextualise("Batch timed out", timeout, BusinessTest.class);
+                        AssertionError timeout = new AssertionError("Missing output");
+                        AssertionError fallback = FlowTestFailureDiagnostics.contextualise("Batch timed out", timeout, BusinessTest.class);
                         Assert.assertArrayEquals(timeout.getStackTrace(), fallback.getStackTrace());
                         Assert.assertTrue(fallback.getMessage().contains(BusinessTest.class.getName()));
                         try { new BusinessTest().defineExpectedPath(); }
                         catch (AssertionError path) {
-                            var result = FlowTestFailureDiagnostics.contextualise(path.getMessage(), path, BusinessTest.class);
+                            AssertionError result = FlowTestFailureDiagnostics.contextualise(path.getMessage(), path, BusinessTest.class);
                             Assert.assertEquals("defineExpectedPath", result.getStackTrace()[0].getMethodName());
                         }
-                        var batches = new BusinessTest().createInputOutputBatches();
+                        List<FlowTestBatch<Object>> batches = new BusinessTest().createInputOutputBatches();
                         int previousLine = -1;
-                        for (var batch : batches) {
-                            var observation = batch.observe();
+                        for (FlowTestBatch<Object> batch : batches) {
+                            FlowTestBatch<Object>.Observation observation = batch.observe();
                             // Arrivals on another thread must still navigate to this batch's definition.
                             Thread worker = new Thread(() -> {
                                 observation.accept("P", "a"); observation.accept("P", "excess");
@@ -175,7 +176,7 @@ class FlowTestFailureDiagnosticsTemplateTest {
                             try { worker.join(); } catch (InterruptedException e) { throw new AssertionError(e); }
                             try { observation.assertNoPending(); throw new IllegalStateException("Expected excess"); }
                             catch (AssertionError excess) {
-                                var result = FlowTestFailureDiagnostics.contextualise("Flow 'Example', batch: " + excess.getMessage(), excess, BusinessTest.class);
+                                AssertionError result = FlowTestFailureDiagnostics.contextualise("Flow 'Example', batch: " + excess.getMessage(), excess, BusinessTest.class);
                                 Assert.assertTrue(result.getMessage().contains(BusinessTest.class.getName()));
                                 Assert.assertTrue(result.getMessage().contains("createInputOutputBatches"));
                                 Assert.assertTrue(result.getMessage().contains("observed: at least"));
@@ -184,20 +185,20 @@ class FlowTestFailureDiagnosticsTemplateTest {
                                 previousLine = result.getStackTrace()[0].getLineNumber();
                                 Assert.assertSame(excess, result.getCause());
                                 Assert.assertEquals("countFailure", excess.getStackTrace()[0].getMethodName());
-                                var outer = FlowTestFailureDiagnostics.contextualise(result.getMessage(), result, BusinessTest.class);
+                                AssertionError outer = FlowTestFailureDiagnostics.contextualise(result.getMessage(), result, BusinessTest.class);
                                 Assert.assertEquals(result.getMessage(), outer.getMessage());
                                 Assert.assertArrayEquals(result.getStackTrace(), outer.getStackTrace());
                             }
                         }
-                        var missing = batches.get(0).observe();
+                        FlowTestBatch<Object>.Observation missing = batches.get(0).observe();
                         try { missing.verify(Duration.ofMillis(25), Duration.ofMillis(25), () -> {}); throw new IllegalStateException("Expected missing output"); }
                         catch (AssertionError failure) {
-                            var result = FlowTestFailureDiagnostics.contextualise(failure.getMessage(), failure, BusinessTest.class);
+                            AssertionError result = FlowTestFailureDiagnostics.contextualise(failure.getMessage(), failure, BusinessTest.class);
                             Assert.assertEquals("createInputOutputBatches", result.getStackTrace()[0].getMethodName());
                             Assert.assertTrue(result.getMessage().contains("Missing producer outputs"));
                         } catch (Exception failure) { throw new AssertionError(failure); }
                         // Unrelated assertion classes must not masquerade as this test's assertion.
-                        var unrelated = FlowTestFailureDiagnostics.contextualise("Other failure", original, Probe.class);
+                        AssertionError unrelated = FlowTestFailureDiagnostics.contextualise("Other failure", original, Probe.class);
                         Assert.assertArrayEquals(original.getStackTrace(), unrelated.getStackTrace());
                     }
                 }
@@ -214,7 +215,7 @@ class FlowTestFailureDiagnosticsTemplateTest {
             assertTrue(compiler.waitFor(20, TimeUnit.SECONDS));
             assertEquals(0, compiler.exitValue(), Files.readString(log));
         } finally { if (compiler.isAlive()) compiler.destroyForcibly().waitFor(); }
-        try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
             loader.loadClass("Probe").getMethod("run").invoke(null);
         }
     }

@@ -4,6 +4,13 @@ import org.ikasan.studio.core.generator.FlowTestScaffold;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
+import java.nio.file.Path;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold;
 
 /** Background-only writer. Existing tests are preserved unless explicitly archived for regeneration. */
 public final class FlowTestFiles {
@@ -29,7 +36,7 @@ public final class FlowTestFiles {
             List<FlowTestScaffold.Scaffold> scaffolds) {
         List<FlowTestScaffold.Scaffold> plans = new ArrayList<>();
         Map<String, FlowTestScaffold.Scaffold> fixtures = new LinkedHashMap<>();
-        for (var plan : scaffolds) {
+        for (Scaffold plan : scaffolds) {
             boolean existingScenario = plan.testPath().startsWith(
                     "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/")
                     && !plan.testPath().contains("/support/")
@@ -39,13 +46,13 @@ public final class FlowTestFiles {
                 continue;
             }
             // Preserve developer assertions, but still seed missing sample input/expected-output files.
-            for (var entry : plan.files().entrySet()) {
+            for (Entry<String,String> entry : plan.files().entrySet()) {
                 String path = entry.getKey();
                 if (path.startsWith("user-flow-tests/src/test/resources/")
                         && !path.equals(FlowTestScaffold.TEST_PROPERTIES_PATH)
                         && !Files.exists(root.resolve(path))) {
-                    var fixture = new FlowTestScaffold.Scaffold(plan.rootPom(), path, Map.of(path, entry.getValue()));
-                    var previous = fixtures.putIfAbsent(path, fixture);
+                    Scaffold fixture = new FlowTestScaffold.Scaffold(plan.rootPom(), path, Map.of(path, entry.getValue()));
+                    Scaffold previous = fixtures.putIfAbsent(path, fixture);
                     if (previous != null && !previous.files().equals(fixture.files()))
                         throw new IllegalArgumentException("Conflicting flow test fixture: " + path);
                 }
@@ -58,8 +65,8 @@ public final class FlowTestFiles {
     /** Refresh module wiring only; reusable utilities, properties and POM retain existing values. */
     static List<FlowTestScaffold.Scaffold> supportRefreshPlans(List<FlowTestScaffold.Scaffold> scaffolds) {
         Map<String, String> shared = new LinkedHashMap<>();
-        for (var scaffold : scaffolds) {
-            for (var entry : scaffold.files().entrySet()) {
+        for (Scaffold scaffold : scaffolds) {
+            for (Entry<String,String> entry : scaffold.files().entrySet()) {
                 String path = entry.getKey();
                 if (path.startsWith("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/")
                         || path.equals(org.ikasan.studio.core.generator.ModuleTestWiring.PATH)
@@ -133,7 +140,7 @@ public final class FlowTestFiles {
 
     public static void checkExisting(Path root, List<FlowTestScaffold.Scaffold> scaffolds) throws IOException {
         List<ExistingTestException> existing = new ArrayList<>();
-        for (var scaffold : scaffolds) {
+        for (Scaffold scaffold : scaffolds) {
             Path test = safe(root.toAbsolutePath().normalize(), scaffold.testPath());
             if (Files.exists(test)) existing.add(new ExistingTestException(test));
         }
@@ -143,21 +150,21 @@ public final class FlowTestFiles {
                                                List<ExistingTestException> approved) throws IOException {
         root = root.toAbsolutePath().normalize();
         Set<Path> selected = new HashSet<>();
-        for (var scaffold : scaffolds) {
+        for (Scaffold scaffold : scaffolds) {
             if (!selected.add(safe(root, scaffold.testPath()))) throw new IOException("Selected flows produce the same test class.");
         }
         Set<Path> approvals = new HashSet<>();
-        for (var test : approved) {
+        for (org.ikasan.studio.intellij.testing.FlowTestFiles.ExistingTestException test : approved) {
             if (!selected.contains(test.path) || !approvals.add(test.path)
                     || !Arrays.equals(Files.readAllBytes(test.path), test.contents))
                 throw new IOException("The existing tests changed. Review them before regenerating.");
         }
         if (!Files.readString(safe(root, "pom.xml")).equals(originalPom)) throw new IOException("pom.xml changed. Generate the tests again.");
         // Validate every output before moving any developer-owned test into an archive.
-        for (var scaffold : scaffolds) for (String output : scaffold.files().keySet()) safe(root, output);
+        for (Scaffold scaffold : scaffolds) for (String output : scaffold.files().keySet()) safe(root, output);
         Map<Path, Path> backups = new LinkedHashMap<>();
         try {
-            for (var test : approved) {
+            for (org.ikasan.studio.intellij.testing.FlowTestFiles.ExistingTestException test : approved) {
                 String timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS").format(java.time.LocalDateTime.now());
                 Path backup = test.path.resolveSibling(test.path.getFileName() + ".bak" + timestamp + "-" + UUID.randomUUID());
                 Files.move(test.path, backup);
@@ -166,7 +173,7 @@ public final class FlowTestFiles {
             }
             return writeAll(root, originalPom, scaffolds);
         } catch (IOException | RuntimeException failure) {
-            for (var entry : backups.entrySet()) {
+            for (Entry<Path,Path> entry : backups.entrySet()) {
                 try { Files.copy(entry.getValue(), entry.getKey()); }
                 catch (IOException restore) { failure.addSuppressed(restore); }
             }
@@ -206,7 +213,7 @@ public final class FlowTestFiles {
         List<Path> tests = new ArrayList<>();
         Map<String, String> files = new LinkedHashMap<>();
         String updatedPom = null;
-        for (var scaffold : scaffolds) {
+        for (Scaffold scaffold : scaffolds) {
             Path test = safe(root, scaffold.testPath());
             if (!seen.add(test)) throw new IOException("Selected flows produce the same test class: " + test);
             if (Files.exists(test)) {
@@ -216,7 +223,7 @@ public final class FlowTestFiles {
             if (updatedPom != null && !updatedPom.equals(scaffold.rootPom())) throw new IOException("Conflicting test module configuration.");
             updatedPom = scaffold.rootPom();
             tests.add(test);
-            for (var entry : scaffold.files().entrySet()) {
+            for (Entry<String,String> entry : scaffold.files().entrySet()) {
                 String previous = files.putIfAbsent(entry.getKey(), entry.getValue());
                 if (previous != null && !previous.equals(entry.getValue())) throw new IOException("Conflicting flow test file: " + entry.getKey());
             }
@@ -240,7 +247,7 @@ public final class FlowTestFiles {
         }
         if (!Files.readString(pom).equals(originalPom)) throw new IOException("pom.xml changed. Generate the test again.");
         Map<Path, String> pending = new LinkedHashMap<>();
-        for (var entry : scaffold.files().entrySet()) {
+        for (Entry<String,String> entry : scaffold.files().entrySet()) {
             Path path = safe(root, entry.getKey());
             if (Files.exists(path) && !Files.isRegularFile(path)) throw new IOException("Expected a file: " + path);
             if (requiredTests.contains(path) || !Files.exists(path)) pending.put(path, entry.getValue());
@@ -250,7 +257,7 @@ public final class FlowTestFiles {
         String newTestPom = oldTestPom == null ? null : withFtpTestDependencies(oldTestPom, scaffold.files());
         List<Path> created = new ArrayList<>();
         try {
-            for (var entry : pending.entrySet()) {
+            for (Entry<Path,String> entry : pending.entrySet()) {
                 Files.createDirectories(entry.getKey().getParent());
                 Files.writeString(entry.getKey(), entry.getValue(), StandardOpenOption.CREATE_NEW);
                 created.add(entry.getKey());
@@ -428,23 +435,23 @@ public final class FlowTestFiles {
     static String withFtpTestDependencies(String existing, Map<String, String> generated) throws IOException {
         if (!generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java")) return existing;
         try {
-            var reader = new org.apache.maven.model.io.xpp3.MavenXpp3Reader();
-            var model = reader.read(new java.io.StringReader(existing));
+            MavenXpp3Reader reader = new org.apache.maven.model.io.xpp3.MavenXpp3Reader();
+            Model model = reader.read(new java.io.StringReader(existing));
             StringBuilder additions = new StringBuilder();
             List<String[]> dependencies = new ArrayList<>(List.of(
                     new String[]{"org.apache.ftpserver", "ftpserver-core", "1.2.1"},
                     new String[]{"org.apache.mina", "mina-core", "2.2.9"}));
             if (generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSmtpTestServer.java")) {
-                var templatePom = reader.read(new java.io.StringReader(generated.get("user-flow-tests/pom.xml")));
-                var smtp = templatePom.getDependencies().stream()
+                Model templatePom = reader.read(new java.io.StringReader(generated.get("user-flow-tests/pom.xml")));
+                Dependency smtp = templatePom.getDependencies().stream()
                         .filter(d -> "com.icegreen".equals(d.getGroupId()) && "greenmail".equals(d.getArtifactId()))
                         .findFirst().orElseThrow(() -> new IOException("Missing GreenMail dependency in generated test POM"));
                 dependencies.add(new String[]{smtp.getGroupId(), smtp.getArtifactId(), smtp.getVersion()});
             }
             if (generated.containsKey("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSftpTestServer.java")) {
-                var templatePom = reader.read(new java.io.StringReader(generated.get("user-flow-tests/pom.xml")));
+                Model templatePom = reader.read(new java.io.StringReader(generated.get("user-flow-tests/pom.xml")));
                 for (String artifact : List.of("sshd-sftp", "sshd-core", "sshd-common")) {
-                    var dependency = templatePom.getDependencies().stream()
+                    Dependency dependency = templatePom.getDependencies().stream()
                             .filter(d -> "org.apache.sshd".equals(d.getGroupId()) && artifact.equals(d.getArtifactId()))
                             .findFirst().orElseThrow(() -> new IOException("Missing SFTP fixture dependency: " + artifact));
                     dependencies.add(new String[]{dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion()});
@@ -469,7 +476,7 @@ public final class FlowTestFiles {
      * profiles, plugin dependencies, dependency management, comments and formatting remain untouched.
      */
     private static String insertProjectDependencies(String xml, String additions) throws IOException {
-        var tokens = java.util.regex.Pattern.compile(
+        Matcher tokens = java.util.regex.Pattern.compile(
                 "<!--.*?-->|<!\\[CDATA\\[.*?]]>|<\\?.*?\\?>|<(?:\"[^\"]*\"|'[^']*'|[^'\">])*>",
                 java.util.regex.Pattern.DOTALL).matcher(xml);
         int depth = 0;

@@ -26,8 +26,8 @@ public class MigrationAcceptanceTest {
     private ch.qos.logback.core.AppenderBase<ch.qos.logback.classic.spi.ILoggingEvent> wiretapAppender;
 
     private List<org.ikasan.spec.wiretap.WiretapEvent> wiretaps() {
-        var service = context.getBean(org.ikasan.spec.wiretap.WiretapService.class);
-        var page = (org.ikasan.spec.search.PagedSearchResult<org.ikasan.spec.wiretap.WiretapEvent>)
+        org.ikasan.spec.wiretap.WiretapService service = context.getBean(org.ikasan.spec.wiretap.WiretapService.class);
+        org.ikasan.spec.search.PagedSearchResult<org.ikasan.spec.wiretap.WiretapEvent> page = (org.ikasan.spec.search.PagedSearchResult<org.ikasan.spec.wiretap.WiretapEvent>)
                 service.findWiretapEvents(0, 100, "timestamp", true, Set.of("MigrationRegression"),
                         "Core Pipeline", (String)null, null, null, null, null, null);
         return page.getPagedResults();
@@ -56,13 +56,13 @@ public class MigrationAcceptanceTest {
         return deliveries.stream().anyMatch(s->s.startsWith(flow+"/"+component+"=") && s.contains(payload));
     }
     private IkasanFlowTestRule startScheduled(String name, String consumer) {
-        var harness=new IkasanFlowTestRule(); harness.withFlow(module.getFlow(name)).scheduledConsumer(consumer);
+        IkasanFlowTestRule harness=new IkasanFlowTestRule(); harness.withFlow(module.getFlow(name)).scheduledConsumer(consumer);
         harness.startFlow(); return harness;
     }
     @Test public void acceptance() throws Exception {
         try {
             services=new LocalServices();
-            var args=new ArrayList<>(services.arguments);args.add("--server.port=0");
+            List<String> args=new ArrayList<>(services.arguments);args.add("--server.port=0");
             args.add("--spring.profiles.active=debug");
             args.add("--ikasan.module.activator.startup.type.defaultStartupType=MANUAL");
             context=SpringApplication.run(Class.forName("org.ikasan.studio.boot.Application"),args.toArray(new String[0]));
@@ -81,7 +81,7 @@ public class MigrationAcceptanceTest {
                 }
             });
             check("pipeline branches and later delivery",()->{
-                var harness=startScheduled("Core Pipeline","Timer");
+                IkasanFlowTestRule harness=startScheduled("Core Pipeline","Timer");
                 for(int batch=1;batch<=2;batch++) {
                     harness.fireScheduledConsumer(); final int b=batch;
                     await("Three final branches for batch "+batch,()->has("Core Pipeline","Log Priority","B"+b+"P|2|true|translated enriched")
@@ -93,7 +93,7 @@ public class MigrationAcceptanceTest {
             });
             check("persisted wiretap before and after enrichment",()->{
                 await("Twelve stored wiretap snapshots",()->wiretaps().size()==12);
-                for(var event:wiretaps()) {
+                for(org.ikasan.spec.wiretap.WiretapEvent event:wiretaps()) {
                     assertEquals("MigrationRegression",event.getModuleName());
                     assertEquals("Core Pipeline",event.getFlowName());
                     assertTrue(event.getComponentName().contains("Enrich Order"));
@@ -113,7 +113,7 @@ public class MigrationAcceptanceTest {
             });
             check("fanout isolation and later delivery",()->{
                 Flow flow=module.getFlow("Fanout"); flow.start();
-                var source=context.getBean(fixture.fanout.ControlledInput.class);
+                fixture.fanout.ControlledInput source=context.getBean(fixture.fanout.ControlledInput.class);
                 for(int i=1;i<=2;i++) {
                     source.send(new fixture.Order("F"+i,1,false));final int n=i;
                     await("Both fanout branches",()->has("Fanout","Audit Order","F"+n+"|1|false|audit mutation")
@@ -123,8 +123,8 @@ public class MigrationAcceptanceTest {
                 assertEquals(2,deliveries.stream().filter(s->s.startsWith("Fanout/Fulfil Order=")).count());
             });
             check("persisted exclusion and subsequent valid delivery",()->{
-                var harness=startScheduled("Exclusion","Timer");
-                var exclusions=context.getBean(ExclusionManagementService.class);
+                IkasanFlowTestRule harness=startScheduled("Exclusion","Timer");
+                ExclusionManagementService exclusions=context.getBean(ExclusionManagementService.class);
                 for(int i=1;i<=3;i++) {
                     harness.fireScheduledConsumer();final int n=i;
                     if(i==2) await("Invalid event persisted",()->exclusions.findAll().size()==1);
@@ -132,11 +132,11 @@ public class MigrationAcceptanceTest {
                     assertTrue(module.getFlow("Exclusion").isRunning());
                 }
                 assertFalse(deliveries.stream().anyMatch(s->s.startsWith("Exclusion/Accepted Order=E2|")));
-                var event=(org.ikasan.spec.exclusion.ExclusionEvent)exclusions.findAll().get(0);
+                org.ikasan.spec.exclusion.ExclusionEvent event=(org.ikasan.spec.exclusion.ExclusionEvent)exclusions.findAll().get(0);
                 assertEquals("Exclusion",event.getFlowName()); assertTrue(event.getEvent().length>0);
             });
             check("JMS object delivery and XML conversion",()->{
-                module.getFlow("JMS Receiver").start();var sender=startScheduled("JMS Sender","Timer");
+                module.getFlow("JMS Receiver").start();IkasanFlowTestRule sender=startScheduled("JMS Sender","Timer");
                 for(int i=1;i<=2;i++) {
                     sender.fireScheduledConsumer(); final int n=i;
                     await("Receiver XML output",()->has("JMS Receiver","Log XML","<id>J"+n+"</id>"));
@@ -150,7 +150,7 @@ public class MigrationAcceptanceTest {
             });
             check("local file delivery",()->{
                 Files.createDirectories(Path.of("inputs"));Files.writeString(Path.of("inputs/first.txt"),"LOCAL-FIRST\n");
-                var source=startScheduled("Local Files","Read Lines");source.fireScheduledConsumer();
+                IkasanFlowTestRule source=startScheduled("Local Files","Read Lines");source.fireScheduledConsumer();
                 await("First local file",()->has("Local Files","Log Line","LOCAL-FIRST"));
                 Files.writeString(Path.of("inputs/later.txt"),"LOCAL-LATER\n");source.fireScheduledConsumer();
                 await("Later local file",()->has("Local Files","Log Line","LOCAL-LATER"));
@@ -158,8 +158,8 @@ public class MigrationAcceptanceTest {
             });
             for(String transport:List.of("FTP","SFTP")) {
                 check(transport+" round trip",()->{
-                    var receiver=startScheduled(transport+" Receiver","Receive File");
-                    var sender=startScheduled(transport+" Sender","Timer");sender.fireScheduledConsumer();
+                    IkasanFlowTestRule receiver=startScheduled(transport+" Receiver","Receive File");
+                    IkasanFlowTestRule sender=startScheduled(transport+" Sender","Timer");sender.fireScheduledConsumer();
                     await("Send committed",()->has(transport+" Sender","Send File",""));
                     receiver.fireScheduledConsumer();await("Remote content",()->has(transport+" Receiver","Log File",transport+" migration payload"));
                     long first=deliveries.stream().filter(s->s.startsWith(transport+" Receiver/Log File=")).count();
@@ -175,10 +175,10 @@ public class MigrationAcceptanceTest {
                 });
             }
             check("SMTP remote delivery and later delivery",()->{
-                var access=new IkasanFlowTestRule().withFlow(module.getFlow("Mail"));
-                var producer=(org.ikasan.component.endpoint.email.producer.EmailProducer)access.getComponent("Send Mail");
+                IkasanFlowTestRule access=new IkasanFlowTestRule().withFlow(module.getFlow("Mail"));
+                org.ikasan.component.endpoint.email.producer.EmailProducer producer=(org.ikasan.component.endpoint.email.producer.EmailProducer)access.getComponent("Send Mail");
                 producer.getConfiguration().setMailSmtpPort(services.smtpPort());
-                var sender=startScheduled("Mail","Timer");
+                IkasanFlowTestRule sender=startScheduled("Mail","Timer");
                 for(int i=1;i<=2;i++){sender.fireScheduledConsumer();final int n=i;
                     await("SMTP captured body",()->services.mail.size()==n && services.mail.get(n-1).contains("Migration email body"));}
                 assertTrue(module.getFlow("Mail").isRunning());
@@ -203,7 +203,7 @@ public class MigrationAcceptanceTest {
         assertFalse("See acceptance.json",checks.stream().anyMatch(c->"FAIL".equals(c.get("status"))));
     }
     private void writeReport() throws Exception {
-        var report=new LinkedHashMap<String,Object>();report.put("checks",checks);report.put("deliveries",deliveries);
+        Map<String,Object> report=new LinkedHashMap<String,Object>();report.put("checks",checks);report.put("deliveries",deliveries);
         report.put("storedWiretaps",storedWiretaps); report.put("loggingWiretaps",wiretapLogs);
         report.put("verifiedAt",java.time.Instant.now().toString());report.put("javaVersion",System.getProperty("java.version"));
         new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(Path.of(System.getProperty("fixture.reportFile","../acceptance.json")).toFile(),report);

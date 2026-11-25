@@ -15,6 +15,10 @@ import org.ikasan.studio.core.persistence.json.IkasanModelDocuments;
 import org.ikasan.studio.core.persistence.json.ComponentImplementationAliases;
 
 import java.util.*;
+import java.util.List;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /** Offline, non-mutating migration analysis. Only explicitly supported version pairs are eligible. */
 public final class ModelMigration {
@@ -46,7 +50,7 @@ public final class ModelMigration {
                     .append(reportLocation(reportSource, f.path())).append(" — ").append(f.message()).append('\n'));
             findings.stream().filter(f -> !f.blocking() && "/version".equals(f.path()))
                     .forEach(f -> text.append(f.message()).append('\n'));
-            var reviews = findings.stream().filter(f -> !f.blocking() && !"/version".equals(f.path())).toList();
+            List<org.ikasan.studio.core.migration.ModelMigration.Finding> reviews = findings.stream().filter(f -> !f.blocking() && !"/version".equals(f.path())).toList();
             if (!reviews.isEmpty()) {
                 text.append("\nYou are advised to review the following after the upgrade completes:\n\n");
                 reviews.forEach(f -> text.append("REVIEW: ").append(reportLocation(reportSource, f.path()))
@@ -209,9 +213,9 @@ public final class ModelMigration {
     }
 
     private static String implementationClass(Module module, String flowName, String componentName) {
-        for (var flow : module.getFlows()) {
+        for (Flow flow : module.getFlows()) {
             if (!flowName.equals(flow.getIdentity())) continue;
-            for (var component : flow.getFlowElementsNoExternalEndPoints()) {
+            for (FlowElement component : flow.getFlowElementsNoExternalEndPoints()) {
                 if (!componentName.equals(component.getIdentity())) continue;
                 String name = component.getPropertyValueAsString("userImplementedClassName");
                 if (name == null || name.isBlank() || name.startsWith("__")) return null;
@@ -283,7 +287,7 @@ public final class ModelMigration {
     private static void rewriteType(ObjectNode node, String field, String path, MigrationRules rules, List<Finding> findings) {
         String old = node.path(field).asText();
         String value = old;
-        for (var mapping : rules.typePrefixes().entrySet()) {
+        for (Entry<String,String> mapping : rules.typePrefixes().entrySet()) {
             value = value.replaceAll("(?<![\\w.])" + java.util.regex.Pattern.quote(mapping.getKey()),
                     java.util.regex.Matcher.quoteReplacement(mapping.getValue()));
         }

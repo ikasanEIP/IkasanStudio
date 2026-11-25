@@ -15,9 +15,9 @@ public class ProcessingTest extends ModuleFlowTestSupport {
     @Override protected void assertExpectedOutput(Object expected, Object actual) {
         org.junit.Assert.assertTrue("XML converter must return String", actual instanceof String);
         try {
-            var factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+            javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
             factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            var document = factory.newDocumentBuilder().parse(new org.xml.sax.InputSource(new java.io.StringReader((String) actual)));
+            org.w3c.dom.Document document = factory.newDocumentBuilder().parse(new org.xml.sax.InputSource(new java.io.StringReader((String) actual)));
             org.junit.Assert.assertEquals("order", document.getDocumentElement().getTagName());
             org.junit.Assert.assertEquals(expected, document.getElementsByTagName("reference").item(0).getTextContent());
             org.junit.Assert.assertEquals("3", document.getElementsByTagName("quantity").item(0).getTextContent());

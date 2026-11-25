@@ -8,6 +8,11 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.file.Path;
 
 class StudioImplementationReadinessTest {
     @Test
@@ -28,15 +33,15 @@ class StudioImplementationReadinessTest {
 
     @Test
     void savesProjectEditsBeforeRescanningAndLeavesOtherProjectsAlone(@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
-        var manager = mock(com.intellij.openapi.fileEditor.FileDocumentManager.class);
-        var edited = mock(com.intellij.openapi.editor.Document.class);
-        var other = mock(com.intellij.openapi.editor.Document.class);
-        var file = mock(com.intellij.openapi.vfs.VirtualFile.class);
-        var otherFile = mock(com.intellij.openapi.vfs.VirtualFile.class);
-        var source = root.resolve("user/src/main/java/org/example/demo/Producer.java");
+        FileDocumentManager manager = mock(com.intellij.openapi.fileEditor.FileDocumentManager.class);
+        Document edited = mock(com.intellij.openapi.editor.Document.class);
+        Document other = mock(com.intellij.openapi.editor.Document.class);
+        VirtualFile file = mock(com.intellij.openapi.vfs.VirtualFile.class);
+        VirtualFile otherFile = mock(com.intellij.openapi.vfs.VirtualFile.class);
+        Path source = root.resolve("user/src/main/java/org/example/demo/Producer.java");
         java.nio.file.Files.createDirectories(source.getParent());
         java.nio.file.Files.writeString(source, "// TODO implement producer");
-        var model = org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper().readTree("""
+        JsonNode model = org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper().readTree("""
                 {"applicationPackageName":"org.example","flows":[{"name":"Demo","flowElements":[
                 {"componentName":"Output","userImplementedClassName":"Producer"}]}]}
                 """);
@@ -57,9 +62,9 @@ class StudioImplementationReadinessTest {
 
     @Test
     void refusesToContinueWhenDocumentCannotBeSaved() {
-        var manager = mock(com.intellij.openapi.fileEditor.FileDocumentManager.class);
-        var document = mock(com.intellij.openapi.editor.Document.class);
-        var file = mock(com.intellij.openapi.vfs.VirtualFile.class);
+        FileDocumentManager manager = mock(com.intellij.openapi.fileEditor.FileDocumentManager.class);
+        Document document = mock(com.intellij.openapi.editor.Document.class);
+        VirtualFile file = mock(com.intellij.openapi.vfs.VirtualFile.class);
         when(manager.getUnsavedDocuments()).thenReturn(new com.intellij.openapi.editor.Document[]{document});
         when(manager.getFile(document)).thenReturn(file);
         when(file.isInLocalFileSystem()).thenReturn(true);

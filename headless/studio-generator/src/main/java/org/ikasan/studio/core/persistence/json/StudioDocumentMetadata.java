@@ -32,7 +32,7 @@ final class StudioDocumentMetadata {
 
     static String resolvePackId(String requested, List<String> installed) throws IOException {
         if (installed.contains(requested)) return requested;
-        var matches = installed.stream().filter(id -> id.equalsIgnoreCase(requested)).toList();
+        List<String> matches = installed.stream().filter(id -> id.equalsIgnoreCase(requested)).toList();
         if (matches.size() > 1)
             throw new IOException("Ambiguous meta-pack identifier; use the exact registered pack ID. No model files have been changed.");
         return matches.size() == 1 ? matches.get(0) : requested;

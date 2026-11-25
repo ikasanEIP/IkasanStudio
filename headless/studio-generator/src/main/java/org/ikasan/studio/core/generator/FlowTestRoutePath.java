@@ -2,6 +2,8 @@ package org.ikasan.studio.core.generator;
 
 import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 import java.util.*;
+import java.util.Map;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /** Structural route examples; never infers or executes business routing decisions. */
 final class FlowTestRoutePath {
@@ -10,7 +12,7 @@ final class FlowTestRoutePath {
     static Map<String, Object> describe(FlowRoute route, int[] sequence) {
         List<Map<String, String>> steps = new ArrayList<>();
         String routerMethod = null;
-        for (var element : route.getFlowElements()) {
+        for (FlowElement element : route.getFlowElements()) {
             if ((element.getComponentMeta().isDebug() || element.getComponentMeta().isInternalEndpoint())) continue;
             if (routerMethod != null) return null; // Routers must terminate their owning route.
             String type = element.getComponentMeta().getComponentType();
@@ -32,8 +34,8 @@ final class FlowTestRoutePath {
         int id = ++sequence[0];
         if (routerMethod != null) {
             if (route.getChildRoutes().isEmpty()) return null;
-            for (var child : route.getChildRoutes()) {
-                var description = describe(child, sequence);
+            for (FlowRoute child : route.getChildRoutes()) {
+                Map<String,Object> description = describe(child, sequence);
                 if (description == null) return null;
                 children.add(description);
             }

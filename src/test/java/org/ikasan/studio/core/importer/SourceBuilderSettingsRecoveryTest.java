@@ -13,6 +13,12 @@ import java.nio.file.*;
 import java.util.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.nio.file.Path;
+import java.util.stream.Stream;
+import org.ikasan.studio.core.importer.SourceBuilderSettingsRecovery.Plan;
+import org.ikasan.studio.core.importer.SourceModuleImport.Analysis;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class SourceBuilderSettingsRecoveryTest {
     @TempDir Path root;
@@ -23,17 +29,17 @@ class SourceBuilderSettingsRecoveryTest {
         Path file = base.resolve(path); Files.createDirectories(file.getParent()); Files.writeString(file, value);
     }
     void fixture(String pack, String argument, String existing) throws Exception {
-        var consumer = TestFixtures.getEventGeneratingConsumer(pack);
-        var flow = TestFixtures.getUnbuiltFlow(pack).consumer(consumer).build();
+        FlowElement consumer = TestFixtures.getEventGeneratingConsumer(pack);
+        Flow flow = TestFixtures.getUnbuiltFlow(pack).consumer(consumer).build();
         consumer.setContainingFlow(flow);
-        var xml = FlowElement.flowElementBuilder().componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack,
+        FlowElement xml = FlowElement.flowElementBuilder().componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack,
                 "Object To XML String Converter")).componentName("Serialize payload").build();
         xml.setContainingFlow(flow); xml.setContainingFlowRoute(flow.getFlowRoute());
         if (existing != null) xml.setPropertyValue("objectClass", existing);
-        var producer = TestFixtures.getLoggingProducer(pack);
+        FlowElement producer = TestFixtures.getLoggingProducer(pack);
         producer.setContainingFlow(flow); producer.setContainingFlowRoute(flow.getFlowRoute());
         flow.getFlowRoute().setFlowElements(new ArrayList<>(List.of(xml, producer)));
-        var module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
         String pkg = Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();
         factory = "generated/src/main/java/" + pkg.replace('.', '/') + "/ComponentFactory" + flow.getJavaClassName() + ".java";
         write(target(), ProjectArtifactRenderer.MODEL, ModelTemplate.create(module));
@@ -50,7 +56,7 @@ class SourceBuilderSettingsRecoveryTest {
     @ParameterizedTest @ValueSource(strings={"V3.3.9", "V4.1.6", "V5.1.0"})
     void recoversLiteralClassThroughMetaPackAndPersistsItWithBackup(String pack) throws Exception {
         fixture(pack, "Payload.class", null);
-        var analysis = analyse(); var plan = SourceBuilderSettingsRecovery.preview(analysis);
+        Analysis analysis = analyse(); Plan plan = SourceBuilderSettingsRecovery.preview(analysis);
         assertNotNull(plan, "Expected a recovery plan for the class literal");
         assertThat(plan.settings()).hasSize(1);
         assertThat(plan.settings().get(0).value()).isEqualTo("customer.Payload");
@@ -61,12 +67,12 @@ class SourceBuilderSettingsRecoveryTest {
         SourceModuleImport.apply(analysis, Set.of(), Set.of(), false, true);
         assertThat(Files.readString(target().resolve(ProjectArtifactRenderer.MODEL))).isEqualTo(before);
         SourceModuleImport.apply(analysis, Set.of(), Set.of(), false, true, Map.of(), null, plan);
-        var restored = ComponentIO.validatePersistedModuleJson(Files.readString(target().resolve(ProjectArtifactRenderer.MODEL)), "test", false);
+        Module restored = ComponentIO.validatePersistedModuleJson(Files.readString(target().resolve(ProjectArtifactRenderer.MODEL)), "test", false);
         assertThat(restored.getFlows().get(0).getFlowElementsNoExternalEndPoints().stream()
                 .filter(e -> e.getComponentName().equals("Serialize payload")).findFirst().orElseThrow().getPropertyValueAsString("objectClass"))
                 .isEqualTo("customer.Payload");
-        try (var files = Files.list(target().resolve("user/import-reviews"))) {
-            var backup = files.filter(p -> p.getFileName().toString().startsWith("model-before-builder-recovery-")).findFirst().orElseThrow();
+        try (Stream<Path> files = Files.list(target().resolve("user/import-reviews"))) {
+            Path backup = files.filter(p -> p.getFileName().toString().startsWith("model-before-builder-recovery-")).findFirst().orElseThrow();
             assertThat(Files.readString(backup)).isEqualTo(before);
         }
         assertThat(SourceBuilderSettingsRecovery.preview(analyse())).isNull();
@@ -81,10 +87,10 @@ class SourceBuilderSettingsRecoveryTest {
 
     @Test void rejectsStaleAndForgedPlansWithoutWritingAnything() throws Exception {
         fixture("V3.3.9", "Payload.class", null);
-        var analysis = analyse(); var plan = SourceBuilderSettingsRecovery.preview(analysis);
+        Analysis analysis = analyse(); Plan plan = SourceBuilderSettingsRecovery.preview(analysis);
         assertNotNull(plan, "Expected a recovery plan before editing the source");
         String before = Files.readString(target().resolve(ProjectArtifactRenderer.MODEL));
-        var forged = new SourceBuilderSettingsRecovery.Plan(plan.settings(), plan.sourceInputs(), plan.destinationInputs(), Map.of("user/Bad.java", "bad"));
+        Plan forged = new SourceBuilderSettingsRecovery.Plan(plan.settings(), plan.sourceInputs(), plan.destinationInputs(), Map.of("user/Bad.java", "bad"));
         assertThatThrownBy(() -> SourceModuleImport.apply(analysis, Set.of(), Set.of(), false, true, Map.of(), null, forged))
                 .hasMessageContaining("changed since review");
         write(source(), factory, Files.readString(source().resolve(factory)).replace("Payload.class", "String.class"));
@@ -96,7 +102,7 @@ class SourceBuilderSettingsRecoveryTest {
 
     @Test void destinationEditsInvalidateTheReviewedPlan() throws Exception {
         fixture("V3.3.9", "Payload.class", null);
-        var analysis = analyse(); var plan = SourceBuilderSettingsRecovery.preview(analysis);
+        Analysis analysis = analyse(); Plan plan = SourceBuilderSettingsRecovery.preview(analysis);
         String before = Files.readString(target().resolve(ProjectArtifactRenderer.MODEL));
         write(target(), factory, Files.readString(target().resolve(factory)) + "\n// changed during review");
         assertThatThrownBy(() -> SourceModuleImport.apply(analysis, Set.of(), Set.of(), false, true, Map.of(), null, plan))
@@ -107,7 +113,7 @@ class SourceBuilderSettingsRecoveryTest {
     @Test void acceptsFullyQualifiedClassLiteralsWithoutImports() throws Exception {
         fixture("V3.3.9", "customer.Payload.class", null);
         write(source(), factory, Files.readString(source().resolve(factory)).replace("import customer.Payload;", ""));
-        var plan = SourceBuilderSettingsRecovery.preview(analyse());
+        Plan plan = SourceBuilderSettingsRecovery.preview(analyse());
         assertNotNull(plan, "Expected a recovery plan for the fully qualified class literal");
         assertThat(plan.settings().get(0).value()).isEqualTo("customer.Payload");
     }

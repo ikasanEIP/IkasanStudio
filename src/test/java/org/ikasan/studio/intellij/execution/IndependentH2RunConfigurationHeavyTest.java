@@ -15,13 +15,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import javax.swing.JButton;
+import javax.swing.JMenuItem;
+import org.mockito.MockedStatic;
 
 public class IndependentH2RunConfigurationHeavyTest extends HeavyPlatformTestCase {
     public void testConfigurationUsesProjectModuleAndIsReusedWithUpdatedPorts() {
-        var service = getProject().getService(IndependentH2RunConfigurationService.class);
-        var first = service.findOrCreate(myModule, "12451 12452");
+        IndependentH2RunConfigurationService service = getProject().getService(IndependentH2RunConfigurationService.class);
+        RunnerAndConfigurationSettings first = service.findOrCreate(myModule, "12451 12452");
         try {
-            var app = (ApplicationConfiguration) first.getConfiguration();
+            ApplicationConfiguration app = (ApplicationConfiguration) first.getConfiguration();
             assertSame(first, service.findOrCreate(myModule, "12551 12552"));
             assertEquals(IndependentH2RunConfigurationService.MAIN_CLASS, app.getMainClassName());
             assertSame(myModule, app.getConfigurationModule().getModule());
@@ -33,11 +37,11 @@ public class IndependentH2RunConfigurationHeavyTest extends HeavyPlatformTestCas
     }
 
     public void testActualProcessStateSurvivesMenuRecreationAndGracefulStop() throws Exception {
-        var service = getProject().getService(IndependentH2RunConfigurationService.class);
-        var handler = new FakeProcess();
-        var button = new JButton();
+        IndependentH2RunConfigurationService service = getProject().getService(IndependentH2RunConfigurationService.class);
+        org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationHeavyTest.FakeProcess handler = new FakeProcess();
+        JButton button = new JButton();
         new LaunchH2Action(getProject(), button).listen(getTestRootDisposable());
-        try (var browser = org.mockito.Mockito.mockStatic(BrowserUtil.class)) {
+        try (MockedStatic<BrowserUtil> browser = org.mockito.Mockito.mockStatic(BrowserUtil.class)) {
             service.attach(handler); service.attach(handler); handler.startNotify();
             assertEquals(IndependentH2RunConfigurationService.State.STARTING, service.state());
             handler.text("IKASAN_STUDIO_H2_RE");
@@ -48,7 +52,7 @@ public class IndependentH2RunConfigurationHeavyTest extends HeavyPlatformTestCas
             UIUtil.dispatchAllInvocationEvents();
             assertEquals(IndependentH2RunConfigurationService.State.RUNNING, service.state());
             browser.verify(() -> BrowserUtil.browse("http://127.0.0.1:12452/"));
-            var menu = new JMenuItem(); new LaunchH2Action(getProject(), menu);
+            JMenuItem menu = new JMenuItem(); new LaunchH2Action(getProject(), menu);
             assertEquals(org.ikasan.studio.ui.StudioBundle.message("h2.independent.stop"), menu.getText());
             assertTrue(menu.isEnabled());
             service.requestStop();
@@ -62,30 +66,30 @@ public class IndependentH2RunConfigurationHeavyTest extends HeavyPlatformTestCas
     }
 
     public void testNormalIdeStopResetsStateAndOnlyH2RunsAreTracked() throws Exception {
-        var service = getProject().getService(IndependentH2RunConfigurationService.class);
-        var settings = service.findOrCreate(myModule, "12451 12452");
+        IndependentH2RunConfigurationService service = getProject().getService(IndependentH2RunConfigurationService.class);
+        RunnerAndConfigurationSettings settings = service.findOrCreate(myModule, "12451 12452");
         try {
-            var extension = new IndependentH2RunExtension();
-            var config = (ApplicationConfiguration) settings.getConfiguration();
-            var handler = new FakeProcess();
+            IndependentH2RunExtension extension = new IndependentH2RunExtension();
+            ApplicationConfiguration config = (ApplicationConfiguration) settings.getConfiguration();
+            org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationHeavyTest.FakeProcess handler = new FakeProcess();
             extension.attachToProcess(config, handler, null); handler.startNotify();
             assertEquals(IndependentH2RunConfigurationService.State.STARTING, service.state());
             handler.destroyProcess(); UIUtil.dispatchAllInvocationEvents();
             assertEquals(IndependentH2RunConfigurationService.State.STOPPED, service.state());
             config.setMainClassName(IkasanRunConfigurationService.MAIN_CLASS_NAME);
-            var unrelated = new FakeProcess();
+            org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationHeavyTest.FakeProcess unrelated = new FakeProcess();
             extension.attachToProcess(config, unrelated, null);
             assertEquals(IndependentH2RunConfigurationService.State.STOPPED, service.state());
         } finally { RunManager.getInstance(getProject()).removeConfiguration(settings); }
     }
 
     public void testClasspathDiagnosticsAndPortValidation() throws Exception {
-        var service = getProject().getService(IndependentH2RunConfigurationService.class);
-        var settings = service.findOrCreate(myModule, "12451 12452");
+        IndependentH2RunConfigurationService service = getProject().getService(IndependentH2RunConfigurationService.class);
+        RunnerAndConfigurationSettings settings = service.findOrCreate(myModule, "12451 12452");
         try {
-            var extension = new IndependentH2RunExtension();
-            var config = (ApplicationConfiguration) settings.getConfiguration();
-            var parameters = new JavaParameters();
+            IndependentH2RunExtension extension = new IndependentH2RunExtension();
+            ApplicationConfiguration config = (ApplicationConfiguration) settings.getConfiguration();
+            JavaParameters parameters = new JavaParameters();
             try { extension.updateJavaParameters(config, parameters, null); fail("Missing H2 must fail before launch"); }
             catch (com.intellij.execution.ExecutionException expected) { assertTrue(expected.getMessage().contains("H2")); }
             parameters.getClassPath().add("/repository/h2-mvstore-2.4.240.jar");

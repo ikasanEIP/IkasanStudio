@@ -27,6 +27,12 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
+import javax.swing.JTextField;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.integration.sftp.LocalSftpHarness;
+import org.ikasan.studio.integration.sftp.RemoteFilesClient.Connection;
+import org.ikasan.studio.integration.sftp.RemoteFilesClient.Entry;
+import org.ikasan.studio.intellij.runtime.TestSftpServerService;
 
 /** Session-only connection settings. All SSH and local file IO runs on a pooled thread. */
 public final class SftpFilesDialog extends StudioDialogWrapper {
@@ -48,15 +54,15 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
     private volatile RemoteFilesClient active;
 
     public static void open(Project project, FlowElement component) {
-        var harness = project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
+        TestSftpServerService harness = project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
         if (org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, component)) {
             String remote = "/component-" + org.ikasan.studio.core.model.analysis.HarnessOverrides.id(component);
             ApplicationManager.getApplication().executeOnPooledThread(() -> {
                 try {
                     // The project service owns this server and closes it on stop/disposal.
-                    @SuppressWarnings("resource") var server = harness.start();
+                    @SuppressWarnings("resource") LocalSftpHarness server = harness.start();
                     java.nio.file.Files.createDirectories(server.home().resolve(remote.substring(1)));
-                    var connection = server.connection();
+                    Connection connection = server.connection();
                     ApplicationManager.getApplication().invokeLater(() -> {
                         if (project.isDisposed()) return;
                         SftpFilesDialog browser = new SftpFilesDialog(project, connection, remote);
@@ -96,7 +102,7 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
                 if (!busy && SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2) {
                     int row = table.rowAtPoint(e.getPoint());
                     if (row >= 0) {
-                        var entry = entries.get(table.convertRowIndexToModel(row));
+                        Entry entry = entries.get(table.convertRowIndexToModel(row));
                         if (entry.directory()) {
                             directory.setText(listedDirectory + (listedDirectory.endsWith("/") ? "" : "/") + entry.name());
                             load();
@@ -138,7 +144,7 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
         return Arrays.stream(table.getSelectedRows()).map(table::convertRowIndexToModel).mapToObj(entries::get).toList();
     }
     private void updateButtons() {
-        var selected = selected();
+        List<Entry> selected = selected();
         boolean files = !selected.isEmpty() && selected.stream().allMatch(RemoteFilesClient.Entry::regular);
         download.setEnabled(!busy && files && selected.size() == 1);
         delete.setEnabled(!busy && files);
@@ -150,7 +156,7 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
         run(client -> new Result(client.list(target), null));
     }
     private void download() {
-        var selection = selected();
+        List<Entry> selection = selected();
         if (selection.size() != 1 || busy) return;
         String remote = listedDirectory;
         StudioProjectFiles.chooseFilePaths(project, FileChooserDescriptorFactory.createSingleFolderDescriptor(), paths -> {
@@ -163,7 +169,7 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
         });
     }
     private void delete() {
-        var selection = selected();
+        List<Entry> selection = selected();
         if (selection.isEmpty() || busy) return;
         String remote = listedDirectory;
         String names = String.join("\n", selection.stream().map(RemoteFilesClient.Entry::name).toList());
@@ -172,7 +178,7 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
         run(client -> {
             int deleted = 0;
             try {
-                for (var entry : selection) { client.delete(remote, entry); deleted++; }
+                for (Entry entry : selection) { client.delete(remote, entry); deleted++; }
             } catch (Exception failure) {
                 // A batch can partially succeed. Report its exact count and refresh before another operation.
                 return new Result(client.list(remote), StudioBundle.message("sftpBrowser.partialDelete", deleted, selection.size()));
@@ -211,7 +217,7 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
                     table.clearSelection(); model.setRowCount(0);
                     entries = complete.listing().entries();
                     listedDirectory = complete.listing().directory(); directory.setText(listedDirectory);
-                    for (var entry : entries) model.addRow(new Object[]{entry.name(),
+                    for (Entry entry : entries) model.addRow(new Object[]{entry.name(),
                             entry.directory() ? StudioBundle.message("sftpBrowser.folder")
                                     : entry.regular() ? StudioBundle.message("sftpBrowser.file") : StudioBundle.message("sftpBrowser.other"), entry.size(), Instant.ofEpochMilli(entry.modified()).toString()});
                     status.setText(complete.message() != null ? complete.message() : (complete.listing().truncated()
@@ -249,7 +255,7 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
         private static String value(FlowElement component, String key) {
             String value = component.getPropertyValueAsString(key);
             if (value == null || value.isBlank()) {
-                var meta = component.getComponentMeta().getMetadata(key);
+                ComponentPropertyMeta meta = component.getComponentMeta().getMetadata(key);
                 Object defaultValue = meta == null ? null : meta.getDefaultValue();
                 value = defaultValue == null ? "" : defaultValue.toString();
             }
@@ -263,7 +269,7 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
         @Override protected ValidationInfo doValidate() {
             if (host.getText().isBlank() || username.getText().isBlank() || hosts.getText().isBlank()
                     || (password.getPassword().length == 0 && key.getText().isBlank())) return new ValidationInfo(StudioBundle.message("sftpBrowser.required"));
-            for (var field : List.of(host, port, username, password, key, hosts, remote))
+            for (JTextField field : List.of(host, port, username, password, key, hosts, remote))
                 if (field.getText().contains("${")) return new ValidationInfo(StudioBundle.message("sftpBrowser.resolve"), field);
             try { connection(); } catch (IllegalArgumentException e) { return new ValidationInfo(StudioBundle.message("sftpBrowser.required")); }
             return null;

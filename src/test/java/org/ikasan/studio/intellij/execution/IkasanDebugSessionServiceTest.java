@@ -48,7 +48,7 @@ class IkasanDebugSessionServiceTest {
 
     @Test
     void recognisesDebugLaunchWithAdditionalArguments() {
-        var environment = environment(IkasanRunConfigurationService.MAIN_CLASS_NAME,
+        ExecutionEnvironment environment = environment(IkasanRunConfigurationService.MAIN_CLASS_NAME,
                 IkasanRunConfigurationService.STUDIO_DEBUG_PROGRAM_PARAMETERS + " --server.port=12450");
         assertThat(IkasanDebugSessionService.isStudioDebugExecution(
                 DefaultDebugExecutor.EXECUTOR_ID, environment)).isTrue();

@@ -14,6 +14,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import static org.assertj.core.api.Assertions.*;
+import java.util.Hashtable;
+import javax.naming.Context;
+import javax.naming.spi.InitialContextFactory;
+import javax.tools.JavaCompiler;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 class ActiveMqTrustedPackagesRuntimeTest {
     @TempDir Path temporary;
@@ -23,7 +28,7 @@ class ActiveMqTrustedPackagesRuntimeTest {
     void generatedFactoryPreservesJndiAndXaAndRestrictsDeserialization(String variant) throws Exception {
         String pack = variant.equals("v3") ? "V3.3.9" : variant.equals("v4") ? "V4.1.6" : "V5.1.0";
         String classpath = Objects.requireNonNull(System.getProperty("studio.activemq." + variant + ".classpath"));
-        var component = TrustedObjectPackagesTemplateTest.jms(pack, "Consumer");
+        FlowElement component = TrustedObjectPackagesTemplateTest.jms(pack, "Consumer");
         String helper = FreemarkerUtils.generateFromTemplate(pack, "trustedObjectPackages_en.ftl",
                 new HashMap<>(Map.of("flowElement", component, "trustedPackages", "example.orders, example.shared")));
         Path generated = temporary.resolve("GeneratedTrust.java");
@@ -31,7 +36,7 @@ class ActiveMqTrustedPackagesRuntimeTest {
         Path orderSource = temporary.resolve("example/orders/Order.java");
         Files.createDirectories(orderSource.getParent());
         Files.writeString(orderSource, "package example.orders; public class Order implements java.io.Serializable { public String reference = \"ABC123\"; }");
-        var compiler = ToolProvider.getSystemJavaCompiler();
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         assertThat(compiler.run(null, null, null, "--release", variant.equals("v3") ? "11" : "17",
                 "-classpath", classpath, "-d", temporary.toString(), generated.toString(), orderSource.toString())).isZero();
         List<URL> urls = new ArrayList<>();
@@ -39,7 +44,7 @@ class ActiveMqTrustedPackagesRuntimeTest {
         for (String entry : classpath.split(java.util.regex.Pattern.quote(File.pathSeparator))) {
             urls.add(Path.of(entry).toUri().toURL());
         }
-        try (var loader = new URLClassLoader(urls.toArray(URL[]::new), ClassLoader.getPlatformClassLoader())) {
+        try (URLClassLoader loader = new URLClassLoader(urls.toArray(URL[]::new), ClassLoader.getPlatformClassLoader())) {
             ClassLoader previous = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(loader);
             try {
@@ -49,11 +54,11 @@ class ActiveMqTrustedPackagesRuntimeTest {
                 assertThatThrownBy(() -> helperClass.getMethod("initialFactoryName", String.class).invoke(null,
                         "example.OtherProvider")).isInstanceOf(InvocationTargetException.class)
                         .hasCauseInstanceOf(IllegalArgumentException.class);
-                var initial = (javax.naming.spi.InitialContextFactory) helperClass.getConstructor().newInstance();
-                var environment = new Hashtable<String, Object>();
+                InitialContextFactory initial = (javax.naming.spi.InitialContextFactory) helperClass.getConstructor().newInstance();
+                Hashtable<String,Object> environment = new Hashtable<String, Object>();
                 environment.put(javax.naming.Context.PROVIDER_URL, "tcp://localhost:61616");
                 environment.put("connectionFactoryNames", "ConnectionFactory,XAConnectionFactory");
-                var context = initial.getInitialContext(environment);
+                Context context = initial.getInitialContext(environment);
                 try {
                     Object factory = context.lookup("ConnectionFactory");
                     Class<?> activeMq = loader.loadClass("org.apache.activemq.ActiveMQConnectionFactory");

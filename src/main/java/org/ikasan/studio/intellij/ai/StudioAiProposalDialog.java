@@ -11,6 +11,7 @@ import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.JBUI;
 import org.ikasan.studio.ui.StudioBundle;
 import javax.swing.*;
+import java.util.concurrent.CompletableFuture;
 
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
 final class StudioAiProposalDialog extends StudioDialogWrapper {
@@ -72,7 +73,7 @@ final class StudioAiProposalDialog extends StudioDialogWrapper {
         feedback.setVisible(true);
         pack();
         try {
-            var generation = service.apply(proposal);
+            CompletableFuture<Void> generation = service.apply(proposal);
             applied = true;
             setOKButtonText(StudioBundle.message("button.Close"));
             setOKActionEnabled(true);

@@ -43,6 +43,13 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.VERSION;
 import static org.ikasan.studio.ui.UiContext.PALETTE_TAB_INDEX;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.components.JBScrollPane;
+import java.util.HashSet;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
+import org.ikasan.studio.intellij.execution.HarnessOverrideService;
+import org.ikasan.studio.intellij.psi.FlowPackageRefactoring.Plan;
+import org.ikasan.studio.ui.component.properties.RegenerateUserClassDialog.AffectedClass;
 
 /**
  * Encapsulate the properties entry from a UI and validity perspective.
@@ -362,7 +369,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
     private UnsavedPropertyChangesDialog.Choice showUnsavedPropertyChangesDialog(
             String message, String componentName, BasicElement clickedComponent) {
-        var navigation = ComponentNavigationAvailability.forComponent(project, clickedComponent);
+        ComponentNavigationAvailability navigation = ComponentNavigationAvailability.forComponent(project, clickedComponent);
         UnsavedPropertyChangesDialog dialog = new UnsavedPropertyChangesDialog(project,
                 StudioBundle.message("dialog.UnsavedPropertyChanges"), message, componentName, getChangedPropertyDetails(),
                 navigation.code() ? clickedComponent.getIdentity() : null,
@@ -502,7 +509,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
     private boolean refactorComponentTestReferences() {
         if (!(getSelectedComponent() instanceof FlowElement element) || element.getContainingFlow() == null) return true;
-        var row = componentPropertyEditRowList.stream()
+        ComponentPropertyEditRow row = componentPropertyEditRowList.stream()
                 .filter(r -> r.getPropertyKey().equals(element.getIdentityPropertyMetaKey()))
                 .findFirst().orElse(null);
         if (row == null || !row.propertyValueHasChanged() || !(row.getValue() instanceof String name)) return true;
@@ -542,7 +549,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             return false;
         }
         try {
-            var plan = org.ikasan.studio.intellij.psi.FlowPackageRefactoring.prepare(project, module, flow, name);
+            Plan plan = org.ikasan.studio.intellij.psi.FlowPackageRefactoring.prepare(project, module, flow, name);
             if (plan == null) return false;
             if (!oldPackage.equals(newPackage)
                     && !new FlowPackageChangeDialog(project, oldPackage, newPackage, plan.files()).showAndGet()) return false;
@@ -631,7 +638,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     }
 
     private boolean confirmWithOptionalBackup(String message, List<AffectedUserImplementedClass> affected, boolean allowManualUpdate) {
-        var dialog = new RegenerateUserClassDialog(project, message,
+        RegenerateUserClassDialog dialog = new RegenerateUserClassDialog(project, message,
                 affected.stream().map(AffectedUserImplementedClass::description).toList(), allowManualUpdate);
         boolean confirmed = dialog.showAndGet();
         if (confirmed && dialog.isManualUpdateSelected()) {
@@ -740,7 +747,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             return null;
         }
         String componentType = component.getComponentMeta().getComponentTypeMeta().getComponentShortType();
-        var description = new RegenerateUserClassDialog.AffectedClass(flow.getIdentity(), componentType, className);
+        AffectedClass description = new RegenerateUserClassDialog.AffectedClass(flow.getIdentity(), componentType, className);
         UserClassReference userClassReference = module != null
                 ? new UserClassReference(GeneratorUtils.getUserImplementedClassesPackageName(module, flow), className)
                 : null;
@@ -968,7 +975,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
                 recipeDescriptionLabel.setLabelFor(recipeHelp);
                 mandatoryPropertiesEditorPanel.add(recipeDescriptionLabel, recipeGc);
                 recipeGc.gridy = mandatoryTabley++;
-                var recipeHelpScroll = new com.intellij.ui.components.JBScrollPane(recipeHelp,
+                JBScrollPane recipeHelpScroll = new com.intellij.ui.components.JBScrollPane(recipeHelp,
                         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
                 recipeHelpScroll.setBorder(JBUI.Borders.empty());
                 // Every row in this GridBagLayout has weighty 0 (the default), so whenever this section ends up
@@ -998,9 +1005,9 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
             gc1.gridy = 0;
 
             if (getSelectedComponent() instanceof Module module) {
-                var http = componentPropertyEditBoxMap.get(ComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME);
-                var database = componentPropertyEditBoxMap.get(ComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME);
-                var web = componentPropertyEditBoxMap.get(ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME);
+                ComponentPropertyEditRow http = componentPropertyEditBoxMap.get(ComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME);
+                ComponentPropertyEditRow database = componentPropertyEditBoxMap.get(ComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME);
+                ComponentPropertyEditRow web = componentPropertyEditBoxMap.get(ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME);
                 if (http != null) {
                     if (database != null) database.configureModulePortDefault(http, 1, componentInitialisation, module.hasAutomaticH2Default(ComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME));
                     if (web != null) web.configureModulePortDefault(http, 2, componentInitialisation, module.hasAutomaticH2Default(ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME));
@@ -1050,7 +1057,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
 
     public void refreshHarnessOverrideStatus() {
         if (harnessOverrideStatus == null || !(getSelectedComponent() instanceof FlowElement endpoint)) return;
-        var service = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        HarnessOverrideService service = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
         if (service == null) return;
         boolean enabled = service.isEnabled(endpoint);
         boolean active = service.isActive(endpoint);
@@ -1191,7 +1198,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
     private boolean isRecipeProperty(String key) {
         if (ComponentPropertyMeta.CONVERSION_RECIPE_ID.equals(key)) return true;
         if (getSelectedComponent() == null || getSelectedComponent().getComponentMeta() == null) return false;
-        var recipes = getSelectedComponent().getComponentMeta().getConversionRecipes();
+        List<ConversionRecipeMeta> recipes = getSelectedComponent().getComponentMeta().getConversionRecipes();
         return recipes != null && recipes.stream().anyMatch(recipe -> recipe.getConfigurationProperties() != null
                 && recipe.getConfigurationProperties().contains(key));
     }
@@ -1441,7 +1448,7 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
         }
         if (!componentInitialisation && getSelectedComponent() instanceof Module
                 && VERSION.equals(componentProperty.getMeta().getPropertyName())) {
-            var choice = componentPropertyEditRow.getInputField().getPropertyChoiceValueField();
+            ComboBox<Object> choice = componentPropertyEditRow.getInputField().getPropertyChoiceValueField();
             if (choice != null) {
                 choice.setEnabled(false);
                 choice.setToolTipText("Use Tools → Ikasan Studio → Migrate Ikasan Version… to review a version change.");
@@ -1593,10 +1600,10 @@ public class ComponentPropertiesPanel extends PropertiesPanel {
      */
     static List<ValidationInfo> validateModulePorts(Map<String, ComponentPropertyEditRow> rows) {
         List<ValidationInfo> result = new ArrayList<>();
-        var ports = new java.util.HashSet<Integer>();
+        HashSet<Integer> ports = new java.util.HashSet<>();
         for (String key : List.of(ComponentPropertyMeta.APPLICATION_PORT_NUMBER_NAME,
                 ComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME)) {
-            var row = rows.get(key);
+            ComponentPropertyEditRow row = rows.get(key);
             if (row == null) continue;
             String value = Objects.toString(row.getValue(), "");
             if (value.isBlank()) continue; // Mandatory row validation supplies the missing-value message.

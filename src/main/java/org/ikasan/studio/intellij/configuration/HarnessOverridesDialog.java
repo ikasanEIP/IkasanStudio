@@ -9,6 +9,11 @@ import java.awt.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.swing.*;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
+import java.util.Set;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides.Target;
 
 /** Enable harness-owned settings without editing endpoint values or the model. */
 public final class HarnessOverridesDialog extends org.ikasan.studio.intellij.project.ImportDialogWrapper {
@@ -33,27 +38,27 @@ public final class HarnessOverridesDialog extends org.ikasan.studio.intellij.pro
         } else new HarnessOverridesDialog(project).show();
     }
     @Override protected JComponent createStudioContent() {
-        var service = project.getService(HarnessOverrideService.class);
+        HarnessOverrideService service = project.getService(HarnessOverrideService.class);
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(10)));
         int width = JBUI.scale(620);
         String explanation = StudioBundle.message(configuration == null ?
                 "harnessOverrides.noConfiguration" : "harnessOverrides.help");
         // A wrapped text area with no laid-out width can request one line per character at pack time.
         // Give the HTML label a wrapping width so its preferred height reflects the actual explanation.
-        var help = new JBLabel("<html><body style='width: " + width + "px'>"
+        JBLabel help = new JBLabel("<html><body style='width: " + width + "px'>"
                 + com.intellij.openapi.util.text.StringUtil.escapeXmlEntities(explanation) + "</body></html>");
         panel.add(help, BorderLayout.NORTH);
         JPanel rows = new JPanel();
         rows.setLayout(new BoxLayout(rows, BoxLayout.Y_AXIS));
-        var selected = service.selection(configuration);
-        for (var target : service.targets()) {
-            var choice = new JBCheckBox(target.label(), selected.contains(target.id()));
+        Set<String> selected = service.selection(configuration);
+        for (Target target : service.targets()) {
+            JBCheckBox choice = new JBCheckBox(target.label(), selected.contains(target.id()));
             choice.setToolTipText(StudioBundle.message("harnessOverrides.toggleHelp"));
             choice.setEnabled(configuration != null);
             choices.put(target.id(), choice); rows.add(choice);
         }
         if (rows.getComponentCount() > 0) {
-            var scroll = new JBScrollPane(rows);
+            JBScrollPane scroll = new JBScrollPane(rows);
             int borderHeight = scroll.getInsets().top + scroll.getInsets().bottom;
             scroll.setPreferredSize(new Dimension(width,
                     Math.min(rows.getPreferredSize().height + borderHeight, JBUI.scale(300))));
@@ -64,7 +69,7 @@ public final class HarnessOverridesDialog extends org.ikasan.studio.intellij.pro
     }
     @Override protected void doOKAction() {
         if (configuration == null) return;
-        var selected = choices.entrySet().stream().filter(e -> e.getValue().isSelected()).map(Map.Entry::getKey)
+        Set<String> selected = choices.entrySet().stream().filter(e -> e.getValue().isSelected()).map(Map.Entry::getKey)
                 .collect(java.util.stream.Collectors.toSet());
         project.getService(HarnessOverrideService.class).saveSelection(configuration, selected);
         super.doOKAction();

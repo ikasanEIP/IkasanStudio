@@ -46,7 +46,7 @@ class OutputTextSupportTemplateTest {
         } finally {
             if (compiler.isAlive()) compiler.destroyForcibly().waitFor();
         }
-        try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, ClassLoader.getPlatformClassLoader())) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, ClassLoader.getPlatformClassLoader())) {
             Method stringify = loader.loadClass("org.ikasan.studio.flowtests.support.utils.OutputTextSupport").getMethod("stringify", Object.class);
             Class<?> emailContract = loader.loadClass("org.ikasan.component.endpoint.email.producer.EmailPayload");
             Object emailPayload = Proxy.newProxyInstance(loader, new Class<?>[]{emailContract}, (p, m, a) -> {
@@ -79,7 +79,7 @@ class OutputTextSupportTemplateTest {
             assertEquals("message body", stringify.invoke(null, jms));
             assertEquals(List.of("getText"), calls);
             for (Object directoryPayload : List.of(root, root.toFile(), List.of(file.toFile(), root.toFile()))) {
-                var failure = assertThrows(InvocationTargetException.class, () -> stringify.invoke(null, directoryPayload));
+                InvocationTargetException failure = assertThrows(InvocationTargetException.class, () -> stringify.invoke(null, directoryPayload));
                 assertInstanceOf(IllegalArgumentException.class, failure.getCause());
                 assertTrue(failure.getCause().getMessage().contains(root.toString()));
                 assertTrue(failure.getCause().getMessage().contains("directory"));

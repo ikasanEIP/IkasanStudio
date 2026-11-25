@@ -3,6 +3,10 @@ package org.ikasan.studio.core.generator;
 import org.ikasan.studio.core.model.analysis.HarnessOverrides;
 import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import java.util.ArrayList;
+import java.util.Properties;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides.Target;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 
 /** Harness-owned settings use a private namespace; loading the file alone enables nothing. */
 public final class HarnessOverridesTemplate {
@@ -20,8 +24,8 @@ public final class HarnessOverridesTemplate {
                 studio.harness.email.host=127.0.0.1
                 studio.harness.email.port=1025
                 """);
-        for (var target : HarnessOverrides.targets(module)) {
-            var flow = module.getFlows().stream().filter(f -> f.getFlowElementsNoExternalEndPoints().contains(target.element()))
+        for (Target target : HarnessOverrides.targets(module)) {
+            Flow flow = module.getFlows().stream().filter(f -> f.getFlowElementsNoExternalEndPoints().contains(target.element()))
                     .findFirst().orElseThrow();
             String prefix = "studio.harness.target." + target.id();
             text.append(prefix).append(".kind=").append(target.kind()).append("\n");
@@ -44,8 +48,8 @@ public final class HarnessOverridesTemplate {
 
     /** Launch inventory avoids depending on an open Studio editor or a loaded live model. */
     public static java.util.List<LaunchTarget> launchTargets(String text) throws java.io.IOException {
-        var properties = org.ikasan.studio.core.configuration.EnvironmentProperties.parse(text);
-        var targets = new java.util.ArrayList<LaunchTarget>();
+        Properties properties = org.ikasan.studio.core.configuration.EnvironmentProperties.parse(text);
+        ArrayList<org.ikasan.studio.core.generator.HarnessOverridesTemplate.LaunchTarget> targets = new java.util.ArrayList<>();
         String prefix = "studio.harness.target.";
         for (String key : new java.util.TreeSet<>(properties.stringPropertyNames())) {
             if (!key.startsWith(prefix) || !key.endsWith(".kind")) continue;
@@ -133,7 +137,7 @@ public final class HarnessOverridesTemplate {
                                 studioHarnessSet(configuration, "PasswordFilePath", String.class, null);
                             }
                             // Alternate failover must stay on the local harness too.
-                            for (var method : configuration.getClass().getMethods()) {
+                            for (java.lang.reflect.Method method : configuration.getClass().getMethods()) {
                                 if (method.getParameterCount() == 1 && method.getName().startsWith("setAlternate")) {
                                     String primary = "get" + method.getName().substring("setAlternate".length());
                                     try {
@@ -150,7 +154,7 @@ public final class HarnessOverridesTemplate {
                             java.nio.file.Files.createDirectories(java.nio.file.Path.of(home).resolve(directory));
                             studioHarnessSet(configuration, consumer ? "SourceDirectory" : "OutputDirectory", String.class, "/" + directory);
                             if (consumer) {
-                                for (var method : configuration.getClass().getMethods()) {
+                                for (java.lang.reflect.Method method : configuration.getClass().getMethods()) {
                                     if (method.getName().equals("setSourceDirectoryURLFactory") && method.getParameterCount() == 1)
                                         method.invoke(configuration, new Object[]{null});
                                 }

@@ -6,6 +6,10 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipInputStream;
+import java.io.OutputStream;
+import java.nio.file.Path;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
 
 /** Extracts only into a new staging directory; never overwrites customer files. */
 final class OfflineToolsExporter {
@@ -34,7 +38,7 @@ final class OfflineToolsExporter {
             return target;
         } finally {
             if (Files.exists(staging)) {
-                try (var paths = Files.walk(staging)) {
+                try (Stream<Path> paths = Files.walk(staging)) {
                     for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) Files.deleteIfExists(path);
                 }
             }
@@ -44,8 +48,8 @@ final class OfflineToolsExporter {
     private static void extract(InputStream archive, Path root, Runnable checkCancelled) throws IOException {
         Set<Path> seen = new HashSet<>();
         long bytes = 0; int entries = 0; String prefix = null;
-        try (var zip = new ZipInputStream(archive)) {
-            for (var entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
+        try (ZipInputStream zip = new ZipInputStream(archive)) {
+            for (ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
                 checkCancelled.run();
                 if (++entries > 2048) throw new IOException("Offline tools archive has too many entries");
                 String name = entry.getName();
@@ -62,7 +66,7 @@ final class OfflineToolsExporter {
                 if (!path.startsWith(root) || path.equals(root) || !seen.add(path)) throw new IOException("Unsafe or duplicate archive path");
                 if (entry.isDirectory()) { Files.createDirectories(path); continue; }
                 Files.createDirectories(path.getParent());
-                try (var out = Files.newOutputStream(path, StandardOpenOption.CREATE_NEW)) {
+                try (OutputStream out = Files.newOutputStream(path, StandardOpenOption.CREATE_NEW)) {
                     byte[] buffer = new byte[16384]; int count;
                     while ((count = zip.read(buffer)) != -1) {
                         checkCancelled.run(); bytes += count;

@@ -60,13 +60,13 @@ public final class FlowTestSupportFingerprint {
             throw new IOException("Incomplete Ikasan model documents");
         ObjectNode result = studio.path("properties").deepCopy();
         result.set("name", module.path("name"));
-        var flows = result.putArray("flows");
+        com.fasterxml.jackson.databind.node.ArrayNode flows = result.putArray("flows");
         for (JsonNode flow : module.path("flows")) {
             ObjectNode output = flows.addObject();
             output.set("name", flow.path("name"));
             JsonNode settings = studio.path("flows").path(flow.path("name").asText()).path("components");
             if (flow.path("consumer").isObject()) output.set("consumer", wiringComponent(flow.path("consumer"), settings, root, mapper));
-            var elements = output.putArray("flowElements");
+            com.fasterxml.jackson.databind.node.ArrayNode elements = output.putArray("flowElements");
             for (JsonNode c : flow.path("flowElements")) {
                 if (!c.path("componentName").equals(flow.path("consumer").path("componentName")))
                     elements.add(wiringComponent(c, settings, root, mapper));
@@ -112,9 +112,9 @@ public final class FlowTestSupportFingerprint {
     private static JsonNode variant(String pack, String key, ObjectMapper mapper) throws IOException {
 <#list supportComponentIdentities as key, meta>
         if ("${key?j_string}".equals(key)) {
-            var identity = mapper.createObjectNode()
+            com.fasterxml.jackson.databind.node.ObjectNode identity = mapper.createObjectNode()
                     .put("implementingClass", "${(meta.implementingClass!"")?j_string}")<#if meta.additionalKey??>.put("additionalKey", "${meta.additionalKey?j_string}")</#if>;
-            var mappings = identity.putObject("configurationMappings");
+            com.fasterxml.jackson.databind.node.ObjectNode mappings = identity.putObject("configurationMappings");
 <#list meta.runtimeConfigurationMappings as runtimeName, studioName>
             mappings.put("${runtimeName?j_string}", "${studioName?j_string}");
 </#list>
@@ -133,7 +133,7 @@ public final class FlowTestSupportFingerprint {
             return sorted;
         }
         if (value.isArray()) {
-            var array = mapper.createArrayNode();
+            com.fasterxml.jackson.databind.node.ArrayNode array = mapper.createArrayNode();
             for (JsonNode item : value) array.add(canonical(item, mapper));
             return array;
         }

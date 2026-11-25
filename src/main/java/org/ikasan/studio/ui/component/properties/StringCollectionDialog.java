@@ -14,6 +14,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.util.*;
+import javax.swing.JPanel;
 
 /** Edits string entries without comma splitting, value coercion or silent duplicate-key replacement. */
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
@@ -41,7 +42,7 @@ final class StringCollectionDialog extends StudioDialogWrapper {
         if (value instanceof String) setErrorText(StudioBundle.message("collection.InvalidLegacy"));
     }
     @Override protected JComponent createStudioContent() {
-        var panel = new JPanel(new BorderLayout(0, 8));
+        JPanel panel = new JPanel(new BorderLayout(0, 8));
         panel.add(new JBLabel(StudioBundle.message("collection.Guidance")), BorderLayout.NORTH);
         panel.add(ToolbarDecorator.createDecorator(table)
                 .setAddAction(b -> {

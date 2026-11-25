@@ -17,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import org.mockito.MockedStatic;
 
 class StudioReplaceInFilesTest {
     @BeforeAll
@@ -34,7 +35,7 @@ class StudioReplaceInFilesTest {
         when(context.getIkasanModule()).thenReturn(module);
         when(project.getService(ReplaceInProjectManager.class)).thenReturn(manager);
         Application application = mock(Application.class);
-        try (var applications = mockStatic(ApplicationManager.class)) {
+        try (MockedStatic<ApplicationManager> applications = mockStatic(ApplicationManager.class)) {
             // Mockito records this invocation to configure the static mock.
             //noinspection ResultOfMethodCallIgnored
             applications.when(ApplicationManager::getApplication).thenReturn(application);
@@ -42,12 +43,12 @@ class StudioReplaceInFilesTest {
             StudioReplaceInFiles.afterGeneration(project, module, generation, "org.example.cat.domain", "org.example.debug.domain");
             verifyNoInteractions(application, manager);
             generation.complete(null);
-            var callback = ArgumentCaptor.forClass(Runnable.class);
+            ArgumentCaptor<Runnable> callback = ArgumentCaptor.forClass(Runnable.class);
             verify(application).invokeLater(callback.capture(), eq(ModalityState.nonModal()));
             verifyNoInteractions(manager);
             callback.getValue().run();
-            var model = ArgumentCaptor.forClass(FindModel.class);
-            var data = ArgumentCaptor.forClass(DataContext.class);
+            ArgumentCaptor<FindModel> model = ArgumentCaptor.forClass(FindModel.class);
+            ArgumentCaptor<DataContext> data = ArgumentCaptor.forClass(DataContext.class);
             verify(manager).replaceInProject(data.capture(), model.capture());
             assertSame(DataContext.EMPTY_CONTEXT, data.getValue());
             FindModel find = model.getValue();
@@ -72,7 +73,7 @@ class StudioReplaceInFilesTest {
         when(project.getService(UiContext.class)).thenReturn(context);
         when(context.getIkasanModule()).thenReturn(module);
         Application application = mock(Application.class);
-        try (var applications = mockStatic(ApplicationManager.class)) {
+        try (MockedStatic<ApplicationManager> applications = mockStatic(ApplicationManager.class)) {
             // Mockito records this invocation to configure the static mock.
             //noinspection ResultOfMethodCallIgnored
             applications.when(ApplicationManager::getApplication).thenReturn(application);
@@ -86,7 +87,7 @@ class StudioReplaceInFilesTest {
 
             when(project.isDisposed()).thenReturn(false);
             StudioReplaceInFiles.afterGeneration(project, module, CompletableFuture.completedFuture(null), "old.Type", "new.Type");
-            var callback = ArgumentCaptor.forClass(Runnable.class);
+            ArgumentCaptor<Runnable> callback = ArgumentCaptor.forClass(Runnable.class);
             verify(application).invokeLater(callback.capture(), eq(ModalityState.nonModal()));
             when(context.getIkasanModule()).thenReturn(mock(Module.class));
             callback.getValue().run();

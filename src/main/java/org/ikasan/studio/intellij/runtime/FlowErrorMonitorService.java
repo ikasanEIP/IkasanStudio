@@ -17,6 +17,8 @@ import org.ikasan.studio.integration.ikasan.ModuleControlClient;
 import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 import java.util.Map;
+import java.util.Map.Entry;
+import org.ikasan.studio.runtime.state.FlowErrorStates.ErrorInfo;
 
 /**
  * Polls the running module's own Ikasan REST interface (moduleControl) for each flow's state, and flags any flow
@@ -154,10 +156,10 @@ public final class FlowErrorMonitorService implements Disposable {
             return;
         }
         Map<String, ModuleControlClient.ErrorDetails> fetched = new java.util.HashMap<>();
-        for (var entry : flowStates.entrySet()) {
+        for (Entry<String,String> entry : flowStates.entrySet()) {
             if (disposed || project.isDisposed()) return;
             if (STOPPED_IN_ERROR_STATE.equals(entry.getValue())) {
-                var existing = errorStates.getError(entry.getKey());
+                ErrorInfo existing = errorStates.getError(entry.getKey());
                 if (existing == null || existing.details() == null || existing.details().isBlank()) {
                     fetched.put(entry.getKey(), probe.details(ikasanModule, entry.getKey()));
                 }

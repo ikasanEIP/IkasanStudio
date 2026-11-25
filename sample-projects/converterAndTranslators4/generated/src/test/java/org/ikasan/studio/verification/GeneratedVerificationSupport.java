@@ -36,8 +36,8 @@ public abstract class GeneratedVerificationSupport {
 
     /** The factory must expose a public no-argument method returning the declared interface. */
     protected final void assertFactory(String factory, String method, String contract) throws Exception {
-        var type = load(factory);
-        var factoryMethod = type.getMethod(method);
+        Class<?> type = load(factory);
+        java.lang.reflect.Method factoryMethod = type.getMethod(method);
         assertTrue("Factory return contract: " + factory + "." + method,
                 load(contract).isAssignableFrom(factoryMethod.getReturnType()));
     }

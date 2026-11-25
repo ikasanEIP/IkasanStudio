@@ -12,16 +12,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
+import javax.swing.JButton;
+import javax.swing.JFormattedTextField;
 
 class ComponentPropertyFocusCommitTest {
     @Test void firstClickAppliesLiveNumericEditAcrossFocusTransfer() throws Exception {
-        var row = new AtomicReference<ComponentPropertyEditRow>();
-        var button = new JButton("Update Code");
-        var updates = new AtomicInteger();
+        AtomicReference<ComponentPropertyEditRow> row = new AtomicReference<>();
+        JButton button = new JButton("Update Code");
+        AtomicInteger updates = new AtomicInteger();
         SwingUtilities.invokeAndWait(() -> {
-            var meta = ComponentPropertyMeta.builder().propertyName("remotePort")
+            ComponentPropertyMeta meta = ComponentPropertyMeta.builder().propertyName("remotePort")
                     .propertyDataType(Integer.class).usageDataType("java.lang.Integer").mandatory(true).build();
-            var edit = new ComponentPropertyEditRow(null, new ComponentProperty(meta, 2121), false, () -> {
+            ComponentPropertyEditRow edit = new ComponentPropertyEditRow(null, new ComponentProperty(meta, 2121), false, () -> {
                 if (row.get() != null) button.setEnabled(row.get().propertyValueHasChanged() && row.get().doValidateAll().isEmpty());
             }, new HashMap<>());
             row.set(edit);
@@ -29,7 +31,7 @@ class ComponentPropertyFocusCommitTest {
                 assertEquals(2222, ((Number) row.get().updateValueObjectWithEnteredValues().getValue()).intValue());
                 updates.incrementAndGet();
             });
-            var field = edit.getOverridingInputField();
+            JFormattedTextField field = edit.getOverridingInputField();
             field.setText("2222");
             assertTrue(button.isEnabled());
             // A mouse press arms the button before the edited field's focus-loss processing completes.
@@ -44,10 +46,10 @@ class ComponentPropertyFocusCommitTest {
 
     @Test void invalidNumericTextRemainsVisibleAndInvalidAfterFocusTransfer() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var meta = ComponentPropertyMeta.builder().propertyName("remotePort")
+            ComponentPropertyMeta meta = ComponentPropertyMeta.builder().propertyName("remotePort")
                     .propertyDataType(Integer.class).usageDataType("java.lang.Integer").mandatory(true).build();
-            var edit = new ComponentPropertyEditRow(null, new ComponentProperty(meta, 2121), false, () -> {}, new HashMap<>());
-            var field = edit.getOverridingInputField();
+            ComponentPropertyEditRow edit = new ComponentPropertyEditRow(null, new ComponentProperty(meta, 2121), false, () -> {}, new HashMap<>());
+            JFormattedTextField field = edit.getOverridingInputField();
             field.setText("invalid");
             KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(field,
                     new FocusEvent(field, FocusEvent.FOCUS_LOST, false, new JButton()));

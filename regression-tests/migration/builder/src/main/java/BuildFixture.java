@@ -10,46 +10,46 @@ public class BuildFixture {
     public static void main(String[] args) throws Exception {
         Path root = Path.of(args[0]).toAbsolutePath();
         String version = args.length > 1 ? args[1] : "V3.3.9";
-        var json = StudioJson.newObjectMapper();
+        com.fasterxml.jackson.databind.ObjectMapper json = StudioJson.newObjectMapper();
         String source = Files.readString(root.resolve("baseline.json"));
         if (Files.exists(root.resolve("operations.json"))) {
             Map<String,Object> snapshot = json.readValue(source, Map.class);
-            for (var batch : json.readTree(Files.readString(root.resolve("operations.json")))) {
+            for (com.fasterxml.jackson.databind.JsonNode batch : json.readTree(Files.readString(root.resolve("operations.json")))) {
                 source = ComponentIO.toJson(ModelProposal.prepare(snapshot, batch).draft());
                 snapshot = json.readValue(source, Map.class);
             }
         }
         // Exercise both decorator types through the same persisted model and migration engine.
-        var decorated = ComponentIO.validatePersistedModuleJson(source, "fixture", false);
-        var enrichment = decorated.getFlows().stream().filter(f -> "Core Pipeline".equals(f.getIdentity()))
+        org.ikasan.studio.core.model.ikasan.instance.Module decorated = ComponentIO.validatePersistedModuleJson(source, "fixture", false);
+        org.ikasan.studio.core.model.ikasan.instance.FlowElement enrichment = decorated.getFlows().stream().filter(f -> "Core Pipeline".equals(f.getIdentity()))
                 .flatMap(f -> f.getFlowElementsNoExternalEndPoints().stream())
                 .filter(c -> "Enrich Order".equals(c.getComponentName())).findFirst().orElseThrow();
-        var decorators = new ArrayList<org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator>();
+        List<org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator> decorators = new ArrayList<>();
         for (String type : List.of("Wiretap", "LogWiretap")) for (String position : List.of("BEFORE", "AFTER"))
             decorators.add(org.ikasan.studio.core.model.ikasan.instance.decorator.Decorator.decoratorBuilder()
                     .type(type).name(position + " Enrich Order").configurationId("0").configurable(false)
                     .timeToLive(type.equals("Wiretap") ? "300" : null).build());
         enrichment.setDecorators(decorators);
         source = ComponentIO.toJson(decorated);
-        var plan = version.equals("V3.3.9")
+        ModelMigration.Plan plan = version.equals("V3.3.9")
                 ? new ModelMigration.Plan(version, version, source, source, List.of())
                 : ModelMigration.analyse(source, version);
         if (!plan.canApply()) throw new IllegalStateException(plan.report());
         Path output = root.resolve("build").resolve(args.length > 2 ? args[2] : version);
         if (Files.exists(output)) throw new IllegalStateException("Output already exists; choose a fresh fixture workspace: " + output);
-        try (var files = Files.walk(root.resolve("project"))) {
+        try (java.util.stream.Stream<Path> files = Files.walk(root.resolve("project"))) {
             for (Path file : files.filter(Files::isRegularFile).toList()) {
                 Path target = output.resolve(root.resolve("project").relativize(file));
                 Files.createDirectories(target.getParent()); Files.copy(file, target);
             }
         }
-        var rendered = MigrationArtifacts.render(plan, Files.readString(output.resolve("pom.xml")));
-        for (var entry : rendered.entrySet()) {
+        Map<String, String> rendered = MigrationArtifacts.render(plan, Files.readString(output.resolve("pom.xml")));
+        for (Map.Entry<String, String> entry : rendered.entrySet()) {
             Path target = output.resolve(entry.getKey()); Files.createDirectories(target.getParent());
             Files.writeString(target, entry.getValue());
         }
-        var module = ComponentIO.validatePersistedModuleJson(plan.targetJson(), "fixture", false);
-        for (var flow : module.getFlows()) for (var component : flow.getFlowElementsNoExternalEndPoints()) {
+        org.ikasan.studio.core.model.ikasan.instance.Module module = ComponentIO.validatePersistedModuleJson(plan.targetJson(), "fixture", false);
+        for (org.ikasan.studio.core.model.ikasan.instance.Flow flow : module.getFlows()) for (org.ikasan.studio.core.model.ikasan.instance.FlowElement component : flow.getFlowElementsNoExternalEndPoints()) {
             String name = component.getPropertyValueAsString("userImplementedClassName");
             if (name.isBlank()) continue;
             String pkg = org.ikasan.studio.core.generator.GeneratorUtils.getUserImplementedClassesPackageName(module, flow);

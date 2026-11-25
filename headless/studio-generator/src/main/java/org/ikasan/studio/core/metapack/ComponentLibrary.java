@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.ikasan.studio.core.metapack.model.ComponentMeta.GENERIC_KEY;
+import java.util.LinkedHashMap;
 
 /**
  * This class aggregates all the defined Ikasan components
@@ -139,7 +140,7 @@ public final class ComponentLibrary {
 
     /** Startup diagnostics for rejected sources; querying on a background thread also warms the session index. */
     public static Map<String, String> getUnavailableMetaPacks() {
-        var problems = new LinkedHashMap<>(org.ikasan.studio.core.metapack.loading.MetaPackResources.installationProblems());
+        LinkedHashMap<String,String> problems = new LinkedHashMap<>(org.ikasan.studio.core.metapack.loading.MetaPackResources.installationProblems());
         Libraries.PACKAGED.forEach((id, library) -> {
             if (library.validationError() != null) problems.put(id, library.validationError());
         });

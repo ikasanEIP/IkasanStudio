@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.re2j.Pattern;
 
 @org.junit.jupiter.api.Tag("packs")
 class AiProjectContractGeneratorTest {
@@ -33,14 +35,14 @@ class AiProjectContractGeneratorTest {
     @Test
     void selectedCataloguePreservesDefinitionsAndSupportsDiscovery() throws Exception {
         for (String version : PackExpectations.metaPacksToTest().toList()) {
-            var mapper = StudioJson.newObjectMapper();
-            var full = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version));
-            var selected = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version,
+            ObjectMapper mapper = StudioJson.newObjectMapper();
+            JsonNode full = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version));
+            JsonNode selected = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version,
                     java.util.List.of("Converter", "Converter")));
             assertThat(selected.path("components")).hasSize(1);
             assertThat(selected.path("components").get(0)).isEqualTo(component(full, "Converter"));
             assertThat(selected.path("frameworkReference")).isEqualTo(full.path("frameworkReference"));
-            var discovery = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version, java.util.List.of()));
+            JsonNode discovery = mapper.readTree(AiProjectContractGenerator.componentCatalogue(version, java.util.List.of()));
             assertThat(discovery.path("components")).isEmpty();
             assertThat(discovery.path("availableComponentKeys")).isEqualTo(full.path("availableComponentKeys"));
             org.assertj.core.api.Assertions.assertThatThrownBy(() ->
@@ -58,7 +60,7 @@ class AiProjectContractGeneratorTest {
             assertThat(catalogue.path("metapackVersion").asText()).isEqualTo(version);
             String release = ComponentLibrary.getMetaPackManifest(version).ikasanVersion();
             assertThat(catalogue.path("ikasanVersion").asText()).isEqualTo(release);
-            var reference = catalogue.path("frameworkReference");
+            JsonNode reference = catalogue.path("frameworkReference");
             assertThat(reference.path("releaseTag").asText()).isEqualTo("ikasaneip-" + release);
             assertThat(reference.path("releaseSource").asText()).isEqualTo("https://github.com/ikasanEIP/ikasan/tree/ikasaneip-" + release);
             assertThat(reference.path("navigation").path("interfaces").get(0).asText()).isEqualTo("ikasaneip/spec");
@@ -111,7 +113,7 @@ class AiProjectContractGeneratorTest {
             }
             assertThat(component(catalogue, "Flow").path("proposalOperations").toString()).contains("setFlowProperty");
             assertThat(component(catalogue, "Flow").path("completionChecks").toString()).contains("Run module", "MANUAL");
-            var resolver = component(catalogue, "Exception Resolver");
+            JsonNode resolver = component(catalogue, "Exception Resolver");
             assertThat(resolver.path("proposalOperations").toString()).contains("setExceptionResolution");
             assertThat(resolver.path("exceptionActions").toString()).contains("excludeEvent", "retry", "maximum retry count");
             assertThat(component(catalogue, "File Endpoint").path("proposalSupport").asText()).contains("owning component");
@@ -161,7 +163,7 @@ class AiProjectContractGeneratorTest {
             for (JsonNode property : component(catalogue, "Email Producer").path("properties")) {
                 String name = property.path("name").asText();
                 if (!java.util.Set.of("toRecipient", "from", "ccRecipient", "bccRecipient").contains(name)) continue;
-                var rule = com.google.re2j.Pattern.compile(property.path("validation").asText());
+                Pattern rule = com.google.re2j.Pattern.compile(property.path("validation").asText());
                 for (String valid : java.util.List.of("audience@example.invalid", "studio@example.test",
                         "developer@example.technology", "first.last+demo@example.com")) {
                     assertThat(rule.matcher(valid).matches()).as("%s %s accepts %s", version, name, valid).isTrue();

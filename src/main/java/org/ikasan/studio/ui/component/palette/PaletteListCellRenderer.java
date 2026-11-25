@@ -8,6 +8,7 @@ import org.ikasan.studio.ui.model.PaletteItem;
 
 import javax.swing.*;
 import java.awt.*;
+import org.ikasan.studio.ui.viewmodel.IkasanPaletteElementViewHandler;
 
 public class PaletteListCellRenderer extends DefaultListCellRenderer {
     public static final Logger LOG = Logger.getInstance("PaletteListCellRenderer");
@@ -22,7 +23,7 @@ public class PaletteListCellRenderer extends DefaultListCellRenderer {
     {
         super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         if (value instanceof PaletteItem paletteItem) {
-            var handler = paletteItem.getIkasanPaletteElementViewHandler();
+            IkasanPaletteElementViewHandler handler = paletteItem.getIkasanPaletteElementViewHandler();
             setText(paletteItem.isCategory() ? handler.getComponentMeta().getName() : handler.getText());
             setIcon(paletteItem.isCategory() ? null : handler.getDisplayIcon());
             setFont(paletteItem.isCategory() ? list.getFont().deriveFont(Font.BOLD) : list.getFont());

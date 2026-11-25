@@ -1,11 +1,11 @@
     @Test public void rollbackRetryAndLaterDelivery() throws Exception {
         runTest(context -> {
-            try (var diagnostics = new RollbackDiagnostics()) {
-            var module = context.getBean(org.ikasan.spec.module.Module.class);
-            var flow = (org.ikasan.spec.flow.Flow) module.getFlow("Transport");
-            var probe = context.getBean(org.example.transport.transport.TransportConverter.class);
-            var input = context.getBean(org.example.transport.transport.InputFeed.class);
-            var directory = @DIRECTORY@;
+            try (RollbackDiagnostics diagnostics = new RollbackDiagnostics()) {
+            org.ikasan.spec.module.Module module = context.getBean(org.ikasan.spec.module.Module.class);
+            org.ikasan.spec.flow.Flow flow = (org.ikasan.spec.flow.Flow) module.getFlow("Transport");
+            org.example.transport.transport.TransportConverter probe = context.getBean(org.example.transport.transport.TransportConverter.class);
+            org.example.transport.transport.InputFeed input = context.getBean(org.example.transport.transport.InputFeed.class);
+            java.nio.file.Path directory = @DIRECTORY@;
             flow.start();
             try {
                 org.junit.Assert.assertEquals(org.ikasan.spec.flow.Flow.RUNNING, flow.getState());
@@ -30,7 +30,7 @@
             diagnostics.assertClean();
             }
         });
-        try (var socket = new java.net.Socket()) {
+        try (java.net.Socket socket = new java.net.Socket()) {
             socket.connect(new java.net.InetSocketAddress("127.0.0.1", transportPort), 500);
             org.junit.Assert.fail("Transport listener still open after teardown");
         } catch (java.net.ConnectException expected) { /* Closed. */ }

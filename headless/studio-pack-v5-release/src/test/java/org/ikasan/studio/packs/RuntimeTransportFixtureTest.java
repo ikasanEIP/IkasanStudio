@@ -8,17 +8,23 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /** Exports real, isolated transport scenarios. Maven/JDK 25 executes them separately. */
 class RuntimeTransportFixtureTest {
     @TempDir Path temporary;
     @Test void exportsLocalTransportScenarios() throws Exception {
         Path root = Path.of(System.getProperty("studio.v5.transports", temporary.toString()));
-        var scenarios = List.of("jms", "jms-object", "smtp", "smtp-generated", "smtp-configured", "ftp-input", "ftp-output", "sftp-input", "sftp-output");
+        List<String> scenarios = List.of("jms", "jms-object", "smtp", "smtp-generated", "smtp-configured", "ftp-input", "ftp-output", "sftp-input", "sftp-output");
         for (String scenario : scenarios) {
-            var files = render(scenario);
+            Map<String,String> files = render(scenario);
             assertTrue(files.get("src/test/java/org/ikasan/studio/flowtests/TransportTest.java").contains("\"third\""));
-            for (var file : files.entrySet()) {
+            for (Entry<String,String> file : files.entrySet()) {
                 Path target = root.resolve(scenario).resolve(file.getKey());
                 Files.createDirectories(target.getParent()); Files.writeString(target, file.getValue());
             }
@@ -44,8 +50,8 @@ class RuntimeTransportFixtureTest {
         String protocol = scenario.startsWith("sftp") ? "sftp" : "ftp";
         String consumerKind = jms ? "Spring JMS Consumer" : input ? protocol.toUpperCase() + " Consumer" : "Generic Consumer";
         String producerKind = jms ? "Spring JMS Producer" : smtp ? "Email Producer" : input ? "Dev Null Producer" : protocol.toUpperCase() + " Producer";
-        var consumer = DevelopmentFixtureTest.element(consumerKind, "Input");
-        var producer = DevelopmentFixtureTest.element(producerKind, "Output");
+        FlowElement consumer = DevelopmentFixtureTest.element(consumerKind, "Input");
+        FlowElement producer = DevelopmentFixtureTest.element(producerKind, "Output");
         // Without destination JNDI properties, Ikasan creates literal queue names.
         if (jms) {
             consumer.setPropertyValue("destinationJndiName", "input");
@@ -62,11 +68,11 @@ class RuntimeTransportFixtureTest {
                 if (generatedEmail) producer.setPropertyValue("mailSubject", "Model subject");
             } else producer.setPropertyValue("username", "test");
         }
-        var flow = Flow.flowBuilder().metapackVersion(DevelopmentFixtureTest.PACK).name("Transport").consumer(consumer).build();
-        var elements = new ArrayList<FlowElement>();
+        Flow flow = Flow.flowBuilder().metapackVersion(DevelopmentFixtureTest.PACK).name("Transport").consumer(consumer).build();
+        ArrayList<FlowElement> elements = new ArrayList<>();
         if (objectMessage) elements.add(DevelopmentFixtureTest.element("JMS Object Message To Object Converter", "Unwrap"));
         if (!input) {
-            var converter = DevelopmentFixtureTest.element(generatedEmail ? "Email Converter" : "Converter", "Convert");
+            FlowElement converter = DevelopmentFixtureTest.element(generatedEmail ? "Email Converter" : "Converter", "Convert");
             converter.setPropertyValue("userImplementedClassName", "TransportConverter");
             if (generatedEmail) converter.setPropertyValue("fromType", "java.lang.String");
             if (configuredEmail) converter.setPropertyValue("configuration", "MailSettings");
@@ -75,11 +81,11 @@ class RuntimeTransportFixtureTest {
         elements.add(producer);
         flow.setFlowRoute(FlowRoute.flowRouteBuilder().flow(flow).flowElements(elements).build());
         configure.accept(flow);
-        var module = Module.moduleBuilder().version(DevelopmentFixtureTest.PACK).name("TransportProbe")
+        Module module = Module.moduleBuilder().version(DevelopmentFixtureTest.PACK).name("TransportProbe")
                 .applicationPackageName("org.example.transport").port("8080").h2PortNumber("8092")
                 .h2WebPortNumber("8093").flows(List.of(flow)).build();
         module.setPropertyValue("flowStartupType", "MANUAL");
-        var files = DevelopmentFixtureTest.render(module);
+        Map<String,String> files = DevelopmentFixtureTest.render(module);
         files.put("pom.xml", files.get("pom.xml").replace("<artifactId>ikasan5-review</artifactId>", "<artifactId>transport-" + scenario + "</artifactId>"));
         String pkg = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
         if (!input && !jms) DevelopmentFixtureTest.putJava(files, pkg, "InputFeed",
@@ -88,8 +94,8 @@ class RuntimeTransportFixtureTest {
             String inputType = jms && !objectMessage ? "jakarta.jms.TextMessage" : "String";
             String outputType = jms ? "String" : smtp ? "org.ikasan.component.endpoint.email.producer.DefaultEmailPayload" : "org.ikasan.filetransfer.component.DefaultPayload";
             String body = objectMessage ? "return value;" : jms ? "try { return value.getText(); } catch (jakarta.jms.JMSException e) { throw new RuntimeException(e); }"
-                    : smtp ? "var result = new " + outputType + "(); result.setEmailBody(value); return result;"
-                    : "var result = new " + outputType + "(value, value.getBytes(java.nio.charset.StandardCharsets.UTF_8));"
+                    : smtp ? outputType + " result = new " + outputType + "(); result.setEmailBody(value); return result;"
+                    : outputType + " result = new " + outputType + "(value, value.getBytes(java.nio.charset.StandardCharsets.UTF_8));"
                     + "result.setAttribute(org.ikasan.filetransfer.FilePayloadAttributeNames.FILE_NAME, value + \".txt\"); return result;";
             DevelopmentFixtureTest.putJava(files, pkg, "TransportConverter", "package " + pkg + ";\n"
                     + "@org.springframework.stereotype.Component(\"" + pkg + ".TransportConverter\")\n"
@@ -147,14 +153,14 @@ class RuntimeTransportFixtureTest {
                 : input ? "// Producer observation already checked the downloaded content."
                 : "assertDeliveredBatchContents(" + directory + ", \"*.txt\", number, batch.expectedTexts(\"Output\").toArray(String[]::new));";
         if (generatedEmail) receive += """
-                var module = context.getBean(org.ikasan.spec.module.Module.class);
-                var flow = (org.ikasan.spec.flow.Flow) module.getFlow("Transport");
+                org.ikasan.spec.module.Module module = context.getBean(org.ikasan.spec.module.Module.class);
+                org.ikasan.spec.flow.Flow flow = (org.ikasan.spec.flow.Flow) module.getFlow("Transport");
                 org.ikasan.component.endpoint.email.producer.EmailProducer email =
                         org.springframework.test.util.AopTestUtils.getUltimateTargetObject(flow.getFlowElement("Output").getFlowComponent());
                 org.junit.Assert.assertEquals("environment-sender@example.test", email.getConfiguration().getMailFrom());
-                for (var message : localSmtpServer(context).receivedMessages()) {
+                for (javax.mail.internet.MimeMessage message : localSmtpServer(context).receivedMessages()) {
                     org.junit.Assert.assertEquals("Environment subject", message.getSubject());
-                    var recipients = java.util.Arrays.stream(message.getAllRecipients())
+                    java.util.Set<String> recipients = java.util.Arrays.stream(message.getAllRecipients())
                             .map(Object::toString).collect(java.util.stream.Collectors.toSet());
                     org.junit.Assert.assertEquals(java.util.Set.of("review-one@example.test", "review-two@example.test"), recipients);
                 }
@@ -173,7 +179,7 @@ class RuntimeTransportFixtureTest {
         }
         String cleanupCheck = jms
                 ? "org.junit.Assert.assertNull(\"Owned broker stopped after teardown\", org.apache.activemq.broker.BrokerRegistry.getInstance().lookup(\"v5-probe\"));"
-                : "try (var socket = new java.net.Socket()) { socket.connect(new java.net.InetSocketAddress(\"127.0.0.1\", transportPort), 500); org.junit.Assert.fail(\"Local transport listener still open after teardown\"); } catch (java.net.ConnectException expected) { /* Listener closed. */ }";
+                : "try (java.net.Socket socket = new java.net.Socket()) { socket.connect(new java.net.InetSocketAddress(\"127.0.0.1\", transportPort), 500); org.junit.Assert.fail(\"Local transport listener still open after teardown\"); } catch (java.net.ConnectException expected) { /* Listener closed. */ }";
         files.put("src/test/java/org/ikasan/studio/flowtests/TransportTest.java", """
                 package org.ikasan.studio.flowtests;
                 import java.util.*;

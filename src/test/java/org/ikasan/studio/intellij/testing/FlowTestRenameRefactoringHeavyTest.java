@@ -10,6 +10,12 @@ import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import java.util.List;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.application.ApplicationConfiguration;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.ui.TestDialog;
+import org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.Plan;
 
 public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
     private Flow flow;
@@ -44,7 +50,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testFlowRenamePreservesBusinessValuesAndMovesFixtures() {
-        var plan = inspect(null, "Renamed Flow");
+        Plan plan = inspect(null, "Renamed Flow");
         WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> {}));
         assertTrue(text().contains("FLOW_NAME = \"Renamed Flow\""));
         assertTrue(text().contains("EXPECTED = \"Original Flow\""));
@@ -57,7 +63,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testComponentRenameUpdatesOnlyRecognisedUsages() {
-        var plan = inspect(flow.getConsumer(), "New Consumer");
+        Plan plan = inspect(flow.getConsumer(), "New Consumer");
         WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> {}));
         assertTrue(text().contains("CONSUMER_NAME = \"New Consumer\""));
         assertTrue(text().contains("harness.consumer(\"New Consumer\")"));
@@ -79,7 +85,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
                 }
                 void customAssertion()
                 """));
-        var plan = inspect(flow.getConsumer(), "New Consumer");
+        Plan plan = inspect(flow.getConsumer(), "New Consumer");
         WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> {}));
         assertTrue(text().contains("runTest(\"New Consumer\", \"Old Consumer\", \"expected\")"));
         assertTrue(text().contains("runTest(TEST_REVIEWED, \"New Consumer\", \"Old Consumer\", \"expected\")"));
@@ -94,7 +100,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
 
     public void testPersistenceFailureRestoresReferencesAndResources() {
         String before = text();
-        var plan = inspect(null, "Renamed Flow");
+        Plan plan = inspect(null, "Renamed Flow");
         try {
             WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> { throw new IllegalStateException("save failed"); }));
             fail("Expected failure");
@@ -114,7 +120,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testUnsavedScenarioIsNotOverwritten() {
-        var document = FileDocumentManager.getInstance().getDocument(file(TEST));
+        Document document = FileDocumentManager.getInstance().getDocument(file(TEST));
         assertNotNull(document);
         WriteCommandAction.runWriteCommandAction(myProject, () -> document.insertString(0, "// unsaved edit\n"));
         try { inspect(null, "Renamed Flow"); fail("Expected unsaved-file guard"); }
@@ -124,10 +130,10 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testPrepareSavesAffectedEditsAndLeavesUnrelatedDocumentsUnsaved() {
-        var manager = FileDocumentManager.getInstance();
-        var document = manager.getDocument(file(TEST));
+        FileDocumentManager manager = FileDocumentManager.getInstance();
+        Document document = manager.getDocument(file(TEST));
         write("unrelated.txt", "saved unrelated content");
-        var unrelated = manager.getDocument(file("unrelated.txt"));
+        Document unrelated = manager.getDocument(file("unrelated.txt"));
         assertNotNull(document);
         assertNotNull(unrelated);
         WriteCommandAction.runWriteCommandAction(myProject, () -> {
@@ -135,7 +141,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
             unrelated.insertString(0, "unsaved unrelated change\n");
         });
         assertTrue(manager.isDocumentUnsaved(document));
-        var plan = FlowTestRenameRefactoring.prepare(myProject, module, flow, flow.getConsumer(), "New Consumer");
+        Plan plan = FlowTestRenameRefactoring.prepare(myProject, module, flow, flow.getConsumer(), "New Consumer");
         assertFalse(manager.isDocumentUnsaved(document));
         assertTrue(manager.isDocumentUnsaved(unrelated));
         WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> {}));
@@ -148,11 +154,11 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testRollbackRestoresTheDevelopersPreviouslyUnsavedEdits() {
-        var document = FileDocumentManager.getInstance().getDocument(file(TEST));
+        Document document = FileDocumentManager.getInstance().getDocument(file(TEST));
         assertNotNull(document);
         WriteCommandAction.runWriteCommandAction(myProject, () -> document.insertString(0, "// keep this edit\n"));
         String before = document.getText();
-        var plan = FlowTestRenameRefactoring.prepare(myProject, module, flow, flow.getConsumer(), "New Consumer");
+        Plan plan = FlowTestRenameRefactoring.prepare(myProject, module, flow, flow.getConsumer(), "New Consumer");
         try {
             WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> { throw new IllegalStateException("save failed"); }));
             fail("Expected persistence failure");
@@ -164,8 +170,8 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testReadOnlyUnsavedScenarioBlocksBeforeRename() throws Exception {
-        var testFile = file(TEST);
-        var document = FileDocumentManager.getInstance().getDocument(testFile);
+        VirtualFile testFile = file(TEST);
+        Document document = FileDocumentManager.getInstance().getDocument(testFile);
         assertNotNull(document);
         WriteCommandAction.runWriteCommandAction(myProject, () -> document.insertString(0, "// unsaved read-only edit\n"));
         com.intellij.openapi.application.WriteAction.run(() -> testFile.setWritable(false));
@@ -183,7 +189,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
 
     public void testComponentRenamePersistsNameAndTestTogether() {
         myProject.getService(org.ikasan.studio.ui.UiContext.class).setIkasanModule(module);
-        var previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(com.intellij.openapi.ui.TestDialog.OK);
+        TestDialog previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(com.intellij.openapi.ui.TestDialog.OK);
         try { FlowTestRenameRefactoring.renameComponentAndSave(myProject, module, flow.getConsumer(), "New Consumer"); }
         finally { com.intellij.openapi.ui.TestDialogManager.setTestDialog(previous); }
         assertEquals("New Consumer", flow.getConsumer().getIdentity());
@@ -199,7 +205,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
                 + oldKey + "\"); } void customAssertion()"));
         String properties = RESOURCES + "module-test.properties";
         write(properties, oldKey + "=custom/input\ntest.input=${" + oldKey + "}\nunrelated=keep\n");
-        var plan = inspect(null, "Renamed Flow");
+        Plan plan = inspect(null, "Renamed Flow");
         WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> {}));
         assertTrue(text().contains("getRequiredProperty(\"" + newKey + "\")"));
         assertEquals(newKey + "=custom/input\ntest.input=${" + newKey + "}\nunrelated=keep\n",
@@ -219,7 +225,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
         write(TEST, text().replace("private static final String FLOW_NAME = \"Original Flow\";",
                 "private static final String CUSTOM_FLOW = \"Original Flow\";"));
         String before = text();
-        var plan = inspect(null, "Renamed Flow");
+        Plan plan = inspect(null, "Renamed Flow");
         assertTrue(plan.reviewFiles().contains("BusinessTest.java"));
         WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> {}));
         assertEquals(before, text());
@@ -229,7 +235,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
         flow = TestFixtures.getUnbuiltFlow("V4.1.6").name("Original Flow")
                 .consumer(TestFixtures.getEventGeneratingConsumer("V4.1.6")).build();
         module = TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", List.of(flow));
-        var plan = inspect(null, "Renamed Flow");
+        Plan plan = inspect(null, "Renamed Flow");
         WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> {}));
         assertTrue(text().contains("FLOW_NAME = \"Renamed Flow\""));
         assertTrue(text().contains("EXPECTED = \"Original Flow\""));
@@ -254,7 +260,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
         generatedTest();
         String callerPath = "user-flow-tests/src/test/java/Caller.java";
         write(callerPath, "import org.ikasan.studio.flowtests.OriginalFlowFlowTest; class Caller { OriginalFlowFlowTest value; }");
-        var plan = inspect(null, "Renamed Flow");
+        Plan plan = inspect(null, "Renamed Flow");
         WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> {}));
         assertNull(file(GENERATED_TEST));
         String renamed = readText(RENAMED_TEST);
@@ -275,7 +281,7 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
         String caller = "import org.ikasan.studio.flowtests.OriginalFlowFlowTest; class Caller { OriginalFlowFlowTest value; }";
         write(callerPath, caller);
         String originalCaller = readText(callerPath);
-        var plan = inspect(null, "Renamed Flow");
+        Plan plan = inspect(null, "Renamed Flow");
         try {
             WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> { throw new IllegalStateException("save failed"); }));
             fail("Expected save failure");
@@ -298,27 +304,27 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
 
     public void testComponentRenameDoesNotRenameGeneratedTestClass() {
         generatedTest();
-        var plan = inspect(flow.getConsumer(), "New Consumer");
+        Plan plan = inspect(flow.getConsumer(), "New Consumer");
         WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> {}));
         assertNotNull(file(GENERATED_TEST));
     }
 
     public void testRunConfigurationFollowsSuccessfulRenameOnly() {
         generatedTest();
-        var manager = com.intellij.execution.RunManager.getInstance(myProject);
-        var settings = manager.createConfiguration("Test runner",
+        RunManager manager = com.intellij.execution.RunManager.getInstance(myProject);
+        RunnerAndConfigurationSettings settings = manager.createConfiguration("Test runner",
                 com.intellij.execution.application.ApplicationConfigurationType.getInstance().getConfigurationFactories()[0]);
-        var config = (com.intellij.execution.application.ApplicationConfiguration) settings.getConfiguration();
+        ApplicationConfiguration config = (com.intellij.execution.application.ApplicationConfiguration) settings.getConfiguration();
         config.setModule(myModule);
         config.setMainClassName("org.ikasan.studio.flowtests.OriginalFlowFlowTest");
         manager.addConfiguration(settings);
-        var failedPlan = inspect(null, "Renamed Flow");
+        Plan failedPlan = inspect(null, "Renamed Flow");
         try {
             WriteCommandAction.runWriteCommandAction(myProject, () -> failedPlan.apply(() -> { throw new IllegalStateException("save failed"); }));
             fail("Expected failure");
         } catch (IllegalStateException expected) { assertEquals("save failed", expected.getMessage()); }
         assertEquals("org.ikasan.studio.flowtests.OriginalFlowFlowTest", config.getMainClassName());
-        var plan = inspect(null, "Renamed Flow");
+        Plan plan = inspect(null, "Renamed Flow");
         WriteCommandAction.runWriteCommandAction(myProject, () -> plan.apply(() -> {}));
         assertEquals("org.ikasan.studio.flowtests.RenamedFlowFlowTest", config.getMainClassName());
     }
@@ -330,21 +336,21 @@ public class FlowTestRenameRefactoringHeavyTest extends HeavyPlatformTestCase {
         StudioProjectFiles.createFileWithDirectories(myProject, "/" + path, content, null);
     }
     private VirtualFile file(String path) {
-        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);
         return base.findFileByRelativePath(path);
     }
     private String readText(String path) {
-        var file = file(path);
+        VirtualFile file = file(path);
         assertNotNull(file);
         String contents = StudioProjectFiles.readVirtualFileAsString(file);
         assertNotNull(contents);
         return contents;
     }
     private String text() {
-        var file = file(TEST);
+        VirtualFile file = file(TEST);
         assertNotNull(file);
-        var document = FileDocumentManager.getInstance().getDocument(file);
+        Document document = FileDocumentManager.getInstance().getDocument(file);
         assertNotNull(document);
         return document.getText();
     }

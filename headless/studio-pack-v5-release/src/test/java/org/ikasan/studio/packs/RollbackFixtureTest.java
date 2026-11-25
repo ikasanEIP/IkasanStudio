@@ -5,6 +5,11 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
 
 /** Deliberate commit failures use real generated flows and real local endpoints. */
 class RollbackFixtureTest {
@@ -12,13 +17,13 @@ class RollbackFixtureTest {
 
     @Test void exportsRollbackScenarios() throws Exception {
         Path root = Path.of(System.getProperty("studio.v5.rollback", temporary.toString()));
-        var scenarios = List.of("jms", "ftp-output", "sftp-output");
+        List<String> scenarios = List.of("jms", "ftp-output", "sftp-output");
         for (String scenario : scenarios) {
-            var files = RuntimeTransportFixtureTest.render(scenario, flow -> {
+            Map<String,String> files = RuntimeTransportFixtureTest.render(scenario, flow -> {
                 if (scenario.equals("jms")) {
                     // This failure reaches the consumer error handler after the transaction has rolled back.
                     // Only this test fault is ignored: let the broker retry without stopping the flow.
-                    var resolution = org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution
+                    ExceptionResolution resolution = org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution
                             .exceptionResolutionBuilder().metapackVersion(DevelopmentFixtureTest.PACK)
                             .exceptionsCaught("org.example.transport.transport.CommitFailure.class").theAction("ignoreException")
                             .componentProperties(new LinkedHashMap<>()).build();
@@ -49,7 +54,7 @@ class RollbackFixtureTest {
             files.put(test, testSource.substring(0, testSource.indexOf("    @Test"))
                     + resource(scenario.equals("jms") ? "jms.java.txt" : "file.java.txt")
                     .replace("@DIRECTORY@", directory));
-            for (var file : files.entrySet()) {
+            for (Entry<String,String> file : files.entrySet()) {
                 Path target = root.resolve(scenario).resolve(file.getKey());
                 Files.createDirectories(target.getParent()); Files.writeString(target, file.getValue());
             }
@@ -62,7 +67,7 @@ class RollbackFixtureTest {
     }
 
     private String resource(String name) throws Exception {
-        try (var input = Objects.requireNonNull(getClass().getResourceAsStream("/rollback/" + name))) {
+        try (InputStream input = Objects.requireNonNull(getClass().getResourceAsStream("/rollback/" + name))) {
             return new String(input.readAllBytes(), StandardCharsets.UTF_8);
         }
     }

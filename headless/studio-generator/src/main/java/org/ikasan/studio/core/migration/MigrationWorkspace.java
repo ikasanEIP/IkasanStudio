@@ -8,6 +8,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.time.Instant;
 import java.util.*;
+import java.nio.file.Path;
+import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 /** Exact-byte recovery snapshots and optimistic, rollback-capable writes. Run outside the EDT. */
 public final class MigrationWorkspace {
@@ -26,7 +29,7 @@ public final class MigrationWorkspace {
 
     public static List<Change> prepare(Path root, Map<String, String> artifacts) throws IOException {
         List<Change> changes = new ArrayList<>();
-        for (var artifact : artifacts.entrySet()) {
+        for (Entry<String,String> artifact : artifacts.entrySet()) {
             String before = read(safe(root, artifact.getKey()));
             String after = artifact.getValue() == null ? null : encode(artifact.getValue().getBytes(StandardCharsets.UTF_8));
             changes.add(new Change(artifact.getKey(), before, after));
@@ -49,7 +52,7 @@ public final class MigrationWorkspace {
     public static Snapshot latest(Path root) throws IOException {
         Path history = safeHistory(root);
         if (!Files.isDirectory(history)) throw new IOException("This project has no migration snapshots.");
-        try (var paths = Files.list(history)) {
+        try (Stream<Path> paths = Files.list(history)) {
             for (Path path : paths.filter(p -> p.getFileName().toString().endsWith(".json")).sorted(Comparator.reverseOrder()).toList()) {
                 if (Files.isSymbolicLink(path)) throw new IOException("A migration snapshot must not be a symbolic link.");
                 Snapshot snapshot = JSON.readValue(Files.readString(path), Snapshot.class);

@@ -15,6 +15,7 @@ import org.ikasan.studio.ui.StudioUIUtils;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Stops registered harnesses, or a verified MailHog descendant of this project's harness terminal. */
 public class StopTestMailServerAction implements ActionListener {
@@ -60,7 +61,7 @@ public class StopTestMailServerAction implements ActionListener {
                     try {
                         ProcessHandle harness = MailHarnessProcessRecovery.findHarness(shell, smtpHost, smtpPort);
                         if (harness != null) {
-                            var allowed = new java.util.concurrent.atomic.AtomicBoolean(false);
+                            AtomicBoolean allowed = new java.util.concurrent.atomic.AtomicBoolean(false);
                             ApplicationManager.getApplication().invokeAndWait(() -> allowed.set(!project.isDisposed()
                                     && HarnessStopWarning.confirm(project, java.util.List.of(new org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint("SMTP", smtpHost, smtpPort)))));
                             if (!allowed.get()) return;

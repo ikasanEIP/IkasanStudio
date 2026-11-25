@@ -10,6 +10,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class FlowTestSupportFingerprintTest {
     private static final String MODEL = """
@@ -22,8 +28,8 @@ class FlowTestSupportFingerprintTest {
     }
 
     @Test void ignoresFormattingFieldOrderVersionAndPresentation() throws Exception {
-        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        var tree = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(MODEL);
+        ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        ObjectNode tree = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(MODEL);
         tree.put("version", "V4.1.6");
         tree.put("canvasX", 200);
         String formatted = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tree);
@@ -44,9 +50,9 @@ class FlowTestSupportFingerprintTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void emittedBaselineMatchesAndLegacySupportRequiresRefresh(String version) throws Exception {
-        var flow = TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
-        var module = TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
-        var scaffold = FlowTestScaffold.render(module, flow,
+        Flow flow = TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
+        Scaffold scaffold = FlowTestScaffold.render(module, flow,
                 Files.readString(Path.of("regression-tests/migration/project/pom.xml")),
                 Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
         String support = scaffold.files().get(FlowTestScaffold.SUPPORT_PATH);
@@ -60,7 +66,7 @@ class FlowTestSupportFingerprintTest {
         assertTrue(FlowTestScaffold.supportNeedsRefresh(support.replace(
                 "WIRING_SCHEMA_VERSION = 1;", ""), module));
         // Utility source must remain independent of module names and connection mappings.
-        for (var entry : scaffold.files().entrySet()) {
+        for (Entry<String,String> entry : scaffold.files().entrySet()) {
             if (!entry.getKey().contains("/support/utils/")) continue;
             String className = Path.of(entry.getKey()).getFileName().toString().replace(".java", "");
             String templateName = Character.toLowerCase(className.charAt(0)) + className.substring(1) + "Template_en.ftl";
@@ -72,6 +78,8 @@ class FlowTestSupportFingerprintTest {
         }
         // The runtime uses the same projection/hash implementation as Studio.
         String helper = scaffold.files().get("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/FlowTestSupportFingerprint.java");
+        assertFalse(helper.contains("import org.ikasan.studio.core."),
+                "Generated application test support must not import Studio engine implementation types");
         String core = Files.readString(Path.of("headless/studio-generator/src/main/java/org/ikasan/studio/core/generator/FlowTestSupportFingerprint.java"));
         assertTrue(helper.startsWith(core.substring(0, core.indexOf("    private static JsonNode variant("))
                 .replace("package org.ikasan.studio.core.generator;", "package org.ikasan.studio.flowtests.support;")));

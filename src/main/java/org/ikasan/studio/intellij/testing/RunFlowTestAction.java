@@ -24,6 +24,9 @@ import org.ikasan.studio.intellij.project.StudioProjectInitialisationService;
 import org.ikasan.studio.ui.StudioBundle;
 
 import java.nio.file.Path;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import java.util.List;
 
 /** Runs the existing flow-test class using the IDE's normal configuration producers and executor. */
 public final class RunFlowTestAction {
@@ -83,20 +86,20 @@ public final class RunFlowTestAction {
 
     /** PSI/configuration discovery stays off the EDT and waits for indexing in the caller. */
     static Target resolve(Project project, VirtualFile file) {
-        var psiFile = PsiManager.getInstance(project).findFile(file);
+        PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
         if (!(psiFile instanceof PsiJavaFile javaFile)) return null;
         String name = file.getNameWithoutExtension();
-        for (var psiClass : javaFile.getClasses()) {
+        for (PsiClass psiClass : javaFile.getClasses()) {
             if (!name.equals(psiClass.getName())) continue;
-            var context = new ConfigurationContext(psiClass);
+            ConfigurationContext context = new ConfigurationContext(psiClass);
             if (context.getModule() == null) return null;
-            var existing = context.findExisting();
+            RunnerAndConfigurationSettings existing = context.findExisting();
             if (existing != null) return new Target(context, existing, null);
-            var configurations = context.getConfigurationsFromContext();
+            List<ConfigurationFromContext> configurations = context.getConfigurationsFromContext();
             if (configurations == null || configurations.isEmpty()) return null;
             // The platform returns preferred producers first, just as its normal Run Context action uses them.
-            var produced = configurations.get(0);
-            var settings = produced.getConfigurationSettings();
+            ConfigurationFromContext produced = configurations.get(0);
+            RunnerAndConfigurationSettings settings = produced.getConfigurationSettings();
             context.setConfiguration(settings);
             return new Target(context, settings, produced);
         }

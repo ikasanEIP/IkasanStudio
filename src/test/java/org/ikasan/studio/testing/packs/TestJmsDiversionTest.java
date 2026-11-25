@@ -14,30 +14,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.Link;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class TestJmsDiversionTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
     @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void diversionSurvivesReloadAndRemovingOrUndoingItRestoresWiring(String pack) throws Exception {
-        var producer = TestFixtures.getJmsProducer(pack);
-        var consumer = TestFixtures.getSpringJmsConsumer(pack);
-        for (var element : List.of(producer, consumer)) {
+        FlowElement producer = TestFixtures.getJmsProducer(pack);
+        FlowElement consumer = TestFixtures.getSpringJmsConsumer(pack);
+        for (FlowElement element : List.of(producer, consumer)) {
             element.setPropertyValue("destinationJndiName", "originalQueue");
             element.setPropertyValue("connectionFactoryName", "ConnectionFactory");
             element.setPropertyValue("connectionFactoryJndiPropertyProviderUrl", "vm://embedded-broker");
         }
-        var upstream = flow(pack, "Upstream", TestFixtures.getEventGeneratingConsumer(pack), producer);
-        var downstream = flow(pack, "Downstream", consumer, TestFixtures.getDevNullProducer(pack));
-        var module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>(List.of(upstream, downstream)));
+        Flow upstream = flow(pack, "Upstream", TestFixtures.getEventGeneratingConsumer(pack), producer);
+        Flow downstream = flow(pack, "Downstream", consumer, TestFixtures.getDevNullProducer(pack));
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>(List.of(upstream, downstream)));
         assertEquals(1, JmsFlowConnections.findMatchingLinks(module).size());
         String originalWiring = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, upstream);
         String downstreamWiring = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, downstream);
 
         String privateDestination = TestJmsHarnessLinks.newTestDestination(producer);
         assertNotEquals(privateDestination, TestJmsHarnessLinks.newTestDestination(producer));
-        var testConsumer = TestFixtures.getSpringJmsConsumer(pack);
+        FlowElement testConsumer = TestFixtures.getSpringJmsConsumer(pack);
         testConsumer.setPropertyValue("destinationJndiName", privateDestination);
-        var harness = flow(pack, "Test Reader", testConsumer, TestFixtures.getDevNullProducer(pack));
+        Flow harness = flow(pack, "Test Reader", testConsumer, TestFixtures.getDevNullProducer(pack));
         harness.setPropertyValue("testHarnessOwner", TestJmsHarnessLinks.ownerKeyFor(producer));
         harness.setPropertyValue(TestJmsHarnessLinks.TEST_DESTINATION, privateDestination);
         module.addFlow(harness);
@@ -54,8 +56,8 @@ class TestJmsDiversionTest extends AbstractGeneratorTestFixtures {
                 .anyMatch(l -> l.producer() == producer && l.consumer() == consumer));
         assertEquals(downstreamWiring, FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, downstream));
 
-        var reloaded = ComponentIO.validatePersistedModuleJson(ComponentIO.toJson(module), "test diversion", false);
-        var link = TestJmsHarnessLinks.findLinks(reloaded).get(0);
+        Module reloaded = ComponentIO.validatePersistedModuleJson(ComponentIO.toJson(module), "test diversion", false);
+        Link link = TestJmsHarnessLinks.findLinks(reloaded).get(0);
         assertEquals(privateDestination, TestJmsHarnessLinks.destinationOverride(reloaded, link.ownerProducer()));
         assertEquals("originalQueue", link.ownerProducer().getPropertyValue("destinationJndiName"));
         reloaded.getFlows().remove(link.harnessFlow());

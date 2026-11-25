@@ -2,16 +2,20 @@ package org.ikasan.studio.intellij.testing;
 
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
+import java.nio.file.Path;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.testing.FlowTestPropertyWarnings.Status;
 
 class FlowTestPropertyWarningsTest {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void detectsSupportRenameAndRefreshIndependentlyOfProperties(String version,
             @org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
-        var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
-        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
-        var model = root.resolve("generated/src/main/model/model.json");
-        var support = root.resolve(org.ikasan.studio.core.generator.FlowTestScaffold.SUPPORT_PATH);
+        Flow flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
+        Module module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(version, java.util.List.of(flow));
+        Path model = root.resolve("generated/src/main/model/model.json");
+        Path support = root.resolve(org.ikasan.studio.core.generator.FlowTestScaffold.SUPPORT_PATH);
         java.nio.file.Files.createDirectories(model.getParent());
         java.nio.file.Files.createDirectories(support.getParent());
         java.nio.file.Files.writeString(model, org.ikasan.studio.core.generator.ModelTemplate.create(module));
@@ -22,11 +26,11 @@ class FlowTestPropertyWarningsTest {
         java.nio.file.Files.writeString(model, org.ikasan.studio.core.generator.ModelTemplate.create(module));
         assertThat(FlowTestPropertyWarnings.inspect(root).needsRefresh()).isFalse(); // Model edits no longer stale generic support.
         java.nio.file.Files.writeString(support, "legacy support");
-        var stale = FlowTestPropertyWarnings.inspect(root);
+        Status stale = FlowTestPropertyWarnings.inspect(root);
         assertThat(stale.staleSupport()).isTrue();
         assertThat(stale.brokenReferences()).isEmpty();
-        var props = root.resolve(org.ikasan.studio.core.generator.FlowTestScaffold.TEST_PROPERTIES_PATH);
-        var app = root.resolve("generated/src/main/resources/application.properties");
+        Path props = root.resolve(org.ikasan.studio.core.generator.FlowTestScaffold.TEST_PROPERTIES_PATH);
+        Path app = root.resolve("generated/src/main/resources/application.properties");
         java.nio.file.Files.createDirectories(props.getParent());
         java.nio.file.Files.createDirectories(app.getParent());
         java.nio.file.Files.writeString(props, "test.jms.broker-url=${jms.old.url}\n");

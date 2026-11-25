@@ -29,6 +29,13 @@ import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
+import com.intellij.openapi.application.Application;
+import java.io.InputStream;
+import org.ikasan.studio.core.ai.ModelProposal.Prepared;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.intellij.execution.IkasanDebugSessionService;
 
 /** Opt-in project-local bridge. HTTP is private IPC for the bundled MCP stdio adapter. */
 @Service(Service.Level.PROJECT)
@@ -82,7 +89,7 @@ public final class StudioAiService implements Disposable {
             String projectPath = project.getBasePath();
             if (projectPath == null) throw new IllegalStateException("Open a project before connecting AI.");
             StudioAiConnectionFiles files;
-            try (var source = getClass().getResourceAsStream("/studio/ai/studio-mcp-adapter.jar")) {
+            try (InputStream source = getClass().getResourceAsStream("/studio/ai/studio-mcp-adapter.jar")) {
                 if (source == null) throw new IllegalStateException("Studio MCP adapter is missing");
                 files = StudioAiConnectionFiles.open(Path.of(PathManager.getConfigPath()), projectPath, source.readAllBytes());
             }
@@ -94,7 +101,7 @@ public final class StudioAiService implements Disposable {
             try {
                 created = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
                 workers = AppExecutorUtil.createBoundedApplicationPoolExecutor("Ikasan Studio AI bridge", 2);
-                var protocol = new StudioMcpProtocol((name, arguments) -> callFrom(name, arguments, "adapter"));
+                StudioMcpProtocol protocol = new StudioMcpProtocol((name, arguments) -> callFrom(name, arguments, "adapter"));
                 created.createContext("/rpc", exchange -> {
                     try (exchange) {
                         String auth = exchange.getRequestHeaders().getFirst("Authorization");
@@ -209,7 +216,7 @@ public final class StudioAiService implements Disposable {
         synchronized (snapshots) { snapshot = snapshots.get(arguments.path("revision").asText()); }
         if (snapshot == null) throw new IllegalArgumentException("Unknown or expired revision. Read studio_snapshot again.");
         onEdt(() -> { requireCurrent(snapshot); return null; });
-        var prepared = ModelProposal.prepare(snapshot.model(), arguments.path("operations"));
+        Prepared prepared = ModelProposal.prepare(snapshot.model(), arguments.path("operations"));
         Proposal proposal = new Proposal(snapshot, prepared, JSON.writerWithDefaultPrettyPrinter().writeValueAsString(arguments.path("operations")));
         // Record and open on EDT; no server lock is held while waiting for it.
         onEdt(() -> {
@@ -236,11 +243,11 @@ public final class StudioAiService implements Disposable {
         // Full generation can revisit unchanged flows. Transient overwrite flags in the live
         // model are not preserved in the JSON snapshot, so inspect both live and proposed models.
         for (Module module : modules) {
-            for (var flow : module.getFlows()) {
-                for (var element : flow.getFlowElementsNoExternalEndPoints()) {
+            for (Flow flow : module.getFlows()) {
+                for (FlowElement element : flow.getFlowElementsNoExternalEndPoints()) {
                     if (element instanceof org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement implementation
                             && implementation.isOverwriteEnabled()) return true;
-                    for (var property : element.getUserSuppliedClassProperties()) {
+                    for (ComponentProperty property : element.getUserSuppliedClassProperties()) {
                         if (property.getMeta().isProtectFromOverwrite() && !property.getMeta().isNoStubRequired()
                                 && property.isOverwriteEnabled()) return true;
                     }
@@ -280,7 +287,7 @@ public final class StudioAiService implements Disposable {
     boolean tryAutoImport(String json, Path source) throws Exception { return importFileProposal(json, source, true); }
 
     private boolean importFileProposal(String json, Path source, boolean autoOnly) throws Exception {
-        var feedback = new StudioAiProposalFeedback(source, json, project.getBasePath() == null ? null : Path.of(project.getBasePath()));
+        StudioAiProposalFeedback feedback = new StudioAiProposalFeedback(source, json, project.getBasePath() == null ? null : Path.of(project.getBasePath()));
         try { return importProposal(json, autoOnly, feedback); }
         catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) { throw cancelled; }
         catch (Exception failure) {
@@ -300,9 +307,9 @@ public final class StudioAiService implements Disposable {
         Snapshot snapshot = onEdt(this::capture);
         Path modelFile = Path.of(projectPath, "generated", "src", "main", "model", "model.json");
         byte[] saved;
-        try (var input = Files.newInputStream(modelFile)) { saved = input.readNBytes(8_388_609); }
+        try (InputStream input = Files.newInputStream(modelFile)) { saved = input.readNBytes(8_388_609); }
         if (saved.length > 8_388_608) throw new IllegalArgumentException("Saved Studio model exceeds 8 MiB.");
-        var prepared = org.ikasan.studio.core.ai.OfflineModelProposal.prepare(json, saved, snapshot.model());
+        Prepared prepared = org.ikasan.studio.core.ai.OfflineModelProposal.prepare(json, saved, snapshot.model());
         Proposal proposal = new Proposal(snapshot, prepared,
                 JSON.writerWithDefaultPrettyPrinter().writeValueAsString(operations));
         proposal.fileBased = true;
@@ -331,7 +338,7 @@ public final class StudioAiService implements Disposable {
 
     private void requireReady() {
         ApplicationManager.getApplication().assertIsDispatchThread();
-        var context = context();
+        UiContext context = context();
         if (project.isDisposed() || context.getIkasanModule() == null || !context.getIkasanModule().isInitialised()
                 || context.isModelPersistenceBlocked() || context.isMigrationActive() || !context.getLatestGeneration().isDone()
                 || context.getPipsiIkasanModel() == null)
@@ -355,7 +362,7 @@ public final class StudioAiService implements Disposable {
         try { generation = StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.full()); }
         catch (RuntimeException failure) { changes.undo(); throw failure; }
         if (proposal.fileBased) {
-            var inbox = project.getService(StudioAiProposalInboxService.class);
+            StudioAiProposalInboxService inbox = project.getService(StudioAiProposalInboxService.class);
             if (inbox != null) inbox.clearPreviousAfterSuccess(generation);
         }
         Snapshot after = new Snapshot(proposal.snapshot.source(), LiveModelSnapshot.capture(proposal.snapshot.source()));
@@ -412,12 +419,12 @@ public final class StudioAiService implements Disposable {
     }
     private void refreshUi() {
         context().resetSelectionAfterDeletion();
-        var runtime = project.getService(org.ikasan.studio.intellij.execution.IkasanDebugSessionService.class);
+        IkasanDebugSessionService runtime = project.getService(org.ikasan.studio.intellij.execution.IkasanDebugSessionService.class);
         if (runtime != null) runtime.markRestartRequired(context().getIkasanModule());
         StudioProjectFiles.causeRedraw(project);
     }
     private <T> T onEdt(Supplier<T> action) throws Exception {
-        var application = ApplicationManager.getApplication();
+        Application application = ApplicationManager.getApplication();
         if (application.isDispatchThread()) return action.get();
         FutureTask<T> task = new FutureTask<>(action::get);
         // Background AI requests may save documents and generate PSI/VFS files. ANY is write-unsafe;

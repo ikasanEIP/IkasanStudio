@@ -26,16 +26,16 @@ import static org.mockito.Mockito.when;
 class TestFtpServerServiceTest {
     @Test
     void projectsUseIndependentPortsAndFilesAndRemainReadyForLaterDelivery(@TempDir Path directory) throws Exception {
-        var first = new TestFtpServerService(projectAt(directory.resolve("first")));
-        var second = new TestFtpServerService(projectAt(directory.resolve("second")));
+        TestFtpServerService first = new TestFtpServerService(projectAt(directory.resolve("first")));
+        TestFtpServerService second = new TestFtpServerService(projectAt(directory.resolve("second")));
         try {
             assertThat(first.localConfiguration().port()).isZero();
             org.assertj.core.api.Assertions.assertThatThrownBy(first::launchProperties).isInstanceOf(IllegalStateException.class);
             Path firstRoot = first.startLocal();
             Path secondRoot = second.startLocal();
-            var firstAddress = first.localConfiguration();
+            TestFtpServerConfiguration firstAddress = first.localConfiguration();
             assertThat(first.listeningEndpoint()).isEqualTo(new HarnessStopImpact.Endpoint("FTP", firstAddress.host(), firstAddress.port()));
-            var secondAddress = second.localConfiguration();
+            TestFtpServerConfiguration secondAddress = second.localConfiguration();
             assertThat(firstAddress.port()).isPositive().isNotEqualTo(secondAddress.port());
             assertThat(secondAddress.port()).isPositive();
             assertThat(first.startLocal()).isEqualTo(firstRoot);
@@ -68,9 +68,9 @@ class TestFtpServerServiceTest {
 
     @Test
     void explicitServerIsNotSilentlyReplacedByLocalOverrides(@TempDir Path directory) throws Exception {
-        var service = new TestFtpServerService(projectAt(directory));
+        TestFtpServerService service = new TestFtpServerService(projectAt(directory));
         try {
-            var explicit = new TestFtpServerConfiguration("127.0.0.1", availablePort(), "original", "password");
+            TestFtpServerConfiguration explicit = new TestFtpServerConfiguration("127.0.0.1", availablePort(), "original", "password");
             service.start(explicit);
             org.assertj.core.api.Assertions.assertThatThrownBy(service::startLocal).isInstanceOf(IllegalStateException.class);
             org.assertj.core.api.Assertions.assertThatThrownBy(service::launchProperties).isInstanceOf(IllegalStateException.class);
@@ -79,7 +79,7 @@ class TestFtpServerServiceTest {
     }
 
     private static Project projectAt(Path directory) {
-        var project = mock(Project.class);
+        Project project = mock(Project.class);
         when(project.getBasePath()).thenReturn(directory.toString());
         when(project.getService(UiContext.class)).thenReturn(mock(UiContext.class));
         return project;
@@ -88,8 +88,8 @@ class TestFtpServerServiceTest {
     /** Exercise both FTP producer delivery and consumer retrieval over real passive data connections. */
     private static void transferAndReadBack(TestFtpServerConfiguration configuration, String filename, String payload) throws Exception {
         try (Socket socket = new Socket(configuration.host(), configuration.port());
-             var reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-             var writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8))) {
+             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8))) {
             socket.setSoTimeout(5000);
             assertThat(reader.readLine()).startsWith("220");
             command(writer, "USER " + configuration.username()); assertThat(reader.readLine()).startsWith("331");
@@ -113,7 +113,7 @@ class TestFtpServerServiceTest {
         command(writer, "PASV");
         String response = reader.readLine(); assertThat(response).startsWith("227");
         String[] address = response.substring(response.indexOf('(') + 1, response.indexOf(')')).split(",");
-        var socket = new Socket(configuration.host(), Integer.parseInt(address[4]) * 256 + Integer.parseInt(address[5]));
+        Socket socket = new Socket(configuration.host(), Integer.parseInt(address[4]) * 256 + Integer.parseInt(address[5]));
         socket.setSoTimeout(5000);
         return socket;
     }

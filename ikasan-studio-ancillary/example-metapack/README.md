@@ -23,7 +23,7 @@ to both repositories is required for the first build.
 
 `example-runtime` contains SampleTextConverter, UppercaseConverter and LoggingProducer.
 `example-pack` contains descriptors, icons, manifest and contract tests. Its build unpacks
-the pinned `studio-pack-v4:0.1.1-SNAPSHOT` baseline, then adds the example resources under
+the pinned `studio-pack-v4:0.1.2-SNAPSHOT` baseline, then adds the example resources under
 its own ID. This is build-time composition: the output JAR contains the complete pack;
 Studio has no runtime inheritance or overlay mechanism. Templates are copied without
 filtering, preserving FreeMarker syntax. No Java classes or runtime dependencies are

@@ -29,6 +29,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static org.ikasan.studio.core.model.ikasan.instance.Module.DUMB_MODULE_VERSION;
+import org.ikasan.studio.ui.DesignerUI;
 
 /**
  * The Palette Tab Panel contains a SplitPane of :
@@ -87,7 +88,7 @@ public class PaletteTabPanel extends JBPanel {
         fitWidthButton.setToolTipText(StudioBundle.message("tooltip.FitPaletteWidth"));
         fitWidthButton.addActionListener(event -> {
             if (project.isDisposed()) return;
-            var designer = project.getService(UiContext.class).getDesignerUI();
+            DesignerUI designer = project.getService(UiContext.class).getDesignerUI();
             if (designer != null) designer.fitPalettePanelWidth();
         });
         JPanel widthControl = new JBPanel(new FlowLayout(FlowLayout.LEADING, JBUI.scale(4), JBUI.scale(4)));

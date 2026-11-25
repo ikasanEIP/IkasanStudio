@@ -9,9 +9,9 @@ import static org.mockito.Mockito.*;
 
 class StudioMcpSettingsTest {
     @Test void opensOnlyMcpWithoutResolvingUnrelatedSettingsBundles() {
-        var unrelated = entry("elevation.settings");
-        var mcp = entry("com.intellij.mcpserver.settings");
-        var page = mock(Configurable.class);
+        ConfigurableEP<Configurable> unrelated = entry("elevation.settings");
+        ConfigurableEP<Configurable> mcp = entry("com.intellij.mcpserver.settings");
+        Configurable page = mock(Configurable.class);
         when(mcp.createConfigurable()).thenReturn(page);
         assertThat(StudioMcpSettings.find(List.of(unrelated, mcp))).isSameAs(page);
         verifyNoInteractions(unrelated);
@@ -20,7 +20,7 @@ class StudioMcpSettingsTest {
     }
 
     @Test void missingMcpDoesNotConstructOtherSettings() {
-        var unrelated = entry("elevation.settings");
+        ConfigurableEP<Configurable> unrelated = entry("elevation.settings");
         assertThat(StudioMcpSettings.find(List.of(unrelated))).isNull();
         verifyNoInteractions(unrelated);
     }

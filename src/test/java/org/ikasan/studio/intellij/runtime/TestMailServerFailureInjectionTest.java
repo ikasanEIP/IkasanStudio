@@ -12,9 +12,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class TestMailServerFailureInjectionTest {
     @Test
     void ownedEndpointSnapshotsDoNotProbeOrStopServers() {
-        var project = mock(Project.class);
-        var stopped = new AtomicBoolean();
-        var service = new TestMailServerSessionService(project, mock(Alarm.class), () -> 0,
+        Project project = mock(Project.class);
+        AtomicBoolean stopped = new AtomicBoolean();
+        TestMailServerSessionService service = new TestMailServerSessionService(project, mock(Alarm.class), () -> 0,
                 (host, port) -> { throw new AssertionError("Snapshot must not probe sockets"); });
         try {
             service.registerOwned("localhost", 1025, () -> stopped.set(true));
@@ -27,10 +27,10 @@ class TestMailServerFailureInjectionTest {
 
     @Test
     void immediatelyExitedHarnessLosesOwnershipAfterStartupGrace() throws Exception {
-        var project = mock(Project.class);
+        Project project = mock(Project.class);
         when(project.getService(UiContext.class)).thenReturn(mock(UiContext.class));
-        var clock = new AtomicLong(1000);
-        var stopped = new AtomicBoolean();
+        AtomicLong clock = new AtomicLong(1000);
+        AtomicBoolean stopped = new AtomicBoolean();
         Process exited = new ProcessBuilder(java.nio.file.Path.of(System.getProperty("java.home"), "bin", "java").toString(),
                 "-failure-injection-invalid-option").redirectErrorStream(true)
                 .redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
@@ -38,7 +38,7 @@ class TestMailServerFailureInjectionTest {
             assertTrue(exited.waitFor(5, java.util.concurrent.TimeUnit.SECONDS));
             assertNotEquals(0, exited.exitValue());
         } finally { exited.destroyForcibly(); }
-        var service = new TestMailServerSessionService(project, mock(Alarm.class), clock::get, (host, port) -> false);
+        TestMailServerSessionService service = new TestMailServerSessionService(project, mock(Alarm.class), clock::get, (host, port) -> false);
         try {
             service.registerOwned("localhost", 2525, () -> stopped.set(true));
             service.probeAndUpdateState();
@@ -54,10 +54,10 @@ class TestMailServerFailureInjectionTest {
 
     @Test
     void toolbarReadinessRequiresOwnedAndConfirmedListeningHarness() {
-        var project = mock(Project.class);
+        Project project = mock(Project.class);
         when(project.getService(UiContext.class)).thenReturn(mock(UiContext.class));
-        var listening = new AtomicBoolean();
-        var service = new TestMailServerSessionService(project, mock(Alarm.class), () -> 0,
+        AtomicBoolean listening = new AtomicBoolean();
+        TestMailServerSessionService service = new TestMailServerSessionService(project, mock(Alarm.class), () -> 0,
                 (host, port) -> listening.get());
         try {
             assertFalse(service.hasAnyOwnedListening());
@@ -73,9 +73,9 @@ class TestMailServerFailureInjectionTest {
 
     @Test
     void processRegisteredAfterDisposalIsStoppedImmediately() {
-        var project = mock(Project.class);
-        var stopped = new AtomicBoolean();
-        var service = new TestMailServerSessionService(project, mock(Alarm.class), () -> 0, (host, port) -> false);
+        Project project = mock(Project.class);
+        AtomicBoolean stopped = new AtomicBoolean();
+        TestMailServerSessionService service = new TestMailServerSessionService(project, mock(Alarm.class), () -> 0, (host, port) -> false);
         service.dispose();
         service.registerOwned("localhost", 2525, () -> stopped.set(true));
         assertTrue(stopped.get());

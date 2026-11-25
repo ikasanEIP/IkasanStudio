@@ -9,6 +9,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import org.ikasan.studio.core.migration.ModelMigration.Finding;
+import org.ikasan.studio.core.migration.ModelMigration.Plan;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 @ExtendWith(SharedResourceExtension.class)
 class ModelMigrationTest {
@@ -17,13 +26,13 @@ class ModelMigrationTest {
                 {"flows":[{"name":"Orders","consumer":{"componentName":"Receive orders"},
                 "flowElements":[{"componentName":"Convert order"}]}]}
                 """;
-        var findings = java.util.List.of(
+        List<Finding> findings = java.util.List.of(
                 new ModelMigration.Finding(false, "/flows/0/consumer", "Review consumer"),
                 new ModelMigration.Finding(false, "/flows/0/flowElements/0/toType", "Review type"),
                 new ModelMigration.Finding(false, "/flows/0/exceptionResolver", "Review resolver"),
                 new ModelMigration.Finding(true, "/flows/5/consumer", "Missing flow"),
                 new ModelMigration.Finding(false, "/version", "Review version"));
-        var plan = new ModelMigration.Plan("V3.3.9", "V4.1.6", source, "{}", findings);
+        Plan plan = new ModelMigration.Plan("V3.3.9", "V4.1.6", source, "{}", findings);
         assertThat(plan.report())
                 .contains("REVIEW: Orders → Receive orders — Review consumer")
                 .contains("REVIEW: Orders → Convert order → toType — Review type")
@@ -37,7 +46,7 @@ class ModelMigrationTest {
     }
 
     @Test void reviewIdentifiesTheActualUserClass() throws Exception {
-        var plan = ModelMigration.analyse(fixture(), "V4.1.6");
+        Plan plan = ModelMigration.analyse(fixture(), "V4.1.6");
         assertThat(plan.report()).contains("co.uk.test.myflow1.myConverter: user-implemented class is preserved except for selected recommended replacements")
                 .doesNotContain("review the existing implementation against the target API");
         String qualified = fixture().replace("\"myConverter\"", "\"example.custom.OrderConverter\"");
@@ -51,32 +60,32 @@ class ModelMigrationTest {
 
     @Test void migratesInBothDirectionsWithoutMutatingTheSource() throws Exception {
         String source = fixture();
-        var forward = ModelMigration.analyse(source, "V4.1.6");
+        Plan forward = ModelMigration.analyse(source, "V4.1.6");
         assertThat(forward.canApply()).as(forward.report()).isTrue();
         assertThat(forward.report()).contains("Migration will update the Ikasan BOM and set the Java build baseline to 17.")
                 .contains("Migration recommended replacements apply only when selected.")
                 .doesNotContain("please review it after the upgrade");
         assertThat(forward.sourceJson()).isEqualTo(source);
-        var back = ModelMigration.analyse(forward.targetJson(), "V3.3.9");
+        Plan back = ModelMigration.analyse(forward.targetJson(), "V3.3.9");
         assertThat(back.canApply()).as(back.report()).isTrue();
         assertThat(StudioJson.newObjectMapper().readTree(back.targetJson())).isEqualTo(StudioJson.newObjectMapper().readTree(source));
     }
 
     @Test void convertsTypePositionsAndRetainsOpaqueExtensionsThroughStudioReload() throws Exception {
-        var json = StudioJson.newObjectMapper();
+        ObjectMapper json = StudioJson.newObjectMapper();
         ObjectNode source = (ObjectNode) json.readTree(fixture());
         source.set("teamSettings", json.readTree("{\"name\":\"javax.jms.Message\",\"values\":[1,true,null]}"));
-        var component = (ObjectNode) source.path("flows").get(0).path("flowElements").get(0);
+        ObjectNode component = (ObjectNode) source.path("flows").get(0).path("flowElements").get(0);
         component.put("fromType", "javax.jms.Message");
         component.set("futureField", json.readTree("[1,2.25,null]"));
-        var plan = ModelMigration.analyse(source.toString(), "V4.1.6");
+        Plan plan = ModelMigration.analyse(source.toString(), "V4.1.6");
         assertThat(plan.canApply()).as(plan.report()).isTrue();
         assertThat(plan.report()).contains("javax.jms.Message → jakarta.jms.Message (recommended replacement)");
-        var target = json.readTree(plan.targetJson());
+        JsonNode target = json.readTree(plan.targetJson());
         assertThat(target.path("teamSettings")).isEqualTo(source.path("teamSettings"));
         assertThat(target.path("flows").get(0).path("flowElements").get(0).path("fromType").asText()).isEqualTo("jakarta.jms.Message");
-        var loaded = ComponentIO.validatePersistedModuleJson(plan.targetJson(), "test", false);
-        var reserialized = json.readTree(ComponentIO.toJson(loaded));
+        Module loaded = ComponentIO.validatePersistedModuleJson(plan.targetJson(), "test", false);
+        JsonNode reserialized = json.readTree(ComponentIO.toJson(loaded));
         assertThat(reserialized.path("teamSettings")).isEqualTo(source.path("teamSettings"));
         assertThat(reserialized.path("flows").get(0).path("flowElements").get(0).path("futureField")).isEqualTo(component.path("futureField"));
     }
@@ -97,42 +106,42 @@ class ModelMigrationTest {
         for (String name : new String[]{"populated_module_with_router.json", "populated_module_with_exception_resolver.json"}) {
             String saved = ComponentIO.toJson(ComponentIO.deserializeModuleInstanceString(
                     Files.readString(Path.of("src/test/resources/org/ikasan/studio", name)), name));
-            var forward = ModelMigration.analyse(saved, "V4.1.6");
+            Plan forward = ModelMigration.analyse(saved, "V4.1.6");
             assertThat(forward.canApply()).as(forward.report()).isTrue();
-            var back = ModelMigration.analyse(forward.targetJson(), "V3.3.9");
+            Plan back = ModelMigration.analyse(forward.targetJson(), "V3.3.9");
             assertThat(back.canApply()).as(back.report()).isTrue();
             assertThat(StudioJson.newObjectMapper().readTree(back.targetJson())).isEqualTo(StudioJson.newObjectMapper().readTree(saved));
         }
     }
 
     @Test void migratesLegacyRouterListEncodingWithoutChangingRoutes() throws Exception {
-        var json = StudioJson.newObjectMapper();
+        ObjectMapper json = StudioJson.newObjectMapper();
         String saved = ComponentIO.toJson(ComponentIO.deserializeModuleInstanceString(
                 Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module_with_router.json")), "router"));
         ObjectNode legacy = (ObjectNode) json.readTree(saved);
-        for (var flow : legacy.path("flows")) for (var component : flow.path("flowElements")) {
+        for (JsonNode flow : legacy.path("flows")) for (JsonNode component : flow.path("flowElements")) {
             if (component.has("routeNames")) {
-                var names = org.ikasan.studio.core.StudioBuildUtils.stringToList(component.path("routeNames").asText());
+                List<String> names = org.ikasan.studio.core.StudioBuildUtils.stringToList(component.path("routeNames").asText());
                 ((ObjectNode) component).put("routeNames", names.toString());
             }
         }
         assertThat(legacy.toString()).isNotEqualTo(json.readTree(saved).toString());
-        var plan = ModelMigration.analyse(legacy.toString(), "V4.1.6");
+        Plan plan = ModelMigration.analyse(legacy.toString(), "V4.1.6");
         assertThat(plan.canApply()).as(plan.report()).isTrue();
-        var back = ModelMigration.analyse(plan.targetJson(), "V3.3.9");
+        Plan back = ModelMigration.analyse(plan.targetJson(), "V3.3.9");
         assertThat(back.canApply()).as(back.report()).isTrue();
         assertThat(json.readTree(back.targetJson())).isEqualTo(json.readTree(saved));
     }
 
     @Test void reportsBlockersBeforeReviewNotes() {
-        var plan = new ModelMigration.Plan("V3.3.9", "V4.1.6", "", "", java.util.List.of(
+        Plan plan = new ModelMigration.Plan("V3.3.9", "V4.1.6", "", "", java.util.List.of(
                 new ModelMigration.Finding(false, "/review", "Review implementation"),
                 new ModelMigration.Finding(true, "/blocked", "Cannot migrate")));
         assertThat(plan.report().indexOf("BLOCKED:")).isLessThan(plan.report().indexOf("REVIEW:"));
     }
 
     @Test void writesRepresentativeProjectsForMavenSmokeCompilation() throws Exception {
-        var json = StudioJson.newObjectMapper();
+        ObjectMapper json = StudioJson.newObjectMapper();
         ObjectNode source = (ObjectNode) json.readTree(fixture());
         ObjectNode flow = (ObjectNode) source.path("flows").get(0);
         ((com.fasterxml.jackson.databind.node.ArrayNode) flow.path("flowElements")).remove(0);
@@ -141,16 +150,16 @@ class ModelMigrationTest {
                 + "<build><sourceDirectory>generated/src/main/java</sourceDirectory><plugins><plugin><artifactId>maven-compiler-plugin</artifactId><version>3.8.0</version></plugin></plugins></build></project>";
         String current = source.toString();
         for (String version : new String[]{"V4.1.6", "V3.3.9"}) {
-            var plan = ModelMigration.analyse(current, version);
+            Plan plan = ModelMigration.analyse(current, version);
             assertThat(plan.canApply()).as(plan.report()).isTrue();
-            var files = MigrationArtifacts.render(plan, pom);
+            Map<String,String> files = MigrationArtifacts.render(plan, pom);
             Path root = Path.of("build/migration-compile", version);
-            for (var entry : files.entrySet()) {
+            for (Entry<String,String> entry : files.entrySet()) {
                 Path target = root.resolve(entry.getKey());
                 Files.createDirectories(target.getParent());
                 Files.writeString(target, entry.getValue());
                 if (entry.getKey().endsWith(".java")) {
-                    var declaration = java.util.regex.Pattern.compile("(?m)^public (?:final )?class (\\w+)").matcher(entry.getValue());
+                    Matcher declaration = java.util.regex.Pattern.compile("(?m)^public (?:final )?class (\\w+)").matcher(entry.getValue());
                     assertThat(declaration.find()).as(entry.getKey()).isTrue();
                     assertThat(target.getFileName().toString()).isEqualTo(declaration.group(1) + ".java");
                 }
@@ -162,13 +171,13 @@ class ModelMigrationTest {
 
     @Test void previewsActualGeneratedArtifactsAndBuildContractInBothDirections() throws Exception {
         String pom = "<project><modelVersion>4.0.0</modelVersion><groupId>example</groupId><artifactId>demo</artifactId><version>1</version><properties><team.setting>keep</team.setting></properties></project>";
-        var forward = ModelMigration.analyse(fixture(), "V4.1.6");
-        var files = MigrationArtifacts.render(forward, pom);
+        Plan forward = ModelMigration.analyse(fixture(), "V4.1.6");
+        Map<String,String> files = MigrationArtifacts.render(forward, pom);
         assertThat(files.get("pom.xml")).contains("<version.ikasan>4.1.6</version.ikasan>", "<maven.compiler.target>17</maven.compiler.target>", "<team.setting>keep</team.setting>");
         assertThat(files.keySet()).noneMatch(path -> path.startsWith("user/"));
         assertThat(files.values()).allMatch(text -> !text.isBlank());
         assertThat(files.get("generated/src/main/java/org/ikasan/studio/boot/Application.java")).contains("class Application");
-        var back = MigrationArtifacts.render(ModelMigration.analyse(forward.targetJson(), "V3.3.9"), files.get("pom.xml"));
+        Map<String,String> back = MigrationArtifacts.render(ModelMigration.analyse(forward.targetJson(), "V3.3.9"), files.get("pom.xml"));
         assertThat(back.get("pom.xml")).contains("<version.ikasan>3.3.9</version.ikasan>", "<maven.compiler.target>11</maven.compiler.target>");
     }
 }

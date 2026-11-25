@@ -10,6 +10,19 @@ import javax.swing.JTextArea;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import com.intellij.openapi.ui.TestDialog;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents;
+import org.mockito.MockedStatic;
 
 // Test-only modality simulation: LaterInvocator is never included in the distributed plugin.
 @SuppressWarnings("JetBrainsInternalApiUsage")
@@ -23,15 +36,15 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     private void assertFetchedVersionSelection(boolean delayedDiscovery) throws Exception {
-        var release = new CountDownLatch(delayedDiscovery ? 1 : 0);
-        var dialog = new ImportModelJsonDialog(getProject(), () -> {
+        CountDownLatch release = new CountDownLatch(delayedDiscovery ? 1 : 0);
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> {
             try {
                 if (!release.await(10, TimeUnit.SECONDS)) throw new AssertionError("Pack discovery was not released");
             } catch (InterruptedException failure) { throw new AssertionError(failure); }
             return List.of("V3.3.9", "V4.1.6");
         });
         try {
-            var packs = (JComboBox<?>) field(dialog, "runtimePack");
+            JComboBox<?> packs = (JComboBox<?>) field(dialog, "runtimePack");
             if (!delayedDiscovery) {
                 PlatformTestUtil.waitWithEventsDispatching("Packs did not load", () -> packs.getItemCount() == 2, 10);
                 assertEquals("V3.3.9", packs.getSelectedItem());
@@ -48,15 +61,15 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testAcquisitionAndFollowUpStepsAppearOnlyWhenApplicable() throws Exception {
-        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
         try {
-            var mode = (JCheckBox) field(dialog, "runtimeMode");
-            var json = (JTextArea) field(dialog, "jsonArea");
-            var configuration = (JTextArea) field(dialog, "configurationArea");
-            var row = (javax.swing.JPanel) field(dialog, "acquisitionRow");
-            var documents = (javax.swing.JPanel) field(dialog, "documentPanel");
-            var followUp = (javax.swing.JPanel) field(dialog, "optionalSteps");
-            var pasteConfig = (javax.swing.JButton) field(dialog, "pasteConfiguration");
+            JCheckBox mode = (JCheckBox) field(dialog, "runtimeMode");
+            JTextArea json = (JTextArea) field(dialog, "jsonArea");
+            JTextArea configuration = (JTextArea) field(dialog, "configurationArea");
+            JPanel row = (javax.swing.JPanel) field(dialog, "acquisitionRow");
+            JPanel documents = (javax.swing.JPanel) field(dialog, "documentPanel");
+            JPanel followUp = (javax.swing.JPanel) field(dialog, "optionalSteps");
+            JButton pasteConfig = (javax.swing.JButton) field(dialog, "pasteConfiguration");
             assertFalse(row.isVisible()); assertTrue(documents.isVisible()); assertFalse(followUp.isVisible());
             assertTrue(json.isEditable());
             json.setText("studio model preview");
@@ -83,11 +96,11 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testFetchedDocumentsAreReadOnlyUntilManualInputIsChosen() throws Exception {
-        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
         try {
             dialog.applyFetchedDocuments(new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents("metadata", "configuration"));
-            var json = (JTextArea) field(dialog, "jsonArea");
-            var configuration = (JTextArea) field(dialog, "configurationArea");
+            JTextArea json = (JTextArea) field(dialog, "jsonArea");
+            JTextArea configuration = (JTextArea) field(dialog, "configurationArea");
             assertFalse(json.isEditable()); assertFalse(configuration.isEditable());
             assertTrue(((javax.swing.JPanel) field(dialog, "documentPanel")).isVisible());
             ((javax.swing.JButton) field(dialog, "pasteMetadata")).doClick();
@@ -97,8 +110,8 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testWizardSelectsRuntimeAndPostGenerationSourceReviewWithoutChangingTheModel() throws Exception {
-        var original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
-        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        Module original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
         try {
             dialog.enableSourceWizard();
             assertTrue(((JCheckBox) field(dialog, "runtimeMode")).isSelected());
@@ -108,15 +121,15 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testRuntimePackChoicesArriveWhileImportDialogIsModal() throws Exception {
-        var release = new CountDownLatch(1);
-        var dialog = new ImportModelJsonDialog(getProject(), () -> {
+        CountDownLatch release = new CountDownLatch(1);
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> {
             try {
                 if (!release.await(10, TimeUnit.SECONDS)) throw new AssertionError("Pack discovery was not released");
             } catch (InterruptedException failure) { throw new AssertionError(failure); }
             return List.of("V3.3.9", "V4.1.6");
         });
-        var marker = new Object();
-        var packs = (JComboBox<?>) field(dialog, "runtimePack");
+        Object marker = new Object();
+        JComboBox<?> packs = (JComboBox<?>) field(dialog, "runtimePack");
         ((JCheckBox) field(dialog, "runtimeMode")).doClick();
         ((javax.swing.JButton) field(dialog, "pasteMetadata")).doClick();
         ((JTextArea) field(dialog, "jsonArea")).setText("{\"module\":{}}");
@@ -136,19 +149,19 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testDiscoveryFailureIsReportedWhileImportDialogIsModal() throws Exception {
-        var release = new CountDownLatch(1);
-        var shown = new java.util.concurrent.atomic.AtomicInteger();
-        var previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> {
+        CountDownLatch release = new CountDownLatch(1);
+        AtomicInteger shown = new java.util.concurrent.atomic.AtomicInteger();
+        TestDialog previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> {
             shown.incrementAndGet();
             return com.intellij.openapi.ui.Messages.OK;
         });
-        var dialog = new ImportModelJsonDialog(getProject(), () -> {
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> {
             try {
                 if (!release.await(10, TimeUnit.SECONDS)) throw new AssertionError("Pack discovery was not released");
             } catch (InterruptedException failure) { throw new AssertionError(failure); }
             throw new IllegalStateException("Pack discovery failed");
         });
-        var marker = new Object();
+        Object marker = new Object();
         LaterInvocator.enterModal(marker);
         try {
             release.countDown();
@@ -165,10 +178,10 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testFetchedDocumentsPopulateOnlyThePreviewAndEnableRuntimeMode() throws Exception {
-        var original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
-        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
-        try (var files = org.mockito.Mockito.mockStatic(StudioProjectFiles.class)) {
-            var documents = new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents(
+        Module original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        try (MockedStatic<StudioProjectFiles> files = org.mockito.Mockito.mockStatic(StudioProjectFiles.class)) {
+            Documents documents = new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents(
                     "{\"name\":\"Fetched\",\"flows\":[]}", "[]");
             dialog.applyFetchedDocuments(documents);
             assertTrue(((JCheckBox) field(dialog, "runtimeMode")).isSelected());
@@ -182,12 +195,12 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testImportModeShowsOnlyRelevantDocumentsAndPreservesPreviewOnSwitch() throws Exception {
-        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
         try {
-            var json = (JTextArea) field(dialog, "jsonArea");
-            var configuration = (JTextArea) field(dialog, "configurationArea");
-            var mode = (JCheckBox) field(dialog, "runtimeMode");
-            var tabs = (javax.swing.JTabbedPane) field(dialog, "documents");
+            JTextArea json = (JTextArea) field(dialog, "jsonArea");
+            JTextArea configuration = (JTextArea) field(dialog, "configurationArea");
+            JCheckBox mode = (JCheckBox) field(dialog, "runtimeMode");
+            JTabbedPane tabs = (javax.swing.JTabbedPane) field(dialog, "documents");
             assertNotNull(tabs);
             assertEquals(0, tabs.getTabCount());
             assertNull(javax.swing.SwingUtilities.getAncestorOfClass(javax.swing.JTabbedPane.class, json));
@@ -208,16 +221,16 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testLargeFetchedJsonDoesNotGrowDialogAndOpensAtTheStart() throws Exception {
-        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
         try {
-            var module = (JTextArea) field(dialog, "jsonArea");
-            var configuration = (JTextArea) field(dialog, "configurationArea");
-            var tabs = (javax.swing.JTabbedPane) field(dialog, "documents");
+            JTextArea module = (JTextArea) field(dialog, "jsonArea");
+            JTextArea configuration = (JTextArea) field(dialog, "configurationArea");
+            JTabbedPane tabs = (javax.swing.JTabbedPane) field(dialog, "documents");
             dialog.applyFetchedDocuments(new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents("{}", "[]"));
-            var panel = tabs.getParent();
-            var before = panel.getPreferredSize();
-            var viewportBefore = module.getPreferredScrollableViewportSize();
-            var configurationBefore = configuration.getPreferredScrollableViewportSize();
+            Container panel = tabs.getParent();
+            Dimension before = panel.getPreferredSize();
+            Dimension viewportBefore = module.getPreferredScrollableViewportSize();
+            Dimension configurationBefore = configuration.getPreferredScrollableViewportSize();
             String large = "{\"description\":\"" + "x".repeat(30000) + "\",\"flows\":[" + "{} ,\n".repeat(3000) + "{}]}";
             dialog.applyFetchedDocuments(new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents(large, large));
             assertEquals(before, panel.getPreferredSize());
@@ -233,11 +246,11 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testPatchRecommendationRequiresConsentBeforeChangingSelection() throws Exception {
-        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
-        var packs = (JComboBox<?>) field(dialog, "runtimePack");
-        var original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
-        var messages = new java.util.ArrayList<String>();
-        var previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> {
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
+        JComboBox<?> packs = (JComboBox<?>) field(dialog, "runtimePack");
+        Module original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
+        ArrayList<String> messages = new java.util.ArrayList<>();
+        TestDialog previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> {
             messages.add(message);
             return com.intellij.openapi.ui.Messages.NO;
         });
@@ -263,11 +276,11 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testSnapshotToNewerMinorRequiresConsentBeforeChangingSelection() throws Exception {
-        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V5.1.0"));
-        var packs = (JComboBox<?>) field(dialog, "runtimePack");
-        var original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
-        var messages = new java.util.ArrayList<String>();
-        var previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> {
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V5.1.0"));
+        JComboBox<?> packs = (JComboBox<?>) field(dialog, "runtimePack");
+        Module original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
+        ArrayList<String> messages = new java.util.ArrayList<>();
+        TestDialog previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> {
             messages.add(message);
             return com.intellij.openapi.ui.Messages.NO;
         });
@@ -293,12 +306,12 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testFetchedPatchShowsProposalBeforeReviewButStillRequiresConsent() throws Exception {
-        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
-        var previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> com.intellij.openapi.ui.Messages.NO);
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
+        TestDialog previous = com.intellij.openapi.ui.TestDialogManager.setTestDialog(message -> com.intellij.openapi.ui.Messages.NO);
         try {
-            var packs = (JComboBox<?>) field(dialog, "runtimePack");
-            var detected = (javax.swing.JTextField) field(dialog, "detectedVersion");
-            var original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
+            JComboBox<?> packs = (JComboBox<?>) field(dialog, "runtimePack");
+            JTextField detected = (javax.swing.JTextField) field(dialog, "detectedVersion");
+            Module original = getProject().getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
             String json = "{\"name\":\"Demo\",\"ikasanVersion\":\"4.1.3\",\"flows\":[]}";
             dialog.applyFetchedDocuments(new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents(json, "[]"));
             PlatformTestUtil.waitWithEventsDispatching("Patch proposal not displayed", () ->
@@ -316,19 +329,19 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testManualMetadataPreservesExplicitTargetAndDestinationPackage() throws Exception {
-        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
         try {
-            var packs = (JComboBox<?>) field(dialog, "runtimePack");
+            JComboBox<?> packs = (JComboBox<?>) field(dialog, "runtimePack");
             PlatformTestUtil.waitWithEventsDispatching("Packs not loaded", () -> packs.getItemCount() == 2, 10);
             ((JCheckBox) field(dialog, "runtimeMode")).doClick();
             ((javax.swing.JButton) field(dialog, "pasteMetadata")).doClick();
-            var json = (JTextArea) field(dialog, "jsonArea");
-            var detected = (javax.swing.JTextField) field(dialog, "detectedVersion");
+            JTextArea json = (JTextArea) field(dialog, "jsonArea");
+            JTextField detected = (javax.swing.JTextField) field(dialog, "detectedVersion");
             json.setText("{\"ikasanVersion\":\"4.1.6\",\"flows\":[]}");
             PlatformTestUtil.waitWithEventsDispatching("Manual version not detected", () ->
                     "4.1.6".equals(detected.getText()) && "V4.1.6".equals(packs.getSelectedItem()), 10);
             packs.setSelectedItem("V3.3.9");
-            var pkg = (javax.swing.JTextField) field(dialog, "applicationPackage");
+            JTextField pkg = (javax.swing.JTextField) field(dialog, "applicationPackage");
             pkg.setText("com.example.destination");
             json.setText("{\"ikasanVersion\":\"4.1.3\",\"flows\":[]}");
             PlatformTestUtil.waitWithEventsDispatching("Edited source not detected", () -> "4.1.3".equals(detected.getText()), 10);
@@ -338,11 +351,11 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testUnsupportedVersionIsDisplayedWithoutGuessingAnUnrelatedTarget() throws Exception {
-        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V3.3.9", "V4.1.6"));
         try {
             dialog.applyFetchedDocuments(new org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents(
                     "{\"ikasanVersion\":\"4.2.0\",\"flows\":[]}", "[]"));
-            var detected = (javax.swing.JTextField) field(dialog, "detectedVersion");
+            JTextField detected = (javax.swing.JTextField) field(dialog, "detectedVersion");
             PlatformTestUtil.waitWithEventsDispatching("Unsupported version not displayed", () -> "4.2.0".equals(detected.getText()), 10);
             assertEquals(org.ikasan.studio.ui.StudioBundle.message("import.runtime.versionUnsupported", "4.2.0", ""),
                     ((JTextArea) field(dialog, "versionHelp")).getText());
@@ -350,10 +363,10 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testExplanatoryTextCanBeFocusedAndSelectedWithoutEditing() throws Exception {
-        var dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
+        ImportModelJsonDialog dialog = new ImportModelJsonDialog(getProject(), () -> List.of("V4.1.6"));
         try {
             for (String name : List.of("journeyHelp", "sourceHelp", "runtimeDefaultsHelp", "versionHelp")) {
-                var text = (JTextArea) field(dialog, name);
+                JTextArea text = (JTextArea) field(dialog, name);
                 assertFalse(name + " must remain read-only", text.isEditable());
                 assertTrue(name + " must allow selection and keyboard copy", text.isFocusable());
                 text.selectAll();
@@ -363,7 +376,7 @@ public class ImportModelJsonDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     private Object field(Object owner, String name) throws Exception {
-        var field = owner.getClass().getDeclaredField(name);
+        Field field = owner.getClass().getDeclaredField(name);
         field.setAccessible(true);
         return field.get(owner);
     }

@@ -12,6 +12,10 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import org.ikasan.studio.ui.StudioBundle;
 import java.nio.file.*;
 import java.util.concurrent.*;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.Map;
+import org.ikasan.studio.intellij.ai.StudioAiProposalInbox.Stamp;
 
 /** Project-local polling also detects files written outside IntelliJ's VFS. All I/O is off the EDT. */
 @Service(Service.Level.PROJECT)
@@ -41,9 +45,9 @@ public final class StudioAiProposalInboxService implements Disposable {
             if (basePath == null) return;
             Path root = Path.of(basePath);
             if (!Files.isRegularFile(root.resolve("generated/src/main/model/model.json"))) return;
-            var files = StudioAiProposalInbox.scan(root.resolve("ai-proposals"));
+            Map<Path,Stamp> files = StudioAiProposalInbox.scan(root.resolve("ai-proposals"));
             inbox.observe(files).ifPresent(path -> {
-                var stamp = files.get(path);
+                Stamp stamp = files.get(path);
                 if (!tryAutoApply(path)) {
                     ApplicationManager.getApplication().invokeLater(() -> announce(path, stamp.toString()));
                 }
@@ -54,7 +58,7 @@ public final class StudioAiProposalInboxService implements Disposable {
     }
 
     private boolean tryAutoApply(Path path) {
-        try (var input = Files.newInputStream(path)) {
+        try (InputStream input = Files.newInputStream(path)) {
             byte[] bytes = input.readNBytes(1_048_577);
             if (bytes.length > 1_048_576 || disposed || project.isDisposed()) return false;
             return project.getService(StudioAiService.class)

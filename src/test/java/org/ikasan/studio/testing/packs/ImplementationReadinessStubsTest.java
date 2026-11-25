@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Map;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 
 /**
  * The readiness checker recognises unfinished scaffolds by their wording, so it silently misses any stub whose marker it
@@ -37,16 +40,16 @@ class ImplementationReadinessStubsTest {
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void everyGeneratedStubThatContainsATodoMarkerIsReported(String pack) throws Exception {
         Module live = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
-        var all = ComponentLibrary.getIkasanComponents(pack);
+        Map<String,ComponentMeta> all = ComponentLibrary.getIkasanComponents(pack);
         List<String> withMarker = new ArrayList<>();
-        for (var entry : new TreeMap<>(all).entrySet()) {
-            var meta = entry.getValue();
+        for (Entry<String,ComponentMeta> entry : new TreeMap<>(all).entrySet()) {
+            ComponentMeta meta = entry.getValue();
             if (!meta.isGeneratesUserImplementedClass() || meta.isModule() || meta.isFlow() || meta.isEndpoint()
                     || meta.isRouter() || meta.isExceptionResolver()) continue;
             Flow flow = new Flow(pack);
             flow.setName("Flow" + entry.getKey().replaceAll("[^A-Za-z0-9]", ""));
             live.getFlows().add(flow);
-            var consumerMeta = meta.isConsumer() ? meta : all.get("Event Generating Consumer");
+            ComponentMeta consumerMeta = meta.isConsumer() ? meta : all.get("Event Generating Consumer");
             FlowElement consumer = FlowElementFactory.createFlowElement(pack, consumerMeta, flow, flow.getFlowRoute(), meta.isConsumer() ? "Subject" : "Start");
             consumer.defaultUnsetMandatoryProperties();
             StudioBuildUtils.substituteAllPlaceholderInPascalCase(live, flow, consumer);
@@ -73,7 +76,7 @@ class ImplementationReadinessStubsTest {
                 if (source.lines().anyMatch(line -> line.strip().matches("//\\s*@?TODO\\b.*"))) withMarker.add(flow.getIdentity());
             }
         }
-        var flagged = ImplementationReadiness.scanProject(root).findings().stream()
+        List<String> flagged = ImplementationReadiness.scanProject(root).findings().stream()
                 .map(ImplementationReadiness.Finding::flow).distinct().toList();
 
         assertThat(withMarker).as(pack + ": the stubs are expected to contain scaffold markers").isNotEmpty();

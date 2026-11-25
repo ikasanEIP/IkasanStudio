@@ -17,7 +17,7 @@ public final class ManageMetaPacksAction extends DumbAwareAction {
     /** Opens the same manager from the menu or a notification action, on the EDT. */
     public static void open(com.intellij.openapi.project.Project project) {
         if (project == null || project.isDisposed()) return;
-        var dialog = new MetaPackManagerDialog(project);
+        MetaPackManagerDialog dialog = new MetaPackManagerDialog(project);
         dialog.reload();
         dialog.show();
     }

@@ -14,15 +14,20 @@ import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import java.nio.file.Files;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.file.Path;
+import org.ikasan.studio.core.metapack.MetaPackRevisionLock.Plan;
 
 /** Explicit recovery from a revision mismatch, with a reviewed model-only change and rotating backup. */
 public final class AdoptMetaPackRevisionAction extends DumbAwareAction {
     @Override public @NotNull ActionUpdateThread getActionUpdateThread() { return ActionUpdateThread.BGT; }
     @Override public void update(AnActionEvent event) { event.getPresentation().setEnabled(event.getProject() != null && !event.getProject().isDisposed()); }
     @Override public void actionPerformed(AnActionEvent event) {
-        var project = event.getProject();
+        Project project = event.getProject();
         if (project == null || project.isDisposed()) return;
-        var context = project.getService(UiContext.class);
+        UiContext context = project.getService(UiContext.class);
         boolean acquired = false;
         String title = StudioBundle.message("metaPack.Adopt");
         try {
@@ -31,20 +36,20 @@ public final class AdoptMetaPackRevisionAction extends DumbAwareAction {
             checkUnsaved(project);
             if (context.getPropertiesPanel() != null && context.getPropertiesPanel().dataHasChangedAndOKToProcess())
                 throw new IllegalStateException(StudioBundle.message("message.ApplyOrDiscardThePendingPropertyEditsBeforeMigrating"));
-            var model = StudioProjectFiles.getModelJsonPath(project);
+            Path model = StudioProjectFiles.getModelJsonPath(project);
             if (model == null) throw new IllegalStateException(StudioBundle.message("message.OpenAnIkasanProjectFirst"));
-            var plan = MetaPackUiTasks.run(project, title, () -> MetaPackRevisionLock.preview(Files.readString(model)));
+            Plan plan = MetaPackUiTasks.run(project, title, () -> MetaPackRevisionLock.preview(Files.readString(model)));
             if (Messages.showYesNoDialog(project, StudioBundle.message("metaPack.ConfirmAdopt", plan.packId(), plan.previousRevision(), plan.availableRevision()),
                     title, Messages.getQuestionIcon()) != Messages.YES) return;
             checkUnsaved(project);
             MetaPackUiTasks.run(project, title, () -> { MetaPackRevisionLock.apply(model, plan); return null; });
-            var file = MetaPackUiTasks.run(project, title, () -> {
-                var refreshed = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(model);
+            VirtualFile file = MetaPackUiTasks.run(project, title, () -> {
+                VirtualFile refreshed = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(model);
                 if (refreshed != null) refreshed.refresh(false, false);
                 return refreshed;
             });
             if (file != null) {
-                var document = FileDocumentManager.getInstance().getCachedDocument(file);
+                Document document = FileDocumentManager.getInstance().getCachedDocument(file);
                 if (document != null) com.intellij.openapi.application.ApplicationManager.getApplication().runWriteAction(() ->
                         FileDocumentManager.getInstance().reloadFromDisk(document));
             }
@@ -57,8 +62,8 @@ public final class AdoptMetaPackRevisionAction extends DumbAwareAction {
         finally { if (acquired) context.endMigration(); }
     }
     static void checkUnsaved(com.intellij.openapi.project.Project project) {
-        for (var document : FileDocumentManager.getInstance().getUnsavedDocuments()) {
-            var file = FileDocumentManager.getInstance().getFile(document);
+        for (Document document : FileDocumentManager.getInstance().getUnsavedDocuments()) {
+            VirtualFile file = FileDocumentManager.getInstance().getFile(document);
             if (file != null && project.getBasePath() != null && file.getPath().startsWith(project.getBasePath() + "/"))
                 throw new IllegalStateException(StudioBundle.message("message.SaveTheProjectsOpenFilesBeforeMigration", file.getName()));
         }

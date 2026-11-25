@@ -16,6 +16,12 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import java.io.OutputStream;
+import java.lang.reflect.Method;
+import java.util.Map.Entry;
+import org.apache.sshd.client.SshClient;
+import org.apache.sshd.client.session.ClientSession;
+import org.apache.sshd.sftp.client.SftpClient;
 
 class LocalSftpHarnessTest {
     @TempDir Path temporary;
@@ -31,30 +37,30 @@ class LocalSftpHarnessTest {
         Path source = temporary.resolve("HarnessSettings.java");
         Files.writeString(source, "public class HarnessSettings { public static Object configure(Object endpoint, boolean consumer) {"
                 + "return studioLocalSftp(endpoint, \"My flow\", consumer ? \"input\" : \"output\", consumer); }" + helper + "}");
-        var compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
+        Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", pack.equals("V3.3.9") ? "11" : "17", "-d", temporary.toString(), source.toString())
                 .redirectErrorStream(true).start();
         String diagnostics = new String(compiler.getInputStream().readAllBytes());
         assertEquals(0, compiler.waitFor(), diagnostics);
         // These are file-transfer examples, not a fixed batch count in the flow-test runner.
         // Both transfer directions check every filename/payload pair in this collection.
-        var expectedFiles = List.of(
+        List<Entry<String,String>> expectedFiles = List.of(
                 Map.entry("first.txt", "First payload"),
                 Map.entry("second.txt", "Second payload"),
                 Map.entry("later.txt", "Later payload on the same connection"));
         int port;
         Map<String, String> previous = new HashMap<>();
-        try (var server = LocalSftpHarness.start(temporary.resolve("server"));
-             var loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()}, getClass().getClassLoader())) {
+        try (LocalSftpHarness server = LocalSftpHarness.start(temporary.resolve("server"));
+             URLClassLoader loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()}, getClass().getClassLoader())) {
             port = server.port();
-            var method = loader.loadClass("HarnessSettings").getMethod("configure", Object.class, boolean.class);
-            var external = new Endpoint();
+            Method method = loader.loadClass("HarnessSettings").getMethod("configure", Object.class, boolean.class);
+            org.ikasan.studio.integration.sftp.LocalSftpHarnessTest.Endpoint external = new Endpoint();
             assertSame(external, method.invoke(null, external, true));
             assertEquals("external-settings", external.configurationId);
             assertEquals("existing-algorithm", external.configuration.keyExchangeAlgorithm);
             server.launchProperties().forEach((key, value) -> { previous.put(key, System.getProperty(key)); System.setProperty(key, value); });
-            var consumer = new Endpoint();
-            var producer = new Endpoint();
+            org.ikasan.studio.integration.sftp.LocalSftpHarnessTest.Endpoint consumer = new Endpoint();
+            org.ikasan.studio.integration.sftp.LocalSftpHarnessTest.Endpoint producer = new Endpoint();
             method.invoke(null, consumer, true);
             method.invoke(null, producer, false);
             assertTrue(consumer.configurationId.startsWith("studio-test-sftp-"));
@@ -65,27 +71,27 @@ class LocalSftpHarnessTest {
             assertNull(consumer.configuration.keyExchangeAlgorithm);
             assertNotEquals(consumer.configuration.directory, producer.configuration.directory);
             assertEquals("/" + LocalSftpHarness.directory("My flow", "input"), consumer.configuration.directory);
-            try (var client = new RemoteFilesClient()) {
+            try (RemoteFilesClient client = new RemoteFilesClient()) {
                 client.connect(server.connection(), temporary);
-                for (var expectedFile : expectedFiles) {
+                for (Entry<String,String> expectedFile : expectedFiles) {
                     Path file = server.home().resolve(consumer.configuration.directory.substring(1)).resolve(expectedFile.getKey());
                     Files.writeString(file, expectedFile.getValue());
-                    var entry = client.list(consumer.configuration.directory).entries().stream()
+                    org.ikasan.studio.integration.sftp.RemoteFilesClient.Entry entry = client.list(consumer.configuration.directory).entries().stream()
                             .filter(e -> e.name().equals(expectedFile.getKey())).findFirst().orElseThrow();
                     assertEquals(expectedFile.getValue(), Files.readString(client.download(consumer.configuration.directory, entry, temporary)));
                 }
                 assertTrue(client.list(producer.configuration.directory).entries().isEmpty());
-                try (var ssh = org.apache.sshd.client.SshClient.setUpDefaultClient()) {
+                try (SshClient ssh = org.apache.sshd.client.SshClient.setUpDefaultClient()) {
                     ssh.setServerKeyVerifier(new org.apache.sshd.client.keyverifier.KnownHostsServerKeyVerifier(
                             org.apache.sshd.client.keyverifier.RejectAllServerKeyVerifier.INSTANCE,
                             Path.of(producer.configuration.hosts)));
                     ssh.start();
-                    try (var session = ssh.connect("ikasan", "127.0.0.1", port).verify(5000).getSession()) {
+                    try (ClientSession session = ssh.connect("ikasan", "127.0.0.1", port).verify(5000).getSession()) {
                         session.addPasswordIdentity(producer.configuration.password);
                         session.auth().verify(5000);
-                        try (var sftp = org.apache.sshd.sftp.client.SftpClientFactory.instance().createSftpClient(session)) {
-                            for (var expectedFile : expectedFiles) {
-                                try (var stream = sftp.write(producer.configuration.directory + "/" + expectedFile.getKey())) {
+                        try (SftpClient sftp = org.apache.sshd.sftp.client.SftpClientFactory.instance().createSftpClient(session)) {
+                            for (Entry<String,String> expectedFile : expectedFiles) {
+                                try (OutputStream stream = sftp.write(producer.configuration.directory + "/" + expectedFile.getKey())) {
                                     stream.write(expectedFile.getValue().getBytes(java.nio.charset.StandardCharsets.UTF_8));
                                 }
                                 assertEquals(expectedFile.getValue(), Files.readString(server.home().resolve(
@@ -96,14 +102,14 @@ class LocalSftpHarnessTest {
                 }
             }
             // A separate project owns a different listener, key and file tree.
-            try (var other = LocalSftpHarness.start(temporary.resolve("other"))) {
+            try (LocalSftpHarness other = LocalSftpHarness.start(temporary.resolve("other"))) {
                 assertNotEquals(port, other.port());
                 assertNotEquals(server.home(), other.home());
             }
         } finally {
             previous.forEach((key, value) -> { if (value == null) System.clearProperty(key); else System.setProperty(key, value); });
         }
-        try (var socket = new Socket()) {
+        try (Socket socket = new Socket()) {
             assertThrows(java.io.IOException.class, () -> socket.connect(new InetSocketAddress("127.0.0.1", port), 1000));
         }
         assertTrue(Files.exists(temporary.resolve("server/home")), "Manual harness files remain available for inspection");

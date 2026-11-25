@@ -18,6 +18,14 @@ import java.awt.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBScrollPane;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
+import org.ikasan.studio.core.metapack.loading.MetaPackStore.Candidate;
+import org.ikasan.studio.core.metapack.loading.MetaPackStore.Entry;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 
 /** External-pack lifecycle UI; bundled packs continue to be managed by the plugin distribution. */
 final class MetaPackManagerDialog extends StudioDialogWrapper {
@@ -37,7 +45,7 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
         setOKButtonText(StudioBundle.message("metaPack.Close"));
         packs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         packs.setCellRenderer((list, entry, index, selected, focus) -> {
-            var renderer = new DefaultListCellRenderer();
+            DefaultListCellRenderer renderer = new DefaultListCellRenderer();
             String text = entry.id() + " (" + entry.revision() + ")";
             if (entry.pending() != null) text += " — " + StudioBundle.message("metaPack.Pending." + entry.pending());
             if (entry.problem() != null) text += " — " + entry.problem();
@@ -54,7 +62,7 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
         note.setEditable(false); note.setLineWrap(true); note.setWrapStyleWord(true); note.setOpaque(false);
         note.setFont(UIManager.getFont("Label.font")); note.setFocusable(false);
         panel.add(note, BorderLayout.NORTH);
-        var scroll = new JBScrollPane(packs); scroll.setPreferredSize(JBUI.size(640, 240));
+        JBScrollPane scroll = new JBScrollPane(packs); scroll.setPreferredSize(JBUI.size(640, 240));
         packs.getEmptyText().setText(StudioBundle.message("metaPack.NoExternalPacks"));
         packs.getAccessibleContext().setAccessibleName(StudioBundle.message("metaPack.ExternalPacks"));
         panel.add(scroll, BorderLayout.CENTER);
@@ -67,7 +75,7 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
 
     void reload() {
         perform(() -> {
-            var entries = MetaPackUiTasks.run(project, StudioBundle.message("metaPack.Loading"), () -> MetaPackStore.list(directory));
+            List<Entry> entries = MetaPackUiTasks.run(project, StudioBundle.message("metaPack.Loading"), () -> MetaPackStore.list(directory));
             String selected = packs.getSelectedValue() == null ? null : packs.getSelectedValue().id();
             model.clear(); entries.forEach(model::addElement);
             for (int i = 0; i < model.size(); i++) if (model.get(i).id().equals(selected)) packs.setSelectedIndex(i);
@@ -76,7 +84,7 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
         });
     }
     private void updateButtons() {
-        var selected = packs.getSelectedValue();
+        Entry selected = packs.getSelectedValue();
         boolean usable = selected != null && selected.problem() == null;
         boolean pending = usable && selected.pending() != null;
         update.setEnabled(usable && !pending); remove.setEnabled(usable && !pending);
@@ -84,9 +92,9 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
         cancelPending.setEnabled(selected != null && selected.pending() != null && !"removed".equals(selected.pending()));
     }
     private void chooseUpdate() {
-        var selected = packs.getSelectedValue();
+        Entry selected = packs.getSelectedValue();
         if (selected == null) return;
-        var descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor("jar");
+        FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor("jar");
         descriptor.setTitle(StudioBundle.message("metaPack.Update"));
         StudioProjectFiles.chooseFilePaths(project, descriptor, files -> {
             if (isDisposed() || project.isDisposed() || files == null || files.isEmpty()) return;
@@ -94,7 +102,7 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
         });
     }
     private void reviewUpdate(MetaPackStore.Entry selected, Path source) throws Exception {
-        var candidate = MetaPackUiTasks.run(project, StudioBundle.message("metaPack.Progress"), () -> MetaPackStore.review(source));
+        Candidate candidate = MetaPackUiTasks.run(project, StudioBundle.message("metaPack.Progress"), () -> MetaPackStore.review(source));
         if (!selected.id().equals(candidate.manifest().id())) throw new IllegalArgumentException(StudioBundle.message("metaPack.WrongId", selected.id()));
         String review = "removed".equals(selected.pending())
                 ? StudioBundle.message("metaPack.ConfirmRestore", selected.id(), candidate.manifest().packVersion())
@@ -110,7 +118,7 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
         reload();
     }
     private void remove() {
-        var selected = packs.getSelectedValue();
+        Entry selected = packs.getSelectedValue();
         if (selected == null) return;
         if (Messages.showYesNoDialog(project, StudioBundle.message("metaPack.ConfirmRemove", selected.id(), selected.revision()),
                 StudioBundle.message("metaPack.Remove"), Messages.getWarningIcon()) != Messages.YES) return;
@@ -122,7 +130,7 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
         });
     }
     private void cancelPending() {
-        var selected = packs.getSelectedValue();
+        Entry selected = packs.getSelectedValue();
         if (selected == null) return;
         perform(() -> {
             MetaPackUiTasks.run(project, StudioBundle.message("metaPack.Progress"), () -> { MetaPackStore.cancel(directory, selected.id()); return null; });
@@ -131,13 +139,13 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
     }
     private record Previous(String label, Path file) { @Override public @NotNull String toString() { return label; } }
     private void restore() {
-        var selected = packs.getSelectedValue();
+        Entry selected = packs.getSelectedValue();
         if (selected == null) return;
         perform(() -> {
             List<Previous> previous = MetaPackUiTasks.run(project, StudioBundle.message("metaPack.Loading"), () -> {
-                var result = new ArrayList<Previous>();
+                ArrayList<org.ikasan.studio.intellij.metapack.MetaPackManagerDialog.Previous> result = new ArrayList<>();
                 for (Path file : MetaPackStore.history(directory, selected.id())) {
-                    var manifest = MetaPackStore.manifest(file);
+                    MetaPackManifest manifest = MetaPackStore.manifest(file);
                     if ("removed".equals(selected.pending()) || !manifest.packVersion().equals(selected.revision())) result.add(new Previous(manifest.packVersion(), file));
                 }
                 return result;
@@ -145,8 +153,8 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
             if (previous.isEmpty()) {
                 Messages.showInfoMessage(project, StudioBundle.message("metaPack.NoHistory"), StudioBundle.message("metaPack.Restore")); return;
             }
-            var choices = new JBList<>(previous); choices.setSelectedIndex(0);
-            var picker = new StudioDialogWrapper(project, true) {
+            JBList<org.ikasan.studio.intellij.metapack.MetaPackManagerDialog.Previous> choices = new JBList<>(previous); choices.setSelectedIndex(0);
+            StudioDialogWrapper picker = new StudioDialogWrapper(project, true) {
                 { setTitle(StudioBundle.message("metaPack.Restore")); init(); }
                 @Override protected JComponent createStudioContent() { return new JBScrollPane(choices); }
             };
@@ -154,7 +162,7 @@ final class MetaPackManagerDialog extends StudioDialogWrapper {
         });
     }
     private static JButton button(String key, Runnable action) {
-        var button = new JButton(StudioBundle.message(key)); button.addActionListener(event -> action.run()); return button;
+        JButton button = new JButton(StudioBundle.message(key)); button.addActionListener(event -> action.run()); return button;
     }
     @FunctionalInterface private interface Work { void run() throws Exception; }
     private void perform(Work work) {

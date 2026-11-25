@@ -19,6 +19,9 @@ import java.util.function.IntConsumer;
  * Empty-state content shown while Ikasan Studio prepares the current project.
  */
 public final class StudioInitialisationPanel extends JBPanel<StudioInitialisationPanel> {
+    private final JBLabel heading = new JBLabel();
+    private final JBTextArea waitingText = new JBTextArea(
+            StudioBundle.message("message.PleaseWaitWhileIkasanStudioLoadsTheModule"));
     private final JBLabel statusIcon = new JBLabel(new AnimatedIcon.Default());
     private final JBLabel statusLabel = new JBLabel();
     private final JBTextArea detailText = new JBTextArea();
@@ -31,11 +34,9 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
         super(new GridBagLayout());
         setBorder(JBUI.Borders.empty(24));
 
-        JBLabel heading = new JBLabel(StudioBundle.message("label.LoadingIkasanStudio"));
+        heading.setText(StudioBundle.message("label.LoadingIkasanStudio"));
         heading.setFont(JBFont.h2());
 
-        JBTextArea waitingText = new JBTextArea(
-                StudioBundle.message("message.PleaseWaitWhileIkasanStudioLoadsTheModule"));
         configureDescription(waitingText);
         detailText.setEditable(false);
         detailText.setFocusable(false);
@@ -155,7 +156,21 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
                 StudioBundle.message("message.PreparingTheComponentLibraryAndDesignerPalette"));
     }
 
+    public void showUpdateAvailable(String detail) {
+        showProgress(StudioBundle.message("modelUpdate.Title"), detail);
+        heading.setText(StudioBundle.message("modelUpdate.Title"));
+        waitingText.setVisible(false);
+        statusIcon.setIcon(AllIcons.General.Information);
+        repairLink.setText(StudioBundle.message("modelUpdate.Link"));
+        repairLink.setVisible(true);
+        revalidate();
+        repaint();
+    }
+
     public void showFailure(String detail, List<Integer> backupIndexes) {
+        waitingText.setVisible(true);
+        heading.setText(StudioBundle.message("label.LoadingIkasanStudio"));
+        repairLink.setText(StudioBundle.message("modelRepair.Link"));
         statusIcon.setIcon(AllIcons.General.Warning);
         statusLabel.setText(StudioBundle.message("message.IkasanStudioCouldNotPrepareThisProject"));
         detailText.setText(detail);
@@ -172,6 +187,8 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
     }
 
     private void showProgress(String status, String detail) {
+        waitingText.setVisible(true);
+        heading.setText(StudioBundle.message("label.LoadingIkasanStudio"));
         statusIcon.setIcon(new AnimatedIcon.Default());
         statusLabel.setText(status);
         detailText.setText(detail);

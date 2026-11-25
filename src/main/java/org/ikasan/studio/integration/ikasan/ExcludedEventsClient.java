@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.net.http.HttpResponse;
 
 /** Read-only adapter for the module-local Ikasan 3/4 exclusion search contract. */
 public final class ExcludedEventsClient {
@@ -54,7 +55,7 @@ public final class ExcludedEventsClient {
     }
 
     public static Page fetch(URI uri) throws Exception {
-        var response = ModuleControlClient.getRuntimeRecords(uri);
+        HttpResponse<String> response = ModuleControlClient.getRuntimeRecords(uri);
         if (response.statusCode() != 200) throw new HttpFailure(response.statusCode());
         return parse(response.body());
     }

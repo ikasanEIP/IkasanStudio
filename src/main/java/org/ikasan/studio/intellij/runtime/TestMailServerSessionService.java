@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import com.intellij.openapi.application.Application;
+import java.util.Map.Entry;
 
 /**
  * Tracks which (mailSmtpHost, mailSmtpPort) addresses a locally-launched test mail server is actually
@@ -104,7 +106,7 @@ public final class TestMailServerSessionService implements Disposable {
 
     /** Stops this project.s one owned MailHog instance even if the component address changed after launch. */
     public boolean stopAnyOwned() {
-        var entry = ownedHarnesses.entrySet().stream().findFirst().orElse(null);
+        Entry<String,org.ikasan.studio.intellij.runtime.TestMailServerSessionService.OwnedHarness> entry = ownedHarnesses.entrySet().stream().findFirst().orElse(null);
         if (entry == null || !ownedHarnesses.remove(entry.getKey(), entry.getValue())) return false;
         entry.getValue().stopAction().run();
         return true;
@@ -162,7 +164,7 @@ public final class TestMailServerSessionService implements Disposable {
                 }
             }
         }
-        for (var entry : ownedHarnesses.entrySet()) {
+        for (Entry<String,org.ikasan.studio.intellij.runtime.TestMailServerSessionService.OwnedHarness> entry : ownedHarnesses.entrySet()) {
             OwnedHarness owned = entry.getValue();
             if (listeningProbe.test(owned.host(), owned.port())) {
                 nowListening.add(entry.getKey());
@@ -205,12 +207,12 @@ public final class TestMailServerSessionService implements Disposable {
         disposed = true;
         alarm.cancelAllRequests();
         listeningAddresses = Set.of();
-        var owned = List.copyOf(ownedHarnesses.values());
+        List<org.ikasan.studio.intellij.runtime.TestMailServerSessionService.OwnedHarness> owned = List.copyOf(ownedHarnesses.values());
         ownedHarnesses.clear();
         Runnable stopOwned = () -> owned.forEach(harness -> {
             try { harness.stopAction().run(); } catch (RuntimeException ignored) { }
         });
-        var application = ApplicationManager.getApplication();
+        Application application = ApplicationManager.getApplication();
         if (application == null || application.isDispatchThread()) stopOwned.run();
         else application.invokeLater(stopOwned);
     }

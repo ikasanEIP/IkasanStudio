@@ -9,6 +9,12 @@ import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
+import java.net.URLClassLoader;
+import java.util.List;
+import org.ikasan.studio.core.generator.HarnessOverridesTemplate.LaunchTarget;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Executes the exact generated adapter, rather than comparing its source to itself. */
 class HarnessOverridesRuntimeTest {
@@ -61,7 +67,7 @@ class HarnessOverridesRuntimeTest {
                     }
                 }
                 """);
-        var compile = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
+        Process compile = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", "11", "-d", root.toString(), source.toString(), env.toString(), endpoint.toString())
                 .redirectErrorStream(true).redirectOutput(root.resolve("compiler.log").toFile()).start();
         try {
@@ -70,7 +76,7 @@ class HarnessOverridesRuntimeTest {
         } finally { if (compile.isAlive()) compile.destroyForcibly(); }
         Map<String, String> saved = new HashMap<>();
         for (String key : List.of("studio.harness.components", "studio.harness.session", "studio.harness.ftp.home")) saved.put(key, System.getProperty(key));
-        try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, ClassLoader.getPlatformClassLoader())) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, ClassLoader.getPlatformClassLoader())) {
             Class<?> environment = loader.loadClass("org.springframework.core.env.Environment");
             Class<?> endpointClass = loader.loadClass("Endpoint");
             Class<?> adapter = loader.loadClass("org.ikasan.studio.boot.StudioHarnessOverrides");
@@ -135,16 +141,16 @@ class HarnessOverridesRuntimeTest {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void inventoryAndFactoryUseTheSameComponentIdentity(String pack) throws Exception {
-        var producer = org.ikasan.studio.core.TestFixtures.getEmailProducer(pack);
+        FlowElement producer = org.ikasan.studio.core.TestFixtures.getEmailProducer(pack);
         producer.setComponentName("Local email");
-        var flow = new org.ikasan.studio.core.model.ikasan.instance.Flow(pack);
+        Flow flow = new org.ikasan.studio.core.model.ikasan.instance.Flow(pack);
         flow.setName("Orders / 日本語");
         producer.setContainingFlow(flow);
         producer.setContainingFlowRoute(flow.getFlowRoute());
         flow.getFlowRoute().getFlowElements().add(producer);
-        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(pack,
+        Module module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(pack,
                 new ArrayList<>(List.of(flow)));
-        var inventory = HarnessOverridesTemplate.launchTargets(HarnessOverridesTemplate.create(module));
+        List<LaunchTarget> inventory = HarnessOverridesTemplate.launchTargets(HarnessOverridesTemplate.create(module));
         assertEquals(1, inventory.size());
         String id = org.ikasan.studio.core.model.analysis.HarnessOverrides.id(producer);
         assertEquals(id, inventory.get(0).id());

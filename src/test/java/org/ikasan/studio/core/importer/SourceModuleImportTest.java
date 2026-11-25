@@ -10,6 +10,21 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
+import org.ikasan.studio.core.importer.SourceModuleImport.Analysis;
+import org.ikasan.studio.core.importer.SourceModuleImport.DependencyChoice;
+import org.ikasan.studio.core.importer.SourceModuleImport.DependencyComparison;
+import org.ikasan.studio.core.importer.SourceModuleImport.FileChoice;
+import org.ikasan.studio.core.importer.SourceModuleImport.ManagedFile;
+import org.ikasan.studio.core.importer.SourceModuleImport.ReviewAction;
+import org.ikasan.studio.core.importer.SourceModuleImport.SpringRegistration;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class SourceModuleImportTest {
     @TempDir Path temporary;
@@ -85,8 +100,8 @@ class SourceModuleImportTest {
 
     @Test void extractsReviewedTrustedContextWithoutCopyingSpringFactoryAndLoadsItsBinaryName() throws Exception {
         trustedContextFixture();
-        var analysis = analyse();
-        var helper = analysis.files().stream().filter(f -> f.source().equals(CONTEXT_SOURCE)).findFirst().orElseThrow();
+        Analysis analysis = analyse();
+        FileChoice helper = analysis.files().stream().filter(f -> f.source().equals(CONTEXT_SOURCE)).findFirst().orElseThrow();
         assertThat(helper.recommended()).isTrue();
         assertThat(helper.wiring()).isFalse();
         assertThat(SourceModuleImport.reviewActions(analysis, Set.of(), Set.of()))
@@ -99,13 +114,13 @@ class SourceModuleImportTest {
         Path stub = temporary.resolve("compile/org/apache/activemq/jndi/ActiveMQInitialContextFactory.java");
         Files.createDirectories(stub.getParent()); Files.writeString(stub, "package org.apache.activemq.jndi; public class ActiveMQInitialContextFactory { }");
         Path classes = temporary.resolve("classes"); Files.createDirectories(classes);
-        var compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
+        Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", "17", "-d", classes.toString(), stub.toString(), target().resolve(helper.destination()).toString())
                 .redirectErrorStream(true).start();
         String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertThat(compiler.waitFor()).as(diagnostics).isZero();
-        try (var loader = new java.net.URLClassLoader(new java.net.URL[]{classes.toUri().toURL()}, null)) {
-            var loaded = Class.forName(CONTEXT_BINARY, true, loader);
+        try (URLClassLoader loader = new java.net.URLClassLoader(new java.net.URL[]{classes.toUri().toURL()}, null)) {
+            Class<?> loaded = Class.forName(CONTEXT_BINARY, true, loader);
             assertThat(loaded.getMethod("initialFactoryName", String.class).invoke(null, "unused")).isEqualTo(CONTEXT_BINARY);
             assertThat(loaded.getMethod("configure").invoke(null)).isEqualTo(List.of("org.example.cat.domain"));
         }
@@ -113,13 +128,13 @@ class SourceModuleImportTest {
     }
 
     @Test void trustedContextExtractionRejectsStaleSourceAndPreservesExistingDestination() throws Exception {
-        trustedContextFixture(); var initial = analyse();
-        var helper = initial.files().stream().filter(f -> f.source().equals(CONTEXT_SOURCE)).findFirst().orElseThrow();
+        trustedContextFixture(); Analysis initial = analyse();
+        FileChoice helper = initial.files().stream().filter(f -> f.source().equals(CONTEXT_SOURCE)).findFirst().orElseThrow();
         write(source(), CONTEXT_SOURCE, Files.readString(source().resolve(CONTEXT_SOURCE)) + "\n// changed");
         assertThatThrownBy(() -> SourceModuleImport.apply(initial, Set.of(CONTEXT_SOURCE), Set.of(), false, true))
                 .hasMessageContaining("Original source changed");
         assertThat(target().resolve(helper.destination())).doesNotExist();
-        var analysis = analyse();
+        Analysis analysis = analyse();
         write(target(), helper.destination(), "// developer-owned file");
         assertThatThrownBy(() -> SourceModuleImport.apply(analysis, Set.of(CONTEXT_SOURCE), Set.of(), false, true))
                 .hasMessageContaining("Destination");
@@ -127,7 +142,7 @@ class SourceModuleImportTest {
     }
 
     @Test void trustedContextRecoveryRejectsChangedRuntimeConfiguration() throws Exception {
-        trustedContextFixture(); var analysis = analyse();
+        trustedContextFixture(); Analysis analysis = analyse();
         write(target(), "generated/src/main/resources/application.properties", "consumer.connectionFactoryJndiProperties={}\n");
         assertThatThrownBy(() -> SourceModuleImport.apply(analysis, Set.of(CONTEXT_SOURCE), Set.of(), false, true))
                 .hasMessageContaining("Destination");
@@ -144,7 +159,7 @@ class SourceModuleImportTest {
         trustedContextFixture();
         write(source(), CONTEXT_SOURCE, Files.readString(source().resolve(CONTEXT_SOURCE))
                 .replace("extends ActiveMQInitialContextFactory", "extends CustomContextFactory"));
-        var analysis = analyse();
+        Analysis analysis = analyse();
         assertThat(analysis.files()).noneMatch(f -> f.destination().contains("$Trusted"));
         assertThat(SourceModuleImport.reviewActions(analysis, Set.of(), Set.of()))
                 .anyMatch(a -> a.subject().contains("Missing runtime context factory: " + CONTEXT_BINARY));
@@ -172,9 +187,9 @@ class SourceModuleImportTest {
                 package org.ikasan.studio.boot;
                 @org.springframework.context.annotation.ComponentScan("org.ikasan.studio.boot") class Application { }
                 """);
-        var analysis = analyse();
+        Analysis analysis = analyse();
         assertThat(analysis.beans()).extracting(SourceModuleImport.BeanRequirement::type).containsExactly("org.customer.ConcreteRule");
-        var selected = Set.of("src/main/java/org/customer/ConcreteRule.java");
+        Set<String> selected = Set.of("src/main/java/org/customer/ConcreteRule.java");
         assertThat(SourceModuleImport.reviewActions(analysis, Set.of(), Set.of()))
                 .anyMatch(a -> a.kind() == SourceModuleImport.ReviewKind.SOURCE && a.subject().endsWith("ConcreteRule.java"));
         assertThat(SourceModuleImport.previewSpringRegistration(analysis, selected, Map.of()).components())
@@ -186,14 +201,14 @@ class SourceModuleImportTest {
         write(target(), "generated/src/main/java/studio/ComponentFactory.java", "package studio; class ComponentFactory { @javax.annotation.Resource customer.contract.Rule delegate; }");
         for (String name : List.of("FirstRule", "SecondRule")) write(source(), "src/main/java/org/customer/" + name + ".java",
                 "package org.customer; @org.springframework.stereotype.Component public class " + name + " implements customer.contract.Rule { }");
-        var analysis = analyse();
+        Analysis analysis = analyse();
         assertThat(analysis.beans()).extracting(SourceModuleImport.BeanRequirement::type).containsExactly("customer.contract.Rule");
         assertThat(SourceModuleImport.previewSpringRegistration(analysis,
                 Set.of("src/main/java/org/customer/FirstRule.java", "src/main/java/org/customer/SecondRule.java"), Map.of())).isNull();
     }
 
     @Test void recommendsExactImplementationsAndHelpersButRequiresReviewOfOriginalWiring() throws Exception {
-        fixture(); var analysis = analyse();
+        fixture(); Analysis analysis = analyse();
         assertThat(analysis.files().stream().filter(SourceModuleImport.FileChoice::recommended).map(SourceModuleImport.FileChoice::destination))
                 .containsExactlyInAnyOrder("user/src/main/java/org/customer/Bespoke.java", "user/src/main/java/org/customer/Helper.java",
                         "user/src/main/java/org/customer/Other.java", "user/src/main/java/org/customer/Unrelated.java", "user/src/main/resources/bespoke.properties");
@@ -211,16 +226,16 @@ class SourceModuleImportTest {
     }
 
     @Test void liveReviewContainsOnlyConcreteDecisionsAndUpdatesWithPendingCopies() throws Exception {
-        fixture(); var analysis = analyse();
-        var dependencies = analysis.dependencies().stream().filter(SourceModuleImport.DependencyChoice::importable)
+        fixture(); Analysis analysis = analyse();
+        Set<String> dependencies = analysis.dependencies().stream().filter(SourceModuleImport.DependencyChoice::importable)
                 .map(SourceModuleImport.DependencyChoice::id).collect(java.util.stream.Collectors.toSet());
-        var actions = SourceModuleImport.reviewActions(analysis, Set.of(), dependencies);
+        List<ReviewAction> actions = SourceModuleImport.reviewActions(analysis, Set.of(), dependencies);
         assertThat(actions).anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().contains("renamedBean"));
         assertThat(actions).anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.SOURCE && action.subject().endsWith("Bespoke.java"));
         assertThat(actions).anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.RESOURCE && action.subject().endsWith("bespoke.properties"));
         assertThat(actions).noneMatch(action -> action.subject().contains("Unrelated.java") || action.subject().contains("ikasan-parent")
                 || action.kind() == SourceModuleImport.ReviewKind.DEPENDENCY || action.subject().contains("Module identity"));
-        var files = analysis.files().stream().filter(SourceModuleImport.FileChoice::recommended)
+        Set<String> files = analysis.files().stream().filter(SourceModuleImport.FileChoice::recommended)
                 .map(SourceModuleImport.FileChoice::source).collect(java.util.stream.Collectors.toSet());
         assertThat(SourceModuleImport.reviewActions(analysis, files, dependencies)).noneMatch(action ->
                 action.kind() == SourceModuleImport.ReviewKind.SOURCE || action.kind() == SourceModuleImport.ReviewKind.RESOURCE);
@@ -244,7 +259,7 @@ class SourceModuleImportTest {
                 """);
         write(target(), "generated/src/main/java/studio/Flow.java", "package studio; @org.springframework.stereotype.Component(\"customName\") public class Flow {}");
         write(target(), "generated/src/main/java/studio/Internal.java", "package studio; class Internal { @jakarta.annotation.Resource Flow flow; }");
-        var analysis = analyse();
+        Analysis analysis = analyse();
         assertThat(analysis.beans()).anyMatch(bean -> bean.name().equals("explicitBean") && bean.generatedProvider());
         assertThat(analysis.beans()).anyMatch(bean -> bean.name().equals("flow") && bean.type().equals("studio.Flow") && bean.generatedProvider());
         assertThat(analysis.beans()).anyMatch(bean -> bean.name().equals("renamedBean") && !bean.generatedProvider());
@@ -262,7 +277,7 @@ class SourceModuleImportTest {
                 """);
         String provider = "package org.customer; @org.springframework.stereotype.Component class Bespoke {}";
         write(source(), "src/main/java/org/customer/Bespoke.java", provider);
-        var analysis = analyse();
+        Analysis analysis = analyse();
         String selected = "src/main/java/org/customer/Bespoke.java";
         assertThat(SourceModuleImport.reviewActions(analysis, Set.of(), Set.of())).anyMatch(action ->
                 action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().startsWith("renamedBean :"));
@@ -281,7 +296,7 @@ class SourceModuleImportTest {
                 @org.springframework.boot.autoconfigure.SpringBootApplication
                 @org.springframework.context.annotation.ComponentScan("org.different") class Application {}
                 """);
-        var unscanned = analyse();
+        Analysis unscanned = analyse();
         assertThat(SourceModuleImport.reviewActions(unscanned, Set.of(selected), Set.of())).anyMatch(action ->
                 action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().startsWith("renamedBean :"));
         assertThat(SourceModuleImport.reviewActions(unscanned, Set.of(selected), Set.of())).anyMatch(action ->
@@ -307,9 +322,9 @@ class SourceModuleImportTest {
 
     @Test void reviewedRegistrationIsCreatedWithTheCopiesAndResolvesFurtherReview() throws Exception {
         registrationFixture();
-        var analysis = analyse();
-        var files = Set.of("src/main/java/org/customer/Bespoke.java");
-        var registration = SourceModuleImport.previewSpringRegistration(analysis, files, Map.of());
+        Analysis analysis = analyse();
+        Set<String> files = Set.of("src/main/java/org/customer/Bespoke.java");
+        SpringRegistration registration = SourceModuleImport.previewSpringRegistration(analysis, files, Map.of());
         assertThat(registration).isNotNull();
         assertThat(registration.components()).containsExactly("org.customer.Bespoke");
         assertThat(registration.javaSource()).contains("@org.springframework.context.annotation.Import", "org.customer.Bespoke.class")
@@ -324,9 +339,9 @@ class SourceModuleImportTest {
 
     @Test void sourceCopyWithoutRegistrationApprovalDoesNotCreateWiring() throws Exception {
         registrationFixture();
-        var analysis = analyse();
-        var files = Set.of("src/main/java/org/customer/Bespoke.java");
-        var registration = SourceModuleImport.previewSpringRegistration(analysis, files, Map.of());
+        Analysis analysis = analyse();
+        Set<String> files = Set.of("src/main/java/org/customer/Bespoke.java");
+        SpringRegistration registration = SourceModuleImport.previewSpringRegistration(analysis, files, Map.of());
         assertNotNull(registration, "Expected a Spring registration preview for Bespoke");
         SourceModuleImport.apply(analysis, files, Set.of(), false);
         assertThat(Files.exists(target().resolve(registration.destination()))).isFalse();
@@ -336,13 +351,13 @@ class SourceModuleImportTest {
         registrationFixture();
         String originalWiring = "user/src/main/java/org/ikasan/studio/boot/imported/ImportedSourceComponents.java";
         write(target(), originalWiring, "// Existing developer implementation\n");
-        var analysis = analyse();
-        var files = Set.of("src/main/java/org/customer/Bespoke.java");
-        var registration = SourceModuleImport.previewSpringRegistration(analysis, files, Map.of());
+        Analysis analysis = analyse();
+        Set<String> files = Set.of("src/main/java/org/customer/Bespoke.java");
+        SpringRegistration registration = SourceModuleImport.previewSpringRegistration(analysis, files, Map.of());
         assertNotNull(registration, "Expected a Spring registration preview for Bespoke");
         assertThat(registration.destination()).endsWith("ImportedSourceComponents2.java");
         assertThat(registration.javaSource()).contains("class ImportedSourceComponents2");
-        var forged = new SourceModuleImport.SpringRegistration(registration.destination(), "arbitrary content", registration.components());
+        SpringRegistration forged = new SourceModuleImport.SpringRegistration(registration.destination(), "arbitrary content", registration.components());
         assertThatThrownBy(() -> SourceModuleImport.apply(analysis, files, Set.of(), false, false, Map.of(), forged))
                 .hasMessageContaining("registration review changed");
         write(target(), registration.destination(), "// Created while review was open\n");
@@ -361,7 +376,7 @@ class SourceModuleImportTest {
                 """);
         write(source(), "src/main/java/org/customer/Bespoke.java",
                 "package org.customer; @org.springframework.stereotype.Component(\"different\") public class Bespoke {}");
-        var files = Set.of("src/main/java/org/customer/Bespoke.java");
+        Set<String> files = Set.of("src/main/java/org/customer/Bespoke.java");
         assertThat(SourceModuleImport.previewSpringRegistration(analyse(), files, Map.of())).isNull();
         write(source(), "src/main/java/org/customer/Bespoke.java",
                 "package org.customer; @org.springframework.stereotype.Component(\"wanted\") public class Bespoke {}");
@@ -389,7 +404,7 @@ class SourceModuleImportTest {
 
     @Test void registrationDoesNotConfuseScanDefaultNamesWithExplicitResourceNames() throws Exception {
         registrationFixture();
-        var files = Set.of("src/main/java/org/customer/Bespoke.java");
+        Set<String> files = Set.of("src/main/java/org/customer/Bespoke.java");
         write(target(), "generated/src/main/java/studio/ComponentFactory.java", """
                 package studio;
                 class ComponentFactory { @javax.annotation.Resource(name="bespoke") org.customer.Bespoke component; }
@@ -404,7 +419,7 @@ class SourceModuleImportTest {
 
     @Test void registrationDoesNotInventBeansForPlainOrNonPublicClasses() throws Exception {
         registrationFixture();
-        var files = Set.of("src/main/java/org/customer/Bespoke.java");
+        Set<String> files = Set.of("src/main/java/org/customer/Bespoke.java");
         write(source(), "src/main/java/org/customer/Bespoke.java", "package org.customer; public class Bespoke {}");
         assertThat(SourceModuleImport.previewSpringRegistration(analyse(), files, Map.of())).isNull();
         write(source(), "src/main/java/org/customer/Bespoke.java", "package org.customer; @org.springframework.stereotype.Component class Bespoke {}");
@@ -426,7 +441,7 @@ class SourceModuleImportTest {
                 @org.springframework.context.annotation.Import(org.customer.Bespoke.class)
                 public class ImportedComponents {}
                 """);
-        var analysis = analyse();
+        Analysis analysis = analyse();
         String selected = "src/main/java/org/customer/Bespoke.java";
         assertThat(SourceModuleImport.reviewActions(analysis, Set.of(selected), Set.of()))
                 .noneMatch(action -> action.kind() == SourceModuleImport.ReviewKind.BEAN && action.subject().startsWith("renamedBean :"))
@@ -445,10 +460,10 @@ class SourceModuleImportTest {
 
     @Test void unchangedReferencedImplementationsAndSuppliedSupportHaveNoLiveReviewItems() throws Exception {
         supportFixture();
-        var analysis = analyse();
-        var unchangedFiles = analysis.files().stream().map(file -> new SourceModuleImport.FileChoice(file.source(), file.destination(),
+        Analysis analysis = analyse();
+        List<FileChoice> unchangedFiles = analysis.files().stream().map(file -> new SourceModuleImport.FileChoice(file.source(), file.destination(),
                 file.bytes(), file.bytes(), file.recommended(), file.wiring(), file.reason())).toList();
-        var quiet = new SourceModuleImport.Analysis(analysis.sourceRoot(), analysis.destinationRoot(), unchangedFiles, List.of(),
+        Analysis quiet = new SourceModuleImport.Analysis(analysis.sourceRoot(), analysis.destinationRoot(), unchangedFiles, List.of(),
                 analysis.properties(), List.of(), analysis.notes(), analysis.originalPom(), analysis.generatedInputs(),
                 analysis.managedFiles(), analysis.supportInputs(), analysis.identity());
         assertThat(SourceModuleImport.reviewActions(quiet, Set.of(), Set.of())).isEmpty();
@@ -462,7 +477,7 @@ class SourceModuleImportTest {
     }
 
     @Test void transferPreservesOriginalBytesResourcesAndPackagesAndLeavesGeneratedAndOriginalUntouched() throws Exception {
-        fixture(); var analysis = analyse();
+        fixture(); Analysis analysis = analyse();
         byte[] before = Files.readAllBytes(source().resolve("src/main/java/org/customer/Bespoke.java"));
         String generated = Files.readString(target().resolve("generated/src/main/java/studio/ComponentFactory.java"));
         Set<String> files = new LinkedHashSet<>(); analysis.files().stream().filter(SourceModuleImport.FileChoice::recommended).forEach(f -> files.add(f.source()));
@@ -476,13 +491,13 @@ class SourceModuleImportTest {
     }
 
     @Test void dependenciesKeepPinnedVersionsAndExclusionsWithoutGuessingManagedOrPlatformVersions() throws Exception {
-        fixture(); var analysis = analyse();
-        var custom = analysis.dependencies().stream().filter(d -> d.dependency().getArtifactId().equals("custom-client")).findFirst().orElseThrow();
+        fixture(); Analysis analysis = analyse();
+        DependencyChoice custom = analysis.dependencies().stream().filter(d -> d.dependency().getArtifactId().equals("custom-client")).findFirst().orElseThrow();
         assertThat(custom.importable()).isTrue();
         assertThat(analysis.dependencies()).filteredOn(d -> d.dependency().getGroupId().equals("org.ikasan")).allMatch(d -> !d.importable());
         assertThat(analysis.dependencies()).filteredOn(d -> d.dependency().getArtifactId().equals("inherited")).allMatch(SourceModuleImport.DependencyChoice::importable);
         SourceModuleImport.apply(analysis, Set.of(), Set.of(custom.id()), false);
-        var model = new MavenXpp3Reader().read(new StringReader(Files.readString(target().resolve("pom.xml"))));
+        Model model = new MavenXpp3Reader().read(new StringReader(Files.readString(target().resolve("pom.xml"))));
         assertThat(model.getDependencies()).hasSize(1);
         assertThat(model.getDependencies().get(0).getVersion()).isEqualTo("2.3.4");
         assertThat(model.getDependencies().get(0).getExclusions().get(0).getArtifactId()).isEqualTo("parser");
@@ -492,12 +507,12 @@ class SourceModuleImportTest {
         fixture();
         String originalPom = Files.readString(source().resolve("pom.xml"));
         write(source(), "pom.xml", originalPom.replace("<artifactId>inherited</artifactId>", "<artifactId>inherited</artifactId><optional>true</optional><scope>runtime</scope>"));
-        var analysis = analyse();
-        var inherited = analysis.dependencies().stream().filter(d -> d.dependency().getArtifactId().equals("inherited")).findFirst().orElseThrow();
+        Analysis analysis = analyse();
+        DependencyChoice inherited = analysis.dependencies().stream().filter(d -> d.dependency().getArtifactId().equals("inherited")).findFirst().orElseThrow();
         assertThat(inherited.importable()).isTrue();
         SourceModuleImport.apply(analysis, Set.of(), Set.of(inherited.id()), false);
-        var model = new MavenXpp3Reader().read(new StringReader(Files.readString(target().resolve("pom.xml"))));
-        var dependency = model.getDependencies().get(0);
+        Model model = new MavenXpp3Reader().read(new StringReader(Files.readString(target().resolve("pom.xml"))));
+        Dependency dependency = model.getDependencies().get(0);
         assertThat(dependency.getVersion()).isNull();
         assertThat(dependency.isOptional()).isTrue();
         assertThat(dependency.getScope()).isEqualTo("runtime");
@@ -506,7 +521,7 @@ class SourceModuleImportTest {
     @Test void directGeneratedConstructorReferencesAreRecognisedWithoutResourceFields() throws Exception {
         fixture();
         write(target(), "generated/src/main/java/studio/DirectFactory.java", "package studio; class DirectFactory { Object create() { return new org.customer.Unrelated(); } }");
-        var analysis = analyse();
+        Analysis analysis = analyse();
         assertThat(analysis.files()).anySatisfy(file -> {
             assertThat(file.source()).endsWith("Unrelated.java");
             assertThat(file.recommended()).isTrue();
@@ -517,16 +532,16 @@ class SourceModuleImportTest {
     @Test void newImplementationsDefaultToImportButWiringDuplicatesAndGeneratedDebugSubclassesDoNot() throws Exception {
         fixture();
         write(source(), "src/main/java/org/customer/FlowDebug.java", "package org.customer; class FlowDebug extends org.ikasan.studio.component.DebugTransitionComponent { public void debug(Object value) {} }");
-        var analysis = analyse();
+        Analysis analysis = analyse();
         assertThat(analysis.files()).anyMatch(f -> f.source().endsWith("Unrelated.java") && f.recommended() && f.previous() == null);
         assertThat(analysis.files()).anyMatch(f -> f.source().endsWith("FlowDebug.java") && !f.recommended());
         assertThat(analysis.files()).filteredOn(SourceModuleImport.FileChoice::wiring).noneMatch(SourceModuleImport.FileChoice::recommended);
     }
 
     @Test void dependencyComparisonIncludesUncheckedReviewOnlyDeclarationsWithoutApplyingThem() throws Exception {
-        fixture(); var analysis = analyse();
-        for (var dependency : analysis.dependencies()) {
-            var comparison = SourceModuleImport.compareDependency(analysis, dependency.id());
+        fixture(); Analysis analysis = analyse();
+        for (DependencyChoice dependency : analysis.dependencies()) {
+            DependencyComparison comparison = SourceModuleImport.compareDependency(analysis, dependency.id());
             assertThat(comparison.original()).contains("<artifactId>" + dependency.dependency().getArtifactId() + "</artifactId>");
             assertThat(comparison.destination()).isEmpty();
         }
@@ -537,13 +552,13 @@ class SourceModuleImportTest {
     @Test void existingUserCodeNeedsExplicitReplacementAndStaleSourceOrDestinationBlocksAllWrites() throws Exception {
         fixture();
         write(target(), "user/src/main/java/org/customer/Bespoke.java", "developer work");
-        var analysis = analyse();
+        Analysis analysis = analyse();
         String bespoke = "src/main/java/org/customer/Bespoke.java";
         assertThatThrownBy(() -> SourceModuleImport.apply(analysis, Set.of(bespoke), Set.of(), false)).hasMessageContaining("Approve replacement");
         assertThat(Files.readString(target().resolve("user/src/main/java/org/customer/Bespoke.java"))).isEqualTo("developer work");
         write(target(), "user/src/main/java/org/customer/Bespoke.java", "new edits");
         assertThatThrownBy(() -> SourceModuleImport.apply(analysis, Set.of(bespoke), Set.of(), true)).hasMessageContaining("Destination changed");
-        var refreshed = analyse(); write(source(), bespoke, "changed source");
+        Analysis refreshed = analyse(); write(source(), bespoke, "changed source");
         assertThatThrownBy(() -> SourceModuleImport.apply(refreshed, Set.of(bespoke), Set.of(), true)).hasMessageContaining("Original source changed");
         assertThat(target().resolve("user/import-reviews")).doesNotExist();
     }
@@ -551,7 +566,7 @@ class SourceModuleImportTest {
     @Test void ambiguousClassNamesAreNotAutomaticallyRecommendedAndDuplicatesAreRejected() throws Exception {
         fixture();
         write(source(), "another/src/main/java/org/customer/Bespoke.java", "package org.customer; public class Bespoke { }");
-        var analysis = analyse();
+        Analysis analysis = analyse();
         assertThat(analysis.notes()).anyMatch(n -> n.contains("Ambiguous class"));
         assertThat(analysis.files()).filteredOn(f -> f.destination().endsWith("Bespoke.java")).noneMatch(SourceModuleImport.FileChoice::recommended);
         assertThatThrownBy(() -> SourceModuleImport.apply(analysis,
@@ -560,13 +575,13 @@ class SourceModuleImportTest {
     }
 
     @Test void generatedContractChangesInvalidateReviewAndPartialWritesAreRolledBack() throws Exception {
-        fixture(); var analysis = analyse();
+        fixture(); Analysis analysis = analyse();
         String bespoke = "src/main/java/org/customer/Bespoke.java";
         write(target(), "generated/src/main/java/studio/NewFactory.java", "class NewFactory { }");
         assertThatThrownBy(() -> SourceModuleImport.apply(analysis, Set.of(bespoke), Set.of(), false)).hasMessageContaining("Generated code changed");
-        var refreshed = analyse();
+        Analysis refreshed = analyse();
         write(target(), "user/src/main/resources", "existing file blocks a resource directory");
-        var selected = new LinkedHashSet<String>(); selected.add(bespoke); selected.add("src/main/resources/bespoke.properties");
+        LinkedHashSet<String> selected = new LinkedHashSet<>(); selected.add(bespoke); selected.add("src/main/resources/bespoke.properties");
         assertThatThrownBy(() -> SourceModuleImport.apply(refreshed, selected, Set.of(), false)).isInstanceOf(java.io.IOException.class);
         assertThat(target().resolve("user/src/main/java/org/customer/Bespoke.java")).doesNotExist();
         assertThat(Files.readString(target().resolve("user/src/main/resources"))).isEqualTo("existing file blocks a resource directory");
@@ -581,7 +596,7 @@ class SourceModuleImportTest {
 
     private void supportFixture(String pack) throws Exception {
         fixture();
-        var module = org.ikasan.studio.core.model.ikasan.instance.Module.moduleBuilder().version(pack)
+        Module module = org.ikasan.studio.core.model.ikasan.instance.Module.moduleBuilder().version(pack)
                 .name("Support example").applicationPackageName("org.example").port("8080")
                 .h2PortNumber("8092").h2WebPortNumber("8093").flows(List.of()).build();
         write(target(), MODEL, org.ikasan.studio.core.generator.ModelTemplate.create(module));
@@ -610,7 +625,7 @@ class SourceModuleImportTest {
         // Keep the import qualified while shortening the implementation reference.
         shortened = shortened.replace("import Serializable;", "import java.io.Serializable;");
         write(source(), COPY, shortened); write(target(), COPY, shortened);
-        var file = analyse().managedFiles().stream().filter(support -> support.source().equals(COPY)).findFirst().orElseThrow();
+        ManagedFile file = analyse().managedFiles().stream().filter(support -> support.source().equals(COPY)).findFirst().orElseThrow();
         assertThat(file.status()).isEqualTo(SourceModuleImport.SupportStatus.DESTINATION_DIFFERS);
         assertThat(file.identicalToDestination()).isTrue();
     }
@@ -619,13 +634,13 @@ class SourceModuleImportTest {
         supportFixture();
         write(source(), "src/main/java/org/customer/DeepCopyUtil.java", "package org.customer; public class DeepCopyUtil { }");
         write(source(), "src/main/java/org/customer/Bespoke.java", "package org.customer; public class Bespoke extends org.ikasan.studio.component.DebugTransitionComponent { Helper helper; }");
-        var analysis = analyse();
+        Analysis analysis = analyse();
         assertThat(analysis.managedFiles()).hasSize(2).allMatch(f -> f.status() == SourceModuleImport.SupportStatus.SUPPLIED);
         assertThat(analysis.files()).noneMatch(f -> f.destination().equals(DEBUG) || f.destination().equals(COPY));
         assertThat(analysis.files()).anyMatch(f -> f.destination().equals("user/src/main/java/org/customer/DeepCopyUtil.java"));
         assertThat(analysis.files()).anyMatch(f -> f.source().endsWith("Helper.java") && f.recommended());
         String destination = Files.readString(target().resolve(DEBUG));
-        var report = SourceModuleImport.apply(analysis, Set.of("src/main/java/org/customer/Bespoke.java"), Set.of(), false);
+        Path report = SourceModuleImport.apply(analysis, Set.of("src/main/java/org/customer/Bespoke.java"), Set.of(), false);
         assertThat(Files.readString(target().resolve(DEBUG))).isEqualTo(destination);
         assertThat(Files.readString(report)).contains("Studio support files", "Supplied by Studio");
     }
@@ -634,18 +649,18 @@ class SourceModuleImportTest {
         supportFixture();
         String destination = Files.readString(target().resolve(DEBUG));
         write(source(), DEBUG, "// original-only debug notes\n" + Files.readString(source().resolve(DEBUG)));
-        var analysis = analyse();
+        Analysis analysis = analyse();
         String merged = "// reviewed debug note\n" + destination;
         assertThatThrownBy(() -> SourceModuleImport.apply(analysis, Set.of(DEBUG), Set.of(), false, false, Map.of(DEBUG, merged)))
                 .hasMessageContaining("Approve replacement");
         assertThat(Files.exists(target().resolve(SourceModuleImport.SUPPORT_CUSTOMISATIONS))).isFalse();
-        var report = SourceModuleImport.apply(analysis, Set.of(DEBUG), Set.of(), true, false, Map.of(DEBUG, merged));
+        Path report = SourceModuleImport.apply(analysis, Set.of(DEBUG), Set.of(), true, false, Map.of(DEBUG, merged));
         assertThat(Files.readString(target().resolve(DEBUG))).isEqualTo(merged).doesNotContain("original-only");
         assertThat(Files.readString(source().resolve(DEBUG))).startsWith("// original-only");
         assertThat(SourceModuleImport.preserveSupportCustomisation(target(), "org.ikasan.studio.component", "DebugTransitionComponent")).isTrue();
         assertThat(SourceModuleImport.preserveSupportCustomisation(target(), "org.ikasan.studio.component.utils", "DeepCopyUtil")).isFalse();
         assertThat(Files.readString(report)).contains("CUSTOMISATION SELECTED", "Staged Java merges applied");
-        var next = analyse();
+        Analysis next = analyse();
         Files.writeString(target().resolve(SourceModuleImport.SUPPORT_CUSTOMISATIONS), "# changed after review\n");
         assertThatThrownBy(() -> SourceModuleImport.apply(next, Set.of(DEBUG), Set.of(), true))
                 .hasMessageContaining("Destination model changed since support review");
@@ -656,10 +671,10 @@ class SourceModuleImportTest {
         supportFixture();
         String original = "// useful debug note\r\n" + Files.readString(source().resolve(DEBUG));
         write(source(), DEBUG, original);
-        var analysis = analyse();
+        Analysis analysis = analyse();
         SourceModuleImport.apply(analysis, Set.of(DEBUG), Set.of(), true);
         assertThat(Files.readString(target().resolve(DEBUG))).isEqualTo(original);
-        var next = analyse();
+        Analysis next = analyse();
         write(source(), DEBUG, original + "// changed later\n");
         assertThatThrownBy(() -> SourceModuleImport.apply(next, Set.of(DEBUG), Set.of(), true))
                 .hasMessageContaining("Studio support file changed since review");
@@ -670,7 +685,7 @@ class SourceModuleImportTest {
         supportFixture();
         String original = Files.readString(source().resolve(DEBUG)).replace("return payload;", "return null;");
         write(source(), DEBUG, original);
-        var analysis = analyse();
+        Analysis analysis = analyse();
         assertThat(analysis.managedFiles()).anyMatch(f -> f.source().equals(DEBUG) && f.status() == SourceModuleImport.SupportStatus.ORIGINAL_DIFFERS);
         SourceModuleImport.apply(analysis, Set.of(), Set.of(), true);
         assertThat(Files.readString(target().resolve(DEBUG))).contains("return payload;").doesNotContain("return null;");
@@ -691,7 +706,7 @@ class SourceModuleImportTest {
     @Test void sourceSupportDestinationSupportAndSavedModelChangesInvalidateReviewBeforeWrites() throws Exception {
         supportFixture();
         for (Path path : List.of(source().resolve(DEBUG), target().resolve(COPY), target().resolve(MODEL))) {
-            var analysis = analyse(); String before = Files.readString(path);
+            Analysis analysis = analyse(); String before = Files.readString(path);
             Files.writeString(path, before + "\n");
             assertThatThrownBy(() -> SourceModuleImport.apply(analysis, Set.of("src/main/java/org/customer/Bespoke.java"), Set.of(), false))
                     .hasMessageContaining("changed since");
@@ -702,7 +717,7 @@ class SourceModuleImportTest {
     }
 
     @Test void rejectsDestinationSymlinksAndHonoursCancellation() throws Exception {
-        fixture(); var analysis = analyse();
+        fixture(); Analysis analysis = analyse();
         Files.createSymbolicLink(target().resolve("user"), source());
         assertThatThrownBy(() -> SourceModuleImport.apply(analysis, Set.of("src/main/java/org/customer/Bespoke.java"), Set.of(), false)).hasMessageContaining("symbolic links");
         assertThatThrownBy(() -> SourceModuleImport.analyse(source(), target(), () -> { throw new IllegalStateException("cancelled"); })).hasMessage("cancelled");

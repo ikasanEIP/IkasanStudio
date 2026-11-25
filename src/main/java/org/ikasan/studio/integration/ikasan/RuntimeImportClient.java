@@ -14,6 +14,13 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.Flow;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.net.http.HttpRequest.Builder;
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.concurrent.CompletableFuture;
 
 /** Read-only acquisition of the documents accepted by the existing runtime importer. */
 public final class RuntimeImportClient {
@@ -95,7 +102,7 @@ public final class RuntimeImportClient {
         if (username.isBlank() && password.length != 0) throw new IllegalArgumentException("Enter a username or clear the password for anonymous access.");
         String authorization = username.isBlank() ? null : "Basic " + Base64.getEncoder().encodeToString(
                 (username + ":" + new String(password)).getBytes(StandardCharsets.UTF_8));
-        var located = locateMetadata(base, module, authorization, cancelled, diagnostics, responseStatus);
+        org.ikasan.studio.integration.ikasan.RuntimeImportClient.LocatedMetadata located = locateMetadata(base, module, authorization, cancelled, diagnostics, responseStatus);
         base = located.application();
         String metadata = located.json();
         JsonNode topology = parse(metadata, "Module metadata");
@@ -104,12 +111,12 @@ public final class RuntimeImportClient {
             throw new IOException("Module metadata must describe the requested module and contain a flows array. Verify the exact case-sensitive registered module name (module.name).");
         }
         if (topology.path("flows").size() > 1000) throw new IOException("Import supports at most 1,000 flows.");
-        var names = new LinkedHashSet<String>();
-        for (var flow : topology.path("flows")) {
+        LinkedHashSet<String> names = new LinkedHashSet<>();
+        for (JsonNode flow : topology.path("flows")) {
             if (!flow.path("name").isTextual() || flow.path("name").asText().isBlank()
                     || !names.add(flow.path("name").asText())) throw new IOException("Module metadata has invalid or duplicate flow names.");
         }
-        var records = new LinkedHashMap<String, JsonNode>();
+        LinkedHashMap<String,JsonNode> records = new LinkedHashMap<String, JsonNode>();
         int total = 0;
         if (includeConfiguration) for (String flow : names) {
             // The unqualified /configuration/components endpoint selects the first module. Always scope it.
@@ -118,16 +125,16 @@ public final class RuntimeImportClient {
             if (total > MAX_BYTES) throw new IOException("Combined component configuration exceeds the 8 MiB import limit.");
             JsonNode array = parse(text, "Component configuration");
             if (!array.isArray()) throw new IOException("Component configuration must be a JSON array.");
-            for (var record : array) {
+            for (JsonNode record : array) {
                 if (!record.isObject() || !record.path("configurationId").isTextual()
                         || record.path("configurationId").asText().isBlank()) throw new IOException("A component configuration record has no configurationId.");
                 String id = record.path("configurationId").asText();
-                var previous = records.putIfAbsent(id, record);
+                JsonNode previous = records.putIfAbsent(id, record);
                 if (previous != null && !previous.equals(record)) throw new IOException("Conflicting records share a configurationId; fetch again when configuration is stable.");
             }
         }
         cancelled.run();
-        var configuration = JSON.createArrayNode();
+        ArrayNode configuration = JSON.createArrayNode();
         records.values().forEach(configuration::add);
         // Keep large configuration exports readable and avoid Swing rendering a single enormous line.
         // This runs on the acquisition worker, before documents are handed to the EDT.
@@ -143,7 +150,7 @@ public final class RuntimeImportClient {
                                                   java.util.function.Consumer<String> diagnostics,
                                                   java.util.function.BiConsumer<RequestStage, Integer> responseStatus)
             throws IOException, InterruptedException {
-        var candidates = new ArrayList<URI>();
+        ArrayList<URI> candidates = new ArrayList<>();
         String path = base.getRawPath();
         while (true) {
             if (candidates.size() == 16) throw new IOException("Application URL has too many path segments. Enter a URL closer to the application root.");
@@ -179,7 +186,7 @@ public final class RuntimeImportClient {
 
     private static JsonNode parse(String text, String document) throws IOException {
         try {
-            var node = JSON.readTree(text);
+            JsonNode node = JSON.readTree(text);
             if (node == null || node.isNull()) throw new IOException();
             return node;
         } catch (IOException failure) {
@@ -206,10 +213,10 @@ public final class RuntimeImportClient {
         diagnostics.accept("Runtime import: fetching " + stage + " via GET " + endpoint);
         long remaining = deadline - System.nanoTime();
         if (remaining <= 0) throw new IOException("The module REST request timed out.");
-        var request = HttpRequest.newBuilder(endpoint)
+        Builder request = HttpRequest.newBuilder(endpoint)
                 .timeout(Duration.ofNanos(remaining)).header("Accept", "application/json").GET();
         if (authorization != null) request.header("Authorization", authorization);
-        var future = HTTP.sendAsync(request.build(), ignored -> new LimitedBody());
+        CompletableFuture<HttpResponse<byte[]>> future = HTTP.sendAsync(request.build(), ignored -> new LimitedBody());
         try {
             HttpResponse<byte[]> response;
             while (true) {

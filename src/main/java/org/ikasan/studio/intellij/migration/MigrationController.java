@@ -24,6 +24,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.util.ArrayList;
+import java.util.Map;
+import org.ikasan.studio.core.migration.MigrationWorkspace.Change;
+import org.ikasan.studio.core.migration.MigrationWorkspace.Snapshot;
+import org.ikasan.studio.core.migration.ModelMigration.Plan;
 
 /** Modal review keeps canvas edits out of a background migration; file preconditions cover external edits. */
 public final class MigrationController {
@@ -56,7 +64,7 @@ public final class MigrationController {
                 String current = live.getMetaVersion();
                 if (!ModelMigration.SUPPORTED_VERSIONS.contains(current)) throw new IllegalStateException(StudioBundle.message("message.SupportedMigrationPathsAreV339V416"));
                 String[] choices = ModelMigration.SUPPORTED_VERSIONS.stream().filter(v -> !v.equals(current)).toArray(String[]::new);
-                var chooser = new MigrationTargetDialog(project, current, choices);
+                MigrationTargetDialog chooser = new MigrationTargetDialog(project, current, choices);
                 if (!chooser.showAndGet()) return;
                 target = chooser.targetVersion();
                 updateImports = chooser.updateUserImports();
@@ -65,8 +73,8 @@ public final class MigrationController {
             boolean selectedUpdateImports = updateImports;
             Preview preview = background(project, "Preparing migration preview", () -> {
                 if (restore) {
-                    var snapshot = MigrationWorkspace.latest(root);
-                    var changes = MigrationWorkspace.prepareRestore(root, snapshot);
+                    Snapshot snapshot = MigrationWorkspace.latest(root);
+                    List<Change> changes = MigrationWorkspace.prepareRestore(root, snapshot);
                     String restored = changes.stream().filter(c -> c.path().equals(MigrationArtifacts.MODEL)).findFirst().orElseThrow().afterText();
                     Module module = ComponentIO.validatePersistedModuleJson(restored, "migration snapshot", false);
                     return new Preview(StudioBundle.message("message.RestoreSnapshotReport", snapshot.id(), snapshot.report()), changes, module, true);
@@ -77,13 +85,13 @@ public final class MigrationController {
                         StudioJson.newObjectMapper().readTree(org.ikasan.studio.core.generator.ModelTemplate.create(context.getIkasanModule())))) {
                     throw new IllegalStateException(StudioBundle.message("message.TheCanvasAndSavedModelDiffer"));
                 }
-                var plan = ModelMigration.analyse(source, selectedTarget);
+                Plan plan = ModelMigration.analyse(source, selectedTarget);
                 if (!plan.canApply()) return new Preview(plan.report(), List.of(), null, false);
                 String sourcePom = Files.readString(root.resolve("pom.xml"));
-                var artifacts = MigrationArtifacts.render(plan, sourcePom);
+                Map<String,String> artifacts = MigrationArtifacts.render(plan, sourcePom);
                 if (!Files.exists(root.resolve("AGENTS.md"))) artifacts.put("AGENTS.md", AiProjectContractGenerator.agentsGuide());
-                var changes = new java.util.ArrayList<>(MigrationWorkspace.prepare(root, artifacts));
-                var importChanges = selectedUpdateImports ? UserImportMigration.prepare(root, plan) : List.<MigrationWorkspace.Change>of();
+                ArrayList<Change> changes = new java.util.ArrayList<>(MigrationWorkspace.prepare(root, artifacts));
+                List<Change> importChanges = selectedUpdateImports ? UserImportMigration.prepare(root, plan) : List.<MigrationWorkspace.Change>of();
                 changes.addAll(importChanges);
                 if (changes.stream().anyMatch(c -> c.path().equals("AGENTS.md") && c.before() != null)) {
                     throw new IllegalStateException(StudioBundle.message("message.ProjectInstructionsWereAddedWhilePreparingMigration"));
@@ -104,12 +112,12 @@ public final class MigrationController {
             String snapshotId = MigrationWorkspace.newSnapshotId();
             String savedReport = MigrationWorkspace.reportWithSaveLocation(preview.report(),
                     root.resolve(MigrationWorkspace.HISTORY).resolve(snapshotId + ".json"));
-            var dialog = new MigrationPreviewDialog(project, title, savedReport, preview.changes(), preview.canApply(), requiredJava);
+            MigrationPreviewDialog dialog = new MigrationPreviewDialog(project, title, savedReport, preview.changes(), preview.canApply(), requiredJava);
             if (!dialog.showAndGet()) return;
             if (project.isDisposed()) return;
             Module migratedModule = Objects.requireNonNull(preview.module(), "Applicable migration must have a target module");
             checkUnsaved(project);
-            var selectedJdk = dialog.selectedJdk();
+            Sdk selectedJdk = dialog.selectedJdk();
             Path snapshot = background(project, "Applying Ikasan migration", () -> {
                 if (selectedJdk == null || selectedJdk.getHomePath() == null
                         || !com.intellij.openapi.projectRoots.JavaSdk.getInstance().isValidSdkHome(selectedJdk.getHomePath())) {
@@ -121,7 +129,7 @@ public final class MigrationController {
             MigrationJdk.apply(project, dialog.selectedJdk(), requiredJava);
             context.setIkasanModule(migratedModule);
             background(project, "Refreshing migrated project", () -> {
-                var base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root);
+                VirtualFile base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root);
                 if (base != null) base.refresh(false, true);
                 return null;
             });
@@ -142,7 +150,7 @@ public final class MigrationController {
                     catch (RuntimeException ex) { LOG.warn("Could not refresh migration navigation targets", ex); }
                 }
             });
-            var maven = MavenProjectsManager.getInstance(project);
+            MavenProjectsManager maven = MavenProjectsManager.getInstance(project);
             if (maven != null && dialog.shouldCompile()) {
                 importBeforeCompile(maven, project, snapshot, () ->
                         com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater(() -> {
@@ -193,9 +201,9 @@ public final class MigrationController {
     }
 
     private static void checkUnsaved(Project project) {
-        var manager = FileDocumentManager.getInstance();
-        for (var document : manager.getUnsavedDocuments()) {
-            var file = manager.getFile(document);
+        FileDocumentManager manager = FileDocumentManager.getInstance();
+        for (Document document : manager.getUnsavedDocuments()) {
+            VirtualFile file = manager.getFile(document);
             if (file != null && file.getPath().startsWith(project.getBasePath() + "/")) {
                 throw new IllegalStateException(StudioBundle.message("message.SaveTheProjectsOpenFilesBeforeMigration", file.getName()));
             }

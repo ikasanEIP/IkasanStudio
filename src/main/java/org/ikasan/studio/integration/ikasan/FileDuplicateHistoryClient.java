@@ -8,6 +8,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.net.http.HttpResponse;
 
 /** The file-transfer duplicate store is separate from failed-event exclusions. */
 public final class FileDuplicateHistoryClient {
@@ -31,7 +32,7 @@ public final class FileDuplicateHistoryClient {
     }
 
     public static Page fetch(URI uri) throws Exception {
-        var response = ModuleControlClient.getRuntimeRecords(uri);
+        HttpResponse<String> response = ModuleControlClient.getRuntimeRecords(uri);
         if (response.statusCode() != 200) throw new ExcludedEventsClient.HttpFailure(response.statusCode());
         return parse(response.body());
     }
@@ -42,7 +43,7 @@ public final class FileDuplicateHistoryClient {
                 || root.path("resultSize").asLong() < 0 || !root.path("lastPage").isBoolean())
             throw new IOException("Invalid file-filter page");
         List<Entry> entries = new ArrayList<>();
-        for (var row : root.path("pagedResults")) {
+        for (JsonNode row : root.path("pagedResults")) {
             if (!row.isObject() || !row.path("clientId").isTextual() || !row.path("criteria").isTextual()
                     || !row.path("size").isIntegralNumber()) throw new IOException("Invalid file-filter entry");
             entries.add(new Entry(row.path("id").asText(""), row.path("clientId").asText(),

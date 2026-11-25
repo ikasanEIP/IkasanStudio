@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 
 /** Explicit, validated model-only recovery. Normal loading never changes pack identities or revision locks. */
 public final class ModelPackRepair {
@@ -19,12 +22,17 @@ public final class ModelPackRepair {
 
     public record Plan(String previousPack, String targetPack, String previousRevision, String targetRevision,
                        String previousRuntime, String targetRuntime, String javaVersion,
-                       String sourceJson, String targetJson) { }
+                       String sourceJson, String targetJson) {
+        public boolean isRevisionUpdate() {
+            return previousPack.equals(targetPack) && previousRuntime.equals(targetRuntime)
+                    && !previousRevision.equals(targetRevision);
+        }
+    }
 
     public static Plan preview(String source) throws Exception {
-        var mapper = StudioJson.newObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
+        ObjectMapper mapper = StudioJson.newObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
                 .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
-        var parsed = mapper.readTree(source.startsWith("\uFEFF") ? source.substring(1) : source);
+        JsonNode parsed = mapper.readTree(source.startsWith("\uFEFF") ? source.substring(1) : source);
         if (!(parsed instanceof ObjectNode root) || !IkasanModelDocuments.isDocumentContainer(root)
                 || !(root.get("studio") instanceof ObjectNode studio)
                 || !(root.get("module") instanceof ObjectNode module))
@@ -35,7 +43,7 @@ public final class ModelPackRepair {
         // This is a deliberately bounded retirement path, not a general runtime migration heuristic.
         boolean retiredSnapshot = previousPack.equals("V5.0.1-SNAPSHOT") && previousRuntime.equals("5.0.1-SNAPSHOT");
         String targetPack = retiredSnapshot ? "V5.1.0" : previousPack;
-        var manifest = ComponentLibrary.getMetaPackManifest(targetPack);
+        MetaPackManifest manifest = ComponentLibrary.getMetaPackManifest(targetPack);
         if (!retiredSnapshot && !Objects.equals(manifest.ikasanVersion(), previousRuntime))
             throw new IOException("Runtime and pack identity disagree. Review the original project before choosing a runtime; no repair was applied.");
         if (manifest.packVersion() == null || manifest.packVersion().isBlank())

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest.MavenPlugin;
 
 /** Enforces the version contract before a meta-pack can be exposed to Studio. */
 public final class MetaPackValidator {
@@ -59,7 +60,7 @@ public final class MetaPackValidator {
             fail(directoryName, "mavenPlugins requires generatorApiVersion 5");
         }
         Set<String> pluginKeys = new HashSet<>();
-        for (var plugin : manifest.mavenPlugins()) {
+        for (MavenPlugin plugin : manifest.mavenPlugins()) {
             require(directoryName, "Maven plugin groupId", plugin.groupId());
             require(directoryName, "Maven plugin artifactId", plugin.artifactId());
             require(directoryName, "Maven plugin version", plugin.version());

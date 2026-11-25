@@ -194,6 +194,7 @@ principle, not a requirement to duplicate flow-specific machinery in every kind 
 
 ## Working Conventions
 
+- Use explicit types for Java local variables, enhanced-for variables and try-with-resources declarations in production code, tests, examples and generated Java templates. Prefer readable interface types where appropriate; preserve generics and overload resolution. Kotlin `val`/`var` are outside this convention.
 - Prefer IntelliJ Platform components and APIs (`JB*` controls, services, progress APIs, notifications, tool-window APIs, disposal/lifecycle utilities) over custom substitutes.
 - Keep expensive Maven, PSI, filesystem, JSON, and meta-pack work off the EDT. Make all Swing mutations on the EDT.
 - Catch failures at IntelliJ integration boundaries, log useful context, and provide a recoverable user-facing state. Avoid reporting expected user/configuration problems as fatal IDE errors.

@@ -9,6 +9,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.ikasan.studio.intellij.navigation.NavigationTarget;
 import java.util.function.Consumer;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.vfs.VirtualFile;
 
 /** No document loading, PSI validity checks or Java class lookup on the event dispatch thread. */
 final class NavigationTextReader {
@@ -46,8 +48,8 @@ final class NavigationTextReader {
         }
         ApplicationManager.getApplication().assertReadAccessAllowed();
         if (file == null || !file.isValid()) return null;
-        var virtualFile = file.getVirtualFile();
-        var document = virtualFile == null ? null : FileDocumentManager.getInstance().getDocument(virtualFile);
+        VirtualFile virtualFile = file.getVirtualFile();
+        Document document = virtualFile == null ? null : FileDocumentManager.getInstance().getDocument(virtualFile);
         return new Snapshot(document == null ? file.getText() : document.getText(), NavigationTarget.forFile(file));
     }
 }

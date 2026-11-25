@@ -18,6 +18,12 @@ import org.ikasan.studio.ui.UiContext;
 import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides.Target;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 /** Selection belongs to each standard Application configuration; live processes retain launch snapshots. */
 @Service(Service.Level.PROJECT)
@@ -31,8 +37,8 @@ public final class HarnessOverrideService implements Disposable {
         project.getMessageBus().connect(this).subscribe(ExecutionManager.EXECUTION_TOPIC, new ExecutionListener() {
             @Override public void processStarted(@NotNull String executorId, @NotNull ExecutionEnvironment environment, @NotNull ProcessHandler handler) {
                 if (environment.getRunProfile() instanceof ApplicationConfiguration app && isModule(app)) {
-                    var snapshot = app.getUserData(LAUNCH_SELECTION);
-                    var names = app.getUserData(LAUNCH_LABELS);
+                    Set<String> snapshot = app.getUserData(LAUNCH_SELECTION);
+                    Map<String,String> names = app.getUserData(LAUNCH_LABELS);
                     Map<String, String> captured = new LinkedHashMap<>();
                     if (snapshot != null) for (String id : snapshot) {
                         String label = names == null ? null : names.get(id);
@@ -54,7 +60,7 @@ public final class HarnessOverrideService implements Disposable {
         return "org.ikasan.studio.boot.Application".equals(app.getMainClassName());
     }
     public ApplicationConfiguration selectedConfiguration() {
-        var selected = RunManager.getInstance(project).getSelectedConfiguration();
+        RunnerAndConfigurationSettings selected = RunManager.getInstance(project).getSelectedConfiguration();
         return selected != null && selected.getConfiguration() instanceof ApplicationConfiguration app && isModule(app) ? app : null;
     }
     public List<HarnessOverrides.Target> targets() {
@@ -72,8 +78,8 @@ public final class HarnessOverrideService implements Disposable {
     public Set<String> selection(ApplicationConfiguration configuration) {
         Set<String> explicit = explicitSelection(configuration == null ? null : configuration.getVMParameters());
         if (explicit != null) return explicit;
-        var result = new TreeSet<String>();
-        for (var target : targets()) {
+        TreeSet<String> result = new TreeSet<>();
+        for (Target target : targets()) {
             if ("SFTP".equals(target.kind()) && project.getService(TestSftpServerService.class).isLocal()) result.add(target.id());
             // Preserve existing JMS-reader diversion until the developer explicitly manages the selection.
             if ("JMS".equals(target.kind()) && TestJmsHarnessLinks.destinationOverride(
@@ -83,7 +89,7 @@ public final class HarnessOverrideService implements Disposable {
     }
     public Set<String> nextSelection() { return selection(selectedConfiguration()); }
     public void saveSelection(ApplicationConfiguration configuration, Set<String> selected) {
-        var valid = targets().stream().map(HarnessOverrides.Target::id).collect(java.util.stream.Collectors.toSet());
+        Set<String> valid = targets().stream().map(HarnessOverrides.Target::id).collect(java.util.stream.Collectors.toSet());
         if (!valid.containsAll(selected)) throw new IllegalArgumentException("Harness selection contains unavailable components");
         configuration.setVMParameters(withSelection(configuration.getVMParameters(), selected));
         repaint();
@@ -116,7 +122,7 @@ public final class HarnessOverrideService implements Disposable {
     public void repaint() {
         com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater(() -> {
             if (project.isDisposed()) return;
-            var canvas = project.getService(UiContext.class).getDesignerCanvas();
+            DesignerCanvas canvas = project.getService(UiContext.class).getDesignerCanvas();
             if (canvas != null && !canvas.isDisposed()) { canvas.setInitialiseAllDimensions(true); canvas.repaint(); }
         });
     }

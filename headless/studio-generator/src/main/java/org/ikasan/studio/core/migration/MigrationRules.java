@@ -2,6 +2,7 @@ package org.ikasan.studio.core.migration;
 
 import org.ikasan.studio.core.io.ComponentIO;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /** Directional rules travel with the target pack; reverse migration has its own explicit contract. */
 public record MigrationRules(int schemaVersion, String sourceVersion, String targetVersion,
@@ -17,7 +18,7 @@ public record MigrationRules(int schemaVersion, String sourceVersion, String tar
                 || major(sourceVersion) != userImportApplicability.sourceMajor()
                 || major(targetVersion) != userImportApplicability.targetMajor()))
             throw new IllegalArgumentException("User import rules do not apply to this major-version migration");
-        for (var prefix : userImportPrefixes.entrySet()) {
+        for (Entry<String,String> prefix : userImportPrefixes.entrySet()) {
             if (!prefix.getKey().matches("(?:[A-Za-z_$][A-Za-z0-9_$]*\\.)+")
                     || !prefix.getValue().matches("(?:[A-Za-z_$][A-Za-z0-9_$]*\\.)+"))
                 throw new IllegalArgumentException("User import rules must map Java package prefixes ending in a dot");

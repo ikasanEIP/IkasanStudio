@@ -14,6 +14,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.project.Project;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Exports the live designer model under modal progress so it cannot change during serialization. */
 public final class ExportIkasanModelAction extends DumbAwareAction {
@@ -22,26 +25,26 @@ public final class ExportIkasanModelAction extends DumbAwareAction {
     @Override public @NotNull ActionUpdateThread getActionUpdateThread() { return ActionUpdateThread.BGT; }
 
     @Override public void update(@NotNull AnActionEvent event) {
-        var project = event.getProject();
-        var module = project == null || project.isDisposed() ? null : project.getService(UiContext.class).getIkasanModule();
+        Project project = event.getProject();
+        Module module = project == null || project.isDisposed() ? null : project.getService(UiContext.class).getIkasanModule();
         event.getPresentation().setEnabled(module != null && module.isInitialised());
     }
 
     @Override public void actionPerformed(@NotNull AnActionEvent event) {
-        var project = event.getProject();
+        Project project = event.getProject();
         if (project == null || project.isDisposed()) return;
-        var descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+        FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
         descriptor.setTitle(StudioBundle.message("modelExport.ChooseDirectory"));
         descriptor.setDescription(StudioBundle.message("modelExport.DirectoryDescription"));
         FileChooser.chooseFile(descriptor, project, null, chosen -> {
             if (project.isDisposed()) return;
-            var context = project.getService(UiContext.class);
+            UiContext context = project.getService(UiContext.class);
             if (!context.tryBeginMigration()) {
                 StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.WaitForTheCurrentGenerationOrMigrationToFinish"));
                 return;
             }
             try {
-                var module = context.getIkasanModule();
+                Module module = context.getIkasanModule();
                 if (module == null || !module.isInitialised()) return;
                 Path parent = Path.of(chosen.getPath());
                 ProgressManager.getInstance().run(new Task.Modal(project, StudioBundle.message("modelExport.Progress"), true) {

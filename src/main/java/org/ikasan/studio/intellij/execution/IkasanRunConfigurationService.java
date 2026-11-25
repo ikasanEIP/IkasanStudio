@@ -27,6 +27,8 @@ import java.util.List;
 import com.intellij.util.execution.ParametersListUtil;
 import org.ikasan.studio.core.configuration.EnvironmentProperties;
 import java.util.function.Consumer;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Creates, selects, and runs the standard IntelliJ Java Application configuration
@@ -95,7 +97,7 @@ public final class IkasanRunConfigurationService implements Disposable {
 
     private boolean selectAndRunOnEdt(Module module, Executor executor) {
         boolean debug = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId());
-        var selected = RunManager.getInstance(project).getSelectedConfiguration();
+        RunnerAndConfigurationSettings selected = RunManager.getInstance(project).getSelectedConfiguration();
         String environment = selected != null && selected.getConfiguration() instanceof ApplicationConfiguration configuration
                 && MAIN_CLASS_NAME.equals(configuration.getMainClassName())
                 && Objects.equals(configuration.getConfigurationModule().getModule(), module)
@@ -185,10 +187,10 @@ public final class IkasanRunConfigurationService implements Disposable {
     private void prepareConfigurations(List<String> environments, boolean externalLocations, Consumer<Boolean> completion) {
         if (project.isDisposed()) return;
         if (environments.isEmpty()) { completion.accept(false); return; }
-        var overrides = project.getService(HarnessOverrideService.class);
-        var selected = overrides.selectedConfiguration();
-        var selection = selected == null ? java.util.Set.<String>of() : overrides.selection(selected);
-        var file = StudioProjectFiles.getVirtualFile(project,
+        HarnessOverrideService overrides = project.getService(HarnessOverrideService.class);
+        ApplicationConfiguration selected = overrides.selectedConfiguration();
+        Set<String> selection = selected == null ? Set.of() : overrides.selection(selected);
+        VirtualFile file = StudioProjectFiles.getVirtualFile(project,
                 "generated/src/main/java/org/ikasan/studio/boot/Application.java");
         if (file == null) { completion.accept(false); return; }
         ReadAction.nonBlocking(() -> ModuleUtilCore.findModuleForFile(file, project))
@@ -219,8 +221,8 @@ public final class IkasanRunConfigurationService implements Disposable {
     RunnerAndConfigurationSettings findOrCreateEnvironmentConfiguration(Module module, boolean debug, String environment,
                                                                        java.util.Set<String> harnessSelection) {
         String parameters = environmentParameters(Objects.requireNonNull(project.getBasePath(), "Environment configurations require a project directory"), environment, debug);
-        var manager = RunManager.getInstance(project);
-        var existing = manager.getAllSettings().stream()
+        RunManager manager = RunManager.getInstance(project);
+        Optional<RunnerAndConfigurationSettings> existing = manager.getAllSettings().stream()
                 .filter(s -> s.getConfiguration() instanceof ApplicationConfiguration c
                         && MAIN_CLASS_NAME.equals(c.getMainClassName())
                         && Objects.equals(c.getConfigurationModule().getModule(), module)
@@ -228,11 +230,11 @@ public final class IkasanRunConfigurationService implements Disposable {
                         && Objects.equals(harnessSelection, HarnessOverrideService.explicitSelection(c.getVMParameters())))
                 .findFirst();
         if (existing.isPresent()) return existing.get();
-        var type = ApplicationConfigurationType.getInstance();
-        var settings = manager.createConfiguration(manager.suggestUniqueName("Ikasan: " + project.getName()
+        ApplicationConfigurationType type = ApplicationConfigurationType.getInstance();
+        RunnerAndConfigurationSettings settings = manager.createConfiguration(manager.suggestUniqueName("Ikasan: " + project.getName()
                 + " — " + (environment.isEmpty() ? "Local" : environment) + (debug ? " (Debug)" : ""), type),
                 type.getConfigurationFactories()[0]);
-        var configuration = (ApplicationConfiguration) settings.getConfiguration();
+        ApplicationConfiguration configuration = (ApplicationConfiguration) settings.getConfiguration();
         configuration.setMainClassName(MAIN_CLASS_NAME);
         configuration.getConfigurationModule().setModule(module);
         configuration.setWorkingDirectory(project.getBasePath());
@@ -258,7 +260,7 @@ public final class IkasanRunConfigurationService implements Disposable {
     /** Recognizes only configurations carrying our explicit external configuration argument. */
     static String environmentOf(String parameters) {
         if (parameters == null) return null;
-        var arguments = ParametersListUtil.parse(parameters);
+        List<String> arguments = ParametersListUtil.parse(parameters);
         if (arguments.stream().noneMatch(p -> p.startsWith("--spring.config.additional-location=optional:file:")
                 && p.contains("/config/,optional:file:") && p.endsWith("/config/local/"))) return null;
         String profiles = arguments.stream().filter(p -> p.startsWith("--spring.profiles.active="))

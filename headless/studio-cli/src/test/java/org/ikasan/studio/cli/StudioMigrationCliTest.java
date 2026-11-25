@@ -6,14 +6,19 @@ import org.ikasan.studio.core.migration.MigrationWorkspace;
 import java.io.*;
 import java.nio.file.*;
 import static org.junit.jupiter.api.Assertions.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import org.ikasan.studio.core.migration.MigrationWorkspace.Snapshot;
 
 class StudioMigrationCliTest {
     @TempDir Path project;
     private int run(String... args) { return StudioMigrationCli.run(args, System.out, System.err); }
     @Test void writesHelpAndFailuresToSeparateStreams() {
-        var output = new ByteArrayOutputStream();
-        var errors = new ByteArrayOutputStream();
-        try (var out = new PrintStream(output); var err = new PrintStream(errors)) {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        ByteArrayOutputStream errors = new ByteArrayOutputStream();
+        try (PrintStream out = new PrintStream(output); PrintStream err = new PrintStream(errors)) {
             assertEquals(0, StudioMigrationCli.run(new String[]{"--help"}, out, err));
             assertTrue(output.toString().contains("Studio migration CLI"));
             assertEquals("", errors.toString());
@@ -80,7 +85,7 @@ class StudioMigrationCliTest {
         assertEquals(0, run("apply", "--plan", plan.toString()));
         assertEquals(original.replace("javax.jms", "jakarta.jms"), Files.readString(source));
         assertEquals(original, Files.readString(test));
-        var snapshot = MigrationWorkspace.latest(project);
+        Snapshot snapshot = MigrationWorkspace.latest(project);
         MigrationWorkspace.commit(project, MigrationWorkspace.prepareRestore(project, snapshot), "restore");
         assertEquals(original, Files.readString(source));
     }
@@ -109,12 +114,12 @@ class StudioMigrationCliTest {
     }
     @Test void allowsRenderedJsonKeyOrdering() throws Exception {
         Path plan=setup(); assertEquals(0, preview(plan,"V4.1.6"));
-        var json=org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper();
-        var tree=json.readTree(Files.readString(plan));
-        for(var change:tree.path("changes")) {
+        ObjectMapper json=org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper();
+        JsonNode tree=json.readTree(Files.readString(plan));
+        for(JsonNode change:tree.path("changes")) {
             if (change.path("path").asText().endsWith("component-catalogue.json")) {
                 String text=new String(java.util.Base64.getDecoder().decode(change.path("after").asText()), java.nio.charset.StandardCharsets.UTF_8);
-                var sorted=json.writer().with(com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+                byte[] sorted=json.writer().with(com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
                         .writeValueAsBytes(json.readValue(text, java.util.Map.class));
                 ((com.fasterxml.jackson.databind.node.ObjectNode)change).put("after", java.util.Base64.getEncoder().encodeToString(sorted));
             }

@@ -8,22 +8,64 @@ import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.nio.file.Files;
 import java.util.*;
+import com.intellij.diff.DiffManager;
+import com.intellij.diff.contents.DocumentContent;
+import com.intellij.diff.requests.DiffRequest;
+import com.intellij.diff.requests.SimpleDiffRequest;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.project.Project;
+import com.intellij.ui.table.JBTable;
+import java.awt.Component;
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import org.apache.maven.model.Dependency;
+import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate;
+import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Check;
+import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Inspection;
+import org.ikasan.studio.core.importer.SourceModuleImport.Analysis;
+import org.ikasan.studio.core.importer.SourceModuleImport.FileChoice;
+import org.ikasan.studio.core.importer.SourceModuleImport.ManagedFile;
+import org.ikasan.studio.core.importer.SourceModuleImport.ReviewAction;
+import org.ikasan.studio.core.importer.SourceModuleImport.SpringRegistration;
+import org.ikasan.studio.core.importer.SourceModuleImport.SupportStatus;
+import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
 public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     public void testMissingDestinationIsLabelledAndCopyGuidanceTracksStagingAfterSorting() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
-            var first = base.files().get(0);
-            var second = base.files().get(1);
-            var files = List.of(
+            Analysis base = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            FileChoice first = base.files().get(0);
+            FileChoice second = base.files().get(1);
+            List<FileChoice> files = List.of(
                     new SourceModuleImport.FileChoice(first.source(), first.destination(), first.bytes(), null, false, false, "New"),
                     new SourceModuleImport.FileChoice(second.source(), second.destination(), second.bytes(), "", false, false, "Existing empty file"));
             dialog.acceptAnalysis(new SourceModuleImport.Analysis(base.sourceRoot(), base.destinationRoot(), files,
                     base.beans(), base.properties(), base.dependencies(), base.notes(), base.originalPom(), base.generatedInputs(),
                     base.managedFiles(), base.supportInputs(), base.identity()), base.sourceRoot());
-            var table = (JTable) field(dialog, "table");
-            var model = table.getModel();
+            JTable table = (JTable) field(dialog, "table");
+            TableModel model = table.getModel();
             assertTrue(model.getValueAt(0, 2).toString().startsWith(
                     org.ikasan.studio.ui.StudioBundle.message("sourceImport.file.new", first.destination())));
             assertFalse(model.getValueAt(1, 2).toString().startsWith(
@@ -31,10 +73,10 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
             table.getRowSorter().toggleSortOrder(1);
             int row = table.convertRowIndexToView(0);
             table.setRowSelectionInterval(row, row);
-            var details = (JTextArea) field(dialog, "fileDetails");
+            JTextArea details = (JTextArea) field(dialog, "fileDetails");
             assertTrue(details.getText().contains(org.ikasan.studio.ui.StudioBundle.message("sourceImport.file.newHelp")));
             int destinationColumn = table.convertColumnIndexToView(2);
-            var label = (JLabel) table.prepareRenderer(table.getCellRenderer(row, destinationColumn), row, destinationColumn);
+            JLabel label = (JLabel) table.prepareRenderer(table.getCellRenderer(row, destinationColumn), row, destinationColumn);
             assertTrue(label.getToolTipText().contains(first.destination()));
             assertTrue(label.getToolTipText().contains(org.ikasan.studio.ui.StudioBundle.message("sourceImport.file.newHelp")));
             model.setValueAt(Boolean.TRUE, 0, 0);
@@ -46,30 +88,30 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
 
     public void testSourceReviewHonoursThePropertiesStepChosenInTheParentJourney() throws Exception {
         for (boolean selected : new boolean[]{false, true}) {
-            var dialog = new ImportSourceModuleDialog(getProject(), selected);
+            ImportSourceModuleDialog dialog = new ImportSourceModuleDialog(getProject(), selected);
             try { assertEquals(selected, ((JCheckBox) field(dialog, "properties")).isSelected()); }
             finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
         }
     }
 
     public void testAnalysisDefaultsNewCodeAndDependenciesButProtectsExistingCodeWiringAndManualItemsAndCancelDoesNotWrite() throws Exception {
-        var root = Files.createTempDirectory("studio-source-wizard");
-        var original = root.resolve("original"); var destination = root.resolve("studio");
+        Path root = Files.createTempDirectory("studio-source-wizard");
+        Path original = root.resolve("original"); Path destination = root.resolve("studio");
         Files.createDirectories(original); Files.createDirectories(destination);
         String bytes = Base64.getEncoder().encodeToString("class Bespoke {}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        var dependency = new org.apache.maven.model.Dependency(); dependency.setGroupId("customer"); dependency.setArtifactId("client"); dependency.setVersion("1");
-        var local = dependency.clone(); local.setArtifactId("local"); local.setScope("system"); local.setSystemPath("/original/local.jar");
-        var analysis = new SourceModuleImport.Analysis(original, destination, List.of(
+        Dependency dependency = new org.apache.maven.model.Dependency(); dependency.setGroupId("customer"); dependency.setArtifactId("client"); dependency.setVersion("1");
+        Dependency local = dependency.clone(); local.setArtifactId("local"); local.setScope("system"); local.setSystemPath("/original/local.jar");
+        Analysis analysis = new SourceModuleImport.Analysis(original, destination, List.of(
                 new SourceModuleImport.FileChoice("src/main/java/Bespoke.java", "user/src/main/java/Bespoke.java", bytes, null, true, false, "Matched"),
                 new SourceModuleImport.FileChoice("src/main/java/Config.java", "user/src/main/java/Config.java", bytes, null, false, true, "Review wiring"),
                 new SourceModuleImport.FileChoice("src/main/java/Existing.java", "user/src/main/java/Existing.java", bytes, bytes, true, false, "Existing")),
                 List.of(), List.of(), List.of(new SourceModuleImport.DependencyChoice("customer:client:jar:", dependency, true, "Original declaration"),
                         new SourceModuleImport.DependencyChoice("customer:local:jar:", local, false, "Non-portable system path")),
                 List.of(), bytes, Map.of(), List.of(), Map.of(), identity(original, destination, "Example", "Example"));
-        var dialog = new ImportSourceModuleDialog(getProject());
+        ImportSourceModuleDialog dialog = new ImportSourceModuleDialog(getProject());
         try {
             dialog.acceptAnalysis(analysis, original);
-            var table = (JTable) field(dialog, "table"); TableModel model = table.getModel();
+            JTable table = (JTable) field(dialog, "table"); TableModel model = table.getModel();
             ((javax.swing.table.AbstractTableModel) model).fireTableDataChanged();
             assertEquals(5, model.getRowCount());
             assertEquals(Boolean.FALSE, model.getValueAt(0, 0));
@@ -80,11 +122,11 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
             assertEquals(org.ikasan.studio.ui.StudioBundle.message("sourceImport.dependency.manual"), model.getValueAt(4, 2));
             assertFalse(model.isCellEditable(4, 0));
             int manualRow = table.convertRowIndexToView(4);
-            var checkbox = table.getCellRenderer(manualRow, 1).getTableCellRendererComponent(table, Boolean.FALSE, false, false, manualRow, 1);
+            Component checkbox = table.getCellRenderer(manualRow, 1).getTableCellRendererComponent(table, Boolean.FALSE, false, false, manualRow, 1);
             assertFalse(checkbox.isEnabled());
             model.setValueAt(Boolean.TRUE, 0, 0);
             assertEquals(Boolean.TRUE, model.getValueAt(0, 0));
-            var validate = dialog.getClass().getDeclaredMethod("doValidate"); validate.setAccessible(true);
+            Method validate = dialog.getClass().getDeclaredMethod("doValidate"); validate.setAccessible(true);
             assertNull(validate.invoke(dialog));
             ((JTextField) field(dialog, "source")).setText(root.resolve("different").toString());
             assertNotNull(validate.invoke(dialog));
@@ -96,15 +138,15 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
         }
     }
     public void testOriginalColumnsAndSortedComparisonsOfferEditableSupport() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var table = (JTable) field(dialog, "table");
+            JTable table = (JTable) field(dialog, "table");
             assertEquals(org.ikasan.studio.ui.StudioBundle.message("sourceImport.evidence"), table.getColumnName(0));
             assertEquals("user/B.java", table.getModel().getValueAt(0, 2));
             table.getRowSorter().toggleSortOrder(1);
             table.setRowSelectionInterval(0, 0);
             assertDiff(dialog.comparison(table), "original A", "destination A");
-            var support = (JTable) field(dialog, "supportTable");
+            JTable support = (JTable) field(dialog, "supportTable");
             assertEquals(1, support.getRowCount());
             assertFalse(support.isCellEditable(0, 0)); assertTrue(support.isCellEditable(0, 1));
             support.setRowSelectionInterval(0, 0);
@@ -117,22 +159,22 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testDoubleClickAndEnterOpenDiffsWithoutChangingImportSelections() throws Exception {
-        var dialog = previewDialog();
-        var previews = new java.util.ArrayList<com.intellij.diff.requests.SimpleDiffRequest>();
-        try (var service = org.mockito.Mockito.mockStatic(com.intellij.diff.DiffManager.class);
-             var dialogs = org.mockito.Mockito.mockConstruction(SourceComparisonDialog.class,
+        ImportSourceModuleDialog dialog = previewDialog();
+        ArrayList<SimpleDiffRequest> previews = new java.util.ArrayList<>();
+        try (MockedStatic<DiffManager> service = org.mockito.Mockito.mockStatic(com.intellij.diff.DiffManager.class);
+             MockedConstruction<SourceComparisonDialog> dialogs = org.mockito.Mockito.mockConstruction(SourceComparisonDialog.class,
                      (mock, context) -> previews.add((com.intellij.diff.requests.SimpleDiffRequest) context.arguments().get(2)))) {
-            var manager = org.mockito.Mockito.mock(com.intellij.diff.DiffManager.class);
+            DiffManager manager = org.mockito.Mockito.mock(com.intellij.diff.DiffManager.class);
             service.when(com.intellij.diff.DiffManager::getInstance).thenReturn(manager);
-            var table = (JTable) field(dialog, "table"); table.setSize(800, 200); table.doLayout();
+            JTable table = (JTable) field(dialog, "table"); table.setSize(800, 200); table.doLayout();
             table.getRowSorter().toggleSortOrder(1);
             doubleClick(table, 1);
             org.mockito.Mockito.verifyNoInteractions(manager);
             doubleClick(table, 0);
             table.getActionMap().get("studio.compareSource").actionPerformed(new java.awt.event.ActionEvent(table, 0, "compare"));
-            var support = (JTable) field(dialog, "supportTable"); support.setSize(800, 200); support.doLayout();
+            JTable support = (JTable) field(dialog, "supportTable"); support.setSize(800, 200); support.doLayout();
             doubleClick(support, 0);
-            var requests = org.mockito.ArgumentCaptor.forClass(com.intellij.diff.requests.DiffRequest.class);
+            ArgumentCaptor<DiffRequest> requests = org.mockito.ArgumentCaptor.forClass(com.intellij.diff.requests.DiffRequest.class);
             org.mockito.Mockito.verify(manager, org.mockito.Mockito.never()).showDiff(org.mockito.Mockito.eq(getProject()), requests.capture());
             assertEquals(3, dialogs.constructed().size());
             assertEquals(3, previews.size());
@@ -143,19 +185,19 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testComparisonSaveCommitsPreviewAndCancelDiscardsIt() throws Exception {
-        var parent = previewDialog();
+        ImportSourceModuleDialog parent = previewDialog();
         try {
-            var table = (JTable) field(parent, "table"); table.setRowSelectionInterval(0, 0);
-            var request = requiredComparison(parent.comparison(table));
-            var destination = ((com.intellij.diff.contents.DocumentContent) request.getContents().get(1)).getDocument();
-            var cancelled = new SourceComparisonDialog(getProject(), parent.getContentPane(), request);
-            var cancelledPreview = ((com.intellij.diff.contents.DocumentContent) field(cancelled, "preview")).getDocument();
+            JTable table = (JTable) field(parent, "table"); table.setRowSelectionInterval(0, 0);
+            SimpleDiffRequest request = requiredComparison(parent.comparison(table));
+            Document destination = ((com.intellij.diff.contents.DocumentContent) request.getContents().get(1)).getDocument();
+            SourceComparisonDialog cancelled = new SourceComparisonDialog(getProject(), parent.getContentPane(), request);
+            Document cancelledPreview = ((com.intellij.diff.contents.DocumentContent) field(cancelled, "preview")).getDocument();
             com.intellij.openapi.application.WriteAction.run(() -> cancelledPreview.setText("discard me"));
             cancelled.close(DialogWrapper.CANCEL_EXIT_CODE);
             assertEquals("destination B", destination.getText());
             assertTrue(((Set<?>) field(parent, "selectedFiles")).isEmpty());
-            var saved = new SourceComparisonDialog(getProject(), parent.getContentPane(), request);
-            var savedPreview = ((com.intellij.diff.contents.DocumentContent) field(saved, "preview")).getDocument();
+            SourceComparisonDialog saved = new SourceComparisonDialog(getProject(), parent.getContentPane(), request);
+            Document savedPreview = ((com.intellij.diff.contents.DocumentContent) field(saved, "preview")).getDocument();
             com.intellij.openapi.application.WriteAction.run(() -> savedPreview.setText("keep me"));
             saved.doOKAction();
             assertEquals("keep me", destination.getText());
@@ -164,11 +206,11 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testSupportCopiesAndPartialEditsCanBeReverted() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var support = (JTable) field(dialog, "supportTable");
+            JTable support = (JTable) field(dialog, "supportTable");
             support.setRowSelectionInterval(0, 0);
-            var right = ((com.intellij.diff.contents.DocumentContent) requiredComparison(dialog.comparison(support)).getContents().get(1)).getDocument();
+            Document right = ((com.intellij.diff.contents.DocumentContent) requiredComparison(dialog.comparison(support)).getContents().get(1)).getDocument();
             assertTrue(right.isWritable());
             support.getModel().setValueAt(Boolean.TRUE, 0, 1);
             assertEquals("original support", right.getText());
@@ -177,7 +219,7 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
             assertEquals("destination support", right.getText());
             com.intellij.openapi.application.WriteAction.run(() -> right.setText("destination support with debug note"));
             assertEquals(Boolean.TRUE, support.getValueAt(0, 1));
-            var validation = dialog.getClass().getDeclaredMethod("doValidate"); validation.setAccessible(true);
+            Method validation = dialog.getClass().getDeclaredMethod("doValidate"); validation.setAccessible(true);
             assertNull(validation.invoke(dialog));
             support.getModel().setValueAt(Boolean.FALSE, 0, 1);
             assertEquals("destination support", right.getText());
@@ -186,18 +228,18 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testGenerationPreservesExplicitlyCustomisedSupportFiles() throws Exception {
-        var root = Files.createTempDirectory("studio-custom-support-generation");
+        Path root = Files.createTempDirectory("studio-custom-support-generation");
         String debug = "user/src/main/java/org/ikasan/studio/component/DebugTransitionComponent.java";
         String copy = "user/src/main/java/org/ikasan/studio/component/utils/DeepCopyUtil.java";
         Files.createDirectories(root.resolve(debug).getParent()); Files.writeString(root.resolve(debug), "custom debug");
         Files.createDirectories(root.resolve(copy).getParent()); Files.writeString(root.resolve(copy), "custom copy");
-        var marker = root.resolve(SourceModuleImport.SUPPORT_CUSTOMISATIONS);
+        Path marker = root.resolve(SourceModuleImport.SUPPORT_CUSTOMISATIONS);
         Files.createDirectories(marker.getParent()); Files.writeString(marker, debug + "\n" + copy + "\n");
-        var project = org.mockito.Mockito.mock(com.intellij.openapi.project.Project.class);
+        Project project = org.mockito.Mockito.mock(com.intellij.openapi.project.Project.class);
         org.mockito.Mockito.when(project.getBasePath()).thenReturn(root.toString());
-        try (var files = org.mockito.Mockito.mockStatic(org.ikasan.studio.intellij.project.StudioProjectFiles.class)) {
-            var synchronizer = new org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer(project);
-            var generate = synchronizer.getClass().getDeclaredMethod("saveDebugSupportClasses", com.intellij.openapi.project.Project.class,
+        try (MockedStatic<StudioProjectFiles> files = org.mockito.Mockito.mockStatic(org.ikasan.studio.intellij.project.StudioProjectFiles.class)) {
+            GeneratedProjectSynchronizer synchronizer = new org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer(project);
+            Method generate = synchronizer.getClass().getDeclaredMethod("saveDebugSupportClasses", com.intellij.openapi.project.Project.class,
                     org.ikasan.studio.core.model.ikasan.instance.Module.class);
             generate.setAccessible(true); generate.invoke(synchronizer, project, null);
             files.verifyNoInteractions();
@@ -207,11 +249,11 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testSupportActionsAppearWithTheSelectedRowAndUpdateAfterCopyAndRevert() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var details = (JTextArea) field(dialog, "supportDetails");
-            var pane = (JScrollPane) field(dialog, "supportDetailsPane");
-            var support = (JTable) field(dialog, "supportTable");
+            JTextArea details = (JTextArea) field(dialog, "supportDetails");
+            JScrollPane pane = (JScrollPane) field(dialog, "supportDetailsPane");
+            JTable support = (JTable) field(dialog, "supportTable");
             support.setRowSelectionInterval(0, 0);
             String comparison = org.ikasan.studio.ui.StudioBundle.message("sourceImport.reviewAction.SUPPORT_COMPARE", "user/src/main/java/org/ikasan/studio/component/DebugTransitionComponent.java");
             com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching("Support action missing", () -> details.getText().contains(comparison), 10);
@@ -226,25 +268,25 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testBeanConfirmationsAreHiddenButWiringDecisionsAndScanProblemsRemainVisible() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var original = (SourceModuleImport.Analysis) field(dialog, "analysis");
-            var wiring = original.files().get(1);
-            var files = List.of(original.files().get(0), new SourceModuleImport.FileChoice(wiring.source(), wiring.destination(),
+            Analysis original = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            FileChoice wiring = original.files().get(1);
+            List<FileChoice> files = List.of(original.files().get(0), new SourceModuleImport.FileChoice(wiring.source(), wiring.destination(),
                     wiring.bytes(), wiring.previous(), false, true, "Review selected configuration"));
-            var analysis = new SourceModuleImport.Analysis(original.sourceRoot(), original.destinationRoot(), files,
+            Analysis analysis = new SourceModuleImport.Analysis(original.sourceRoot(), original.destinationRoot(), files,
                     List.of(new SourceModuleImport.BeanRequirement("aBean", "A", "generated/Factory.java", 12, List.of("src/A.java:3 — @Bean makeA returns A")),
                             new SourceModuleImport.BeanRequirement("libraryBean", "example.LibraryType", "generated/Factory.java", 20, List.of())),
                     original.properties(), original.dependencies(), List.of("Cannot parse source; review manually: src/Broken.java"),
                     original.originalPom(), original.generatedInputs(), original.managedFiles(), original.supportInputs(), original.identity());
             dialog.acceptAnalysis(analysis, original.sourceRoot());
-            var table = (JTable) field(dialog, "table");
+            JTable table = (JTable) field(dialog, "table");
             com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching("Unmatched scan issue missing", () -> table.getRowCount() == 3, 10);
             table.getRowSorter().toggleSortOrder(1);
             int fileRow = table.convertRowIndexToView(1);
             assertFalse(String.valueOf(table.getModel().getValueAt(1, 2)).contains(org.ikasan.studio.ui.StudioBundle.message("sourceImport.inline.attention")));
             table.setRowSelectionInterval(fileRow, fileRow);
-            var details = (JTextArea) field(dialog, "fileDetails");
+            JTextArea details = (JTextArea) field(dialog, "fileDetails");
             assertFalse(details.getText().contains("aBean"));
             table.getModel().setValueAt(Boolean.TRUE, 1, 0);
             String wiringMessage = org.ikasan.studio.ui.StudioBundle.message("sourceImport.reviewAction.WIRING", wiring.destination());
@@ -261,17 +303,17 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testCopyAllAndRevertRestoreTheDestinationPreview() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var table = (JTable) field(dialog, "table");
+            JTable table = (JTable) field(dialog, "table");
             table.setRowSelectionInterval(0, 0);
-            var request = requiredComparison(dialog.comparison(table));
-            var right = ((com.intellij.diff.contents.DocumentContent) request.getContents().get(1)).getDocument();
+            SimpleDiffRequest request = requiredComparison(dialog.comparison(table));
+            Document right = ((com.intellij.diff.contents.DocumentContent) request.getContents().get(1)).getDocument();
             assertEquals("destination B", right.getText());
             table.getModel().setValueAt(Boolean.TRUE, 0, 0);
             assertEquals("original B", right.getText());
             assertEquals(Boolean.TRUE, table.getModel().getValueAt(0, 0));
-            var validation = dialog.getClass().getDeclaredMethod("doValidate"); validation.setAccessible(true);
+            Method validation = dialog.getClass().getDeclaredMethod("doValidate"); validation.setAccessible(true);
             assertNull(validation.invoke(dialog));
             table.getModel().setValueAt(Boolean.FALSE, 0, 0);
             assertEquals("destination B", right.getText());
@@ -285,11 +327,11 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testPartialEditsAreStagedShareTheSamePreviewAndAreDiscardedOnCheckoutChange() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var table = (JTable) field(dialog, "table"); table.setRowSelectionInterval(1, 1);
-            var request = requiredComparison(dialog.comparison(table));
-            var right = (com.intellij.diff.contents.DocumentContent) request.getContents().get(1);
+            JTable table = (JTable) field(dialog, "table"); table.setRowSelectionInterval(1, 1);
+            SimpleDiffRequest request = requiredComparison(dialog.comparison(table));
+            DocumentContent right = (com.intellij.diff.contents.DocumentContent) request.getContents().get(1);
             assertTrue(right.getDocument().isWritable());
             com.intellij.openapi.application.ApplicationManager.getApplication().runWriteAction(() -> right.getDocument().setText("destination A\noriginal A"));
             assertEquals("destination A\noriginal A", ((Map<?, ?>) field(dialog, "stagedJava")).get("src/A.java"));
@@ -308,11 +350,11 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testEnteringAPathAnalysesAutomaticallyAndWrongPathsRemainAnInlineRecoverableState() throws Exception {
-        var original = Files.createTempDirectory("studio-auto-identity");
-        var destination = java.nio.file.Path.of(java.util.Objects.requireNonNull(getProject().getBasePath()));
-        var model = destination.resolve("generated/src/main/model/model.json");
-        var factory = destination.resolve("generated/src/main/java/studio/Factory.java");
-        var pom = destination.resolve("pom.xml");
+        Path original = Files.createTempDirectory("studio-auto-identity");
+        Path destination = java.nio.file.Path.of(java.util.Objects.requireNonNull(getProject().getBasePath()));
+        Path model = destination.resolve("generated/src/main/model/model.json");
+        Path factory = destination.resolve("generated/src/main/java/studio/Factory.java");
+        Path pom = destination.resolve("pom.xml");
         Files.createDirectories(model.getParent()); Files.createDirectories(factory.getParent());
         Files.writeString(model, "{\"name\":\"Orders\"}");
         Files.writeString(factory, "package studio; class Factory { @javax.annotation.Resource org.customer.Custom custom; }");
@@ -323,11 +365,11 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
         Files.writeString(original.resolve("pom.xml"), pomText);
         Files.writeString(original.resolve("src/main/java/org/customer/Custom.java"), "package org.customer; public class Custom {} ");
         Files.writeString(original.resolve("src/main/resources/application.properties"), "module.name=Orders\n");
-        var dialog = new ImportSourceModuleDialog(getProject());
+        ImportSourceModuleDialog dialog = new ImportSourceModuleDialog(getProject());
         try {
-            var input = (JTextField) field(dialog, "source");
+            JTextField input = (JTextField) field(dialog, "source");
             input.setText(original.toString()); input.postActionEvent();
-            var analysis = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            Analysis analysis = (SourceModuleImport.Analysis) field(dialog, "analysis");
             assertNotNull(analysis);
             assertFalse(((JTextArea) field(dialog, "identitySummary")).isVisible());
             assertEquals(org.ikasan.studio.core.importer.SourceCheckoutIdentity.Status.MATCH, analysis.identity().status());
@@ -345,30 +387,30 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testStagedEditsRetainDestinationLineEndings() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var original = (SourceModuleImport.Analysis) field(dialog, "analysis");
-            var analysis = new SourceModuleImport.Analysis(original.sourceRoot(), original.destinationRoot(), List.of(
+            Analysis original = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            Analysis analysis = new SourceModuleImport.Analysis(original.sourceRoot(), original.destinationRoot(), List.of(
                     new SourceModuleImport.FileChoice("src/A.java", "user/A.java", encoded("old source\r\n"),
                             encoded("keep destination\r\n"), false, false, "Existing")), List.of(), List.of(), List.of(), List.of(), "",
                     Map.of(), List.of(), Map.of(), original.identity());
             dialog.acceptAnalysis(analysis, original.sourceRoot());
-            var table = (JTable) field(dialog, "table"); table.setRowSelectionInterval(0, 0);
-            var content = (com.intellij.diff.contents.DocumentContent) requiredComparison(dialog.comparison(table)).getContents().get(1);
+            JTable table = (JTable) field(dialog, "table"); table.setRowSelectionInterval(0, 0);
+            DocumentContent content = (com.intellij.diff.contents.DocumentContent) requiredComparison(dialog.comparison(table)).getContents().get(1);
             com.intellij.openapi.application.ApplicationManager.getApplication().runWriteAction(() -> content.getDocument().setText("keep destination\nselected debug\n"));
             assertEquals("keep destination\r\nselected debug\r\n", ((Map<?, ?>) field(dialog, "stagedJava")).get("src/A.java"));
         } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
     }
 
     public void testReactorChooserReturnsOnlyTheExplicitlySelectedCandidate() {
-        var one = new org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate("one", "artifact-one", List.of("one"), List.of(), false);
-        var two = new org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate("two", "artifact-two", List.of("two"), List.of(), false);
-        var inspection = new org.ikasan.studio.core.importer.SourceCheckoutIdentity.Inspection(java.nio.file.Path.of("/source"),
+        Candidate one = new org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate("one", "artifact-one", List.of("one"), List.of(), false);
+        Candidate two = new org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate("two", "artifact-two", List.of("two"), List.of(), false);
+        Inspection inspection = new org.ikasan.studio.core.importer.SourceCheckoutIdentity.Inspection(java.nio.file.Path.of("/source"),
                 java.nio.file.Path.of("/destination"), "Expected", List.of(one, two), List.of("one", "two"), List.of(), List.of());
         assertNull(inspection.automaticCandidate());
-        var chooser = new SourceModuleSelectionDialog(getProject(), null, inspection);
+        SourceModuleSelectionDialog chooser = new SourceModuleSelectionDialog(getProject(), null, inspection);
         try {
-            var candidates = chooser.getPreferredFocusedComponent();
+            JComponent candidates = chooser.getPreferredFocusedComponent();
             assertNotNull(candidates);
             ((JComboBox<?>) candidates).setSelectedIndex(1);
             assertEquals("two", chooser.selectedDirectory());
@@ -376,17 +418,17 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testIdenticalSupportIsHiddenButCommentsAndSortedComparisonsRemainAvailable() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            Analysis base = (SourceModuleImport.Analysis) field(dialog, "analysis");
             String copy = "user/src/main/java/org/ikasan/studio/component/utils/DeepCopyUtil.java";
             String debug = "user/src/main/java/org/ikasan/studio/component/DebugTransitionComponent.java";
-            var support = List.of(
+            List<ManagedFile> support = List.of(
                     new SourceModuleImport.ManagedFile("src/A.java", copy, encoded("class A {}"), encoded("class A {}"), SourceModuleImport.SupportStatus.DESTINATION_DIFFERS),
                     new SourceModuleImport.ManagedFile("src/Z.java", debug, encoded("// useful debug note\nclass Z {}"), encoded("class Z {}"), SourceModuleImport.SupportStatus.SUPPLIED));
             dialog.acceptAnalysis(withSupport(base, support), base.sourceRoot());
-            var table = (JTable) field(dialog, "supportTable");
-            var show = (JCheckBox) field(dialog, "showIdenticalSupport");
+            JTable table = (JTable) field(dialog, "supportTable");
+            JCheckBox show = (JCheckBox) field(dialog, "showIdenticalSupport");
             assertFalse(show.isSelected()); assertEquals(1, table.getRowCount());
             table.getRowSorter().toggleSortOrder(0);
             table.setRowSelectionInterval(0, 0);
@@ -400,12 +442,12 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testSupportVerificationProblemsAndMissingDestinationsAreNeverHidden() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            Analysis base = (SourceModuleImport.Analysis) field(dialog, "analysis");
             String destination = "user/src/main/java/org/ikasan/studio/component/DebugTransitionComponent.java";
-            for (var status : List.of(SourceModuleImport.SupportStatus.UNVERIFIED, SourceModuleImport.SupportStatus.DESTINATION_MISSING)) {
-                var support = new SourceModuleImport.ManagedFile("src/Debug.java", destination, encoded("class Debug {}"),
+            for (SupportStatus status : List.of(SourceModuleImport.SupportStatus.UNVERIFIED, SourceModuleImport.SupportStatus.DESTINATION_MISSING)) {
+                ManagedFile support = new SourceModuleImport.ManagedFile("src/Debug.java", destination, encoded("class Debug {}"),
                         status == SourceModuleImport.SupportStatus.DESTINATION_MISSING ? null : encoded("class Debug {}"), status);
                 dialog.acceptAnalysis(withSupport(base, List.of(support)), base.sourceRoot());
                 assertEquals(1, ((JTable) field(dialog, "supportTable")).getRowCount());
@@ -414,20 +456,20 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testAllIdenticalSupportHasAnEmptyStateAndStagedEditsRemainVisibleUntilReverted() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
-            var support = new SourceModuleImport.ManagedFile("src/Debug.java", "user/src/main/java/org/ikasan/studio/component/DebugTransitionComponent.java",
+            Analysis base = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            ManagedFile support = new SourceModuleImport.ManagedFile("src/Debug.java", "user/src/main/java/org/ikasan/studio/component/DebugTransitionComponent.java",
                     encoded("class Debug {}"), encoded("class Debug {}"), SourceModuleImport.SupportStatus.SUPPLIED);
             dialog.acceptAnalysis(withSupport(base, List.of(support)), base.sourceRoot());
-            var table = (com.intellij.ui.table.JBTable) field(dialog, "supportTable");
-            var show = (JCheckBox) field(dialog, "showIdenticalSupport");
+            JBTable table = (com.intellij.ui.table.JBTable) field(dialog, "supportTable");
+            JCheckBox show = (JCheckBox) field(dialog, "showIdenticalSupport");
             assertEquals(0, table.getRowCount());
             assertEquals(org.ikasan.studio.ui.StudioBundle.message("sourceImport.support.allIdentical"), table.getEmptyText().getText());
             assertEquals(2, ((JTabbedPane) field(dialog, "reviewTabs")).getTabCount());
             show.doClick(); assertEquals(1, table.getRowCount());
             table.setRowSelectionInterval(0, 0);
-            var right = ((com.intellij.diff.contents.DocumentContent) requiredComparison(dialog.comparison(table)).getContents().get(1)).getDocument();
+            Document right = ((com.intellij.diff.contents.DocumentContent) requiredComparison(dialog.comparison(table)).getContents().get(1)).getDocument();
             com.intellij.openapi.application.WriteAction.run(() -> right.setText("// copied debug note\nclass Debug {}"));
             show.doClick(); assertEquals(1, table.getRowCount());
             assertEquals(Boolean.TRUE, table.getValueAt(0, 1));
@@ -440,26 +482,26 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testIdenticalClassesAreHiddenWhileDependenciesAndStagedEditsRemainVisible() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
-            var dependency = new org.apache.maven.model.Dependency(); dependency.setGroupId("customer"); dependency.setArtifactId("client");
-            var files = List.of(
+            Analysis base = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            Dependency dependency = new org.apache.maven.model.Dependency(); dependency.setGroupId("customer"); dependency.setArtifactId("client");
+            List<FileChoice> files = List.of(
                     new SourceModuleImport.FileChoice("src/A.java", "user/A.java", encoded("class A {}"), encoded("class A {}"), false, false, ""),
                     new SourceModuleImport.FileChoice("src/B.java", "user/B.java", encoded("// debug\nclass B {}"), encoded("class B {}"), false, false, ""));
-            var analysis = new SourceModuleImport.Analysis(base.sourceRoot(), base.destinationRoot(), files, List.of(), List.of(),
+            Analysis analysis = new SourceModuleImport.Analysis(base.sourceRoot(), base.destinationRoot(), files, List.of(), List.of(),
                     List.of(new SourceModuleImport.DependencyChoice("customer:client:jar:", dependency, true, "Original declaration")),
                     List.of(), base.originalPom(), base.generatedInputs(), List.of(), base.supportInputs(), base.identity());
             dialog.acceptAnalysis(analysis, base.sourceRoot());
-            var table = (com.intellij.ui.table.JBTable) field(dialog, "table");
-            var show = (JCheckBox) field(dialog, "showIdenticalFiles");
+            JBTable table = (com.intellij.ui.table.JBTable) field(dialog, "table");
+            JCheckBox show = (JCheckBox) field(dialog, "showIdenticalFiles");
             assertFalse(show.isSelected()); assertEquals(2, table.getRowCount());
             table.getRowSorter().toggleSortOrder(1);
             int changed = table.convertRowIndexToView(1); table.setRowSelectionInterval(changed, changed);
             assertDiff(dialog.comparison(table), "// debug\nclass B {}", "class B {}");
             show.doClick(); assertEquals(3, table.getRowCount());
             int identical = table.convertRowIndexToView(0); table.setRowSelectionInterval(identical, identical);
-            var right = ((com.intellij.diff.contents.DocumentContent) requiredComparison(dialog.comparison(table)).getContents().get(1)).getDocument();
+            Document right = ((com.intellij.diff.contents.DocumentContent) requiredComparison(dialog.comparison(table)).getContents().get(1)).getDocument();
             com.intellij.openapi.application.WriteAction.run(() -> right.setText("// staged\nclass A {}"));
             show.doClick(); assertEquals(3, table.getRowCount());
             identical = table.convertRowIndexToView(0);
@@ -470,18 +512,18 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testBeanConfirmationDoesNotCreateAnExtraRowForAnIdenticalClass() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var base = (SourceModuleImport.Analysis) field(dialog, "analysis");
-            var file = new SourceModuleImport.FileChoice("src/A.java", "user/src/main/java/A.java", encoded("class A {}"), encoded("class A {}"), false, false, "");
-            var analysis = new SourceModuleImport.Analysis(base.sourceRoot(), base.destinationRoot(), List.of(file),
+            Analysis base = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            FileChoice file = new SourceModuleImport.FileChoice("src/A.java", "user/src/main/java/A.java", encoded("class A {}"), encoded("class A {}"), false, false, "");
+            Analysis analysis = new SourceModuleImport.Analysis(base.sourceRoot(), base.destinationRoot(), List.of(file),
                     List.of(new SourceModuleImport.BeanRequirement("aBean", "A", "generated/Factory.java", 1, List.of())),
                     List.of(), List.of(), List.of(), base.originalPom(), base.generatedInputs(), List.of(), base.supportInputs(), base.identity());
             dialog.acceptAnalysis(analysis, base.sourceRoot());
-            var table = (JTable) field(dialog, "table");
-            var attach = dialog.getClass().getDeclaredMethod("attachActions", List.class);
+            JTable table = (JTable) field(dialog, "table");
+            Method attach = dialog.getClass().getDeclaredMethod("attachActions", List.class);
             attach.setAccessible(true);
-            var actions = SourceModuleImport.reviewActions(analysis, Set.of(), Set.of());
+            List<ReviewAction> actions = SourceModuleImport.reviewActions(analysis, Set.of(), Set.of());
             assertTrue(actions.stream().anyMatch(action -> action.kind() == SourceModuleImport.ReviewKind.BEAN));
             attach.invoke(dialog, actions);
             assertEquals(0, table.getRowCount());
@@ -499,10 +541,10 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
 
     @SuppressWarnings("unchecked")
     public void testSpringRegistrationIsOfferedAfterCopyAndCanBeStagedAndReverted() throws Exception {
-        var destination = Files.createTempDirectory("studio-registration-preview");
-        var dialog = new ImportSourceModuleDialog(getProject());
+        Path destination = Files.createTempDirectory("studio-registration-preview");
+        ImportSourceModuleDialog dialog = new ImportSourceModuleDialog(getProject());
         String source = "src/main/java/org/original/Copied.java";
-        var analysis = new SourceModuleImport.Analysis(java.nio.file.Path.of("/original"), destination,
+        Analysis analysis = new SourceModuleImport.Analysis(java.nio.file.Path.of("/original"), destination,
                 List.of(new SourceModuleImport.FileChoice(source, "user/src/main/java/org/original/Copied.java",
                         encoded("package org.original; @org.springframework.stereotype.Component public class Copied {}"),
                         null, true, false, "Referenced component")),
@@ -512,19 +554,19 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
                 List.of(), Map.of(), identity(java.nio.file.Path.of("/original"), destination, "Example", "Example"));
         try {
             dialog.acceptAnalysis(analysis, analysis.sourceRoot());
-            var panel = (JPanel) field(dialog, "registrationPanel");
+            JPanel panel = (JPanel) field(dialog, "registrationPanel");
             assertFalse(panel.isVisible());
             ((Set<String>) field(dialog, "selectedFiles")).add(source);
-            var refresh = dialog.getClass().getDeclaredMethod("refreshReview"); refresh.setAccessible(true); refresh.invoke(dialog);
+            Method refresh = dialog.getClass().getDeclaredMethod("refreshReview"); refresh.setAccessible(true); refresh.invoke(dialog);
             com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching("Spring registration was not offered", panel::isVisible, 10);
-            var candidate = (SourceModuleImport.SpringRegistration) field(dialog, "registrationCandidate");
-            var reviewButton = (JButton) field(dialog, "registrationButton");
+            SpringRegistration candidate = (SourceModuleImport.SpringRegistration) field(dialog, "registrationCandidate");
+            JButton reviewButton = (JButton) field(dialog, "registrationButton");
             assertNotNull(reviewButton.getClientProperty("ikasan.studio.attentionPulseTimer"));
             assertEquals(List.of("org.original.Copied"), candidate.components());
             assertFalse(Files.exists(destination.resolve(candidate.destination())));
-            var approved = dialog.getClass().getDeclaredField("approvedRegistration"); approved.setAccessible(true); approved.set(dialog, candidate);
+            Field approved = dialog.getClass().getDeclaredField("approvedRegistration"); approved.setAccessible(true); approved.set(dialog, candidate);
             refresh.invoke(dialog);
-            var button = (JButton) field(dialog, "registrationButton");
+            JButton button = (JButton) field(dialog, "registrationButton");
             com.intellij.testFramework.PlatformTestUtil.waitWithEventsDispatching("Staged registration was not shown",
                     () -> button.getText().equals(org.ikasan.studio.ui.StudioBundle.message("sourceImport.registration.revert")), 10);
             assertTrue(((List<SourceModuleImport.ReviewAction>) field(dialog, "standaloneIssues")).isEmpty());
@@ -540,23 +582,23 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testCopyAllNewStagesOnlyMissingFilesAndPreservesExistingSelectionsAndEdits() throws Exception {
-        var dialog = new ImportSourceModuleDialog(getProject());
-        var original = java.nio.file.Path.of("/original");
-        var destination = Files.createTempDirectory("studio-copy-all-new");
-        var files = List.of(
+        ImportSourceModuleDialog dialog = new ImportSourceModuleDialog(getProject());
+        Path original = java.nio.file.Path.of("/original");
+        Path destination = Files.createTempDirectory("studio-copy-all-new");
+        List<FileChoice> files = List.of(
                 new SourceModuleImport.FileChoice("src/Z.java", "user/Z.java", encoded("class Z {}"), null, false, false, ""),
                 new SourceModuleImport.FileChoice("src/A.java", "user/A.java", encoded("class A {}"), null, false, false, ""),
                 new SourceModuleImport.FileChoice("src/C.java", "user/C.java", encoded("class C {}"), encoded("class C { int existing; }"), false, false, ""),
                 new SourceModuleImport.FileChoice("src/new.properties", "user/new.properties", encoded("key=value"), null, false, false, ""));
-        var analysis = new SourceModuleImport.Analysis(original, destination, files, List.of(), List.of(), List.of(), List.of(), "",
+        Analysis analysis = new SourceModuleImport.Analysis(original, destination, files, List.of(), List.of(), List.of(), List.of(), "",
                 Map.of(), List.of(), Map.of(), identity(original, destination, "Example", "Example"));
         try {
             dialog.acceptAnalysis(analysis, original);
-            var selected = (Set<String>) field(dialog, "selectedFiles"); selected.add("src/A.java");
-            var edits = (Map<String, String>) field(dialog, "stagedJava"); edits.put("src/A.java", "class A { int reviewed; }");
-            var dependencies = (Set<String>) field(dialog, "selectedDependencies"); dependencies.add("already-selected");
-            var table = (JTable) field(dialog, "table"); table.getRowSorter().toggleSortOrder(1);
-            var button = (JButton) field(dialog, "copyAllNewButton"); assertTrue(button.isEnabled()); button.doClick();
+            Set<String> selected = (Set<String>) field(dialog, "selectedFiles"); selected.add("src/A.java");
+            Map<String,String> edits = (Map<String, String>) field(dialog, "stagedJava"); edits.put("src/A.java", "class A { int reviewed; }");
+            Set<String> dependencies = (Set<String>) field(dialog, "selectedDependencies"); dependencies.add("already-selected");
+            JTable table = (JTable) field(dialog, "table"); table.getRowSorter().toggleSortOrder(1);
+            JButton button = (JButton) field(dialog, "copyAllNewButton"); assertTrue(button.isEnabled()); button.doClick();
             assertEquals(Set.of("src/Z.java", "src/A.java", "src/new.properties"), selected);
             assertEquals("class A { int reviewed; }", edits.get("src/A.java"));
             assertEquals(Set.of("already-selected"), dependencies);
@@ -568,7 +610,7 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
             dialog.acceptAnalysis(new SourceModuleImport.Analysis(original, destination, files, List.of(), List.of(), List.of(), List.of(), "",
                     Map.of(), List.of(), Map.of(), identity(original, destination, "Example", "Other")), original);
             assertFalse(button.isEnabled());
-            var bulk = dialog.getClass().getDeclaredMethod("copyAllNewFiles"); bulk.setAccessible(true); bulk.invoke(dialog);
+            Method bulk = dialog.getClass().getDeclaredMethod("copyAllNewFiles"); bulk.setAccessible(true); bulk.invoke(dialog);
             assertTrue(((Set<?>) field(dialog, "selectedFiles")).isEmpty());
         } finally { dialog.close(DialogWrapper.CANCEL_EXIT_CODE); }
     }
@@ -578,8 +620,8 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     private ImportSourceModuleDialog previewDialog() {
-        var dialog = new ImportSourceModuleDialog(getProject());
-        var analysis = new SourceModuleImport.Analysis(java.nio.file.Path.of("/original"), java.nio.file.Path.of("/destination"), List.of(
+        ImportSourceModuleDialog dialog = new ImportSourceModuleDialog(getProject());
+        Analysis analysis = new SourceModuleImport.Analysis(java.nio.file.Path.of("/original"), java.nio.file.Path.of("/destination"), List.of(
                 new SourceModuleImport.FileChoice("src/B.java", "user/B.java", encoded("original B"), encoded("destination B"), false, false, "Review"),
                 new SourceModuleImport.FileChoice("src/A.java", "user/A.java", encoded("original A"), encoded("destination A"), false, false, "Review")),
                 List.of(), List.of(), List.of(), List.of(), "", Map.of(),
@@ -599,38 +641,38 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
             assertFalse(((com.intellij.diff.contents.DocumentContent) request.getContents().get(1)).getDocument().isWritable());
     }
     private void doubleClick(JTable table, int column) {
-        var bounds = table.getCellRect(0, column, true);
-        var event = new java.awt.event.MouseEvent(table, java.awt.event.MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
+        Rectangle bounds = table.getCellRect(0, column, true);
+        MouseEvent event = new java.awt.event.MouseEvent(table, java.awt.event.MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
                 0, bounds.x + bounds.width / 2, bounds.y + bounds.height / 2, 2, false, java.awt.event.MouseEvent.BUTTON1);
-        for (var listener : table.getMouseListeners())
+        for (MouseListener listener : table.getMouseListeners())
             if (listener.getClass().getEnclosingClass() == ImportSourceModuleDialog.class) listener.mouseClicked(event);
     }
 
     private org.ikasan.studio.core.importer.SourceCheckoutIdentity.Check identity(java.nio.file.Path source,
             java.nio.file.Path destination, String expected, String actual) {
-        var candidate = new org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate("", "artifact-hint", List.of(""),
+        Candidate candidate = new org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate("", "artifact-hint", List.of(""),
                 actual.isEmpty() ? List.of() : List.of(new org.ikasan.studio.core.importer.SourceCheckoutIdentity.Declaration("application.properties", actual)), false);
-        var inspection = new org.ikasan.studio.core.importer.SourceCheckoutIdentity.Inspection(source, destination, expected,
+        Inspection inspection = new org.ikasan.studio.core.importer.SourceCheckoutIdentity.Inspection(source, destination, expected,
                 List.of(candidate), List.of(""), List.of(), List.of());
         return new org.ikasan.studio.core.importer.SourceCheckoutIdentity.Check(inspection, candidate, List.of());
     }
 
     public void testMismatchAndUnverifiedCheckoutRequireApprovalBeforeDefaultSelectionAndImport() throws Exception {
-        var dialog = previewDialog();
+        ImportSourceModuleDialog dialog = previewDialog();
         try {
-            var original = (SourceModuleImport.Analysis) field(dialog, "analysis");
+            Analysis original = (SourceModuleImport.Analysis) field(dialog, "analysis");
             for (String actual : List.of("WrongModule", "")) {
-                var check = identity(original.sourceRoot(), original.destinationRoot(), "ExpectedModule", actual);
-                var analysis = new SourceModuleImport.Analysis(original.sourceRoot(), original.destinationRoot(), List.of(
+                Check check = identity(original.sourceRoot(), original.destinationRoot(), "ExpectedModule", actual);
+                Analysis analysis = new SourceModuleImport.Analysis(original.sourceRoot(), original.destinationRoot(), List.of(
                         new SourceModuleImport.FileChoice("src/New.java", "user/New.java", encoded("source"), null, true, false, "New")),
                         List.of(), List.of(), List.of(), List.of(), "", Map.of(), List.of(), Map.of(), check);
                 dialog.acceptAnalysis(analysis, original.sourceRoot());
-                var approval = (JCheckBox) field(dialog, "acceptIdentity");
-                var table = (JTable) field(dialog, "table");
+                JCheckBox approval = (JCheckBox) field(dialog, "acceptIdentity");
+                JTable table = (JTable) field(dialog, "table");
                 assertTrue(approval.isVisible()); assertFalse(approval.isSelected());
                 assertFalse(dialog.isOKActionEnabled());
                 assertFalse(table.isCellEditable(0, 1)); assertEquals(Boolean.FALSE, table.getValueAt(0, 1));
-                var validate = dialog.getClass().getDeclaredMethod("doValidate"); validate.setAccessible(true);
+                Method validate = dialog.getClass().getDeclaredMethod("doValidate"); validate.setAccessible(true);
                 assertNotNull(validate.invoke(dialog));
                 assertTrue(((JTextArea) field(dialog, "identitySummary")).getText().contains("ExpectedModule"));
                 approval.doClick();
@@ -649,7 +691,7 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     private Object field(Object owner, String name) throws Exception {
-        var field = owner.getClass().getDeclaredField(name); field.setAccessible(true); return field.get(owner);
+        Field field = owner.getClass().getDeclaredField(name); field.setAccessible(true); return field.get(owner);
     }
 
 }

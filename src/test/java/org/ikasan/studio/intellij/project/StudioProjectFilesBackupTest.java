@@ -15,13 +15,16 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertArrayEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import com.intellij.openapi.editor.Document;
+import java.util.List;
+import org.mockito.MockedStatic;
 
 public class StudioProjectFilesBackupTest extends BasePlatformTestCase {
     public void testBackupsCaptureUnsavedInvalidEditorTextWithoutSavingOrReplacingIt() throws Exception {
         String saved = "class Batch { }\n";
         VirtualFile file = myFixture.getTempDirFixture().createFile("Batch.java", saved);
-        var manager = FileDocumentManager.getInstance();
-        var document = manager.getDocument(file);
+        FileDocumentManager manager = FileDocumentManager.getInstance();
+        Document document = manager.getDocument(file);
         assertNotNull(document);
         String firstEdit = "class Batch { // 日本語\n void broken( {\n";
         WriteCommandAction.runWriteCommandAction(getProject(), () -> document.setText(firstEdit));
@@ -33,7 +36,7 @@ public class StudioProjectFilesBackupTest extends BasePlatformTestCase {
         WriteCommandAction.runWriteCommandAction(getProject(), () -> document.setText(secondEdit));
         StudioProjectFiles.backupFile(getProject(), file);
 
-        var backups = Arrays.stream(file.getParent().getChildren())
+        List<VirtualFile> backups = Arrays.stream(file.getParent().getChildren())
                 .filter(child -> child.getName().startsWith("Batch.java.backup")).toList();
         assertEquals(2, backups.size());
         Set<String> texts = backups.stream().map(backup -> {
@@ -63,7 +66,7 @@ public class StudioProjectFilesBackupTest extends BasePlatformTestCase {
         when(file.getPath()).thenReturn("/user/Batch.java");
         when(file.getParent()).thenReturn(parent);
         when(file.copy(any(), same(parent), anyString())).thenThrow(new IOException("disk full"));
-        try (var managers = mockStatic(FileDocumentManager.class)) {
+        try (MockedStatic<FileDocumentManager> managers = mockStatic(FileDocumentManager.class)) {
             managers.when(FileDocumentManager::getInstance).thenReturn(mock(FileDocumentManager.class));
             try {
                 StudioProjectFiles.backupFile(getProject(), file);

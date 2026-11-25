@@ -30,6 +30,8 @@ import org.ikasan.studio.intellij.project.StudioProjectFiles;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.REQUIRES_STUB;
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME;
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.refactoring.MoveClassesOrPackagesRefactoring;
 
 /**
  * Keeps a component's generated Java class in step with a cross-flow canvas move (drag-and-drop) - see
@@ -183,15 +185,15 @@ public final class UserImplementedClassRelocator {
                     PsiDirectory psiDestinationDir = ReadAction.nonBlocking(() -> PsiManager.getInstance(project).findDirectory(destinationDir))
                             .expireWith(project).executeSynchronously();
                     if (psiDestinationDir != null) {
-                        var pointer = SmartPointerManager.getInstance(project).createSmartPsiElementPointer(psiClass);
+                        SmartPsiElementPointer<PsiClass> pointer = SmartPointerManager.getInstance(project).createSmartPsiElementPointer(psiClass);
                         VirtualFile sourceRoot = ReadAction.nonBlocking(() -> ProjectRootManager.getInstance(project)
                                 .getFileIndex().getSourceRootForFile(destinationDir))
                                 .expireWith(project).executeSynchronously();
                         if (sourceRoot == null) {
                             throw new IllegalStateException("Destination is not an imported Java source root");
                         }
-                        var factory = JavaRefactoringFactory.getInstance(project);
-                        var move = factory.createMoveClassesOrPackages(new PsiElement[]{psiClass},
+                        JavaRefactoringFactory factory = JavaRefactoringFactory.getInstance(project);
+                        MoveClassesOrPackagesRefactoring move = factory.createMoveClassesOrPackages(new PsiElement[]{psiClass},
                                 factory.createSourceRootMoveDestination(newPackageName, sourceRoot), false, false);
                         move.setPreviewUsages(false);
                         move.setInteractive(null);

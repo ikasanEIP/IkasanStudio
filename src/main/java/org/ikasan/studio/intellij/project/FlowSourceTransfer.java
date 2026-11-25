@@ -19,6 +19,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import com.intellij.openapi.editor.Document;
+import java.util.Map.Entry;
 
 /** Transfers detached source text: never moves or changes files in the source project. */
 public final class FlowSourceTransfer {
@@ -50,7 +52,7 @@ public final class FlowSourceTransfer {
                     if (file.is(VFileProperty.SYMLINK)) throw new IOException("Linked source files cannot be copied");
                     if (!file.isDirectory() && file.getName().endsWith(".java")) {
                         if (file.getLength() > MAX_SOURCE_LENGTH) throw new IOException("Source exceeds clipboard size limit");
-                        var document = FileDocumentManager.getInstance().getDocument(file);
+                        Document document = FileDocumentManager.getInstance().getDocument(file);
                         if (document == null) throw new IOException("Source text is unavailable");
                         String text = document.getText();
                         length += text.length();
@@ -71,7 +73,7 @@ public final class FlowSourceTransfer {
     public static FlowClipboard.Sources relocate(Project project, FlowClipboard.Sources sources, String newPackage) throws IOException {
         sources.validate();
         Map<String, String> files = new TreeMap<>();
-        for (var entry : sources.files().entrySet()) {
+        for (Entry<String,String> entry : sources.files().entrySet()) {
             ProgressManager.checkCanceled();
             String path = entry.getKey();
             String text = entry.getValue();
@@ -149,7 +151,7 @@ public final class FlowSourceTransfer {
             rejectSymlinks(base, packagePath);
             if (base.findFileByRelativePath(packagePath) != null) throw new DestinationExists(sources.packageName());
             try {
-                for (var entry : new TreeMap<>(sources.files()).entrySet()) {
+                for (Entry<String,String> entry : new TreeMap<>(sources.files()).entrySet()) {
                     String[] segments = (packagePath + "/" + entry.getKey()).split("/");
                     VirtualFile directory = base;
                     for (int i = 0; i < segments.length - 1; i++) {

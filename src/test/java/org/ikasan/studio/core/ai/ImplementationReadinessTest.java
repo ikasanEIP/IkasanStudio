@@ -5,6 +5,9 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.*;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 import static org.assertj.core.api.Assertions.*;
+import java.util.List;
+import org.ikasan.studio.core.ai.ImplementationReadiness.Finding;
+import org.ikasan.studio.core.ai.ImplementationReadiness.Report;
 
 class ImplementationReadinessTest {
     @TempDir Path root;
@@ -20,17 +23,17 @@ class ImplementationReadinessTest {
     }
     @Test void identifiesReportedConverterAndLocation() throws Exception {
         source("class CreateAcceptedOrder {\n Object convert(Object payload) {\nthrow new UnsupportedOperationException(\"Conversion has not been implemented\");\n}}\n");
-        var report = ImplementationReadiness.scan(root, model());
+        Report report = ImplementationReadiness.scan(root, model());
         assertThat(report.runtimeVerified()).isFalse();
         assertThat(report.findings()).hasSize(1);
-        var finding = report.findings().get(0);
+        Finding finding = report.findings().get(0);
         assertThat(finding.code()).isEqualTo("THROWING_STUB");
         assertThat(finding.line()).isEqualTo(3);
         assertThat(finding.component()).isEqualTo("Create Accepted Order");
     }
     @Test void ignoresCommentedThrowAndDoesNotClaimRuntimeSuccess() throws Exception {
         source("// throw new UnsupportedOperationException(\"Conversion has not been implemented\");\nclass CreateAcceptedOrder {}\n");
-        var report = ImplementationReadiness.scan(root, model());
+        Report report = ImplementationReadiness.scan(root, model());
         assertThat(report.findings()).isEmpty();
         assertThat(report.runtimeVerified()).isFalse();
         assertThat(report.scope()).contains("not proof");
@@ -45,7 +48,7 @@ class ImplementationReadinessTest {
         for (String todo : new String[]{"// TODO: Update the mutable payload in place.", "//@TODO replace this scheduling with your real logic",
                 "// TODO review the default body above", "    //   TODO something"}) {
             source("class CreateAcceptedOrder {\n " + todo + "\n}\n");
-            var findings = ImplementationReadiness.scan(root, model()).findings();
+            List<Finding> findings = ImplementationReadiness.scan(root, model()).findings();
             assertThat(findings).as(todo).hasSize(1);
             assertThat(findings.get(0).code()).isEqualTo("REVIEW_SCAFFOLD");
             assertThat(findings.get(0).line()).isEqualTo(2);
@@ -60,7 +63,7 @@ class ImplementationReadinessTest {
         source("class CreateAcceptedOrder {\n Object convert(Object payload) {\n"
                 + "// TODO Implement the conversion. The target may be an interface.\n"
                 + "throw new UnsupportedOperationException(\"Conversion has not been implemented\");\n}}\n");
-        var findings = ImplementationReadiness.scan(root, model()).findings();
+        List<Finding> findings = ImplementationReadiness.scan(root, model()).findings();
         assertThat(findings).hasSize(1);
         assertThat(findings.get(0).code()).isEqualTo("THROWING_STUB");
         assertThat(findings.get(0).line()).isEqualTo(4);

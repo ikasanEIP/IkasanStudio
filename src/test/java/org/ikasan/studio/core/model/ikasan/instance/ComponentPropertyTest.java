@@ -22,7 +22,7 @@ public class ComponentPropertyTest {
 
     @Test
     void filenameRegexBracketsSurviveBothStringAndListRepresentations() {
-        var meta = ComponentPropertyMeta.builder().propertyName("filenames")
+        ComponentPropertyMeta meta = ComponentPropertyMeta.builder().propertyName("filenames")
                 .usageDataType("java.util.List<String>").build();
         for (String pattern : List.of("/tmp/Demo.*[.]txt", "[a-z]", "[^,]+[.]csv")) {
             assertEquals(pattern, new ComponentProperty(meta, pattern).getValueString());

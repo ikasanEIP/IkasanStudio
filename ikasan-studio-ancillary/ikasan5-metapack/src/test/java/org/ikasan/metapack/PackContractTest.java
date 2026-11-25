@@ -15,7 +15,7 @@ class PackContractTest extends MetaPackContract {
                 .h2WebPortNumber("8093").flows(List.of()).build();
     }
     @Test void pomRevisionMatchesManifest() throws Exception {
-        var document = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        org.w3c.dom.Document document = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder()
                 .parse(java.nio.file.Path.of("pom.xml").toFile());
         assertEquals(ComponentLibrary.getMetaPackManifest(packId()).packVersion(),
                 document.getElementsByTagName("version").item(0).getTextContent());

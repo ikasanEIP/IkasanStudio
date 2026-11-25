@@ -23,6 +23,23 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.command.undo.UndoManager;
+import com.intellij.openapi.command.undo.UndoableAction;
+import java.io.BufferedWriter;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest.Builder;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
 class StudioAiServiceTest {
     @TempDir Path directory;
@@ -34,31 +51,31 @@ class StudioAiServiceTest {
     private void exercise(boolean failSave) throws Exception {
         Project project = mock(Project.class);
         UiContext context = mock(UiContext.class);
-        var model = ModelProposalTest.model();
+        Module model = ModelProposalTest.model();
         when(project.getService(UiContext.class)).thenReturn(context);
         when(project.getName()).thenReturn("test-project");
         when(project.getBasePath()).thenReturn(directory.resolve("project").toString());
         when(context.getIkasanModule()).thenReturn(model);
         when(context.getPipsiIkasanModel()).thenReturn(mock(GeneratedProjectSynchronizer.class));
         when(context.getLatestGeneration()).thenReturn(CompletableFuture.completedFuture(null));
-        var properties = mock(ComponentPropertiesPanel.class);
+        ComponentPropertiesPanel properties = mock(ComponentPropertiesPanel.class);
         when(context.getPropertiesPanel()).thenReturn(properties);
-        var before = LiveModelSnapshot.capture(model);
+        Map<String,Object> before = LiveModelSnapshot.capture(model);
         StudioAiService service = new StudioAiService(project);
         when(project.getService(StudioAiService.class)).thenReturn(service);
         AtomicReference<StudioAiService.Proposal> reviewed = new AtomicReference<>();
-        try (var settings = mockStatic(org.ikasan.studio.intellij.settings.IkasanStudioSettings.class);
-             var applications = mockStatic(ApplicationManager.class);
-             var paths = mockStatic(PathManager.class);
-             var modalities = mockStatic(ModalityState.class);
-             var commands = mockStatic(CommandProcessor.class);
-             var undos = mockStatic(UndoManager.class);
-             var files = mockStatic(StudioProjectFiles.class);
-             var dialogs = mockConstruction(StudioAiProposalDialog.class, (dialog, construction) ->
+        try (MockedStatic<IkasanStudioSettings> settings = mockStatic(org.ikasan.studio.intellij.settings.IkasanStudioSettings.class);
+             MockedStatic<ApplicationManager> applications = mockStatic(ApplicationManager.class);
+             MockedStatic<PathManager> paths = mockStatic(PathManager.class);
+             MockedStatic<ModalityState> modalities = mockStatic(ModalityState.class);
+             MockedStatic<CommandProcessor> commands = mockStatic(CommandProcessor.class);
+             MockedStatic<UndoManager> undos = mockStatic(UndoManager.class);
+             MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class);
+             MockedConstruction<StudioAiProposalDialog> dialogs = mockConstruction(StudioAiProposalDialog.class, (dialog, construction) ->
                      reviewed.set((StudioAiService.Proposal) construction.arguments().get(2)))) {
             settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
             Application app = mock(Application.class);
-            var writeSafeModality = mock(ModalityState.class);
+            ModalityState writeSafeModality = mock(ModalityState.class);
             modalities.when(ModalityState::nonModal).thenReturn(writeSafeModality);
             // Mockito records this call for stubbing; its return value is intentionally ignored.
             //noinspection ResultOfMethodCallIgnored
@@ -82,34 +99,34 @@ class StudioAiServiceTest {
             String config = service.start();
             assertThat(config).contains("studio-mcp-adapter.jar", "-jar", "--connection").doesNotContain("Bearer", "python");
             // Exercise the actual HTTP/stdio transport against this server, without any IDE model request.
-            var args = JSON.readTree(config).path("mcpServers").path("ikasan-studio").path("args");
+            JsonNode args = JSON.readTree(config).path("mcpServers").path("ikasan-studio").path("args");
             // This connection file belongs to the local JUnit temporary directory.
             //noinspection UseOptimizedEelFunctions
-            var connection = JSON.readTree(Files.readString(Path.of(args.get(3).asText())));
-            var http = java.net.http.HttpClient.newHttpClient();
-            var endpoint = java.net.URI.create(connection.path("url").asText());
-            var unauthenticated = java.net.http.HttpRequest.newBuilder(endpoint)
+            JsonNode connection = JSON.readTree(Files.readString(Path.of(args.get(3).asText())));
+            HttpClient http = java.net.http.HttpClient.newHttpClient();
+            URI endpoint = java.net.URI.create(connection.path("url").asText());
+            Builder unauthenticated = java.net.http.HttpRequest.newBuilder(endpoint)
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString("{}"));
             assertThat(http.send(unauthenticated.build(), java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode()).isEqualTo(403);
-            var browser = java.net.http.HttpRequest.newBuilder(endpoint)
+            Builder browser = java.net.http.HttpRequest.newBuilder(endpoint)
                     .header("Authorization", "Bearer " + connection.path("token").asText())
                     .header("Origin", "https://example.com")
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString("{}"));
             assertThat(http.send(browser.build(), java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode()).isEqualTo(403);
-            var serverConfig = JSON.readTree(config).path("mcpServers").path("ikasan-studio");
+            JsonNode serverConfig = JSON.readTree(config).path("mcpServers").path("ikasan-studio");
             assertThat(Path.of(serverConfig.path("command").asText())).isAbsolute().exists();
-            var launch = new java.util.ArrayList<String>();
+            ArrayList<String> launch = new java.util.ArrayList<>();
             launch.add(serverConfig.path("command").asText());
             args.forEach(argument -> launch.add(argument.asText()));
-            var process = new ProcessBuilder(launch).start();
-            try (var stdin = process.outputWriter()) {
+            Process process = new ProcessBuilder(launch).start();
+            try (BufferedWriter stdin = process.outputWriter()) {
                 stdin.write("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\"}\n");
                 stdin.write("{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}\n");
                 stdin.write("{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/list\"}\n");
             }
             assertThat(process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
             assertThat(process.exitValue()).isZero();
-            var replies = new String(process.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).lines().toList();
+            List<String> replies = new String(process.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).lines().toList();
             assertThat(replies).hasSize(2);
             assertThat(JSON.readTree(replies.get(1)).path("result").path("tools")).hasSize(4);
 
@@ -121,9 +138,9 @@ class StudioAiServiceTest {
             when(project.getBasePath()).thenReturn(directory.resolve("project").toString());
             StudioAiService.nativeCall(project, "studio_snapshot", "{}");
             assertThat(service.getLastAccessTransport()).isEqualTo("native");
-            var snapshot = (Map<?, ?>) service.call("studio_snapshot", JSON.createObjectNode());
+            Map<?,?> snapshot = (Map<?, ?>) service.call("studio_snapshot", JSON.createObjectNode());
             String revision = snapshot.get("revision").toString();
-            var request = JSON.readTree("""
+            JsonNode request = JSON.readTree("""
                     {"operations":[{"type":"setProperty","flow":"Transfer","component":"ReadFiles","property":"sourceDirectory","value":"/new"}]}
                     """);
             ((com.fasterxml.jackson.databind.node.ObjectNode) request).put("revision", revision);
@@ -136,7 +153,7 @@ class StudioAiServiceTest {
             } finally { other.dispose(); }
 
             // Restart after validation but before the EDT publishes the review.
-            var dispatches = new java.util.concurrent.atomic.AtomicInteger();
+            AtomicInteger dispatches = new java.util.concurrent.atomic.AtomicInteger();
             doAnswer(call -> {
                 if (dispatches.incrementAndGet() == 2) {
                     service.stop();
@@ -182,7 +199,7 @@ class StudioAiServiceTest {
             assertThat(reviewed.get().status).isEqualTo("generating");
             generated.complete(null);
             assertThat(reviewed.get().status).isEqualTo("applied");
-            var captured = ArgumentCaptor.forClass(UndoableAction.class);
+            ArgumentCaptor<UndoableAction> captured = ArgumentCaptor.forClass(UndoableAction.class);
             verify(undo).undoableActionPerformed(captured.capture());
             service.stop(); // Disconnecting the AI must not disable the undo entry.
             captured.getValue().undo();
@@ -196,7 +213,7 @@ class StudioAiServiceTest {
             snapshot = (Map<?, ?>) service.call("studio_snapshot", JSON.createObjectNode());
             ((com.fasterxml.jackson.databind.node.ObjectNode) request).put("revision", snapshot.get("revision").toString());
             ((com.fasterxml.jackson.databind.node.ObjectNode) request.path("operations").get(0)).put("value", "/automatic");
-            var result = (Map<?, ?>) service.call("studio_propose", request);
+            Map<?,?> result = (Map<?, ?>) service.call("studio_propose", request);
             assertThat(result.get("status")).isEqualTo("applied");
             assertThat(model.getFlows().get(0).getConsumer().getPropertyValue("sourceDirectory")).isEqualTo("/automatic");
             assertThat(dialogs.constructed()).hasSize(1);

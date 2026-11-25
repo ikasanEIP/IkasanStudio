@@ -21,6 +21,8 @@ import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.Future;
+import org.ikasan.studio.intellij.testing.RunFlowTestAction.Target;
 
 public class RunFlowTestActionHeavyTest extends HeavyPlatformTestCase {
     private TestProducer producer;
@@ -43,17 +45,17 @@ public class RunFlowTestActionHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testResolvesOwningModuleAndHonoursProducerFirstRun() {
-        var target = ApplicationManager.getApplication().executeOnPooledThread(
+        Future<Target> target = ApplicationManager.getApplication().executeOnPooledThread(
                 () -> ReadAction.compute(() -> RunFlowTestAction.resolve(myProject, testFile)));
         // Pump the event queue rather than blocking the EDT while platform producer code resolves.
         com.intellij.testFramework.PlatformTestUtil.waitForFuture(target);
         try {
-            var resolved = target.get();
+            Target resolved = target.get();
             assertNotNull(resolved);
-            var configuration = (ApplicationConfiguration) resolved.settings().getConfiguration();
+            ApplicationConfiguration configuration = (ApplicationConfiguration) resolved.settings().getConfiguration();
             assertEquals("org.example.GreetingFlowTest", configuration.getMainClassName());
             assertSame(myModule, configuration.getConfigurationModule().getModule());
-            var launched = new AtomicBoolean();
+            AtomicBoolean launched = new AtomicBoolean();
             resolved.start(() -> launched.set(true));
             assertTrue(producer.firstRun);
             assertTrue(launched.get());
@@ -61,18 +63,18 @@ public class RunFlowTestActionHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testReusesExistingConfigurationAndPreservesCustomSettings() {
-        var original = ReadAction.compute(() -> RunFlowTestAction.resolve(myProject, testFile));
+        Target original = ReadAction.compute(() -> RunFlowTestAction.resolve(myProject, testFile));
         assertNotNull(original);
         ((ApplicationConfiguration) original.settings().getConfiguration()).setVMParameters("-Dflow.custom=true");
         RunManager.getInstance(myProject).addConfiguration(original.settings());
-        var resolved = ReadAction.compute(() -> RunFlowTestAction.resolve(myProject, testFile));
+        Target resolved = ReadAction.compute(() -> RunFlowTestAction.resolve(myProject, testFile));
         assertNotNull(resolved);
         assertSame(original.settings(), resolved.settings());
         assertEquals("-Dflow.custom=true", ((ApplicationConfiguration) resolved.settings().getConfiguration()).getVMParameters());
     }
 
     public void testUnimportedFileDoesNotCreateConfiguration() {
-        var file = new LightVirtualFile("GreetingFlowTest.java", com.intellij.ide.highlighter.JavaFileType.INSTANCE,
+        LightVirtualFile file = new LightVirtualFile("GreetingFlowTest.java", com.intellij.ide.highlighter.JavaFileType.INSTANCE,
                 "package org.example; public class GreetingFlowTest {}");
         assertNull(ReadAction.compute(() -> RunFlowTestAction.resolve(myProject, file)));
     }

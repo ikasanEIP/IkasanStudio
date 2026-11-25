@@ -10,6 +10,21 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeSet;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionActionMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 
 /** Compile-only catalogue fixture. Endpoint wiring and placeholder business stubs are not runtime scenarios. */
 class ComponentCoverageTest {
@@ -25,21 +40,21 @@ class ComponentCoverageTest {
             "Single Recipient Router", "Multi Recipient Router", "Debug Transition");
 
     @Test void coversEveryRuntimePaletteComponentAndExportsCompilableSources() throws Exception {
-        var catalogue = new TreeSet<String>();
-        for (var meta : ComponentLibrary.getIkasanComponents(PACK).values()) {
+        TreeSet<String> catalogue = new TreeSet<>();
+        for (ComponentMeta meta : ComponentLibrary.getIkasanComponents(PACK).values()) {
             if (!meta.isEndpoint() && !meta.isModule() && !meta.isFlow() && !meta.isExceptionResolver()) catalogue.add(meta.getName());
         }
         assertEquals(new TreeSet<>(COMPONENTS), catalogue, "New palette components need an explicit compilation fixture");
-        var flows = new ArrayList<Flow>();
+        ArrayList<Flow> flows = new ArrayList<>();
         for (String key : COMPONENTS) flows.add(flow(key));
-        var module = Module.moduleBuilder().version(PACK).name("V5 Component Coverage")
+        Module module = Module.moduleBuilder().version(PACK).name("V5 Component Coverage")
                 .applicationPackageName("org.example.coverage").port("8080").h2PortNumber("8092")
                 .h2WebPortNumber("8093").flows(flows).build();
         module.setPropertyValue("flowStartupType", "MANUAL");
-        var files = DevelopmentFixtureTest.render(module);
-        for (var flow : flows) {
+        Map<String,String> files = DevelopmentFixtureTest.render(module);
+        for (Flow flow : flows) {
             String pkg = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
-            for (var component : flow.getFlowElementsNoExternalEndPoints()) {
+            for (FlowElement component : flow.getFlowElementsNoExternalEndPoints()) {
                 Object value = component.getPropertyValue("userImplementedClassName");
                 if (value != null) {
                     String name = StudioBuildUtils.substitutePlaceholderInPascalCase(module, flow, component, value.toString());
@@ -57,7 +72,7 @@ class ComponentCoverageTest {
         files.put("COVERAGE.txt", "COMPILE-ONLY: not runtime coverage; optional setters are not exhaustive.\n"
                 + String.join("\n", COMPONENTS) + "\nModule\nFlow\nException Resolver (all five declared actions)\n");
         Path root = Path.of(System.getProperty("studio.v5.components", temporary.toString()));
-        for (var file : files.entrySet()) {
+        for (Entry<String,String> file : files.entrySet()) {
             Path target = root.resolve(file.getKey()); Files.createDirectories(target.getParent());
             Files.writeString(target, file.getValue());
         }
@@ -67,31 +82,31 @@ class ComponentCoverageTest {
     }
 
     private static Flow flow(String key) throws Exception {
-        var target = DevelopmentFixtureTest.element(key, "Subject");
-        var meta = target.getComponentMeta();
+        FlowElement target = DevelopmentFixtureTest.element(key, "Subject");
+        ComponentMeta meta = target.getComponentMeta();
         configure(target, key);
-        var consumer = meta.isConsumer() ? target : DevelopmentFixtureTest.element("Event Generating Consumer", "Input");
-        var flow = Flow.flowBuilder().metapackVersion(PACK).name(key + " Coverage").consumer(consumer).build();
-        var elements = new ArrayList<FlowElement>();
+        FlowElement consumer = meta.isConsumer() ? target : DevelopmentFixtureTest.element("Event Generating Consumer", "Input");
+        Flow flow = Flow.flowBuilder().metapackVersion(PACK).name(key + " Coverage").consumer(consumer).build();
+        ArrayList<FlowElement> elements = new ArrayList<>();
         if (!meta.isConsumer()) elements.add(target);
         if (!meta.isProducer() && !meta.isRouter()) elements.add(DevelopmentFixtureTest.element("Dev Null Producer", "Output"));
-        var route = FlowRoute.flowRouteBuilder().flow(flow).flowElements(elements).build();
+        FlowRoute route = FlowRoute.flowRouteBuilder().flow(flow).flowElements(elements).build();
         if (meta.isRouter()) {
             target.setPropertyValue("routeNames", List.of("route1", "route2"));
-            var children = new ArrayList<FlowRoute>();
+            ArrayList<FlowRoute> children = new ArrayList<>();
             for (int i = 1; i <= 2; i++) children.add(FlowRoute.flowRouteBuilder().flow(flow).routeName("route" + i)
                     .flowElements(new ArrayList<>(List.of(DevelopmentFixtureTest.element("Dev Null Producer", "Output " + i)))).build());
             route.setChildRoutes(children);
         }
         flow.setFlowRoute(route);
         // Explicit Jakarta exception wiring is part of the compiled factory/flow surface.
-        var resolverMeta = (org.ikasan.studio.core.metapack.model.ExceptionResolverMeta)
+        ExceptionResolverMeta resolverMeta = (org.ikasan.studio.core.metapack.model.ExceptionResolverMeta)
                 ComponentLibrary.getIkasanComponentByKeyMandatory(PACK, "Exception Resolver");
-        var resolutions = new LinkedHashMap<String, ExceptionResolution>();
+        LinkedHashMap<String,ExceptionResolution> resolutions = new LinkedHashMap<String, ExceptionResolution>();
         int index = 0;
-        for (var action : resolverMeta.getActionList()) {
-            var properties = new LinkedHashMap<String, ComponentProperty>();
-            for (var entry : action.getActionProperties().entrySet()) {
+        for (ExceptionActionMeta action : resolverMeta.getActionList()) {
+            LinkedHashMap<String,ComponentProperty> properties = new LinkedHashMap<String, ComponentProperty>();
+            for (Entry<String,ComponentPropertyMeta> entry : action.getActionProperties().entrySet()) {
                 Object value = entry.getValue().getDefaultValue();
                 properties.put(entry.getKey(), new ComponentProperty(entry.getValue(), value == null ? 3 : value));
             }
@@ -99,7 +114,7 @@ class ComponentCoverageTest {
             resolutions.put(exception, ExceptionResolution.exceptionResolutionBuilder().metapackVersion(PACK)
                     .exceptionsCaught(exception).theAction(action.getActionName()).componentProperties(properties).build());
         }
-        var resolver = ExceptionResolver.exceptionResolverBuilder().metapackVersion(PACK)
+        ExceptionResolver resolver = ExceptionResolver.exceptionResolverBuilder().metapackVersion(PACK)
                 .ikasanExceptionResolutionMap(resolutions).build();
         flow.setExceptionResolver(resolver);
         return flow;

@@ -11,6 +11,9 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.file.Path;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.project.Project;
+import java.io.InputStream;
 
 /** Exports the saved project's required pack when configured; generic exports remain available. */
 public final class ExportOfflineToolsAction extends DumbAwareAction {
@@ -20,9 +23,9 @@ public final class ExportOfflineToolsAction extends DumbAwareAction {
         event.getPresentation().setEnabled(event.getProject()!=null && !event.getProject().isDisposed());
     }
     @Override public void actionPerformed(@NotNull AnActionEvent event) {
-        var project=event.getProject();
+        Project project=event.getProject();
         if (project==null || project.isDisposed()) return;
-        var descriptor=FileChooserDescriptorFactory.createSingleFolderDescriptor();
+        FileChooserDescriptor descriptor=FileChooserDescriptorFactory.createSingleFolderDescriptor();
         descriptor.setTitle(StudioBundle.message("offlineTools.ChooseDirectory"));
         descriptor.setDescription(StudioBundle.message("offlineTools.DirectoryDescription"));
         FileChooser.chooseFile(descriptor, project, null, chosen -> {
@@ -30,7 +33,7 @@ public final class ExportOfflineToolsAction extends DumbAwareAction {
             ProgressManager.getInstance().run(new Task.Backgroundable(project, StudioBundle.message("offlineTools.Progress"), true) {
                 private Path exported;
                 @Override public void run(@NotNull ProgressIndicator indicator) {
-                    try (var input=ExportOfflineToolsAction.class.getResourceAsStream(OfflineToolsExporter.RESOURCE)) {
+                    try (InputStream input=ExportOfflineToolsAction.class.getResourceAsStream(OfflineToolsExporter.RESOURCE)) {
                         if (input==null) throw new IOException("Bundled offline tools archive is missing");
                         Path model = com.intellij.openapi.application.ReadAction.nonBlocking(() ->
                                 org.ikasan.studio.intellij.project.StudioProjectFiles.getModelJsonPath(project))

@@ -8,6 +8,7 @@ import java.net.*;
 import java.util.*;
 import javax.tools.ToolProvider;
 import static org.junit.jupiter.api.Assertions.*;
+import java.net.URLClassLoader;
 
 class JmsObjectFixtureRuntimeTest {
     @TempDir Path root;
@@ -64,7 +65,7 @@ class JmsObjectFixtureRuntimeTest {
                                 case "createQueue": return new ActiveMQQueue((String)args[0]);
                                 case "createProducer": return producer;
                                 case "createObjectMessage":
-                                    var message = new ActiveMQObjectMessage(); message.setObject((java.io.Serializable)args[0]); return message;
+                                    ActiveMQObjectMessage message = new ActiveMQObjectMessage(); message.setObject((java.io.Serializable)args[0]); return message;
                                 default: throw new AssertionError("Unexpected session operation: " + name);
                             }
                         });
@@ -74,8 +75,8 @@ class JmsObjectFixtureRuntimeTest {
                             return null;
                         });
                         ConnectionFactory factory = proxy(ConnectionFactory.class, (name,args) -> connection);
-                        try (var helper = new JmsFlowTestSupport(factory)) {
-                            var payload = new java.util.ArrayList<String>(); payload.add("order-1");
+                        try (JmsFlowTestSupport helper = new JmsFlowTestSupport(factory)) {
+                            java.util.ArrayList<String> payload = new java.util.ArrayList<>(); payload.add("order-1");
                             helper.sendObject("test.orders",payload);
                             if(!(sent[0] instanceof ObjectMessage) || !payload.equals(((ObjectMessage)sent[0]).getObject()))
                                 throw new AssertionError("Not an object message containing the fixture");
@@ -96,7 +97,7 @@ class JmsObjectFixtureRuntimeTest {
         assertEquals(0, ToolProvider.getSystemJavaCompiler().run(null, null, null, args.toArray(String[]::new)));
         List<URL> urls = new ArrayList<>(); urls.add(root.toUri().toURL());
         for (String entry : classpath.split(java.util.regex.Pattern.quote(java.io.File.pathSeparator))) urls.add(Path.of(entry).toUri().toURL());
-        try (var loader = new URLClassLoader(urls.toArray(URL[]::new), ClassLoader.getPlatformClassLoader())) {
+        try (URLClassLoader loader = new URLClassLoader(urls.toArray(URL[]::new), ClassLoader.getPlatformClassLoader())) {
             loader.loadClass("Probe").getMethod("run").invoke(null);
         }
     }

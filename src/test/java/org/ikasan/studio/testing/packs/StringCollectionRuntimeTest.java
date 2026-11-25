@@ -10,6 +10,9 @@ import java.net.*;
 import java.lang.reflect.*;
 import java.util.*;
 import static org.assertj.core.api.Assertions.*;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 class StringCollectionRuntimeTest {
     @TempDir Path root;
@@ -30,7 +33,7 @@ class StringCollectionRuntimeTest {
         Files.writeString(autowired, "package org.springframework.beans.factory.annotation; public @interface Autowired {}");
         String classpath = String.join(java.io.File.pathSeparator, List.of(location(ObjectMapper.class),
                 location(com.fasterxml.jackson.core.JsonParser.class), location(com.fasterxml.jackson.annotation.JsonProperty.class)));
-        var compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
+        Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", pack.equals("V3.3.9") ? "11" : "17", "-encoding", "UTF-8", "-cp", classpath,
                 "-d", root.toString(), source.toString(), environment.toString(), autowired.toString())
                 .redirectErrorStream(true).redirectOutput(root.resolve("compiler.log").toFile()).start();
@@ -38,10 +41,10 @@ class StringCollectionRuntimeTest {
             assertThat(compiler.waitFor(30, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
             assertThat(compiler.exitValue()).withFailMessage(Files.readString(root.resolve("compiler.log"))).isZero();
         } finally { if (compiler.isAlive()) compiler.destroyForcibly(); }
-        try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
             Class<?> type = loader.loadClass("CollectionsProbe");
             Object probe = type.getConstructor().newInstance();
-            var field = type.getDeclaredField("studioEnvironment"); field.setAccessible(true);
+            Field field = type.getDeclaredField("studioEnvironment"); field.setAccessible(true);
             Map<String, String> values = new HashMap<>();
             values.put("list", StringCollectionValues.json(list)); values.put("map", StringCollectionValues.json(map));
             field.set(probe, java.lang.reflect.Proxy.newProxyInstance(loader, new Class<?>[]{field.getType()}, (p, method, args) -> {
@@ -74,7 +77,7 @@ class StringCollectionRuntimeTest {
         }
     }
     private String location(Class<?> type) throws Exception {
-        var resource = Objects.requireNonNull(type.getResource(type.getSimpleName() + ".class"),
+        URL resource = Objects.requireNonNull(type.getResource(type.getSimpleName() + ".class"),
                 "Missing class resource for " + type.getName());
         String url = resource.toExternalForm();
         if (url.contains("!/")) return Path.of(java.net.URI.create(url.substring(url.indexOf("file:"), url.indexOf("!/")))).toString();

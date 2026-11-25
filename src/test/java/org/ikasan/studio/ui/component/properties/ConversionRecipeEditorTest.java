@@ -6,12 +6,16 @@ import org.junit.jupiter.api.Test;
 import javax.swing.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
+import com.intellij.openapi.ui.ComboBox;
+import javax.swing.JTextArea;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 class ConversionRecipeEditorTest {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void showsOnlyApplicableSettingsAndPreservesHiddenDrafts(String pack) throws Exception {
-        var converter = TestFixtures.getCustomConverter(pack);
+        FlowElement converter = TestFixtures.getCustomConverter(pack);
         SwingUtilities.invokeAndWait(() -> {
             Map<String, ComponentPropertyEditRow> rows = new HashMap<>();
             for (String key : List.of("conversionRecipeId", "fromType", "toType", "recipeCharset",
@@ -20,9 +24,9 @@ class ConversionRecipeEditorTest {
                         new ComponentProperty(converter.getComponentMeta().getMetadata(key), converter.getPropertyValue(key)), false, () -> {}, rows));
             }
             ConversionRecipeEditor.bind(converter.getComponentMeta().getConversionRecipes(), rows, new JTextArea(), null, null);
-            var choice = rows.get("conversionRecipeId").getInputField().getPropertyChoiceValueField();
+            ComboBox<Object> choice = rows.get("conversionRecipeId").getInputField().getPropertyChoiceValueField();
             choice.setSelectedItem("jms-message-to-email-attachment");
-            var media = rows.get("recipeMediaType");
+            ComponentPropertyEditRow media = rows.get("recipeMediaType");
             media.getInputField().getPropertyValueField().setValue("image/png");
             assertTrue(media.getPropertyTitleField().isVisible());
             choice.setSelectedItem("jms-message-to-file-transfer-payload");
@@ -45,7 +49,7 @@ class ConversionRecipeEditorTest {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void defaultsToTheTopSuggestionOnANewDraft(String pack) throws Exception {
-        var converter = TestFixtures.getCustomConverter(pack);
+        FlowElement converter = TestFixtures.getCustomConverter(pack);
         SwingUtilities.invokeAndWait(() -> {
             assertDefault(converter, true, null, "java.lang.String", "org.ikasan.filetransfer.Payload", "string-to-file-transfer-payload");
             assertDefault(converter, false, null, "java.lang.String", "org.ikasan.filetransfer.Payload", null);
@@ -80,7 +84,7 @@ class ConversionRecipeEditorTest {
     }
 
     @Test void openingAnUnavailableSavedRecipePreservesIt() throws Exception {
-        var converter = TestFixtures.getCustomConverter("V4.1.6");
+        FlowElement converter = TestFixtures.getCustomConverter("V4.1.6");
         SwingUtilities.invokeAndWait(() -> {
             Map<String, ComponentPropertyEditRow> rows = new HashMap<>();
             rows.put("conversionRecipeId", new ComponentPropertyEditRow(null,
@@ -95,16 +99,16 @@ class ConversionRecipeEditorTest {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void selectionChangesOnlyDraftAndSwitchingTypesRequiresReselection(String pack) throws Exception {
-        var converter = TestFixtures.getCustomConverter(pack);
+        FlowElement converter = TestFixtures.getCustomConverter(pack);
         SwingUtilities.invokeAndWait(() -> {
             Map<String, ComponentPropertyEditRow> rows = new HashMap<>();
             for (String key : List.of("conversionRecipeId", "fromType", "toType", "recipeCharset")) {
-                var property = new ComponentProperty(converter.getComponentMeta().getMetadata(key), converter.getPropertyValue(key));
+                ComponentProperty property = new ComponentProperty(converter.getComponentMeta().getMetadata(key), converter.getPropertyValue(key));
                 rows.put(key, new ComponentPropertyEditRow(null, property, false));
             }
-            var details = new JTextArea();
+            JTextArea details = new JTextArea();
             ConversionRecipeEditor.bind(converter.getComponentMeta().getConversionRecipes(), rows, details, null, null);
-            var combo = rows.get("conversionRecipeId").getInputField().getPropertyChoiceValueField();
+            ComboBox<Object> combo = rows.get("conversionRecipeId").getInputField().getPropertyChoiceValueField();
             combo.setSelectedItem("string-to-email-attachment");
             assertEquals("java.lang.String", rows.get("fromType").getValue());
             assertEquals("org.ikasan.component.endpoint.email.producer.EmailPayload", rows.get("toType").getValue());
@@ -115,7 +119,7 @@ class ConversionRecipeEditorTest {
             assertTrue(ConversionRecipeEditor.validate(converter.getComponentMeta().getConversionRecipes(), rows).isEmpty());
             rows.get("toType").getInputField().getPropertyValueField().setValue("byte[]");
             assertFalse(ConversionRecipeEditor.validate(converter.getComponentMeta().getConversionRecipes(), rows).isEmpty());
-            for (var recipe : converter.getComponentMeta().getConversionRecipes()) {
+            for (ConversionRecipeMeta recipe : converter.getComponentMeta().getConversionRecipes()) {
                 combo.setSelectedItem(recipe.getId());
                 assertTrue(rows.get("fromType").doValidateAll().isEmpty(), recipe.getId());
                 assertTrue(rows.get("toType").doValidateAll().isEmpty(), recipe.getId());

@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.stream.Stream;
 
 class LayerBoundaryTest {
 
@@ -40,7 +41,7 @@ class LayerBoundaryTest {
     @SuppressWarnings("UseOptimizedEelFunctions")
     private static void assertSourcesDoNotContain(List<Path> roots, String... forbidden) throws Exception {
         for (Path root : roots) {
-            try (var files = Files.walk(root)) {
+            try (Stream<Path> files = Files.walk(root)) {
                 for (Path source : files.filter(path -> path.toString().endsWith(".java")).toList()) {
                     assertThat(Files.readString(source)).as("architecture boundary: %s", source)
                             .doesNotContain(forbidden);

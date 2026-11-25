@@ -16,23 +16,25 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Mockito.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.mockito.MockedStatic;
 
 public class ModelImporterJdkOrderingHeavyTest extends HeavyPlatformTestCase {
     public void testMavenRefreshFollowsCommittedGenerationAndJdkAlignment() throws Exception {
         String source = ModelTemplate.create(TestFixtures.getMyFirstModuleIkasanModule("V3.3.9", List.of()));
-        var completion = new CompletableFuture<Void>();
-        var order = new ArrayList<String>();
-        var sdk = mock(Sdk.class);
+        CompletableFuture<Void> completion = new CompletableFuture<>();
+        ArrayList<String> order = new ArrayList<>();
+        Sdk sdk = mock(Sdk.class);
         when(sdk.getName()).thenReturn("test-java-11");
-        var table = mock(ProjectJdkTable.class);
+        ProjectJdkTable table = mock(ProjectJdkTable.class);
         when(table.getAllJdks()).thenReturn(new Sdk[]{sdk});
-        var manager = mock(MavenProjectsManager.class);
+        MavenProjectsManager manager = mock(MavenProjectsManager.class);
         doAnswer(invocation -> { order.add("maven"); return null; }).when(manager).forceUpdateAllProjectsOrFindAllAvailablePomFiles();
-        try (var files = mockStatic(StudioProjectFiles.class);
-             var jdks = mockStatic(ProjectJdkTable.class);
-             var migration = mockStatic(MigrationJdk.class);
-             var maven = mockStatic(MavenProjectsManager.class);
-             var messages = mockStatic(StudioUIUtils.class)) {
+        try (MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class);
+             MockedStatic<ProjectJdkTable> jdks = mockStatic(ProjectJdkTable.class);
+             MockedStatic<MigrationJdk> migration = mockStatic(MigrationJdk.class);
+             MockedStatic<MavenProjectsManager> maven = mockStatic(MavenProjectsManager.class);
+             MockedStatic<StudioUIUtils> messages = mockStatic(StudioUIUtils.class)) {
             files.when(() -> StudioProjectFiles.refreshCodeFromModel(myProject, GenerationRequest.full(), false)).thenReturn(completion);
             jdks.when(ProjectJdkTable::getInstance).thenReturn(table);
             migration.when(() -> MigrationJdk.matches(sdk, 11)).thenReturn(true);
@@ -50,13 +52,13 @@ public class ModelImporterJdkOrderingHeavyTest extends HeavyPlatformTestCase {
 
     public void testFailedGenerationDoesNotReconfigureJdkOrRefreshMaven() throws Exception {
         String source = ModelTemplate.create(TestFixtures.getMyFirstModuleIkasanModule("V3.3.9", List.of()));
-        var completion = new CompletableFuture<Void>();
-        var manager = mock(MavenProjectsManager.class);
-        var warned = new java.util.concurrent.atomic.AtomicBoolean();
-        try (var files = mockStatic(StudioProjectFiles.class);
-             var migration = mockStatic(MigrationJdk.class);
-             var maven = mockStatic(MavenProjectsManager.class);
-             var messages = mockStatic(StudioUIUtils.class)) {
+        CompletableFuture<Void> completion = new CompletableFuture<>();
+        MavenProjectsManager manager = mock(MavenProjectsManager.class);
+        AtomicBoolean warned = new java.util.concurrent.atomic.AtomicBoolean();
+        try (MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class);
+             MockedStatic<MigrationJdk> migration = mockStatic(MigrationJdk.class);
+             MockedStatic<MavenProjectsManager> maven = mockStatic(MavenProjectsManager.class);
+             MockedStatic<StudioUIUtils> messages = mockStatic(StudioUIUtils.class)) {
             files.when(() -> StudioProjectFiles.refreshCodeFromModel(myProject, GenerationRequest.full(), false)).thenReturn(completion);
             maven.when(() -> MavenProjectsManager.getInstance(myProject)).thenReturn(manager);
             messages.when(() -> StudioUIUtils.displayIdeaWarnMessage(eq(myProject), anyString()))

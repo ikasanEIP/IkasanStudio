@@ -10,6 +10,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.Map.Entry;
 
 /** Detached clipboard data. Unlike saved transitions, the route tree also preserves unfinished flows. */
 public final class FlowClipboard {
@@ -70,7 +71,7 @@ public final class FlowClipboard {
         requireObject(source.path("files"));
         if (!source.path("packageName").isTextual()) throw new IOException("Missing source package");
         Map<String, String> files = new LinkedHashMap<>();
-        for (var field : source.get("files").properties()) {
+        for (Entry<String,JsonNode> field : source.get("files").properties()) {
             if (!field.getValue().isTextual()) throw new IOException("Invalid source text");
             files.put(field.getKey(), field.getValue().textValue());
         }
@@ -166,7 +167,7 @@ public final class FlowClipboard {
 
     private static Map<String, Object> element(FlowElement element) {
         Map<String, Object> result = properties(element);
-        var meta = element.getComponentMeta();
+        ComponentMeta meta = element.getComponentMeta();
         result.put(ComponentMeta.COMPONENT_TYPE_KEY, meta.getComponentType());
         result.put(ComponentMeta.IMPLEMENTING_CLASS_KEY, meta.getImplementingClass());
         if (meta.getAdditionalKey() != null) result.put(ComponentMeta.ADDITIONAL_KEY, meta.getAdditionalKey());
@@ -222,7 +223,7 @@ public final class FlowClipboard {
     private static boolean cannotPreserve(JsonNode actual, JsonNode expected) {
         if (actual == null) return true;
         if (expected.isObject()) {
-            for (var field : expected.properties()) {
+            for (Entry<String,JsonNode> field : expected.properties()) {
                 if (cannotPreserve(actual.get(field.getKey()), field.getValue())) return true;
             }
             return !actual.isObject();

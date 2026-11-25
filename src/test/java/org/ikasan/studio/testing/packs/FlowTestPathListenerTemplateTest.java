@@ -93,7 +93,7 @@ class FlowTestPathListenerTemplateTest {
                 """ + method + """
                     public static void main(String[] args) throws Exception {
                         Flow flow = new Flow();
-                        var harness = new Probe().testHarness(flow);
+                        IkasanFlowTestRule harness = new Probe().testHarness(flow);
                         try { harness.producer("output2"); throw new IllegalStateException("Typo accepted"); }
                         catch (AssertionError expected) {
                             if (!expected.getMessage().contains("Did you mean 'output 2'?")) throw expected;
@@ -136,13 +136,13 @@ class FlowTestPathListenerTemplateTest {
         Files.writeString(source, probe);
         Path log = temporary.resolve("probe.log");
         String bin = Path.of(System.getProperty("java.home"), "bin").toString();
-        var compile = new ProcessBuilder(bin + "/javac", "--release", "11", source.toString())
+        Process compile = new ProcessBuilder(bin + "/javac", "--release", "11", source.toString())
                 .redirectErrorStream(true).redirectOutput(log.toFile()).start();
         try {
             assertTrue(compile.waitFor(30, TimeUnit.SECONDS));
             assertEquals(0, compile.exitValue(), Files.readString(log));
         } finally { if (compile.isAlive()) compile.destroyForcibly(); }
-        var run = new ProcessBuilder(bin + "/java", "-cp", temporary.toString(), "Probe")
+        Process run = new ProcessBuilder(bin + "/java", "-cp", temporary.toString(), "Probe")
                 .redirectErrorStream(true).redirectOutput(log.toFile()).start();
         try {
             assertTrue(run.waitFor(30, TimeUnit.SECONDS));

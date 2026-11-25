@@ -38,7 +38,7 @@ public final class StartTestFtpServerAction implements ActionListener {
                     TestFtpServerService service = project.getService(TestFtpServerService.class);
                     boolean alreadyRunning = service.isRunningAt(configuration);
                     Path root = harnessOverride ? service.startLocal() : service.start(configuration);
-                    var actual = harnessOverride ? service.localConfiguration() : configuration;
+                    TestFtpServerConfiguration actual = harnessOverride ? service.localConfiguration() : configuration;
                     String statusMessage = alreadyRunning
                             ? StudioBundle.message("message.TestFtpServerAlreadyRunning", actual.address(), root)
                             : StudioBundle.message("message.StartingTestFtpServer", actual.address(), actual.username(), root);

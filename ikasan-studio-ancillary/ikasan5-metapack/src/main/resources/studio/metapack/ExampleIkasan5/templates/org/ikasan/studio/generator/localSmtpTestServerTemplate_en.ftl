@@ -109,7 +109,7 @@ public final class LocalSmtpTestServer implements AutoCloseable {
     public void assertBatchBodies(java.util.List<String> expectedBodies, Duration timeout) throws Exception {
         if (timeout.isNegative() || timeout.isZero())
             throw new IllegalArgumentException("Timeout must be positive");
-        var cumulative = new java.util.ArrayList<>(verifiedBodies);
+        java.util.List<String> cumulative = new java.util.ArrayList<>(verifiedBodies);
         cumulative.addAll(java.util.List.copyOf(expectedBodies));
         if (!cumulative.isEmpty() && !server.waitForIncomingEmail(timeout.toMillis(), cumulative.size()))
             throw new AssertionError("Expected " + cumulative.size() + " SMTP mailbox deliveries within " + timeout
@@ -123,7 +123,7 @@ public final class LocalSmtpTestServer implements AutoCloseable {
         }
         MimeMessage[] messages = receivedMessages();
         assertEquals("SMTP mailbox delivery count", cumulative.size(), messages.length);
-        var actual = new java.util.ArrayList<String>();
+        java.util.List<String> actual = new java.util.ArrayList<String>();
         for (MimeMessage message : messages) actual.add(textBody(message));
         java.util.Collections.sort(cumulative);
         actual.sort(java.util.Comparator.nullsFirst(java.util.Comparator.naturalOrder()));

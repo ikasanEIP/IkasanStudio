@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.Properties;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 
 @org.junit.jupiter.api.Tag("packs")
 public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixtures {
@@ -27,13 +30,13 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void emailProducersInSeparateBranchesHaveIndependentRecipientFields(String pack) throws Exception {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
-        var flow = TestFixtures.getUnbuiltFlow(pack).build();
+        Flow flow = TestFixtures.getUnbuiltFlow(pack).build();
         module.addFlow(flow);
         for (String name : java.util.List.of("Output 1", "Output 3")) {
             FlowElement producer = TestFixtures.getEmailProducer(pack);
             producer.setComponentName(name);
             producer.setPropertyValue("toRecipients", name.equals("Output 1") ? "[first@example.com]" : "[third@example.com]");
-            var route = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
+            FlowRoute route = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
                     .flow(flow).routeName(name).flowElements(java.util.List.of(producer)).build();
             producer.setContainingFlowRoute(route);
             flow.getFlowRoute().getChildRoutes().add(route);
@@ -54,10 +57,10 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void emailEnvironmentSettingsAreExternalizedPerComponent(String pack) throws Exception {
         Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
-        var flow = TestFixtures.getUnbuiltFlow(pack).build();
+        Flow flow = TestFixtures.getUnbuiltFlow(pack).build();
         module.addFlow(flow);
         for (String name : java.util.List.of("Output 1", "Output 2")) {
-            var producer = FlowElement.flowElementBuilder()
+            FlowElement producer = FlowElement.flowElementBuilder()
                     .componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Email Producer"))
                     .componentName(name).build();
             producer.setPropertyValue("toRecipient", name.equals("Output 1") ? "first@example.com" : "second@example.com");
@@ -69,7 +72,7 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
             flow.getFlowRoute().getFlowElements().add(producer);
         }
         String factory = FlowsComponentFactoryTemplate.create(TestFixtures.DEFAULT_PACKAGE, module, flow);
-        var properties = new java.util.Properties();
+        Properties properties = new java.util.Properties();
         properties.load(new java.io.StringReader(PropertiesTemplate.create(module)));
         for (int index = 1; index <= 2; index++) {
             String prefix = "myflow1.output" + index + ".email.producer.";
@@ -463,7 +466,7 @@ public class FlowsComponentFactoryTemplateTest extends AbstractGeneratorTestFixt
         flowElement.setPropertyValue("ftpsKeyStoreFilePassword", password);
         flowElement.setPropertyValue("ftpsKeyStoreFilePath", path);
         String factory = generateFlowsComponentFactoryTemplateString(metaPackVersion, module, flowElement);
-        var properties = new java.util.Properties();
+        Properties properties = new java.util.Properties();
         properties.load(new java.io.StringReader(PropertiesTemplate.create(module)));
         assertEquals(password, properties.getProperty("myflow1.myftpproducer.ftp.producer.ftpsKeyStoreFilePassword"));
         assertEquals(path, properties.getProperty("myflow1.myftpproducer.ftp.producer.ftpsKeyStoreFilePath"));

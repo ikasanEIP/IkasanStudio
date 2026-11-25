@@ -18,6 +18,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Objects;
+import com.intellij.openapi.projectRoots.Sdk;
+import org.ikasan.studio.core.migration.MigrationWorkspace.Change;
 
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
 final class MigrationPreviewDialog extends StudioDialogWrapper {
@@ -35,7 +37,7 @@ final class MigrationPreviewDialog extends StudioDialogWrapper {
         this.project = project;
         this.requiredJava = requiredJava;
         this.canApply = canApply;
-        for (var sdk : com.intellij.openapi.projectRoots.ProjectJdkTable.getInstance().getAllJdks()) {
+        for (Sdk sdk : com.intellij.openapi.projectRoots.ProjectJdkTable.getInstance().getAllJdks()) {
             if (MigrationJdk.matches(sdk, requiredJava)) jdks.addItem(sdk);
         }
         jdks.setRenderer(new DefaultListCellRenderer() {
@@ -87,7 +89,7 @@ final class MigrationPreviewDialog extends StudioDialogWrapper {
             paths.addListSelectionListener(event -> {
                 int index = paths.getSelectedIndex();
                 if (index < 0) return;
-                var change = changed.get(index);
+                Change change = changed.get(index);
                 diff.setRequest(new SimpleDiffRequest(change.path(),
                         DiffContentFactory.getInstance().create(project, change.beforeText()),
                         DiffContentFactory.getInstance().create(project, change.afterText()),

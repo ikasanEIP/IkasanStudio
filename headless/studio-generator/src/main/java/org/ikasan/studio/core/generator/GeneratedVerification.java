@@ -8,6 +8,12 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.Optional;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.Plugin;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /** Explicitly generated, frozen verification; ordinary application generation never calls this renderer. */
 public final class GeneratedVerification {
@@ -17,9 +23,9 @@ public final class GeneratedVerification {
 
     public static Bundle render(Module module, String modelJson, String parentXml, String applicationXml) throws Exception {
         if (module.getFlows().isEmpty()) throw new IllegalArgumentException("Add a flow before generating verification");
-        var reader = new MavenXpp3Reader();
-        var parent = reader.read(new StringReader(parentXml));
-        var application = reader.read(new StringReader(applicationXml));
+        MavenXpp3Reader reader = new MavenXpp3Reader();
+        Model parent = reader.read(new StringReader(parentXml));
+        Model application = reader.read(new StringReader(applicationXml));
         if (!"pom".equals(parent.getPackaging()) || parent.getGroupId() == null || parent.getVersion() == null)
             throw new IllegalArgumentException("Expected a Studio parent Maven POM");
         Map<String, Object> values = new LinkedHashMap<>();
@@ -33,11 +39,11 @@ public final class GeneratedVerification {
         values.put("fingerprint", fingerprint);
         Map<String, String> files = new LinkedHashMap<>();
         String javaRoot = "java/org/ikasan/studio/verification/";
-        for (var flow : module.getFlows()) {
+        for (Flow flow : module.getFlows()) {
             if (flow.getConsumer() == null) throw new IllegalArgumentException("Add a consumer to " + flow.getIdentity() + " before generating verification");
             values.put("flow", flow);
             List<Map<String, String>> components = new ArrayList<>();
-            for (var component : flow.getFlowElementsNoExternalEndPoints()) {
+            for (FlowElement component : flow.getFlowElementsNoExternalEndPoints()) {
                 String contract = component.getComponentMeta().getComponentType();
                 if (contract == null || contract.isBlank()) continue;
                 String implementation = component.getPropertyValueAsString("userImplementedClassName");
@@ -58,17 +64,17 @@ public final class GeneratedVerification {
         }
         files.put(javaRoot + "GeneratedVerificationSupport.java", FreemarkerUtils.generateFromTemplate(module.getMetaVersion(),
                 "generatedVerificationSupport_en.ftl", values));
-        var testConfiguration = reader.read(new StringReader(FreemarkerUtils.generateFromTemplate(module.getMetaVersion(),
+        Model testConfiguration = reader.read(new StringReader(FreemarkerUtils.generateFromTemplate(module.getMetaVersion(),
                 "generatedVerificationMaven_en.ftl", values)));
-        for (var dependency : testConfiguration.getDependencies()) {
+        for (Dependency dependency : testConfiguration.getDependencies()) {
             if (application.getDependencies().stream().noneMatch(d -> d.getGroupId().equals(dependency.getGroupId())
                     && d.getArtifactId().equals(dependency.getArtifactId()))) application.addDependency(dependency);
         }
         if (application.getBuild() == null) application.setBuild(new org.apache.maven.model.Build());
-        for (var plugin : testConfiguration.getBuild().getPlugins()) {
-            var existing = application.getBuild().getPlugins().stream().filter(p -> p.getKey().equals(plugin.getKey())).findFirst();
+        for (Plugin plugin : testConfiguration.getBuild().getPlugins()) {
+            Optional<Plugin> existing = application.getBuild().getPlugins().stream().filter(p -> p.getKey().equals(plugin.getKey())).findFirst();
             if (existing.isEmpty()) application.getBuild().addPlugin(plugin);
-            else for (var dependency : plugin.getDependencies()) {
+            else for (Dependency dependency : plugin.getDependencies()) {
                 if (existing.get().getDependencies().stream().noneMatch(d -> d.getManagementKey().equals(dependency.getManagementKey())))
                     existing.get().addDependency(dependency);
             }

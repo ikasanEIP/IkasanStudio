@@ -7,6 +7,10 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
+import java.lang.reflect.Method;
+import java.net.URLClassLoader;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runners.model.Statement;
 
 /** Compiles the shipped helper and exercises real FTP, without launching an IntelliJ project. */
 class LocalFtpFlowTestFixtureTest {
@@ -44,12 +48,12 @@ class LocalFtpFlowTestFixtureTest {
                 .redirectErrorStream(true).start();
         String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
-        try (var loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()}, getClass().getClassLoader())) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()}, getClass().getClassLoader())) {
             Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.utils.LocalFtpTestServer");
             for (boolean failScenario : List.of(false, true)) {
-                var folder = org.junit.rules.TemporaryFolder.builder().assureDeletion().build();
+                TemporaryFolder folder = org.junit.rules.TemporaryFolder.builder().assureDeletion().build();
                 Path[] testRoot = new Path[1];
-                var statement = new org.junit.runners.model.Statement() {
+                Statement statement = new org.junit.runners.model.Statement() {
                     @Override public void evaluate() throws Throwable {
                         testRoot[0] = folder.getRoot().toPath();
                         Path home;
@@ -57,7 +61,7 @@ class LocalFtpFlowTestFixtureTest {
             try (AutoCloseable server = (AutoCloseable) type.getMethod("start", Map.class, Path.class).invoke(null, Map.of(), folder.newFolder().toPath());
                  AutoCloseable second = (AutoCloseable) type.getMethod("start", Map.class, Path.class).invoke(null, Map.of(), folder.newFolder().toPath())) {
                 Consumer consumer = new Consumer();
-                var configureConsumer = type.getMethod("configureConsumer", Object.class, Map.class);
+                Method configureConsumer = type.getMethod("configureConsumer", Object.class, Map.class);
                 configureConsumer.invoke(server, consumer, Map.of());
                 assertEquals(0L, consumer.config.minAge);
                 configureConsumer.invoke(server, consumer, Map.of("test.ftp.consumer.min-age-seconds", "5"));
@@ -93,9 +97,9 @@ class LocalFtpFlowTestFixtureTest {
                         if (failScenario) throw new AssertionError("deliberate scenario failure");
                     }
                 };
-                var execution = folder.apply(statement, org.junit.runner.Description.EMPTY);
+                Statement execution = folder.apply(statement, org.junit.runner.Description.EMPTY);
                 if (failScenario) {
-                    var failure = assertThrows(AssertionError.class, execution::evaluate);
+                    AssertionError failure = assertThrows(AssertionError.class, execution::evaluate);
                     assertEquals("deliberate scenario failure", failure.getMessage());
                 } else execution.evaluate();
                 assertFalse(Files.exists(testRoot[0]), "JUnit must remove both FTP homes after success or failure");

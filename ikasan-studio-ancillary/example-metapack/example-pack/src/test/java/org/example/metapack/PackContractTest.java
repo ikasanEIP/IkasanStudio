@@ -29,11 +29,11 @@ class PackContractTest extends MetaPackContract {
         return FlowElementFactory.createFlowElement(packId(), ComponentLibrary.getIkasanComponentByKeyMandatory(packId(), type), flow, flow.getFlowRoute(), name);
     }
     @Test void generatorApiDeclarationCoversTheCopiedBaseline() throws Exception {
-        var json = new com.fasterxml.jackson.databind.ObjectMapper();
-        var baseline = json.readTree(Path.of("target/baseline/studio/metapack/V4.1.6/metapack.json").toFile());
-        try (var input = getClass().getResourceAsStream("/studio/metapack/ExampleIkasan4/metapack.json")) {
+        com.fasterxml.jackson.databind.ObjectMapper json = new com.fasterxml.jackson.databind.ObjectMapper();
+        com.fasterxml.jackson.databind.JsonNode baseline = json.readTree(Path.of("target/baseline/studio/metapack/V4.1.6/metapack.json").toFile());
+        try (java.io.InputStream input = getClass().getResourceAsStream("/studio/metapack/ExampleIkasan4/metapack.json")) {
             assertNotNull(input);
-            var example = json.readTree(input);
+            com.fasterxml.jackson.databind.JsonNode example = json.readTree(input);
             int required = baseline.path("generatorApiVersion").asInt(1);
             assertTrue(example.path("generatorApiVersion").asInt(1) >= required,
                 "The example copies the baseline's descriptors and templates and must declare at least generator API " + required);
@@ -49,7 +49,7 @@ class PackContractTest extends MetaPackContract {
         Path source = Path.of("target/compiled-sample/org/example/application/ComponentFactoryGreeting.java");
         Files.createDirectories(source.getParent());
         Files.writeString(source, factory);
-        var diagnostics = new java.io.ByteArrayOutputStream();
+        java.io.ByteArrayOutputStream diagnostics = new java.io.ByteArrayOutputStream();
         int result = javax.tools.ToolProvider.getSystemJavaCompiler().run(null, diagnostics, diagnostics,
             "-classpath", System.getProperty("java.class.path"), "-d", "target/compiled-sample", source.toString());
         assertEquals(0, result, diagnostics.toString(java.nio.charset.StandardCharsets.UTF_8));

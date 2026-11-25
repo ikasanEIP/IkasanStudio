@@ -26,6 +26,10 @@ import javax.swing.SpinnerNumberModel;
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import com.intellij.ui.components.JBScrollPane;
+import java.awt.Container;
+import java.awt.Insets;
+import javax.swing.text.View;
 
 /** Provides the Ikasan Studio settings page under Settings → Tools → Ikasan Studio. */
 // Local-IDE settings UI; remote Split Mode requires a frontend UI and RPC service boundary.
@@ -208,7 +212,7 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         panel.add(northPanel, BorderLayout.NORTH);
 
         reset();
-        var scrollPane = new com.intellij.ui.components.JBScrollPane(panel);
+        JBScrollPane scrollPane = new com.intellij.ui.components.JBScrollPane(panel);
         scrollPane.setBorder(JBUI.Borders.empty());
         scrollPane.getAccessibleContext().setAccessibleName(getDisplayName());
         org.ikasan.studio.ui.StudioTextCopySupport.install(scrollPane);
@@ -348,15 +352,15 @@ public class IkasanStudioSettingsConfigurable implements Configurable {
         JLabel note = new JBLabel("<html>" + com.intellij.openapi.util.text.StringUtil.escapeXmlEntities(
                 StudioBundle.message(messageKey)).replace("\n", "<br>") + "</html>") {
             @Override public java.awt.Dimension getPreferredSize() {
-                var parent = getParent();
+                Container parent = getParent();
                 int width = JBUI.scale(500);
                 if (parent != null && parent.getWidth() > 0) {
-                    var padding = parent.getInsets();
+                    Insets padding = parent.getInsets();
                     width = Math.max(1, parent.getWidth() - padding.left - padding.right);
                 }
-                var view = (javax.swing.text.View) getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
+                View view = (javax.swing.text.View) getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
                 if (view == null) return super.getPreferredSize();
-                var padding = getInsets();
+                Insets padding = getInsets();
                 view.setSize(Math.max(1, width - padding.left - padding.right), 0);
                 return new java.awt.Dimension(width,
                         (int) Math.ceil(view.getPreferredSpan(javax.swing.text.View.Y_AXIS)) + padding.top + padding.bottom);

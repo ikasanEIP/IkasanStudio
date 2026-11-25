@@ -17,6 +17,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
+import com.intellij.openapi.editor.Document;
+import java.lang.reflect.Method;
+import java.nio.file.Path;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.persistence.json.FlowClipboard.Sources;
 
 public class FlowSourceTransferHeavyTest extends HeavyPlatformTestCase {
     static {
@@ -34,22 +39,22 @@ public class FlowSourceTransferHeavyTest extends HeavyPlatformTestCase {
     public void testCopiesUnsavedImplementationAndSubpackageHelpersToDifferentPackageAndCompiles() throws Exception {
         write("example.source.orders", "Convert", "package example.source.orders; public class Convert { public String run() { return \"SAVED\"; } }");
         write("example.source.orders.helpers", "Helper", "package example.source.orders.helpers; public class Helper { public static String value() { return \"HAND_WRITTEN\"; } }");
-        var document = FileDocumentManager.getInstance().getDocument(file("example.source.orders", "Convert"));
+        Document document = FileDocumentManager.getInstance().getDocument(file("example.source.orders", "Convert"));
         assertNotNull(document);
         String unsaved = "package example.source.orders; import example.source.orders.helpers.Helper; public class Convert { public String run() { return Helper.value() + example.source.orders.helpers.Helper.value(); } }";
         WriteCommandAction.runWriteCommandAction(myProject, () -> document.setText(unsaved));
-        var copied = ReadAction.compute(() -> FlowSourceTransfer.capture(myProject, "example.source.orders"));
+        Sources copied = ReadAction.compute(() -> FlowSourceTransfer.capture(myProject, "example.source.orders"));
         assertEquals(2, copied.files().size());
         assertEquals(unsaved, copied.files().get("Convert.java"));
-        var relocated = ReadAction.compute(() -> FlowSourceTransfer.relocate(myProject, copied, "another.project.orderscopy"));
+        Sources relocated = ReadAction.compute(() -> FlowSourceTransfer.relocate(myProject, copied, "another.project.orderscopy"));
         FlowSourceTransfer.install(myProject, relocated);
         assertEquals(unsaved, document.getText());
         assertTrue(text("another.project.orderscopy", "Convert").contains("import another.project.orderscopy.helpers.Helper;"));
         assertTrue(text("another.project.orderscopy", "Convert").contains("another.project.orderscopy.helpers.Helper.value()"));
         assertTrue(text("another.project.orderscopy.helpers", "Helper").contains("HAND_WRITTEN"));
-        var output = Files.createTempDirectory("flow-copy-compile");
+        Path output = Files.createTempDirectory("flow-copy-compile");
         try {
-            var compilerLog = output.resolve("javac.txt");
+            Path compilerLog = output.resolve("javac.txt");
             Process compiler = new ProcessBuilder("javac", "-d", output.toString(),
                     file("another.project.orderscopy", "Convert").getPath(), file("another.project.orderscopy.helpers", "Helper").getPath())
                     .redirectErrorStream(true).redirectOutput(compilerLog.toFile()).start();
@@ -67,8 +72,8 @@ public class FlowSourceTransferHeavyTest extends HeavyPlatformTestCase {
                 + "@javax.annotation.Resource(name=\"example.flow.Helper\") Object helper; "
                 + "@org.springframework.beans.factory.annotation.Qualifier(\"custom-bean\") Object custom; "
                 + "String text = \"example.flow.Helper\"; /* example.flow.Helper */ }";
-        var copied = new FlowClipboard.Sources("example.flow", Map.of("Implementation.java", source));
-        var relocated = ReadAction.compute(() -> FlowSourceTransfer.relocate(myProject, copied, "dest.renamed"));
+        Sources copied = new FlowClipboard.Sources("example.flow", Map.of("Implementation.java", source));
+        Sources relocated = ReadAction.compute(() -> FlowSourceTransfer.relocate(myProject, copied, "dest.renamed"));
         String result = relocated.files().get("Implementation.java");
         assertTrue(result.contains("package dest.renamed;"));
         assertTrue(result.contains("import dest.renamed.Helper;"));
@@ -82,20 +87,20 @@ public class FlowSourceTransferHeavyTest extends HeavyPlatformTestCase {
 
     public void testCollisionAndFailedWriteDoNotReplaceOrLeavePartialSources() throws Exception {
         write("dest.existing", "Implementation", "package dest.existing; class Implementation { /* KEEP */ }");
-        var conflict = new FlowClipboard.Sources("dest.existing", Map.of("Implementation.java", "replacement"));
+        Sources conflict = new FlowClipboard.Sources("dest.existing", Map.of("Implementation.java", "replacement"));
         try { FlowSourceTransfer.install(myProject, conflict); fail("Expected collision"); }
         catch (FlowSourceTransfer.DestinationExists expected) { assertEquals("dest.existing", expected.packageName); }
         assertTrue(text("dest.existing", "Implementation").contains("KEEP"));
-        var sources = new FlowClipboard.Sources("dest.failed", Map.of("A.java", "package dest.failed; class A {}", "B.java", "package dest.failed; class B {}"));
+        Sources sources = new FlowClipboard.Sources("dest.failed", Map.of("A.java", "package dest.failed; class A {}", "B.java", "package dest.failed; class B {}"));
         try {
             FlowSourceTransfer.install(myProject, sources, path -> { if (path.equals("B.java")) throw new IOException("Injected failure"); });
             fail("Expected write failure");
         } catch (IOException expected) { assertEquals("Injected failure", expected.getMessage()); }
         assertNull(file("dest.failed", "A"));
-        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);
         assertNull(base.findFileByRelativePath("user/src/main/java/dest/failed"));
-        var badPackage = new FlowClipboard.Sources("example.flow", Map.of("Wrong.java", "package unrelated; class Wrong {}"));
+        Sources badPackage = new FlowClipboard.Sources("example.flow", Map.of("Wrong.java", "package unrelated; class Wrong {}"));
         try { ReadAction.compute(() -> FlowSourceTransfer.relocate(myProject, badPackage, "dest.newflow")); fail("Expected package mismatch"); }
         catch (IOException expected) { assertTrue(expected.getMessage().contains("package")); }
     }
@@ -107,7 +112,7 @@ public class FlowSourceTransferHeavyTest extends HeavyPlatformTestCase {
         pasted.setName("Copied Flow");
         Module module = TestFixtures.getMyFirstModuleIkasanModule(version, List.of(pasted));
         String pkg = GeneratorUtils.getUserImplementedClassesPackageName(module, pasted);
-        var converter = pasted.getFlowElementsNoExternalEndPoints().stream()
+        FlowElement converter = pasted.getFlowElementsNoExternalEndPoints().stream()
                 .filter(component -> component.getPropertyValue("userImplementedClassName") instanceof String).findFirst().orElseThrow();
         String name = converter.getPropertyValue("userImplementedClassName").toString();
         String code = "package " + pkg + "; public class " + name + " { public String convert() { return \"BESPOKE_BODY\"; } }";
@@ -115,7 +120,7 @@ public class FlowSourceTransferHeavyTest extends HeavyPlatformTestCase {
         UiContext context = myProject.getService(UiContext.class);
         context.setIkasanModule(module);
         context.setViewHandlerFactory(new ViewHandlerCache(myProject));
-        var generate = GeneratedProjectSynchronizer.class.getDeclaredMethod("generateAndSaveUserImplementClassStubsForFlow", com.intellij.openapi.project.Project.class, Module.class, Flow.class);
+        Method generate = GeneratedProjectSynchronizer.class.getDeclaredMethod("generateAndSaveUserImplementClassStubsForFlow", com.intellij.openapi.project.Project.class, Module.class, Flow.class);
         generate.setAccessible(true);
         for (int attempt = 0; attempt < 2; attempt++) {
             GenerationTransactionManager.begin();

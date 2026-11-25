@@ -13,13 +13,15 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 public class StudioBuildUtilsTest {
     @Test
     void configurationConversionDoesNotPrintCredentials() {
         java.io.PrintStream original = System.out;
-        var output = new java.io.ByteArrayOutputStream();
-        try (var capture = new java.io.PrintStream(output)) {
+        ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
+        try (PrintStream capture = new java.io.PrintStream(output)) {
             System.setOut(capture);
             Map<String, String> properties = StudioBuildUtils.convertStringToMap("password=CANARY_SECRET\ncopy=${password}");
             assertEquals("CANARY_SECRET", properties.get("copy"));
@@ -194,7 +196,7 @@ public class StudioBuildUtilsTest {
      */
     @Test
     public void testEscapeSpringPropertiesValue_escapesNonAsciiSoItSurvivesAnIso88591Reader() throws IOException {
-        String original = "/donn\u00e9es/\u65e5\u672c\u8a9e/\u20ac \ud83d\ude00";
+        String original = "/données/日本語/€ \ud83d\ude00";
         String escaped = StudioBuildUtils.escapeSpringPropertiesValue(original);
 
         assertThat("only ASCII may remain, so the file reads the same in any charset",
@@ -207,7 +209,7 @@ public class StudioBuildUtilsTest {
 
     @Test
     public void testEscapeSpringPropertiesMapKey_escapesNonAsciiAndSpaces() throws IOException {
-        String original = "Caf\u00e9 \u65e5\u672c Flow";
+        String original = "Café 日本 Flow";
         String escaped = StudioBuildUtils.escapeSpringPropertiesMapKey(original);
 
         assertThat(escaped.chars().allMatch(c -> c < 0x7f), is(true));
@@ -223,8 +225,8 @@ public class StudioBuildUtilsTest {
     @Test
     public void testToUrlString_isAsciiSoTheGeneratedAndClientPathsAgree() {
         assertThat(StudioBuildUtils.toUrlString("My Module - One"), is("my-module-one"));
-        assertThat(StudioBuildUtils.toUrlString("Caf\u00e9 Orders"), is("cafe-orders"));
-        assertThat(StudioBuildUtils.toUrlString("\u65e5\u672c\u8a9e"), is("module"));
+        assertThat(StudioBuildUtils.toUrlString("Café Orders"), is("cafe-orders"));
+        assertThat(StudioBuildUtils.toUrlString("日本語"), is("module"));
         assertThat(StudioBuildUtils.toUrlString(""), is(""));
         assertThat(StudioBuildUtils.toUrlString(null), org.hamcrest.CoreMatchers.nullValue());
     }
@@ -240,7 +242,7 @@ public class StudioBuildUtilsTest {
         assertThat(StudioBuildUtils.toUrlString("Payments: EU, phase=2"), is("payments-eu-phase-2"));
         assertThat(StudioBuildUtils.toUrlString("Orders #2"), is("orders-2"));
         assertThat(StudioBuildUtils.toUrlString("100% what?"), is("100-what-"));
-        assertThat(StudioBuildUtils.toUrlString("Caf\u00e9 \"Orders\" \\ \u65e5\u672c"), is("cafe-orders-"));
+        assertThat(StudioBuildUtils.toUrlString("Café \"Orders\" \\ 日本"), is("cafe-orders-"));
         assertThat(StudioBuildUtils.toUrlString("a<b>|c"), is("a-b-c"));
         // Valid in a URL path and in a JMX name, so unchanged.
         assertThat(StudioBuildUtils.toUrlString("R&D (EU) Team's +1 @home"), is("r&d-(eu)-team's-+1-@home"));
@@ -270,7 +272,7 @@ public class StudioBuildUtilsTest {
         // Unchanged: these already work today, so the database folder must not move.
         assertThat(StudioBuildUtils.toDatabaseFolderName("MyModule"), is("MyModule"));
         assertThat(StudioBuildUtils.toDatabaseFolderName("demo1-db_v2.x"), is("demo1-db_v2.x"));
-        assertThat(StudioBuildUtils.toDatabaseFolderName("Caf\u00e9 R&D (EU)"), is("Caf\u00e9_R&D_(EU)"));
+        assertThat(StudioBuildUtils.toDatabaseFolderName("Café R&D (EU)"), is("Café_R&D_(EU)"));
         assertThat(StudioBuildUtils.toDatabaseFolderName(null), is(""));
     }
 }

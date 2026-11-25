@@ -14,6 +14,7 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.nio.file.Path;
 
 @org.junit.jupiter.api.Tag("packs")
 public class StudioInjectControllerTemplateTest {
@@ -28,13 +29,13 @@ public class StudioInjectControllerTemplateTest {
     @ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void exportLocalFileTestController(String version) throws Exception {
-        var module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
         String generated = StudioInjectControllerTemplate.create(module);
         org.junit.jupiter.api.Assertions.assertTrue(generated.contains("ScheduledComponent && !selectedLocalFiles"));
         org.junit.jupiter.api.Assertions.assertTrue(generated.contains("invokeInTransaction(flow, event)"));
         String export = System.getenv("STUDIO_INJECT_EXPORT");
         if (export != null) {
-            var directory = java.nio.file.Path.of(export, version);
+            Path directory = java.nio.file.Path.of(export, version);
             java.nio.file.Files.createDirectories(directory);
             java.nio.file.Files.writeString(directory.resolve("StudioInjectController.java"), generated);
         }

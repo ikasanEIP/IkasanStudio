@@ -4,6 +4,7 @@ import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import javax.swing.text.View;
+import java.awt.Insets;
 
 /** Measures wrapped guidance at a useful width before the dialog has been laid out. */
 final class StudioAiConnectionText extends JBTextArea {
@@ -12,7 +13,7 @@ final class StudioAiConnectionText extends JBTextArea {
     @Override public Dimension getPreferredSize() {
         if (!getLineWrap() || getUI() == null) return super.getPreferredSize();
         int width = getWidth() > 0 ? getWidth() : JBUI.scale(740);
-        var insets = getInsets();
+        Insets insets = getInsets();
         View view = getUI().getRootView(this);
         view.setSize(Math.max(1, width - insets.left - insets.right), Integer.MAX_VALUE);
         int height = (int) Math.ceil(view.getPreferredSpan(View.Y_AXIS)) + insets.top + insets.bottom;

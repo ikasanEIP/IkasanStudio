@@ -316,6 +316,7 @@ public class DesignerUI implements Disposable {
                     initialisationPanel.showLoadingComponents();
                     completeInitialisation(project.getService(UiContext.class));
                 }
+                case UPDATE_AVAILABLE -> initialisationPanel.showUpdateAvailable(detail);
                 case FAILED -> initialisationPanel.showFailure(detail, initialisationService.getValidModelBackupIndexes());
                 default -> { }
             }

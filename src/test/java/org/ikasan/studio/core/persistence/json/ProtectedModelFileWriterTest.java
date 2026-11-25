@@ -13,6 +13,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
 class ProtectedModelFileWriterTest {
     @TempDir
@@ -76,7 +82,7 @@ class ProtectedModelFileWriterTest {
         }));
 
         assertEquals("{\"revision\":1}", Files.readString(model));
-        try (var files = Files.list(directory)) {
+        try (Stream<Path> files = Files.list(directory)) {
             assertFalse(files.anyMatch(path -> path.getFileName().toString().endsWith(".tmp")));
         }
     }
@@ -140,7 +146,7 @@ class ProtectedModelFileWriterTest {
         assertEquals("{\"revision\":1}", Files.readString(model));
         assertEquals("{\"revision\":1}", Files.readString(directory.resolve("model.json.bak.1")));
         assertEquals("// developer implementation", Files.readString(user));
-        try (var files = Files.list(directory)) {
+        try (Stream<Path> files = Files.list(directory)) {
             assertFalse(files.anyMatch(path -> path.toString().endsWith(".tmp")));
         }
         ProtectedModelFileWriter.write(model, "{\"revision\":3}", objectValidator);
@@ -150,9 +156,9 @@ class ProtectedModelFileWriterTest {
     @Test
     void concurrentSavesKeepEveryBackupValidAndReleaseLockAfterFailure() throws Exception {
         Path model = model("{\"revision\":0}");
-        var pool = java.util.concurrent.Executors.newFixedThreadPool(4);
+        ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(4);
         try {
-            var jobs = new java.util.ArrayList<java.util.concurrent.Future<?>>();
+            ArrayList<Future<?>> jobs = new java.util.ArrayList<>();
             for (int i = 1; i <= 20; i++) {
                 final int revision = i;
                 jobs.add(pool.submit(() -> {
@@ -160,9 +166,9 @@ class ProtectedModelFileWriterTest {
                     catch (IOException failure) { throw new java.io.UncheckedIOException(failure); }
                 }));
             }
-            for (var job : jobs) job.get(10, java.util.concurrent.TimeUnit.SECONDS);
-            var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            var revisions = new java.util.HashSet<Integer>();
+            for (Future<?> job : jobs) job.get(10, java.util.concurrent.TimeUnit.SECONDS);
+            ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            HashSet<Integer> revisions = new java.util.HashSet<>();
             revisions.add(mapper.readTree(Files.readString(model)).get("revision").asInt());
             for (int i = 1; i <= 3; i++) {
                 revisions.add(mapper.readTree(Files.readString(directory.resolve("model.json.bak." + i))).get("revision").asInt());

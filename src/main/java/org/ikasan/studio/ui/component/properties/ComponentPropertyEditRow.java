@@ -242,7 +242,7 @@ public class ComponentPropertyEditRow {
                 chooseValueButton = new JButton(StudioBundle.message("collection.Edit"));
                 chooseValueButton.setEnabled(!meta.isReadOnlyProperty());
                 chooseValueButton.addActionListener(e -> {
-                    var dialog = new StringCollectionDialog(project, meta, getValue());
+                    StringCollectionDialog dialog = new StringCollectionDialog(project, meta, getValue());
                     if (dialog.showAndGet()) {
                         Object edited = dialog.value();
                         showingDefaultOnly = false;

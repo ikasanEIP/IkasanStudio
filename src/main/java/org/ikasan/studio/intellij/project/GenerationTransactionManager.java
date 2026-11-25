@@ -19,6 +19,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import org.ikasan.studio.intellij.project.GenerationBatch.Artifact;
 
 /** Stages, validates, commits and—on failure—rolls back one coherent source-generation update. */
 final class GenerationTransactionManager {
@@ -162,8 +165,8 @@ final class GenerationTransactionManager {
                             com.intellij.openapi.editor.Document document, long documentStamp) {
         void verifyUnchanged(VirtualFile baseDir) {
             VirtualFile current = baseDir.findFileByRelativePath(path);
-            var manager = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
-            var currentDocument = current == null ? null : manager.getCachedDocument(current);
+            FileDocumentManager manager = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
+            Document currentDocument = current == null ? null : manager.getCachedDocument(current);
             if (!java.util.Objects.equals(current, file) || (file != null && (!file.isValid() || file.getModificationStamp() != stamp))
                     || (document != null && (currentDocument != document || document.getModificationStamp() != documentStamp))
                     || (document == null && currentDocument != null && manager.isDocumentUnsaved(currentDocument)))
@@ -180,14 +183,14 @@ final class GenerationTransactionManager {
             try {
                 // A pending write may restart this read. Publish only a complete attempt so
                 // rollback snapshots cannot be duplicated or retain bytes from an aborted read.
-                var prepared = com.intellij.openapi.application.ReadAction.nonBlocking(() -> {
+                List<org.ikasan.studio.intellij.project.GenerationTransactionManager.Snapshot> prepared = com.intellij.openapi.application.ReadAction.nonBlocking(() -> {
                     List<Snapshot> attempt = new ArrayList<>();
-                    for (var artifact : artifacts) {
+                    for (Artifact artifact : artifacts) {
                         com.intellij.openapi.progress.ProgressManager.checkCanceled();
                         VirtualFile file = baseDir.findFileByRelativePath(artifact.relativePath());
                         try {
                             byte[] bytes = file == null ? null : readBytes(file);
-                            var document = file == null ? null : com.intellij.openapi.fileEditor.FileDocumentManager.getInstance().getCachedDocument(file);
+                            Document document = file == null ? null : com.intellij.openapi.fileEditor.FileDocumentManager.getInstance().getCachedDocument(file);
                             Snapshot snapshot = new Snapshot(artifact.relativePath(), file, bytes, file == null ? -1 : file.getModificationStamp(),
                                     document, document == null ? -1 : document.getModificationStamp());
                             snapshot.verifyUnchanged(baseDir);

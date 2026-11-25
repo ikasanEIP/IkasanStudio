@@ -19,6 +19,7 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.nio.ByteBuffer;
 
 /**
  * Shared HTTP client for GETting a running module's own Ikasan REST interface - {@code /rest/moduleControl/...}
@@ -253,7 +254,7 @@ public final class ModuleControlClient {
         }
         @Override public void onNext(List<java.nio.ByteBuffer> buffers) {
             if (failed) return;
-            for (var buffer : buffers) bytes += buffer.remaining();
+            for (ByteBuffer buffer : buffers) bytes += buffer.remaining();
             if (bytes > 4 * 1024 * 1024) {
                 failed = true;
                 subscription.cancel();

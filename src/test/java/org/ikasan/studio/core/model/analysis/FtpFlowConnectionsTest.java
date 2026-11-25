@@ -12,6 +12,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.ikasan.studio.core.TestFixtures.*;
+import org.ikasan.studio.core.model.analysis.FtpFlowConnections.Link;
 
 class FtpFlowConnectionsTest {
     private FlowElement producer;
@@ -43,9 +44,9 @@ class FtpFlowConnectionsTest {
 
     @Test
     void matchesAndShowsOnlySelectedEndpointsUnlessShowAllIsEnabled() {
-        var links = FtpFlowConnections.findMatchingLinks(module);
+        List<Link> links = FtpFlowConnections.findMatchingLinks(module);
         assertThat(links).hasSize(1);
-        var link = links.get(0);
+        Link link = links.get(0);
         assertThat(link.endpoint().address()).isEqualTo("ftp://files.example:1024 /inbox");
         assertThat(link.isVisible(producer, false)).isTrue();
         assertThat(link.isVisible(consumer, false)).isTrue();

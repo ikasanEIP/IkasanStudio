@@ -10,6 +10,11 @@ import org.jetbrains.plugins.terminal.TerminalToolWindowManager;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.terminal.ui.TerminalWidget;
+import com.intellij.ui.content.Content;
+import java.lang.ProcessHandle.Info;
+import java.util.stream.Stream;
 
 /** Recovers process identity from this project's terminal, never from a process name alone. */
 final class MailHarnessProcessRecovery {
@@ -17,13 +22,13 @@ final class MailHarnessProcessRecovery {
 
     /** Called on the EDT; process enumeration happens later in the background task. */
     static ProcessHandle terminalShell(Project project) {
-        var window = ToolWindowManager.getInstance(project).getToolWindow(TerminalToolWindowFactory.TOOL_WINDOW_ID);
+        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(TerminalToolWindowFactory.TOOL_WINDOW_ID);
         if (window == null) return null;
-        var content = window.getContentManager().findContent(TestMailServerSupport.TERMINAL_TAB_TITLE);
+        Content content = window.getContentManager().findContent(TestMailServerSupport.TERMINAL_TAB_TITLE);
         if (content == null) return null;
-        var widget = TerminalToolWindowManager.findWidgetByContent(content);
+        TerminalWidget widget = TerminalToolWindowManager.findWidgetByContent(content);
         if (widget == null) return null;
-        var shell = ShellTerminalWidget.asShellJediTermWidget(widget);
+        ShellTerminalWidget shell = ShellTerminalWidget.asShellJediTermWidget(widget);
         if (shell == null || shell.getProcessTtyConnector() == null) return null;
         // IntelliJ's PTY process exposes pid(), but does not implement Process.toHandle().
         return ProcessHandle.of(shell.getProcessTtyConnector().getProcess().pid()).orElse(null);
@@ -32,9 +37,9 @@ final class MailHarnessProcessRecovery {
     static ProcessHandle findHarness(ProcessHandle shell, String host, int port) {
         if (shell == null || !shell.isAlive()) return null;
         Path cache = Path.of(PathManager.getSystemPath(), "ikasan-studio", "mailhog");
-        try (var descendants = shell.descendants()) {
+        try (Stream<ProcessHandle> descendants = shell.descendants()) {
             List<ProcessHandle> matches = descendants.filter(process -> {
-                var info = process.info();
+                Info info = process.info();
                 return matchesLaunch(cache, info.command().orElse(""), info.arguments().orElse(new String[0]), host, port);
             }).limit(2).toList();
             return matches.size() == 1 ? matches.get(0) : null;
@@ -47,7 +52,7 @@ final class MailHarnessProcessRecovery {
         if (!cache.toAbsolutePath().normalize().equals(binary.getParent())) return false;
         if (!List.of("MailHog_linux_amd64", "MailHog_linux_386", "MailHog_linux_arm", "MailHog_darwin_amd64",
                 "MailHog_windows_amd64.exe", "MailHog_windows_386.exe").contains(binary.getFileName().toString())) return false;
-        var args = Arrays.asList(arguments);
+        List<String> args = Arrays.asList(arguments);
         return address(args, "-smtp-bind-addr").equals(normalize(host + ":" + port))
                 && address(args, "-api-bind-addr").equals(TestMailServerSupport.UI_HOST + ":" + TestMailServerSupport.UI_PORT)
                 && address(args, "-ui-bind-addr").equals(TestMailServerSupport.UI_HOST + ":" + TestMailServerSupport.UI_PORT);

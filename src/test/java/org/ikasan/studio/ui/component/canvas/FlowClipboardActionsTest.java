@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import org.ikasan.studio.core.persistence.json.FlowClipboard.Sources;
+import org.ikasan.studio.intellij.project.FlowSourceTransfer;
+import org.mockito.MockedStatic;
 
 class FlowClipboardActionsTest {
     @Test void pasteRegistersOneUndoableInsertionAndResynchronizesOnUndoAndRedo() throws Exception {
@@ -34,11 +37,11 @@ class FlowClipboardActionsTest {
         when(project.getService(UiContext.class)).thenReturn(context);
         when(context.getIkasanModule()).thenReturn(module);
         when(context.getDesignerCanvas()).thenReturn(canvas);
-        try (var commands = mockStatic(CommandProcessor.class);
-             var undos = mockStatic(UndoManager.class);
-             var files = mockStatic(StudioProjectFiles.class);
-             var notifications = mockStatic(StudioUIUtils.class);
-             var applications = mockStatic(ApplicationManager.class)) {
+        try (MockedStatic<CommandProcessor> commands = mockStatic(CommandProcessor.class);
+             MockedStatic<UndoManager> undos = mockStatic(UndoManager.class);
+             MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class);
+             MockedStatic<StudioUIUtils> notifications = mockStatic(StudioUIUtils.class);
+             MockedStatic<ApplicationManager> applications = mockStatic(ApplicationManager.class)) {
             CommandProcessor command = mock(CommandProcessor.class);
             commands.when(CommandProcessor::getInstance).thenReturn(command);
             doAnswer(call -> { call.getArgument(1, Runnable.class).run(); return null; })
@@ -55,7 +58,7 @@ class FlowClipboardActionsTest {
             notifications.verify(() -> StudioUIUtils.displayIdeaInfoMessage(project,
                     StudioBundle.message("message.FlowPasted", flow.getIdentity())));
             assertEquals(java.util.List.of(flow), module.getFlows());
-            var captured = ArgumentCaptor.forClass(UndoableAction.class);
+            ArgumentCaptor<UndoableAction> captured = ArgumentCaptor.forClass(UndoableAction.class);
             verify(undo).undoableActionPerformed(captured.capture());
             files.verify(() -> StudioProjectFiles.refreshCodeFromModelAndCauseRedraw(project, GenerationRequest.moduleStructure(flow)));
             assertTrue(captured.getValue().isGlobal());
@@ -81,7 +84,7 @@ class FlowClipboardActionsTest {
         when(project.getService(UiContext.class)).thenReturn(context);
         when(context.getIkasanModule()).thenReturn(module);
         when(context.getDesignerCanvas()).thenReturn(canvas);
-        try (var messages = mockStatic(Messages.class); var commands = mockStatic(CommandProcessor.class)) {
+        try (MockedStatic<Messages> messages = mockStatic(Messages.class); MockedStatic<CommandProcessor> commands = mockStatic(CommandProcessor.class)) {
             new FlowClipboardActions(project, canvas).insert(module, pasted);
             messages.verify(() -> Messages.showInputDialog(eq(project),
                     eq(StudioBundle.message("message.PasteFlowName")), eq(StudioBundle.message("menu.PasteFlow")),
@@ -99,13 +102,13 @@ class FlowClipboardActionsTest {
         pasted.setName("Copied");
         when(project.getService(UiContext.class)).thenReturn(context);
         when(context.tryBeginMigration()).thenReturn(true);
-        var sources = new org.ikasan.studio.core.persistence.json.FlowClipboard.Sources("dest.copied",
+        Sources sources = new org.ikasan.studio.core.persistence.json.FlowClipboard.Sources("dest.copied",
                 java.util.Map.of("Custom.java", "package dest.copied; class Custom {}"));
-        try (var commands = mockStatic(CommandProcessor.class);
-             var files = mockStatic(StudioProjectFiles.class);
-             var sourceFiles = mockStatic(org.ikasan.studio.intellij.project.FlowSourceTransfer.class);
-             var notifications = mockStatic(StudioUIUtils.class);
-             var undos = mockStatic(UndoManager.class)) {
+        try (MockedStatic<CommandProcessor> commands = mockStatic(CommandProcessor.class);
+             MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class);
+             MockedStatic<FlowSourceTransfer> sourceFiles = mockStatic(org.ikasan.studio.intellij.project.FlowSourceTransfer.class);
+             MockedStatic<StudioUIUtils> notifications = mockStatic(StudioUIUtils.class);
+             MockedStatic<UndoManager> undos = mockStatic(UndoManager.class)) {
             CommandProcessor command = mock(CommandProcessor.class);
             commands.when(CommandProcessor::getInstance).thenReturn(command);
             doAnswer(call -> { call.getArgument(1, Runnable.class).run(); return null; })

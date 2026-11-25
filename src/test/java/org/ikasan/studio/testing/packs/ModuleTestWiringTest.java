@@ -8,35 +8,40 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.nio.file.*;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold;
+import org.ikasan.studio.core.migration.ModelMigration.Plan;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class ModuleTestWiringTest {
     @org.junit.jupiter.api.Test
     void migrationBaselineHasGeneratedWiring() throws Exception {
-        var plan = org.ikasan.studio.core.migration.ModelMigration.analyse(
+        Plan plan = org.ikasan.studio.core.migration.ModelMigration.analyse(
                 Files.readString(Path.of("regression-tests/migration/baseline.json")), "V4.1.6");
-        var module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(plan.targetJson(), "wiring", false);
+        Module module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(plan.targetJson(), "wiring", false);
         assertNotNull(ModuleTestWiring.create(module));
     }
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void renamesAndConnectionsChangeOnlyWiringNotSharedJava(String version) throws Exception {
-        var flow = TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
+        Flow flow = TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow(version);
         flow.setConsumer(TestFixtures.getFtpConsumer(version));
         flow.getConsumer().setPropertyValue("password", "do-not-copy-this-secret");
-        var module = TestFixtures.getMyFirstModuleIkasanModule(version, List.of(flow));
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(version, List.of(flow));
         String parent = Files.readString(Path.of("regression-tests/migration/project/pom.xml"));
         String app = Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml"));
-        var before = FlowTestScaffold.render(module, flow, parent, app);
+        Scaffold before = FlowTestScaffold.render(module, flow, parent, app);
         String first = before.files().get(ModuleTestWiring.PATH);
         assertFalse(first.contains("do-not-copy-this-secret"));
         String oldName = flow.getIdentity();
         flow.setName("Renamed flow");
-        var after = FlowTestScaffold.render(module, flow, parent, app);
+        Scaffold after = FlowTestScaffold.render(module, flow, parent, app);
         assertEquals(before.files().get(FlowTestScaffold.SUPPORT_PATH), after.files().get(FlowTestScaffold.SUPPORT_PATH));
         assertFalse(FlowTestScaffold.supportNeedsRefresh(before.files().get(FlowTestScaffold.SUPPORT_PATH), module));
         String second = after.files().get(ModuleTestWiring.PATH);
         assertNotEquals(first, second);
-        var json = StudioJson.newObjectMapper().readTree(second);
+        JsonNode json = StudioJson.newObjectMapper().readTree(second);
         assertEquals("Renamed flow", json.path("ftpEndpoints").get(0).path("flow").asText());
         assertFalse(json.path("flowNames").toString().contains(oldName));
         assertEquals(FlowTestScaffold.supportFingerprint(module), json.path("modelFingerprint").asText());

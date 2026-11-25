@@ -12,6 +12,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.persistence.json.FlowClipboard.Sources;
+import org.ikasan.studio.core.persistence.json.FlowClipboard.Transfer;
 
 class FlowClipboardTest {
     private Flow copy(Flow flow) throws Exception {
@@ -20,15 +26,15 @@ class FlowClipboardTest {
 
     @Test void filenameListsSurviveSavingReloadingAndCopyingWithPatternsIntact() throws Exception {
         Flow source = TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerWithWiretapsFlow(BASE_META_PACK);
-        var consumer = TestFixtures.getLocalFileConsumer(BASE_META_PACK);
+        FlowElement consumer = TestFixtures.getLocalFileConsumer(BASE_META_PACK);
         consumer.setComponentName(source.getConsumer().getIdentity());
         source.setConsumer(consumer);
-        var expected = List.of("myFile\\.txt", "anotherFile\\.txt", "[a-z]+[.]csv", "[a-z]{1,3}[.]csv");
+        List<String> expected = List.of("myFile\\.txt", "anotherFile\\.txt", "[a-z]+[.]csv", "[a-z]{1,3}[.]csv");
         consumer.setPropertyValue("filenames", expected);
         Module module = TestFixtures.getMyFirstModuleIkasanModule(BASE_META_PACK, new ArrayList<>(List.of(source)));
         for (int i = 0; i < 3; i++) {
             String json = org.ikasan.studio.core.io.ComponentIO.toJson(module);
-            var tree = StudioJson.newObjectMapper().readTree(json);
+            JsonNode tree = StudioJson.newObjectMapper().readTree(json);
             assertEquals(StudioJson.newObjectMapper().valueToTree(expected), tree.get("flows").get(0).get("consumer").get("filenames"));
             module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(json, "filename round trip", false);
             assertEquals(expected, module.getFlows().get(0).getConsumer().getPropertyValue("filenames"));
@@ -59,7 +65,7 @@ class FlowClipboardTest {
 
     @Test void snapshotAndRepeatedPastesAreIndependentIncludingDecorators() throws Exception {
         Flow source = TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerWithWiretapsFlow(BASE_META_PACK);
-        var snapshot = FlowClipboard.capture(source, BASE_META_PACK);
+        Map<String,Object> snapshot = FlowClipboard.capture(source, BASE_META_PACK);
         String originalName = source.getConsumer().getIdentity();
         source.getConsumer().setComponentName("Source edited after copy");
         String clipboard = FlowClipboard.encode(snapshot);
@@ -69,9 +75,9 @@ class FlowClipboardTest {
         first.getConsumer().setComponentName("Pasted edit");
         assertEquals(originalName, second.getConsumer().getIdentity());
         assertEquals(snapshot, FlowClipboard.capture(second, BASE_META_PACK));
-        var firstDecorated = first.getFlowRoute().getFlowElements().stream()
+        FlowElement firstDecorated = first.getFlowRoute().getFlowElements().stream()
                 .filter(element -> element.getDecorators() != null && !element.getDecorators().isEmpty()).findFirst().orElseThrow();
-        var secondDecorated = second.getFlowRoute().getFlowElements().stream()
+        FlowElement secondDecorated = second.getFlowRoute().getFlowElements().stream()
                 .filter(element -> element.getDecorators() != null && !element.getDecorators().isEmpty()).findFirst().orElseThrow();
         assertNotSame(firstDecorated.getDecorators().get(0), secondDecorated.getDecorators().get(0));
     }
@@ -95,8 +101,8 @@ class FlowClipboardTest {
         assertThrows(FlowClipboard.VersionMismatch.class, () -> FlowClipboard.decode(clipboard, "V4.1.6"));
         assertThrows(IOException.class, () -> FlowClipboard.decode("ordinary text", BASE_META_PACK));
         assertThrows(IOException.class, () -> FlowClipboard.decode(FlowClipboard.PREFIX + "{}", BASE_META_PACK));
-        var mapper = StudioJson.newObjectMapper();
-        var root = mapper.readTree(clipboard.substring(FlowClipboard.PREFIX.length()));
+        ObjectMapper mapper = StudioJson.newObjectMapper();
+        JsonNode root = mapper.readTree(clipboard.substring(FlowClipboard.PREFIX.length()));
         ((com.fasterxml.jackson.databind.node.ObjectNode) root.path("consumer")).put("implementingClass", "missing.Component");
         assertThrows(IOException.class, () -> FlowClipboard.decode(FlowClipboard.PREFIX + mapper.writeValueAsString(root), BASE_META_PACK));
     }
@@ -120,14 +126,14 @@ class FlowClipboardTest {
         for (String version : List.of(BASE_META_PACK, TestFixtures.META_IKASAN_PACK_4_1_6)) {
             Flow source = new Flow(version);
             source.setName("Branches");
-            var router = TestFixtures.getSingleRecipientRouter(version);
+            FlowElement router = TestFixtures.getSingleRecipientRouter(version);
             router.setContainingFlow(source);
             router.setContainingFlowRoute(source.getFlowRoute());
             source.getFlowRoute().getFlowElements().add(router);
             router.setPropertyValue("routeNames", List.of("left", "right"));
             source.getFlowRoute().syncChildRoutesForRouter(version, router);
             assertFalse(source.getFlowRoute().getChildRoutes().isEmpty());
-            var data = FlowClipboard.capture(source, version);
+            Map<String,Object> data = FlowClipboard.capture(source, version);
             Flow pasted = FlowClipboard.decode(FlowClipboard.encode(data), version);
             assertEquals(data, FlowClipboard.capture(pasted, version));
             assertParents(pasted, pasted.getFlowRoute());
@@ -136,13 +142,13 @@ class FlowClipboardTest {
 
     @Test void transfersSourcesWithoutChangingLegacyClipboardSupport() throws Exception {
         Flow flow = TestFixtures.getEventGeneratingConsumerRouterFlow(BASE_META_PACK);
-        var snapshot = FlowClipboard.capture(flow, BASE_META_PACK);
-        var sources = new FlowClipboard.Sources("example.flow", java.util.Map.of(
+        Map<String,Object> snapshot = FlowClipboard.capture(flow, BASE_META_PACK);
+        Sources sources = new FlowClipboard.Sources("example.flow", java.util.Map.of(
                 "Custom.java", "package example.flow; class Custom {}",
                 "helpers/Helper.java", "package example.flow.helpers; class Helper {}"));
         String text = FlowClipboard.encode(snapshot, sources);
         assertTrue(FlowClipboard.isFlow(text));
-        var restored = FlowClipboard.decodeTransfer(text, BASE_META_PACK);
+        Transfer restored = FlowClipboard.decodeTransfer(text, BASE_META_PACK);
         assertEquals(sources, restored.sources());
         assertEquals(snapshot, FlowClipboard.capture(restored.flow(), BASE_META_PACK));
         assertThrows(FlowClipboard.VersionMismatch.class, () -> FlowClipboard.decodeTransfer(text, "V4.1.6"));
@@ -151,20 +157,20 @@ class FlowClipboardTest {
     }
 
     @Test void rejectsUnsafeSourcePathsAndOversizedPayloads() throws Exception {
-        var snapshot = FlowClipboard.capture(TestFixtures.getEventGeneratingConsumerRouterFlow(BASE_META_PACK), BASE_META_PACK);
+        Map<String,Object> snapshot = FlowClipboard.capture(TestFixtures.getEventGeneratingConsumerRouterFlow(BASE_META_PACK), BASE_META_PACK);
         for (String path : List.of("../Outside.java", "/Outside.java", "nested/../../Outside.java", "nested//Outside.java", "pom.xml")) {
-            var sources = new FlowClipboard.Sources("example.flow", java.util.Map.of(path, "text"));
+            Sources sources = new FlowClipboard.Sources("example.flow", java.util.Map.of(path, "text"));
             assertThrows(IOException.class, () -> FlowClipboard.encode(snapshot, sources), path);
         }
         String hostile = FlowClipboard.SOURCE_PREFIX + "{\"flow\":{},\"sources\":{\"packageName\":\"example.flow\",\"files\":{\"../Outside.java\":\"text\"}}}";
         assertThrows(IOException.class, () -> FlowClipboard.decodeTransfer(hostile, BASE_META_PACK));
-        var oversized = new FlowClipboard.Sources("example.flow", java.util.Map.of("Large.java", "x".repeat(8 * 1024 * 1024)));
+        Sources oversized = new FlowClipboard.Sources("example.flow", java.util.Map.of("Large.java", "x".repeat(8 * 1024 * 1024)));
         assertThrows(IOException.class, () -> FlowClipboard.encode(snapshot, oversized));
     }
 
     private void assertParents(Flow flow, FlowRoute route) {
         assertSame(flow, route.getFlow());
-        for (var element : route.getFlowElements()) {
+        for (FlowElement element : route.getFlowElements()) {
             assertSame(flow, element.getContainingFlow());
             assertSame(route, element.getContainingFlowRoute());
         }

@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.stream.Stream;
 
 class ArchitectureBoundaryTest {
 
@@ -33,7 +34,7 @@ class ArchitectureBoundaryTest {
     @Test
     void coreMetapackLoadingDoesNotDependOnIntellijOrSwing() throws Exception {
         Path root = Path.of("headless/studio-generator/src/main/java/org/ikasan/studio/core/metapack/loading");
-        try (var files = Files.walk(root)) {
+        try (Stream<Path> files = Files.walk(root)) {
             for (Path source : files.filter(path -> path.toString().endsWith(".java")).toList()) {
                 String text = Files.readString(source);
                 assertThat(text)

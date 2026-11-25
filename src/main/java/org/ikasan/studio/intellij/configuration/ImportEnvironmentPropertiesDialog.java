@@ -26,6 +26,12 @@ import java.awt.event.*;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
+import org.ikasan.studio.core.configuration.EnvironmentProperties.Preview;
+import org.ikasan.studio.core.importer.SourceModuleImport.PropertyFile;
 
 /** Original/destination comparison with explicit Copy all or Save preview approval before any write. */
 public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.intellij.project.ImportDialogWrapper {
@@ -80,7 +86,7 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
         choose.addActionListener(event -> chooseFile());
         fields.add(choose);
         if (!discovered.isEmpty()) {
-            var sources = new com.intellij.openapi.ui.ComboBox<>(discovered.stream()
+            ComboBox<String> sources = new com.intellij.openapi.ui.ComboBox<>(discovered.stream()
                     .map(org.ikasan.studio.core.importer.SourceModuleImport.PropertyFile::source).toArray(String[]::new));
             sources.getAccessibleContext().setAccessibleName(StudioBundle.message("sourceImport.discoveredProperties"));
             fields.add(sources);
@@ -88,7 +94,7 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
             use.addActionListener(event -> {
                 int index = sources.getSelectedIndex();
                 if (index >= 0) {
-                    var file = discovered.get(index);
+                    PropertyFile file = discovered.get(index);
                     loadSource(file.source(), file.text());
                 }
             });
@@ -99,7 +105,7 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
         fields.add(label);
         editor.add(fields, BorderLayout.NORTH);
         contents.getAccessibleContext().setAccessibleName(StudioBundle.message("environment.contents"));
-        var contentScroll = new JBScrollPane(contents);
+        JBScrollPane contentScroll = new JBScrollPane(contents);
         contentScroll.setMinimumSize(new Dimension(0, 0));
         editor.add(contentScroll, BorderLayout.CENTER);
         panel.add(editor, BorderLayout.CENTER);
@@ -125,10 +131,10 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
         files.getActionMap().put("compareProperties", new AbstractAction() {
             @Override public void actionPerformed(ActionEvent event) { compare(); }
         });
-        var tableScroll = new JBScrollPane(files);
+        JBScrollPane tableScroll = new JBScrollPane(files);
         tableScroll.setPreferredSize(JBUI.size(780, 70));
         String guidance = StudioBundle.message("environment.compareHelp");
-        var instruction = new JBLabel("<html><body style='width: " + JBUI.scale(760) + "px'>"
+        JBLabel instruction = new JBLabel("<html><body style='width: " + JBUI.scale(760) + "px'>"
                 + com.intellij.openapi.util.text.StringUtil.escapeXmlEntities(guidance) + "</body></html>");
         files.getAccessibleContext().setAccessibleDescription(guidance);
         destination.add(instruction, BorderLayout.NORTH);
@@ -202,9 +208,9 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
     /** Immutable original left; isolated pending destination right. Neither document is a project file. */
     @Nullable SimpleDiffRequest comparison() {
         if (destinationUnavailable()) return null;
-        var factory = DiffContentFactory.getInstance();
-        var type = com.intellij.openapi.fileTypes.FileTypeManager.getInstance().getFileTypeByExtension("properties");
-        var original = factory.create(EnvironmentProperties.Selection.developerOwned(contents.getText()).text(), type);
+        DiffContentFactory factory = DiffContentFactory.getInstance();
+        FileType type = com.intellij.openapi.fileTypes.FileTypeManager.getInstance().getFileTypeByExtension("properties");
+        DocumentContent original = factory.create(EnvironmentProperties.Selection.developerOwned(contents.getText()).text(), type);
         original.getDocument().setReadOnly(true);
         if (destinationContent == null) {
             destinationContent = factory.create(pending != null ? pending : snapshot.previous() == null ? "" : snapshot.previous(), type);
@@ -216,7 +222,7 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
     }
 
     private void compare() {
-        var request = comparison();
+        SimpleDiffRequest request = comparison();
         if (request == null) return;
         if (new SourceComparisonDialog(project, getContentPane(), request, this::validationProblem).showAndGet()) acceptComparison();
     }
@@ -235,11 +241,11 @@ public final class ImportEnvironmentPropertiesDialog extends org.ikasan.studio.i
 
     @Override protected void doOKAction() {
         if (files.isEditing()) files.getCellEditor().stopCellEditing();
-        var validation = doValidate();
+        ValidationInfo validation = doValidate();
         if (validation != null) { error(validation.message); return; }
         StudioProjectFiles.saveConfigurationDocuments(project,
                 List.of(EnvironmentProperties.USER_CONFIGURATION, EnvironmentProperties.APPLICATION_CONFIGURATION));
-        var selected = new EnvironmentProperties.Preview(EnvironmentProperties.Selection.developerOwned(pending),
+        Preview selected = new EnvironmentProperties.Preview(EnvironmentProperties.Selection.developerOwned(pending),
                 snapshot.previous(), snapshot.changes(), snapshot.generatedOverrides(), snapshot.sharedOverrides(), snapshot.applicationPrevious());
         if (background(() -> { EnvironmentProperties.apply(root, List.of(selected), true); return Boolean.TRUE; }) == null) return;
         StudioProjectFiles.refreshConfigurationDirectory(project);

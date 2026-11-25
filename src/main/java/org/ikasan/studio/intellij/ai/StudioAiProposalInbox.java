@@ -19,7 +19,7 @@ final class StudioAiProposalInbox {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, "*.studio-proposal.json")) {
             for (Path file : stream) {
                 try {
-                    var attrs = Files.readAttributes(file, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+                    BasicFileAttributes attrs = Files.readAttributes(file, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
                     if (attrs.isRegularFile()) files.put(file, new Stamp(attrs.size(), attrs.lastModifiedTime()));
                 } catch (NoSuchFileException ignored) { /* Atomic replacement; retry next scan. */ }
             }

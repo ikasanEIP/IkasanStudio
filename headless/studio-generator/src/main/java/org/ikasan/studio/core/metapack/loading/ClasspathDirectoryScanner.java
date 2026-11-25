@@ -5,6 +5,10 @@ import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.util.Collections;
 import java.util.TreeSet;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.stream.Stream;
 
 /** Discovers immediate resource directories across engine, pack and extension JARs. */
 public final class ClasspathDirectoryScanner {
@@ -18,9 +22,9 @@ public final class ClasspathDirectoryScanner {
     public static String[] getDirectories(String directory, ClassLoader loader) throws URISyntaxException, IOException {
         if (ClasspathResourcePaths.canonicalRelative(directory, false) == null)
             throw new IOException("Classpath directory must be a canonical relative resource path");
-        var directories = new TreeSet<String>();
-        for (var url : Collections.list(loader.getResources(directory))) {
-            var uri = url.toURI();
+        TreeSet<String> directories = new TreeSet<>();
+        for (URL url : Collections.list(loader.getResources(directory))) {
+            URI uri = url.toURI();
             Path root;
             if ("jar".equals(uri.getScheme())) {
                 FileSystem fileSystem;
@@ -38,7 +42,7 @@ public final class ClasspathDirectoryScanner {
             } else {
                 root = Path.of(uri);
             }
-            try (var children = Files.list(root)) {
+            try (Stream<Path> children = Files.list(root)) {
                 children.filter(Files::isDirectory)
                         .forEach(child -> directories.add(directory + "/" + child.getFileName()));
             }

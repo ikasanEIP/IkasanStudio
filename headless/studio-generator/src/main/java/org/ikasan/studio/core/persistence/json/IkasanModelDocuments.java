@@ -9,6 +9,11 @@ import org.ikasan.studio.core.metapack.model.ComponentMeta;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /**
  * Persisted design contract: native Ikasan module metadata and configuration records, accompanied by
@@ -113,7 +118,7 @@ public final class IkasanModelDocuments {
         ObjectNode properties = input.deepCopy();
         String name = text(properties, "componentName");
         if (extras.has(name)) throw invalid("Duplicate component: " + name);
-        var entry = ComponentLibrary.getIkasanComponents(pack).entrySet().stream().filter(e ->
+        Entry<String,ComponentMeta> entry = ComponentLibrary.getIkasanComponents(pack).entrySet().stream().filter(e ->
                 Objects.equals(e.getValue().getComponentType(), input.path("componentType").asText(null))
                 && Objects.equals(e.getValue().getImplementingClass(), ComponentImplementationAliases.canonical(input.path("implementingClass").asText(null)))
                 && Objects.equals(e.getValue().getAdditionalKey(), input.path("additionalKey").asText(null)))
@@ -365,7 +370,7 @@ public final class IkasanModelDocuments {
         }
         if (extra.has("pendingConfiguration")) {
             ObjectNode pending = object(extra.get("pendingConfiguration"), "pendingConfiguration");
-            for (var entry : pending.properties()) {
+            for (Entry<String,JsonNode> entry : pending.properties()) {
                 if (!meta.getRuntimeConfigurationProperties().contains(entry.getKey()) || result.has(entry.getKey()))
                     throw invalid("Conflicting or unknown pending configuration field " + entry.getKey());
                 result.set(entry.getKey(), entry.getValue().deepCopy());
@@ -376,7 +381,7 @@ public final class IkasanModelDocuments {
 
     private static String configurationClass(ComponentMeta meta) {
         if (meta.getRuntimeConfigurationClass() != null) return meta.getRuntimeConfigurationClass();
-        var property = meta.getAllowableProperties().get("configuration");
+        ComponentPropertyMeta property = meta.getAllowableProperties().get("configuration");
         return property == null ? "" : property.getUsageDataType();
     }
 
@@ -412,13 +417,13 @@ public final class IkasanModelDocuments {
     }
 
     private static void applyGeneratedImplementations(ObjectNode legacy, ObjectNode topology, boolean validate) throws Exception {
-        var model = org.ikasan.studio.core.io.ComponentIO.deserializeModuleInstanceString(legacy.toString(), "implementation names");
+        Module model = org.ikasan.studio.core.io.ComponentIO.deserializeModuleInstanceString(legacy.toString(), "implementation names");
         Map<String, ObjectNode> flows = index((ArrayNode) topology.get("flows"), "name", "flows");
-        for (var flow : model.getFlows()) {
+        for (Flow flow : model.getFlows()) {
             ObjectNode nativeFlow = flows.get(flow.getIdentity());
             Map<String, ObjectNode> components = index((ArrayNode) nativeFlow.get("flowElements"), "componentName", "components");
-            for (var component : flow.getFlowElementsNoExternalEndPoints()) {
-                var meta = component.getComponentMeta();
+            for (FlowElement component : flow.getFlowElementsNoExternalEndPoints()) {
+                ComponentMeta meta = component.getComponentMeta();
                 if (!meta.isGeneratesUserImplementedClass() || meta.isUseImplementingClassInFactory()
                         || Boolean.FALSE.equals(component.getPropertyValue("requiresStub"))) continue;
                 String className = component.getPropertyValueAsString("userImplementedClassName");

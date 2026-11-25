@@ -13,6 +13,18 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.javaparser.ParseResult;
+import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.Expression;
+import java.util.List;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Reviewed recovery of pack-declared class-valued builder arguments; never executes original code. */
 public final class SourceBuilderSettingsRecovery {
@@ -25,18 +37,18 @@ public final class SourceBuilderSettingsRecovery {
         String model = read(analysis.destinationRoot(), ProjectArtifactRenderer.MODEL);
         if (model == null) return null;
         // Source import also supports non-Studio projects/tests without a complete saved design.
-        var tree = org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper().readTree(model);
+        JsonNode tree = org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper().readTree(model);
         if (!tree.has("modelFormat")) return null;
-        var module = ComponentIO.validatePersistedModuleJson(model, "builder settings source review", false);
-        var parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE));
+        Module module = ComponentIO.validatePersistedModuleJson(model, "builder settings source review", false);
+        JavaParser parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE));
         Map<String, String> sources = new TreeMap<>(), inputs = new TreeMap<>(), outputs = new TreeMap<>();
         inputs.put(ProjectArtifactRenderer.MODEL, model);
         List<Setting> settings = new ArrayList<>();
-        for (var flow : module.getFlows()) {
+        for (Flow flow : module.getFlows()) {
             String pkg = Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();
             String relative = "src/main/java/" + pkg.replace('.', '/') + "/ComponentFactory" + flow.getJavaClassName() + ".java";
             Set<String> paths = new TreeSet<>();
-            var candidate = analysis.identity().candidate();
+            Candidate candidate = analysis.identity().candidate();
             if (candidate == null) continue;
             for (String owner : candidate.ownedPomDirectories()) paths.add((owner.isBlank() ? "" : owner + "/") + relative);
             paths.add((candidate.directory().isBlank() ? "" : candidate.directory() + "/") + "generated/" + relative);
@@ -45,9 +57,9 @@ public final class SourceBuilderSettingsRecovery {
                 String text = read(analysis.sourceRoot(), path);
                 if (text == null) continue;
                 sources.put(path, text);
-                var parsed = parser.parse(text);
+                ParseResult<CompilationUnit> parsed = parser.parse(text);
                 if (parsed.isSuccessful() && parsed.getResult().isPresent()) {
-                    var unit = parsed.getResult().get();
+                    CompilationUnit unit = parsed.getResult().get();
                     if (unit.getPackageDeclaration().map(p -> p.getNameAsString().equals(pkg)).orElse(false)
                             && unit.getTypes().stream().anyMatch(t -> t.getNameAsString().equals("ComponentFactory" + flow.getJavaClassName())))
                         units.put(path, unit);
@@ -55,33 +67,33 @@ public final class SourceBuilderSettingsRecovery {
             }
             // Multiple factories for the same flow are ambiguous, even if they happen to agree today.
             if (units.size() != 1) continue;
-            var entry = units.entrySet().iterator().next(); var unit = entry.getValue();
+            Entry<String,CompilationUnit> entry = units.entrySet().iterator().next(); CompilationUnit unit = entry.getValue();
             boolean changed = false;
-            for (var component : flow.getFlowElementsNoExternalEndPoints()) {
-                var meta = component.getComponentMeta();
+            for (FlowElement component : flow.getFlowElementsNoExternalEndPoints()) {
+                ComponentMeta meta = component.getComponentMeta();
                 if (!meta.isUsesBuilderInFactory()) continue;
-                var methods = unit.findAll(com.github.javaparser.ast.body.MethodDeclaration.class).stream()
+                List<MethodDeclaration> methods = unit.findAll(com.github.javaparser.ast.body.MethodDeclaration.class).stream()
                         .filter(m -> m.getNameAsString().equals("get" + component.getJavaClassName()) && m.getParameters().isEmpty()).toList();
                 if (methods.size() != 1) continue;
-                var returns = methods.get(0).findAll(ReturnStmt.class);
+                List<ReturnStmt> returns = methods.get(0).findAll(ReturnStmt.class);
                 if (returns.size() != 1 || returns.get(0).getExpression().isEmpty()) continue;
-                var expression = returns.get(0).getExpression().get();
+                Expression expression = returns.get(0).getExpression().get();
                 // A single fluent builder expression only; no variables, branches, reflection or helper execution.
                 List<MethodCallExpr> chain = new ArrayList<>();
                 while (expression.isMethodCallExpr()) {
-                    var call = expression.asMethodCallExpr(); chain.add(call);
+                    MethodCallExpr call = expression.asMethodCallExpr(); chain.add(call);
                     if (call.getScope().isEmpty()) break;
                     expression = call.getScope().get();
                 }
                 if (chain.stream().filter(c -> c.getNameAsString().equals(meta.getIkasanComponentFactoryMethod())).count() != 1) continue;
-                for (var property : meta.getAllowableProperties().values()) {
+                for (ComponentPropertyMeta property : meta.getAllowableProperties().values()) {
                     String key = property.getPropertyName();
                     if (!property.isSetterProperty() || !ComponentPropertyMeta.CLASS_LITERAL.equals(property.getUsageDataType())
                             || !component.getPropertyValueAsString(key).isBlank()) continue;
                     String setter = property.getSetterMethod();
                     if (setter == null || setter.isBlank()) setter = "set" + Character.toUpperCase(key.charAt(0)) + key.substring(1);
                     String expected = setter;
-                    var calls = chain.stream().filter(c -> c.getNameAsString().equals(expected)).toList();
+                    List<MethodCallExpr> calls = chain.stream().filter(c -> c.getNameAsString().equals(expected)).toList();
                     if (calls.size() != 1 || calls.get(0).getArguments().size() != 1 || !calls.get(0).getArgument(0).isClassExpr()) continue;
                     String type = calls.get(0).getArgument(0).asClassExpr().getType().asString();
                     String qualified = qualify(type, unit);
@@ -109,7 +121,7 @@ public final class SourceBuilderSettingsRecovery {
     private static String qualify(String type, CompilationUnit unit) {
         if (type.contains(".") && Character.isLowerCase(type.charAt(0))) return type;
         String first = type.split("\\.")[0];
-        var imports = unit.getImports().stream().filter(i -> !i.isAsterisk() && !i.isStatic()
+        List<ImportDeclaration> imports = unit.getImports().stream().filter(i -> !i.isAsterisk() && !i.isStatic()
                 && i.getName().getIdentifier().equals(first)).toList();
         if (imports.size() == 1) return imports.get(0).getNameAsString() + type.substring(first.length());
         // Wildcard imports and implicit same-package resolution need type resolution; do not guess.

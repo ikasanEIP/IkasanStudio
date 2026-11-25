@@ -15,6 +15,11 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.lang.reflect.Method;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
+import org.ikasan.studio.intellij.navigation.NavigationTarget;
 
 /**
  * "Jump to Properties": verifies {@link GeneratedProjectSynchronizer#initialisePsiFileHandles()} - the same public entry
@@ -58,14 +63,14 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
         String pack = TestFixtures.BASE_META_PACK;
         Flow flow = TestFixtures.getUnbuiltFlow(pack)
                 .consumer(TestFixtures.getEventGeneratingConsumer(pack)).build();
-        var root = flow.getFlowRoute();
-        var branch = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
+        FlowRoute root = flow.getFlowRoute();
+        FlowRoute branch = org.ikasan.studio.core.model.ikasan.instance.FlowRoute.flowRouteBuilder()
                 .flow(flow).routeName("route1").build();
         root.getChildRoutes().add(branch);
-        var rootRouter = router(pack, flow, root, "Multi Recipient Router", "RootRouter");
-        var single = router(pack, flow, branch, "Single Recipient Router", "EitherOrRouter");
-        var multi = router(pack, flow, branch, "Multi Recipient Router", "NestedMultiRouter");
-        var missing = router(pack, flow, branch, "Single Recipient Router", "MissingRouter");
+        FlowElement rootRouter = router(pack, flow, root, "Multi Recipient Router", "RootRouter");
+        FlowElement single = router(pack, flow, branch, "Single Recipient Router", "EitherOrRouter");
+        FlowElement multi = router(pack, flow, branch, "Multi Recipient Router", "NestedMultiRouter");
+        FlowElement missing = router(pack, flow, branch, "Single Recipient Router", "MissingRouter");
         Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
         UiContext context = myProject.getService(UiContext.class);
         context.setIkasanModule(module);
@@ -73,14 +78,14 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
         String flowPackage = org.ikasan.studio.core.generator.Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();
         String userPackage = org.ikasan.studio.core.generator.GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
         String flowPath = "generated/src/main/java/" + flowPackage.replace('.', '/') + "/" + flow.getJavaClassName() + ".java";
-        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction(myProject, () -> {
             try {
                 com.intellij.openapi.vfs.VfsUtil.saveText(
                         com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing(base, flowPath.substring(0, flowPath.lastIndexOf('/')))
                                 .findOrCreateChildData(this, flow.getJavaClassName() + ".java"),
                         "package " + flowPackage + "; public class " + flow.getJavaClassName() + " {}");
-                var userDir = com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing(base,
+                VirtualFile userDir = com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing(base,
                         "user/src/main/java/" + userPackage.replace('.', '/'));
                 for (String name : List.of("RootRouter", "EitherOrRouter", "NestedMultiRouter")) {
                     com.intellij.openapi.vfs.VfsUtil.saveText(userDir.findOrCreateChildData(this, name + ".java"),
@@ -94,7 +99,7 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
             new GeneratedProjectSynchronizer(myProject).initialisePsiFileHandles();
             com.intellij.openapi.application.impl.NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
             for (FlowElement router : List.of(rootRouter, single, multi)) {
-                var target = ViewHandlerCache.getFlowComponentViewHandler(myProject, router).getCodeNavigationTarget();
+                NavigationTarget target = ViewHandlerCache.getFlowComponentViewHandler(myProject, router).getCodeNavigationTarget();
                 assertTrue(target.isPresent());
                 assertEquals(router.getComponentName() + ".java", target.psiFile().getName());
             }
@@ -115,17 +120,17 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
         StudioProjectFiles.createJavaSourceFile(myProject, StudioProjectFiles.GENERATED_CONTENT_ROOT,
                 StudioProjectFiles.SRC_MAIN_JAVA_CODE, root + ".flow1", "Flow1",
                 "package " + root + ".flow1; public class Flow1 {}", null);
-        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);
-        var oldFile = base.findFileByRelativePath("generated/src/main/java/" + root.replace('.', '/') + "/flow1/Flow1.java");
+        VirtualFile oldFile = base.findFileByRelativePath("generated/src/main/java/" + root.replace('.', '/') + "/flow1/Flow1.java");
         assertNotNull(oldFile);
-        var oldTarget = org.ikasan.studio.intellij.navigation.NavigationTarget.forFile(
+        NavigationTarget oldTarget = org.ikasan.studio.intellij.navigation.NavigationTarget.forFile(
                 com.intellij.psi.PsiManager.getInstance(myProject).findFile(oldFile));
         ViewHandlerCache.getFlowViewHandler(myProject, flow).setCodeNavigationTarget(oldTarget);
         ViewHandlerCache.getFlowComponentViewHandler(myProject, consumer).setCodeNavigationTarget(oldTarget);
         flow.setName("Transform The Order");
-        var synchronizer = new GeneratedProjectSynchronizer(myProject);
-        var generate = GeneratedProjectSynchronizer.class.getDeclaredMethod("generateAndSaveJavaCodeIkasanFlow",
+        GeneratedProjectSynchronizer synchronizer = new GeneratedProjectSynchronizer(myProject);
+        Method generate = GeneratedProjectSynchronizer.class.getDeclaredMethod("generateAndSaveJavaCodeIkasanFlow",
                 com.intellij.openapi.project.Project.class, Module.class, String.class, Flow.class);
         generate.setAccessible(true);
         GenerationTransactionManager.begin();
@@ -137,7 +142,7 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
         }
         StudioProjectFiles.deleteFile(myProject, oldFile);
         com.intellij.openapi.application.impl.NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
-        var target = ViewHandlerCache.getFlowComponentViewHandler(myProject, consumer).getCodeNavigationTarget();
+        NavigationTarget target = ViewHandlerCache.getFlowComponentViewHandler(myProject, consumer).getCodeNavigationTarget();
         assertTrue(target.isPresent());
         assertTrue(target.psiFile().isValid());
         assertEquals("TransformTheOrder.java", target.psiFile().getName());
@@ -147,8 +152,8 @@ public class GeneratedProjectSynchronizerPropertiesNavigationHeavyTest extends H
     private FlowElement router(String pack, Flow flow,
                                org.ikasan.studio.core.model.ikasan.instance.FlowRoute route,
                                String type, String name) throws Exception {
-        var meta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, type);
-        var router = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory
+        ComponentMeta meta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, type);
+        FlowElement router = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory
                 .createFlowElement(pack, meta, flow, route, name);
         router.setPropertyValue("userImplementedClassName", name);
         route.getFlowElements().add(router);

@@ -135,7 +135,7 @@ public class IkasanStudioSettings implements PersistentStateComponent<IkasanStud
     }
 
     public static boolean areSnapshotMetaPacksAllowed() {
-        var instance = getInstance();
+        IkasanStudioSettings instance = getInstance();
         return instance != null && instance.getState() != null && instance.getState().allowSnapshotMetaPacks;
     }
 

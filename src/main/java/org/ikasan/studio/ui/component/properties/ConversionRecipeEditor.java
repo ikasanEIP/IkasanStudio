@@ -7,6 +7,8 @@ import com.intellij.openapi.ui.ValidationInfo;
 import javax.swing.*;
 import java.util.*;
 import java.util.List;
+import com.intellij.openapi.ui.ComboBox;
+import java.util.Optional;
 
 /** Edits widget values only: the properties panel owns commit, cancellation and overwrite approval. */
 final class ConversionRecipeEditor {
@@ -19,19 +21,19 @@ final class ConversionRecipeEditor {
     static void bind(List<ConversionRecipeMeta> recipes, Map<String, ComponentPropertyEditRow> rows,
                      JTextArea details, String downstreamTypes, SimpleChangeListener changed,
                      boolean componentInitialisation) {
-        var row = rows.get("conversionRecipeId");
+        ComponentPropertyEditRow row = rows.get("conversionRecipeId");
         if (row == null || recipes == null) return;
-        var combo = row.getInputField().getPropertyChoiceValueField();
+        ComboBox<Object> combo = row.getInputField().getPropertyChoiceValueField();
         if (combo == null) return;
         combo.setMinimumSize(new java.awt.Dimension(0, combo.getPreferredSize().height));
         Object initial = row.getComponentProperty().getValue();
         combo.removeAllItems();
         combo.addItem("");
-        for (var recipe : ConversionRecipeMatcher.ranked(recipes, value(rows, "fromType"), downstreamTypes == null ? value(rows, "toType") : downstreamTypes)) combo.addItem(recipe.getId());
+        for (ConversionRecipeMeta recipe : ConversionRecipeMatcher.ranked(recipes, value(rows, "fromType"), downstreamTypes == null ? value(rows, "toType") : downstreamTypes)) combo.addItem(recipe.getId());
         // Retain unavailable ids so opening the panel cannot silently discard a saved selection.
         if (initial != null && !initial.toString().isBlank() && recipes.stream().noneMatch(r -> r.getId().equals(initial))) combo.addItem(initial);
         combo.setSelectedItem(initial);
-        var recommended = ConversionRecipeMatcher.matching(recipes, value(rows, "fromType"),
+        List<ConversionRecipeMeta> recommended = ConversionRecipeMatcher.matching(recipes, value(rows, "fromType"),
                 downstreamTypes == null ? value(rows, "toType") : downstreamTypes);
         combo.setRenderer(new DefaultListCellRenderer() {
             @Override public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus) {
@@ -44,7 +46,7 @@ final class ConversionRecipeEditor {
             }
         });
         Runnable explain = () -> {
-            var recipe = recipes.stream().filter(r -> r.getId().equals(combo.getSelectedItem())).findFirst();
+            Optional<ConversionRecipeMeta> recipe = recipes.stream().filter(r -> r.getId().equals(combo.getSelectedItem())).findFirst();
             details.setText(recipe.map(r -> r.getSourceType() + " → " + r.getTargetType() + "\n" + r.getHelpText())
                     .orElse(StudioBundle.message("conversion.CustomHelp")));
             details.setCaretPosition(0);
@@ -52,7 +54,7 @@ final class ConversionRecipeEditor {
             recipes.stream().map(ConversionRecipeMeta::getConfigurationProperties).filter(Objects::nonNull)
                     .forEach(configurationKeys::addAll);
             for (String key : configurationKeys) {
-                var configRow = rows.get(key);
+                ComponentPropertyEditRow configRow = rows.get(key);
                 if (configRow != null) {
                     boolean applicable = recipe.isPresent()
                             && recipe.get().getConfigurationProperties() != null
@@ -98,7 +100,7 @@ final class ConversionRecipeEditor {
     }
 
     private static String value(Map<String, ComponentPropertyEditRow> rows, String key) {
-        var row = rows.get(key);
+        ComponentPropertyEditRow row = rows.get(key);
         return row == null || row.getValue() == null ? "" : row.getValue().toString();
     }
 }

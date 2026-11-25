@@ -1,7 +1,7 @@
 # Ikasan 5.1.0 released meta-pack
 
 `studio-pack-v5-release` supplies **V5.1.0**, runtime **5.1.0**, independent pack revision
-**1.0.9** and generator API **5**. It is included in normal Studio plugin and CLI distributions.
+**1.0.10** and generator API **5**. It is included in normal Studio plugin and CLI distributions.
 It requires no snapshot setting or separate installation. Generated applications require
 **JDK 25**; the Studio plugin, generator and resource-only pack authoring build use JDK 17.
 
@@ -57,3 +57,6 @@ Revision 1.0.8 applies wrapped-component settings to the outer component rather 
 Revision 1.0.9 adds validated Maven compiler/Surefire defaults through the shared build contract.
 Explicit root-POM plugin versions and configuration are preserved. Existing model locks require
 explicit revision adoption; this does not change the target runtime (5.1.0) or Java baseline (25).
+
+Revision 1.0.10 uses explicit local variable types in generated Java support templates.
+This is a source-readability change, with no runtime or Java-baseline change.

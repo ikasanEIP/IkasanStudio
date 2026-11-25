@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import javax.swing.*;
 import static org.junit.jupiter.api.Assertions.*;
+import com.intellij.openapi.ui.ComboBox;
 
 class ComponentPropertyAccessibilityTest {
     static ComponentMeta ftp;
@@ -17,8 +18,8 @@ class ComponentPropertyAccessibilityTest {
     @Test void labelsDescribeBothBooleanChoicesAndTheTextEditor() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
             for (String key : new String[] {"remoteHost", "ftps", "cronExpression"}) {
-                var row = new ComponentPropertyEditRow(null, new ComponentProperty(ftp.getMetadata(key)), false);
-                var input = row.getInputField();
+                ComponentPropertyEditRow row = new ComponentPropertyEditRow(null, new ComponentProperty(ftp.getMetadata(key)), false);
+                ComponentInput input = row.getInputField();
                 String label = row.getPropertyTitleField().getText();
                 assertSame(input.getFirstFocusComponent(), row.getPropertyTitleField().getLabelFor());
                 assertTrue(input.getFirstFocusComponent().getAccessibleContext().getAccessibleName().startsWith(label));
@@ -34,8 +35,8 @@ class ComponentPropertyAccessibilityTest {
     }
     @Test void disablingAChoiceActuallyPreventsSelectionChangesThroughTheWidget() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var combo = new com.intellij.openapi.ui.ComboBox<>(new Object[] {"one", "two"});
-            var input = new ComponentInput(combo);
+            ComboBox<Object> combo = new com.intellij.openapi.ui.ComboBox<>(new Object[] {"one", "two"});
+            ComponentInput input = new ComponentInput(combo);
             input.setEnabled(false);
             assertFalse(combo.isEnabled());
             input.setEnabled(true);

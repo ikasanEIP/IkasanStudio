@@ -7,6 +7,25 @@ import org.ikasan.studio.StudioRuntimeException;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertNotEquals;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.psi.codeStyle.JavaCodeStyleManager;
+import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.project.GenerationTransactionManager.Snapshot;
+import org.mockito.MockedStatic;
 
 /** Exercises the file-ownership and all-or-nothing guarantees against a real project VFS. */
 public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase {
@@ -30,26 +49,26 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
     
     public void testScheduledProviderIsCreatedInUserAndSurvivesRegeneration() throws Exception {
         String pack = "V3.3.9";
-        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(pack, new java.util.ArrayList<>());
-        var flow = org.ikasan.studio.core.TestFixtures.getUnbuiltFlow(pack).build();
+        Module module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(pack, new java.util.ArrayList<>());
+        Flow flow = org.ikasan.studio.core.TestFixtures.getUnbuiltFlow(pack).build();
         module.addFlow(flow);
-        var consumer = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(pack,
+        FlowElement consumer = org.ikasan.studio.core.model.ikasan.instance.FlowElementFactory.createFlowElement(pack,
                 org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Scheduled Consumer"),
                 flow, flow.getFlowRoute(), "Clock");
         consumer.setPropertyValue("messageProvider", "Samples");
         flow.setConsumer(consumer);
         String pkg = org.ikasan.studio.core.generator.GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
         String userPath = "user/src/main/java/" + pkg.replace('.', '/') + "/Samples.java";
-        var method = GeneratedProjectSynchronizer.class.getDeclaredMethod("generateAndSaveUserImplementClassStubsForFlow",
+        Method method = GeneratedProjectSynchronizer.class.getDeclaredMethod("generateAndSaveUserImplementClassStubsForFlow",
                 com.intellij.openapi.project.Project.class,
                 org.ikasan.studio.core.model.ikasan.instance.Module.class,
                 org.ikasan.studio.core.model.ikasan.instance.Flow.class);
         method.setAccessible(true);
-        var synchronizer = new GeneratedProjectSynchronizer(myProject);
+        GeneratedProjectSynchronizer synchronizer = new GeneratedProjectSynchronizer(myProject);
         GenerationTransactionManager.begin();
         method.invoke(synchronizer, myProject, module, flow);
         GenerationTransactionManager.commit(myProject);
-        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull("Test project must have a base directory", base);
         assertNotNull(base.findFileByRelativePath(userPath));
         assertNull(base.findFileByRelativePath(userPath.replace("user/", "generated/")));
@@ -67,7 +86,7 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         String path = "generated/src/main/java/example/Samples.java";
         String source = "package example; public class Samples { /* existing implementation */ }";
         StudioProjectFiles.createFileWithDirectories(myProject, path, source, null);
-        var base = StudioProjectFiles.getProjectBaseDir(myProject);
+        VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull("Test project must have a base directory", base);
         String persistedSource = read(base, path);
         try {
@@ -93,13 +112,13 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
                 java.nio.file.Files.readString(root.resolve(path)));
         assertEquals(org.ikasan.studio.core.generator.AiProjectContractGenerator.agentsGuide(),
                 java.nio.file.Files.readString(root.resolve("AGENTS.md")));
-        for (var entry : org.ikasan.studio.core.generator.StudioAiSkillTemplates.files().entrySet()) {
+        for (Entry<String,String> entry : org.ikasan.studio.core.generator.StudioAiSkillTemplates.files().entrySet()) {
             assertEquals(entry.getValue(), java.nio.file.Files.readString(root.resolve(entry.getKey())));
         }
         java.nio.file.Files.writeString(root.resolve(path), "My local settings");
         java.nio.file.Files.writeString(root.resolve("AGENTS.md"), "Team instructions");
-        var first = StudioProjectFiles.createStartupGuidanceIfMissing(myProject);
-        var second = StudioProjectFiles.createStartupGuidanceIfMissing(myProject);
+        CompletableFuture<Void> first = StudioProjectFiles.createStartupGuidanceIfMissing(myProject);
+        CompletableFuture<Void> second = StudioProjectFiles.createStartupGuidanceIfMissing(myProject);
         java.util.concurrent.CompletableFuture.allOf(first, second).get(10, java.util.concurrent.TimeUnit.SECONDS);
         assertEquals("My local settings", java.nio.file.Files.readString(root.resolve(path)));
         assertEquals("Team instructions", java.nio.file.Files.readString(root.resolve("AGENTS.md")));
@@ -116,10 +135,10 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         GenerationTransactionManager.commit(myProject);
         assertEquals(template, read(base, path));
         StudioProjectFiles.createFileWithDirectories(myProject, path, "Developer test settings", null);
-        var file = base.findFileByRelativePath(path);
+        VirtualFile file = base.findFileByRelativePath(path);
         assertNotNull(path, file);
-        var documents = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
-        var document = documents.getDocument(file);
+        FileDocumentManager documents = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
+        Document document = documents.getDocument(file);
         assertNotNull(document);
         com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction(myProject,
                 () -> document.setText("Unsaved developer settings"));
@@ -134,11 +153,11 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
     public void testProjectSkillFilesAreCreatedAndCustomisationsSurviveGeneration() throws Exception {
         VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);
-        var files = org.ikasan.studio.core.generator.StudioAiSkillTemplates.files();
+        Map<String,String> files = org.ikasan.studio.core.generator.StudioAiSkillTemplates.files();
         GenerationTransactionManager.begin();
         files.forEach((path, content) -> StudioProjectFiles.createFileWithDirectoriesIfMissing(myProject, path, content));
         GenerationTransactionManager.commit(myProject);
-        for (var entry : files.entrySet()) {
+        for (Entry<String,String> entry : files.entrySet()) {
             assertEquals(entry.getValue(), read(base, entry.getKey()));
             StudioProjectFiles.createFileWithDirectories(myProject, entry.getKey(), "Team workflow customisation", null);
         }
@@ -241,18 +260,18 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         VirtualFile base = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull(base);
         StudioProjectFiles.createFileWithDirectories(myProject, "user/owned.txt", "developer", null);
-        var model = java.nio.file.Path.of(base.getPath(), "generated", "concurrent-model.json");
+        Path model = java.nio.file.Path.of(base.getPath(), "generated", "concurrent-model.json");
         java.nio.file.Files.createDirectories(model.getParent());
         java.nio.file.Files.writeString(model, "{\"revision\":0}");
-        var started = new java.util.concurrent.CountDownLatch(1);
-        var pool = java.util.concurrent.Executors.newSingleThreadExecutor();
+        CountDownLatch started = new java.util.concurrent.CountDownLatch(1);
+        ExecutorService pool = java.util.concurrent.Executors.newSingleThreadExecutor();
         try {
             GenerationTransactionManager.begin();
             StudioProjectFiles.createFileWithDirectories(myProject, "generated/concurrent.txt", "generated", null);
-            var saves = pool.submit(() -> {
+            Future<?> saves = pool.submit(() -> {
                 started.countDown();
                 try {
-                    var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
                     for (int i = 1; i <= 20; i++) {
                         org.ikasan.studio.core.persistence.json.ProtectedModelFileWriter.write(model,
                                 "{\"revision\":" + i + "}", mapper::readTree);
@@ -270,10 +289,10 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
     }
 
     public void testIndexAccessFailureDuringShorteningKeepsOriginalJavaSource() throws Exception {
-        var style = org.mockito.Mockito.mock(com.intellij.psi.codeStyle.JavaCodeStyleManager.class);
+        JavaCodeStyleManager style = org.mockito.Mockito.mock(com.intellij.psi.codeStyle.JavaCodeStyleManager.class);
         org.mockito.Mockito.when(style.shortenClassReferences(org.mockito.ArgumentMatchers.any(com.intellij.psi.PsiElement.class)))
                 .thenThrow(com.intellij.openapi.project.IndexNotReadyException.create());
-        try (var styles = org.mockito.Mockito.mockStatic(com.intellij.psi.codeStyle.JavaCodeStyleManager.class)) {
+        try (MockedStatic<JavaCodeStyleManager> styles = org.mockito.Mockito.mockStatic(com.intellij.psi.codeStyle.JavaCodeStyleManager.class)) {
             styles.when(() -> com.intellij.psi.codeStyle.JavaCodeStyleManager.getInstance(myProject)).thenReturn(style);
             String path = "generated/src/main/java/example/IndexRace.java";
             String source = "package example; public class IndexRace { java.util.List<String> values; }";
@@ -341,9 +360,9 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         VirtualFile second = base.findFileByRelativePath(secondPath);
         assertNotNull(first);
         assertNotNull(second);
-        var reachedSecond = new java.util.concurrent.CountDownLatch(1);
-        var firstAttempt = new java.util.concurrent.atomic.AtomicBoolean(true);
-        var writeFinished = new java.util.concurrent.atomic.AtomicBoolean();
+        CountDownLatch reachedSecond = new java.util.concurrent.CountDownLatch(1);
+        AtomicBoolean firstAttempt = new java.util.concurrent.atomic.AtomicBoolean(true);
+        AtomicBoolean writeFinished = new java.util.concurrent.atomic.AtomicBoolean();
         // Pause after the first rollback entry has been collected. A real pending EDT write
         // cancels the read; its retry must discard that partial list and read the new bytes.
         VirtualFile observedBase = org.mockito.Mockito.spy(base);
@@ -359,7 +378,7 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
             }
             return second;
         }).when(observedBase).findFileByRelativePath(secondPath);
-        var future = com.intellij.openapi.application.ApplicationManager.getApplication().executeOnPooledThread(() ->
+        Future<List<Snapshot>> future = com.intellij.openapi.application.ApplicationManager.getApplication().executeOnPooledThread(() ->
                 GenerationTransactionManager.prepareSnapshots(myProject, observedBase, java.util.List.of(
                         new GenerationBatch.Artifact(firstPath, "replacement", null),
                         new GenerationBatch.Artifact(secondPath, "replacement", null))));
@@ -369,11 +388,11 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
                 first.setBinaryContent("after write".getBytes(StandardCharsets.UTF_8));
                 writeFinished.set(true);
             });
-            var snapshots = future.get(10, java.util.concurrent.TimeUnit.SECONDS);
+            List<Snapshot> snapshots = future.get(10, java.util.concurrent.TimeUnit.SECONDS);
             assertEquals("An interrupted attempt must not leave extra rollback entries", 2, snapshots.size());
             assertEquals("after write", new String(snapshots.get(0).bytes(), StandardCharsets.UTF_8));
             assertEquals("second", new String(snapshots.get(1).bytes(), StandardCharsets.UTF_8));
-            for (var snapshot : snapshots) snapshot.verifyUnchanged(base);
+            for (Snapshot snapshot : snapshots) snapshot.verifyUnchanged(base);
         } finally {
             writeFinished.set(true);
             future.cancel(true);
@@ -385,7 +404,7 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         assertNotNull("Test project must have a base directory", base);
         String path = "generated/snapshot.txt";
         StudioProjectFiles.createFileWithDirectories(myProject, path, "original", null);
-        var snapshots = GenerationTransactionManager.prepareSnapshots(myProject, base,
+        List<Snapshot> snapshots = GenerationTransactionManager.prepareSnapshots(myProject, base,
                 java.util.List.of(new GenerationBatch.Artifact(path, "replacement", null)));
         assertEquals("original", new String(snapshots.get(0).bytes(), StandardCharsets.UTF_8));
         snapshots.get(0).verifyUnchanged(base);

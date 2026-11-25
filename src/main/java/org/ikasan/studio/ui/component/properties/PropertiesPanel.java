@@ -24,6 +24,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.awt.event.ActionListener;
 
 /**
  * Implements Disposable (default no-op dispose()) purely so every subclass has a panel-scoped lifecycle to hang
@@ -149,7 +150,7 @@ public abstract class PropertiesPanel extends JBPanel implements Disposable {
     /** Only the docked designer supplies this action; popup panels retain normal dialog sizing. */
     public void setFitWidthAction(Runnable action) {
         if (fitWidthButton != null) {
-            for (var listener : fitWidthButton.getActionListeners()) {
+            for (ActionListener listener : fitWidthButton.getActionListeners()) {
                 fitWidthButton.removeActionListener(listener);
             }
             fitWidthButton.addActionListener(event -> action.run());

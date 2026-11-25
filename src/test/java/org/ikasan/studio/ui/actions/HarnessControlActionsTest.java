@@ -18,6 +18,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.ikasan.studio.core.TestFixtures.BASE_META_PACK;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import org.ikasan.studio.intellij.execution.HarnessOverrideService;
+import org.ikasan.studio.intellij.runtime.TestFtpServerService;
+import org.ikasan.studio.intellij.runtime.TestSftpServerService;
 
 class HarnessControlActionsTest {
     @Test
@@ -60,13 +63,13 @@ class HarnessControlActionsTest {
     @Test
     void runningIndicatorsUseOnlyThisProjectsCachedServiceState() {
         Project project = mock(Project.class);
-        var ftp = mock(org.ikasan.studio.intellij.runtime.TestFtpServerService.class);
-        var sftp = mock(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
-        var mail = mock(TestMailServerSessionService.class);
+        TestFtpServerService ftp = mock(org.ikasan.studio.intellij.runtime.TestFtpServerService.class);
+        TestSftpServerService sftp = mock(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
+        TestMailServerSessionService mail = mock(TestMailServerSessionService.class);
         when(project.getService(org.ikasan.studio.intellij.runtime.TestFtpServerService.class)).thenReturn(ftp);
         when(project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class)).thenReturn(sftp);
         when(project.getService(TestMailServerSessionService.class)).thenReturn(mail);
-        var actions = new HarnessControlActions(project);
+        HarnessControlActions actions = new HarnessControlActions(project);
         assertThat(actions.runningHarnesses()).isEmpty();
         when(ftp.isRunning()).thenReturn(true);
         when(mail.hasAnyOwnedListening()).thenReturn(true);
@@ -82,14 +85,14 @@ class HarnessControlActionsTest {
 
     @Test
     void sharedMailAvailabilityLightsIndicatorWithoutTakingOwnership() throws Exception {
-        var project = mock(Project.class); var context = mock(UiContext.class);
+        Project project = mock(Project.class); UiContext context = mock(UiContext.class);
         when(project.getService(UiContext.class)).thenReturn(context);
-        var email = FlowElement.flowElementBuilder().componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK,
+        FlowElement email = FlowElement.flowElementBuilder().componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(BASE_META_PACK,
                 "Email Producer")).componentName("Mail").build();
         email.setPropertyValue("mailSmtpHost", "localhost"); email.setPropertyValue("mailSmtpPort", 2525);
         when(context.getIkasanModule()).thenReturn(moduleWith(email));
-        var mail = mock(TestMailServerSessionService.class); when(project.getService(TestMailServerSessionService.class)).thenReturn(mail);
-        var actions = new HarnessControlActions(project);
+        TestMailServerSessionService mail = mock(TestMailServerSessionService.class); when(project.getService(TestMailServerSessionService.class)).thenReturn(mail);
+        HarnessControlActions actions = new HarnessControlActions(project);
         when(mail.isListening("127.0.0.1", 1025)).thenReturn(true);
         assertThat(actions.runningHarnesses()).isEmpty(); // An unrelated/default listener is not this component's endpoint.
         when(mail.isListening("localhost", 2525)).thenReturn(true);
@@ -99,7 +102,7 @@ class HarnessControlActionsTest {
         org.mockito.Mockito.verify(mail, org.mockito.Mockito.never()).registerOwned(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.any());
         when(mail.isListening("localhost", 2525)).thenReturn(false);
         assertThat(actions.runningHarnesses()).isEmpty();
-        var overrides = mock(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        HarnessOverrideService overrides = mock(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
         when(project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class)).thenReturn(overrides);
         when(overrides.hasRunningLaunches()).thenReturn(true); when(overrides.isActive(email)).thenReturn(true);
         assertThat(actions.runningHarnesses()).containsExactly(org.ikasan.studio.ui.StudioBundle.message("harness.smtp.sharedAvailable"));

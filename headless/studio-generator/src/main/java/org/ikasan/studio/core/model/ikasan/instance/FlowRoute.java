@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import static org.ikasan.studio.core.model.ikasan.instance.Transition.DEFAULT_TRANSITION_NAME;
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.ROUTE_NAMES;
+import java.util.ArrayList;
 
 /**
  * Most of the time, a flow contains a single flow route. The flow route itself
@@ -101,7 +102,7 @@ public class FlowRoute  implements IkasanComponent {
         String endpointKey = router.getComponentMeta().getEndpointKey();
         if (endpointKey == null) return;
         ComponentMeta endpointMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(metapackVersion, endpointKey);
-        var unmatched = childRoutes.stream().filter(r -> !desired.contains(r.getRouteName()))
+        ArrayList<FlowRoute> unmatched = childRoutes.stream().filter(r -> !desired.contains(r.getRouteName()))
                 .collect(Collectors.toCollection(ArrayList::new));
         List<FlowRoute> reconciled = new ArrayList<>();
         for (String name : desired) {

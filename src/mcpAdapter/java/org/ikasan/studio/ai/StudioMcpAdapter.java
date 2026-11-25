@@ -12,6 +12,9 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /** Standalone MCP stdio adapter. Only protocol responses are written to stdout. */
 public final class StudioMcpAdapter {
@@ -27,8 +30,8 @@ public final class StudioMcpAdapter {
             return;
         }
         Path connectionFile = Path.of(args[1]);
-        var input = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-        var output = new PrintWriter(System.out, true, StandardCharsets.UTF_8);
+        BufferedReader input = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+        PrintWriter output = new PrintWriter(System.out, true, StandardCharsets.UTF_8);
         String line;
         while ((line = input.readLine()) != null) {
             JsonNode request = null;
@@ -46,7 +49,7 @@ public final class StudioMcpAdapter {
                     throw new IllegalArgumentException("Studio connection must be a loopback /rpc endpoint");
                 }
                 // Explicitly bypass system proxies; never redirect a request carrying the token.
-                var http = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
+                HttpURLConnection http = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
                 try {
                     http.setInstanceFollowRedirects(false);
                     http.setConnectTimeout(TIMEOUT_MILLIS);
@@ -57,12 +60,12 @@ public final class StudioMcpAdapter {
                     http.setDoOutput(true);
                     byte[] body = line.getBytes(StandardCharsets.UTF_8);
                     http.setFixedLengthStreamingMode(body.length);
-                    try (var stream = http.getOutputStream()) { stream.write(body); }
+                    try (OutputStream stream = http.getOutputStream()) { stream.write(body); }
                     int status = http.getResponseCode();
                     if (status < 200 || status >= 300) {
                         throw new IllegalStateException("Studio bridge returned HTTP " + status);
                     }
-                    try (var stream = http.getInputStream()) {
+                    try (InputStream stream = http.getInputStream()) {
                         byte[] response = stream.readAllBytes();
                         if (response.length > 0) {
                             output.println(JSON.writeValueAsString(JSON.readTree(response)));
@@ -75,7 +78,7 @@ public final class StudioMcpAdapter {
                 // Do not echo connection contents, tokens or response bodies into diagnostics.
                 String message = "Studio bridge unavailable (" + failure.getClass().getSimpleName() + ")";
                 if (request != null && request.isObject() && request.has("id")) {
-                    var response = JSON.createObjectNode();
+                    ObjectNode response = JSON.createObjectNode();
                     response.put("jsonrpc", "2.0");
                     response.set("id", request.get("id"));
                     response.putObject("error").put("code", -32000).put("message", message);

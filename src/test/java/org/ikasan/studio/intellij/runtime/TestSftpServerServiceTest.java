@@ -6,6 +6,8 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import org.ikasan.studio.integration.sftp.LocalSftpHarness;
+import org.ikasan.studio.intellij.runtime.TestSftpServerService.Settings;
 
 class TestSftpServerServiceTest {
     @TempDir Path temporary;
@@ -14,10 +16,10 @@ class TestSftpServerServiceTest {
             // Configure each mock before publishing it to the service's EDT callbacks.
             Project project = mock(Project.class);
             when(project.getBasePath()).thenReturn(basePath);
-            var service = new TestSftpServerService(project);
+            TestSftpServerService service = new TestSftpServerService(project);
             service.setLocal(true);
             try {
-                var failure = assertThrows(IllegalStateException.class, service::start);
+                IllegalStateException failure = assertThrows(IllegalStateException.class, service::start);
                 assertEquals("Open a project with a directory before starting the local SFTP harness.", failure.getMessage());
                 assertFalse(service.isRunning());
                 assertThrows(IllegalStateException.class, service::launchProperties);
@@ -27,7 +29,7 @@ class TestSftpServerServiceTest {
     @Test void externalModeIsUntouchedAndLocalModeRequiresOwnedServer() throws Exception {
         Project project = mock(Project.class);
         when(project.getBasePath()).thenReturn(temporary.toString());
-        var service = new TestSftpServerService(project);
+        TestSftpServerService service = new TestSftpServerService(project);
         assertFalse(service.isSelected());
         assertFalse(service.isRunning());
         assertTrue(service.launchProperties().isEmpty());
@@ -35,12 +37,12 @@ class TestSftpServerServiceTest {
         assertFalse(service.isRunning());
         assertThrows(IllegalStateException.class, service::launchProperties);
         try {
-            var server = service.start();
+            LocalSftpHarness server = service.start();
             assertTrue(service.isRunning());
             assertSame(server, service.start());
             assertEquals("true", service.launchProperties().get("studio.test.sftp.enabled"));
-            var restored = new TestSftpServerService(project);
-            var savedState = service.getState();
+            TestSftpServerService restored = new TestSftpServerService(project);
+            Settings savedState = service.getState();
             assertNotNull(savedState);
             restored.loadState(savedState);
             assertTrue(restored.isLocal());

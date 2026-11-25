@@ -33,6 +33,12 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Path2D;
+import java.util.List;
+import java.util.Set;
+import org.ikasan.studio.intellij.execution.HarnessOverrideService;
+import org.ikasan.studio.intellij.execution.ModuleStartupDiagnostics;
+import org.ikasan.studio.ui.actions.HarnessControlActions.HarnessStatus;
+import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 
 @SuppressWarnings("rawtypes")
 public class CanvasPanel extends JBPanel implements Disposable {
@@ -89,7 +95,7 @@ public class CanvasPanel extends JBPanel implements Disposable {
     }
 
     static void updateHarnessState(JButton start, JButton stop, HarnessControlActions.HarnessStatus state) {
-        var running = state.available();
+        List<String> running = state.available();
         boolean active = !running.isEmpty();
         start.setIcon(!state.owned().isEmpty() ? RUNNING_HARNESS_ICON : active ? SHARED_HARNESS_ICON : AllIcons.Actions.Execute);
         String status = active ? StudioBundle.message("tooltip.HarnessesRunning", String.join(", ", running)) : "";
@@ -299,14 +305,14 @@ public class CanvasPanel extends JBPanel implements Disposable {
      */
     private void refreshHarnessGroupVisibility(HarnessControlActions harnessActions) {
         if (project.isDisposed()) return;
-        var diagnostics = project.getService(org.ikasan.studio.intellij.execution.ModuleStartupDiagnostics.class);
+        ModuleStartupDiagnostics diagnostics = project.getService(org.ikasan.studio.intellij.execution.ModuleStartupDiagnostics.class);
         String startupProblem = diagnostics.message();
         startupBanner.setText(diagnostics.bannerMessage());
         startupBanner.setToolTipText(startupProblem);
         startupBanner.setVisible(startupProblem != null);
-        var overrides = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        HarnessOverrideService overrides = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
         if (overrides != null) {
-            var selected = overrides.nextSelection();
+            Set<String> selected = overrides.nextSelection();
             String next = overrides.describe(selected);
             String active = overrides.describe(overrides.activeSelection());
             String summary = overrides.hasRunningLaunches()
@@ -317,10 +323,10 @@ public class CanvasPanel extends JBPanel implements Disposable {
                     active.isEmpty() ? StudioBundle.message("harnessOverrides.none") : active));
             harnessOverridesButton.getAccessibleContext().setAccessibleName(harnessOverridesButton.getToolTipText());
             harnessOverridesButton.setVisible(!overrides.targets().isEmpty());
-            var properties = project.getService(UiContext.class).getPropertiesPanel();
+            ComponentPropertiesPanel properties = project.getService(UiContext.class).getPropertiesPanel();
             if (properties != null) properties.refreshHarnessOverrideStatus();
         }
-        var harnessState = harnessActions.status();
+        HarnessStatus harnessState = harnessActions.status();
         updateHarnessState(startHarnessButton, stopHarnessButton, harnessState);
         if (harnessGroupPanel.getBorder() instanceof TitledBorder border && !border.getTitle().equals(harnessTitle(harnessState))) {
             border.setTitle(harnessTitle(harnessState)); harnessGroupPanel.revalidate(); harnessGroupPanel.repaint();

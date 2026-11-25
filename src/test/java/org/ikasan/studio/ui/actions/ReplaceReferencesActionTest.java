@@ -20,6 +20,11 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import org.ikasan.studio.core.model.analysis.ModelReferenceReplacement.Change;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
 class ReplaceReferencesActionTest {
     @Test void savesAndGeneratesAndRegistersOneGlobalUndoWithReloadProtection() throws Exception { exercise(false); }
@@ -29,7 +34,7 @@ class ReplaceReferencesActionTest {
         Project project = mock(Project.class);
         UiContext context = mock(UiContext.class);
         ComponentPropertiesPanel panel = mock(ComponentPropertiesPanel.class);
-        var flow = TestFixtures.getUnbuiltFlow(TestFixtures.BASE_META_PACK)
+        Flow flow = TestFixtures.getUnbuiltFlow(TestFixtures.BASE_META_PACK)
                 .consumer(TestFixtures.getSpringJmsConsumer(TestFixtures.BASE_META_PACK)).build();
         Module module = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, List.of(flow));
         when(project.getService(UiContext.class)).thenReturn(context);
@@ -37,8 +42,8 @@ class ReplaceReferencesActionTest {
         when(context.getLatestGeneration()).thenReturn(CompletableFuture.completedFuture(null));
         when(context.getPropertiesPanel()).thenReturn(panel);
         when(panel.confirmSelectionChangeWithPendingEdits(null)).thenReturn(true);
-        try (var dialogs = mockConstruction(ReplaceReferencesDialog.class);
-             var files = mockStatic(StudioProjectFiles.class)) {
+        try (MockedConstruction<ReplaceReferencesDialog> dialogs = mockConstruction(ReplaceReferencesDialog.class);
+             MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class)) {
             ReplaceReferencesAction.open(project);
             verify(panel).updateTargetComponent(module);
             assertEquals(1, dialogs.constructed().size());
@@ -61,20 +66,20 @@ class ReplaceReferencesActionTest {
     private void exercise(boolean failSave) throws Exception {
         Project project = mock(Project.class);
         UiContext context = mock(UiContext.class);
-        var consumer = TestFixtures.getSpringJmsConsumer(TestFixtures.BASE_META_PACK);
+        FlowElement consumer = TestFixtures.getSpringJmsConsumer(TestFixtures.BASE_META_PACK);
         consumer.setPropertyValue("trustedObjectPackages", "org.example.cat.domain");
-        var flow = TestFixtures.getUnbuiltFlow(TestFixtures.BASE_META_PACK).consumer(consumer).build();
+        Flow flow = TestFixtures.getUnbuiltFlow(TestFixtures.BASE_META_PACK).consumer(consumer).build();
         Module module = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, List.of(flow));
         when(project.getService(UiContext.class)).thenReturn(context);
         when(context.getIkasanModule()).thenReturn(module);
         when(context.getLatestGeneration()).thenReturn(CompletableFuture.completedFuture(null));
         ComponentPropertiesPanel panel = mock(ComponentPropertiesPanel.class);
         when(context.getPropertiesPanel()).thenReturn(panel);
-        var changes = ModelReferenceReplacement.preview(module, "org.example.cat.domain", "org.example.debug.domain");
-        try (var commands = mockStatic(CommandProcessor.class);
-             var undos = mockStatic(UndoManager.class);
-             var files = mockStatic(StudioProjectFiles.class);
-             var applications = mockStatic(ApplicationManager.class)) {
+        List<Change> changes = ModelReferenceReplacement.preview(module, "org.example.cat.domain", "org.example.debug.domain");
+        try (MockedStatic<CommandProcessor> commands = mockStatic(CommandProcessor.class);
+             MockedStatic<UndoManager> undos = mockStatic(UndoManager.class);
+             MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class);
+             MockedStatic<ApplicationManager> applications = mockStatic(ApplicationManager.class)) {
             CommandProcessor command = mock(CommandProcessor.class);
             commands.when(CommandProcessor::getInstance).thenReturn(command);
             doAnswer(call -> { call.getArgument(1, Runnable.class).run(); return null; })
@@ -101,12 +106,12 @@ class ReplaceReferencesActionTest {
             assertFalse(generation.isDone());
             generation.complete(null);
             assertEquals("org.example.debug.domain", consumer.getPropertyValue("trustedObjectPackages"));
-            var captured = ArgumentCaptor.forClass(UndoableAction.class);
+            ArgumentCaptor<UndoableAction> captured = ArgumentCaptor.forClass(UndoableAction.class);
             verify(undo).undoableActionPerformed(captured.capture());
             assertTrue(captured.getValue().isGlobal());
             captured.getValue().undo();
             assertEquals("org.example.cat.domain", consumer.getPropertyValue("trustedObjectPackages"));
-            var callbacks = ArgumentCaptor.forClass(Runnable.class);
+            ArgumentCaptor<Runnable> callbacks = ArgumentCaptor.forClass(Runnable.class);
             verify(application).invokeLater(callbacks.capture());
             files.verify(() -> StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.flow(flow)));
             callbacks.getValue().run();

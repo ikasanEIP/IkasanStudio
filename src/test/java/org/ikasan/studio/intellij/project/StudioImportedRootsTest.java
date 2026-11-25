@@ -9,7 +9,7 @@ import static org.mockito.Mockito.*;
 
 class StudioImportedRootsTest {
     private VirtualFile root(String path) {
-        var root = mock(VirtualFile.class);
+        VirtualFile root = mock(VirtualFile.class);
         when(root.isValid()).thenReturn(true);
         when(root.getPath()).thenReturn(path);
         when(root.toString()).thenReturn("Decorated VirtualFile[" + path + "]");
@@ -17,8 +17,8 @@ class StudioImportedRootsTest {
     }
 
     @Test void usesVirtualFilePathsAndIgnoresAnotherProjectsGeneratedDirectory() {
-        var unrelated = root("/other/generated");
-        var generated = root("/example/generated");
+        VirtualFile unrelated = root("/other/generated");
+        VirtualFile generated = root("/example/generated");
         assertThat(StudioProjectFiles.findGeneratedContentRoot("/example", new VirtualFile[]{unrelated, generated}))
                 .isSameAs(generated);
         when(generated.isValid()).thenReturn(false);
@@ -26,9 +26,9 @@ class StudioImportedRootsTest {
     }
 
     @Test void acceptsSplitContentRootsBelowTheGeneratedModule() {
-        var source = root("/example/generated/src/main");
-        var generated = root("/example/generated");
-        var fs = mock(VirtualFileSystem.class);
+        VirtualFile source = root("/example/generated/src/main");
+        VirtualFile generated = root("/example/generated");
+        VirtualFileSystem fs = mock(VirtualFileSystem.class);
         when(source.getFileSystem()).thenReturn(fs);
         when(fs.findFileByPath("/example/generated")).thenReturn(generated);
         assertThat(StudioProjectFiles.findGeneratedContentRoot("/example", new VirtualFile[]{source})).isSameAs(generated);

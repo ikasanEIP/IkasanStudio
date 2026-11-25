@@ -9,11 +9,12 @@ import java.net.http.HttpResponse;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import org.ikasan.studio.ui.actions.TestInjectionTask.Notice;
 
 class TestInjectionTaskTest {
     @Test
     void successfulResponsesRetainActionSpecificFeedback() {
-        var notice = TestInjectionTask.perform("flow", () -> response(200, "{\"identifier\":\"message-1\"}"),
+        Notice notice = TestInjectionTask.perform("flow", () -> response(200, "{\"identifier\":\"message-1\"}"),
                 json -> TestInjectionTask.Notice.info(json.path("identifier").asText()));
         assertThat(notice).isEqualTo(TestInjectionTask.Notice.info("message-1"));
         assertThat(TestInjectionTask.perform("flow", () -> response(200, "{}"),
@@ -23,12 +24,12 @@ class TestInjectionTaskTest {
 
     @Test
     void authenticationAndHttpFailuresDoNotInvokeSuccessHandler() {
-        var authentication = TestInjectionTask.perform("flow", () -> response(401, "not JSON"), json -> {
+        Notice authentication = TestInjectionTask.perform("flow", () -> response(401, "not JSON"), json -> {
             throw new AssertionError("Must not invoke success handler");
         });
         assertThat(authentication).isEqualTo(TestInjectionTask.Notice.warning(
                 StudioBundle.message("message.TestMessageAuthenticationFailed")));
-        var failure = TestInjectionTask.perform("flow", () -> response(503, "unavailable"), json -> {
+        Notice failure = TestInjectionTask.perform("flow", () -> response(503, "unavailable"), json -> {
             throw new AssertionError("Must not invoke success handler");
         });
         assertThat(failure).isNotNull();
@@ -40,7 +41,7 @@ class TestInjectionTaskTest {
     void startupAndMalformedResponseFailuresProvideFeedback() {
         assertThat(TestInjectionTask.perform("flow", () -> { throw new ConnectException(); }, json -> null))
                 .isEqualTo(TestInjectionTask.Notice.warning(StudioBundle.message("message.ModuleNotYetAcceptingConnections")));
-        var malformed = TestInjectionTask.perform("flow", () -> response(200, "not JSON"), json -> {
+        Notice malformed = TestInjectionTask.perform("flow", () -> response(200, "not JSON"), json -> {
             throw new AssertionError("Must not invoke success handler");
         });
         assertThat(malformed).isNotNull();

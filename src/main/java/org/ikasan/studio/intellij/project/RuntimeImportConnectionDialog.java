@@ -13,6 +13,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBTextArea;
+import java.awt.GridBagConstraints;
+import java.net.URI;
+import javax.swing.JPanel;
+import javax.swing.event.DocumentListener;
+import org.ikasan.studio.core.diagnostics.RuntimeImportReport;
+import org.ikasan.studio.integration.ikasan.RuntimeImportClient.Documents;
+import org.ikasan.studio.intellij.project.RuntimeImportConnectionSettings.Settings;
 
 /** Fetches into memory only. The parent import dialog still owns conversion, review and import. */
 final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
@@ -34,7 +43,7 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
     RuntimeImportConnectionDialog(Project project, Component parent) {
         super(project, parent);
         this.project = project;
-        var saved = project.getService(RuntimeImportConnectionSettings.class).getState();
+        Settings saved = project.getService(RuntimeImportConnectionSettings.class).getState();
         url.setText(saved.applicationUrl);
         module.setText(saved.moduleName);
         username.setText(saved.username);
@@ -42,7 +51,7 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
         setTitle(StudioBundle.message("import.remote.title"));
         setOKButtonText(StudioBundle.message("import.remote.fetch"));
         init();
-        var previewListener = new javax.swing.event.DocumentListener() {
+        DocumentListener previewListener = new javax.swing.event.DocumentListener() {
             @Override public void insertUpdate(javax.swing.event.DocumentEvent event) { updateEndpointPreview(); }
             @Override public void removeUpdate(javax.swing.event.DocumentEvent event) { updateEndpointPreview(); }
             @Override public void changedUpdate(javax.swing.event.DocumentEvent event) { updateEndpointPreview(); }
@@ -53,18 +62,18 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
     }
 
     @Override protected JComponent createStudioContent() {
-        var panel = new JPanel(new BorderLayout(0, JBUI.scale(10)));
-        var note = new JBTextArea(StudioBundle.message("import.remote.help"), 6, 60);
+        JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(10)));
+        JBTextArea note = new JBTextArea(StudioBundle.message("import.remote.help"), 6, 60);
         note.setEditable(false); note.setLineWrap(true); note.setWrapStyleWord(true);
         note.setOpaque(false); note.setFont(UIManager.getFont("Label.font"));
         panel.add(note, BorderLayout.NORTH);
-        var fields = new JPanel(new GridBagLayout());
+        JPanel fields = new JPanel(new GridBagLayout());
         add(fields, 0, "import.remote.url", url);
         add(fields, 1, "import.remote.module", module);
         add(fields, 2, "import.remote.username", username);
         add(fields, 3, "import.remote.password", password);
         panel.add(fields, BorderLayout.CENTER);
-        var bottom = new JPanel(new BorderLayout());
+        JPanel bottom = new JPanel(new BorderLayout());
         endpointPreview.setEditable(false); endpointPreview.setLineWrap(true); endpointPreview.setWrapStyleWord(true);
         endpointPreview.setOpaque(false); endpointPreview.setFont(UIManager.getFont("Label.font"));
         endpointPreview.getAccessibleContext().setAccessibleName(StudioBundle.message("import.remote.endpointLabel"));
@@ -79,7 +88,7 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
 
     private void updateEndpointPreview() {
         try {
-            var endpoint = RuntimeImportClient.metadataUri(RuntimeImportClient.baseUri(url.getText()), module.getText().trim());
+            URI endpoint = RuntimeImportClient.metadataUri(RuntimeImportClient.baseUri(url.getText()), module.getText().trim());
             endpointPreview.setText(StudioBundle.message("import.remote.endpointPreview", endpoint.toASCIIString()));
             endpointPreview.setCaretPosition(0);
             endpointPreview.setVisible(true);
@@ -91,8 +100,8 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
     }
 
     private static void add(JPanel panel, int row, String key, JComponent input) {
-        var label = new JBLabel(StudioBundle.message(key)); label.setLabelFor(input);
-        var c = new GridBagConstraints(); c.gridx = 0; c.gridy = row;
+        JBLabel label = new JBLabel(StudioBundle.message(key)); label.setLabelFor(input);
+        GridBagConstraints c = new GridBagConstraints(); c.gridx = 0; c.gridy = row;
         c.anchor = GridBagConstraints.WEST; c.insets = JBUI.insets(4, 0, 4, 10);
         panel.add(label, c);
         c.gridx = 1; c.weightx = 1; c.fill = GridBagConstraints.HORIZONTAL;
@@ -118,17 +127,17 @@ final class RuntimeImportConnectionDialog extends ImportDialogWrapper {
         if (doValidate() != null) { initValidation(); return; }
         reportButton.setVisible(false);
         setErrorText(null);
-        var base = RuntimeImportClient.baseUri(url.getText());
+        URI base = RuntimeImportClient.baseUri(url.getText());
         url.setText(base.toString());
         String name = module.getText().trim();
         String user = username.getText();
         char[] secret = password.getPassword();
         boolean include = configuration.isSelected();
         rememberConnection();
-        var report = org.ikasan.studio.intellij.diagnostics.RuntimeImportDiagnostics.get(project).start();
+        RuntimeImportReport report = org.ikasan.studio.intellij.diagnostics.RuntimeImportDiagnostics.get(project).start();
         report.stage(org.ikasan.studio.core.diagnostics.RuntimeImportReport.Stage.FETCH);
-        var fetched = new AtomicReference<RuntimeImportClient.Documents>();
-        var failure = new AtomicReference<IOException>();
+        AtomicReference<Documents> fetched = new AtomicReference<>();
+        AtomicReference<IOException> failure = new AtomicReference<>();
         try {
             boolean completed = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
                 try {

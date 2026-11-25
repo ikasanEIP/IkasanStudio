@@ -3,6 +3,7 @@ package org.ikasan.studio.ui;
 import org.junit.jupiter.api.Test;
 import javax.swing.*;
 import static org.junit.jupiter.api.Assertions.*;
+import com.intellij.ui.JBSplitter;
 
 class SidebarVisibilityToggleTest {
     @Test
@@ -13,12 +14,12 @@ class SidebarVisibilityToggleTest {
             JTextField field = new JTextField("unsaved edit");
             tabs.addTab("Properties", field);
             tabs.addTab("Palette", new JPanel());
-            var splitter = DesignerUI.createContentSplitter(canvas, tabs);
+            JBSplitter splitter = DesignerUI.createContentSplitter(canvas, tabs);
             try {
                 splitter.setSize(1200, 600);
                 splitter.doLayout();
                 int width = tabs.getWidth();
-                var toggle = new SidebarVisibilityToggle(splitter, tabs);
+                SidebarVisibilityToggle toggle = new SidebarVisibilityToggle(splitter, tabs);
                 toggle.button().doClick();
                 splitter.doLayout();
                 assertFalse(tabs.isVisible());

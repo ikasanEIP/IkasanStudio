@@ -34,15 +34,15 @@ public class ExternalPackProbe {
                     .applicationPackageName("org.example.demo").port("8080").h2PortNumber("8092")
                     .h2WebPortNumber("8093").flows(List.of(flow)).build();
             Path output = Path.of(args[1]);
-            for (var artifact : MetaPackTestKit.render(module).entrySet()) {
+            for (java.util.Map.Entry<String, String> artifact : MetaPackTestKit.render(module).entrySet()) {
                 Path target = output.resolve(artifact.getKey());
                 Files.createDirectories(target.getParent()); Files.writeString(target, artifact.getValue());
             }
-            var scaffold = org.ikasan.studio.core.generator.FlowTestScaffold.render(module, flow,
+            org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold scaffold = org.ikasan.studio.core.generator.FlowTestScaffold.render(module, flow,
                     "<project><modelVersion>4.0.0</modelVersion><groupId>org.example</groupId><artifactId>demo</artifactId>"
                     + "<version>1</version><packaging>pom</packaging><properties><version.ikasan>5.1.0</version.ikasan></properties></project>",
                     "<project><modelVersion>4.0.0</modelVersion><groupId>org.example</groupId><artifactId>generated</artifactId><version>1</version></project>");
-            for (var artifact : scaffold.files().entrySet()) {
+            for (java.util.Map.Entry<String, String> artifact : scaffold.files().entrySet()) {
                 Path target = output.resolve(artifact.getKey());
                 Files.createDirectories(target.getParent()); Files.writeString(target, artifact.getValue());
             }

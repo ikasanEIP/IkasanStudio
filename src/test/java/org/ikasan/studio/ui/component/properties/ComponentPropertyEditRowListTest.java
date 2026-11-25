@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ComponentPropertyEditRowListTest {
     @Test
     void editorEnforcesSemanticPackageValidationWithoutAnExpression() {
-        var meta = ComponentPropertyMeta.builder().propertyName("applicationPackageName")
+        ComponentPropertyMeta meta = ComponentPropertyMeta.builder().propertyName("applicationPackageName")
                 .validationKind(ComponentPropertyMeta.JAVA_PACKAGE).validationMessage("Use a Java package name").build();
         assertNull(ComponentPropertyEditRow.patternValidationMessage(meta, "org.example"));
         assertEquals("applicationPackageName: Use a Java package name",
@@ -18,9 +18,9 @@ class ComponentPropertyEditRowListTest {
     }
 
     private ComponentPropertyEditRow row(Object value) {
-        var meta = ComponentPropertyMeta.builder().propertyName("filenames")
+        ComponentPropertyMeta meta = ComponentPropertyMeta.builder().propertyName("filenames")
                 .usageDataType("java.util.List<String>").build();
-        var row = new ComponentPropertyEditRow(null, new ComponentProperty(meta, value),
+        ComponentPropertyEditRow row = new ComponentPropertyEditRow(null, new ComponentProperty(meta, value),
                 false, () -> {}, new HashMap<>());
         row.resetDataEntryComponentsWithNewValues();
         return row;
@@ -28,7 +28,7 @@ class ComponentPropertyEditRowListTest {
 
     @Test
     void legacyFilenameBracketsAreVisibleWithoutChangingTheSavedValue() {
-        var row = row("[myFile\\.txt, anotherFile\\.txt]");
+        ComponentPropertyEditRow row = row("[myFile\\.txt, anotherFile\\.txt]");
         assertEquals("[myFile\\.txt, anotherFile\\.txt]", row.getOverridingInputField().getText());
         assertEquals(List.of("[myFile\\.txt", "anotherFile\\.txt]"), row.getValue());
         assertFalse(row.propertyValueHasChanged());
@@ -36,7 +36,7 @@ class ComponentPropertyEditRowListTest {
 
     @Test
     void editsRevertsAndClearingAreDetectedBeforeFocusCommit() {
-        var row = row("[myFile\\.txt, anotherFile\\.txt]");
+        ComponentPropertyEditRow row = row("[myFile\\.txt, anotherFile\\.txt]");
         row.getOverridingInputField().setText("changed\\.txt");
         assertTrue(row.propertyValueHasChanged());
         assertEquals(List.of("changed\\.txt"), row.getValue());
@@ -54,7 +54,7 @@ class ComponentPropertyEditRowListTest {
     void validRegexCharacterClassesSurviveDisplayAndSave() {
         String pattern = "[a-z]+[.]txt";
         for (Object value : List.of(pattern, List.of(pattern))) {
-            var row = row(value);
+            ComponentPropertyEditRow row = row(value);
             assertEquals(pattern, row.getOverridingInputField().getText());
             assertFalse(row.propertyValueHasChanged());
             String saved = row.updateValueObjectWithEnteredValues().getValueString();

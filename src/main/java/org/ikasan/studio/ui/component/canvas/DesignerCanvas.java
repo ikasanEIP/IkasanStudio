@@ -76,6 +76,15 @@ import java.util.List;
 
 import static org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInPascalCase;
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME;
+import java.awt.FontMetrics;
+import org.ikasan.studio.core.model.analysis.FtpFlowConnections.Link;
+import org.ikasan.studio.core.model.analysis.HarnessOverrides.Target;
+import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.intellij.execution.HarnessOverrideService;
+import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
+import org.ikasan.studio.ui.viewmodel.IkasanFlowComponentViewHandler;
+import org.ikasan.studio.ui.viewmodel.IkasanFlowViewHandler;
 
 /**
  * The main painting / design panel
@@ -181,7 +190,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
         if (availableMetaPacks.isEmpty()) return;
         boolean allowSnapshots = org.ikasan.studio.intellij.settings.IkasanStudioSettings.areSnapshotMetaPacksAllowed();
         Object selected = metaDataVersionComboBox.getSelectedItem();
-        var sorted = new ArrayList<>(availableMetaPacks.stream().filter(id -> allowSnapshots || !snapshotMetaPacks.contains(id)).toList());
+        ArrayList<String> sorted = new ArrayList<>(availableMetaPacks.stream().filter(id -> allowSnapshots || !snapshotMetaPacks.contains(id)).toList());
         sorted.sort(String::compareToIgnoreCase);
         metaDataVersionComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(sorted.toArray(String[]::new)));
         if (selected instanceof String version && sorted.contains(version)) metaDataVersionComboBox.setSelectedItem(version);
@@ -312,7 +321,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             draft.setApplicationPackageName(defaultPackageName);
         }
         if (creatingNewModule) {
-            var flowStartupTypeMeta = draft.getComponentMeta().getMetadata("flowStartupType");
+            ComponentPropertyMeta flowStartupTypeMeta = draft.getComponentMeta().getMetadata("flowStartupType");
             if (flowStartupTypeMeta != null && flowStartupTypeMeta.getDefaultValue() != null) {
                 draft.setPropertyValue("flowStartupType", flowStartupTypeMeta.getDefaultValue());
             }
@@ -623,7 +632,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             this.setToolTipText(((Flow) mouseSelectedComponent).getFlowIntegrityStatus());
         } else if (mouseSelectedComponent instanceof FlowElement flowElement) {
             String tooltip = buildInputOutputTooltip(flowElement);
-            var selections = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+            HarnessOverrideService selections = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
             if (selections != null && (selections.isEnabled(flowElement) || selections.isActive(flowElement))) {
                 tooltip += " — " + StudioBundle.message(selections.isActive(flowElement) ?
                         "harnessOverrides.active" : "harnessOverrides.enabled");
@@ -1800,14 +1809,14 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     }
 
     private List<TestFtpServerLinks.Link> effectiveFtpLinks(Module module) {
-        var links = new java.util.ArrayList<TestFtpServerLinks.Link>();
-        for (var original : TestFtpServerLinks.findLinks(module)) {
-            var elements = new java.util.ArrayList<>(original.consumers());
+        ArrayList<org.ikasan.studio.core.model.analysis.TestFtpServerLinks.Link> links = new java.util.ArrayList<>();
+        for (org.ikasan.studio.core.model.analysis.TestFtpServerLinks.Link original : TestFtpServerLinks.findLinks(module)) {
+            ArrayList<FlowElement> elements = new java.util.ArrayList<>(original.consumers());
             elements.addAll(original.producers());
-            for (var element : elements) {
-                var configuration = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, element)
+            for (FlowElement element : elements) {
+                TestFtpServerConfiguration configuration = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, element)
                         ? org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.localFtp(project) : original.configuration();
-                var link = links.stream().filter(l -> l.configuration().sameAddressAs(configuration)).findFirst().orElse(null);
+                org.ikasan.studio.core.model.analysis.TestFtpServerLinks.Link link = links.stream().filter(l -> l.configuration().sameAddressAs(configuration)).findFirst().orElse(null);
                 if (link == null) {
                     link = new TestFtpServerLinks.Link(configuration, new java.util.ArrayList<>(), new java.util.ArrayList<>());
                     links.add(link);
@@ -1819,12 +1828,12 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     }
 
     private List<TestMailServerLinks.Link> effectiveMailLinks(Module module) {
-        var links = new java.util.ArrayList<TestMailServerLinks.Link>();
-        for (var original : TestMailServerLinks.findLinks(module)) for (var element : original.producers()) {
+        ArrayList<org.ikasan.studio.core.model.analysis.TestMailServerLinks.Link> links = new java.util.ArrayList<>();
+        for (org.ikasan.studio.core.model.analysis.TestMailServerLinks.Link original : TestMailServerLinks.findLinks(module)) for (FlowElement element : original.producers()) {
             boolean local = org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effective(project, element);
             String host = local ? TestMailServerLinks.DEFAULT_SMTP_HOST : original.host();
             int port = local ? TestMailServerLinks.DEFAULT_SMTP_PORT : original.port();
-            var link = links.stream().filter(l -> l.host().equals(host) && l.port() == port).findFirst().orElse(null);
+            org.ikasan.studio.core.model.analysis.TestMailServerLinks.Link link = links.stream().filter(l -> l.host().equals(host) && l.port() == port).findFirst().orElse(null);
             if (link == null) {
                 link = new TestMailServerLinks.Link(host, port, new java.util.ArrayList<>());
                 links.add(link);
@@ -1835,11 +1844,11 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
     }
 
     private void paintHarnessOverrideIndicators(Graphics graphics, Module module) {
-        var selections = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        HarnessOverrideService selections = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
         if (selections == null) return;
-        for (var target : org.ikasan.studio.core.model.analysis.HarnessOverrides.targets(module)) {
+        for (Target target : org.ikasan.studio.core.model.analysis.HarnessOverrides.targets(module)) {
             if (!selections.isEnabled(target.element()) && !selections.isActive(target.element())) continue;
-            var handler = ViewHandlerCache.getAbstractViewHandler(project, target.element());
+            AbstractViewHandlerIntellij handler = ViewHandlerCache.getAbstractViewHandler(project, target.element());
             if (handler == null) continue;
             Graphics badge = graphics.create();
             try {
@@ -1860,12 +1869,12 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             g.setStroke(new BasicStroke(JBUIScale.scale(1.5f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
                     0, new float[]{JBUIScale.scale(4f), JBUIScale.scale(5f)}, 0));
             int index = 0;
-            for (var link : FtpFlowConnections.findMatchingLinks(module)) {
+            for (Link link : FtpFlowConnections.findMatchingLinks(module)) {
                 if (!link.isVisible(selection, showSharedEndpoints)) continue;
-                var producerFlow = flowHandlerFor(link.producer());
-                var consumerFlow = flowHandlerFor(link.consumer());
-                var producer = producerFlow == null ? null : producerFlow.getEndpointViewHandlerFor(link.producer());
-                var consumer = consumerFlow == null ? null : consumerFlow.getEndpointViewHandlerFor(link.consumer());
+                IkasanFlowViewHandler producerFlow = flowHandlerFor(link.producer());
+                IkasanFlowViewHandler consumerFlow = flowHandlerFor(link.consumer());
+                IkasanFlowComponentViewHandler producer = producerFlow == null ? null : producerFlow.getEndpointViewHandlerFor(link.producer());
+                IkasanFlowComponentViewHandler consumer = consumerFlow == null ? null : consumerFlow.getEndpointViewHandlerFor(link.consumer());
                 if (producer == null || consumer == null) continue;
                 List<Point> route = areAdjacentDownstreamFlows(module, link.producer().getContainingFlow(), link.consumer().getContainingFlow())
                         ? jmsAdjacentFlowRoute(new Rectangle(producerFlow.getLeftX(), producerFlow.getTopY(), producerFlow.getWidth(), producerFlow.getHeight()),
@@ -2893,7 +2902,7 @@ public class DesignerCanvas extends JPanel implements com.intellij.openapi.actio
             int labelTopY = buttonsTopY;
             // Match the painted, word-wrapped label instead of reserving an invisible
             // 160 px band that can intercept hover events intended for a nearby harness card.
-            var metrics = getFontMetrics(StudioUIUtils.getMainFont());
+            FontMetrics metrics = getFontMetrics(StudioUIUtils.getMainFont());
             int labelWidth = java.util.Arrays.stream(flowStatusDisplayLabel(flowStatuses.getRawState(flow.getIdentity())).split(" "))
                     .mapToInt(metrics::stringWidth).max().orElse(0);
             if (xpos > labelLeftX && xpos < labelLeftX + labelWidth && ypos >= labelTopY && ypos <= labelBottomY) {

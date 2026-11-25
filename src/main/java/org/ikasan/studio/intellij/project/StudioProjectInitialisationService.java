@@ -16,8 +16,11 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import lombok.Getter;
 import org.ikasan.studio.ui.UiContext;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Map;
 
 /**
  * Project-scoped owner of the Ikasan Studio initialization lifecycle.
@@ -33,6 +36,7 @@ public final class StudioProjectInitialisationService implements Disposable {
         READING_PROJECT,
         LOADING_COMPONENTS,
         READY,
+        UPDATE_AVAILABLE,
         FAILED
     }
 
@@ -160,13 +164,13 @@ public final class StudioProjectInitialisationService implements Disposable {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
                 if (disposed || project.isDisposed()) return;
-                var readiness = ReadAction.nonBlocking(importReadiness::get).expireWith(this).executeSynchronously();
+                org.ikasan.studio.intellij.project.StudioProjectInitialisationService.ImportReadiness readiness = ReadAction.nonBlocking(importReadiness::get).expireWith(this).executeSynchronously();
                 if (!readiness.imported()) {
                     waitForProjectImport(readiness.detail());
                     return;
                 }
                 if (!packDiagnosticsShown) {
-                    var problems = org.ikasan.studio.core.metapack.ComponentLibrary.getUnavailableMetaPacks();
+                    Map<String,String> problems = org.ikasan.studio.core.metapack.ComponentLibrary.getUnavailableMetaPacks();
                     packDiagnosticsShown = true;
                     if (!problems.isEmpty()) {
                         String details = problems.entrySet().stream()
@@ -176,13 +180,35 @@ public final class StudioProjectInitialisationService implements Disposable {
                     }
                 }
                 availableMetaPacks = List.copyOf(org.ikasan.studio.core.metapack.ComponentLibrary.getMetapackList());
-                var released = org.ikasan.studio.core.metapack.ComponentLibrary.getMetapackList(false);
+                List<String> released = org.ikasan.studio.core.metapack.ComponentLibrary.getMetapackList(false);
                 snapshotMetaPacks = availableMetaPacks.stream().filter(id -> !released.contains(id))
                         .collect(java.util.stream.Collectors.toUnmodifiableSet());
                 UiContext uiContext = project.getService(UiContext.class);
                 validModelBackupIndexes = List.of();
                 StudioProjectFiles.synchGenerateModelInstanceFromJSON(project);
                 if (uiContext.isModelPersistenceBlocked()) {
+                    // Only offer the normal update journey after validating the proposed model and templates.
+                    Path modelPath = StudioProjectFiles.getModelJsonPath(project);
+                    String basePath = project.getBasePath();
+                    try {
+                        if (modelPath != null && basePath != null) {
+                            org.ikasan.studio.core.metapack.ModelPackRepair.Plan update =
+                                    org.ikasan.studio.core.metapack.ModelPackRepair.preview(Files.readString(modelPath));
+                            if (update.isRevisionUpdate()) {
+                                org.ikasan.studio.core.model.ikasan.instance.Module proposed =
+                                        org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(update.targetJson(), "revision update preview", false);
+                                org.ikasan.studio.core.generator.ProjectArtifactRenderer.render(proposed,
+                                        Files.readString(Path.of(basePath, StudioProjectFiles.POM_XML)));
+                                inProgress.set(false);
+                                transition(State.UPDATE_AVAILABLE, org.ikasan.studio.ui.StudioBundle.message(
+                                        "modelUpdate.Detail", update.targetPack(), update.previousRevision(), update.targetRevision()));
+                                return;
+                            }
+                        }
+                    } catch (ProcessCanceledException cancelled) { throw cancelled; }
+                    catch (Exception unavailable) {
+                        LOG.debug("Model is not eligible for a validated revision update", unavailable);
+                    }
                     validModelBackupIndexes = StudioProjectFiles.getValidModelBackupIndexes(project);
                     String recoveryGuidance = validModelBackupIndexes.isEmpty()
                             ? org.ikasan.studio.ui.StudioBundle.message("modelRepair.NoBackupGuidance")

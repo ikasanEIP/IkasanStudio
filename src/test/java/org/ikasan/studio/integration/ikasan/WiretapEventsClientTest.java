@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.io.IOException;
 import static org.assertj.core.api.Assertions.*;
+import org.ikasan.studio.integration.ikasan.WiretapEventsClient.Event;
+import org.ikasan.studio.integration.ikasan.WiretapEventsClient.Page;
 
 class WiretapEventsClientTest {
     private static final String ROW = """
@@ -15,10 +17,10 @@ class WiretapEventsClientTest {
         return "{\"pagedResults\":[" + rows + "],\"resultSize\":1,\"lastPage\":true}";
     }
     @Test void preservesStoredTextAndEventIdentity() throws Exception {
-        var page = WiretapEventsClient.parse(page(ROW));
+        Page page = WiretapEventsClient.parse(page(ROW));
         assertThat(page.total()).isEqualTo(1);
         assertThat(page.last()).isTrue();
-        var event = page.events().get(0);
+        Event event = page.events().get(0);
         assertThat(event.identifier()).isEqualTo(42);
         assertThat(event.component()).isEqualTo("Audit");
         assertThat(event.eventId()).isEqualTo("order-1");

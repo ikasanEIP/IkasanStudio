@@ -10,6 +10,12 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 import java.util.jar.JarFile;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.stream.Stream;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 
 /** Portable, read-only resource packs. Checksums identify artifacts; they are not publisher signatures. */
 public final class OfflinePackBundle {
@@ -31,11 +37,11 @@ public final class OfflinePackBundle {
             if (!Module.DUMB_MODULE_VERSION.equals(model.getVersion())) required = model.getVersion();
         }
         Files.createDirectories(tools.resolve(DIRECTORY));
-        var archives = packFiles(tools);
+        ArrayList<Path> archives = packFiles(tools);
         if (required != null) {
             checkCancelled.run();
-            var expected = ComponentLibrary.getMetaPackManifest(required);
-            var url = MetaPackResources.resource("studio/metapack/" + required + "/metapack.json");
+            MetaPackManifest expected = ComponentLibrary.getMetaPackManifest(required);
+            URL url = MetaPackResources.resource("studio/metapack/" + required + "/metapack.json");
             if (url == null || !url.getProtocol().equals("jar"))
                 throw new IOException("Offline export requires a packaged JAR for meta-pack " + required + "; build the pack first");
             Path source = MetaPackArchive.sourceFile(url);
@@ -57,14 +63,14 @@ public final class OfflinePackBundle {
             if (!expected.equals(MetaPackInstaller.validate(MetaPackArchive.open(destination))))
                 throw new IOException("The exported pack does not match the project's selected metadata");
         }
-        var packs = new ArrayList<Pack>();
+        ArrayList<org.ikasan.studio.core.metapack.loading.OfflinePackBundle.Pack> packs = new ArrayList<>();
         for (Path file : archives) {
             checkCancelled.run();
-            var manifest = MetaPackInstaller.validate(MetaPackArchive.open(file));
+            MetaPackManifest manifest = MetaPackInstaller.validate(MetaPackArchive.open(file));
             packs.add(new Pack(manifest.id(), manifest.packVersion(), tools.relativize(file).toString().replace('\\', '/'), MetaPackStore.sha256(file)));
         }
         packs.sort(Comparator.comparing(Pack::id));
-        var manifest = new Manifest(1, required, packs);
+        org.ikasan.studio.core.metapack.loading.OfflinePackBundle.Manifest manifest = new Manifest(1, required, packs);
         Files.writeString(tools.resolve(MANIFEST), JSON.writerWithDefaultPrettyPrinter().writeValueAsString(manifest) + "\n", StandardOpenOption.CREATE_NEW);
         verify(tools, checkCancelled);
         return manifest;
@@ -78,10 +84,10 @@ public final class OfflinePackBundle {
     public static Manifest verify(Path tools, Runnable checkCancelled) throws Exception {
         Path root = tools.toRealPath();
         if (Files.isSymbolicLink(root.resolve(MANIFEST))) throw new IOException("Offline pack manifest must not be a symlink");
-        var manifest = JSON.readValue(Files.readString(root.resolve(MANIFEST)), Manifest.class);
+        org.ikasan.studio.core.metapack.loading.OfflinePackBundle.Manifest manifest = JSON.readValue(Files.readString(root.resolve(MANIFEST)), Manifest.class);
         if (manifest.formatVersion() != 1 || manifest.packs().isEmpty()) throw new IOException("Unsupported or empty offline pack manifest");
-        var ids = new HashSet<String>();
-        var expected = new HashSet<Path>();
+        HashSet<String> ids = new HashSet<>();
+        HashSet<Path> expected = new HashSet<>();
         for (Pack pack : manifest.packs()) {
             checkCancelled.run();
             if (pack.id() == null || !pack.id().matches("[A-Za-z0-9][A-Za-z0-9._-]*") || !ids.add(pack.id())
@@ -91,7 +97,7 @@ public final class OfflinePackBundle {
             if (!expected.add(file) || Files.isSymbolicLink(file) || Files.isSymbolicLink(file.getParent())
                     || !file.toRealPath().startsWith(root)) throw new IOException("Unsafe or duplicate offline pack path: " + pack.file());
             if (!MetaPackStore.sha256(file).equals(pack.sha256())) throw new IOException("Offline pack checksum mismatch: " + pack.file());
-            var actual = MetaPackStore.manifest(file);
+            MetaPackManifest actual = MetaPackStore.manifest(file);
             if (!actual.id().equals(pack.id()) || !Objects.equals(actual.packVersion(), pack.packVersion()))
                 throw new IOException("Offline pack ID/revision mismatch: " + pack.file());
             MetaPackInstaller.validate(MetaPackArchive.open(file));
@@ -102,15 +108,15 @@ public final class OfflinePackBundle {
     }
 
     private static ArrayList<Path> packFiles(Path tools) throws IOException {
-        var result = new ArrayList<Path>();
+        ArrayList<Path> result = new ArrayList<>();
         if (!Files.isDirectory(tools.resolve("lib"))) throw new IOException("Offline tools lib directory is missing");
         for (String name : List.of("lib", DIRECTORY)) {
             Path directory = tools.resolve(name);
             if (!Files.isDirectory(directory)) continue;
-            try (var files = Files.list(directory)) {
+            try (Stream<Path> files = Files.list(directory)) {
                 for (Path file : files.filter(p -> p.getFileName().toString().endsWith(".jar")).sorted().toList()) {
                     boolean pack = name.equals(DIRECTORY);
-                    if (!pack) try (var jar = new JarFile(file.toFile(), false)) {
+                    if (!pack) try (JarFile jar = new JarFile(file.toFile(), false)) {
                         pack = jar.stream().anyMatch(entry -> entry.getName().matches("studio/metapack/[^/]+/metapack\\.json"));
                     }
                     if (pack) { MetaPackArchive.open(file); result.add(file); }

@@ -11,6 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import com.intellij.ui.components.JBCheckBox;
 
 /** Module-level flow selection; large modules scroll instead of stretching the dialog. */
 // Local-IDE dialog; remote Split Mode requires a frontend UI and RPC service boundary.
@@ -70,7 +71,7 @@ final class FlowTestsDialog extends StudioDialogWrapper {
             regenerateSupport.setEnabled(!(staleSupport || useLocalFtp() || useLocalSmtp() || useLocalSftp()));
         });
         for (String name : names) {
-            var choice = new JBCheckBox(name, true);
+            JBCheckBox choice = new JBCheckBox(name, true);
             choice.addActionListener(e -> updateSelection());
             choices.add(choice);
         }

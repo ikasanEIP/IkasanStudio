@@ -6,12 +6,16 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.zip.ZipFile;
 import static org.junit.jupiter.api.Assertions.*;
+import java.nio.file.Path;
+import java.util.Enumeration;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
 
 class StudioDiagnosticBundleTest {
     @TempDir Path directory;
 
     @Test void eventsKeepContextAndCauseLocationsWithoutValuesOrMessages() {
-        var failure = new IllegalArgumentException("password=CANARY_SECRET https://user:CANARY_SECRET@host",
+        IllegalArgumentException failure = new IllegalArgumentException("password=CANARY_SECRET https://user:CANARY_SECRET@host",
                 new java.io.IOException("{model: CANARY_MODEL}"));
         failure.setStackTrace(new StackTraceElement[] {
                 new StackTraceElement("org.ikasan.studio.core.generator.Example", "generate", "CANARY_PATH", 42)});
@@ -41,9 +45,9 @@ class StudioDiagnosticBundleTest {
         try (ZipFile zip = new ZipFile(target.toFile())) {
             Set<String> names = new HashSet<>();
             StringBuilder contents = new StringBuilder();
-            var entries = zip.entries();
+            Enumeration<? extends ZipEntry> entries = zip.entries();
             while (entries.hasMoreElements()) {
-                var entry = entries.nextElement(); names.add(entry.getName());
+                ZipEntry entry = entries.nextElement(); names.add(entry.getName());
                 contents.append(new String(zip.getInputStream(entry).readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
             }
             assertEquals(Set.of("environment.txt", "studio-redacted.log", "README.txt"), names);
@@ -89,6 +93,6 @@ class StudioDiagnosticBundleTest {
         Files.writeString(destination.resolve("keep.txt"), "keep");
         assertThrows(java.io.IOException.class, () -> StudioDiagnosticBundle.write(destination, directory.resolve("missing.log"), Map.of()));
         assertEquals("keep", Files.readString(destination.resolve("keep.txt")));
-        try (var files = Files.list(directory)) { assertFalse(files.anyMatch(f -> f.getFileName().toString().endsWith(".tmp"))); }
+        try (Stream<Path> files = Files.list(directory)) { assertFalse(files.anyMatch(f -> f.getFileName().toString().endsWith(".tmp"))); }
     }
 }

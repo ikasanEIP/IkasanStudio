@@ -10,6 +10,9 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.List;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 
 /** Renders developer-owned tests once; normal generation never owns these files. */
 public final class FlowTestScaffold {
@@ -29,7 +32,7 @@ public final class FlowTestScaffold {
     /** Pack-declared external settings and provider choices affect shared test wiring. */
     public static java.util.Set<String> supportModelFields(Module module) {
         java.util.Set<String> fields = new java.util.TreeSet<>();
-        for (var flow : module.getFlows()) for (var component : flow.getFlowElementsNoExternalEndPoints()) {
+        for (Flow flow : module.getFlows()) for (FlowElement component : flow.getFlowElementsNoExternalEndPoints()) {
             component.getComponentMeta().getAllowableProperties().forEach((name, property) -> {
                 if (property.getPropertyConfigFileLabel() != null && !property.getPropertyConfigFileLabel().isBlank()) fields.add(name);
             });
@@ -75,7 +78,7 @@ public final class FlowTestScaffold {
         values.putAll(ModuleTestWiring.values(module));
         values.put("consumerName", flow.getConsumer().getIdentity());
         values.put("localFile", flow.getConsumer().getComponentMeta().isLocalFileConsumer());
-        var filenameProperty = flow.getConsumer().getProperty("filenames");
+        ComponentProperty filenameProperty = flow.getConsumer().getProperty("filenames");
         boolean isolatedFiles = flow.getConsumer().getComponentMeta().isLocalFileConsumer()
                 && filenameProperty != null && !filenameProperty.valueNotSet()
                 && filenameProperty.getMeta().getPropertyConfigFileLabel() != null;
@@ -85,7 +88,7 @@ public final class FlowTestScaffold {
         Map<String, String> methods = Map.of("Converter", "converter", "Translator", "translator", "Broker", "broker", "Producer", "producer", "Splitter", "splitter");
         java.util.List<Map<String, String>> executionPath = new java.util.ArrayList<>();
         boolean automaticPath = flow.getFlowRoute().getChildRoutes().isEmpty() && flow.getExceptionResolver() == null;
-        for (var element : flow.getFlowRoute().getFlowElements()) {
+        for (FlowElement element : flow.getFlowRoute().getFlowElements()) {
             if (element.getComponentMeta().isDebug()) continue;
             String type = element.getComponentMeta().getComponentType();
             String method = type == null ? null : methods.get(type.substring(type.lastIndexOf('.') + 1));
@@ -100,14 +103,14 @@ public final class FlowTestScaffold {
         boolean filterPath = automaticPath && executionPath.stream().anyMatch(step -> "true".equals(step.get("filterDecision")));
         values.put("filterPath", filterPath);
         values.put("splitterPath", splitterPath);
-        var routePath = flow.getExceptionResolver() == null && !flow.getFlowRoute().getChildRoutes().isEmpty()
+        Map<String,Object> routePath = flow.getExceptionResolver() == null && !flow.getFlowRoute().getChildRoutes().isEmpty()
                 ? FlowTestRoutePath.describe(flow.getFlowRoute(), new int[]{0}) : null;
         values.put("routerPath", routePath == null ? Map.of() : routePath);
 
         java.util.List<Map<String, Object>> splitSteps = new java.util.ArrayList<>();
         java.util.List<String> splitClosings = new java.util.ArrayList<>();
         int splitDepth = 0;
-        for (var step : executionPath) {
+        for (Map<String,String> step : executionPath) {
             String indent = "    ".repeat(3 + splitDepth);
             boolean splitter = "splitter".equals(step.get("method"));
             boolean filterDecision = "true".equals(step.get("filterDecision"));
@@ -121,7 +124,7 @@ public final class FlowTestScaffold {
         values.put("splitSteps", splitSteps);
         values.put("splitClosings", splitClosings);
         automaticPath &= !splitterPath && !filterPath;
-        var inputMeta = flow.getConsumer().getComponentMeta();
+        ComponentMeta inputMeta = flow.getConsumer().getComponentMeta();
         boolean observationOnly = automaticPath && flow.getFlowRoute().getFlowElements().size() == 1
                 && "self-generating".equals(inputMeta.getFlowTestInputMode())
                 && inputMeta.getFlowTestInputModeInvalidatedByProperties().stream().allMatch(name ->
@@ -141,19 +144,19 @@ public final class FlowTestScaffold {
         values.put("automaticPath", automaticPath);
         values.put("expectedPath", executionPath);
         values.put("componentNames", flow.getFlowElementsNoExternalEndPoints().stream().map(FlowElement::getIdentity).toList());
-        var destination = flow.getConsumer().getProperty("destinationJndiName");
+        ComponentProperty destination = flow.getConsumer().getProperty("destinationJndiName");
         boolean jmsConsumer = "org.ikasan.component.endpoint.jms.spring.consumer.JmsContainerConsumer".equals(
                 flow.getConsumer().getComponentMeta().getImplementingClass())
                 && !"true".equalsIgnoreCase(flow.getConsumer().getPropertyValueAsString("pubSubDomain"))
                 && destination != null && !destination.valueNotSet()
                 && destination.getMeta().getPropertyConfigFileLabel() != null;
-        var jmsOutputs = flow.getFlowElementsNoExternalEndPoints().stream().filter(e -> e.getComponentMeta().isProducer()).toList();
-        var delivery = FlowTestDelivery.forProducers(jmsOutputs);
+        List<FlowElement> jmsOutputs = flow.getFlowElementsNoExternalEndPoints().stream().filter(e -> e.getComponentMeta().isProducer()).toList();
+        FlowTestDelivery delivery = FlowTestDelivery.forProducers(jmsOutputs);
         delivery.contributeTo(values);
         String jmsOutputKey = "";
         if (jmsOutputs.size() == 1) {
-            var output = jmsOutputs.get(0);
-            var outputDestination = output.getProperty("destinationJndiName");
+            FlowElement output = jmsOutputs.get(0);
+            ComponentProperty outputDestination = output.getProperty("destinationJndiName");
             if ("org.ikasan.component.endpoint.jms.spring.producer.ArjunaJmsTemplateProducer".equals(output.getComponentMeta().getImplementingClass())
                     && !"true".equalsIgnoreCase(output.getPropertyValueAsString("pubSubDomain"))
                     && outputDestination != null && !outputDestination.valueNotSet()
@@ -169,7 +172,7 @@ public final class FlowTestScaffold {
         String objectInputType = "java.io.Serializable";
         // Only infer along the initial linear route; do not look through arbitrary transformations/branches.
         if (jmsConsumer) {
-            for (var element : flow.getFlowRoute().getFlowElements()) {
+            for (FlowElement element : flow.getFlowRoute().getFlowElements()) {
                 if (element.getComponentMeta().isFlowTestPassThroughFilter()) continue;
                 if (!objectMessageInput) {
                     String input = element.getEffectiveInputTypeDescription();
@@ -197,7 +200,7 @@ public final class FlowTestScaffold {
         String objectOutputType = "";
         if (automaticPath) {
             String payloadType = flow.getConsumer().getEffectiveOutputTypeDescription();
-            for (var element : flow.getFlowRoute().getFlowElements()) {
+            for (FlowElement element : flow.getFlowRoute().getFlowElements()) {
                 if (element.getComponentMeta().isProducer()) break;
                 if (element.getComponentMeta().isFlowTestPassThroughFilter()) continue;
                 payloadType = element.getEffectiveOutputTypeDescription();
@@ -216,7 +219,7 @@ public final class FlowTestScaffold {
 
         values.put("jmsInputKey", jmsConsumer ? org.ikasan.studio.core.StudioBuildUtils.substitutePlaceholderInLowerCase(
                 module, flow, flow.getConsumer(), destination.getMeta().getPropertyConfigFileLabel()) : "");
-        var patternProperty = flow.getConsumer().getProperty("filenamePattern");
+        ComponentProperty patternProperty = flow.getConsumer().getProperty("filenamePattern");
         boolean ftpInput = flow.getConsumer().getComponentMeta().supportsTestFtpServer()
                 && patternProperty != null && !patternProperty.valueNotSet()
                 && patternProperty.getMeta().getPropertyConfigFileLabel() != null;
@@ -244,7 +247,7 @@ public final class FlowTestScaffold {
         if (!observationOnly) {
             if (ftpInput || sftpInput || isolatedFiles) addSampleResources(files, flow.getIdentity(), flow.getConsumer().getIdentity());
             if (resourceExpectedOutputs) {
-                for (var output : jmsOutputs) addSampleResources(files, flow.getIdentity(), output.getIdentity());
+                for (FlowElement output : jmsOutputs) addSampleResources(files, flow.getIdentity(), output.getIdentity());
             }
         }
         if (jmsConsumer) files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/ModuleJmsTestConfig.java",

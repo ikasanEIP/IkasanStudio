@@ -8,6 +8,7 @@ import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.PsiClass;
 
 /**
  * Navigation handle held by view handlers without exposing PSI to the UI package.
@@ -61,7 +62,7 @@ public final class NavigationTarget {
     public PsiElement elementToNavigateTo() {
         PsiFile file = psiFile();
         if (file instanceof PsiJavaFile javaFile) {
-            var classes = javaFile.getClasses();
+            PsiClass[] classes = javaFile.getClasses();
             if (classes.length > 0) return classes[0];
         }
         return file;

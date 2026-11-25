@@ -6,6 +6,12 @@ import org.ikasan.studio.intellij.runtime.TestSftpServerService;
 import org.ikasan.studio.intellij.navigation.StudioNavigator;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.integration.sftp.LocalSftpHarness;
+import org.ikasan.studio.intellij.execution.HarnessOverrideService;
+import org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint;
 
 /** Starts the project-owned server for explicitly selected SFTP component overrides. */
 public final class SftpHarnessAction {
@@ -14,21 +20,21 @@ public final class SftpHarnessAction {
         org.ikasan.studio.intellij.configuration.HarnessOverridesDialog.show(project);
     }
     public static void start(Project project) {
-        var service = project.getService(TestSftpServerService.class);
-        var overrides = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
+        TestSftpServerService service = project.getService(TestSftpServerService.class);
+        HarnessOverrideService overrides = project.getService(org.ikasan.studio.intellij.execution.HarnessOverrideService.class);
         boolean selected = overrides.targets().stream().anyMatch(t -> "SFTP".equals(t.kind())
                 && overrides.nextSelection().contains(t.id()));
         if (!selected) { choose(project); return; }
         service.setLocal(true);
-        var module = project.getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
+        Module module = project.getService(org.ikasan.studio.ui.UiContext.class).getIkasanModule();
         java.util.List<String> directories = new java.util.ArrayList<>();
-        if (module != null) for (var flow : module.getFlows()) for (var element : flow.getFlowElementsNoExternalEndPoints()) {
+        if (module != null) for (Flow flow : module.getFlows()) for (FlowElement element : flow.getFlowElementsNoExternalEndPoints()) {
             if ("SFTP Endpoint".equals(element.getComponentMeta().getEndpointKey()))
                 directories.add("component-" + org.ikasan.studio.core.model.analysis.HarnessOverrides.id(element));
         }
         background(project, () -> {
             // The project service owns this server and closes it on stop/disposal.
-            @SuppressWarnings("resource") var server = service.start();
+            @SuppressWarnings("resource") LocalSftpHarness server = service.start();
             for (String directory : directories) java.nio.file.Files.createDirectories(server.home().resolve(directory));
             ApplicationManager.getApplication().invokeLater(() -> {
                 if (!project.isDisposed()) StudioUIUtils.displayIdeaInfoMessage(project,
@@ -38,14 +44,14 @@ public final class SftpHarnessAction {
     }
     public static void stop(Project project) { stop(project, false); }
     static void stop(Project project, boolean confirmed) {
-        var endpoint = project.getService(TestSftpServerService.class).listeningEndpoint();
+        Endpoint endpoint = project.getService(TestSftpServerService.class).listeningEndpoint();
         if (!confirmed && endpoint != null && !HarnessStopWarning.confirm(project, java.util.List.of(endpoint))) return;
         background(project, () -> project.getService(TestSftpServerService.class).stop());
     }
     public static void showFiles(Project project) {
         background(project, () -> {
             // The project service owns this server and closes it on stop/disposal.
-            @SuppressWarnings("resource") var server = project.getService(TestSftpServerService.class).start();
+            @SuppressWarnings("resource") LocalSftpHarness server = project.getService(TestSftpServerService.class).start();
             StudioNavigator.selectInProjectView(project, server.home());
         });
     }

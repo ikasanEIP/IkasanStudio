@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /**
  * Regression guard for a real layout bug (confirmed via this test before the fix): the "Recipe description"
@@ -25,7 +26,7 @@ public class RecipeDescriptionSizingHarnessTest extends ComponentTestHarness {
 
     @Test
     void recipeDescriptionNeverShrinksBelowItsMinimumHeight() throws Exception {
-        var converter = TestFixtures.getCustomConverter("V3.3.9");
+        FlowElement converter = TestFixtures.getCustomConverter("V3.3.9");
         converter.setPropertyValue("fromType", "org.ikasan.filetransfer.Payload");
         converter.setPropertyValue("toType", "org.ikasan.component.endpoint.email.producer.EmailPayload");
         converter.setPropertyValue("conversionRecipeId", "file-transfer-payload-to-email-attachment");

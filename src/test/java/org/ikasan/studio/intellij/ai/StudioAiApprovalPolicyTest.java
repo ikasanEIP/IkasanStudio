@@ -8,20 +8,24 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowUserImplementedElement;
 
 class StudioAiApprovalPolicyTest {
     @Test void checksTransientProtectedPropertyFlagsInLiveModelEvenForUnchangedFlows() throws Exception {
-        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        var empty = TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", List.of());
-        var live = ModelProposal.prepare(LiveModelSnapshot.capture(empty), mapper.readTree("""
+        ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        Module empty = TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", List.of());
+        Module live = ModelProposal.prepare(LiveModelSnapshot.capture(empty), mapper.readTree("""
                 [{"type":"addFlow","flow":"existing"},
                  {"type":"addComponent","flow":"existing","key":"Event Generating Consumer","name":"Input",
                  "properties":{"endpointEventProvider":"MinuteEventProvider"}},
                  {"type":"addComponent","flow":"existing","key":"Dev Null Producer","name":"Discard"}]
                 """)).draft();
-        var property = live.getFlows().get(0).getConsumer().getProperty("endpointEventProvider");
+        ComponentProperty property = live.getFlows().get(0).getConsumer().getProperty("endpointEventProvider");
         property.setOverwriteEnabled(false);
-        var proposed = ModelProposal.prepare(LiveModelSnapshot.capture(live), mapper.readTree(
+        Module proposed = ModelProposal.prepare(LiveModelSnapshot.capture(live), mapper.readTree(
                 "[{\"type\":\"addFlow\",\"flow\":\"unrelated\"}]")).draft();
         assertThat(StudioAiService.requiresUserCodeReview(live, proposed)).isFalse();
         property.setOverwriteEnabled(true);
@@ -32,9 +36,9 @@ class StudioAiApprovalPolicyTest {
     }
 
     @Test void implementationClassOverwriteAlwaysNeedsReview() {
-        var module = mock(Module.class);
-        var flow = mock(Flow.class);
-        var implementation = mock(FlowUserImplementedElement.class);
+        Module module = mock(Module.class);
+        Flow flow = mock(Flow.class);
+        FlowUserImplementedElement implementation = mock(FlowUserImplementedElement.class);
         when(module.getFlows()).thenReturn(List.of(flow));
         when(flow.getFlowElementsNoExternalEndPoints()).thenReturn(List.of(implementation));
         assertThat(StudioAiService.requiresUserCodeReview(module)).isFalse();

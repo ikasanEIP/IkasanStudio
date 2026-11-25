@@ -7,6 +7,20 @@ import java.nio.file.*;
 import java.io.IOException;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.stream.Stream;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.testing.FlowTestFiles.ExistingTestException;
+import org.ikasan.studio.intellij.testing.FlowTestFiles.ExistingTestsException;
 
 class FlowTestFilesTest {
     @TempDir Path root;
@@ -15,11 +29,11 @@ class FlowTestFilesTest {
                 Map.of("user-flow-tests/src/test/java/ExampleTest.java", "test", "user-flow-tests/pom.xml", "generated pom"));
     }
     @Test void realScaffoldWritesGeneratedWiringAndRefreshPreservesBusinessTests() throws Exception {
-        var flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow("V3.3.9");
-        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule("V3.3.9", java.util.List.of(flow));
+        Flow flow = org.ikasan.studio.core.TestFixtures.getEventGeneratingConsumerCustomConverterDevNullProducerFlow("V3.3.9");
+        Module module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule("V3.3.9", java.util.List.of(flow));
         String pom = Files.readString(Path.of("regression-tests/migration/project/pom.xml"));
         Files.writeString(root.resolve("pom.xml"), pom);
-        var plan = FlowTestScaffold.render(module, flow, pom,
+        Scaffold plan = FlowTestScaffold.render(module, flow, pom,
                 Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml")));
         FlowTestFiles.write(root, pom, plan);
         Path wiring = root.resolve(org.ikasan.studio.core.generator.ModuleTestWiring.PATH);
@@ -28,7 +42,7 @@ class FlowTestFilesTest {
         Files.writeString(business, "developer assertions");
         Files.delete(root.resolve(FlowTestScaffold.SUPPORT_PATH));
         Files.writeString(wiring, "old wiring");
-        var plans = new java.util.ArrayList<FlowTestScaffold.Scaffold>();
+        ArrayList<Scaffold> plans = new java.util.ArrayList<>();
         plans.add(plan);
         plans.addAll(FlowTestFiles.supportRefreshPlans(java.util.List.of(plan)));
         plans = new java.util.ArrayList<>(FlowTestFiles.preserveExistingScenarios(root, plans));
@@ -43,13 +57,13 @@ class FlowTestFilesTest {
         String test = "user-flow-tests/src/test/java/ExampleTest.java";
         for (String forbidden : java.util.List.of("generated/src/main/resources/application.properties",
                 "generated/src/main/resources/../resources/studio-flow-test-wiring.json")) {
-            var plan = new FlowTestScaffold.Scaffold("original", test, Map.of(test, "test", forbidden, "bad"));
+            Scaffold plan = new FlowTestScaffold.Scaffold("original", test, Map.of(test, "test", forbidden, "bad"));
             assertThrows(IOException.class, () -> FlowTestFiles.write(root, "original", plan));
             assertFalse(Files.exists(root.resolve(test)));
         }
         Path outside = Files.createDirectory(root.resolve("outside"));
         Files.createSymbolicLink(root.resolve("generated"), outside);
-        var plan = new FlowTestScaffold.Scaffold("original", test, Map.of(test, "test",
+        Scaffold plan = new FlowTestScaffold.Scaffold("original", test, Map.of(test, "test",
                 org.ikasan.studio.core.generator.ModuleTestWiring.PATH, "bad"));
         assertThrows(IOException.class, () -> FlowTestFiles.write(root, "original", plan));
     }
@@ -66,8 +80,8 @@ class FlowTestFilesTest {
         Files.writeString(fixture, "business input");
         FlowTestFiles.refreshProperties(root, "test.jms.broker-url=${new.consumer.url}\n");
         assertEquals("test.jms.broker-url=${new.consumer.url}\n", Files.readString(properties));
-        try (var files = Files.list(properties.getParent())) {
-            var backups = files.filter(p -> p.getFileName().toString().startsWith("module-test.properties.bak")).toList();
+        try (Stream<Path> files = Files.list(properties.getParent())) {
+            List<Path> backups = files.filter(p -> p.getFileName().toString().startsWith("module-test.properties.bak")).toList();
             assertEquals(1, backups.size());
             assertEquals(original, Files.readString(backups.get(0)));
         }
@@ -83,7 +97,7 @@ class FlowTestFilesTest {
         Files.writeString(properties, original);
         FlowTestFiles.refreshProperties(root,
                 "test.sftp.enabled=false\ntest.ftp.enabled=false\ntest.smtp.enabled=true\nnew.endpoint=sample\n");
-        var refreshed = new java.util.Properties();
+        Properties refreshed = new java.util.Properties();
         refreshed.load(new java.io.StringReader(Files.readString(properties)));
         assertEquals("true", refreshed.getProperty("test.sftp.enabled"));
         assertEquals("true", refreshed.getProperty("test.ftp.enabled"));
@@ -91,7 +105,7 @@ class FlowTestFilesTest {
         assertNull(refreshed.getProperty("old.endpoint"));
         assertEquals("sample", refreshed.getProperty("new.endpoint"));
         assertEquals(1, Files.readString(properties).lines().filter(line -> line.startsWith("test.sftp.enabled=")).count());
-        try (var files = Files.list(properties.getParent())) {
+        try (Stream<Path> files = Files.list(properties.getParent())) {
             Path backup = files.filter(path -> path.getFileName().toString().startsWith("module-test.properties.bak")).findFirst().orElseThrow();
             assertEquals(original, Files.readString(backup));
         }
@@ -104,7 +118,7 @@ class FlowTestFilesTest {
     @Test void propertiesRefreshCreatesMissingFileWithoutBackup() throws Exception {
         Path properties = FlowTestFiles.refreshProperties(root, "fresh=true\n");
         assertEquals("fresh=true\n", Files.readString(properties));
-        try (var files = Files.list(properties.getParent())) { assertEquals(1, files.count()); }
+        try (Stream<Path> files = Files.list(properties.getParent())) { assertEquals(1, files.count()); }
     }
 
     @Test void propertiesRefreshRejectsDirectoryWithoutRemovingIt() throws Exception {
@@ -118,20 +132,20 @@ class FlowTestFilesTest {
         Files.writeString(root.resolve("pom.xml"), "original");
         String helper = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/OutputTextSupport.java";
         String jms = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/JmsFlowTestSupport.java";
-        var shared = Map.of(FlowTestScaffold.SUPPORT_PATH, "new support", helper, "new helper",
+        Map<String,String> shared = Map.of(FlowTestScaffold.SUPPORT_PATH, "new support", helper, "new helper",
                 FlowTestScaffold.TEST_PROPERTIES_PATH, "custom.property=new", "user-flow-tests/pom.xml", "new pom");
-        var later = new java.util.LinkedHashMap<>(shared);
+        LinkedHashMap<String,String> later = new java.util.LinkedHashMap<>(shared);
         later.put(jms, "new JMS helper");
-        var plans = FlowTestFiles.supportRefreshPlans(java.util.List.of(
+        List<Scaffold> plans = FlowTestFiles.supportRefreshPlans(java.util.List.of(
                 new FlowTestScaffold.Scaffold("original", "FirstTest.java", shared),
                 new FlowTestScaffold.Scaffold("original", "SecondTest.java", later)));
         assertEquals(1, plans.size());
         assertEquals(1, plans.stream().map(FlowTestScaffold.Scaffold::testPath).distinct().count());
-        for (var entry : shared.entrySet()) {
+        for (Entry<String,String> entry : shared.entrySet()) {
             Files.createDirectories(root.resolve(entry.getKey()).getParent());
             Files.writeString(root.resolve(entry.getKey()), "old content");
         }
-        var prompt = assertThrows(FlowTestFiles.ExistingTestsException.class,
+        ExistingTestsException prompt = assertThrows(FlowTestFiles.ExistingTestsException.class,
                 () -> FlowTestFiles.checkExisting(root, plans));
         assertEquals(1, prompt.tests().size());
         FlowTestFiles.archiveAndWriteAll(root, "original", plans, prompt.tests());
@@ -146,18 +160,18 @@ class FlowTestFilesTest {
         Files.writeString(root.resolve("pom.xml"), "original");
         String test = "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/BusinessTest.java";
         String fixture = "user-flow-tests/src/test/resources/input/first.txt";
-        var contents = Map.of(test, "custom assertions", FlowTestScaffold.SUPPORT_PATH, "old support",
+        Map<String,String> contents = Map.of(test, "custom assertions", FlowTestScaffold.SUPPORT_PATH, "old support",
                 FlowTestScaffold.TEST_PROPERTIES_PATH, "custom.property=keep", fixture, "custom input");
-        for (var entry : contents.entrySet()) {
+        for (Entry<String,String> entry : contents.entrySet()) {
             Files.createDirectories(root.resolve(entry.getKey()).getParent());
             Files.writeString(root.resolve(entry.getKey()), entry.getValue());
         }
-        var generated = Map.of(test, "new scaffold", FlowTestScaffold.SUPPORT_PATH, "fresh support",
+        Map<String,String> generated = Map.of(test, "new scaffold", FlowTestScaffold.SUPPORT_PATH, "fresh support",
                 FlowTestScaffold.TEST_PROPERTIES_PATH, "custom.property=replace", fixture, "sample input");
-        var plans = FlowTestFiles.preserveExistingScenarios(root, java.util.List.of(
+        List<Scaffold> plans = FlowTestFiles.preserveExistingScenarios(root, java.util.List.of(
                 new FlowTestScaffold.Scaffold("original", test, generated),
                 new FlowTestScaffold.Scaffold("original", FlowTestScaffold.SUPPORT_PATH, generated)));
-        var prompt = assertThrows(FlowTestFiles.ExistingTestsException.class,
+        ExistingTestsException prompt = assertThrows(FlowTestFiles.ExistingTestsException.class,
                 () -> FlowTestFiles.checkExisting(root, plans));
         assertEquals(1, prompt.tests().size());
         assertEquals(root.resolve(FlowTestScaffold.SUPPORT_PATH), prompt.tests().get(0).path());
@@ -165,8 +179,8 @@ class FlowTestFilesTest {
         assertEquals("fresh support", Files.readString(root.resolve(FlowTestScaffold.SUPPORT_PATH)));
         for (String preserved : java.util.List.of(test, FlowTestScaffold.TEST_PROPERTIES_PATH, fixture))
             assertEquals(contents.get(preserved), Files.readString(root.resolve(preserved)));
-        try (var paths = Files.walk(root)) {
-            var backups = paths.filter(path -> path.getFileName().toString().contains(".bak")).toList();
+        try (Stream<Path> paths = Files.walk(root)) {
+            List<Path> backups = paths.filter(path -> path.getFileName().toString().contains(".bak")).toList();
             assertEquals(1, backups.size());
             assertEquals("old support", Files.readString(backups.get(0)));
         }
@@ -181,10 +195,10 @@ class FlowTestFilesTest {
         Files.writeString(root.resolve(test), "custom assertions");
         Files.createDirectories(root.resolve(first).getParent());
         Files.writeString(root.resolve(first), "custom expected payload");
-        var plan = new FlowTestScaffold.Scaffold("original", test,
+        Scaffold plan = new FlowTestScaffold.Scaffold("original", test,
                 Map.of(test, "replacement", first, "sample first", second, "sample second"));
         for (boolean refresh : new boolean[]{true, false}) {
-            var plans = java.util.List.of(plan);
+            List<Scaffold> plans = java.util.List.of(plan);
             if (refresh) plans = FlowTestFiles.preserveExistingScenarios(root, plans);
             FlowTestFiles.writeAll(root, "original", plans);
             assertEquals("custom assertions", Files.readString(root.resolve(test)));
@@ -200,16 +214,16 @@ class FlowTestFilesTest {
         Path first = root.resolve(directory + "first.txt");
         Files.createDirectories(first.getParent());
         Files.writeString(first, "developer fixture");
-        var files = new java.util.LinkedHashMap<>(scaffold().files());
+        LinkedHashMap<String,String> files = new java.util.LinkedHashMap<>(scaffold().files());
         files.put(directory + "first.txt", "first expected payload");
         files.put(directory + "second.txt", "second expected payload");
-        var plan = new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files);
+        Scaffold plan = new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files);
         FlowTestFiles.write(root, "original", plan);
         assertEquals("developer fixture", Files.readString(first));
         Path second = root.resolve(directory + "second.txt");
         assertEquals("second expected payload", Files.readString(second));
         Files.writeString(second, "custom second fixture");
-        var existing = assertThrows(FlowTestFiles.ExistingTestException.class,
+        ExistingTestException existing = assertThrows(FlowTestFiles.ExistingTestException.class,
                 () -> FlowTestFiles.write(root, "updated", plan));
         FlowTestFiles.archiveAndWrite(root, "updated", plan, existing);
         assertEquals("developer fixture", Files.readString(first));
@@ -229,7 +243,7 @@ class FlowTestFilesTest {
         Files.writeString(file, "test.jms.broker-url=vm://custom\n");
         FlowTestFiles.addMissingFixtureInputDefaults(root, generated);
         assertEquals("test.jms.broker-url=vm://custom\n", Files.readString(file));
-        try (var paths = Files.list(file.getParent())) {
+        try (Stream<Path> paths = Files.list(file.getParent())) {
             assertEquals(1, paths.filter(path -> path.getFileName().toString().contains(".bak")).count());
         }
     }
@@ -252,8 +266,8 @@ class FlowTestFilesTest {
         assertFalse(updated.contains("example.A.fixture-input-enabled=true"));
         FlowTestFiles.addMissingFixtureInputDefaults(root, generated);
         assertEquals(updated, Files.readString(file));
-        try (var paths = Files.list(file.getParent())) {
-            var backups = paths.filter(p -> p.getFileName().toString().contains(".bak")).toList();
+        try (Stream<Path> paths = Files.list(file.getParent())) {
+            List<Path> backups = paths.filter(p -> p.getFileName().toString().contains(".bak")).toList();
             assertEquals(1, backups.size());
             assertEquals(original, Files.readString(backups.get(0)));
         }
@@ -268,7 +282,7 @@ class FlowTestFilesTest {
             template.append("<dependency><groupId>org.apache.sshd</groupId><artifactId>").append(artifact)
                     .append("</artifactId><version>2.19.0</version><scope>test</scope></dependency>");
         template.append("</dependencies></project>");
-        var files = Map.of(
+        Map<String,String> files = Map.of(
                 "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java", "ftp",
                 "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSftpTestServer.java", "sftp",
                 "user-flow-tests/pom.xml", template.toString());
@@ -289,10 +303,10 @@ class FlowTestFilesTest {
             Files.createDirectories(root.resolve(path).getParent());
             Files.writeString(root.resolve(path), "custom " + path);
         }
-        var scenario = new FlowTestScaffold.Scaffold("updated", testPath,
+        Scaffold scenario = new FlowTestScaffold.Scaffold("updated", testPath,
                 Map.of(testPath, "new scenario", supportPath, "new support", helperPath, "new helper",
                         fixturePath, "first expected payload"));
-        var plans = java.util.List.of(scenario,
+        List<Scaffold> plans = java.util.List.of(scenario,
                 new FlowTestScaffold.Scaffold("updated", supportPath, Map.of(supportPath, "new support")),
                 new FlowTestScaffold.Scaffold("updated", helperPath, Map.of(helperPath, "new helper")));
         assertThrows(FlowTestFiles.ExistingTestsException.class, () -> FlowTestFiles.checkExisting(root, plans));
@@ -301,7 +315,7 @@ class FlowTestFilesTest {
         assertEquals("first expected payload", Files.readString(root.resolve(fixturePath)));
         assertEquals("custom " + supportPath, Files.readString(root.resolve(supportPath)));
         assertEquals("custom " + helperPath, Files.readString(root.resolve(helperPath)));
-        try (var files = Files.walk(root)) {
+        try (Stream<Path> files = Files.walk(root)) {
             assertFalse(files.anyMatch(path -> path.getFileName().toString().contains(".bak")));
         }
     }
@@ -316,7 +330,7 @@ class FlowTestFilesTest {
         assertEquals(original.replace("enabled=false", "enabled=true"), updated);
         FlowTestFiles.enableLocalSftp(root);
         assertEquals(updated, Files.readString(properties));
-        try (var paths = Files.list(properties.getParent())) {
+        try (Stream<Path> paths = Files.list(properties.getParent())) {
             assertEquals(1, paths.filter(p -> p.getFileName().toString().contains(".bak")).count());
         }
     }
@@ -330,11 +344,11 @@ class FlowTestFilesTest {
         String updated = Files.readString(properties);
         assertEquals(original.replace("enabled=false", "enabled=true"), updated);
         assertEquals(updated, FlowTestFiles.localSmtpProperties(updated));
-        try (var paths = Files.list(properties.getParent())) {
+        try (Stream<Path> paths = Files.list(properties.getParent())) {
             assertTrue(paths.anyMatch(p -> p.getFileName().toString().startsWith("module-test.properties.bak")));
         }
         String pom = "<project><modelVersion>4.0.0</modelVersion></project>";
-        var files = java.util.Map.of(
+        Map<String,String> files = java.util.Map.of(
                 "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java", "ftp",
                 "user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalSmtpTestServer.java", "smtp",
                 "user-flow-tests/pom.xml", "<project><modelVersion>4.0.0</modelVersion><dependencies><dependency><groupId>com.icegreen</groupId><artifactId>greenmail</artifactId><version>1.6.15</version></dependency></dependencies></project>");
@@ -359,8 +373,8 @@ class FlowTestFilesTest {
         assertEquals("localhost", loaded.getProperty("mail.host"));
         FlowTestFiles.enableLocalFtp(root);
         assertEquals(updated, Files.readString(properties));
-        try (var paths = Files.list(properties.getParent())) {
-            var backups = paths.filter(p -> p.getFileName().toString().contains(".bak")).toList();
+        try (Stream<Path> paths = Files.list(properties.getParent())) {
+            List<Path> backups = paths.filter(p -> p.getFileName().toString().contains(".bak")).toList();
             assertEquals(1, backups.size());
             assertEquals(original, Files.readString(backups.get(0)));
         }
@@ -407,18 +421,18 @@ class FlowTestFilesTest {
         Path pom = root.resolve("user-flow-tests/pom.xml");
         Files.createDirectories(pom.getParent());
         Files.writeString(pom, original);
-        var files = new java.util.LinkedHashMap<>(scaffold().files());
+        LinkedHashMap<String,String> files = new java.util.LinkedHashMap<>(scaffold().files());
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java", "helper");
-        var plan = new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files);
+        Scaffold plan = new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files);
         Path test = FlowTestFiles.write(root, "original", plan);
         assertEquals("test", Files.readString(test));
         String updated = Files.readString(pom);
         assertTrue(updated.contains(nested));
-        var reader = new org.apache.maven.model.io.xpp3.MavenXpp3Reader();
-        var model = reader.read(new java.io.StringReader(updated));
+        MavenXpp3Reader reader = new org.apache.maven.model.io.xpp3.MavenXpp3Reader();
+        Model model = reader.read(new java.io.StringReader(updated));
         assertEquals(java.util.List.of("ftpserver-core", "mina-core"), model.getDependencies().stream().map(org.apache.maven.model.Dependency::getArtifactId).toList());
         assertEquals(updated, FlowTestFiles.withFtpTestDependencies(updated, files));
-        try (var paths = Files.list(pom.getParent())) {
+        try (Stream<Path> paths = Files.list(pom.getParent())) {
             Path backup = paths.filter(p -> p.getFileName().toString().startsWith("pom.xml.bak")).findFirst().orElseThrow();
             assertEquals(original, Files.readString(backup));
         }
@@ -430,7 +444,7 @@ class FlowTestFilesTest {
         Files.createDirectories(testPom.getParent());
         String original = "<project><modelVersion>4.0.0</modelVersion><!-- my settings --><properties><custom>keep</custom></properties></project>";
         Files.writeString(testPom, original);
-        var files = new java.util.LinkedHashMap<>(scaffold().files());
+        LinkedHashMap<String,String> files = new java.util.LinkedHashMap<>(scaffold().files());
         files.put("user-flow-tests/src/test/java/org/ikasan/studio/flowtests/support/utils/LocalFtpTestServer.java", "helper");
         FlowTestFiles.write(root, "original", new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files));
         String updated = Files.readString(testPom);
@@ -439,7 +453,7 @@ class FlowTestFilesTest {
         assertTrue(updated.contains("ftpserver-core"));
         assertTrue(updated.contains("mina-core"));
         assertEquals(updated, FlowTestFiles.withFtpTestDependencies(updated, files));
-        try (var paths = Files.list(testPom.getParent())) {
+        try (Stream<Path> paths = Files.list(testPom.getParent())) {
             Path backup = paths.filter(p -> p.getFileName().toString().startsWith("pom.xml.bak")).findFirst().orElseThrow();
             assertEquals(original, Files.readString(backup));
         }
@@ -447,30 +461,30 @@ class FlowTestFilesTest {
 
     @Test void sharedSetupIsPreservedUnlessExplicitlySelectedAndArchived() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
-        var first = scaffold();
-        var files = new java.util.LinkedHashMap<>(first.files());
+        Scaffold first = scaffold();
+        LinkedHashMap<String,String> files = new java.util.LinkedHashMap<>(first.files());
         files.put(FlowTestScaffold.SUPPORT_PATH, "fresh support");
         files.put(FlowTestScaffold.TEST_PROPERTIES_PATH, "# connection keys");
-        var withSupport = new FlowTestScaffold.Scaffold(first.rootPom(), first.testPath(), files);
+        Scaffold withSupport = new FlowTestScaffold.Scaffold(first.rootPom(), first.testPath(), files);
         FlowTestFiles.write(root, "original", withSupport);
         Path support = root.resolve(FlowTestScaffold.SUPPORT_PATH);
         Files.writeString(support, "developer connections");
         Path properties = root.resolve(FlowTestScaffold.TEST_PROPERTIES_PATH);
         Files.writeString(properties, "test.host=localhost\n");
-        var secondFiles = new java.util.LinkedHashMap<>(files);
+        LinkedHashMap<String,String> secondFiles = new java.util.LinkedHashMap<>(files);
         secondFiles.put("user-flow-tests/SecondTest.java", "second");
-        var second = new FlowTestScaffold.Scaffold("updated", "user-flow-tests/SecondTest.java", secondFiles);
+        Scaffold second = new FlowTestScaffold.Scaffold("updated", "user-flow-tests/SecondTest.java", secondFiles);
         FlowTestFiles.write(root, "updated", second);
         assertEquals("developer connections", Files.readString(support));
-        var supportScaffold = new FlowTestScaffold.Scaffold("updated", FlowTestScaffold.SUPPORT_PATH,
+        Scaffold supportScaffold = new FlowTestScaffold.Scaffold("updated", FlowTestScaffold.SUPPORT_PATH,
                 Map.of(FlowTestScaffold.SUPPORT_PATH, "fresh support", FlowTestScaffold.TEST_PROPERTIES_PATH, "# updated keys"));
-        var selected = java.util.List.of(supportScaffold);
-        var approval = assertThrows(FlowTestFiles.ExistingTestsException.class,
+        List<Scaffold> selected = java.util.List.of(supportScaffold);
+        ExistingTestsException approval = assertThrows(FlowTestFiles.ExistingTestsException.class,
                 () -> FlowTestFiles.checkExisting(root, selected));
         FlowTestFiles.archiveAndWriteAll(root, "updated", selected, approval.tests());
         assertEquals("fresh support", Files.readString(support));
         assertEquals("test.host=localhost\n", Files.readString(properties));
-        try (var backups = Files.list(support.getParent())) {
+        try (Stream<Path> backups = Files.list(support.getParent())) {
             Path backup = backups.filter(p -> p.getFileName().toString().startsWith("ModuleFlowTestSupport.java.bak")).findFirst().orElseThrow();
             assertEquals("developer connections", Files.readString(backup));
         }
@@ -497,10 +511,10 @@ class FlowTestFilesTest {
         Files.writeString(root.resolve("pom.xml"), "original");
         Files.createDirectory(root.resolve("user-flow-tests"));
         Files.writeString(root.resolve("user-flow-tests/blocked"), "developer file");
-        var files = new java.util.LinkedHashMap<String, String>();
+        LinkedHashMap<String,String> files = new java.util.LinkedHashMap<String, String>();
         files.put("user-flow-tests/FirstTest.java", "first");
         files.put("user-flow-tests/blocked/SecondTest.java", "second");
-        var plan = new FlowTestScaffold.Scaffold("updated", "user-flow-tests/FirstTest.java", files);
+        Scaffold plan = new FlowTestScaffold.Scaffold("updated", "user-flow-tests/FirstTest.java", files);
         assertThrows(IOException.class, () -> FlowTestFiles.write(root, "original", plan));
         assertFalse(Files.exists(root.resolve("user-flow-tests/FirstTest.java")));
         assertEquals("developer file", Files.readString(root.resolve("user-flow-tests/blocked")));
@@ -511,7 +525,7 @@ class FlowTestFilesTest {
         Path external = Files.createDirectory(root.resolve("elsewhere"));
         Files.createSymbolicLink(root.resolve("user-flow-tests"), external);
         assertThrows(IOException.class, () -> FlowTestFiles.write(root, "original", scaffold()));
-        try (var files = Files.list(external)) { assertEquals(0, files.count()); }
+        try (Stream<Path> files = Files.list(external)) { assertEquals(0, files.count()); }
     }
     private FlowTestScaffold.Scaffold scaffold(String name) {
         String path = "user-flow-tests/src/test/java/" + name + "Test.java";
@@ -520,14 +534,14 @@ class FlowTestFilesTest {
     }
     @Test void batchCreatesSelectedTestsAndPreservesExistingTestsAndPom() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
-        var existing = scaffold("Existing");
+        Scaffold existing = scaffold("Existing");
         Path test = root.resolve(existing.testPath());
         Files.createDirectories(test.getParent());
         Files.writeString(test, "developer assertions");
         Files.writeString(root.resolve("user-flow-tests/pom.xml"), "developer pom");
-        var first = scaffold("First");
-        var second = scaffold("Second");
-        var result = FlowTestFiles.writeAll(root, "original", java.util.List.of(existing, first, second));
+        Scaffold first = scaffold("First");
+        Scaffold second = scaffold("Second");
+        List<Path> result = FlowTestFiles.writeAll(root, "original", java.util.List.of(existing, first, second));
         assertEquals(java.util.List.of(root.resolve(first.testPath()), root.resolve(second.testPath())), result);
         assertEquals("First", Files.readString(result.get(0)));
         assertEquals("Second", Files.readString(result.get(1)));
@@ -546,9 +560,9 @@ class FlowTestFilesTest {
         Files.writeString(root.resolve("pom.xml"), "original");
         Files.createDirectory(root.resolve("user-flow-tests"));
         Files.writeString(root.resolve("user-flow-tests/blocked"), "developer file");
-        var blocked = new FlowTestScaffold.Scaffold("updated", "user-flow-tests/blocked/LaterTest.java",
+        Scaffold blocked = new FlowTestScaffold.Scaffold("updated", "user-flow-tests/blocked/LaterTest.java",
                 Map.of("user-flow-tests/blocked/LaterTest.java", "later"));
-        var first = scaffold("First");
+        Scaffold first = scaffold("First");
         assertThrows(IOException.class, () -> FlowTestFiles.writeAll(root, "original", java.util.List.of(first, blocked)));
         assertFalse(Files.exists(root.resolve(first.testPath())));
         assertFalse(Files.exists(root.resolve("user-flow-tests/pom.xml")));
@@ -566,14 +580,14 @@ class FlowTestFilesTest {
         for (int i = 0; i < 2; i++) {
             Files.write(test, original);
             String pom = Files.readString(root.resolve("pom.xml"));
-            var existing = assertThrows(FlowTestFiles.ExistingTestException.class, () -> FlowTestFiles.write(root, pom, scaffold()));
+            ExistingTestException existing = assertThrows(FlowTestFiles.ExistingTestException.class, () -> FlowTestFiles.write(root, pom, scaffold()));
             assertEquals(test, FlowTestFiles.archiveAndWrite(root, pom, scaffold(), existing));
             assertEquals("test", Files.readString(test));
         }
-        try (var paths = Files.list(test.getParent())) {
-            var backups = paths.filter(p -> p.getFileName().toString().startsWith("ExampleTest.java.bak")).toList();
+        try (Stream<Path> paths = Files.list(test.getParent())) {
+            List<Path> backups = paths.filter(p -> p.getFileName().toString().startsWith("ExampleTest.java.bak")).toList();
             assertEquals(2, backups.size());
-            for (var backup : backups) assertArrayEquals(original, Files.readAllBytes(backup));
+            for (Path backup : backups) assertArrayEquals(original, Files.readAllBytes(backup));
         }
         assertEquals("developer pom", Files.readString(root.resolve("user-flow-tests/pom.xml")));
     }
@@ -582,71 +596,71 @@ class FlowTestFilesTest {
         Path test = root.resolve(scaffold().testPath());
         Files.createDirectories(test.getParent());
         Files.writeString(test, "old assertions");
-        var existing = assertThrows(FlowTestFiles.ExistingTestException.class, () -> FlowTestFiles.write(root, "original", scaffold()));
+        ExistingTestException existing = assertThrows(FlowTestFiles.ExistingTestException.class, () -> FlowTestFiles.write(root, "original", scaffold()));
         Files.writeString(test, "new assertions");
         assertThrows(IOException.class, () -> FlowTestFiles.archiveAndWrite(root, "original", scaffold(), existing));
         assertEquals("new assertions", Files.readString(test));
-        try (var files = Files.list(test.getParent())) { assertEquals(1, files.count()); }
+        try (Stream<Path> files = Files.list(test.getParent())) { assertEquals(1, files.count()); }
     }
     @Test void failedRegenerationRestoresOriginalAndRetainsBackup() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
         Path test = root.resolve(scaffold().testPath());
         Files.createDirectories(test.getParent());
         Files.writeString(test, "developer assertions");
-        var existing = assertThrows(FlowTestFiles.ExistingTestException.class, () -> FlowTestFiles.write(root, "original", scaffold()));
+        ExistingTestException existing = assertThrows(FlowTestFiles.ExistingTestException.class, () -> FlowTestFiles.write(root, "original", scaffold()));
         Files.writeString(root.resolve("user-flow-tests/blocked"), "blocked");
-        var files = new java.util.LinkedHashMap<String, String>();
+        LinkedHashMap<String,String> files = new java.util.LinkedHashMap<String, String>();
         files.put(scaffold().testPath(), "new scaffold");
         files.put("user-flow-tests/blocked/later.txt", "cannot create");
-        var broken = new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files);
+        Scaffold broken = new FlowTestScaffold.Scaffold("updated", scaffold().testPath(), files);
         assertThrows(IOException.class, () -> FlowTestFiles.archiveAndWrite(root, "original", broken, existing));
         assertEquals("developer assertions", Files.readString(test));
         assertEquals("original", Files.readString(root.resolve("pom.xml")));
-        try (var paths = Files.list(test.getParent())) {
-            var backup = paths.filter(p -> p.toString().contains(".bak")).findFirst().orElseThrow();
+        try (Stream<Path> paths = Files.list(test.getParent())) {
+            Path backup = paths.filter(p -> p.toString().contains(".bak")).findFirst().orElseThrow();
             assertEquals("developer assertions", Files.readString(backup));
         }
     }
 
     @Test void batchArchiveRecreatesOnlySelectedTests() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
-        var first = scaffold("First");
-        var second = scaffold("Second");
-        var untouched = scaffold("Untouched");
-        for (var item : java.util.List.of(first, second, untouched)) {
+        Scaffold first = scaffold("First");
+        Scaffold second = scaffold("Second");
+        Scaffold untouched = scaffold("Untouched");
+        for (Scaffold item : java.util.List.of(first, second, untouched)) {
             Files.createDirectories(root.resolve(item.testPath()).getParent());
             Files.writeString(root.resolve(item.testPath()), "original " + item.testPath());
         }
-        var plans = java.util.List.of(first, second, scaffold("New"));
-        var prompt = assertThrows(FlowTestFiles.ExistingTestsException.class, () -> FlowTestFiles.checkExisting(root, plans));
+        List<Scaffold> plans = java.util.List.of(first, second, scaffold("New"));
+        ExistingTestsException prompt = assertThrows(FlowTestFiles.ExistingTestsException.class, () -> FlowTestFiles.checkExisting(root, plans));
         assertEquals(2, prompt.tests().size());
         assertEquals(3, FlowTestFiles.archiveAndWriteAll(root, "original", plans, prompt.tests()).size());
         assertEquals("First", Files.readString(root.resolve(first.testPath())));
         assertEquals("Second", Files.readString(root.resolve(second.testPath())));
         assertEquals("original " + untouched.testPath(), Files.readString(root.resolve(untouched.testPath())));
-        for (var item : java.util.List.of(first, second)) {
+        for (Scaffold item : java.util.List.of(first, second)) {
             Path file = root.resolve(item.testPath());
-            try (var paths = Files.list(file.getParent())) {
-                var backup = paths.filter(p -> p.getFileName().toString().startsWith(file.getFileName() + ".bak")).findFirst().orElseThrow();
+            try (Stream<Path> paths = Files.list(file.getParent())) {
+                Path backup = paths.filter(p -> p.getFileName().toString().startsWith(file.getFileName() + ".bak")).findFirst().orElseThrow();
                 assertEquals("original " + item.testPath(), Files.readString(backup));
             }
         }
     }
     @Test void failedBatchArchiveRestoresAllOriginals() throws Exception {
         Files.writeString(root.resolve("pom.xml"), "original");
-        var first = scaffold("First");
-        var second = scaffold("Second");
-        for (var item : java.util.List.of(first, second)) {
+        Scaffold first = scaffold("First");
+        Scaffold second = scaffold("Second");
+        for (Scaffold item : java.util.List.of(first, second)) {
             Files.createDirectories(root.resolve(item.testPath()).getParent());
             Files.writeString(root.resolve(item.testPath()), "original " + item.testPath());
         }
         Files.writeString(root.resolve("user-flow-tests/blocked"), "blocked");
-        var broken = new FlowTestScaffold.Scaffold("updated", "user-flow-tests/blocked/Test.java",
+        Scaffold broken = new FlowTestScaffold.Scaffold("updated", "user-flow-tests/blocked/Test.java",
                 Map.of("user-flow-tests/blocked/Test.java", "test"));
-        var plans = java.util.List.of(first, second, broken);
-        var prompt = assertThrows(FlowTestFiles.ExistingTestsException.class, () -> FlowTestFiles.checkExisting(root, plans));
+        List<Scaffold> plans = java.util.List.of(first, second, broken);
+        ExistingTestsException prompt = assertThrows(FlowTestFiles.ExistingTestsException.class, () -> FlowTestFiles.checkExisting(root, plans));
         assertThrows(IOException.class, () -> FlowTestFiles.archiveAndWriteAll(root, "original", plans, prompt.tests()));
-        for (var item : java.util.List.of(first, second))
+        for (Scaffold item : java.util.List.of(first, second))
             assertEquals("original " + item.testPath(), Files.readString(root.resolve(item.testPath())));
         assertEquals("original", Files.readString(root.resolve("pom.xml")));
     }

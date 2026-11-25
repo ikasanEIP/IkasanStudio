@@ -6,13 +6,15 @@ import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
+import org.mockito.MockedStatic;
 
 
 public class StudioImportReadinessHeavyTest extends HeavyPlatformTestCase {
     public void testMissedRootsEventIsRecoveredByReadinessRecheck() {
-        var checks = new AtomicInteger();
-        var holder = new AtomicReference<StudioProjectInitialisationService>();
-        var service = new StudioProjectInitialisationService(myProject, () -> {
+        AtomicInteger checks = new AtomicInteger();
+        AtomicReference<StudioProjectInitialisationService> holder = new AtomicReference<>();
+        StudioProjectInitialisationService service = new StudioProjectInitialisationService(myProject, () -> {
             int attempt = checks.incrementAndGet();
             if (attempt == 1) {
                 // Maven publishes its final roots event while the first readiness read is still active.
@@ -36,14 +38,14 @@ public class StudioImportReadinessHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testReloadMavenRequestsAnImportAndDoesNothingAfterDisposal() {
-        var service = new StudioProjectInitialisationService(myProject,
+        StudioProjectInitialisationService service = new StudioProjectInitialisationService(myProject,
                 () -> new StudioProjectInitialisationService.ImportReadiness(false, "waiting"), 1000);
         Disposer.register(getTestRootDisposable(), service);
         service.start();
         PlatformTestUtil.waitWithEventsDispatching("Waiting state was not reached",
                 () -> service.getState() == StudioProjectInitialisationService.State.WAITING_FOR_PROJECT_IMPORT, 10);
-        var manager = org.mockito.Mockito.mock(org.jetbrains.idea.maven.project.MavenProjectsManager.class);
-        try (var maven = org.mockito.Mockito.mockStatic(org.jetbrains.idea.maven.project.MavenProjectsManager.class)) {
+        MavenProjectsManager manager = org.mockito.Mockito.mock(org.jetbrains.idea.maven.project.MavenProjectsManager.class);
+        try (MockedStatic<MavenProjectsManager> maven = org.mockito.Mockito.mockStatic(org.jetbrains.idea.maven.project.MavenProjectsManager.class)) {
             maven.when(() -> org.jetbrains.idea.maven.project.MavenProjectsManager.getInstance(myProject)).thenReturn(manager);
             service.reloadMavenProject();
             org.mockito.Mockito.verify(manager).forceUpdateAllProjectsOrFindAllAvailablePomFiles();
@@ -54,8 +56,8 @@ public class StudioImportReadinessHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testDisposalStopsWaitingChecks() {
-        var checks = new AtomicInteger();
-        var service = new StudioProjectInitialisationService(myProject, () -> {
+        AtomicInteger checks = new AtomicInteger();
+        StudioProjectInitialisationService service = new StudioProjectInitialisationService(myProject, () -> {
             checks.incrementAndGet();
             return new StudioProjectInitialisationService.ImportReadiness(false, "waiting");
         }, 20);
@@ -71,8 +73,8 @@ public class StudioImportReadinessHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testReadinessFailureIsRecoverableInsteadOfLeavingInitializationBusy() {
-        var checks = new AtomicInteger();
-        var service = new StudioProjectInitialisationService(myProject, () -> {
+        AtomicInteger checks = new AtomicInteger();
+        StudioProjectInitialisationService service = new StudioProjectInitialisationService(myProject, () -> {
             if (checks.incrementAndGet() == 1) throw new IllegalStateException("injected readiness failure");
             return new StudioProjectInitialisationService.ImportReadiness(false, "waiting after retry");
         }, 1000);

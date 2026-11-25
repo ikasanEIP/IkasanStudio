@@ -13,6 +13,17 @@ import java.nio.file.*;
 import java.io.StringReader;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Map.Entry;
+import org.apache.maven.model.Build;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Plugin;
+import org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest.BomImport;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /** Rendering is portable; Maven compilation is a separate, explicit Java 25 development gate. */
 class DevelopmentFixtureTest {
@@ -20,27 +31,27 @@ class DevelopmentFixtureTest {
     @TempDir Path temporary;
 
     @Test void rendersApplicationAgainstSnapshotBom() throws Exception {
-        var consumer = element("Event Generating Consumer", "Input");
-        var producer = element("Dev Null Producer", "Output");
-        var flow = Flow.flowBuilder().metapackVersion(PACK).name("Example Flow").consumer(consumer).build();
+        FlowElement consumer = element("Event Generating Consumer", "Input");
+        FlowElement producer = element("Dev Null Producer", "Output");
+        Flow flow = Flow.flowBuilder().metapackVersion(PACK).name("Example Flow").consumer(consumer).build();
         flow.setFlowRoute(FlowRoute.flowRouteBuilder().flow(flow).flowElements(new ArrayList<>(List.of(producer))).build());
-        var module = Module.moduleBuilder().version(PACK).name("Ikasan5Review")
+        Module module = Module.moduleBuilder().version(PACK).name("Ikasan5Review")
                 .applicationPackageName("org.example").port("8080").h2PortNumber("8092")
                 .h2WebPortNumber("8093").flows(List.of(flow)).build();
-        var files = render(module);
-        try (var input = Objects.requireNonNull(getClass().getResourceAsStream("/application/console.java.txt"))) {
+        Map<String,String> files = render(module);
+        try (InputStream input = Objects.requireNonNull(getClass().getResourceAsStream("/application/console.java.txt"))) {
             files.put("src/test/java/org/ikasan/studio/flowtests/BlueConsoleTest.java",
                     new String(input.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
         }
         Path destination = Path.of(System.getProperty("studio.v5.fixture", temporary.toString()));
-        for (var file : files.entrySet()) {
+        for (Entry<String,String> file : files.entrySet()) {
             Path target = destination.resolve(file.getKey()); Files.createDirectories(target.getParent());
             Files.writeString(target, file.getValue());
         }
     }
 
     static Map<String, String> render(Module module) throws Exception {
-        var manifest = ComponentLibrary.getMetaPackManifest(PACK);
+        MetaPackManifest manifest = ComponentLibrary.getMetaPackManifest(PACK);
         assertEquals("25", manifest.javaVersion());
         assertEquals(2, manifest.compatibilityOverrides().size());
         assertTrue(manifest.compatibilityOverrides().stream().allMatch(override ->
@@ -49,14 +60,14 @@ class DevelopmentFixtureTest {
         Model model = new Model();
         model.setModelVersion("4.0.0"); model.setGroupId("org.ikasan.studio.probe");
         model.setArtifactId("ikasan5-review"); model.setVersion("1.0-SNAPSHOT");
-        var pom = new IkasanPomModel(model);
+        IkasanPomModel pom = new IkasanPomModel(model);
         pom.addProperty("version.ikasan", manifest.ikasanVersion());
         pom.addProperty("maven.compiler.release", manifest.javaVersion());
         pom.addProperty("project.build.sourceEncoding", "UTF-8");
-        for (var bom : manifest.dependencyManagement()) pom.addOrUpdateBomImport(bom.groupId(), bom.artifactId(), bom.version());
-        for (var dependency : module.getAllUniqueSortedJarDependencies()) pom.checkIfDependancyAlreadyExists(dependency.clone());
-        var build = new org.apache.maven.model.Build();
-        var compiler = new org.apache.maven.model.Plugin();
+        for (BomImport bom : manifest.dependencyManagement()) pom.addOrUpdateBomImport(bom.groupId(), bom.artifactId(), bom.version());
+        for (Dependency dependency : module.getAllUniqueSortedJarDependencies()) pom.checkIfDependancyAlreadyExists(dependency.clone());
+        Build build = new org.apache.maven.model.Build();
+        Plugin compiler = new org.apache.maven.model.Plugin();
         compiler.setArtifactId("maven-compiler-plugin"); compiler.setVersion("3.15.0"); build.addPlugin(compiler);
         model.setBuild(build);
         Map<String, String> files = new LinkedHashMap<>();
@@ -65,7 +76,7 @@ class DevelopmentFixtureTest {
         putJava(files, Generator.STUDIO_BOOT_PACKAGE, "Application", ApplicationTemplate.create(module));
         putJava(files, Generator.STUDIO_BOOT_PACKAGE, "ModuleConfig", ModuleConfigTemplate.create(module));
         putJava(files, Generator.STUDIO_BOOT_PACKAGE, "StudioInjectController", StudioInjectControllerTemplate.create(module));
-        for (var flow : module.getFlows()) {
+        for (Flow flow : module.getFlows()) {
             String pkg = Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();
             putJava(files, pkg, flow.getJavaClassName(), FlowTemplate.create(pkg, module, flow));
             putJava(files, pkg, FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME + flow.getJavaClassName(),
@@ -79,15 +90,15 @@ class DevelopmentFixtureTest {
                 + "<properties><version.ikasan>5.1.0</version.ikasan></properties></project>";
         String application = "<project><modelVersion>4.0.0</modelVersion><groupId>org.ikasan.studio.probe</groupId>"
                 + "<artifactId>probe-application</artifactId><version>1.0-SNAPSHOT</version></project>";
-        for (var flow : module.getFlows()) {
-            var scaffold = FlowTestScaffold.render(module, flow, parent, application);
-            var tests = new MavenXpp3Reader().read(new StringReader(scaffold.files().get("user-flow-tests/pom.xml")));
+        for (Flow flow : module.getFlows()) {
+            Scaffold scaffold = FlowTestScaffold.render(module, flow, parent, application);
+            Model tests = new MavenXpp3Reader().read(new StringReader(scaffold.files().get("user-flow-tests/pom.xml")));
             if (build.getPlugins().size() == 1)
-                for (var plugin : tests.getBuild().getPlugins()) build.addPlugin(plugin.clone());
-            for (var dependency : tests.getDependencies()) {
+                for (Plugin plugin : tests.getBuild().getPlugins()) build.addPlugin(plugin.clone());
+            for (Dependency dependency : tests.getDependencies()) {
                 if (!"probe-application".equals(dependency.getArtifactId())) pom.checkIfDependancyAlreadyExists(dependency.clone());
             }
-            for (var file : scaffold.files().entrySet()) {
+            for (Entry<String,String> file : scaffold.files().entrySet()) {
                 if (file.getKey().startsWith("user-flow-tests/src/"))
                     files.put(file.getKey().substring("user-flow-tests/".length()), file.getValue());
             }
@@ -103,7 +114,7 @@ class DevelopmentFixtureTest {
     }
 
     static FlowElement element(String key, String name) throws Exception {
-        var result = FlowElement.flowElementBuilder().componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(PACK, key))
+        FlowElement result = FlowElement.flowElementBuilder().componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(PACK, key))
                 .componentName(name).build();
         result.defaultUnsetMandatoryProperties();
         return result;

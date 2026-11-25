@@ -5,6 +5,7 @@ import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
+import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 
 /** Shared eligibility for canvas context menus and the unsaved-property dialog. */
 public record ComponentNavigationAvailability(boolean code, boolean properties) {
@@ -12,7 +13,7 @@ public record ComponentNavigationAvailability(boolean code, boolean properties) 
         if (!(component instanceof Flow || component instanceof FlowElement)) {
             return new ComponentNavigationAvailability(false, false);
         }
-        var handler = ViewHandlerCache.getAbstractViewHandler(project, component);
+        AbstractViewHandlerIntellij handler = ViewHandlerCache.getAbstractViewHandler(project, component);
         return new ComponentNavigationAvailability(
                 handler != null && handler.getCodeNavigationTarget() != null && handler.getCodeNavigationTarget().isPresent(),
                 handler != null && handler.hasPropertiesNavigationTarget());

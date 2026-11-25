@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Use explicit Java variable types across Studio production code, tests, examples and generated templates; retain Kotlin declarations. Bundled V3/V4 revisions are 0.1.2-SNAPSHOT and V5.1.0 is 1.0.10; existing locked projects require explicit revision adoption.
+
 - Align meta-pack Maven generation with archetype version management: generator API 5 supports validated compiler/Surefire defaults in plugin management, preserves explicit root-POM customisations, and shares the IDE/offline rendering contract. Bundled V3/V4 revisions become 0.1.1-SNAPSHOT and V5.1.0 becomes 1.0.9; existing locked models require explicit revision adoption.
 
 - Pulse Update Code for valid pending property edits as well as validation errors, including same-length port replacements; stop attention when edits are reverted or the panel is disposed.

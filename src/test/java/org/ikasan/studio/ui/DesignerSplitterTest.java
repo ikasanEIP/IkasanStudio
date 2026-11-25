@@ -8,6 +8,7 @@ import javax.swing.SwingUtilities;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.intellij.ui.JBSplitter;
 
 class DesignerSplitterTest {
     @Test
@@ -19,7 +20,7 @@ class DesignerSplitterTest {
                     JBUIScale.setUserScaleFactorForTest(scale);
                     JPanel canvas = new JPanel();
                     JPanel sidebar = new JPanel();
-                    var splitter = DesignerUI.createContentSplitter(canvas, sidebar);
+                    JBSplitter splitter = DesignerUI.createContentSplitter(canvas, sidebar);
                     splitter.setSize(1000, 600);
                     splitter.doLayout();
                     int sidebarWidth = sidebar.getWidth();

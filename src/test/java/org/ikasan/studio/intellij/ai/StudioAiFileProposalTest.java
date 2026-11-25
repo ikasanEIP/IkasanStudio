@@ -18,13 +18,23 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.ai.StudioAiService.Proposal;
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+import org.ikasan.studio.intellij.settings.IkasanStudioSettings;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
 class StudioAiFileProposalTest {
     @TempDir Path directory;
 
     @Test void importWithoutProjectDirectoryReportsActionableFailure() {
-        var project = mock(Project.class);
-        var service = new StudioAiService(project);
+        Project project = mock(Project.class);
+        StudioAiService service = new StudioAiService(project);
         try {
             assertThatThrownBy(() -> service.importProposal("{\"operations\":[]}"))
                     .isInstanceOf(IllegalStateException.class)
@@ -34,9 +44,9 @@ class StudioAiFileProposalTest {
     }
 
     @Test void importReviewCancelAndApplyWorkWithoutStartingBridge() throws Exception {
-        var project = mock(Project.class);
-        var context = mock(UiContext.class);
-        var live = ModelProposalTest.model();
+        Project project = mock(Project.class);
+        UiContext context = mock(UiContext.class);
+        Module live = ModelProposalTest.model();
         when(project.getBasePath()).thenReturn(directory.toString());
         when(project.getService(UiContext.class)).thenReturn(context);
         when(context.getIkasanModule()).thenReturn(live);
@@ -45,39 +55,39 @@ class StudioAiFileProposalTest {
         Path modelFile = directory.resolve("generated/src/main/model/model.json");
         Files.createDirectories(modelFile.getParent());
         Files.writeString(modelFile, ComponentIO.toValidatedModuleJson(live));
-        var json = new ObjectMapper();
+        ObjectMapper json = new ObjectMapper();
         String proposal = json.writeValueAsString(Map.of("formatVersion", 1,
                 "baseModelSha256", OfflineModelProposal.sha256(Files.readAllBytes(modelFile)),
                 "operations", json.readTree("""
                 [{"type":"renameComponent","flow":"Transfer","component":"ReadFiles","name":"ReadEvents"}]
                 """)));
-        var before = LiveModelSnapshot.capture(live);
-        var reviewed = new AtomicReference<StudioAiService.Proposal>();
-        var service = new StudioAiService(project);
-        try (var settings = mockStatic(org.ikasan.studio.intellij.settings.IkasanStudioSettings.class);
-             var applications = mockStatic(ApplicationManager.class);
-             var modalities = mockStatic(ModalityState.class);
-             var commands = mockStatic(CommandProcessor.class);
-             var undos = mockStatic(UndoManager.class);
-             var files = mockStatic(StudioProjectFiles.class);
-             var dialogs = mockConstruction(StudioAiProposalDialog.class, (dialog, args) ->
+        Map<String,Object> before = LiveModelSnapshot.capture(live);
+        AtomicReference<Proposal> reviewed = new AtomicReference<>();
+        StudioAiService service = new StudioAiService(project);
+        try (MockedStatic<IkasanStudioSettings> settings = mockStatic(org.ikasan.studio.intellij.settings.IkasanStudioSettings.class);
+             MockedStatic<ApplicationManager> applications = mockStatic(ApplicationManager.class);
+             MockedStatic<ModalityState> modalities = mockStatic(ModalityState.class);
+             MockedStatic<CommandProcessor> commands = mockStatic(CommandProcessor.class);
+             MockedStatic<UndoManager> undos = mockStatic(UndoManager.class);
+             MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class);
+             MockedConstruction<StudioAiProposalDialog> dialogs = mockConstruction(StudioAiProposalDialog.class, (dialog, args) ->
                      reviewed.set((StudioAiService.Proposal) args.arguments().get(2)))) {
             settings.when(org.ikasan.studio.intellij.settings.IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
-            var app = mock(Application.class);
+            Application app = mock(Application.class);
             applications.when(ApplicationManager::getApplication).thenReturn(app);
-            var writeSafeModality = mock(ModalityState.class);
+            ModalityState writeSafeModality = mock(ModalityState.class);
             modalities.when(ModalityState::nonModal).thenReturn(writeSafeModality);
             doAnswer(call -> {
                 assertThat(call.getArgument(1, ModalityState.class)).isSameAs(writeSafeModality);
                 call.getArgument(0, Runnable.class).run();
                 return null;
             }).when(app).invokeAndWait(any(Runnable.class), nullable(ModalityState.class));
-            var command = mock(CommandProcessor.class);
+            CommandProcessor command = mock(CommandProcessor.class);
             commands.when(CommandProcessor::getInstance).thenReturn(command);
             doAnswer(call -> { call.getArgument(1, Runnable.class).run(); return null; })
                     .when(command).executeCommand(eq(project), any(Runnable.class), anyString(), isNull());
             undos.when(() -> UndoManager.getInstance(project)).thenReturn(mock(UndoManager.class));
-            var generated = new CompletableFuture<Void>();
+            CompletableFuture<Void> generated = new CompletableFuture<>();
             files.when(() -> StudioProjectFiles.refreshCodeFromModel(project, GenerationRequest.full())).thenReturn(generated);
             service.importProposal(proposal);
             assertThat(service.isRunning()).isFalse();
@@ -174,7 +184,7 @@ class StudioAiFileProposalTest {
                 assertThat(live.getFlows()).isEmpty();
                 assertThat(dialogs.constructed()).hasSize(reviewsBeforeAutoDelete);
                 files.verify(() -> StudioProjectFiles.deleteUserImplementedClassFile(any(), any()), never());
-                var risky = ModelProposal.prepare(LiveModelSnapshot.capture(
+                Module risky = ModelProposal.prepare(LiveModelSnapshot.capture(
                         org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", java.util.List.of())),
                         json.readTree("""
                         [{"type":"addFlow","flow":"existing"},
@@ -182,7 +192,7 @@ class StudioAiFileProposalTest {
                           "properties":{"endpointEventProvider":"MinuteEventProvider"}}]
                         """)).draft();
                 when(context.getIkasanModule()).thenReturn(risky);
-                var property = risky.getFlows().get(0).getConsumer().getProperty("endpointEventProvider");
+                ComponentProperty property = risky.getFlows().get(0).getConsumer().getProperty("endpointEventProvider");
                 property.setOverwriteEnabled(true);
                 Files.writeString(modelFile, ComponentIO.toValidatedModuleJson(risky));
                 String unrelatedAddition = json.writeValueAsString(Map.of("formatVersion", 1,

@@ -9,6 +9,9 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 import java.util.Map;
+import com.intellij.openapi.application.Application;
+import org.ikasan.studio.ui.UiContext;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 /** Project-owned SFTP mode and server. Only the mode is persisted in the local IDE workspace. */
 @Service(Service.Level.PROJECT)
@@ -36,12 +39,12 @@ public final class TestSftpServerService implements PersistentStateComponent<Tes
         return !disposed && "LOCAL".equals(settings.mode) && current != null && current.isRunning();
     }
     private void repaintCanvas() {
-        var application = ApplicationManager.getApplication();
+        Application application = ApplicationManager.getApplication();
         if (application == null) return;
         application.invokeLater(() -> {
             if (disposed || project.isDisposed()) return;
-            var context = project.getService(org.ikasan.studio.ui.UiContext.class);
-            var canvas = context == null ? null : context.getDesignerCanvas();
+            UiContext context = project.getService(org.ikasan.studio.ui.UiContext.class);
+            DesignerCanvas canvas = context == null ? null : context.getDesignerCanvas();
             if (canvas == null || canvas.isDisposed()) return;
             canvas.setInitialiseAllDimensions(true);
             canvas.revalidate();
@@ -86,7 +89,7 @@ public final class TestSftpServerService implements PersistentStateComponent<Tes
                 com.intellij.openapi.diagnostic.Logger.getInstance(TestSftpServerService.class).warn("Could not stop local SFTP harness", failure);
             }
         };
-        var application = ApplicationManager.getApplication();
+        Application application = ApplicationManager.getApplication();
         if (application == null) cleanup.run(); else application.executeOnPooledThread(cleanup);
     }
 }

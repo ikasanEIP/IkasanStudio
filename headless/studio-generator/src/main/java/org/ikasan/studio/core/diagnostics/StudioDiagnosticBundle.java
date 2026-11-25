@@ -7,6 +7,7 @@ import java.nio.file.*;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.util.regex.Matcher;
 
 /** Explicit allowlist export. No project traversal and no model-file access. */
 public final class StudioDiagnosticBundle {
@@ -38,7 +39,7 @@ public final class StudioDiagnosticBundle {
             try { StudioDiagnosticEvent.Event.valueOf(event.split(" ")[2].substring(6)); }
             catch (IllegalArgumentException unknown) { omitted++; continue; }
             // Timestamp and severity only from the IDE envelope, never arbitrary prefix text.
-            var timestamp = TIMESTAMP.matcher(line);
+            Matcher timestamp = TIMESTAMP.matcher(line);
             if (timestamp.find()) result.append(timestamp.group(1)).append(' ');
             result.append(event).append('\n');
         }
@@ -50,7 +51,7 @@ public final class StudioDiagnosticBundle {
             throw new IOException("Diagnostics destination must have a .zip extension");
         String logs;
         if (Files.isRegularFile(ideaLog)) {
-            try (var file = new RandomAccessFile(ideaLog.toFile(), "r")) {
+            try (RandomAccessFile file = new RandomAccessFile(ideaLog.toFile(), "r")) {
                 long offset = Math.max(0, file.length() - MAX_LOG_BYTES);
                 file.seek(offset);
                 byte[] bytes = new byte[(int) Math.min(MAX_LOG_BYTES, file.length() - offset)];
@@ -68,7 +69,7 @@ public final class StudioDiagnosticBundle {
         }
         Path temp = Files.createTempFile(target.toAbsolutePath().getParent(), ".studio-diagnostics-", ".tmp");
         try {
-            try (var zip = new ZipOutputStream(Files.newOutputStream(temp))) {
+            try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(temp))) {
                 entry(zip, "environment.txt", metadata.toString());
                 entry(zip, "studio-redacted.log", logs);
                 entry(zip, "README.txt", "Local diagnostics only; nothing is uploaded.\nModel contents, generated files, credentials, raw exception messages, project paths and other plugins' logs are excluded.\nOnly approved structured events from the last 2 MiB of idea.log are included. Older free-text records are omitted.\nContext identifiers are session-salted hashes; they are correlation identifiers, not names.\nReview this archive before sharing. Attach a model separately only if you explicitly choose to do so.\n");

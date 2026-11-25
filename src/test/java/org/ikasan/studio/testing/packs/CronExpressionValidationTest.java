@@ -9,6 +9,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.google.re2j.Pattern;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 
 /**
  * The cron expression is free text handed to Quartz when the generated application starts. Unix's five-field cron,
@@ -25,7 +27,7 @@ class CronExpressionValidationTest {
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void acceptsEveryExpressionQuartzAccepts(String pack) throws Exception {
         for (String component : CRON_COMPONENTS) {
-            var meta = ComponentLibrary.getIkasanComponents(pack).get(component).getMetadata("cronExpression");
+            ComponentPropertyMeta meta = ComponentLibrary.getIkasanComponents(pack).get(component).getMetadata("cronExpression");
             assertNotNull(meta.getValidationPattern(), pack + " " + component);
             assertNotNull(meta.getValidationMessage());
             for (String valid : new String[]{"0 * * * * ? *", "0 0/5 * * * ?", "0 0 12 * * ?", "0 15 10 ? * MON-FRI",
@@ -40,7 +42,7 @@ class CronExpressionValidationTest {
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void rejectsTheCommonMistakesQuartzRejects(String pack) throws Exception {
         for (String component : CRON_COMPONENTS) {
-            var pattern = ComponentLibrary.getIkasanComponents(pack).get(component).getMetadata("cronExpression").getValidationPattern();
+            Pattern pattern = ComponentLibrary.getIkasanComponents(pack).get(component).getMetadata("cronExpression").getValidationPattern();
             for (String invalid : new String[]{"*/5 * * * *", "every 5 minutes", "0 * * * * *", "0 0 12 * * ? * *", "",
                     "0 0 12 ? * ?", "0 0 12 * * ? ? 2030", "daily", "0 0 12"}) {
                 assertFalse(pattern.matcher(invalid).matches(), pack + " " + component + " should reject [" + invalid + "]");

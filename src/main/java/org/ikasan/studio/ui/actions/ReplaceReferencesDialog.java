@@ -20,6 +20,8 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import org.ikasan.studio.core.model.analysis.ModelReferenceReplacement.Change;
 
 final class ReplaceReferencesDialog extends StudioDialogWrapper {
     private final Project project;
@@ -112,7 +114,7 @@ final class ReplaceReferencesDialog extends StudioDialogWrapper {
         changes = List.of();
         try {
             changes = ModelReferenceReplacement.preview(module, find.getText().trim(), replacement.getText().trim());
-            for (var change : changes) rows.addRow(new Object[]{true, change.flow().getIdentity(),
+            for (Change change : changes) rows.addRow(new Object[]{true, change.flow().getIdentity(),
                     change.element().getIdentity(), change.key(), String.valueOf(change.before()), String.valueOf(change.after())});
             setErrorText(changes.isEmpty() ? StudioBundle.message("replaceReferences.NoMatches") : null);
         } catch (IllegalArgumentException failure) {
@@ -131,7 +133,7 @@ final class ReplaceReferencesDialog extends StudioDialogWrapper {
 
     @Override protected void doOKAction() {
         try {
-            var generation = ReplaceReferencesAction.apply(project, module, selectedChanges());
+            CompletableFuture<Void> generation = ReplaceReferencesAction.apply(project, module, selectedChanges());
             String findText = find.getText().trim();
             String replacementText = replacement.getText().trim();
             boolean openFiles = openReplaceInFiles.isSelected();

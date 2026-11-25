@@ -7,13 +7,16 @@ import org.ikasan.studio.core.metapack.ComponentLibrary;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Map;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 
 @org.junit.jupiter.api.Tag("packs")
 class OfficialPackLoadingTest {
     @Test
     void loadsTheVersionAndBomContractFromEachPackManifest() throws Exception {
-        var v3 = ComponentLibrary.getMetaPackManifest("V3.3.9");
-        var v4 = ComponentLibrary.getMetaPackManifest("V4.1.6");
+        MetaPackManifest v3 = ComponentLibrary.getMetaPackManifest("V3.3.9");
+        MetaPackManifest v4 = ComponentLibrary.getMetaPackManifest("V4.1.6");
 
         assertThat(v3.ikasanVersion()).isEqualTo("3.3.9");
         assertThat(v3.javaVersion()).isEqualTo("11");
@@ -29,8 +32,8 @@ class OfficialPackLoadingTest {
     void packagedDependenciesAreBomManagedUnlessDeclaredAsOverrides() throws Exception {
         ComponentLibraryLoader loader = new ComponentLibraryLoader();
         for (String version : java.util.List.of("V3.3.9", "V4.1.6")) {
-            var components = loader.load(version);
-            var manifest = loader.loadManifest(version);
+            Map<String,ComponentMeta> components = loader.load(version);
+            MetaPackManifest manifest = loader.loadManifest(version);
             org.ikasan.studio.core.metapack.validation.MetaPackValidator.validate(version, manifest, components);
             assertThat(components.values()).allSatisfy(component -> {
                 if (component.getJarDependencies() != null) {

@@ -9,6 +9,15 @@ import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.security.MessageDigest;
 import java.util.*;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.channels.FileLock;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.stream.Stream;
 
 /** Restart-bound external-pack changes. Active JARs are never changed by a management operation. */
 public final class MetaPackStore {
@@ -28,8 +37,8 @@ public final class MetaPackStore {
 
     static <T> T locked(Path directory, Operation<T> operation) throws Exception {
         Files.createDirectories(directory);
-        try (var channel = FileChannel.open(directory.resolve(".management.lock"), StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-            try (var lock = channel.tryLock()) {
+        try (FileChannel channel = FileChannel.open(directory.resolve(".management.lock"), StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+            try (FileLock lock = channel.tryLock()) {
                 if (lock == null) throw new IOException("Another IDE is managing this meta-pack directory; try again later");
                 return operation.run();
             } catch (java.nio.channels.OverlappingFileLockException e) {
@@ -39,13 +48,13 @@ public final class MetaPackStore {
     }
 
     public static MetaPackManifest manifest(Path file) throws IOException {
-        var archive = MetaPackArchive.open(file);
-        var resource = archive.resource("studio/metapack/" + archive.id() + "/metapack.json");
+        MetaPackArchive archive = MetaPackArchive.open(file);
+        URL resource = archive.resource("studio/metapack/" + archive.id() + "/metapack.json");
         if (resource == null) throw new IOException("Missing metapack.json for " + archive.id());
-        var connection = resource.openConnection();
+        URLConnection connection = resource.openConnection();
         connection.setUseCaches(false);
-        try (var input = connection.getInputStream()) {
-            var manifest = JSON.readValue(input, MetaPackManifest.class);
+        try (InputStream input = connection.getInputStream()) {
+            MetaPackManifest manifest = JSON.readValue(input, MetaPackManifest.class);
             if (!archive.id().equals(manifest.id())) throw new IOException("Manifest ID does not match the archive directory");
             return manifest;
         }
@@ -54,12 +63,12 @@ public final class MetaPackStore {
     public static List<Entry> list(Path directory) throws IOException {
         MetaPackResources.initialize();
         if (!Files.exists(directory)) return List.of();
-        var result = new ArrayList<Entry>();
-        try (var files = Files.list(directory)) {
-            for (var file : files.filter(p -> p.getFileName().toString().endsWith(".jar")).sorted().toList()) {
+        ArrayList<org.ikasan.studio.core.metapack.loading.MetaPackStore.Entry> result = new ArrayList<>();
+        try (Stream<Path> files = Files.list(directory)) {
+            for (Path file : files.filter(p -> p.getFileName().toString().endsWith(".jar")).sorted().toList()) {
                 try {
                     String hash = sha256(file);
-                    var manifest = manifest(file);
+                    MetaPackManifest manifest = manifest(file);
                     if (!hash.equals(sha256(file))) throw new IOException("Pack changed while listing; refresh and review again");
                     Path plan = plan(directory, manifest.id());
                     String pending = null;
@@ -75,13 +84,13 @@ public final class MetaPackStore {
             }
         }
         Path historyRoot = directory.resolve(".history");
-        if (Files.exists(historyRoot)) try (var directories = Files.list(historyRoot)) {
+        if (Files.exists(historyRoot)) try (Stream<Path> directories = Files.list(historyRoot)) {
             for (Path archived : directories.filter(Files::isDirectory).sorted().toList()) {
                 String id = archived.getFileName().toString();
                 if (Files.exists(directory.resolve(id + ".jar"))) continue;
-                var revisions = history(directory, id);
+                List<Path> revisions = history(directory, id);
                 if (!revisions.isEmpty()) {
-                    var manifest = manifest(revisions.get(0));
+                    MetaPackManifest manifest = manifest(revisions.get(0));
                     result.add(new Entry(id, manifest.packVersion(), directory.resolve(id + ".jar"), "removed", null, null));
                 }
             }
@@ -93,7 +102,7 @@ public final class MetaPackStore {
 
     public static Candidate review(Path source) throws Exception {
         String hash = sha256(source);
-        var manifest = MetaPackInstaller.validate(MetaPackArchive.open(source));
+        MetaPackManifest manifest = MetaPackInstaller.validate(MetaPackArchive.open(source));
         if (!hash.equals(sha256(source))) throw new IOException("The candidate changed during review; review again");
         return new Candidate(manifest, hash);
     }
@@ -111,7 +120,7 @@ public final class MetaPackStore {
             String originalHash = sha256(current);
             if (expectedCurrentHash != null && !originalHash.equals(expectedCurrentHash))
                 throw new IOException("The installed pack changed after review; refresh and review again");
-            var before = manifest(current);
+            MetaPackManifest before = manifest(current);
             checkId(before.id());
             if (Files.exists(plan(directory, before.id()))) throw new IOException("Cancel the pending change before scheduling another one");
             Path staged = Files.createTempFile(directory, ".update-", ".tmp");
@@ -121,8 +130,8 @@ public final class MetaPackStore {
             try {
                 checkCancelled.run();
                 Files.copy(source, staged, StandardCopyOption.REPLACE_EXISTING);
-                var archive = MetaPackArchive.open(staged);
-                var after = MetaPackInstaller.validate(archive);
+                MetaPackArchive archive = MetaPackArchive.open(staged);
+                MetaPackManifest after = MetaPackInstaller.validate(archive);
                 if (!before.id().equals(after.id())) throw new IOException("An update must retain the pack ID " + before.id());
                 if (!before.ikasanVersion().equals(after.ikasanVersion())) throw new IOException("Changing the Ikasan runtime requires a separate pack ID and an explicit migration");
                 if (Objects.equals(before.packVersion(), after.packVersion())) throw new IOException("An update must use a different immutable packVersion");
@@ -156,7 +165,7 @@ public final class MetaPackStore {
             requireCurrent(current, directory);
             if (expectedCurrentHash != null && !sha256(current).equals(expectedCurrentHash))
                 throw new IOException("The installed pack changed after review; refresh and review again");
-            var manifest = manifest(current);
+            MetaPackManifest manifest = manifest(current);
             writeChange(directory, new Change(1, "remove", manifest.id(), sha256(current), null));
             return null;
         });
@@ -177,19 +186,19 @@ public final class MetaPackStore {
         checkId(id);
         Path history = directory.resolve(".history").resolve(id);
         if (!Files.exists(history)) return List.of();
-        try (var files = Files.list(history)) {
+        try (Stream<Path> files = Files.list(history)) {
             return files.filter(p -> p.getFileName().toString().endsWith(".jar")).sorted().toList();
         }
     }
 
     /** Called once before session discovery. Failure leaves the plan and original/backup available for recovery. */
     static Map<String, String> activatePending(Path directory) {
-        var problems = new LinkedHashMap<String, String>();
+        LinkedHashMap<String,String> problems = new LinkedHashMap<String, String>();
         if (!Files.exists(pending(directory))) return problems;
         try {
             locked(directory, () -> {
-                try (var files = Files.list(pending(directory))) {
-                    for (var plan : files.filter(p -> p.getFileName().toString().endsWith(".json")).sorted().toList()) {
+                try (Stream<Path> files = Files.list(pending(directory))) {
+                    for (Path plan : files.filter(p -> p.getFileName().toString().endsWith(".json")).sorted().toList()) {
                         try { activate(directory, plan); }
                         catch (Exception e) { problems.put(plan.toString(), e.toString()); }
                     }
@@ -239,14 +248,14 @@ public final class MetaPackStore {
     }
 
     static void requireImmutableRevision(Path directory, MetaPackManifest candidate, String hash) throws Exception {
-        for (var historic : history(directory, candidate.id())) {
+        for (Path historic : history(directory, candidate.id())) {
             if (Objects.equals(manifest(historic).packVersion(), candidate.packVersion()) && !sha256(historic).equals(hash))
                 throw new IOException("This packVersion already exists with different content; publish a new revision");
         }
     }
 
     private static void requireCurrent(Path current, Path directory) throws IOException {
-        var archive = MetaPackArchive.open(current);
+        MetaPackArchive archive = MetaPackArchive.open(current);
         if (!current.toAbsolutePath().normalize().equals(directory.toAbsolutePath().normalize().resolve(archive.id() + ".jar")))
             throw new IOException("Only externally installed packs managed by this directory can be changed");
     }
@@ -275,8 +284,8 @@ public final class MetaPackStore {
         } finally { Files.deleteIfExists(temporary); }
     }
     static String sha256(Path file) throws Exception {
-        var digest = MessageDigest.getInstance("SHA-256");
-        try (var input = Files.newInputStream(file)) {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        try (InputStream input = Files.newInputStream(file)) {
             byte[] buffer = new byte[32768];
             for (int size; (size = input.read(buffer)) >= 0;) digest.update(buffer, 0, size);
         }

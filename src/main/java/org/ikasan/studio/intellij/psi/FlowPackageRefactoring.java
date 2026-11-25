@@ -28,6 +28,12 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import com.intellij.openapi.editor.Document;
+import java.io.InputStream;
+import java.util.List;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.Link;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.ui.UiContext;
 
 /** Refactors the flow's implementation package before its name is committed to the model. */
 public final class FlowPackageRefactoring {
@@ -66,7 +72,7 @@ public final class FlowPackageRefactoring {
         }
         // Existing-class references are explicitly outside Studio's ownership. Do not move their package.
         for (Flow candidate : module.getFlows()) {
-            for (var element : candidate.getFlowElementsNoExternalEndPoints()) {
+            for (FlowElement element : candidate.getFlowElementsNoExternalEndPoints()) {
                 Object name = element.getPropertyValue("userImplementedClassName");
                 if (Boolean.FALSE.equals(element.getPropertyValue("requiresStub")) && name instanceof String className
                         && className.startsWith(oldPackage + ".")) {
@@ -115,13 +121,13 @@ public final class FlowPackageRefactoring {
 
     /** Persist the new identity within the refactoring command, before generation is allowed to run. */
     public static boolean renameAndSave(Plan plan, Module module, Flow flow, String newName) {
-        var context = plan.project().getService(org.ikasan.studio.ui.UiContext.class);
+        UiContext context = plan.project().getService(org.ikasan.studio.ui.UiContext.class);
         if (context.isModelPersistenceBlocked()) throw new IllegalStateException(context.getModelPersistenceBlockReason());
-        var tests = org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.prepare(
+        org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.Plan tests = org.ikasan.studio.intellij.testing.FlowTestRenameRefactoring.prepare(
                 plan.project(), module, flow, null, newName);
         String oldName = flow.getIdentity();
         Map<Flow, String> oldOwners = new LinkedHashMap<>();
-        var links = org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.findLinks(module).stream()
+        List<Link> links = org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.findLinks(module).stream()
                 .filter(link -> link.ownerProducer().getContainingFlow() == flow).toList();
         links.forEach(link -> oldOwners.put(link.harnessFlow(), (String) link.harnessFlow().getPropertyValue("testHarnessOwner")));
         Runnable restoreModel = () -> {
@@ -257,8 +263,8 @@ public final class FlowPackageRefactoring {
 
         private void remember(VirtualFile file) {
             originals.computeIfAbsent(file, key -> {
-                try (var stream = key.getInputStream()) {
-                    var document = FileDocumentManager.getInstance().getCachedDocument(key);
+                try (InputStream stream = key.getInputStream()) {
+                    Document document = FileDocumentManager.getInstance().getCachedDocument(key);
                     return new Original(key, stream.readAllBytes(), document == null ? null : document.getText());
                 } catch (IOException e) { throw new IllegalStateException("Cannot back up refactoring input: " + key.getPath(), e); }
             });
@@ -319,7 +325,7 @@ public final class FlowPackageRefactoring {
                         if (directory.isValid() && !oldLeaf.equals(directory.getName())) directory.setName(oldLeaf);
                     }
                     for (Original original : originals.values()) {
-                        var document = FileDocumentManager.getInstance().getCachedDocument(original.file());
+                        Document document = FileDocumentManager.getInstance().getCachedDocument(original.file());
                         if (document != null) PsiDocumentManager.getInstance(plan.project()).doPostponedOperationsAndUnblockDocument(document);
                         original.file().setBinaryContent(original.bytes());
                         if (document != null) {

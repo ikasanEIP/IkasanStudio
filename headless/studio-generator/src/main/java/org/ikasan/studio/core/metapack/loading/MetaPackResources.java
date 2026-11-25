@@ -8,6 +8,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
+import java.net.URLConnection;
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.TreeSet;
+import java.util.stream.Stream;
 
 /** Session-fixed pack sources shared by metadata, templates and icons; never an active pack selection. */
 public final class MetaPackResources {
@@ -20,17 +26,17 @@ public final class MetaPackResources {
     private static ClassLoader bundled() { return MetaPackResources.class.getClassLoader(); }
 
     private static SourceIndex discover() {
-        var problems = new LinkedHashMap<String, String>();
-        var result = new LinkedHashMap<String, MetaPackArchive>();
-        var conflicts = new HashSet<String>();
-        for (var provider : ServiceLoader.load(MetaPackDirectoryProvider.class, bundled())) {
-            var directory = provider.directory();
+        LinkedHashMap<String,String> problems = new LinkedHashMap<String, String>();
+        LinkedHashMap<String,MetaPackArchive> result = new LinkedHashMap<String, MetaPackArchive>();
+        HashSet<String> conflicts = new HashSet<>();
+        for (MetaPackDirectoryProvider provider : ServiceLoader.load(MetaPackDirectoryProvider.class, bundled())) {
+            Path directory = provider.directory();
             if (!Files.exists(directory)) continue;
             if (provider.activatePendingChanges()) problems.putAll(MetaPackStore.activatePending(directory));
-            try (var files = Files.list(directory)) {
-                for (var file : files.filter(p -> p.getFileName().toString().endsWith(".jar")).sorted().toList()) {
+            try (Stream<Path> files = Files.list(directory)) {
+                for (Path file : files.filter(p -> p.getFileName().toString().endsWith(".jar")).sorted().toList()) {
                     try {
-                        var archive = MetaPackArchive.open(file);
+                        MetaPackArchive archive = MetaPackArchive.open(file);
                         if (bundled().getResource("studio/metapack/" + archive.id() + "/metapack.json") != null
                                 || result.containsKey(archive.id()) || conflicts.contains(archive.id())) {
                             conflicts.add(archive.id());
@@ -59,21 +65,21 @@ public final class MetaPackResources {
         String prefix = "studio/metapack/";
         if (!path.startsWith(prefix)) return null;
         String id = path.substring(prefix.length()).split("/", 2)[0];
-        var candidate = CANDIDATE.get();
+        MetaPackArchive candidate = CANDIDATE.get();
         return candidate != null && candidate.id().equals(id) ? candidate : SOURCES.archives().get(id);
     }
 
     public static URL resource(String path) {
         path = ClasspathResourcePaths.metaPackResource(path);
         if (path == null) return null;
-        var archive = archive(path);
+        MetaPackArchive archive = archive(path);
         return archive == null ? bundled().getResource(path) : archive.resource(path);
     }
 
     public static InputStream open(String path) throws IOException {
-        var url = resource(path);
+        URL url = resource(path);
         if (url == null) return null;
-        var connection = url.openConnection();
+        URLConnection connection = url.openConnection();
         connection.setUseCaches(false);
         return connection.getInputStream();
     }
@@ -81,9 +87,9 @@ public final class MetaPackResources {
     public static String[] directories(String path) throws IOException, java.net.URISyntaxException {
         path = ClasspathResourcePaths.metaPackResource(path);
         if (path == null) throw new IOException("Meta-pack directory must be a canonical path beneath studio/metapack");
-        var archive = archive(path);
+        MetaPackArchive archive = archive(path);
         if (archive != null) return archive.directories(path);
-        var result = new TreeSet<>(Arrays.asList(ClasspathDirectoryScanner.getDirectories(path)));
+        TreeSet<String> result = new TreeSet<>(Arrays.asList(ClasspathDirectoryScanner.getDirectories(path)));
         if (path.equals("studio/metapack")) {
             for (String id : SOURCES.archives().keySet()) result.add(path + "/" + id);
         }
@@ -94,7 +100,7 @@ public final class MetaPackResources {
     public static ClassLoader templateLoader(String id) {
         if (!ClasspathResourcePaths.packId(id)) throw new IllegalArgumentException("Invalid meta-pack ID");
         // Capture the source so a FreeMarker configuration remains bound to the candidate after validation scope ends.
-        var source = archive("studio/metapack/" + id + "/metapack.json");
+        MetaPackArchive source = archive("studio/metapack/" + id + "/metapack.json");
         if (source == null) return bundled();
         return new ClassLoader(bundled()) {
             @Override public URL getResource(String name) {
@@ -108,7 +114,7 @@ public final class MetaPackResources {
 
     /** Isolated authoring/installation inspection, invisible to other threads and existing projects. */
     public static <T> T inspect(MetaPackArchive archive, Inspection<T> inspection) throws Exception {
-        var previous = CANDIDATE.get();
+        MetaPackArchive previous = CANDIDATE.get();
         CANDIDATE.set(archive);
         try { return inspection.run(); }
         finally {

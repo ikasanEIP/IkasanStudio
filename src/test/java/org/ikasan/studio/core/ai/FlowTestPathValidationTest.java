@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.List;
+import org.ikasan.studio.core.ai.ImplementationReadiness.Finding;
 
 class FlowTestPathValidationTest {
     @TempDir Path root;
@@ -28,12 +31,12 @@ class FlowTestPathValidationTest {
                     }
                 }
                 """);
-        var model = StudioJson.newObjectMapper().readTree("""
+        JsonNode model = StudioJson.newObjectMapper().readTree("""
                 {"flows":[{"name":"Router flow","flowElements":[
                   {"componentName":"output 1","componentType":"org.ikasan.spec.component.endpoint.Producer"},
                   {"componentName":"output 2","componentType":"org.ikasan.spec.component.endpoint.Producer"}]}]}
                 """);
-        var findings = ImplementationReadiness.scan(root, model).findings();
+        List<Finding> findings = ImplementationReadiness.scan(root, model).findings();
         assertThat(findings).hasSize(3);
         assertThat(findings).extracting(ImplementationReadiness.Finding::line).containsExactly(6, 7, 8);
         assertThat(findings.get(0).message()).contains("Did you mean 'output 1'?", "defineExpectedPath");
@@ -59,11 +62,11 @@ class FlowTestPathValidationTest {
                     void unrelated(IkasanFlowTestRule path) { path.producer("ignore helper"); }
                 }
                 """);
-        var model = StudioJson.newObjectMapper().readTree("""
+        JsonNode model = StudioJson.newObjectMapper().readTree("""
                 {"flows":[{"name":"First","flowElements":[]},
                   {"name":"Second","flowElements":[{"componentName":"belongs to second","componentType":"Producer"}]}]}
                 """);
-        var findings = FlowTestPathValidation.scan(root, model);
+        List<Finding> findings = FlowTestPathValidation.scan(root, model);
         assertThat(findings).hasSize(1);
         assertThat(findings.get(0).component()).isEqualTo("belongs to second");
         assertThat(findings.get(0).line()).isEqualTo(7);

@@ -566,7 +566,7 @@ public abstract class ModuleFlowTestSupport {
         java.util.Set<String> debugComponents = new java.util.HashSet<>();
         for (JsonNode name : testWiring().path("testFlows").path(getFlowName()).path("debugComponents"))
             debugComponents.add(name.asText());
-        var pathListener = new org.ikasan.testharness.flow.listener.FlowEventListenerSubject(
+        org.ikasan.testharness.flow.listener.FlowEventListenerSubject pathListener = new org.ikasan.testharness.flow.listener.FlowEventListenerSubject(
                 org.ikasan.flow.event.DefaultReplicationFactory.getInstance()) {
             @Override public void beforeFlowElement(String module, String name, FlowElement element, FlowEvent event) {
                 if (!debugComponents.contains(element.getComponentName())) super.beforeFlowElement(module, name, element, event);
@@ -580,7 +580,7 @@ public abstract class ModuleFlowTestSupport {
         return new IkasanFlowTestRule(true) {
             private String timerConsumer;
             private void validatePathComponent(String name, String role, Class<?> expectedType) {
-                var element = observedFlow.getFlowElement(name);
+                FlowElement element = observedFlow.getFlowElement(name);
                 if (element == null) {
                     String suggestion = "";
                     for (Object candidate : observedFlow.getFlowElements()) {
@@ -650,7 +650,7 @@ public abstract class ModuleFlowTestSupport {
             }
             @Override public void startFlow() {
                 if (timerConsumer != null) {
-                    var consumer = (org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer) getComponent(timerConsumer);
+                    org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer consumer = (org.ikasan.component.endpoint.quartz.consumer.ScheduledConsumer) getComponent(timerConsumer);
                     consumer.getConfiguration().setCronExpression("0/5 * * * * ? 2099");
                     consumer.getConfiguration().setEager(false);
                 }
@@ -687,7 +687,7 @@ public abstract class ModuleFlowTestSupport {
             assertNotNull("Flow must exist: " + getFlowName(), flow);
             for (FlowTestBatch<I> batch : batches) {
                 for (String producer : batch.producers()) {
-                    var element = flow.getFlowElement(producer);
+                    FlowElement element = flow.getFlowElement(producer);
                     assertNotNull("Unknown producer '" + producer + "' in flow '" + getFlowName() + "'", element);
                     assertTrue("Expected a producer: " + producer,
                             element.getFlowComponent() instanceof org.ikasan.spec.component.endpoint.Producer);
@@ -698,11 +698,11 @@ public abstract class ModuleFlowTestSupport {
             FlowEventListener listener = new FlowEventListener() {
                 public void beforeFlowElement(String m, String f, FlowElement e, FlowEvent event) { }
                 public void afterFlowElement(String m, String f, FlowElement e, FlowEvent event) {
-                    var observation = active.get();
+                    FlowTestBatch<I>.Observation observation = active.get();
                     if (observation != null) observation.accept(e.getComponentName(), event.getPayload());
                 }
             };
-            var harness = testHarness(flow);
+            IkasanFlowTestRule harness = testHarness(flow);
             defineExpectedPath(harness);
             deliveryTimeoutSeconds = deliveryTimeoutSeconds(context.getEnvironment()
                     .getProperty("test.delivery.timeout-seconds", "10"));
@@ -713,7 +713,7 @@ public abstract class ModuleFlowTestSupport {
                 active.set(batches.get(0).observe(this::assertExpectedOutput));
                 harness.startFlow();
                 for (int index = 0; index < batches.size(); index++) {
-                    var batch = batches.get(index);
+                    FlowTestBatch<I> batch = batches.get(index);
                     if (index > 0) active.set(batch.observe(this::assertExpectedOutput));
                     try {
                         if (batch.isTriggered()) { failures.check(); triggerBatch(context, harness); }
@@ -1056,7 +1056,7 @@ public abstract class ModuleFlowTestSupport {
                 if (output.equals(e.getComponentName())) outputs.add(describeOutput.apply(event.getPayload()));
             }
         };
-        var harness = testHarness(flow);
+        IkasanFlowTestRule harness = testHarness(flow);
         expectations.accept(harness);
         flow.addFlowListener(listener);
         try (FlowTestFailureCapture failures = new FlowTestFailureCapture(flow, flowName);

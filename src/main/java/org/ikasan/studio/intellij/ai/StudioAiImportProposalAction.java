@@ -12,11 +12,14 @@ import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import java.io.InputStream;
+import java.nio.file.Path;
 
 public final class StudioAiImportProposalAction extends DumbAwareAction {
     /** A null path selects the most recently modified proposal in the project inbox. */
     static void openFile(Project project, java.nio.file.Path selected) {
-        var inbox = project.getService(StudioAiProposalInboxService.class);
+        StudioAiProposalInboxService inbox = project.getService(StudioAiProposalInboxService.class);
         String revision = inbox.pendingRevision();
         new Task.Backgroundable(project, StudioBundle.message("ai.ImportChecking"), false) {
             @Override public void run(@NotNull ProgressIndicator indicator) {
@@ -24,11 +27,11 @@ public final class StudioAiImportProposalAction extends DumbAwareAction {
                     if (project.isDisposed()) return;
                     String basePath = project.getBasePath();
                     if (selected == null && basePath == null) throw new IllegalStateException(StudioBundle.message("ai.NotReady"));
-                    var path = selected != null ? selected : StudioAiProposalInbox.latest(StudioAiProposalInbox.scan(
+                    Path path = selected != null ? selected : StudioAiProposalInbox.latest(StudioAiProposalInbox.scan(
                             java.nio.file.Path.of(basePath, "ai-proposals")))
                             .orElseThrow(() -> new IllegalArgumentException(StudioBundle.message("ai.InboxEmpty")));
                     byte[] bytes;
-                    try (var input = java.nio.file.Files.newInputStream(path)) { bytes = input.readNBytes(1_048_577); }
+                    try (InputStream input = java.nio.file.Files.newInputStream(path)) { bytes = input.readNBytes(1_048_577); }
                     if (bytes.length > 1_048_576) throw new IllegalArgumentException(StudioBundle.message("ai.InboxTooLarge"));
                     if (!project.isDisposed()) {
                         project.getService(StudioAiService.class)
@@ -63,7 +66,7 @@ public final class StudioAiImportProposalAction extends DumbAwareAction {
     }
 
     static void open(Project project) {
-        var chooser = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
+        FileChooserDescriptor chooser = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
                 .withFileFilter(file -> "json".equalsIgnoreCase(file.getExtension()))
                 .withTitle(StudioBundle.message("ai.ImportTitle"))
                 .withDescription(StudioBundle.message("ai.ImportDescription"));

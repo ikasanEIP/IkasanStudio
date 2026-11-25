@@ -11,15 +11,17 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.regex.Matcher;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class DebugBreakpointLineTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
     @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void breakpointStatementHasOneBytecodeLocation(String pack, @TempDir Path directory) throws Exception {
-        var module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
         String source = generateUserImplementedComponentTemplate(pack, module, TestFixtures.getDebugTransition(pack));
-        var packageMatcher = Pattern.compile("package ([\\w.]+);").matcher(source);
-        var classMatcher = Pattern.compile("public class (\\w+)").matcher(source);
+        Matcher packageMatcher = Pattern.compile("package ([\\w.]+);").matcher(source);
+        Matcher classMatcher = Pattern.compile("public class (\\w+)").matcher(source);
         assertTrue(packageMatcher.find());
         assertTrue(classMatcher.find());
         String className = classMatcher.group(1);

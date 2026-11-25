@@ -12,24 +12,32 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.nio.file.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 @Tag("packs")
 class PayloadToMapConverterTest {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void rendersRealConverterAndExportsRuntimeCompilationFixture(String pack) throws Exception {
-        var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Payload To Map Converter");
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Payload To Map Converter");
         assertEquals("org.ikasan.filetransfer.Payload", meta.getExpectedInputTypes());
         assertEquals("java.util.Map", meta.getProducedOutputType());
         assertFalse(meta.isGeneratesUserImplementedClass());
-        var flow = Flow.flowBuilder().metapackVersion(pack).name("Mapping").build();
-        var element = FlowElementFactory.createFlowElement(pack, meta, flow, flow.getFlowRoute(), "Payload To Map");
+        Flow flow = Flow.flowBuilder().metapackVersion(pack).name("Mapping").build();
+        FlowElement element = FlowElementFactory.createFlowElement(pack, meta, flow, flow.getFlowRoute(), "Payload To Map");
         flow.getFlowRoute().getFlowElements().add(element);
-        var reverseMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "JMS Map Message To Payload Converter");
-        var reverse = FlowElementFactory.createFlowElement(pack, reverseMeta, flow, flow.getFlowRoute(), "Map To Payload");
+        ComponentMeta reverseMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "JMS Map Message To Payload Converter");
+        FlowElement reverse = FlowElementFactory.createFlowElement(pack, reverseMeta, flow, flow.getFlowRoute(), "Map To Payload");
         flow.getFlowRoute().getFlowElements().add(reverse);
         assertEquals((pack.equals("V3.3.9") ? "javax" : "jakarta") + ".jms.MapMessage", reverseMeta.getExpectedInputTypes());
         assertEquals("org.ikasan.filetransfer.Payload", reverseMeta.getProducedOutputType());
-        var module = Module.moduleBuilder().version(pack).name("Map Demo").applicationPackageName("org.example")
+        Module module = Module.moduleBuilder().version(pack).name("Map Demo").applicationPackageName("org.example")
                 .port("8080").h2PortNumber("8092").h2WebPortNumber("8093").flows(List.of(flow)).build();
         String defaultsFactory = FlowsComponentFactoryTemplate.create("org.example", module, flow);
         assertTrue(defaultsFactory.contains("setContentAttributeName(\"content\")"));
@@ -47,10 +55,10 @@ class PayloadToMapConverterTest {
         assertFalse(factory.contains("UserImplemented"));
         assertTrue(factory.contains("new org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverter()"));
         assertTrue(factory.contains("component.getConfiguration().setContentAttributeName("));
-        var restored = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(ModelTemplate.create(module), "map test", false);
+        Module restored = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(ModelTemplate.create(module), "map test", false);
         assertEquals(meta.getImplementingClass(), restored.getFlows().get(0).getFlowRoute().getFlowElements().get(0).getComponentMeta().getImplementingClass());
         assertTrue(module.getAllUniqueSortedJarDependencies().stream().anyMatch(d -> "ikasan-component-converter".equals(d.getArtifactId())));
-        var manifest = ComponentLibrary.getMetaPackManifest(pack);
+        MetaPackManifest manifest = ComponentLibrary.getMetaPackManifest(pack);
         Path root = Path.of("build/verification/payload-to-map", pack);
         write(root, "src/main/java/org/example/ComponentFactoryMapping.java", factory);
         write(root, "pom.xml", """
@@ -74,8 +82,8 @@ class PayloadToMapConverterTest {
                 import JMS_NAMESPACE.jms.MapMessage;
                 public class MapMessagePayloadTest {
                     private MapMessageToPayloadConverter converter(String content, String id, String file) throws Exception {
-                        var factory = new ComponentFactoryMapping();
-                        for (var field : ComponentFactoryMapping.class.getDeclaredFields()) {
+                        ComponentFactoryMapping factory = new ComponentFactoryMapping();
+                        for (java.lang.reflect.Field field : ComponentFactoryMapping.class.getDeclaredFields()) {
                             String name = field.getName().toLowerCase(java.util.Locale.ROOT);
                             if (field.getType() != String.class) continue;
                             field.setAccessible(true);
@@ -92,8 +100,8 @@ class PayloadToMapConverterTest {
                         });
                     }
                     @Test public void defaultsDecodeTextAndCopySupportedMetadata() throws Exception {
-                        var converter = converter("content", "fileName", "fileName");
-                        var values = new HashMap<String,Object>(); values.put("content", "orders"); values.put("fileName", "orders.txt");
+                        MapMessageToPayloadConverter converter = converter("content", "fileName", "fileName");
+                        Map<String,Object> values = new HashMap<String,Object>(); values.put("content", "orders"); values.put("fileName", "orders.txt");
                         values.put("referencePayload", "ref"); values.put("relativePath", "folder");
                         Payload result = converter.convert(message(values));
                         assertEquals("orders.txt", result.getId());
@@ -104,8 +112,8 @@ class PayloadToMapConverterTest {
                         assertNotNull(converter.getConfiguredResourceId());
                     }
                     @Test public void customFieldsPreserveBinaryContentAndRejectMissingOrUnsupportedContent() throws Exception {
-                        var converter = converter("body", "externalId", "outputName");
-                        var values = new HashMap<String,Object>(); values.put("body", new byte[]{0, -1, 42});
+                        MapMessageToPayloadConverter converter = converter("body", "externalId", "outputName");
+                        Map<String,Object> values = new HashMap<String,Object>(); values.put("body", new byte[]{0, -1, 42});
                         values.put("externalId", "id-7"); values.put("outputName", "result.bin");
                         Payload result = converter.convert(message(values));
                         assertEquals("id-7", result.getId()); assertEquals("result.bin", result.getAttribute("fileName"));
@@ -125,7 +133,7 @@ class PayloadToMapConverterTest {
                 import java.util.*;
                 public class PayloadMapTest {
                     @Test @SuppressWarnings("unchecked") public void generatedFactoryConvertsRealPayloadAndRetainsAttributePrecedence() throws Exception {
-                        var converter = new ComponentFactoryMapping().getPayloadToMap();
+                        org.ikasan.component.converter.filetransfer.PayloadToMapConverter converter = new ComponentFactoryMapping().getPayloadToMap();
                         Map<String,String> attributes = new HashMap<>(); attributes.put("fileName", "orders.txt");
                         Payload payload = (Payload) java.lang.reflect.Proxy.newProxyInstance(Payload.class.getClassLoader(), new Class[]{Payload.class}, (p,m,a) -> {
                             switch (m.getName()) {
@@ -147,15 +155,15 @@ class PayloadToMapConverterTest {
     }
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void runtimeImportRecognisesTheStandardConverterWithoutRequestingAStub(String pack) throws Exception {
-        var json = new com.fasterxml.jackson.databind.ObjectMapper();
-        var topology = json.createObjectNode().put("name", "Existing Module");
-        var flow = topology.putArray("flows").addObject().put("name", "Mapping");
-        var sourceMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Scheduled Consumer");
-        var targetMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Logging Producer");
-        var source = json.createObjectNode().put("componentName", "Input").put("componentType", sourceMeta.getComponentType())
+        ObjectMapper json = new com.fasterxml.jackson.databind.ObjectMapper();
+        ObjectNode topology = json.createObjectNode().put("name", "Existing Module");
+        ObjectNode flow = topology.putArray("flows").addObject().put("name", "Mapping");
+        ComponentMeta sourceMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Scheduled Consumer");
+        ComponentMeta targetMeta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Logging Producer");
+        ObjectNode source = json.createObjectNode().put("componentName", "Input").put("componentType", sourceMeta.getComponentType())
                 .put("implementingClass", sourceMeta.getImplementingClass());
         flow.set("consumer", source);
-        var elements = flow.putArray("flowElements");
+        ArrayNode elements = flow.putArray("flowElements");
         elements.add(source.deepCopy());
         elements.addObject().put("componentName", "Map Payload").put("componentType", "org.ikasan.spec.component.transformation.Converter")
                 .put("implementingClass", "org.ikasan.component.converter.filetransfer.PayloadToMapConverter");
@@ -164,18 +172,18 @@ class PayloadToMapConverterTest {
         elements.addObject().put("componentName", "Unmap Payload").put("componentType", "org.ikasan.spec.component.transformation.Converter")
                 .put("implementingClass", "org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverter")
                 .put("configurationId", "map-config");
-        var transitions = flow.putArray("transitions");
+        ArrayNode transitions = flow.putArray("transitions");
         transitions.addObject().put("from", "Input").put("to", "Map Payload").put("name", "default");
         transitions.addObject().put("from", "Map Payload").put("to", "Unmap Payload").put("name", "default");
         transitions.addObject().put("from", "Unmap Payload").put("to", "Output").put("name", "default");
-        var result = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(topology.toString(), "[{\"configurationId\":\"map-config\",\"implementingClass\":\"org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverterConfiguration\",\"parameters\":[{\"name\":\"idAttributeName\",\"value\":\"id\"}]}]", pack, "org.example",
+        Result result = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(topology.toString(), "[{\"configurationId\":\"map-config\",\"implementingClass\":\"org.ikasan.component.converter.filetransfer.MapMessageToPayloadConverterConfiguration\",\"parameters\":[{\"name\":\"idAttributeName\",\"value\":\"id\"}]}]", pack, "org.example",
                 Map.of(new org.ikasan.studio.core.importer.IkasanRuntimeImport.ComponentRef("Mapping", "Input"), "Scheduled Consumer"));
-        var module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(result.studioJson(), "runtime map", false);
-        var mapped = module.getFlows().get(0).getFlowRoute().getFlowElements().stream()
+        Module module = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(result.studioJson(), "runtime map", false);
+        FlowElement mapped = module.getFlows().get(0).getFlowRoute().getFlowElements().stream()
                 .filter(element -> "Map Payload".equals(element.getComponentName())).findFirst().orElseThrow();
         assertEquals("Payload To Map Converter", mapped.getComponentMeta().getName());
         assertFalse(mapped.getComponentMeta().isGeneratesUserImplementedClass());
-        var reverse = module.getFlows().get(0).getFlowRoute().getFlowElements().stream()
+        FlowElement reverse = module.getFlows().get(0).getFlowRoute().getFlowElements().stream()
                 .filter(e -> "Unmap Payload".equals(e.getComponentName())).findFirst().orElseThrow();
         assertEquals("JMS Map Message To Payload Converter", reverse.getComponentMeta().getName());
         assertEquals("id", reverse.getPropertyValue("idAttributeName"));

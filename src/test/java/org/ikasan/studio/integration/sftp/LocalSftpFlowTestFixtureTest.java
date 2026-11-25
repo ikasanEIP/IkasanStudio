@@ -8,6 +8,12 @@ import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
+import java.lang.reflect.Method;
+import java.net.Socket;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.List;
+import org.ikasan.studio.integration.sftp.RemoteFilesClient.Entry;
 
 class LocalSftpFlowTestFixtureTest {
     @TempDir Path temporary;
@@ -37,7 +43,7 @@ class LocalSftpFlowTestFixtureTest {
         public void setMinAge(Long value) { age = value; }
     }
     private static String jarPath(Class<?> type) {
-        var url = type.getResource("/" + type.getName().replace('.', '/') + ".class");
+        URL url = type.getResource("/" + type.getName().replace('.', '/') + ".class");
         String external = Objects.requireNonNull(url).toExternalForm();
         return Path.of(URI.create(external.substring("jar:".length(), external.indexOf("!/")))).toString();
     }
@@ -50,16 +56,16 @@ class LocalSftpFlowTestFixtureTest {
         Files.writeString(source, template);
         String cp = String.join(File.pathSeparator, jarPath(org.apache.sshd.server.SshServer.class),
                 jarPath(org.apache.sshd.common.Factory.class), jarPath(org.apache.sshd.sftp.server.SftpSubsystemFactory.class));
-        var compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
+        Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
                 "--release", "11", "-cp", cp, "-d", temporary.toString(), source.toString()).redirectErrorStream(true).start();
         String diagnostics = new String(compiler.getInputStream().readAllBytes());
         assertEquals(0, compiler.waitFor(), diagnostics);
         int port;
-        try (var loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()}, getClass().getClassLoader())) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()}, getClass().getClassLoader())) {
             Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.utils.LocalSftpTestServer");
-            try (var server = (AutoCloseable) type.getMethod("start", Map.class, Path.class)
+            try (AutoCloseable server = (AutoCloseable) type.getMethod("start", Map.class, Path.class)
                     .invoke(null, Map.of(), Files.createDirectory(temporary.resolve("server")))) {
-                var configure = type.getMethod("configure", Object.class, String.class, String.class, boolean.class, Map.class);
+                Method configure = type.getMethod("configure", Object.class, String.class, String.class, boolean.class, Map.class);
                 Endpoint consumer = new Endpoint(), producer = new Endpoint();
                 configure.invoke(server, consumer, "flow", "input", true, Map.of());
                 configure.invoke(server, producer, "flow", "output", false, Map.of());
@@ -72,27 +78,27 @@ class LocalSftpFlowTestFixtureTest {
                 Path input = (Path) type.getMethod("directory", String.class, String.class).invoke(server, "flow", "input");
                 Path output = (Path) type.getMethod("directory", String.class, String.class).invoke(server, "flow", "output");
                 assertNotEquals(input, output);
-                var config = consumer.configuration;
+                org.ikasan.studio.integration.sftp.LocalSftpFlowTestFixtureTest.Configuration config = consumer.configuration;
                 port = config.port;
-                try (var client = new RemoteFilesClient()) {
+                try (RemoteFilesClient client = new RemoteFilesClient()) {
                     client.connect(new RemoteFilesClient.Connection(config.host, config.port, config.username, config.password,
                             "", "", config.hosts), temporary);
                     for (String batch : List.of("first", "second")) {
                         Files.writeString(input.resolve(batch + ".txt"), batch);
-                        var entries = client.list(config.directory).entries();
-                        var entry = entries.stream().filter(e -> e.name().equals(batch + ".txt")).findFirst().orElseThrow();
+                        List<Entry> entries = client.list(config.directory).entries();
+                        Entry entry = entries.stream().filter(e -> e.name().equals(batch + ".txt")).findFirst().orElseThrow();
                         assertEquals(batch, Files.readString(client.download(config.directory, entry, temporary)));
                     }
                     assertTrue(client.list(producer.configuration.directory).entries().isEmpty());
                 }
                 Files.writeString(Path.of(config.hosts), "");
-                try (var untrusted = new RemoteFilesClient()) {
+                try (RemoteFilesClient untrusted = new RemoteFilesClient()) {
                     assertThrows(Exception.class, () -> untrusted.connect(new RemoteFilesClient.Connection(config.host,
                             config.port, config.username, config.password, "", "", config.hosts), temporary));
                 }
             }
         }
-        try (var socket = new Socket()) {
+        try (Socket socket = new Socket()) {
             assertThrows(java.io.IOException.class, () -> socket.connect(new InetSocketAddress("127.0.0.1", port), 1000));
         }
     }

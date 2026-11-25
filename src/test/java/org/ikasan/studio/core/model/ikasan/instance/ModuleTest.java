@@ -31,7 +31,7 @@ class ModuleTest {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void h2DefaultsFollowHttpOnlyWhileUnset(String pack) throws Exception {
-        var module = new Module(pack);
+        Module module = new Module(pack);
         module.setPort("12410"); module.defaultUnsetMandatoryProperties();
         assertEquals("12411", module.getH2PortNumber()); assertEquals("12412", module.getH2WebPortNumber());
         assertTrue(module.hasAutomaticH2Default("h2DbPortNumber"));
@@ -44,7 +44,7 @@ class ModuleTest {
     }
 
     @Test void h2DefaultsUseDeclaredHttpDefaultAndNeverOverflow() throws Exception {
-        var module = new Module(BASE_META_PACK); module.defaultUnsetMandatoryProperties();
+        Module module = new Module(BASE_META_PACK); module.defaultUnsetMandatoryProperties();
         assertEquals(Integer.toString(Integer.parseInt(module.getPort()) + 1), module.getH2PortNumber());
         assertEquals(Integer.toString(Integer.parseInt(module.getPort()) + 2), module.getH2WebPortNumber());
         assertEquals("65535", Module.derivedH2Port("65534", 1));

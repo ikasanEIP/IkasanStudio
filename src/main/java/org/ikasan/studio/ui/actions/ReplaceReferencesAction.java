@@ -17,6 +17,8 @@ import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
+import org.ikasan.studio.ui.component.properties.ComponentPropertiesPanel;
 
 public final class ReplaceReferencesAction extends DumbAwareAction {
     @Override public @NotNull ActionUpdateThread getActionUpdateThread() { return ActionUpdateThread.EDT; }
@@ -28,8 +30,8 @@ public final class ReplaceReferencesAction extends DumbAwareAction {
     }
 
     private static boolean ready(Project project) {
-        var context = project.getService(UiContext.class);
-        var module = context.getIkasanModule();
+        UiContext context = project.getService(UiContext.class);
+        Module module = context.getIkasanModule();
         return !project.isDisposed() && module != null && module.isInitialised()
                 && !context.isModelPersistenceBlocked() && !context.isMigrationActive()
                 && context.getLatestGeneration().isDone();
@@ -40,8 +42,8 @@ public final class ReplaceReferencesAction extends DumbAwareAction {
             StudioUIUtils.displayIdeaWarnMessage(project, StudioBundle.message("message.ReplaceReferencesBusy"));
             return;
         }
-        var context = project.getService(UiContext.class);
-        var panel = context.getPropertiesPanel();
+        UiContext context = project.getService(UiContext.class);
+        ComponentPropertiesPanel panel = context.getPropertiesPanel();
         if (panel != null) {
             if (!panel.confirmSelectionChangeWithPendingEdits(null)) return;
             refreshProperties(project);
@@ -99,7 +101,7 @@ public final class ReplaceReferencesAction extends DumbAwareAction {
     }
 
     private static void requireCurrent(Project project, Module module) {
-        var context = project.getService(UiContext.class);
+        UiContext context = project.getService(UiContext.class);
         if (!ready(project) || context.getIkasanModule() != module
                 || (context.getPropertiesPanel() != null && context.getPropertiesPanel().dataHasChangedAndOKToProcess())) {
             throw new IllegalStateException(StudioBundle.message("message.ReplaceReferencesStale"));
@@ -107,11 +109,11 @@ public final class ReplaceReferencesAction extends DumbAwareAction {
     }
 
     private static void refreshProperties(Project project) {
-        var context = project.getService(UiContext.class);
-        var panel = context.getPropertiesPanel();
+        UiContext context = project.getService(UiContext.class);
+        ComponentPropertiesPanel panel = context.getPropertiesPanel();
         if (panel != null) {
             // Opening the module context menu does not necessarily select a canvas element.
-            var target = context.getSelectedComponent();
+            IkasanObject target = context.getSelectedComponent();
             if (target == null) target = context.getIkasanModule();
             if (target != null) panel.updateTargetComponent(target);
         }

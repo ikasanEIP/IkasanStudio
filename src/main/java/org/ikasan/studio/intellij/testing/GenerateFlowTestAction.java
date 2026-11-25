@@ -24,13 +24,18 @@ import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.List;
 import java.util.ArrayList;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Set;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 public final class GenerateFlowTestAction extends DumbAwareAction {
     private static final Logger LOG = Logger.getInstance(GenerateFlowTestAction.class);
     @Override public @NotNull ActionUpdateThread getActionUpdateThread() { return ActionUpdateThread.BGT; }
     @Override public void update(AnActionEvent event) {
-        var project = event.getProject();
-        var module = project == null ? null : project.getService(UiContext.class).getIkasanModule();
+        Project project = event.getProject();
+        Module module = project == null ? null : project.getService(UiContext.class).getIkasanModule();
         event.getPresentation().setEnabled(module != null && module.isInitialised());
     }
     @Override public void actionPerformed(AnActionEvent event) {
@@ -47,7 +52,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
         boolean acquired = false;
         try {
             String basePath = project.getBasePath();
-            var live = context.getIkasanModule();
+            Module live = context.getIkasanModule();
             if (basePath == null || live == null || !live.isInitialised() || context.isModelPersistenceBlocked())
                 throw new IllegalStateException(StudioBundle.message("message.ConfigureAndSaveTheModuleFirst"));
             if (context.getPropertiesPanel() != null && context.getPropertiesPanel().dataHasChangedAndOKToProcess())
@@ -64,8 +69,8 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
             ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
                 try {
                     model.set(Files.readString(root.resolve(MigrationArtifacts.MODEL)));
-                    var saved = ComponentIO.validatePersistedModuleJson(model.get(), "generated verification", false);
-                    var mapper = StudioJson.newObjectMapper();
+                    Module saved = ComponentIO.validatePersistedModuleJson(model.get(), "generated verification", false);
+                    ObjectMapper mapper = StudioJson.newObjectMapper();
                     if (!mapper.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(saved)).equals(mapper.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(live))))
                         throw new IllegalStateException(StudioBundle.message("flowTest.canvasModelMismatch"));
                     parent.set(Files.readString(root.resolve("pom.xml")));
@@ -75,7 +80,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                 } catch (Exception ex) { failure.set(ex); }
             }, title, false, project);
             if (failure.get() != null) throw failure.get();
-            var dialog = new GeneratedVerificationDialog(project, !snapshot.get().equals("missing"));
+            GeneratedVerificationDialog dialog = new GeneratedVerificationDialog(project, !snapshot.get().equals("missing"));
             if (!dialog.showAndGet()) return;
             boolean archivePrevious = dialog.archivePrevious();
             ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
@@ -83,7 +88,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                     if (!Files.readString(root.resolve(MigrationArtifacts.MODEL)).equals(model.get()))
                         throw new IllegalStateException(StudioBundle.message("message.TheModelChangedWhilePreparingMigration"));
                     GeneratedVerificationFiles.write(root, parent.get(), snapshot.get(), bundle.get(), archivePrevious);
-                    var base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root);
+                    VirtualFile base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root);
                     if (base != null) base.refresh(false, true);
                 } catch (Exception ex) { failure.set(ex); }
             }, title, false, project);
@@ -111,7 +116,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
         boolean acquired = false;
         try {
             String basePath = project.getBasePath();
-            var live = context.getIkasanModule();
+            Module live = context.getIkasanModule();
             if (basePath == null || live == null || !live.isInitialised() || context.isModelPersistenceBlocked()) {
                 throw new IllegalStateException(StudioBundle.message("message.ConfigureAndSaveTheModuleFirst"));
             }
@@ -189,8 +194,8 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                 ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
                     try {
                         String source = Files.readString(root.resolve(MigrationArtifacts.MODEL));
-                        var module = ComponentIO.validatePersistedModuleJson(source, "flow test generation", false);
-                        var mapper = StudioJson.newObjectMapper();
+                        Module module = ComponentIO.validatePersistedModuleJson(source, "flow test generation", false);
+                        ObjectMapper mapper = StudioJson.newObjectMapper();
                         if (!mapper.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(module)).equals(mapper.readTree(org.ikasan.studio.core.generator.ModelTemplate.create(live)))) {
                             throw new IllegalStateException(StudioBundle.message("flowTest.canvasModelMismatch"));
                         }
@@ -198,7 +203,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                         String applicationPom = Files.readString(root.resolve("generated/pom.xml"));
                         List<FlowTestScaffold.Scaffold> scaffolds = new ArrayList<>();
                         for (String choice : choices) {
-                            var flow = module.getFlows().stream().filter(f -> choice.equals(f.getIdentity())).findFirst()
+                            Flow flow = module.getFlows().stream().filter(f -> choice.equals(f.getIdentity())).findFirst()
                                     .orElseThrow(() -> new IllegalArgumentException(StudioBundle.message("flowTest.noFlows")));
                             try { scaffolds.add(FlowTestScaffold.render(module, flow, pom, applicationPom)); }
                             catch (Exception ex) { throw new IllegalArgumentException(choice + ": " + ex.getMessage(), ex); }
@@ -235,7 +240,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
                             if (useLocalSmtp) FlowTestFiles.enableLocalSmtp(root);
                             context.setIkasanPomModel(null);
                         }
-                        var base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root);
+                        VirtualFile base = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root);
                         if (base != null) base.refresh(false, true);
                         Path focus = preferredTestToOpen(root, scenarioPaths, tests);
                         result.set(focus == null ? null : LocalFileSystem.getInstance().refreshAndFindFileByNioFile(focus));
@@ -283,7 +288,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
     @SuppressWarnings("UnstableApiUsage")
     static boolean saveProjectDocumentsBeforeGeneration(Project project, String basePath, String title) {
         FileDocumentManager manager = FileDocumentManager.getInstance();
-        var pending = unsavedProjectDocuments(manager, basePath);
+        List<Document> pending = unsavedProjectDocuments(manager, basePath);
         if (pending.isEmpty()) return true;
         String files = unsavedFileNames(manager, basePath, pending);
         int choice = Messages.showDialog(project, StudioBundle.message("flowTest.saveFilesQuestion", files), title,
@@ -293,9 +298,9 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
         // Swing context-menu callbacks can run on EDT without write-intent access in newer IDEs.
         // Acquire it only for saving; keep confirmation dialogs outside the access scope.
         WriteIntentReadAction.run((Runnable) () -> {
-            for (var document : pending) manager.saveDocument(document);
+            for (Document document : pending) manager.saveDocument(document);
         });
-        var remaining = unsavedProjectDocuments(manager, basePath);
+        List<Document> remaining = unsavedProjectDocuments(manager, basePath);
         if (remaining.isEmpty()) return true;
         Messages.showWarningDialog(project, StudioBundle.message("flowTest.filesStillUnsaved",
                 unsavedFileNames(manager, basePath, remaining)), title);
@@ -305,7 +310,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
     /** Prefer a generated scenario, then a preserved selected scenario; shared support is only a fallback. */
     static Path preferredTestToOpen(Path root, List<String> scenarioPaths, List<Path> written) {
         List<Path> scenarios = scenarioPaths.stream().map(path -> root.resolve(path).toAbsolutePath().normalize()).toList();
-        var changed = written.stream().map(path -> path.toAbsolutePath().normalize()).collect(java.util.stream.Collectors.toSet());
+        Set<Path> changed = written.stream().map(path -> path.toAbsolutePath().normalize()).collect(java.util.stream.Collectors.toSet());
         for (Path scenario : scenarios) if (changed.contains(scenario) && Files.isRegularFile(scenario)) return scenario;
         for (Path scenario : scenarios) if (Files.isRegularFile(scenario)) return scenario;
         return written.stream().filter(Files::isRegularFile).findFirst().orElse(null);
@@ -314,8 +319,8 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
     private static List<com.intellij.openapi.editor.Document> unsavedProjectDocuments(
             FileDocumentManager manager, String basePath) {
         List<com.intellij.openapi.editor.Document> documents = new ArrayList<>();
-        for (var document : manager.getUnsavedDocuments()) {
-            var file = manager.getFile(document);
+        for (Document document : manager.getUnsavedDocuments()) {
+            VirtualFile file = manager.getFile(document);
             if (file != null && file.getPath().startsWith(basePath + "/")) documents.add(document);
         }
         return documents;

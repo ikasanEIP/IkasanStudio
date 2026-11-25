@@ -4,6 +4,11 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.Base64;
 import static org.assertj.core.api.Assertions.*;
+import com.sun.net.httpserver.HttpServer;
+import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicReference;
+import org.ikasan.studio.integration.ikasan.ExcludedEventsClient.Event;
+import org.ikasan.studio.integration.ikasan.ExcludedEventsClient.Page;
 
 class ExcludedEventsClientTest {
     @Test void encodesFlowAsOneQueryValueAndValidatesDates() {
@@ -17,9 +22,9 @@ class ExcludedEventsClientTest {
     }
 
     @Test void fetchUsesReadOnlyAuthenticatedRequestAndReportsAccessFailure() throws Exception {
-        var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
-        var method = new java.util.concurrent.atomic.AtomicReference<String>();
-        var auth = new java.util.concurrent.atomic.AtomicReference<String>();
+        HttpServer server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        AtomicReference<String> method = new java.util.concurrent.atomic.AtomicReference<>();
+        AtomicReference<String> auth = new java.util.concurrent.atomic.AtomicReference<>();
         server.createContext("/rest/exclusion/", exchange -> {
             method.set(exchange.getRequestMethod());
             auth.set(exchange.getRequestHeaders().getFirst("Authorization"));
@@ -36,11 +41,11 @@ class ExcludedEventsClientTest {
     }
 
     @Test void refusesOversizedHttpResponses() throws Exception {
-        var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        HttpServer server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/rest/exclusion/", exchange -> {
             byte[] huge = new byte[4 * 1024 * 1024 + 1];
             exchange.sendResponseHeaders(200, huge.length);
-            try (var out = exchange.getResponseBody()) { out.write(huge); }
+            try (OutputStream out = exchange.getResponseBody()) { out.write(huge); }
             catch (java.io.IOException ignored) { /* Expected when the client cancels. */ }
             finally { exchange.close(); }
         });
@@ -59,10 +64,10 @@ class ExcludedEventsClientTest {
     }
 
     @Test void readsPagingAndUtf8PayloadWithoutDroppingErrorIdentity() throws Exception {
-        var page = ExcludedEventsClient.parse(response(Base64.getEncoder().encodeToString("<order>2</order>".getBytes(java.nio.charset.StandardCharsets.UTF_8))));
+        Page page = ExcludedEventsClient.parse(response(Base64.getEncoder().encodeToString("<order>2</order>".getBytes(java.nio.charset.StandardCharsets.UTF_8))));
         assertThat(page.total()).isEqualTo(21);
         assertThat(page.last()).isFalse();
-        var event = page.events().get(0);
+        Event event = page.events().get(0);
         assertThat(event.errorUri()).isEqualTo("err-2");
         assertThat(event.payload()).isEqualTo("<order>2</order>");
         assertThat(event.binary()).isFalse();

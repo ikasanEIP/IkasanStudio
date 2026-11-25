@@ -14,12 +14,13 @@ import javax.swing.SwingUtilities;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 
 class ComponentPropertyEditRowClassChooserTest {
     @ParameterizedTest
     @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void routerInputCanChooseJdkClassAndCancellationPreservesIt(String pack) throws Exception {
-        var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Multi Recipient Router")
+        ComponentPropertyMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Multi Recipient Router")
                 .getMetadata("fromType");
         Project project = mock(Project.class);
         TreeClassChooserFactory factory = mock(TreeClassChooserFactory.class);
@@ -29,10 +30,10 @@ class ComponentPropertyEditRowClassChooserTest {
         when(factory.createAllProjectScopeChooser(anyString())).thenReturn(chooser);
         when(chooser.getSelected()).thenReturn(stringClass).thenReturn(null);
         when(stringClass.getQualifiedName()).thenReturn("java.lang.String");
-        var property = new ComponentProperty(meta, "javax.jms.Message");
+        ComponentProperty property = new ComponentProperty(meta, "javax.jms.Message");
 
         SwingUtilities.invokeAndWait(() -> {
-            var row = new ComponentPropertyEditRow(project, property, false, () -> {}, null);
+            ComponentPropertyEditRow row = new ComponentPropertyEditRow(project, property, false, () -> {}, null);
             row.resetDataEntryComponentsWithNewValues();
             row.getChooseValueButton().doClick();
             assertEquals("java.lang.String", row.getInputField().getPropertyValueField().getText());

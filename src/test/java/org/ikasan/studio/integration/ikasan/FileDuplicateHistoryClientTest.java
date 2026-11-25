@@ -3,6 +3,7 @@ package org.ikasan.studio.integration.ikasan;
 import org.junit.jupiter.api.Test;
 import java.net.URI;
 import static org.assertj.core.api.Assertions.*;
+import org.ikasan.studio.integration.ikasan.FileDuplicateHistoryClient.Page;
 
 class FileDuplicateHistoryClientTest {
     @Test void preservesSearchPatternsWithoutQueryInjection() {
@@ -28,7 +29,7 @@ class FileDuplicateHistoryClientTest {
                 .isEqualTo("pageNumber=0&pageSize=20&criteria=a.csv");
     }
     @Test void readsNumericAndFormattedDatesAndRetainsIdentity() throws Exception {
-        var page = FileDuplicateHistoryClient.parse("""
+        Page page = FileDuplicateHistoryClient.parse("""
                 {"resultSize":1,"lastPage":true,"pagedResults":[{"id":7,"clientId":"FTP Consumer",
                 "criteria":"/orders/a.csv","size":12,"lastModified":0,
                 "lastAccessed":"2026-09-21T12:00:00Z","createdDateTime":1000}]}

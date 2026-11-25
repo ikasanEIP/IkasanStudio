@@ -12,6 +12,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.Rectangle;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
+import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 
 /** Local navigation bindings leave IDE shortcuts and normal Tab traversal intact. */
 final class CanvasKeyboardNavigation {
@@ -26,11 +30,11 @@ final class CanvasKeyboardNavigation {
         bind(canvas, "UP", () -> move(canvas, project, -1));
         Runnable menu = () -> {
             if (project.isDisposed()) return;
-            var context = project.getService(UiContext.class);
-            var selected = context.getSelectedComponent();
+            UiContext context = project.getService(UiContext.class);
+            IkasanObject selected = context.getSelectedComponent();
             BasicElement target = selected instanceof BasicElement element ? element : context.getIkasanModule();
             if (target == null) return;
-            var visible = canvas.getVisibleRect();
+            Rectangle visible = canvas.getVisibleRect();
             DesignCanvasContextMenu.showPopupAndNavigateMenu(project, canvas,
                     new MouseEvent(canvas, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), 0,
                             visible.x + 16, visible.y + 16, 1, true, MouseEvent.BUTTON3), target);
@@ -43,7 +47,7 @@ final class CanvasKeyboardNavigation {
         List<BasicElement> result = new ArrayList<>();
         if (module == null) return result;
         result.add(module);
-        for (var flow : module.getFlows()) {
+        for (Flow flow : module.getFlows()) {
             result.add(flow);
             result.addAll(flow.getFlowRoute().getConsumerAndFlowRouteElements());
         }
@@ -52,17 +56,17 @@ final class CanvasKeyboardNavigation {
 
     private static void move(DesignerCanvas canvas, Project project, int direction) {
         if (project.isDisposed()) return;
-        var context = project.getService(UiContext.class);
+        UiContext context = project.getService(UiContext.class);
         List<BasicElement> elements = elements(context.getIkasanModule());
         if (elements.isEmpty() || context.getPropertiesTabPanel() == null) return;
-        var selected = context.getSelectedComponent();
+        IkasanObject selected = context.getSelectedComponent();
         int current = selected instanceof BasicElement element ? elements.indexOf(element) : -1;
         int next = current < 0 ? 0 : Math.max(0, Math.min(elements.size() - 1, current + direction));
         BasicElement target = elements.get(next);
         canvas.editComponent(target);
         // Selection can be refused when the developer keeps pending property edits.
         if (context.getSelectedComponent() != target) return;
-        var handler = ViewHandlerCache.getAbstractViewHandler(project, target);
+        AbstractViewHandlerIntellij handler = ViewHandlerCache.getAbstractViewHandler(project, target);
         if (handler != null) canvas.scrollRectToVisible(new java.awt.Rectangle(
                 handler.getLeftX(), handler.getTopY(), Math.min(handler.getWidth(), canvas.getVisibleRect().width),
                 Math.min(handler.getHeight(), canvas.getVisibleRect().height)));

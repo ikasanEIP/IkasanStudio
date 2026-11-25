@@ -20,6 +20,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import com.intellij.openapi.application.Application;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 /** Project-owned embedded FTP server used to exercise local FTP consumers. */
 @Service(Service.Level.PROJECT)
@@ -132,12 +134,12 @@ public final class TestFtpServerService implements Disposable {
         repaintCanvas();
     }
     private void repaintCanvas() {
-        var application = ApplicationManager.getApplication();
+        Application application = ApplicationManager.getApplication();
         // Plain unit tests intentionally exercise the embedded server without booting an IDE application.
         if (application == null) return;
         application.invokeLater(() -> {
             if (disposed || project.isDisposed()) return;
-            var canvas = project.getService(UiContext.class).getDesignerCanvas();
+            DesignerCanvas canvas = project.getService(UiContext.class).getDesignerCanvas();
             if (canvas == null || canvas.isDisposed()) return;
             canvas.setInitialiseAllDimensions(true);
             canvas.repaint();
@@ -173,7 +175,7 @@ public final class TestFtpServerService implements Disposable {
             localHarness = false;
         }
         if (running != null) {
-            var application = ApplicationManager.getApplication();
+            Application application = ApplicationManager.getApplication();
             if (application == null) {
                 running.stop();
             } else {

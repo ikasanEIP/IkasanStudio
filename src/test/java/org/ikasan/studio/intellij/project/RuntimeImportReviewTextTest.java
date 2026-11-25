@@ -7,18 +7,21 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.ikasan.studio.core.importer.IkasanRuntimeImport.ReviewKind.*;
+import java.util.ArrayList;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport.ReviewItem;
 
 class RuntimeImportReviewTextTest {
     @Test void groupsRepeatedClassesAndFieldsWithoutLosingLocationsOrOtherWarnings() {
-        var items = List.of(
+        List<ReviewItem> items = List.of(
                 item(IMPLEMENTATION, "First: flow → nested", "Consumer", "example.Shared", "", "implementation one"),
                 item(INFERRED_VARIANT, "First", "Consumer", "SFTP Consumer", "example.SftpConfiguration", "variant"),
                 item(CONFIGURATION, "First", "Consumer", "privateKeyPassphrase", "", "configuration one"),
                 item(IMPLEMENTATION, "Second", "Producer", "example.Shared", "", "implementation two"),
                 item(CONFIGURATION, "Second", "Producer", "privateKeyPassphrase", "", "configuration two"));
-        var review = new java.util.ArrayList<>(items.stream().map(IkasanRuntimeImport.ReviewItem::message).toList());
+        ArrayList<String> review = new java.util.ArrayList<>(items.stream().map(IkasanRuntimeImport.ReviewItem::message).toList());
         review.add("Patch upgrade: compile and test before running.");
-        var result = new IkasanRuntimeImport.Result("{}", review, items);
+        Result result = new IkasanRuntimeImport.Result("{}", review, items);
         String text = RuntimeImportReviewText.format(result);
         assertThat(text).contains("Implementation classes to supply (1)", "Configuration warnings (1)",
                 "First: flow → nested → Consumer", "Second → Producer", "First → Consumer", review.get(5));

@@ -21,6 +21,13 @@ import org.ikasan.studio.core.model.ikasan.instance.BasicElement;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.nio.file.*;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.vfs.VirtualFile;
+import javax.swing.JFrame;
+import org.ikasan.studio.core.ai.ImplementationReadiness.Finding;
+import org.ikasan.studio.core.ai.ImplementationReadiness.Report;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /** Saves editor documents through the platform before scanning on a worker. Never rewrites user code. */
 public final class StudioImplementationReadiness {
@@ -49,8 +56,8 @@ public final class StudioImplementationReadiness {
 
     static void saveProjectDocuments(FileDocumentManager manager, Path root) {
         Path normalized = root.toAbsolutePath().normalize();
-        for (var document : manager.getUnsavedDocuments()) {
-            var file = manager.getFile(document);
+        for (Document document : manager.getUnsavedDocuments()) {
+            VirtualFile file = manager.getFile(document);
             if (file != null && file.isInLocalFileSystem() && Path.of(file.getPath()).normalize().startsWith(normalized)) {
                 manager.saveDocument(document);
                 if (manager.isDocumentUnsaved(document))
@@ -63,7 +70,7 @@ public final class StudioImplementationReadiness {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
                 Path root = Path.of(base);
-                var report = ImplementationReadiness.scanProject(root);
+                Report report = ImplementationReadiness.scanProject(root);
                 Path destination = root.resolve("generated/implementation-readiness.json");
                 Path temp = Files.createTempFile(destination.getParent(), ".readiness-", ".tmp");
                 try {
@@ -87,11 +94,11 @@ public final class StudioImplementationReadiness {
                                       ImplementationReadiness.Finding finding) {
         if (module == null || finding.target() == null) return null;
         if (finding.target() == ImplementationReadiness.Target.MODULE) return module;
-        for (var flow : module.getFlows()) {
+        for (Flow flow : module.getFlows()) {
             if (!java.util.Objects.equals(flow.getIdentity(), finding.flow())) continue;
             if (finding.target() == ImplementationReadiness.Target.FLOW) return flow;
             if (finding.target() == ImplementationReadiness.Target.EXCEPTION_RESOLVER) return flow.getExceptionResolver();
-            for (var element : flow.ftlGetConsumerAndFlowElements())
+            for (FlowElement element : flow.ftlGetConsumerAndFlowElements())
                 if (java.util.Objects.equals(element.getIdentity(), finding.component())) return element;
         }
         return null;
@@ -109,15 +116,15 @@ public final class StudioImplementationReadiness {
         private final int heightLimit;
         Results(Project project, Path root, ImplementationReadiness.Report report) {
             super(project, false); this.project = project; this.root = root; this.report = report;
-            var frame = WindowManager.getInstance().getFrame(project);
-            var available = frame == null ? java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment()
+            JFrame frame = WindowManager.getInstance().getFrame(project);
+            Dimension available = frame == null ? java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment()
                     .getMaximumWindowBounds().getSize() : frame.getSize();
             contentWidth = Math.min(JBUI.scale(900), Math.max(1, available.width - JBUI.scale(100)));
             heightLimit = Math.max(1, available.height / 2);
-            var model = new DefaultTableModel(new String[]{StudioBundle.message("readiness.flow"), StudioBundle.message("readiness.component"), StudioBundle.message("readiness.finding"), StudioBundle.message("readiness.file")}, 0) {
+            DefaultTableModel model = new DefaultTableModel(new String[]{StudioBundle.message("readiness.flow"), StudioBundle.message("readiness.component"), StudioBundle.message("readiness.finding"), StudioBundle.message("readiness.file")}, 0) {
                 @Override public boolean isCellEditable(int row, int column) { return false; }
             };
-            for (var f : report.findings()) model.addRow(new Object[]{f.flow(), f.component(), f.code() + ": " + f.message(), isModelFinding(f) ? StudioBundle.message("readiness.properties") : f.file() + ":" + f.line()});
+            for (Finding f : report.findings()) model.addRow(new Object[]{f.flow(), f.component(), f.code() + ": " + f.message(), isModelFinding(f) ? StudioBundle.message("readiness.properties") : f.file() + ":" + f.line()});
             table = new JBTable(model); table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             table.getSelectionModel().addListSelectionListener(event -> updateSelection());
             table.getEmptyText().setText(StudioBundle.message("readiness.empty"));
@@ -135,12 +142,12 @@ public final class StudioImplementationReadiness {
             updateSelection();
             pack();
             // Include the title, description and action buttons in the half-window limit.
-            var size = getSize();
+            Dimension size = getSize();
             setSize(size.width, Math.min(size.height, heightLimit));
         }
         @Override protected JComponent createStudioContent() {
             JPanel panel = new JPanel(new java.awt.BorderLayout(0, JBUI.scale(8)));
-            var description = new StudioAiConnectionText(StudioBundle.message("readiness.scope"));
+            StudioAiConnectionText description = new StudioAiConnectionText(StudioBundle.message("readiness.scope"));
             description.setEditable(false); description.setLineWrap(true); description.setWrapStyleWord(true);
             description.setOpaque(false);
             description.setFont(UIManager.getFont("Label.font"));
@@ -169,7 +176,7 @@ public final class StudioImplementationReadiness {
         }
 
         private void updateSelection() {
-            var finding = selectedFinding();
+            Finding finding = selectedFinding();
             if (navigateAction != null) {
                 navigateAction.putValue(Action.NAME, StudioBundle.message(finding != null && isModelFinding(finding)
                         ? "readiness.showStudio" : "readiness.open"));
@@ -182,7 +189,7 @@ public final class StudioImplementationReadiness {
         }
 
         private void openSelectedSource() {
-            var finding = selectedFinding();
+            Finding finding = selectedFinding();
             if (finding == null || project.isDisposed()) return;
             if (isModelFinding(finding)) {
                 if (finding.target() == null) return;

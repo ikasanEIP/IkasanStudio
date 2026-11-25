@@ -19,13 +19,13 @@ class ClasspathDirectoryScannerTest {
         Path engine = temp.resolve("engine");
         Files.createDirectories(engine.resolve("studio/metapack/schema"));
         Path pack = temp.resolve("pack.jar");
-        try (var jar = new JarOutputStream(Files.newOutputStream(pack))) {
+        try (JarOutputStream jar = new JarOutputStream(Files.newOutputStream(pack))) {
             for (String entry : new String[]{"studio/", "studio/metapack/", "studio/metapack/Example/"}) {
                 jar.putNextEntry(new JarEntry(entry));
                 jar.closeEntry();
             }
         }
-        try (var loader = new URLClassLoader(new java.net.URL[]{engine.toUri().toURL(), pack.toUri().toURL()}, null)) {
+        try (URLClassLoader loader = new URLClassLoader(new java.net.URL[]{engine.toUri().toURL(), pack.toUri().toURL()}, null)) {
             assertArrayEquals(new String[]{"studio/metapack/Example", "studio/metapack/schema"},
                     ClasspathDirectoryScanner.getDirectories("studio/metapack", loader));
             assertArrayEquals(new String[0], ClasspathDirectoryScanner.getDirectories("missing", loader));

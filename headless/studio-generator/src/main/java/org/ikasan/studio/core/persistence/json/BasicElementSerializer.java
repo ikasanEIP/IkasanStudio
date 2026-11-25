@@ -8,6 +8,8 @@ import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 
 import java.io.IOException;
 import java.util.Map;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Map.Entry;
 
 public class BasicElementSerializer extends StdSerializer<BasicElement> {
 
@@ -33,7 +35,7 @@ public class BasicElementSerializer extends StdSerializer<BasicElement> {
     protected void serializePayload(BasicElement basicElement, JsonGenerator jsonGenerator) throws IOException {
         // because we are serializing many nested elements, its possible the element is null, in which case we do nothing.
         if (basicElement != null) {
-            for (var extension : basicElement.getUnknownJsonProperties().entrySet()) {
+            for (Entry<String,JsonNode> extension : basicElement.getUnknownJsonProperties().entrySet()) {
                 jsonGenerator.writeFieldName(extension.getKey());
                 jsonGenerator.writeTree(extension.getValue());
             }

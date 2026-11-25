@@ -16,14 +16,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.List;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 
 @org.junit.jupiter.api.Tag("packs")
 public class FlowsUserImplementedComponentTemplateTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void inputNamesDistinguishPayloadsFromFullEvents(String pack) throws Exception {
-        var module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
-        for (var component : java.util.List.of(TestFixtures.getCustomConverter(pack),
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
+        for (FlowElement component : java.util.List.of(TestFixtures.getCustomConverter(pack),
                 TestFixtures.getEmailConverter(pack), TestFixtures.getBroker(pack),
                 TestFixtures.getCustomSplitter(pack))) {
             for (String inputType : java.util.List.of("java.lang.String",
@@ -48,8 +50,8 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     @ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void customComponentsIncludeLoggingExamples(String version) throws Exception {
-        var module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
-        for (var component : java.util.List.of(TestFixtures.getGenericConsumer(version),
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(version, new ArrayList<>());
+        for (FlowElement component : java.util.List.of(TestFixtures.getGenericConsumer(version),
                 TestFixtures.getGenericProducer(version), TestFixtures.getBroker(version),
                 TestFixtures.getCustomConverter(version), TestFixtures.getEmailConverter(version))) {
             String generated = generateUserImplementedComponentTemplate(version, module, component);
@@ -64,8 +66,8 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void brokerGenericReturnTypeUpdatesBothSignaturesWithoutInvalidValueOf(String pack) throws Exception {
-        var module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
-        var broker = TestFixtures.getBroker(pack);
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());
+        FlowElement broker = TestFixtures.getBroker(pack);
         broker.setPropertyValue("fromType", "org.quartz.JobExecutionContext");
         broker.setPropertyValue("toType", "java.util.List<java.lang.String>");
         String generated = generateUserImplementedComponentTemplate(pack, module, broker);
@@ -127,7 +129,7 @@ public class FlowsUserImplementedComponentTemplateTest extends AbstractGenerator
         FlowElement converter = TestFixtures.getCustomConverter(metaPackVersion);
         converter.setPropertyValue("fromType", "org.ikasan.filetransfer.Payload");
         converter.setPropertyValue("toType", "org.ikasan.component.endpoint.email.producer.EmailPayload");
-        var matches = converter.getComponentMeta().getConversionRecipes().stream()
+        List<ConversionRecipeMeta> matches = converter.getComponentMeta().getConversionRecipes().stream()
                 .filter(recipe -> recipe.matches(converter.getPropertyValueAsString("fromType"),
                         converter.getPropertyValueAsString("toType"))).toList();
         org.junit.jupiter.api.Assertions.assertEquals(2, matches.size());

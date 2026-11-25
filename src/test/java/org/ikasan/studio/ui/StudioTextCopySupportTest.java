@@ -5,17 +5,28 @@ import javax.swing.*;
 import java.awt.KeyboardFocusManager;
 import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.*;
+import java.awt.AWTKeyStroke;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.swing.CellRendererPane;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JPopupMenu;
+import javax.swing.JTextArea;
+import javax.swing.text.Document;
 
 class StudioTextCopySupportTest {
     @Test void explanatoryTextCanBeSelectedAndCopiedWithoutBecomingEditable() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var text = new JTextArea("First detail\nSecond detail");
+            JTextArea text = new JTextArea("First detail\nSecond detail");
             text.setEditable(false); text.setFocusable(false);
             StudioTextCopySupport.install(text);
             assertTrue(text.isFocusable()); assertFalse(text.isEditable());
             text.select(0, 5);
-            var copied = new ArrayList<String>();
-            var menu = StudioTextCopySupport.popupFor(text, copied::add);
+            ArrayList<String> copied = new ArrayList<>();
+            JPopupMenu menu = StudioTextCopySupport.popupFor(text, copied::add);
             assertNotNull(menu);
             ((JMenuItem) menu.getComponent(0)).doClick();
             assertEquals(java.util.List.of("First"), copied);
@@ -28,10 +39,10 @@ class StudioTextCopySupportTest {
 
     @Test void labelsAndHeadingsCopyVisibleTextAndDecodeHtmlWithoutMarkup() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var label = new JLabel("<html><b>Version &amp; status</b><br>4.1.3 &#8594; 4.1.6</html>");
+            JLabel label = new JLabel("<html><b>Version &amp; status</b><br>4.1.3 &#8594; 4.1.6</html>");
             StudioTextCopySupport.install(label);
-            var copied = new ArrayList<String>();
-            var menu = StudioTextCopySupport.popupFor(label, copied::add);
+            ArrayList<String> copied = new ArrayList<>();
+            JPopupMenu menu = StudioTextCopySupport.popupFor(label, copied::add);
             assertNotNull(menu);
             ((JMenuItem) menu.getComponent(0)).doClick();
             assertEquals(1, copied.size());
@@ -46,12 +57,12 @@ class StudioTextCopySupportTest {
 
     @Test void dynamicChildrenAreCoveredAndRepeatedInstallationDoesNotAddListeners() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var root = new JPanel();
+            JPanel root = new JPanel();
             StudioTextCopySupport.install(root);
             int listeners = root.getContainerListeners().length;
             StudioTextCopySupport.install(root);
             assertEquals(listeners, root.getContainerListeners().length);
-            var text = new JTextArea("New diagnostic");
+            JTextArea text = new JTextArea("New diagnostic");
             text.setEditable(false); text.setFocusable(false);
             root.add(text);
             assertTrue(text.isFocusable());
@@ -63,17 +74,17 @@ class StudioTextCopySupportTest {
 
     @Test void editableControlsCustomMenusAndButtonActionsArePreserved() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var text = new JTextArea("Editable JSON");
-            var traversal = text.getFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS);
-            var originalMenu = new JPopupMenu(); originalMenu.add("Existing action");
+            JTextArea text = new JTextArea("Editable JSON");
+            Set<AWTKeyStroke> traversal = text.getFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS);
+            JPopupMenu originalMenu = new JPopupMenu(); originalMenu.add("Existing action");
             text.setComponentPopupMenu(originalMenu);
             StudioTextCopySupport.install(text);
             assertNull(StudioTextCopySupport.popupFor(text));
             assertSame(originalMenu, text.getComponentPopupMenu());
             text.setEditable(false); text.setEditable(true);
             assertEquals(traversal, text.getFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS));
-            var button = new JButton("Review and import");
-            var clicks = new java.util.concurrent.atomic.AtomicInteger();
+            JButton button = new JButton("Review and import");
+            AtomicInteger clicks = new java.util.concurrent.atomic.AtomicInteger();
             button.addActionListener(event -> clicks.incrementAndGet());
             StudioTextCopySupport.install(button); button.doClick();
             assertEquals(1, clicks.get());
@@ -83,7 +94,7 @@ class StudioTextCopySupportTest {
 
     @Test void passwordFieldsAndRendererTreesAreUntouched() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var password = new JPasswordField("secret");
+            JPasswordField password = new JPasswordField("secret");
             password.setEditable(false); password.setFocusable(false);
             int listeners = password.getMouseListeners().length;
             StudioTextCopySupport.install(password);
@@ -91,7 +102,7 @@ class StudioTextCopySupportTest {
             assertEquals(listeners, password.getMouseListeners().length);
             assertNull(StudioTextCopySupport.popupFor(password));
             assertNull(StudioTextCopySupport.copyText(password));
-            var renderer = new CellRendererPane(); var label = new JLabel("Rendered cell");
+            CellRendererPane renderer = new CellRendererPane(); JLabel label = new JLabel("Rendered cell");
             renderer.add(label);
             int before = label.getMouseListeners().length;
             StudioTextCopySupport.install(renderer);
@@ -101,9 +112,9 @@ class StudioTextCopySupportTest {
 
     @Test void openingCopyMenuDoesNotReadTheWholeDocument() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var text = new JTextArea("Large read-only document");
+            JTextArea text = new JTextArea("Large read-only document");
             text.setEditable(false);
-            var model = org.mockito.Mockito.spy(text.getDocument());
+            Document model = org.mockito.Mockito.spy(text.getDocument());
             text.setDocument(model);
             org.mockito.Mockito.clearInvocations(model);
             assertNotNull(StudioTextCopySupport.popupFor(text));

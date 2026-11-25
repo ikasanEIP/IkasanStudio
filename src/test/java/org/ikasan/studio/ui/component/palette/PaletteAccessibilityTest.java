@@ -10,6 +10,8 @@ import java.awt.Color;
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import static org.junit.jupiter.api.Assertions.*;
+import javax.swing.JLabel;
+import javax.swing.JList;
 
 class PaletteAccessibilityTest {
     static ComponentMeta meta;
@@ -18,14 +20,14 @@ class PaletteAccessibilityTest {
     }
     @Test void categoryAndComponentReuseThemeColoursAndNativeFocusBorder() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var list = new JList<>();
-            var renderer = new PaletteListCellRenderer();
+            JList<Object> list = new JList<>();
+            PaletteListCellRenderer renderer = new PaletteListCellRenderer();
             String longName = "Long endpoint and component description ".repeat(8);
             for (Color background : new Color[] {Color.WHITE, Color.DARK_GRAY, Color.BLACK}) {
                 list.setBackground(background); list.setForeground(Color.YELLOW);
                 list.setSelectionBackground(Color.BLUE); list.setSelectionForeground(Color.WHITE);
                 for (PaletteItem item : new PaletteItem[] {new PaletteItem(longName, meta), new PaletteItem(meta)}) {
-                    var label = (JLabel) renderer.getListCellRendererComponent(list, item, 0, true, true);
+                    JLabel label = (JLabel) renderer.getListCellRendererComponent(list, item, 0, true, true);
                     assertEquals(list.getSelectionBackground(), label.getBackground());
                     assertEquals(list.getSelectionForeground(), label.getForeground());
                     assertNotNull(((CompoundBorder) label.getBorder()).getOutsideBorder());

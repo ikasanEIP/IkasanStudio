@@ -6,6 +6,10 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import java.util.Base64.Encoder;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
+import org.ikasan.studio.core.model.analysis.TestJmsHarnessLinks.Link;
 
 /** Stable launch identities, independent of configured endpoints and credentials. */
 public final class HarnessOverrides {
@@ -21,19 +25,19 @@ public final class HarnessOverrides {
         return id(element.getContainingFlow().getIdentity(), element.getIdentity());
     }
     public static String id(String flow, String component) {
-        var encoder = Base64.getUrlEncoder().withoutPadding();
+        Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         return encoder.encodeToString(flow.getBytes(StandardCharsets.UTF_8))
                 + "." + encoder.encodeToString(component.getBytes(StandardCharsets.UTF_8));
     }
     public static String kind(Module module, FlowElement element) {
         if (module == null || element == null || element.getComponentMeta() == null) return "";
         try {
-            var manifest = org.ikasan.studio.core.metapack.ComponentLibrary.getMetaPackManifest(module.getMetaVersion());
+            MetaPackManifest manifest = org.ikasan.studio.core.metapack.ComponentLibrary.getMetaPackManifest(module.getMetaVersion());
             if (manifest.generatorApiVersion() == null || manifest.generatorApiVersion() < 4) return "";
         } catch (org.ikasan.studio.core.StudioBuildException unavailable) {
             return ""; // Pack loading reports its own diagnostics; the selector offers no unsupported overrides.
         }
-        var meta = element.getComponentMeta();
+        ComponentMeta meta = element.getComponentMeta();
         if (!meta.isUsesBuilderInFactory() || meta.isGeneratesUserImplementedClass() || meta.isUseImplementingClassInFactory()) return "";
         if ("SFTP Endpoint".equals(meta.getEndpointKey())) return "SFTP";
         if (meta.supportsTestFtpServer()) return "FTP";
@@ -53,7 +57,7 @@ public final class HarnessOverrides {
     // Called reflectively by the component factory FreeMarker templates.
     @SuppressWarnings("unused")
     public static String selectionId(Module module, org.ikasan.studio.core.model.ikasan.instance.Flow flow, FlowElement element) {
-        for (var link : TestJmsHarnessLinks.findLinks(module)) {
+        for (Link link : TestJmsHarnessLinks.findLinks(module)) {
             if (link.harnessFlow().getConsumer() == element) return id(link.ownerProducer());
         }
         return id(flow.getIdentity(), element.getIdentity());

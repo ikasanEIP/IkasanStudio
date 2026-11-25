@@ -11,6 +11,9 @@ import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
 
 import javax.swing.*;
 import java.awt.*;
+import org.ikasan.studio.core.model.analysis.TestFtpServerLinks.Link;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.intellij.runtime.TestSftpServerService;
 
 public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
     // A file-server card and connector need their own column beyond the fixed
@@ -96,16 +99,16 @@ public class IkasanModuleViewHandler extends AbstractViewHandlerIntellij {
 
     /** Reserve space only for a running server actually drawn to the left of a consumer. */
     static boolean hasVisibleLeftFileServer(Project project, Module module) {
-        var ftp = project.getService(TestFtpServerService.class);
+        TestFtpServerService ftp = project.getService(TestFtpServerService.class);
         if (ftp.isRunning()) {
-            for (var link : TestFtpServerLinks.findLinks(module)) {
-                for (var consumer : link.consumers()) {
+            for (Link link : TestFtpServerLinks.findLinks(module)) {
+                for (FlowElement consumer : link.consumers()) {
                     if (ftp.isRunningAt(org.ikasan.studio.intellij.runtime.HarnessEndpointSettings.effectiveFtp(project, consumer)))
                         return true;
                 }
             }
         }
-        var sftp = project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
+        TestSftpServerService sftp = project.getService(org.ikasan.studio.intellij.runtime.TestSftpServerService.class);
         return sftp.isRunning() && module.getFlows().stream()
                 .flatMap(flow -> flow.getFlowElementsNoExternalEndPoints().stream())
                 .anyMatch(element -> element.getComponentMeta().isConsumer()

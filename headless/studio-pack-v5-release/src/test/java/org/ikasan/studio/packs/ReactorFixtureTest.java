@@ -11,6 +11,13 @@ import java.io.StringReader;
 import java.nio.file.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
+import org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Verifies real archetype module boundaries rather than a consolidated compilation POM. */
 class ReactorFixtureTest {
@@ -18,26 +25,26 @@ class ReactorFixtureTest {
     private static final Path ARCHETYPE = Path.of("ikasan-studio-ancillary/ikasan-studio-project-archetype/src/main/resources/archetype-resources");
 
     @Test void exportsArchetypeReactorWithGeneratedFlowTests() throws Exception {
-        var source = RuntimeTransportFixtureTest.render("smtp-generated");
-        var module = ComponentIO.deserializeModuleInstanceString(source.get("generated/src/main/model/model.json"), "V5 reactor fixture");
-        var rootModel = new MavenXpp3Reader().read(new StringReader(archetype("pom.xml")));
-        var rootPom = new IkasanPomModel(rootModel);
+        Map<String,String> source = RuntimeTransportFixtureTest.render("smtp-generated");
+        Module module = ComponentIO.deserializeModuleInstanceString(source.get("generated/src/main/model/model.json"), "V5 reactor fixture");
+        Model rootModel = new MavenXpp3Reader().read(new StringReader(archetype("pom.xml")));
+        IkasanPomModel rootPom = new IkasanPomModel(rootModel);
         rootPom.applyBuildContract(ComponentLibrary.getMetaPackManifest(DevelopmentFixtureTest.PACK));
-        for (var dependency : module.getAllUniqueSortedJarDependencies()) {
-            var managed = dependency.clone();
+        for (Dependency dependency : module.getAllUniqueSortedJarDependencies()) {
+            Dependency managed = dependency.clone();
             if ("org.ikasan".equals(managed.getGroupId())) managed.setVersion(null);
             rootPom.checkIfDependancyAlreadyExists(managed);
         }
         rootModel.addModule("user-flow-tests");
         String parent = rootPom.getModelAsString();
         String application = archetype("generated/pom.xml");
-        var scaffold = FlowTestScaffold.render(module, module.getFlows().get(0), parent, application);
-        var files = new LinkedHashMap<String, String>();
+        Scaffold scaffold = FlowTestScaffold.render(module, module.getFlows().get(0), parent, application);
+        LinkedHashMap<String,String> files = new LinkedHashMap<String, String>();
         files.put("pom.xml", parent);
         files.put("user/pom.xml", archetype("user/pom.xml"));
         files.put("generated/pom.xml", application);
         files.put("user-flow-tests/pom.xml", scaffold.files().get("user-flow-tests/pom.xml"));
-        for (var file : source.entrySet()) {
+        for (Entry<String,String> file : source.entrySet()) {
             String path = file.getKey();
             if (path.startsWith("src/main/java/org/example/")) files.put("user/" + path, file.getValue());
             else if (path.startsWith("src/main/")) files.put("generated/" + path, file.getValue());
@@ -49,7 +56,7 @@ class ReactorFixtureTest {
         assertTrue(files.containsKey("user/src/main/java/org/example/transport/transport/TransportConverter.java"));
         assertFalse(files.containsKey("generated/src/main/java/org/example/transport/transport/TransportConverter.java"));
         Path destination = Path.of(System.getProperty("studio.v5.reactor", temporary.toString()));
-        for (var file : files.entrySet()) {
+        for (Entry<String,String> file : files.entrySet()) {
             Path target = destination.resolve(file.getKey());
             Files.createDirectories(target.getParent()); Files.writeString(target, file.getValue());
         }

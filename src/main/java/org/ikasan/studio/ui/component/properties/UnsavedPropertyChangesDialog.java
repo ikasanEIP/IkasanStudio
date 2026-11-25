@@ -14,6 +14,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import javax.swing.JTextArea;
 
 /**
  * Resolves pending edits before a selection change or launch. Navigation is offered only for destinations
@@ -81,7 +82,7 @@ public class UnsavedPropertyChangesDialog extends StudioDialogWrapper {
                 c.gridwidth = 2;
                 c.weightx = 1;
                 c.insets = JBUI.insets(12, 0, 3, 0);
-                var heading = PropertyDialogLayout.wrappedText(change.label(), 520);
+                JTextArea heading = PropertyDialogLayout.wrappedText(change.label(), 520);
                 heading.setFont(heading.getFont().deriveFont(java.awt.Font.BOLD));
                 details.add(heading, c);
                 c.gridwidth = 1;

@@ -17,6 +17,8 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import com.intellij.ide.util.PackageChooserDialog;
+import com.intellij.psi.PsiPackage;
 
 /**
  * Centralised PSI API calls for UI classes that need to resolve/inspect project classes, so those classes
@@ -53,11 +55,11 @@ public final class StudioPsiUtils {
 
     /** Shows the native package chooser; cancellation leaves the caller's value unchanged. */
     public static String chooseProjectPackageQualifiedName(Project project, String dialogTitle) {
-        var chooser = new com.intellij.ide.util.PackageChooserDialog(dialogTitle, project);
+        PackageChooserDialog chooser = new com.intellij.ide.util.PackageChooserDialog(dialogTitle, project);
         if (!chooser.showAndGet()) {
             return null;
         }
-        var selected = chooser.getSelectedPackage();
+        PsiPackage selected = chooser.getSelectedPackage();
         return selected != null ? selected.getQualifiedName() : null;
     }
 

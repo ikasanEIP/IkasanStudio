@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import static org.assertj.core.api.Assertions.*;
+import org.ikasan.studio.core.ai.ModelProposal.Prepared;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class OfflineModelProposalTest {
     private static final ObjectMapper JSON = new ObjectMapper();
@@ -19,16 +21,16 @@ class OfflineModelProposalTest {
     }
 
     @Test void acceptsMatchingSavedAndLiveModelWithoutChangingEither() throws Exception {
-        var live = ModelProposalTest.model();
+        Module live = ModelProposalTest.model();
         byte[] saved = ComponentIO.toValidatedModuleJson(live).getBytes(StandardCharsets.UTF_8);
-        var before = LiveModelSnapshot.capture(live);
-        var prepared = OfflineModelProposal.prepare(proposal(saved, OPS), saved, before);
+        Map<String,Object> before = LiveModelSnapshot.capture(live);
+        Prepared prepared = OfflineModelProposal.prepare(proposal(saved, OPS), saved, before);
         assertThat(prepared.draft().getFlows().get(0).getConsumer().getIdentity()).isEqualTo("ReadEvents");
         assertThat(LiveModelSnapshot.capture(live)).isEqualTo(before);
     }
 
     @Test void rejectsStaleDiskAndUnsavedLiveChanges() throws Exception {
-        var live = ModelProposalTest.model();
+        Module live = ModelProposalTest.model();
         byte[] saved = ComponentIO.toValidatedModuleJson(live).getBytes(StandardCharsets.UTF_8);
         String proposal = proposal(saved, OPS);
         assertThatThrownBy(() -> OfflineModelProposal.prepare(proposal,
@@ -40,7 +42,7 @@ class OfflineModelProposalTest {
     }
 
     @Test void rejectsMalformedUnsupportedAndAmbiguousFiles() throws Exception {
-        var live = ModelProposalTest.model();
+        Module live = ModelProposalTest.model();
         byte[] saved = ComponentIO.toValidatedModuleJson(live).getBytes(StandardCharsets.UTF_8);
         String valid = proposal(saved, OPS);
         for (String invalid : new String[]{"[]", valid.replace("\"formatVersion\":1", "\"formatVersion\":2"),

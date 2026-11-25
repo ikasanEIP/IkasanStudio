@@ -11,6 +11,9 @@ import java.nio.file.*;
 import java.time.Duration;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
+import java.nio.file.Path;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 class FileDeliveryAssertionsTemplateTest {
     @TempDir Path root;
@@ -24,7 +27,7 @@ class FileDeliveryAssertionsTemplateTest {
                 "--release", "11", "-d", root.toString(), source.toString()).redirectErrorStream(true).start();
         String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
-        try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
             Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FileDeliveryAssertions");
             Method file = type.getMethod("assertFileContents", Path.class, String.class, Duration.class);
             Method files = type.getMethod("assertDeliveredFileContents", Path.class, String.class, List.class, Duration.class);
@@ -32,21 +35,21 @@ class FileDeliveryAssertionsTemplateTest {
             Path first = output.resolve("first.dat");
             Method quiet = type.getMethod("assertNoAdditionalFiles", Path.class, String.class, List.class);
             quiet.invoke(null, output, "*.dat", List.of());
-            var delayed = java.util.concurrent.Executors.newSingleThreadExecutor();
+            ExecutorService delayed = java.util.concurrent.Executors.newSingleThreadExecutor();
             try {
-                var arrival = delayed.submit(() -> {
+                Future<Path> arrival = delayed.submit(() -> {
                     Thread.sleep(100);
                     return Files.writeString(output.resolve("unexpected.dat"), "unexpected");
                 });
-                var unexpected = assertThrows(InvocationTargetException.class,
+                InvocationTargetException unexpected = assertThrows(InvocationTargetException.class,
                         () -> quiet.invoke(null, output, "*.dat", List.of()));
                 assertInstanceOf(AssertionError.class, unexpected.getCause());
                 Files.delete(arrival.get());
             } finally { delayed.shutdownNow(); }
 
-            var writer = java.util.concurrent.Executors.newSingleThreadExecutor();
+            ExecutorService writer = java.util.concurrent.Executors.newSingleThreadExecutor();
             try {
-                var written = writer.submit(() -> {
+                Future<Path> written = writer.submit(() -> {
                     Thread.sleep(100);
                     return Files.writeString(first, "first\n");
                 });
@@ -93,19 +96,19 @@ class FileDeliveryAssertionsTemplateTest {
                 "--release", "11", "-d", root.toString(), assertions.toString(), batches.toString()).redirectErrorStream(true).start();
         String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
-        try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
             Class<?> type = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FileDeliveryBatchAssertions");
             Object tracker = type.getConstructor().newInstance();
             Method check = type.getMethod("assertBatch", Path.class, String.class, int.class, List.class, Duration.class);
             Path output = Files.createDirectory(root.resolve("batches"));
             Files.writeString(output.resolve("one.txt"), "same");
             check.invoke(tracker, output, "*.txt", 1, List.of("same"), Duration.ofMillis(100));
-            var stale = assertThrows(InvocationTargetException.class, () ->
+            InvocationTargetException stale = assertThrows(InvocationTargetException.class, () ->
                     check.invoke(tracker, output, "*.txt", 2, List.of("same"), Duration.ofMillis(50)));
             assertInstanceOf(AssertionError.class, stale.getCause());
             Files.writeString(output.resolve("two.txt"), "same");
             check.invoke(tracker, output, "*.txt", 2, List.of("same"), Duration.ofMillis(100));
-            var repeated = assertThrows(InvocationTargetException.class, () ->
+            InvocationTargetException repeated = assertThrows(InvocationTargetException.class, () ->
                     check.invoke(tracker, output, "*.txt", 2, List.of("same"), Duration.ofMillis(50)));
             assertInstanceOf(IllegalArgumentException.class, repeated.getCause());
             Files.writeString(output.resolve("three.txt"), "third");

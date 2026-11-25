@@ -31,6 +31,31 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import com.intellij.diff.DiffContentFactory;
+import com.intellij.diff.contents.DocumentContent;
+import com.intellij.diff.requests.SimpleDiffRequest;
+import com.intellij.openapi.editor.Document;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTextArea;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import org.ikasan.studio.core.importer.SourceBuilderSettingsRecovery.Plan;
+import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate;
+import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Check;
+import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Inspection;
+import org.ikasan.studio.core.importer.SourceModuleImport.Analysis;
+import org.ikasan.studio.core.importer.SourceModuleImport.DependencyChoice;
+import org.ikasan.studio.core.importer.SourceModuleImport.DependencyComparison;
+import org.ikasan.studio.core.importer.SourceModuleImport.FileChoice;
+import org.ikasan.studio.core.importer.SourceModuleImport.ManagedFile;
+import org.ikasan.studio.core.importer.SourceModuleImport.PropertyFile;
+import org.ikasan.studio.core.importer.SourceModuleImport.ReviewAction;
+import org.ikasan.studio.core.importer.SourceModuleImport.SpringRegistration;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.ui.StudioDialogWrapper;
 
 /** Second stage of the module wizard. Analysis is read-only; apply transfers only explicitly reviewed items. */
 public final class ImportSourceModuleDialog extends ImportDialogWrapper {
@@ -104,11 +129,11 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     @Override protected @org.jetbrains.annotations.NotNull JComponent createStudioContent() {
         JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
         JPanel top = new JPanel(new BorderLayout(0, JBUI.scale(6)));
-        var help = new JBTextArea(StudioBundle.message("sourceImport.help"));
+        JBTextArea help = new JBTextArea(StudioBundle.message("sourceImport.help"));
         help.setEditable(false); help.setLineWrap(true); help.setWrapStyleWord(true); help.setOpaque(false); help.setFocusable(false);
         top.add(help, BorderLayout.NORTH);
         JPanel path = new JPanel(new BorderLayout(JBUI.scale(6), 0));
-        var label = new JBLabel(StudioBundle.message("sourceImport.checkout")); label.setLabelFor(source);
+        JBLabel label = new JBLabel(StudioBundle.message("sourceImport.checkout")); label.setLabelFor(source);
         path.add(label, BorderLayout.WEST); path.add(source, BorderLayout.CENTER);
         JButton browse = new JButton(StudioBundle.message("sourceImport.browse"));
         browse.addActionListener(event -> StudioProjectFiles.chooseFilePaths(project,
@@ -135,7 +160,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
             @Override public void removeUpdate(javax.swing.event.DocumentEvent event) { changed(); }
             @Override public void changedUpdate(javax.swing.event.DocumentEvent event) { changed(); }
         });
-        var comparisonHint = new JBTextArea(StudioBundle.message("sourceImport.comparisonHint"));
+        JBTextArea comparisonHint = new JBTextArea(StudioBundle.message("sourceImport.comparisonHint"));
         comparisonHint.setEditable(false); comparisonHint.setLineWrap(true); comparisonHint.setWrapStyleWord(true);
         comparisonHint.setOpaque(false); comparisonHint.setFocusable(false);
         comparisonHint.setFont(com.intellij.util.ui.UIUtil.getLabelFont());
@@ -158,7 +183,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         steps.add(identitySummary); steps.add(acceptIdentity); steps.add(comparisonHint);
         top.add(steps, BorderLayout.SOUTH); panel.add(top, BorderLayout.NORTH);
         JTabbedPane tabs = reviewTabs;
-        var files = new JBScrollPane(table); files.setMinimumSize(new Dimension(0, 0));
+        JBScrollPane files = new JBScrollPane(table); files.setMinimumSize(new Dimension(0, 0));
         table.setAutoCreateRowSorter(true);
         table.getEmptyText().setText(StudioBundle.message("sourceImport.files.allIdentical"));
         ((javax.swing.table.TableRowSorter<?>) table.getRowSorter()).setRowFilter(new javax.swing.RowFilter<javax.swing.table.TableModel, Integer>() {
@@ -166,7 +191,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                 if (analysis == null) return false;
                 int row = entry.getIdentifier();
                 if (row >= analysis.files().size()) return true;
-                var file = analysis.files().get(row);
+                FileChoice file = analysis.files().get(row);
                 return showIdenticalFiles.isSelected() || selectedFiles.contains(file.source())
                         || !file.identicalToDestination() || !rowActions(table, row).isEmpty();
             }
@@ -182,14 +207,14 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         table.setDefaultRenderer(Boolean.class, (view, value, selected, focused, row, column) -> {
             if (view == table && analysis != null && view.convertRowIndexToModel(row) >= analysis.files().size() + analysis.dependencies().size())
                 return new JBLabel();
-            var button = new JButton(StudioBundle.message(Boolean.TRUE.equals(value) ? "sourceImport.revert" : "sourceImport.copyAll"));
+            JButton button = new JButton(StudioBundle.message(Boolean.TRUE.equals(value) ? "sourceImport.revert" : "sourceImport.copyAll"));
             button.setEnabled(view.getModel().isCellEditable(view.convertRowIndexToModel(row), view.convertColumnIndexToModel(column)));
             return button;
         });
         table.setDefaultEditor(Boolean.class, new CopyButtonEditor());
         table.getAccessibleContext().setAccessibleName(StudioBundle.message("sourceImport.files"));
         JPanel filePanel = new JPanel(new BorderLayout(0, JBUI.scale(6)));
-        var fileActions = new JPanel(new FlowLayout(FlowLayout.LEFT, JBUI.scale(8), 0));
+        JPanel fileActions = new JPanel(new FlowLayout(FlowLayout.LEFT, JBUI.scale(8), 0));
         copyAllNewButton.setToolTipText(StudioBundle.message("sourceImport.files.copyAllNewHint"));
         copyAllNewButton.setEnabled(false);
         copyAllNewButton.addActionListener(event -> copyAllNewFiles());
@@ -200,7 +225,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         filePanel.add(fileDetailsPane, BorderLayout.SOUTH);
         tabs.addTab(StudioBundle.message("sourceImport.files"), filePanel);
         configureInlineRenderer(table);
-        var supportHelp = new JBTextArea(StudioBundle.message("sourceImport.support.help"));
+        JBTextArea supportHelp = new JBTextArea(StudioBundle.message("sourceImport.support.help"));
         supportHelp.setEditable(false); supportHelp.setLineWrap(true); supportHelp.setWrapStyleWord(true);
         supportHelp.setOpaque(false); supportHelp.setFocusable(false);
         JPanel supportHeader = new JPanel(new BorderLayout(0, JBUI.scale(6)));
@@ -216,7 +241,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         ((javax.swing.table.TableRowSorter<?>) supportTable.getRowSorter()).setRowFilter(new javax.swing.RowFilter<javax.swing.table.TableModel, Integer>() {
             @Override public boolean include(Entry<? extends javax.swing.table.TableModel, ? extends Integer> entry) {
                 if (analysis == null) return false;
-                var file = analysis.managedFiles().get(entry.getIdentifier());
+                ManagedFile file = analysis.managedFiles().get(entry.getIdentifier());
                 return showIdenticalSupport.isSelected() || selectedFiles.contains(file.source())
                         || !file.identicalToDestination() || file.status() == SourceModuleImport.SupportStatus.UNVERIFIED
                         || file.status() == SourceModuleImport.SupportStatus.DESTINATION_MISSING;
@@ -228,7 +253,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         supportTable.setDefaultRenderer(Boolean.class, table.getDefaultRenderer(Boolean.class));
         supportTable.setDefaultEditor(Boolean.class, new CopyButtonEditor());
         supportTable.getAccessibleContext().setAccessibleName(StudioBundle.message("sourceImport.support.title"));
-        var supportScroll = new JBScrollPane(supportTable); supportScroll.setMinimumSize(new Dimension(0, 0));
+        JBScrollPane supportScroll = new JBScrollPane(supportTable); supportScroll.setMinimumSize(new Dimension(0, 0));
         supportPanel.add(supportScroll, BorderLayout.CENTER);
         configureDetails(supportTable, supportDetails, supportDetailsPane);
         supportPanel.add(supportDetailsPane, BorderLayout.SOUTH);
@@ -261,17 +286,17 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
             if (source.getText().isBlank()) { error(StudioBundle.message("sourceImport.chooseCheckout")); return; }
             StudioProjectFiles.saveConfigurationDocuments(project, List.of("pom.xml", org.ikasan.studio.core.generator.ProjectArtifactRenderer.MODEL, "src/main/model/model.json"));
             clearAnalysis();
-            var destination = Path.of(java.util.Objects.requireNonNull(project.getBasePath(), "Import requires a project directory"));
-            var inspection = work(() -> SourceCheckoutIdentity.inspect(selected, destination, ProgressManager::checkCanceled), true);
+            Path destination = Path.of(java.util.Objects.requireNonNull(project.getBasePath(), "Import requires a project directory"));
+            Inspection inspection = work(() -> SourceCheckoutIdentity.inspect(selected, destination, ProgressManager::checkCanceled), true);
             if (inspection == null || project.isDisposed() || isDisposed()) return;
-            var candidate = inspection.automaticCandidate();
+            Candidate candidate = inspection.automaticCandidate();
             String directory;
             if (candidate == null) {
-                var chooser = new SourceModuleSelectionDialog(project, getContentPane(), inspection);
+                SourceModuleSelectionDialog chooser = new SourceModuleSelectionDialog(project, getContentPane(), inspection);
                 if (!chooser.showAndGet() || project.isDisposed() || isDisposed()) return;
                 directory = chooser.selectedDirectory();
             } else directory = candidate.directory();
-            var result = work(() -> SourceModuleImport.analyse(selected, destination, directory, ProgressManager::checkCanceled), true);
+            Analysis result = work(() -> SourceModuleImport.analyse(selected, destination, directory, ProgressManager::checkCanceled), true);
             if (result == null || project.isDisposed() || isDisposed()) return;
             acceptAnalysis(result, selected);
         } finally { analysing = false; }
@@ -308,7 +333,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         discardMerges();
         selectedFiles.clear(); selectedDependencies.clear();
         acceptIdentity.setSelected(false); acceptIdentity.setVisible(result.identity().requiresApproval());
-        var check = result.identity();
+        Check check = result.identity();
         String expected = check.expected().isBlank() ? StudioBundle.message("sourceImport.identity.unknownName") : check.expected();
         String names = check.names().isEmpty() ? StudioBundle.message("sourceImport.identity.unknownName") : String.join(", ", check.names());
         String scope = check.candidate() == null || check.candidate().directory().isEmpty() ? "." : check.candidate().directory();
@@ -342,9 +367,9 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         stagedSummary.setVisible(!stagedJava.isEmpty());
         stagedSummary.setText(StudioBundle.message("sourceImport.stagedSummary", stagedJava.size()));
         long sequence = reviewSequence.incrementAndGet();
-        var reviewed = analysis;
-        var files = Set.copyOf(selectedFiles); var dependencies = Set.copyOf(selectedDependencies);
-        var merges = Map.copyOf(stagedJava);
+        Analysis reviewed = analysis;
+        Set<String> files = Set.copyOf(selectedFiles); Set<String> dependencies = Set.copyOf(selectedDependencies);
+        Map<String,String> merges = Map.copyOf(stagedJava);
         java.util.concurrent.CompletableFuture.supplyAsync(() -> {
                     if (sequence != reviewSequence.get()) return new ReviewState(List.of(), null, null);
                     try {
@@ -409,7 +434,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                 ? standaloneIssues.get(fileRow - analysis.files().size() - analysis.dependencies().size()) : null;
         Map<String, List<SourceModuleImport.ReviewAction>> attached = new LinkedHashMap<>();
         List<SourceModuleImport.ReviewAction> unmatched = new ArrayList<>();
-        for (var action : actions) {
+        for (ReviewAction action : actions) {
             if (action.kind() == SourceModuleImport.ReviewKind.SOURCE || action.kind() == SourceModuleImport.ReviewKind.RESOURCE
                     || action.kind() == SourceModuleImport.ReviewKind.BEAN) continue;
             String key;
@@ -469,19 +494,19 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     }
 
     private void updateDetails(JTable view) {
-        var details = view == supportTable ? supportDetails : fileDetails;
-        var pane = view == supportTable ? supportDetailsPane : fileDetailsPane;
+        JBTextArea details = view == supportTable ? supportDetails : fileDetails;
+        JBScrollPane pane = view == supportTable ? supportDetailsPane : fileDetailsPane;
         int selected = view.getSelectedRow();
-        var actions = selected >= 0 && selected < view.getRowCount() ? rowActions(view, view.convertRowIndexToModel(selected)) : List.<SourceModuleImport.ReviewAction>of();
+        List<ReviewAction> actions = selected >= 0 && selected < view.getRowCount() ? rowActions(view, view.convertRowIndexToModel(selected)) : List.<SourceModuleImport.ReviewAction>of();
         StringBuilder text = new StringBuilder();
         if (analysis != null && view == table && selected >= 0 && selected < view.getRowCount()) {
             int row = view.convertRowIndexToModel(selected);
             if (row < analysis.files().size()) {
-                var file = analysis.files().get(row);
+                FileChoice file = analysis.files().get(row);
                 if (file.previous() == null) text.append(newFileHint(file)).append('\n').append(file.destination());
             }
         }
-        for (var action : actions) {
+        for (ReviewAction action : actions) {
             if (!text.isEmpty()) text.append('\n');
             text.append(actionMessage(action));
             action.evidence().forEach(evidence -> text.append("\n").append(evidence));
@@ -500,14 +525,14 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         view.setDefaultRenderer(String.class, new javax.swing.table.DefaultTableCellRenderer() {
             @Override public Component getTableCellRendererComponent(JTable tableView, Object value, boolean selected, boolean focused, int row, int column) {
                 super.getTableCellRendererComponent(tableView, value, selected, focused, row, column);
-                var actions = rowActions(tableView, tableView.convertRowIndexToModel(row));
+                List<ReviewAction> actions = rowActions(tableView, tableView.convertRowIndexToModel(row));
                 boolean attention = tableView != supportTable && !actions.isEmpty() && tableView.convertColumnIndexToModel(column) == 2;
                 setIcon(attention ? com.intellij.icons.AllIcons.General.Warning : null);
                 setToolTipText(actions.isEmpty() ? String.valueOf(value) : actionMessage(actions.get(0)));
                 int modelRow = tableView.convertRowIndexToModel(row);
                 if (analysis != null && tableView == table && modelRow < analysis.files().size()
                         && tableView.convertColumnIndexToModel(column) == 2) {
-                    var file = analysis.files().get(modelRow);
+                    FileChoice file = analysis.files().get(modelRow);
                     if (file.previous() == null) setToolTipText(newFileHint(file) + " " + file.destination()
                             + (actions.isEmpty() ? "" : " — " + actionMessage(actions.get(0))));
                 }
@@ -531,21 +556,21 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
 
     private void reviewBuilderSettings() {
         if (approvedBuilderSettings != null) { approvedBuilderSettings = null; refreshReview(); return; }
-        var candidate = builderCandidate;
+        Plan candidate = builderCandidate;
         if (candidate == null) return;
         String changes = candidate.settings().stream().map(setting -> setting.flow() + " → " + setting.component()
                 + "\n  " + setting.property() + " = " + setting.value() + "\n  " + setting.evidence())
                 .collect(java.util.stream.Collectors.joining("\n\n"));
         StudioUIUtils.setAttentionPulse(builderSettingsButton, false);
         // Bound the preview so a large module does not create a screen-height message dialog.
-        var review = new org.ikasan.studio.ui.StudioDialogWrapper(project) {
+        StudioDialogWrapper review = new org.ikasan.studio.ui.StudioDialogWrapper(project) {
             { setTitle(StudioBundle.message("sourceImport.builder.title"));
               setOKButtonText(StudioBundle.message("sourceImport.builder.stage")); init(); }
             @Override protected JComponent createStudioContent() {
-                var text = new JBTextArea(StudioBundle.message("sourceImport.builder.explanation", changes), 20, 85);
+                JBTextArea text = new JBTextArea(StudioBundle.message("sourceImport.builder.explanation", changes), 20, 85);
                 text.setEditable(false); text.setLineWrap(true); text.setWrapStyleWord(true);
                 text.getAccessibleContext().setAccessibleName(StudioBundle.message("sourceImport.builder.title"));
-                var scroll = new JBScrollPane(text); scroll.setMinimumSize(JBUI.size(400, 250));
+                JBScrollPane scroll = new JBScrollPane(text); scroll.setMinimumSize(JBUI.size(400, 250));
                 scroll.setPreferredSize(JBUI.size(850, 450)); return scroll;
             }
         };
@@ -559,25 +584,25 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
             refreshReview();
             return;
         }
-        var candidate = registrationCandidate;
+        SpringRegistration candidate = registrationCandidate;
         if (candidate == null) return;
         // This review runs in the local IDE, like ImportDialogWrapper.
-        var review = new org.ikasan.studio.ui.StudioDialogWrapper(project) {
+        StudioDialogWrapper review = new org.ikasan.studio.ui.StudioDialogWrapper(project) {
             { setTitle(StudioBundle.message("sourceImport.registration.title"));
               setOKButtonText(StudioBundle.message("sourceImport.registration.stage")); init(); }
             @Override protected JComponent createStudioContent() {
-                var panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
-                var explanation = new JBTextArea(StudioBundle.message("sourceImport.registration.explanation", candidate.destination()));
+                JPanel panel = new JPanel(new BorderLayout(0, JBUI.scale(8)));
+                JBTextArea explanation = new JBTextArea(StudioBundle.message("sourceImport.registration.explanation", candidate.destination()));
                 explanation.setEditable(false); explanation.setOpaque(false); explanation.setLineWrap(true); explanation.setWrapStyleWord(true);
                 // Wrapped text areas otherwise measure at zero width during DialogWrapper packing,
                 // producing a minimum height that can stretch the popup to the whole screen.
                 explanation.setColumns(80); explanation.setRows(4); explanation.setMinimumSize(JBUI.emptySize());
                 panel.add(explanation, BorderLayout.NORTH);
-                var code = new JBTextArea(candidate.javaSource()); code.setEditable(false);
+                JBTextArea code = new JBTextArea(candidate.javaSource()); code.setEditable(false);
                 code.setRows(16); code.setColumns(90);
                 code.setFont(JBUI.Fonts.create("Monospaced", 12));
                 code.getAccessibleContext().setAccessibleName(StudioBundle.message("sourceImport.registration.title"));
-                var scroll = new JBScrollPane(code); scroll.setMinimumSize(JBUI.emptySize());
+                JBScrollPane scroll = new JBScrollPane(code); scroll.setMinimumSize(JBUI.emptySize());
                 panel.add(scroll, BorderLayout.CENTER);
                 panel.setMinimumSize(JBUI.size(400, 250)); panel.setPreferredSize(JBUI.size(850, 450));
                 return panel;
@@ -591,8 +616,8 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     @Override protected void doOKAction() {
         if (table.isEditing()) table.getCellEditor().stopCellEditing();
         if (supportTable.isEditing()) supportTable.getCellEditor().stopCellEditing();
-        var validation = doValidate(); if (validation != null) { error(validation.message); return; }
-        var context = project.getService(UiContext.class);
+        ValidationInfo validation = doValidate(); if (validation != null) { error(validation.message); return; }
+        UiContext context = project.getService(UiContext.class);
         if (!context.tryBeginMigration()) { error(StudioBundle.message("message.WaitForTheCurrentGenerationOrMigrationToFinish")); return; }
         Path savedReport;
         try {
@@ -600,16 +625,16 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
             if (approvedRegistration != null) targets.add(approvedRegistration.destination());
             if (approvedBuilderSettings != null) targets.addAll(approvedBuilderSettings.outputs().keySet());
             targets.add(SourceModuleImport.SUPPORT_CUSTOMISATIONS); targets.add("pom.xml"); StudioProjectFiles.saveConfigurationDocuments(project, targets);
-            var files = Set.copyOf(selectedFiles); var dependencies = Set.copyOf(selectedDependencies);
+            Set<String> files = Set.copyOf(selectedFiles); Set<String> dependencies = Set.copyOf(selectedDependencies);
             boolean identityApproved = acceptIdentity.isSelected();
-            var merges = stagedJava.entrySet().stream().filter(entry -> files.contains(entry.getKey()))
+            Map<String,String> merges = stagedJava.entrySet().stream().filter(entry -> files.contains(entry.getKey()))
                     .collect(java.util.stream.Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
             // Copy all / Save preview explicitly authorise replacement of these selected files only.
-            var registration = approvedRegistration;
-            var builderSettings = approvedBuilderSettings;
+            SpringRegistration registration = approvedRegistration;
+            Plan builderSettings = approvedBuilderSettings;
             savedReport = work(() -> SourceModuleImport.apply(analysis, files, dependencies, true, identityApproved, merges, registration, builderSettings), false);
             if (savedReport != null && builderSettings != null) {
-                var restored = work(() -> org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(
+                Module restored = work(() -> org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(
                         builderSettings.outputs().get(org.ikasan.studio.core.generator.ProjectArtifactRenderer.MODEL), "recovered builder settings", false), false);
                 if (restored != null) {
                     context.setIkasanModule(restored);
@@ -625,7 +650,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         if (savedReport == null) return;
         StudioProjectFiles.refreshConfigurationDirectory(project);
         boolean importProperties = properties.isSelected();
-        var discovered = analysis.properties(); close(OK_EXIT_CODE);
+        List<PropertyFile> discovered = analysis.properties(); close(OK_EXIT_CODE);
         ApplicationManager.getApplication().invokeLater(() -> {
             if (project.isDisposed()) return;
             Messages.showInfoMessage(project, StudioBundle.message("sourceImport.complete", savedReport.toString()), StudioBundle.message("sourceImport.title"));
@@ -652,7 +677,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     }
 
     private void compare(JTable selectedTable) {
-        var request = comparison(selectedTable);
+        SimpleDiffRequest request = comparison(selectedTable);
         if (request == null) return;
         if (request.getContents().get(1) instanceof com.intellij.diff.contents.DocumentContent destination
                 && destination.getDocument().isWritable())
@@ -666,21 +691,21 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         int row = selectedTable.convertRowIndexToModel(selectedTable.getSelectedRow());
         if (selectedTable == table && row >= analysis.files().size() + analysis.dependencies().size()) return null;
         if (selectedTable == supportTable) {
-            var support = analysis.managedFiles().get(row);
+            ManagedFile support = analysis.managedFiles().get(row);
             if (!analysis.identity().requiresApproval() || acceptIdentity.isSelected())
                 return editableComparison(supportChoice(support));
             return comparison(support.destination(), utf8(support.bytes()), support.current() == null ? "" : utf8(support.current()),
                     StudioBundle.message("sourceImport.support.originalVersion"), StudioBundle.message("sourceImport.support.destinationVersion"));
         }
         if (row < analysis.files().size()) {
-            var file = analysis.files().get(row);
+            FileChoice file = analysis.files().get(row);
             if (file.source().endsWith(".java") && (!analysis.identity().requiresApproval() || acceptIdentity.isSelected()))
                 return editableComparison(file);
             return comparison(file.destination(), utf8(file.bytes()), file.previous() == null ? "" : utf8(file.previous()),
                     StudioBundle.message("sourceImport.originalVersion"), StudioBundle.message("sourceImport.destinationVersion"));
         }
-        var dependency = analysis.dependencies().get(row - analysis.files().size());
-        var values = work(() -> SourceModuleImport.compareDependency(analysis, dependency.id()), false);
+        DependencyChoice dependency = analysis.dependencies().get(row - analysis.files().size());
+        DependencyComparison values = work(() -> SourceModuleImport.compareDependency(analysis, dependency.id()), false);
         return values == null ? null : comparison("pom.xml: " + dependency.id(), values.original(), values.destination(),
                 StudioBundle.message("sourceImport.originalDependency"), StudioBundle.message("sourceImport.destinationDependency"));
     }
@@ -699,18 +724,18 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     // Studio runs in the local IDE; backend classification comes from transitive plugin dependencies.
     @SuppressWarnings("SplitModeApiUsage")
     private com.intellij.diff.requests.SimpleDiffRequest editableComparison(SourceModuleImport.FileChoice file) {
-        var factory = com.intellij.diff.DiffContentFactory.getInstance();
-        var left = factory.create(utf8(file.bytes()), com.intellij.ide.highlighter.JavaFileType.INSTANCE);
+        DiffContentFactory factory = com.intellij.diff.DiffContentFactory.getInstance();
+        DocumentContent left = factory.create(utf8(file.bytes()), com.intellij.ide.highlighter.JavaFileType.INSTANCE);
         left.getDocument().setReadOnly(true);
-        var right = mergeDocuments.computeIfAbsent(file.source(), key -> {
-            var content = factory.create(selectedFiles.contains(file.source()) ? utf8(plannedBytes(file)) : file.previous() == null ? "" : utf8(file.previous()), com.intellij.ide.highlighter.JavaFileType.INSTANCE);
-            var document = content.getDocument(); document.setReadOnly(false);
+        DocumentContent right = mergeDocuments.computeIfAbsent(file.source(), key -> {
+            DocumentContent content = factory.create(selectedFiles.contains(file.source()) ? utf8(plannedBytes(file)) : file.previous() == null ? "" : utf8(file.previous()), com.intellij.ide.highlighter.JavaFileType.INSTANCE);
+            Document document = content.getDocument(); document.setReadOnly(false);
             String baseline = file.previous() == null ? "" : utf8(file.previous()).replace("\r\n", "\n").replace("\r", "\n");
             String originalText = file.previous() == null ? utf8(file.bytes()) : utf8(file.previous());
             int newline = originalText.indexOf('\n');
             String separator = newline > 0 && originalText.charAt(newline - 1) == '\r' ? "\r\n"
                     : newline < 0 && originalText.indexOf('\r') >= 0 ? "\r" : "\n";
-            var reviewed = analysis;
+            Analysis reviewed = analysis;
             document.addDocumentListener(new com.intellij.openapi.editor.event.DocumentListener() {
                 @Override public void documentChanged(@org.jetbrains.annotations.NotNull com.intellij.openapi.editor.event.DocumentEvent event) {
                     if (isDisposed() || project.isDisposed() || analysis != reviewed
@@ -730,17 +755,17 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
 
     private com.intellij.diff.requests.SimpleDiffRequest comparison(@org.jetbrains.annotations.Nls String title,
             String before, String after, @org.jetbrains.annotations.Nls String beforeTitle, @org.jetbrains.annotations.Nls String afterTitle) {
-        var factory = com.intellij.diff.DiffContentFactory.getInstance();
-        var left = factory.create(before); var right = factory.create(after);
+        DiffContentFactory factory = com.intellij.diff.DiffContentFactory.getInstance();
+        DocumentContent left = factory.create(before); DocumentContent right = factory.create(after);
         left.getDocument().setReadOnly(true); right.getDocument().setReadOnly(true);
-        var request = new com.intellij.diff.requests.SimpleDiffRequest(title, left, right, beforeTitle, afterTitle);
+        SimpleDiffRequest request = new com.intellij.diff.requests.SimpleDiffRequest(title, left, right, beforeTitle, afterTitle);
         request.putUserData(com.intellij.diff.util.DiffUserDataKeys.FORCE_READ_ONLY, true);
         return request;
     }
     private static String utf8(String encoded) { return new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8); }
     private interface Work<T> { T run() throws Exception; }
     private <T> T work(Work<T> work, boolean cancellable) {
-        var result = new AtomicReference<T>(); var failure = new AtomicReference<Exception>();
+        AtomicReference<T> result = new AtomicReference<>(); AtomicReference<Exception> failure = new AtomicReference<Exception>();
         boolean finished = ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
             try { result.set(work.run()); } catch (ProcessCanceledException cancelled) { throw cancelled; } catch (Exception problem) { failure.set(problem); }
         }, StudioBundle.message("sourceImport.progress"), cancellable, project);
@@ -759,7 +784,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
         if (analysis == null || (analysis.identity().requiresApproval() && !acceptIdentity.isSelected())) return;
         if (table.isEditing()) table.getCellEditor().stopCellEditing();
         // Use the analysed snapshots, independent of table sorting/filtering. Preserve staged edits.
-        for (var file : analysis.files())
+        for (FileChoice file : analysis.files())
             if (file.previous() == null && !selectedFiles.contains(file.source())) copyFile(file, true);
         choices.fireTableDataChanged(); refreshReview();
         updateDetails(table);
@@ -768,7 +793,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
     private void copyFile(SourceModuleImport.FileChoice file, boolean copy) {
         String id = file.source();
         stagedJava.remove(id);
-        var content = mergeDocuments.get(id);
+        DocumentContent content = mergeDocuments.get(id);
         if (content != null) {
             String text = copy ? utf8(file.bytes()) : file.previous() == null ? "" : utf8(file.previous());
             com.intellij.openapi.application.WriteAction.run(() -> content.getDocument().setText(text.replace("\r\n", "\n").replace("\r", "\n")));
@@ -788,7 +813,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
             return column == 1 && analysis != null && (!analysis.identity().requiresApproval() || acceptIdentity.isSelected());
         }
         @Override public Object getValueAt(int row, int column) {
-            var file = analysis.managedFiles().get(row);
+            ManagedFile file = analysis.managedFiles().get(row);
             return switch (column) {
                 case 0 -> file.source();
                 case 1 -> selectedFiles.contains(file.source());
@@ -825,7 +850,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                 && analysis.dependencies().get(row - analysis.files().size()).importable()); }
         @Override public Object getValueAt(int row, int column) {
             if (row >= analysis.files().size() + analysis.dependencies().size()) {
-                var issue = standaloneIssues.get(row - analysis.files().size() - analysis.dependencies().size());
+                ReviewAction issue = standaloneIssues.get(row - analysis.files().size() - analysis.dependencies().size());
                 return switch (column) {
                     case 0 -> false;
                     case 1 -> issue.evidence().isEmpty() ? StudioBundle.message("sourceImport.inline.unmatched") : issue.evidence().get(0);
@@ -833,7 +858,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                 };
             }
             if (row < analysis.files().size()) {
-                var file = analysis.files().get(row);
+                FileChoice file = analysis.files().get(row);
                 return switch (column) {
                     case 0 -> selectedFiles.contains(file.source());
                     case 2 -> (file.previous() == null ? StudioBundle.message("sourceImport.file.new", file.destination())
@@ -841,7 +866,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
                     default -> file.source() + (stagedJava.containsKey(file.source()) ? " " + StudioBundle.message("sourceImport.stagedMarker") : "");
                 };
             }
-            var dependency = analysis.dependencies().get(row - analysis.files().size());
+            DependencyChoice dependency = analysis.dependencies().get(row - analysis.files().size());
             return switch (column) {
                 case 0 -> selectedDependencies.contains(dependency.id());
                 case 2 -> StudioBundle.message(dependency.importable() ? "sourceImport.dependency.addToPom" : "sourceImport.dependency.manual") + actionSuffix(table, row);

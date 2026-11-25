@@ -32,6 +32,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.io.OutputStream;
+import java.util.regex.Matcher;
 
 /** Owns the independent development server's actual Java processes, separately from editor/menu lifetimes. */
 @Service(Service.Level.PROJECT)
@@ -85,12 +90,12 @@ public final class IndependentH2RunConfigurationService implements Disposable {
     }
 
     private void start() {
-        var model = project.getService(UiContext.class).getIkasanModule();
+        org.ikasan.studio.core.model.ikasan.instance.Module model = project.getService(UiContext.class).getIkasanModule();
         if (model == null) { error("h2.independent.noModel"); return; }
         String parameters;
         try { parameters = parameters(model.getH2PortNumber(), model.getH2WebPortNumber()); }
         catch (IllegalArgumentException invalid) { error("h2.independent.invalidPorts"); return; }
-        var file = StudioProjectFiles.getVirtualFile(project, IndependentH2Template.PATH);
+        VirtualFile file = StudioProjectFiles.getVirtualFile(project, IndependentH2Template.PATH);
         if (file == null) { error("h2.independent.regenerate"); return; }
         preparing = true; publish();
         ReadAction.nonBlocking(() -> ModuleUtilCore.findModuleForFile(file, project))
@@ -98,7 +103,7 @@ public final class IndependentH2RunConfigurationService implements Disposable {
                 .finishOnUiThread(ModalityState.defaultModalityState(), module -> {
                     if (disposed || project.isDisposed()) return;
                     if (module == null) { preparing = false; publish(); error("h2.independent.reloadMaven"); return; }
-                    var settings = findOrCreate(module, parameters);
+                    RunnerAndConfigurationSettings settings = findOrCreate(module, parameters);
                     RunManager.getInstance(project).setSelectedConfiguration(settings);
                     try {
                         ExecutionEnvironmentBuilder.create(DefaultRunExecutor.getRunExecutorInstance(), settings).buildAndExecute();
@@ -116,14 +121,14 @@ public final class IndependentH2RunConfigurationService implements Disposable {
     }
 
     RunnerAndConfigurationSettings findOrCreate(Module module, String parameters) {
-        var manager = RunManager.getInstance(project);
-        var settings = manager.getAllSettings().stream().filter(s -> isOurs(s.getConfiguration())
+        RunManager manager = RunManager.getInstance(project);
+        RunnerAndConfigurationSettings settings = manager.getAllSettings().stream().filter(s -> isOurs(s.getConfiguration())
                 && Objects.equals(((ApplicationConfiguration) s.getConfiguration()).getConfigurationModule().getModule(), module))
                 .findFirst().orElseGet(() -> {
-                    var type = ApplicationConfigurationType.getInstance();
-                    var created = manager.createConfiguration(manager.suggestUniqueName(
+                    ApplicationConfigurationType type = ApplicationConfigurationType.getInstance();
+                    RunnerAndConfigurationSettings created = manager.createConfiguration(manager.suggestUniqueName(
                             StudioBundle.message("h2.independent.configuration", project.getName()), type), type.getConfigurationFactories()[0]);
-                    var app = (ApplicationConfiguration) created.getConfiguration();
+                    ApplicationConfiguration app = (ApplicationConfiguration) created.getConfiguration();
                     app.setMainClassName(MAIN_CLASS); app.getConfigurationModule().setModule(module);
                     app.setWorkingDirectory(project.getBasePath());
                     app.setAllowRunningInParallel(false);
@@ -135,7 +140,7 @@ public final class IndependentH2RunConfigurationService implements Disposable {
 
     /** Called by the Java run extension before process notifications, including launches from the IDE Run menu. */
     void attach(ProcessHandler handler) {
-        var entry = new OwnedProcess();
+        org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationService.OwnedProcess entry = new OwnedProcess();
         if (processes.putIfAbsent(handler, entry) != null) return;
         preparing = false;
         handler.addProcessListener(new ProcessListener() {
@@ -143,7 +148,7 @@ public final class IndependentH2RunConfigurationService implements Disposable {
                 if (!ProcessOutputTypes.STDOUT.equals(outputType) || entry.ready) return;
                 synchronized (entry.output) {
                     entry.output.append(event.getText());
-                    var ready = READY.matcher(entry.output);
+                    Matcher ready = READY.matcher(entry.output);
                     if (ready.find()) {
                         entry.ready = true; publish();
                         int port = Integer.parseInt(ready.group(2));
@@ -174,7 +179,7 @@ public final class IndependentH2RunConfigurationService implements Disposable {
             entry.stopping = true;
             ApplicationManager.getApplication().executeOnPooledThread(() -> {
                 try {
-                    var input = handler.getProcessInput();
+                    OutputStream input = handler.getProcessInput();
                     if (input == null) handler.destroyProcess();
                     else { input.write("STOP\n".getBytes(StandardCharsets.UTF_8)); input.flush(); }
                 } catch (java.io.IOException failure) { handler.destroyProcess(); }
@@ -205,7 +210,7 @@ public final class IndependentH2RunConfigurationService implements Disposable {
             if (entry.stopTimeout != null) entry.stopTimeout.cancel(false);
             ApplicationManager.getApplication().executeOnPooledThread(() -> {
                 try {
-                    var input = handler.getProcessInput();
+                    OutputStream input = handler.getProcessInput();
                     if (input != null) { input.write("STOP\n".getBytes(StandardCharsets.UTF_8)); input.flush(); }
                 } catch (java.io.IOException ignored) { }
                 if (!handler.isProcessTerminated()) handler.destroyProcess();

@@ -9,6 +9,10 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
+import java.io.InputStream;
+import java.util.Properties;
+import org.ikasan.studio.core.configuration.EnvironmentProperties.Preview;
+import org.ikasan.studio.core.configuration.EnvironmentProperties.Selection;
 
 class EnvironmentPropertiesTest {
     @TempDir Path root;
@@ -25,8 +29,8 @@ class EnvironmentPropertiesTest {
     @Test void preservesCommentsEscapesPlaceholdersAndIndependentEnvironmentFiles() throws Exception {
         String text = "# bespoke café\r\ncustom.endpoint=${SERVICE_URL:http://localhost}\r\n"
                 + "custom.message=\\u65e5\\u672c\r\ncustom.list=one,\\\r\n two\r\n";
-        var dev = EnvironmentProperties.preview(root, new EnvironmentProperties.Selection(text, "dev", false));
-        var integration = EnvironmentProperties.preview(root, new EnvironmentProperties.Selection("custom.endpoint=https://int\n", "int", false));
+        Preview dev = EnvironmentProperties.preview(root, new EnvironmentProperties.Selection(text, "dev", false));
+        Preview integration = EnvironmentProperties.preview(root, new EnvironmentProperties.Selection("custom.endpoint=https://int\n", "int", false));
         EnvironmentProperties.apply(root, List.of(dev, integration), false);
         assertThat(Files.readAllBytes(root.resolve("config/application-dev.properties")))
                 .isEqualTo(text.getBytes(StandardCharsets.ISO_8859_1));
@@ -39,7 +43,7 @@ class EnvironmentPropertiesTest {
         write("config/application-dev.properties", "custom.value=old-secret\nobsolete=true\n");
         write("config/application.properties", "custom.value=shared\n");
         Path generated = write("generated/src/main/resources/application.properties", "custom.value=runtime-secret\n");
-        var preview = EnvironmentProperties.preview(root,
+        Preview preview = EnvironmentProperties.preview(root,
                 new EnvironmentProperties.Selection("custom.value=new-secret\nnew.key=hello\n", "dev", false));
         assertThat(preview.changes()).containsExactly(
                 new EnvironmentProperties.Change("custom.value", "changed"),
@@ -55,8 +59,8 @@ class EnvironmentPropertiesTest {
     }
 
     @Test void refusesStaleOrDuplicateDestinationsBeforeWritingAnything() throws Exception {
-        var dev = EnvironmentProperties.preview(root, new EnvironmentProperties.Selection("x=1", "dev", false));
-        var integration = EnvironmentProperties.preview(root, new EnvironmentProperties.Selection("x=2", "int", false));
+        Preview dev = EnvironmentProperties.preview(root, new EnvironmentProperties.Selection("x=1", "dev", false));
+        Preview integration = EnvironmentProperties.preview(root, new EnvironmentProperties.Selection("x=2", "int", false));
         write("config/application-int.properties", "x=changed-by-user");
         assertThatThrownBy(() -> EnvironmentProperties.apply(root, List.of(dev, integration), true))
                 .hasMessageContaining("changed since preview");
@@ -69,7 +73,7 @@ class EnvironmentPropertiesTest {
     @Test void localFilesAreIgnoredAndDoNotTouchShareableFiles() throws Exception {
         write(".gitignore", "target/\n!config/local/\n");
         write("config/application-dev.properties", "x=shared");
-        var preview = EnvironmentProperties.preview(root, new EnvironmentProperties.Selection("x=local", "dev", true));
+        Preview preview = EnvironmentProperties.preview(root, new EnvironmentProperties.Selection("x=local", "dev", true));
         EnvironmentProperties.apply(root, List.of(preview), false);
         assertThat(Files.readString(root.resolve("config/local/application-dev.properties"))).isEqualTo("x=local");
         assertThat(Files.readString(root.resolve("config/application-dev.properties"))).isEqualTo("x=shared");
@@ -83,7 +87,7 @@ class EnvironmentPropertiesTest {
         assertThatThrownBy(() -> EnvironmentProperties.preview(root, new EnvironmentProperties.Selection("x=1", "dev", false)))
                 .hasMessageContaining("symbolic links");
         Files.delete(root.resolve("config"));
-        var preview = EnvironmentProperties.preview(root, new EnvironmentProperties.Selection("x=1", "dev", true));
+        Preview preview = EnvironmentProperties.preview(root, new EnvironmentProperties.Selection("x=1", "dev", true));
         Files.createSymbolicLink(root.resolve(".gitignore"), outside.resolve("ignore"));
         assertThatThrownBy(() -> EnvironmentProperties.apply(root, List.of(preview), false)).hasMessageContaining("symbolic links");
         assertThat(root.resolve("config/local/application-dev.properties")).doesNotExist();
@@ -98,11 +102,11 @@ class EnvironmentPropertiesTest {
         for (String key : List.of("spring.profiles.active", "spring.config.import", "spring.config.location"))
             assertThatThrownBy(() -> EnvironmentProperties.preview(root,
                     new EnvironmentProperties.Selection(key + "=other", "dev", false))).hasMessageContaining("launch-control");
-        var pasted = new EnvironmentProperties.Selection("hello=日本", "", false);
+        Selection pasted = new EnvironmentProperties.Selection("hello=日本", "", false);
         assertThat(pasted.relativePath()).isEqualTo("config/application.properties");
         EnvironmentProperties.apply(root, List.of(EnvironmentProperties.preview(root, pasted)), false);
-        var loaded = new java.util.Properties();
-        try (var stream = Files.newInputStream(root.resolve(pasted.relativePath()))) { loaded.load(stream); }
+        Properties loaded = new java.util.Properties();
+        try (InputStream stream = Files.newInputStream(root.resolve(pasted.relativePath()))) { loaded.load(stream); }
         assertThat(loaded.getProperty("hello")).isEqualTo("日本");
     }
 }

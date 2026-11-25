@@ -8,6 +8,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.net.http.HttpResponse;
 
 /** Read-only module-local Ikasan 3/4 wiretap search. Stored events are text, not Base64. */
 public final class WiretapEventsClient {
@@ -25,7 +26,7 @@ public final class WiretapEventsClient {
         return URI.create(query);
     }
     public static Page fetch(URI uri) throws Exception {
-        var response = ModuleControlClient.getRuntimeRecords(uri);
+        HttpResponse<String> response = ModuleControlClient.getRuntimeRecords(uri);
         if (response.statusCode() != 200) throw new ExcludedEventsClient.HttpFailure(response.statusCode());
         return parse(response.body());
     }

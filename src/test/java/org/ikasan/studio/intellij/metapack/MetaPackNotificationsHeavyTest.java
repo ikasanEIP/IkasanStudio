@@ -6,10 +6,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.ikasan.studio.ui.StudioBundle;
 import static org.mockito.Mockito.*;
+import com.intellij.notification.Notification;
 
 public class MetaPackNotificationsHeavyTest extends HeavyPlatformTestCase {
     public void testRecoveryGuidancePrecedesEscapedValidationDetailsAndOffersManager() {
-        var notification = MetaPackNotifications.unavailable(getProject(), "broken-pack: invalid <rule> & value");
+        Notification notification = MetaPackNotifications.unavailable(getProject(), "broken-pack: invalid <rule> & value");
         try {
             assertEquals(StudioBundle.message("metaPack.UnavailableTitle"), notification.getTitle());
             String content = notification.getContent();
@@ -26,9 +27,9 @@ public class MetaPackNotificationsHeavyTest extends HeavyPlatformTestCase {
     }
 
     public void testManagerActionDoesNotReopenADisposedProject() {
-        var project = mock(Project.class);
+        Project project = mock(Project.class);
         when(project.isDisposed()).thenReturn(true);
-        var notification = MetaPackNotifications.unavailable(project, "broken-pack");
+        Notification notification = MetaPackNotifications.unavailable(project, "broken-pack");
         try {
             ((NotificationAction) notification.getActions().get(0)).actionPerformed(mock(AnActionEvent.class), notification);
             verify(project).isDisposed();

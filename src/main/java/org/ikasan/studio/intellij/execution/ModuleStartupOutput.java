@@ -2,6 +2,7 @@ package org.ikasan.studio.intellij.execution;
 
 import java.util.Locale;
 import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /** Bounded startup evidence only. Never exposes or logs captured application output. */
 final class ModuleStartupOutput {
@@ -35,7 +36,7 @@ final class ModuleStartupOutput {
                     || lower.contains("shutting down monitor with bean name:"))) prematureShutdown = true;
             if (failureBanner || webFailure || prematureShutdown) ready = false;
             if (webFailure && port == null) {
-                var match = PORT.matcher(normalized);
+                Matcher match = PORT.matcher(normalized);
                 while (match.find()) {
                     int number = Integer.parseInt(match.group(1));
                     if (number > 0 && number <= 65535) { port = number; break; }

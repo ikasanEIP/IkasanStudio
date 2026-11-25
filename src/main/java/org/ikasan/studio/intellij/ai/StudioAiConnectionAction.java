@@ -21,6 +21,9 @@ import java.awt.event.ActionEvent;
 import java.awt.BorderLayout;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
+import java.awt.GridBagConstraints;
 
 public final class StudioAiConnectionAction extends DumbAwareAction {
     @Override public @NotNull ActionUpdateThread getActionUpdateThread() { return ActionUpdateThread.BGT; }
@@ -30,7 +33,7 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
         new Task.Backgroundable(project, StudioBundle.message("ai.ConnectionTitle"), false) {
             @Override public void run(@NotNull ProgressIndicator indicator) {
                 try {
-                    var service = project.getService(StudioAiService.class);
+                    StudioAiService service = project.getService(StudioAiService.class);
                     String configuration = service.start();
                     ApplicationManager.getApplication().invokeLater(() -> {
                         if (!project.isDisposed() && service.isRunning()) new ConnectionDialog(project, service, configuration).show();
@@ -91,7 +94,7 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
             tabs.addTab(StudioBundle.message("ai.FileTab"), fileSetup);
             panel.add(tabs, BorderLayout.CENTER);
             JPanel footer = new JPanel(new BorderLayout(0, JBUI.scale(8)));
-            var reconnect = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("ai.Reconnect"),
+            JBCheckBox reconnect = new com.intellij.ui.components.JBCheckBox(StudioBundle.message("ai.Reconnect"),
                     PropertiesComponent.getInstance(project).getBoolean(StudioAiStartupActivity.RECONNECT, true));
             PropertiesComponent.getInstance(project).setValue(StudioAiStartupActivity.RECONNECT,
                     Boolean.toString(reconnect.isSelected()));
@@ -100,11 +103,11 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
             footer.add(reconnect, BorderLayout.NORTH);
             JPanel checklist = new JPanel(new java.awt.GridBagLayout());
             checklist.setBorder(javax.swing.BorderFactory.createTitledBorder(StudioBundle.message("ai.ChecklistTitle")));
-            var access = new com.intellij.ui.components.JBLabel();
-            var model = new com.intellij.ui.components.JBLabel();
-            var route = new com.intellij.ui.components.JBLabel();
-            var client = new com.intellij.ui.components.JBLabel();
-            var routeLabel = new com.intellij.ui.components.JBLabel();
+            JBLabel access = new com.intellij.ui.components.JBLabel();
+            JBLabel model = new com.intellij.ui.components.JBLabel();
+            JBLabel route = new com.intellij.ui.components.JBLabel();
+            JBLabel client = new com.intellij.ui.components.JBLabel();
+            JBLabel routeLabel = new com.intellij.ui.components.JBLabel();
             javax.swing.JLabel[] labels = {
                     new com.intellij.ui.components.JBLabel(StudioBundle.message("ai.CheckAccessLabel")),
                     new com.intellij.ui.components.JBLabel(StudioBundle.message("ai.CheckModelLabel")),
@@ -112,7 +115,7 @@ public final class StudioAiConnectionAction extends DumbAwareAction {
                     new com.intellij.ui.components.JBLabel(StudioBundle.message("ai.CheckClientLabel"))};
             javax.swing.JLabel[] values = {access, model, route, client};
             for (int row = 0; row < labels.length; row++) {
-                var constraints = new java.awt.GridBagConstraints();
+                GridBagConstraints constraints = new java.awt.GridBagConstraints();
                 constraints.gridy = row;
                 constraints.gridx = 0;
                 constraints.anchor = java.awt.GridBagConstraints.LINE_START;

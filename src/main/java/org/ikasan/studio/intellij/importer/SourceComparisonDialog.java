@@ -12,6 +12,7 @@ import org.ikasan.studio.ui.StudioBundle;
 import javax.swing.JComponent;
 import java.awt.Component;
 import java.awt.Dimension;
+import com.intellij.diff.DiffRequestPanel;
 
 /** Edits an isolated preview; cancellation never modifies the pending import. */
 public final class SourceComparisonDialog extends ImportDialogWrapper {
@@ -42,9 +43,9 @@ public final class SourceComparisonDialog extends ImportDialogWrapper {
     }
 
     @Override protected JComponent createStudioContent() {
-        var panel = DiffManager.getInstance().createRequestPanel(project, getDisposable(), getWindow());
+        DiffRequestPanel panel = DiffManager.getInstance().createRequestPanel(project, getDisposable(), getWindow());
         panel.setRequest(request);
-        var component = panel.getComponent();
+        JComponent component = panel.getComponent();
         component.setPreferredSize(new Dimension(1000, 650));
         return component;
     }

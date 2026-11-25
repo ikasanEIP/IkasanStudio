@@ -14,7 +14,7 @@ class RuntimeImportReportTest {
         """;
 
     @Test void countsRepeatedConsumerOnceAndNeverExportsNamesValuesOrUnknownClasses() {
-        var report = new RuntimeImportReport();
+        RuntimeImportReport report = new RuntimeImportReport();
         report.inspect(MODULE, """
             [{"configurationId":"PRIVATE_CONFIG", "parameters":[
                {"name":"PASSWORD", "value":"PRIVATE_PASSWORD"},
@@ -30,19 +30,19 @@ class RuntimeImportReportTest {
     }
 
     @Test void detectsCyclesMissingEndpointsAndDisconnectedNodesWithoutHanging() {
-        var report = new RuntimeImportReport();
+        RuntimeImportReport report = new RuntimeImportReport();
         report.inspect(MODULE.replace("\"to\":\"PRIVATE_TARGET\"", "\"to\":\"PRIVATE_SOURCE\""), "");
         String text = report.render(null, null);
         assertTrue(text.contains("CYCLIC_TOPOLOGY"));
         assertTrue(text.contains("DISCONNECTED_COMPONENTS"));
         assertTrue(text.contains("CONSUMER_HAS_INCOMING_TRANSITION"));
-        var missing = new RuntimeImportReport();
+        RuntimeImportReport missing = new RuntimeImportReport();
         missing.inspect(MODULE.replace("\"to\":\"PRIVATE_TARGET\"", "\"to\":\"MISSING\""), "");
         assertTrue(missing.render(null, null).contains("TRANSITION_ENDPOINT_MISSING"));
     }
 
     @Test void malformedJsonIncludesCoordinatesWithoutParserExcerpts() {
-        var report = new RuntimeImportReport();
+        RuntimeImportReport report = new RuntimeImportReport();
         report.inspect("{\"PRIVATE_SECRET\": BAD}", "");
         String text = report.render("PRIVATE_VERSION", "PRIVATE_BUILD");
         assertTrue(text.contains("JSON_PARSE_FAILED")); assertTrue(text.contains("JSON line 1, column"));
@@ -50,9 +50,9 @@ class RuntimeImportReportTest {
     }
 
     @Test void boundedIssuesAndNumberedPagesPreserveSourceLocationsButExcludeMessagesAndPaths() {
-        var report = new RuntimeImportReport();
+        RuntimeImportReport report = new RuntimeImportReport();
         for (int i = 0; i < 205; i++) report.issue("F1/C1", "CONFIGURATION_NOT_SUPPLIED");
-        var failure = new IllegalArgumentException("PRIVATE_PASSWORD https://private/", new java.io.IOException("PRIVATE_BODY"));
+        IllegalArgumentException failure = new IllegalArgumentException("PRIVATE_PASSWORD https://private/", new java.io.IOException("PRIVATE_BODY"));
         failure.setStackTrace(new StackTraceElement[]{new StackTraceElement("org.ikasan.studio.core.Example", "generate", "/PRIVATE_PATH", 42)});
         report.stage(RuntimeImportReport.Stage.GENERATION); report.failure(failure);
         String text = report.render("1.0.0-beta.1", "262.123.4");
@@ -65,8 +65,8 @@ class RuntimeImportReportTest {
     static class PrivateBusinessException extends RuntimeException { }
 
     @Test void applicationClassesSharingTheStudioNamespaceAreExcluded() {
-        var report = new RuntimeImportReport();
-        var failure = new PrivateBusinessException();
+        RuntimeImportReport report = new RuntimeImportReport();
+        org.ikasan.studio.testing.engine.RuntimeImportReportTest.PrivateBusinessException failure = new PrivateBusinessException();
         failure.setStackTrace(new StackTraceElement[] {
                 new StackTraceElement("org.ikasan.studio.demo.PrivateComponent", "convert", "PrivateComponent.java", 12),
                 new StackTraceElement("org.ikasan.studio.core.importer.IkasanRuntimeImport", "convert", "Ignored.java", 20)});
@@ -78,7 +78,7 @@ class RuntimeImportReportTest {
     }
 
     @Test void unsafeCodesAndNonstandardPackContextsAreNotExported() {
-        var report = new RuntimeImportReport(); report.pack("PrivatePack");
+        RuntimeImportReport report = new RuntimeImportReport(); report.pack("PrivatePack");
         report.publicContext("F1/C1", "org.ikasan.component.Private", "secret");
         report.issue("F1/C1", "COMPONENT_MAPPING_UNAVAILABLE");
         assertFalse(report.render(null, null).contains("Private"));

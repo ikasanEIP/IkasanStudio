@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.io.IOException;
+import java.security.PublicKey;
 
 /** Real loopback SFTP transport for manual development runs; files survive server restarts for inspection. */
 public final class LocalSftpHarness implements AutoCloseable {
@@ -29,7 +30,7 @@ public final class LocalSftpHarness implements AutoCloseable {
         server = SshServer.setUpDefaultServer();
         server.setHost("127.0.0.1");
         server.setPort(0);
-        var keys = new SimpleGeneratorHostKeyProvider(root.resolve("host-key.ser"));
+        SimpleGeneratorHostKeyProvider keys = new SimpleGeneratorHostKeyProvider(root.resolve("host-key.ser"));
         keys.setAlgorithm("RSA");
         keys.setKeySize(2048);
         server.setKeyPairProvider(keys);
@@ -45,7 +46,7 @@ public final class LocalSftpHarness implements AutoCloseable {
         LocalSftpHarness harness = new LocalSftpHarness(root);
         try {
             harness.server.start();
-            var key = harness.server.getKeyPairProvider().loadKeys(null).iterator().next().getPublic();
+            PublicKey key = harness.server.getKeyPairProvider().loadKeys(null).iterator().next().getPublic();
             Files.writeString(harness.knownHosts, "[127.0.0.1]:" + harness.port() + " " + PublicKeyEntry.toString(key) + "\n");
             return harness;
         } catch (Exception | Error failure) {

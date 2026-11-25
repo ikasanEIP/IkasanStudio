@@ -11,6 +11,10 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Reads the module's live scan configuration without doing network work on the EDT. */
 public final class ShowLocalFileScanDirectoryAction implements ActionListener {
@@ -28,17 +32,17 @@ public final class ShowLocalFileScanDirectoryAction implements ActionListener {
             StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.LocalFileScanRequiresDebug"));
             return;
         }
-        var module = project.getService(UiContext.class).getIkasanModule();
+        Module module = project.getService(UiContext.class).getIkasanModule();
         String flowName = consumer.getContainingFlow().getIdentity();
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
-                var response = StudioInjectClient.getScanDirectories(module, flowName);
+                HttpResponse<String> response = StudioInjectClient.getScanDirectories(module, flowName);
                 if (response.statusCode() != 200) {
                     throw new IllegalStateException(response.statusCode() + ": " + response.body()
                             + (response.statusCode() == 404 ? " (Update Code and restart Debug module to install the scan-directory endpoint.)" : ""));
                 }
-                var body = StudioInjectClient.readJson(response.body());
-                var directories = new java.util.ArrayList<String>();
+                JsonNode body = StudioInjectClient.readJson(response.body());
+                ArrayList<String> directories = new java.util.ArrayList<>();
                 body.path("directories").forEach(path -> directories.add(path.asText()));
                 String details = StudioBundle.message("message.LocalFileScanDetails", String.join("\n", directories),
                         body.path("patterns").toString(), body.path("directoryDepth").asText());

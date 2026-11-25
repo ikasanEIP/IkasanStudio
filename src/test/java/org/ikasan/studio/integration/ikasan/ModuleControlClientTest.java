@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.net.URI;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class ModuleControlClientTest {
 
@@ -125,7 +127,7 @@ class ModuleControlClientTest {
     }
 
     private static org.ikasan.studio.core.model.ikasan.instance.Module moduleNamed(String name) throws Exception {
-        var module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(
+        Module module = org.ikasan.studio.core.TestFixtures.getMyFirstModuleIkasanModule(
                 org.ikasan.studio.core.TestFixtures.BASE_META_PACK, new java.util.ArrayList<>());
         module.setName(name);
         module.setPort("8391");
@@ -140,7 +142,7 @@ class ModuleControlClientTest {
      */
     @Test
     void flowNamesAreEncodedAsQueryValuesInTheErrorLookup() throws Exception {
-        var module = moduleNamed("My Module");
+        Module module = moduleNamed("My Module");
         String prefix = "http://localhost:8391/my-module/rest/error/?pageNumber=0&pageSize=1&orderBy=timestamp&orderAscending=false&flow=";
         String[][] cases = {
                 {"Orders & Invoices", "Orders+%26+Invoices"},
@@ -150,7 +152,7 @@ class ModuleControlClientTest {
                 {"Caf\u00e9 Orders", "Caf%C3%A9+Orders"},
                 {"plain", "plain"}};
         for (String[] c : cases) {
-            var uri = ModuleControlClient.endpointUri(module, "/rest/error/", ModuleControlClient.latestErrorQuery(c[0]));
+            URI uri = ModuleControlClient.endpointUri(module, "/rest/error/", ModuleControlClient.latestErrorQuery(c[0]));
             assertThat(uri.toASCIIString()).as(c[0]).isEqualTo(prefix + c[1]);
             // Whatever the name, the value must decode back to exactly the flow name and stay a single parameter.
             String value = java.util.Arrays.stream(uri.getRawQuery().split("&"))
@@ -162,7 +164,7 @@ class ModuleControlClientTest {
 
     @Test
     void thePathPartOfModuleUrlsIsStillEncodedByTheUriConstructor() throws Exception {
-        var module = moduleNamed("A to B convert");
+        Module module = moduleNamed("A to B convert");
         assertThat(ModuleControlClient.endpointUri(module, "/rest/moduleControl/" + module.getIdentity(), null).toASCIIString())
                 .isEqualTo("http://localhost:8391/a-to-b-convert/rest/moduleControl/A%20to%20B%20convert");
     }

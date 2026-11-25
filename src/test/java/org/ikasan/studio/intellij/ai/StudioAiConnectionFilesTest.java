@@ -13,14 +13,14 @@ class StudioAiConnectionFilesTest {
         String project = root.resolve("project").toString();
         Path connection;
         Path adapter;
-        try (var first = StudioAiConnectionFiles.open(root, project, new byte[]{1, 2})) {
+        try (StudioAiConnectionFiles first = StudioAiConnectionFiles.open(root, project, new byte[]{1, 2})) {
             connection = first.connection();
             adapter = first.adapter();
             first.publish("first-session");
             assertThatThrownBy(() -> StudioAiConnectionFiles.open(root, project, new byte[]{3}))
                     .hasMessageContaining("another IDE session");
             assertThat(Files.readString(connection)).isEqualTo("first-session");
-            try (var other = StudioAiConnectionFiles.open(root, root.resolve("other").toString(), new byte[]{4})) {
+            try (StudioAiConnectionFiles other = StudioAiConnectionFiles.open(root, root.resolve("other").toString(), new byte[]{4})) {
                 assertThat(other.connection()).isNotEqualTo(connection);
             }
             if (Files.getFileStore(connection).supportsFileAttributeView("posix")) {
@@ -29,7 +29,7 @@ class StudioAiConnectionFilesTest {
             }
         }
         assertThat(connection).doesNotExist();
-        try (var reopened = StudioAiConnectionFiles.open(root, project, new byte[]{3})) {
+        try (StudioAiConnectionFiles reopened = StudioAiConnectionFiles.open(root, project, new byte[]{3})) {
             assertThat(reopened.connection()).isEqualTo(connection);
             assertThat(reopened.adapter()).isEqualTo(adapter);
             reopened.publish("new-session");

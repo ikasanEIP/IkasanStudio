@@ -25,6 +25,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.Future;
+import org.ikasan.studio.integration.ikasan.ExcludedEventsClient.Event;
 
 /** Project-bound, read-only exclusion browser. HTTP work never runs on the EDT. */
 // This dialog runs with project services in the local IDE; remote Split Mode needs a separate frontend and RPC boundary.
@@ -144,7 +145,7 @@ public final class ExcludedEventsDialog extends StudioDialogWrapper {
                 if (error != null) { last = true; page = 0; busy(false); status.setText(error); return; }
                 activeFlow = f; activeFrom = start; activeUntil = end;
                 page = targetPage; last = loaded.last(); rows = loaded.events();
-                for (var row : rows) model.addRow(new Object[]{time(row.timestamp()), row.flow(), row.identifier(),
+                for (Event row : rows) model.addRow(new Object[]{time(row.timestamp()), row.flow(), row.identifier(),
                         StudioBundle.message(row.harvested() ? "exclusions.yes" : "exclusions.no")});
                 status.setText(StudioBundle.message("exclusions.page", page + 1, loaded.total()));
                 busy(false);
@@ -161,7 +162,7 @@ public final class ExcludedEventsDialog extends StudioDialogWrapper {
     private void showSelected() {
         int index = table.getSelectedRow();
         if (index < 0 || index >= rows.size()) { details.setText(""); return; }
-        var row = rows.get(index);
+        Event row = rows.get(index);
         details.setText(StudioBundle.message("exclusions.module") + ": " + row.module() + "\n" + StudioBundle.message("exclusions.flow") + ": " + row.flow()
                 + "\n" + StudioBundle.message("exclusions.identifier") + ": " + row.identifier() + "\n" + StudioBundle.message("exclusions.errorUri") + ": " + row.errorUri()
                 + "\n\n" + StudioBundle.message(row.binary() ? "exclusions.binary" : "exclusions.payload") + "\n" + row.payload());

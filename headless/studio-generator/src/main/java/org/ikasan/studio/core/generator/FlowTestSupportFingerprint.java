@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 /** Semantic fingerprint of shared test wiring; no source code, layout or version-only changes. */
 public final class FlowTestSupportFingerprint {
@@ -60,13 +61,13 @@ public final class FlowTestSupportFingerprint {
             throw new IOException("Incomplete Ikasan model documents");
         ObjectNode result = studio.path("properties").deepCopy();
         result.set("name", module.path("name"));
-        var flows = result.putArray("flows");
+        ArrayNode flows = result.putArray("flows");
         for (JsonNode flow : module.path("flows")) {
             ObjectNode output = flows.addObject();
             output.set("name", flow.path("name"));
             JsonNode settings = studio.path("flows").path(flow.path("name").asText()).path("components");
             if (flow.path("consumer").isObject()) output.set("consumer", wiringComponent(flow.path("consumer"), settings, root, mapper));
-            var elements = output.putArray("flowElements");
+            ArrayNode elements = output.putArray("flowElements");
             for (JsonNode c : flow.path("flowElements")) {
                 if (!c.path("componentName").equals(flow.path("consumer").path("componentName")))
                     elements.add(wiringComponent(c, settings, root, mapper));
@@ -107,7 +108,7 @@ public final class FlowTestSupportFingerprint {
 
     private static JsonNode variant(String pack, String key, ObjectMapper mapper) throws IOException {
         try {
-            var meta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponents(pack).get(key);
+            org.ikasan.studio.core.metapack.model.ComponentMeta meta = org.ikasan.studio.core.metapack.ComponentLibrary.getIkasanComponents(pack).get(key);
             if (meta == null) throw new IOException("Unknown component variant " + key);
             return mapper.createObjectNode().put("implementingClass", meta.getImplementingClass()).put("additionalKey", meta.getAdditionalKey());
         } catch (org.ikasan.studio.core.StudioBuildException e) { throw new IOException("Cannot load component identities", e); }
@@ -122,7 +123,7 @@ public final class FlowTestSupportFingerprint {
             return sorted;
         }
         if (value.isArray()) {
-            var array = mapper.createArrayNode();
+            ArrayNode array = mapper.createArrayNode();
             for (JsonNode item : value) array.add(canonical(item, mapper));
             return array;
         }

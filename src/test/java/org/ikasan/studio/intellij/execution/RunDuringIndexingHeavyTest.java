@@ -10,8 +10,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RunDuringIndexingHeavyTest extends HeavyPlatformTestCase {
     public void testRunDefersDuringIndexingAndExpiresWhenServiceCloses() {
-        var service = new IkasanRunConfigurationService(myProject);
-        var completed = new AtomicBoolean();
+        IkasanRunConfigurationService service = new IkasanRunConfigurationService(myProject);
+        AtomicBoolean completed = new AtomicBoolean();
         DumbModeTestUtils.runInDumbModeSynchronously(myProject, () -> {
             assertTrue(DumbService.isDumb(myProject));
             service.selectAndRun(new LightVirtualFile("Application.java"), null, result -> completed.set(true));

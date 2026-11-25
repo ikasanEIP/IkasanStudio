@@ -14,6 +14,7 @@ import org.ikasan.studio.ui.StudioUIUtils;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint;
 
 /** Stops only the FTP server instance owned by this Studio project. */
 public final class StopTestFtpServerAction implements ActionListener {
@@ -36,7 +37,7 @@ public final class StopTestFtpServerAction implements ActionListener {
             StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("message.TestFtpServerNotRunning"));
             return;
         }
-        var endpoint = service.listeningEndpoint();
+        Endpoint endpoint = service.listeningEndpoint();
         if (!confirmed && endpoint != null && !HarnessStopWarning.confirm(project, java.util.List.of(endpoint))) return;
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Stopping test FTP server") {
             @SuppressWarnings("NullableProblems")

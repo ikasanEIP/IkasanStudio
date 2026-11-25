@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.Comparator;
 import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.file.Path;
+import java.util.stream.Stream;
 
 /** Exports a complete model snapshot without changing the project's authoritative model.json. */
 public final class IkasanModelExporter {
@@ -23,8 +27,8 @@ public final class IkasanModelExporter {
      */
     public static Path export(Module module, Path parent, Runnable checkCancelled) throws IOException {
         checkCancelled.run();
-        var mapper = StudioJson.newObjectMapper();
-        var documents = mapper.readTree(ModelTemplate.create(module));
+        ObjectMapper mapper = StudioJson.newObjectMapper();
+        JsonNode documents = mapper.readTree(ModelTemplate.create(module));
         ObjectNode studio = documents.path("studio").deepCopy();
         studio.set("modelFormat", documents.get("modelFormat"));
         studio.set("formatVersion", documents.get("formatVersion"));
@@ -34,7 +38,7 @@ public final class IkasanModelExporter {
         try {
             for (String name : List.of("module", "configuration", "studio")) {
                 checkCancelled.run();
-                var document = name.equals("studio") ? studio : documents.get(name);
+                JsonNode document = name.equals("studio") ? studio : documents.get(name);
                 Files.writeString(staging.resolve(name + ".json"),
                         mapper.writerWithDefaultPrettyPrinter().writeValueAsString(document) + "\n",
                         StandardOpenOption.CREATE_NEW);
@@ -44,7 +48,7 @@ public final class IkasanModelExporter {
             return target;
         } finally {
             if (Files.exists(staging)) {
-                try (var paths = Files.walk(staging)) {
+                try (Stream<Path> paths = Files.walk(staging)) {
                     for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) Files.deleteIfExists(path);
                 }
             }

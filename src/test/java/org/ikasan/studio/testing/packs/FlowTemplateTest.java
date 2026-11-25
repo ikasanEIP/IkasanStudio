@@ -18,6 +18,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 
 @org.junit.jupiter.api.Tag("packs")
 public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
@@ -315,10 +317,10 @@ public class FlowTemplateTest extends AbstractGeneratorTestFixtures {
     void nestedRouterContinuesTheBranchBuilder(String pack) throws Exception {
         for (boolean converterBeforeRouter : new boolean[]{false, true}) {
             for (boolean multiRecipient : new boolean[]{false, true}) {
-                var flow = TestFixtures.getEventGeneratingConsumerRouterFlow(pack);
-                var nestedFlow = multiRecipient ? TestFixtures.getEventGeneratingConsumerRouterFlow(pack)
+                Flow flow = TestFixtures.getEventGeneratingConsumerRouterFlow(pack);
+                Flow nestedFlow = multiRecipient ? TestFixtures.getEventGeneratingConsumerRouterFlow(pack)
                         : TestFixtures.getEventGeneratingConsumerSingleRecipientRouterFlow(pack);
-                var branch = flow.getFlowRoute().getChildRoutes().get(0);
+                FlowRoute branch = flow.getFlowRoute().getChildRoutes().get(0);
                 branch.setFlowElements(new java.util.ArrayList<>(nestedFlow.getFlowRoute().getFlowElements()));
                 if (!converterBeforeRouter) branch.getFlowElements().remove(0);
                 branch.setChildRoutes(nestedFlow.getFlowRoute().getChildRoutes());

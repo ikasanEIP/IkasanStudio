@@ -13,6 +13,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.maven.model.Model;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /** Shared Studio-owned project rendering for IDE migration and offline preview; never writes files. */
 public final class ProjectArtifactRenderer {
@@ -26,7 +30,7 @@ public final class ProjectArtifactRenderer {
     public static Map<String, String> render(Module sourceModule, Module module, String rootPom) throws Exception {
         Map<String, String> files = new LinkedHashMap<>();
         files.put(MODEL, ModelTemplate.create(module));
-        var mavenModel = new MavenXpp3Reader().read(new StringReader(rootPom));
+        Model mavenModel = new MavenXpp3Reader().read(new StringReader(rootPom));
         Set<String> targetDependencies = module.getAllUniqueSortedJarDependencies().stream()
                 .map(ProjectArtifactRenderer::coordinate).collect(Collectors.toSet());
         // Unversioned dependencies contributed by a source component can disappear from
@@ -59,12 +63,12 @@ public final class ProjectArtifactRenderer {
         files.put(HarnessOverridesTemplate.JAVA_PATH, HarnessOverridesTemplate.javaSource());
         files.put(HarnessOverridesTemplate.PATH, HarnessOverridesTemplate.create(module));
         files.put(ModuleTestWiring.PATH, ModuleTestWiring.create(module));
-        for (var flow : module.getFlows()) {
+        for (Flow flow : module.getFlows()) {
             String pkg = Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();
             java(files, pkg, FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME + flow.getJavaClassName(), FlowsComponentFactoryTemplate.create(pkg, module, flow));
             java(files, pkg, flow.getJavaClassName(), FlowTemplate.create(pkg, module, flow));
-            for (var component : flow.getFlowElementsNoExternalEndPoints()) {
-                for (var property : component.getUserSuppliedClassProperties()) {
+            for (FlowElement component : flow.getFlowElementsNoExternalEndPoints()) {
+                for (ComponentProperty property : component.getUserSuppliedClassProperties()) {
                     if (property.getMeta().isProtectFromOverwrite() || property.getMeta().isNoStubRequired()) continue;
                     String userPkg = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
                     String clazz = StudioBuildUtils.toJavaClassName(property.getValueString());

@@ -4,6 +4,10 @@ import org.ikasan.studio.core.model.ikasan.instance.*;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 import java.util.*;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 
 /** A detached value graph. Capture on the model's owning thread; encode/validate off that thread. */
 public final class LiveModelSnapshot {
@@ -25,7 +29,7 @@ public final class LiveModelSnapshot {
         result.put("flowElements", elements);
         result.put("transitions", transitions);
         if (flow.getExceptionResolver() != null) {
-            var resolver = flow.getExceptionResolver();
+            ExceptionResolver resolver = flow.getExceptionResolver();
             Map<String, Object> resolutions = properties(resolver);
             resolver.getIkasanExceptionResolutionMap().forEach((key, resolution) -> resolutions.put(key,
                     Map.of("exceptionsCaught", resolution.getExceptionsCaught(), "action", resolution.getTheAction(),
@@ -39,7 +43,7 @@ public final class LiveModelSnapshot {
                               List<Map<String, String>> transitions) {
         if (route == null) return;
         boolean first = true;
-        for (var element : route.getFlowElements()) {
+        for (FlowElement element : route.getFlowElements()) {
             if (element.getComponentMeta().isEndpoint() && !element.getComponentMeta().isInternalEndpoint()) continue;
             elements.add(element(element));
             if (previous != null) transitions.add(Map.of("from", previous.getIdentity(), "to", element.getIdentity(),
@@ -47,12 +51,12 @@ public final class LiveModelSnapshot {
             previous = element;
             first = false;
         }
-        for (var child : route.getChildRoutes()) route(child, previous, elements, transitions);
+        for (FlowRoute child : route.getChildRoutes()) route(child, previous, elements, transitions);
     }
 
     private static Map<String, Object> element(FlowElement element) {
         Map<String, Object> result = properties(element);
-        var meta = element.getComponentMeta();
+        ComponentMeta meta = element.getComponentMeta();
         result.put("componentType", meta.getComponentType());
         result.put("implementingClass", meta.getImplementingClass());
         if (meta.getAdditionalKey() != null) result.put("additionalKey", meta.getAdditionalKey());

@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.regex.Pattern;
 
 /** Guards Studio-added user-facing text that must exist in both the English and Japanese bundles. */
 class StudioBundleLocalisationTest {
@@ -34,7 +35,7 @@ class StudioBundleLocalisationTest {
                     || key.startsWith("action.IkasanStudio.ImportModuleWizard.") || key.startsWith("action.IkasanStudio.ImportSourceModule.")
                     || key.startsWith("action.IkasanStudio.ImportEnvironmentProperties.")) {
                 assertLocalised(japanese, key);
-                var tokens = java.util.regex.Pattern.compile("\\{[0-9]+}");
+                Pattern tokens = java.util.regex.Pattern.compile("\\{[0-9]+}");
                 assertEquals(tokens.matcher(english.getProperty(key)).results().map(java.util.regex.MatchResult::group).toList(),
                         tokens.matcher(japanese.getProperty(key)).results().map(java.util.regex.MatchResult::group).toList(), key);
             }

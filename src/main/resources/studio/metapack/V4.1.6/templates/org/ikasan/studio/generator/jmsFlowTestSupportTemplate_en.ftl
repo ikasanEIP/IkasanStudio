@@ -68,7 +68,7 @@ public final class JmsFlowTestSupport implements AutoCloseable {
     public void sendMap(String queue, java.util.Map<String, ?> entries) throws JMSException {
         if (entries == null) throw new IllegalArgumentException("Supply non-null JMS map entries");
         jakarta.jms.MapMessage message = session.createMapMessage();
-        for (var entry : entries.entrySet()) message.setObject(entry.getKey(), entry.getValue());
+        for (java.util.Map.Entry<String, ?> entry : entries.entrySet()) message.setObject(entry.getKey(), entry.getValue());
         MessageProducer producer = session.createProducer(session.createQueue(queue));
         try { producer.send(message); }
         finally { producer.close(); }

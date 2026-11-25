@@ -12,11 +12,19 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import java.util.*;
 import static org.assertj.core.api.Assertions.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Properties;
+import org.ikasan.studio.core.importer.IkasanRuntimeImport.Result;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class StringCollectionConfigurationTest {
     @ParameterizedTest @ValueSource(strings={"V3.3.9", "V4.1.6"})
     void preservesTypedCollectionsAndGeneratesSafeCode(String pack) throws Exception {
-        var producer = FlowElement.flowElementBuilder().componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Email Producer"))
+        FlowElement producer = FlowElement.flowElementBuilder().componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Email Producer"))
                 .componentName("Mail").build();
         List<String> recipients = List.of("first@example.com", "comma,quote\"slash\\newline\n", "first@example.com", "");
         Map<String, String> properties = new LinkedHashMap<>();
@@ -25,28 +33,28 @@ class StringCollectionConfigurationTest {
         producer.setPropertyValue("toRecipients", recipients);
         producer.setPropertyValue("extendedMailSessionProperties", properties);
         producer.setPropertyValue("configurationId", "mail-config");
-        var flow = TestFixtures.getUnbuiltFlow(pack).consumer(TestFixtures.getEventGeneratingConsumer(pack)).build();
+        Flow flow = TestFixtures.getUnbuiltFlow(pack).consumer(TestFixtures.getEventGeneratingConsumer(pack)).build();
         flow.getFlowRoute().getFlowElements().add(producer);
         producer.setContainingFlowRoute(flow.getFlowRoute());
-        var module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
-        var mapper = StudioJson.newObjectMapper();
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
+        ObjectMapper mapper = StudioJson.newObjectMapper();
         String saved = ModelTemplate.create(module);
-        var document = mapper.readTree(saved);
-        var parameters = document.path("configuration").findValue("parameters");
+        JsonNode document = mapper.readTree(saved);
+        JsonNode parameters = document.path("configuration").findValue("parameters");
         assertThat(parameters.toString()).contains("ConfigurationParameterListImpl", "ConfigurationParameterMapImpl");
-        var imported = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(
+        Result imported = org.ikasan.studio.core.importer.IkasanRuntimeImport.convert(
                 document.path("module").toString(), document.path("configuration").toString(), pack, "org.example");
-        var importedModule = ComponentIO.validatePersistedModuleJson(imported.studioJson(), "runtime import", false);
-        var importedProducer = importedModule.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
+        Module importedModule = ComponentIO.validatePersistedModuleJson(imported.studioJson(), "runtime import", false);
+        FlowElement importedProducer = importedModule.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
         assertThat(importedProducer.getPropertyValue("toRecipients")).isEqualTo(recipients);
         assertThat(importedProducer.getPropertyValue("extendedMailSessionProperties")).isEqualTo(properties);
-        var loaded = ComponentIO.validatePersistedModuleJson(saved, "collections", false);
-        var loadedProducer = loaded.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
+        Module loaded = ComponentIO.validatePersistedModuleJson(saved, "collections", false);
+        FlowElement loadedProducer = loaded.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
         assertThat(loadedProducer.getPropertyValue("toRecipients")).isEqualTo(recipients);
         assertThat(loadedProducer.getPropertyValue("extendedMailSessionProperties")).isEqualTo(properties);
         String generated = FlowsComponentFactoryTemplate.create("org.example", loaded, loaded.getFlows().get(0));
         assertThat(generated).contains(".setToRecipients(studioStringList(", ".setExtendedMailSessionProperties(studioStringMap(", "STRICT_DUPLICATE_DETECTION");
-        var spring = new Properties();
+        Properties spring = new Properties();
         spring.load(new java.io.StringReader(PropertiesTemplate.create(loaded)));
         String key = spring.stringPropertyNames().stream().filter(k -> k.endsWith("toRecipients")).findFirst().orElseThrow();
         assertThat(mapper.readValue(spring.getProperty(key), List.class)).isEqualTo(recipients);
@@ -59,25 +67,25 @@ class StringCollectionConfigurationTest {
 
     @ParameterizedTest @ValueSource(strings={"V3.3.9", "V4.1.6"})
     void loadsLegacyStudioRecipientsAndSavesThemAsNativeConfiguration(String pack) throws Exception {
-        var producer = FlowElement.flowElementBuilder()
+        FlowElement producer = FlowElement.flowElementBuilder()
                 .componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Email Producer"))
                 .componentName("Mail").build();
         producer.setPropertyValue("configurationId", "mail-config");
-        var flow = TestFixtures.getUnbuiltFlow(pack).consumer(TestFixtures.getEventGeneratingConsumer(pack)).build();
+        Flow flow = TestFixtures.getUnbuiltFlow(pack).consumer(TestFixtures.getEventGeneratingConsumer(pack)).build();
         flow.getFlowRoute().getFlowElements().add(producer);
         producer.setContainingFlowRoute(flow.getFlowRoute());
-        var module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
-        var mapper = StudioJson.newObjectMapper();
-        var document = mapper.readTree(ModelTemplate.create(module));
-        var settings = (com.fasterxml.jackson.databind.node.ObjectNode) document.path("studio")
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
+        ObjectMapper mapper = StudioJson.newObjectMapper();
+        JsonNode document = mapper.readTree(ModelTemplate.create(module));
+        ObjectNode settings = (com.fasterxml.jackson.databind.node.ObjectNode) document.path("studio")
                 .path("flows").elements().next().path("components").path("Mail").path("properties");
         settings.put("toRecipients", "[first@example.com, second@example.com]");
         settings.put("extendedMailSessionProperties", "{\"mail.smtp.auth\":\"true\"}");
-        var loaded = ComponentIO.validatePersistedModuleJson(document.toString(), "legacy collections", false);
-        var restored = loaded.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
+        Module loaded = ComponentIO.validatePersistedModuleJson(document.toString(), "legacy collections", false);
+        FlowElement restored = loaded.getFlows().get(0).getFlowRoute().getFlowElements().get(0);
         assertThat(restored.getPropertyValue("toRecipients")).isEqualTo(List.of("first@example.com", "second@example.com"));
         assertThat(restored.getPropertyValue("extendedMailSessionProperties")).isEqualTo(Map.of("mail.smtp.auth", "true"));
-        var saved = mapper.readTree(ModelTemplate.create(loaded));
+        JsonNode saved = mapper.readTree(ModelTemplate.create(loaded));
         assertThat(saved.path("studio").path("flows").elements().next().path("components")
                 .path("Mail").path("properties").has("toRecipients")).isFalse();
         assertThat(saved.path("configuration").toString()).contains("ConfigurationParameterListImpl", "ConfigurationParameterMapImpl");

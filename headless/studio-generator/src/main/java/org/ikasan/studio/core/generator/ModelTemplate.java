@@ -2,6 +2,8 @@ package org.ikasan.studio.core.generator;
 
 import org.ikasan.studio.core.io.ComponentIO;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Template to create the JSON representation of the module
@@ -9,8 +11,8 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 public class ModelTemplate extends Generator {
     public static String create(final Module module) {
         try {
-            var mapper = org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper();
-            var documents = org.ikasan.studio.core.persistence.json.IkasanModelDocuments.fromLegacy(
+            ObjectMapper mapper = org.ikasan.studio.core.persistence.json.StudioJson.newObjectMapper();
+            ObjectNode documents = org.ikasan.studio.core.persistence.json.IkasanModelDocuments.fromLegacy(
                     mapper.readTree(ComponentIO.toValidatedModuleJson(module)));
             String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(documents) + "\n";
             ComponentIO.validatePersistedModuleJson(json, "model documents", false);

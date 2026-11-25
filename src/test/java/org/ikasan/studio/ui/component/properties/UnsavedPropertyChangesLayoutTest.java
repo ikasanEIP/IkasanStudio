@@ -6,6 +6,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
+import javax.swing.JComponent;
 
 class UnsavedPropertyChangesLayoutTest {
     @Test
@@ -13,7 +14,7 @@ class UnsavedPropertyChangesLayoutTest {
         SwingUtilities.invokeAndWait(() -> {
             String oldValue = "java.lang.String";
             String newValue = "java.util.List<java.lang.String>";
-            var content = UnsavedPropertyChangesDialog.buildContent("Unsaved edits for Broker", "MessageGenerator",
+            JComponent content = UnsavedPropertyChangesDialog.buildContent("Unsaved edits for Broker", "MessageGenerator",
                     List.of(new UnsavedPropertyChangesDialog.PropertyChangeDetail("Output type", oldValue, newValue),
                             new UnsavedPropertyChangesDialog.PropertyChangeDetail("Description", "old", "Long text & <tags> ".repeat(100))));
             assertThat(content.getPreferredSize().width).isLessThan(com.intellij.util.ui.JBUI.scale(700));

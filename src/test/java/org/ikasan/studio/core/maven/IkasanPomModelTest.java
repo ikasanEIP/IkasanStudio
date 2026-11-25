@@ -5,6 +5,10 @@ import org.apache.maven.model.Model;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.apache.maven.model.Build;
+import org.apache.maven.model.Plugin;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 
 class IkasanPomModelTest {
     private static org.ikasan.studio.core.metapack.model.MetaPackManifest pluginManifest() {
@@ -15,8 +19,8 @@ class IkasanPomModelTest {
     }
 
     @Test void missingPluginDefaultsAreManagedWithoutActivatingExecutionsAndAreIdempotent() {
-        var model = new Model();
-        var pom = new IkasanPomModel(model);
+        Model model = new Model();
+        IkasanPomModel pom = new IkasanPomModel(model);
         pom.applyBuildContract(pluginManifest());
         assertThat(model.getBuild().getPlugins()).isEmpty();
         assertThat(model.getBuild().getPluginManagement().getPlugins()).singleElement().satisfies(plugin -> {
@@ -24,7 +28,7 @@ class IkasanPomModelTest {
             assertThat(plugin.getVersion()).isEqualTo("3.8.0");
             assertThat(plugin.getExecutions()).isEmpty();
         });
-        var reapplied = new IkasanPomModel(model);
+        IkasanPomModel reapplied = new IkasanPomModel(model);
         reapplied.applyBuildContract(pluginManifest());
         assertThat(reapplied.isDirty()).isFalse();
     }
@@ -32,13 +36,13 @@ class IkasanPomModelTest {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
     void explicitPluginVersionsAndConfigurationRemainDeveloperOwned(boolean managed) {
-        var model = new Model();
-        var build = new org.apache.maven.model.Build();
+        Model model = new Model();
+        Build build = new org.apache.maven.model.Build();
         model.setBuild(build);
-        var plugin = new org.apache.maven.model.Plugin();
+        Plugin plugin = new org.apache.maven.model.Plugin();
         plugin.setArtifactId("maven-compiler-plugin");
         plugin.setVersion("${team.compiler.version}");
-        var config = new org.codehaus.plexus.util.xml.Xpp3Dom("configuration");
+        Xpp3Dom config = new org.codehaus.plexus.util.xml.Xpp3Dom("configuration");
         plugin.setConfiguration(config);
         if (managed) {
             build.setPluginManagement(new org.apache.maven.model.PluginManagement());
@@ -50,13 +54,13 @@ class IkasanPomModelTest {
     }
 
     @Test void unversionedManagedPluginRetainsItsConfigurationWhileAcquiringTheDefault() {
-        var model = new Model();
-        var build = new org.apache.maven.model.Build();
+        Model model = new Model();
+        Build build = new org.apache.maven.model.Build();
         model.setBuild(build);
         build.setPluginManagement(new org.apache.maven.model.PluginManagement());
-        var plugin = new org.apache.maven.model.Plugin();
+        Plugin plugin = new org.apache.maven.model.Plugin();
         plugin.setArtifactId("maven-compiler-plugin");
-        var config = new org.codehaus.plexus.util.xml.Xpp3Dom("configuration");
+        Xpp3Dom config = new org.codehaus.plexus.util.xml.Xpp3Dom("configuration");
         plugin.setConfiguration(config);
         build.getPluginManagement().addPlugin(plugin);
         new IkasanPomModel(model).applyBuildContract(pluginManifest());
@@ -76,8 +80,8 @@ class IkasanPomModelTest {
         model.addProperty("maven.compiler.release", "7");
         model.addProperty("team.setting", "keep");
         model.addModule("user");
-        var build = new org.apache.maven.model.Build();
-        var plugin = new org.apache.maven.model.Plugin();
+        Build build = new org.apache.maven.model.Build();
+        Plugin plugin = new org.apache.maven.model.Plugin();
         plugin.setArtifactId("maven-compiler-plugin");
         plugin.setVersion("3.8.0");
         build.addPlugin(plugin);
@@ -87,7 +91,7 @@ class IkasanPomModelTest {
         dependency.setArtifactId("custom-library");
         dependency.setVersion("2.0");
         model.addDependency(dependency);
-        var manifest = new org.ikasan.studio.core.metapack.model.MetaPackManifest(1, "V" + version,
+        MetaPackManifest manifest = new org.ikasan.studio.core.metapack.model.MetaPackManifest(1, "V" + version,
                 version, javaVersion, java.util.List.of(new org.ikasan.studio.core.metapack.model.MetaPackManifest.BomImport(
                         "org.ikasan", "ikasan-eip-standalone-bom", version)), java.util.List.of());
         IkasanPomModel pom = new IkasanPomModel(model);

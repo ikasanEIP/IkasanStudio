@@ -7,6 +7,10 @@ import java.net.URLClassLoader;
 import java.net.URL;
 import java.lang.reflect.InvocationTargetException;
 import static org.junit.jupiter.api.Assertions.*;
+import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.util.stream.Stream;
 
 class FtpInputFixtureTemplateTest {
     @TempDir Path root;
@@ -24,8 +28,8 @@ class FtpInputFixtureTemplateTest {
                 "--release", "11", "-d", root.toString(), source.toString(), shared.toString()).redirectErrorStream(true).start();
         String diagnostics = new String(compiler.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(0, compiler.waitFor(), diagnostics);
-        try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
-            var write = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FtpInputFixture")
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader())) {
+            Method write = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FtpInputFixture")
                     .getMethod("write", Path.class, String.class, String.class, int.class, String.class);
             Path home = Files.createDirectory(root.resolve("ftp"));
             Path first = (Path) write.invoke(null, home, ".*\\.txt", null, 1, "first café");
@@ -35,14 +39,14 @@ class FtpInputFixtureTemplateTest {
             assertEquals("second", Files.readString(second));
             assertThrows(InvocationTargetException.class, () -> write.invoke(null, home, ".*\\.txt", null, 1, "overwrite"));
             assertEquals("first café", Files.readString(first));
-            var unsupported = assertThrows(InvocationTargetException.class,
+            InvocationTargetException unsupported = assertThrows(InvocationTargetException.class,
                     () -> write.invoke(null, home, "orders-[0-9]+\\.csv", null, 1, "input"));
             assertTrue(unsupported.getCause().getMessage().contains("test.ftp.input.filename.batch1"));
             Path custom = (Path) write.invoke(null, home, "orders-[0-9]+\\.csv", "orders-1.csv", 1, "custom");
             assertEquals("custom", Files.readString(custom));
             assertThrows(InvocationTargetException.class, () -> write.invoke(null, home, ".*", "../escape", 1, "bad"));
             assertThrows(InvocationTargetException.class, () -> write.invoke(null, home, ".*\\.txt", "bad.csv", 1, "bad"));
-            var copy = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FtpInputFixture")
+            Method copy = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FtpInputFixture")
                     .getMethod("copyResource", Path.class, String.class, String.class);
             Path resources = Files.createDirectories(root.resolve("input"));
             byte[] original = new byte[]{0, 1, (byte) 255, 13, 10, 42};
@@ -52,28 +56,28 @@ class FtpInputFixtureTemplateTest {
             assertArrayEquals(original, Files.readAllBytes(copied));
             assertThrows(InvocationTargetException.class,
                     () -> copy.invoke(null, home, ".*", "input/orders-2.csv"));
-            var missing = assertThrows(InvocationTargetException.class,
+            InvocationTargetException missing = assertThrows(InvocationTargetException.class,
                     () -> copy.invoke(null, home, ".*", "input/missing.csv"));
             assertTrue(missing.getCause().getMessage().contains("Missing test resource"));
-            var mismatch = assertThrows(InvocationTargetException.class,
+            InvocationTargetException mismatch = assertThrows(InvocationTargetException.class,
                     () -> copy.invoke(null, home, "only.txt", "input/orders-2.csv"));
             assertTrue(mismatch.getCause().getMessage().contains("consumer pattern"));
-            try (var paths = Files.list(root)) {
+            try (Stream<Path> paths = Files.list(root)) {
                 assertFalse(paths.anyMatch(path -> path.getFileName().toString().startsWith("file-input-")));
             }
-            try (var files = Files.list(home)) { assertEquals(4, files.count()); }
+            try (Stream<Path> files = Files.list(home)) { assertEquals(4, files.count()); }
             Class<?> sharedType = loader.loadClass("org.ikasan.studio.flowtests.support.utils.FileInputFixture");
-            var fixturePattern = sharedType.getMethod("localFixtureFilenames", Path.class);
-            var publish = sharedType.getMethod("copyLocalResource", Path.class, String.class);
+            Method fixturePattern = sharedType.getMethod("localFixtureFilenames", Path.class);
+            Method publish = sharedType.getMethod("copyLocalResource", Path.class, String.class);
             Path scanned = Files.createDirectory(root.resolve("studio-input-root"));
             String selection = (String) fixturePattern.invoke(null, scanned);
-            var matcher = scanned.getFileSystem().getPathMatcher("regex:" + selection.substring(selection.lastIndexOf('/') + 1));
+            PathMatcher matcher = scanned.getFileSystem().getPathMatcher("regex:" + selection.substring(selection.lastIndexOf('/') + 1));
             // Ikasan matches preVisitDirectory as well as visitFile: the root must not match.
             assertFalse(matcher.matches(scanned.getFileName()));
             Files.writeString(scanned.resolve("unrelated.txt"), "leave untouched");
             Path published = (Path) publish.invoke(null, scanned, "input/orders-2.csv");
             assertTrue(matcher.matches(published.getFileName()));
-            try (var scan = Files.walk(scanned)) {
+            try (Stream<Path> scan = Files.walk(scanned)) {
                 assertEquals(java.util.List.of(published), scan.filter(path -> matcher.matches(path.getFileName())).toList());
             }
             assertArrayEquals(Files.readAllBytes(resources.resolve("orders-2.csv")), Files.readAllBytes(published));
@@ -82,8 +86,8 @@ class FtpInputFixtureTemplateTest {
             Path later = (Path) publish.invoke(null, scanned, "input/third-without-extension");
             assertTrue(matcher.matches(later.getFileName()));
             assertEquals("third input", Files.readString(later));
-            var pattern = sharedType.getMethod("localFilenames", Path.class, String[].class);
-            var prepare = sharedType.getMethod("prepareLocalBatch", Path.class, int.class, String[].class);
+            Method pattern = sharedType.getMethod("localFilenames", Path.class, String[].class);
+            Method prepare = sharedType.getMethod("prepareLocalBatch", Path.class, int.class, String[].class);
             Path localHome = Files.createDirectory(root.resolve("local"));
             Files.writeString(resources.resolve("first[1].xml"), "first XML");
             Files.writeString(resources.resolve("second.xml"), "second XML");

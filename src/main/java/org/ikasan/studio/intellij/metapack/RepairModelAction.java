@@ -14,6 +14,10 @@ import org.ikasan.studio.ui.StudioUIUtils;
 import org.ikasan.studio.ui.UiContext;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.ikasan.studio.core.metapack.ModelPackRepair.Plan;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Review a validated model repair from Tools or the project recovery screen. */
 public final class RepairModelAction extends DumbAwareAction {
@@ -25,7 +29,7 @@ public final class RepairModelAction extends DumbAwareAction {
 
     public static void review(com.intellij.openapi.project.Project project) {
         if (project == null || project.isDisposed()) return;
-        var context = project.getService(UiContext.class);
+        UiContext context = project.getService(UiContext.class);
         boolean acquired = false;
         boolean applied = false;
         String title = StudioBundle.message("modelRepair.Title");
@@ -38,19 +42,21 @@ public final class RepairModelAction extends DumbAwareAction {
             AdoptMetaPackRevisionAction.checkUnsaved(project);
             if (context.getPropertiesPanel() != null && context.getPropertiesPanel().dataHasChangedAndOKToProcess())
                 throw new IllegalStateException(StudioBundle.message("message.ApplyOrDiscardThePendingPropertyEditsBeforeMigrating"));
-            var model = StudioProjectFiles.getModelJsonPath(project);
+            Path model = StudioProjectFiles.getModelJsonPath(project);
             String basePath = project.getBasePath();
             if (model == null || basePath == null) throw new IllegalStateException(StudioBundle.message("message.OpenAnIkasanProjectFirst"));
-            var plan = MetaPackUiTasks.run(project, title, () -> {
-                var candidate = ModelPackRepair.preview(Files.readString(model));
-                var restored = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(
+            Plan plan = MetaPackUiTasks.run(project, title, () -> {
+                Plan candidate = ModelPackRepair.preview(Files.readString(model));
+                Module restored = org.ikasan.studio.core.io.ComponentIO.validatePersistedModuleJson(
                         candidate.targetJson(), "repair rendering preview", false);
                 org.ikasan.studio.core.generator.ProjectArtifactRenderer.render(restored,
                         Files.readString(Path.of(basePath, StudioProjectFiles.POM_XML)));
                 return candidate;
             });
-            if (Messages.showOkCancelDialog(project, StudioBundle.message("modelRepair.Confirm", plan.previousPack(), plan.targetPack(), plan.previousRevision(), plan.targetRevision(), plan.previousRuntime(), plan.targetRuntime(), plan.javaVersion()),
-                    title, StudioBundle.message("modelRepair.Apply"), com.intellij.CommonBundle.getCancelButtonText(),
+            boolean revisionUpdate = plan.isRevisionUpdate();
+            if (revisionUpdate) title = StudioBundle.message("modelUpdate.Title");
+            if (Messages.showOkCancelDialog(project, StudioBundle.message(revisionUpdate ? "modelUpdate.Confirm" : "modelRepair.Confirm", plan.previousPack(), plan.targetPack(), plan.previousRevision(), plan.targetRevision(), plan.previousRuntime(), plan.targetRuntime(), plan.javaVersion()),
+                    title, StudioBundle.message(revisionUpdate ? "modelUpdate.Apply" : "modelRepair.Apply"), com.intellij.CommonBundle.getCancelButtonText(),
                     Messages.getQuestionIcon()) != Messages.OK) return;
             if (project.isDisposed()) return;
             if (!project.getService(org.ikasan.studio.intellij.execution.IkasanDebugSessionService.class).isModuleStopped())
@@ -59,19 +65,19 @@ public final class RepairModelAction extends DumbAwareAction {
             MetaPackUiTasks.run(project, title, () -> { ModelPackRepair.apply(model, plan); return null; });
             applied = true;
             context.blockModelPersistence(StudioBundle.message("modelRepair.Reloading"));
-            var file = MetaPackUiTasks.run(project, title, () -> {
-                var refreshed = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(model);
+            VirtualFile file = MetaPackUiTasks.run(project, title, () -> {
+                VirtualFile refreshed = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(model);
                 if (refreshed != null) refreshed.refresh(false, false);
                 return refreshed;
             });
             if (file != null) {
-                var document = FileDocumentManager.getInstance().getCachedDocument(file);
+                Document document = FileDocumentManager.getInstance().getCachedDocument(file);
                 if (document != null) com.intellij.openapi.application.ApplicationManager.getApplication().runWriteAction(() ->
                         FileDocumentManager.getInstance().reloadFromDisk(document));
             }
             // Reopening starts the normal background model-loading lifecycle, including pack validation.
             project.getService(StudioProjectInitialisationService.class).reloadModel();
-            StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message("modelRepair.Applied", plan.targetPack(), plan.targetRevision()));
+            StudioUIUtils.displayIdeaInfoMessage(project, StudioBundle.message(revisionUpdate ? "modelUpdate.Applied" : "modelRepair.Applied", plan.targetPack(), plan.targetRevision()));
         } catch (com.intellij.openapi.progress.ProcessCanceledException cancelled) { throw cancelled; }
         catch (Exception e) { Messages.showErrorDialog(project, StudioBundle.message(applied ? "modelRepair.PostApplyFailed" : "modelRepair.Failed", e.getMessage()), title); }
         finally { if (acquired) context.endMigration(); }

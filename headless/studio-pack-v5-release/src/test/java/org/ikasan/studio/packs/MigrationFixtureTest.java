@@ -15,6 +15,14 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.migration.ModelMigration.Plan;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /** Explicit development rehearsal; the released migration paths remain unchanged. */
 class MigrationFixtureTest {
@@ -28,7 +36,7 @@ class MigrationFixtureTest {
     }
 
     private FlowElement element(String version, String key, String name) throws Exception {
-        var result = FlowElement.flowElementBuilder()
+        FlowElement result = FlowElement.flowElementBuilder()
                 .componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(version, key))
                 .componentName(name).build();
         result.defaultUnsetMandatoryProperties();
@@ -36,11 +44,11 @@ class MigrationFixtureTest {
     }
 
     private String source(String version, boolean converter) throws Exception {
-        var flow = Flow.flowBuilder().metapackVersion(version).name("Example Flow")
+        Flow flow = Flow.flowBuilder().metapackVersion(version).name("Example Flow")
                 .consumer(element(version, "Event Generating Consumer", "Input")).build();
-        var elements = new ArrayList<FlowElement>();
+        ArrayList<FlowElement> elements = new ArrayList<>();
         if (converter) {
-            var component = element(version, "Converter", "Convert");
+            FlowElement component = element(version, "Converter", "Convert");
             component.setPropertyValue("userImplementedClassName", "ConvertMessage");
             component.setPropertyValue("fromType", version.startsWith("V3") ? "javax.jms.Message" : "jakarta.jms.Message");
             component.setPropertyValue("toType", "javax.mail.Message");
@@ -48,7 +56,7 @@ class MigrationFixtureTest {
         }
         elements.add(element(version, "Dev Null Producer", "Output"));
         flow.setFlowRoute(FlowRoute.flowRouteBuilder().flow(flow).flowElements(elements).build());
-        var module = Module.moduleBuilder().version(version).name("MigrationReview")
+        Module module = Module.moduleBuilder().version(version).name("MigrationReview")
                 .applicationPackageName("org.example").port("8080").h2PortNumber("8092")
                 .h2WebPortNumber("8093").flows(List.of(flow)).build();
         module.setPropertyValue("flowStartupType", "MANUAL");
@@ -59,19 +67,19 @@ class MigrationFixtureTest {
         Path root = Path.of(System.getProperty("studio.v5.migration", temporary.toString()));
         for (String version : SOURCES) {
             String original = source(version, false);
-            var plan = ModelMigration.analyseWithRules(original, rules(version));
+            Plan plan = ModelMigration.analyseWithRules(original, rules(version));
             assertTrue(plan.canApply(), plan.report());
             assertEquals(original, plan.sourceJson());
             assertTrue(plan.report().contains("Java build baseline to 25"));
-            var module = ComponentIO.validatePersistedModuleJson(plan.targetJson(), "V5 migration rehearsal", false);
-            var files = DevelopmentFixtureTest.render(module);
+            Module module = ComponentIO.validatePersistedModuleJson(plan.targetJson(), "V5 migration rehearsal", false);
+            Map<String,String> files = DevelopmentFixtureTest.render(module);
             files.compute("pom.xml", (key, value) -> Objects.requireNonNull(value, key).replace("<artifactId>ikasan5-review</artifactId>",
                     "<artifactId>migration-" + version.toLowerCase(Locale.ROOT) + "</artifactId>"));
             files.put("migration-source.json", original);
             files.put("migration-target.json", plan.targetJson());
             files.put("migration-report.txt", "DEVELOPMENT REHEARSAL ONLY: not an enabled IDE migration path.\n"
                     + "User classes and existing flow tests are not rewritten by this fixture.\n" + plan.report());
-            for (var file : files.entrySet()) {
+            for (Entry<String,String> file : files.entrySet()) {
                 Path target = root.resolve(version).resolve(file.getKey());
                 Files.createDirectories(target.getParent());
                 Files.writeString(target, file.getValue());
@@ -86,22 +94,22 @@ class MigrationFixtureTest {
     }
 
     @Test void checksCompleteCatalogueMappingsAndPreservesOpaqueData() throws Exception {
-        var json = StudioJson.newObjectMapper();
+        ObjectMapper json = StudioJson.newObjectMapper();
         for (String version : SOURCES) {
-            var rules = rules(version);
+            MigrationRules rules = rules(version);
             assertEquals(ComponentLibrary.getIkasanComponents(version).keySet(), rules.componentMappings().keySet());
-            for (var mapping : rules.componentMappings().entrySet()) {
+            for (Entry<String,String> mapping : rules.componentMappings().entrySet()) {
                 assertEquals(ComponentLibrary.getIkasanComponentByKeyMandatory(version, mapping.getKey()).getComponentType(),
                         ComponentLibrary.getIkasanComponentByKeyMandatory(TARGET, mapping.getValue()).getComponentType());
             }
             ObjectNode original = (ObjectNode) json.readTree(source(version, true));
             original.putObject("teamSettings").put("literal", "javax.jms.Message");
-            var plan = ModelMigration.analyseWithRules(original.toString(), rules);
+            Plan plan = ModelMigration.analyseWithRules(original.toString(), rules);
             assertTrue(plan.canApply(), plan.report());
-            var target = json.readTree(plan.targetJson());
+            JsonNode target = json.readTree(plan.targetJson());
             assertEquals(original.path("teamSettings"), target.path("teamSettings"));
             assertEquals(original.path("flows").get(0).path("transitions"), target.path("flows").get(0).path("transitions"));
-            var component = target.path("flows").get(0).path("flowElements").get(0);
+            JsonNode component = target.path("flows").get(0).path("flowElements").get(0);
             assertEquals("jakarta.jms.Message", component.path("fromType").asText());
             assertEquals("javax.mail.Message", component.path("toType").asText());
             assertEquals("ConvertMessage", component.path("userImplementedClassName").asText());
@@ -125,14 +133,14 @@ class MigrationFixtureTest {
             String original = source(version, false);
             assertFalse(ModelMigration.analyse(original, TARGET).canApply());
             assertThrows(IllegalArgumentException.class, () -> MigrationRules.load(version, TARGET));
-            var wrongRules = rules(version.equals("V3.3.9") ? "V4.1.6" : "V3.3.9");
+            MigrationRules wrongRules = rules(version.equals("V3.3.9") ? "V4.1.6" : "V3.3.9");
             assertThrows(IllegalArgumentException.class, () -> ModelMigration.analyseWithRules(original, wrongRules));
             assertThrows(Exception.class, () -> ModelMigration.analyseWithRules(original + " {}", rules(version)));
-            var valid = rules(version);
-            var unsupportedSchema = new MigrationRules(2, version, TARGET, valid.componentMappings(),
+            MigrationRules valid = rules(version);
+            MigrationRules unsupportedSchema = new MigrationRules(2, version, TARGET, valid.componentMappings(),
                     valid.typePrefixes(), valid.userImportPrefixes(), valid.userImportApplicability());
             assertThrows(IllegalArgumentException.class, () -> ModelMigration.analyseWithRules(original, unsupportedSchema));
-            var unmapped = new MigrationRules(1, version, TARGET, Map.of(), valid.typePrefixes(),
+            MigrationRules unmapped = new MigrationRules(1, version, TARGET, Map.of(), valid.typePrefixes(),
                     valid.userImportPrefixes(), valid.userImportApplicability());
             assertFalse(ModelMigration.analyseWithRules(original, unmapped).canApply());
             ObjectNode broken = (ObjectNode) StudioJson.newObjectMapper().readTree(original);

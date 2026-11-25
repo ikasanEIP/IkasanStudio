@@ -12,6 +12,11 @@ import org.ikasan.studio.core.metapack.model.ComponentMeta;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 
 /**
  * Adapts Ikasan's runtime topology and separate ConfigurationMetaData JSON to a Studio design.
@@ -55,18 +60,18 @@ public final class IkasanRuntimeImport {
             if (!root.path("flows").isArray() || root.path("flows").size() > 1000) return;
             Map<String, JsonNode> configs = configurationJson.isBlank() ? Map.of() : configurations(read(configurationJson));
             int f = 0;
-            for (var flow : root.path("flows")) {
+            for (JsonNode flow : root.path("flows")) {
                 f++;
-                var nodes = new LinkedHashMap<String, JsonNode>();
+                LinkedHashMap<String,JsonNode> nodes = new LinkedHashMap<String, JsonNode>();
                 if (flow.path("consumer").isObject()) nodes.put(flow.path("consumer").path("componentName").asText(), flow.path("consumer"));
-                for (var node : flow.path("flowElements")) {
+                for (JsonNode node : flow.path("flowElements")) {
                     if (nodes.size() > 500) break;
                     nodes.putIfAbsent(node.path("componentName").asText(), node);
                 }
                 int c = 0;
-                for (var raw : nodes.values()) {
+                for (JsonNode raw : nodes.values()) {
                     String location = "F" + f + "/C" + ++c;
-                    var candidates = exactCandidates(raw, pack);
+                    List<ComponentMeta> candidates = exactCandidates(raw, pack);
                     ComponentMeta meta;
                     try { meta = resolve(raw, pack, null, configs); }
                     catch (StudioBuildException ambiguous) {
@@ -79,7 +84,7 @@ public final class IkasanRuntimeImport {
                         report.publicContext(location, meta.getImplementingClass(), null);
                     }
                     String id = raw.path("configurationId").asText("");
-                    var config = configs.get(id);
+                    JsonNode config = configs.get(id);
                     if (config == null) {
                         if (!id.isBlank()) report.issue(location, "CONFIGURATION_NOT_SUPPLIED");
                         continue;
@@ -87,13 +92,13 @@ public final class IkasanRuntimeImport {
                     boolean matchingClass = config.path("implementingClass").asText().equals(configurationClass(meta));
                     if (!matchingClass) report.issue(location, "CONFIGURATION_CLASS_MISMATCH");
                     int p = 0;
-                    for (var parameter : config.path("parameters")) {
+                    for (JsonNode parameter : config.path("parameters")) {
                         p++;
-                        var value = parameter.get("value");
+                        JsonNode value = parameter.get("value");
                         if (value == null || value.isNull()) continue;
                         String name = parameter.path("name").asText();
                         String mapped = meta.runtimeConfigurationProperty(name);
-                        var property = mapped == null ? null : meta.getAllowableProperties().get(mapped);
+                        ComponentPropertyMeta property = mapped == null ? null : meta.getAllowableProperties().get(mapped);
                         if (matchingClass && property != null && compatible(value, property.getPropertyDataType())) continue;
                         if (matchingClass && value.equals(meta.getRuntimeConfigurationDefaults().get(name))) continue;
                         String field = location + "/P" + p;
@@ -144,7 +149,7 @@ public final class IkasanRuntimeImport {
             PackRecommendation nearest = null;
             for (String pack : packs) {
                 String target = ComponentLibrary.getMetaPackManifest(pack).ikasanVersion();
-                var candidate = new PackRecommendation(pack, source, target);
+                org.ikasan.studio.core.importer.IkasanRuntimeImport.PackRecommendation candidate = new PackRecommendation(pack, source, target);
                 if (candidate.exact()) return Optional.of(candidate);
                 if (forwardRelease(source, target) && (nearest == null
                         || compareRelease(target, nearest.targetVersion()) < 0)) nearest = candidate;
@@ -192,7 +197,7 @@ public final class IkasanRuntimeImport {
                 for (JsonNode element : elements) {
                     ComponentRef ref = new ComponentRef(required(flow, "name"), required(element, "componentName"));
                     if (!seen.add(ref)) continue;
-                    var candidates = exactCandidates(element, pack);
+                    List<ComponentMeta> candidates = exactCandidates(element, pack);
                     if (candidates.size() > 1 && inferredVariant(element, configs, candidates) == null) choices.add(new MappingChoice(ref, candidates.stream().map(ComponentMeta::getName).sorted().toList()));
                 }
             }
@@ -221,7 +226,7 @@ public final class IkasanRuntimeImport {
                 throw problem("This is a Studio model. Use the Studio model import option.");
             if (packageName == null || !javax.lang.model.SourceVersion.isName(packageName))
                 throw problem("Supply a valid application Java package.");
-            var manifest = ComponentLibrary.getMetaPackManifest(pack);
+            MetaPackManifest manifest = ComponentLibrary.getMetaPackManifest(pack);
             String runtimeVersion = topology.path("ikasanVersion").asText("");
             if (!runtimeVersion.isBlank() && !runtimeVersion.equals(manifest.ikasanVersion())
                     && !forwardRelease(runtimeVersion, manifest.ikasanVersion()))
@@ -354,7 +359,7 @@ public final class IkasanRuntimeImport {
         if (input.hasNonNull("configurationId")) result.set("configurationId", input.get("configurationId"));
         result.set("transitions", input.get("transitions").deepCopy());
         ArrayNode elements = result.putArray("flowElements");
-        for (var entry : components.entrySet()) {
+        for (Entry<String,JsonNode> entry : components.entrySet()) {
             JsonNode raw = entry.getValue();
             ComponentRef ref = new ComponentRef(flowName, entry.getKey());
             ComponentMeta meta = resolve(raw, pack, mappings.get(ref), configs);
@@ -414,7 +419,7 @@ public final class IkasanRuntimeImport {
                 }
             }
             String inputTypeProperty = meta.getExpectedInputTypeProperty();
-            var inputType = inputTypeProperty == null ? null : meta.getAllowableProperties().get(inputTypeProperty);
+            ComponentPropertyMeta inputType = inputTypeProperty == null ? null : meta.getAllowableProperties().get(inputTypeProperty);
             if (inputType != null && inputType.isMandatory() && !target.hasNonNull(inputTypeProperty))
                 review.add(flowName + " → " + entry.getKey() + ": supply " + inputTypeProperty
                         + " (the input Java class); runtime metadata does not include this builder setting.");
@@ -436,7 +441,7 @@ public final class IkasanRuntimeImport {
         String type = required(raw, "componentType"), implementation = required(raw, "implementingClass");
         if (!javax.lang.model.SourceVersion.isName(implementation))
             throw problem("Component " + required(raw, "componentName") + ": implementingClass must be a Java class name.");
-        var candidates = exactCandidates(raw, pack);
+        List<ComponentMeta> candidates = exactCandidates(raw, pack);
         if (selectedVariant != null) {
             return candidates.stream().filter(m -> selectedVariant.equals(m.getName())).findFirst()
                     .orElseThrow(() -> problem("Selected variant does not match runtime component " + raw.path("componentName").asText()));
@@ -452,7 +457,7 @@ public final class IkasanRuntimeImport {
         candidates = ComponentLibrary.getPaletteComponentList(pack).stream().filter(m -> type.equals(m.getComponentType())
                 && m.isGeneratesUserImplementedClass() && (m.isGeneric() || m.getAdditionalKey() == null)).toList();
         if (candidates.size() > 1) {
-            var genericContracts = candidates.stream().filter(m -> m.isGeneric()
+            List<ComponentMeta> genericContracts = candidates.stream().filter(m -> m.isGeneric()
                     || (type + ".Custom").equals(m.getImplementingClass())).toList();
             if (genericContracts.size() == 1) return genericContracts.get(0);
         }
@@ -462,7 +467,7 @@ public final class IkasanRuntimeImport {
 
     private static String configurationClass(ComponentMeta meta) {
         String declared = meta.getRuntimeConfigurationClass();
-        var property = meta.getAllowableProperties().get("configuration");
+        ComponentPropertyMeta property = meta.getAllowableProperties().get("configuration");
         return declared != null ? declared : property == null ? null : property.getUsageDataType();
     }
 
@@ -472,7 +477,7 @@ public final class IkasanRuntimeImport {
         if (config == null) return null;
         String type = config.path("implementingClass").asText("");
         if (type.isBlank()) return null;
-        var matches = candidates.stream().filter(candidate -> type.equals(configurationClass(candidate))).toList();
+        List<ComponentMeta> matches = candidates.stream().filter(candidate -> type.equals(configurationClass(candidate))).toList();
         // No guessing from names, cron expressions, parameter values, nearby records or Java class inheritance.
         return matches.size() == 1 ? matches.get(0) : null;
     }
@@ -485,7 +490,7 @@ public final class IkasanRuntimeImport {
         for (JsonNode parameter : config.path("parameters")) {
             String name = required(parameter, "name");
             String studioProperty = meta.runtimeConfigurationProperty(name);
-            var property = studioProperty == null ? null : meta.getAllowableProperties().get(studioProperty);
+            ComponentPropertyMeta property = studioProperty == null ? null : meta.getAllowableProperties().get(studioProperty);
             JsonNode value = parameter.get("value");
             // Unset REST parameters are provenance, not work for the developer to resolve.
             if (value == null || value.isNull()) continue;

@@ -10,8 +10,8 @@ import java.util.concurrent.atomic.AtomicReference;
 final class MetaPackUiTasks {
     private MetaPackUiTasks() { }
     static <T> T run(Project project, String title, Callable<T> work) throws Exception {
-        var result = new AtomicReference<T>();
-        var failure = new AtomicReference<Exception>();
+        AtomicReference<T> result = new AtomicReference<>();
+        AtomicReference<Exception> failure = new AtomicReference<>();
         ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> {
             try { result.set(work.call()); }
             catch (ProcessCanceledException cancelled) { throw cancelled; }

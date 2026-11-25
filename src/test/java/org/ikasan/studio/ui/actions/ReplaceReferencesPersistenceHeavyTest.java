@@ -15,6 +15,11 @@ import org.ikasan.studio.ui.UiContext;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import com.intellij.openapi.ui.TestDialog;
+import org.ikasan.studio.core.model.analysis.ModelReferenceReplacement.Change;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Real model persistence and IntelliJ Undo; source generation is tested independently. */
 public class ReplaceReferencesPersistenceHeavyTest extends HeavyPlatformTestCase {
@@ -25,25 +30,25 @@ public class ReplaceReferencesPersistenceHeavyTest extends HeavyPlatformTestCase
 
     public void testApplyUndoAndRedoKeepDiskAndLiveModelTogether() throws Exception {
         createTestProjectStructure("src/test/testData/ikasanStandardSampleApps/general/");
-        var consumer = TestFixtures.getSpringJmsConsumer(TestFixtures.BASE_META_PACK);
+        FlowElement consumer = TestFixtures.getSpringJmsConsumer(TestFixtures.BASE_META_PACK);
         consumer.setPropertyValue("trustedObjectPackages", "org.example.cat.domain");
-        var flow = TestFixtures.getUnbuiltFlow(TestFixtures.BASE_META_PACK).consumer(consumer).build();
-        var module = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, List.of(flow));
-        var context = myProject.getService(UiContext.class);
+        Flow flow = TestFixtures.getUnbuiltFlow(TestFixtures.BASE_META_PACK).consumer(consumer).build();
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(TestFixtures.BASE_META_PACK, List.of(flow));
+        UiContext context = myProject.getService(UiContext.class);
         context.setIkasanModule(module);
         context.setPipsiIkasanModel(new GeneratedProjectSynchronizer(myProject) {
             @Override public CompletableFuture<Void> asynchGenerateSourceFromModelJsonInstanceAndSaveToDisk(GenerationRequest request) {
                 return CompletableFuture.completedFuture(null);
             }
         });
-        var changes = ModelReferenceReplacement.preview(module, "org.example.cat.domain", "org.example.debug.domain");
+        List<Change> changes = ModelReferenceReplacement.preview(module, "org.example.cat.domain", "org.example.debug.domain");
         ReplaceReferencesAction.apply(myProject, module, changes);
         VirtualFile projectDirectory = StudioProjectFiles.getProjectBaseDir(myProject);
         assertNotNull("Test project directory must exist", projectDirectory);
         assertTrue(readPersistedModel(projectDirectory).contains("org.example.debug.domain"));
-        var undo = UndoManager.getInstance(myProject);
+        UndoManager undo = UndoManager.getInstance(myProject);
         assertTrue(undo.isUndoAvailable(null));
-        var previousDialog = com.intellij.openapi.ui.TestDialogManager.setTestDialog(com.intellij.openapi.ui.TestDialog.OK);
+        TestDialog previousDialog = com.intellij.openapi.ui.TestDialogManager.setTestDialog(com.intellij.openapi.ui.TestDialog.OK);
         try {
             undo.undo(null);
             PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();

@@ -59,8 +59,8 @@ public final class ImplementationReadiness {
                     }
                     // The converter stub has a TODO comment directly above its throwing stub: report the stronger finding once.
                     for (int i = findings.size() - 1; i > 0; i--) {
-                        var stub = findings.get(i);
-                        var todo = findings.get(i - 1);
+                        org.ikasan.studio.core.ai.ImplementationReadiness.Finding stub = findings.get(i);
+                        org.ikasan.studio.core.ai.ImplementationReadiness.Finding todo = findings.get(i - 1);
                         if ("THROWING_STUB".equals(stub.code()) && "REVIEW_SCAFFOLD".equals(todo.code()) && todo.file().equals(stub.file())
                                 && todo.line() + 1 == stub.line()) findings.remove(i - 1);
                     }

@@ -9,6 +9,8 @@ import org.ikasan.studio.ui.UiContext;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.intellij.execution.IndependentH2RunConfigurationService.State;
 
 /** Canvas controls reflect the actual project-scoped H2 process, including normal IDE Run/Stop actions. */
 public final class LaunchH2Action implements ActionListener {
@@ -24,11 +26,11 @@ public final class LaunchH2Action implements ActionListener {
         project.getService(IndependentH2RunConfigurationService.class).toggle(); refresh();
     }
     private void refresh() {
-        var model = project.getService(UiContext.class).getIkasanModule();
+        Module model = project.getService(UiContext.class).getIkasanModule();
         refreshPresentation(model == null || model.getUseEmbeddedH2());
     }
     public void refreshPresentation(boolean embedded) {
-        var state = project.getService(IndependentH2RunConfigurationService.class).state();
+        State state = project.getService(IndependentH2RunConfigurationService.class).state();
         String key = switch (state) {
             case STOPPED -> component instanceof JMenuItem ? "menu.LaunchH2" : "button.H2Start";
             case RUNNING -> "h2.independent.stop";

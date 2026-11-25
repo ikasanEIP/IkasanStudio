@@ -10,23 +10,32 @@ import org.ikasan.studio.intellij.project.StudioProjectFiles;
 import javax.swing.*;
 import java.nio.file.Files;
 import java.util.List;
+import com.intellij.diff.requests.SimpleDiffRequest;
+import com.intellij.openapi.editor.Document;
+import java.awt.Component;
+import java.lang.reflect.Field;
+import java.nio.file.Path;
+import javax.swing.JButton;
+import javax.swing.JTable;
+import org.ikasan.studio.core.importer.SourceModuleImport.PropertyFile;
+import org.mockito.MockedStatic;
 
 public class ImportEnvironmentPropertiesDialogHeavyTest extends HeavyPlatformTestCase {
     public void testDiscoveredPropertiesShowOriginalAndDeveloperOwnedDestinationWithoutWriting() throws Exception {
-        var discovered = new org.ikasan.studio.core.importer.SourceModuleImport.PropertyFile(
+        PropertyFile discovered = new org.ikasan.studio.core.importer.SourceModuleImport.PropertyFile(
                 "src/main/resources/application-int.properties", "custom.value=${SERVICE_VALUE}", "int");
-        var dialog = new ImportEnvironmentPropertiesDialog(getProject(), List.of(discovered));
-        try (var projectFiles = org.mockito.Mockito.mockStatic(StudioProjectFiles.class)) {
-            var use = findButton(dialog.createCenterPanel(),
+        ImportEnvironmentPropertiesDialog dialog = new ImportEnvironmentPropertiesDialog(getProject(), List.of(discovered));
+        try (MockedStatic<StudioProjectFiles> projectFiles = org.mockito.Mockito.mockStatic(StudioProjectFiles.class)) {
+            JButton use = findButton(dialog.createCenterPanel(),
                     org.ikasan.studio.ui.StudioBundle.message("sourceImport.useProperties"));
             assertNotNull(use);
             use.doClick();
             assertEquals(discovered.text(), contents(dialog).getText());
-            var table = table(dialog);
+            JTable table = table(dialog);
             assertEquals(discovered.source(), table.getValueAt(0, 0));
             assertEquals(EnvironmentProperties.USER_CONFIGURATION, table.getValueAt(0, 2));
             assertNotNull(dialog.doValidate());
-            var diff = dialog.comparison();
+            SimpleDiffRequest diff = dialog.comparison();
             assertNotNull(diff);
             assertEquals(discovered.text(), ((DocumentContent) diff.getContents().get(0)).getDocument().getText());
             assertFalse(((DocumentContent) diff.getContents().get(0)).getDocument().isWritable());
@@ -36,20 +45,20 @@ public class ImportEnvironmentPropertiesDialogHeavyTest extends HeavyPlatformTes
     }
 
     public void testCopyRevertAndInputEditsRequireFreshExplicitSelectionAndCancelWritesNothing() throws Exception {
-        var root = Files.createTempDirectory("studio-properties-copy");
-        var target = root.resolve(EnvironmentProperties.USER_CONFIGURATION);
+        Path root = Files.createTempDirectory("studio-properties-copy");
+        Path target = root.resolve(EnvironmentProperties.USER_CONFIGURATION);
         Files.createDirectories(target.getParent());
         Files.writeString(target, "custom.value=destination\nkeep=true\n");
-        var dialog = new ImportEnvironmentPropertiesDialog(getProject(), root);
-        try (var projectFiles = org.mockito.Mockito.mockStatic(StudioProjectFiles.class)) {
+        ImportEnvironmentPropertiesDialog dialog = new ImportEnvironmentPropertiesDialog(getProject(), root);
+        try (MockedStatic<StudioProjectFiles> projectFiles = org.mockito.Mockito.mockStatic(StudioProjectFiles.class)) {
             contents(dialog).setText("custom.value=original-secret\n");
             table(dialog).getModel().setValueAt(true, 0, 1);
             assertNull(dialog.doValidate());
             assertEquals("custom.value=original-secret\n", field(dialog, "pending"));
             assertEquals("custom.value=original-secret\n", contents(dialog).getText());
-            var diff = dialog.comparison();
+            SimpleDiffRequest diff = dialog.comparison();
             assertNotNull(diff);
-            var pendingDocument = ((DocumentContent) diff.getContents().get(1)).getDocument();
+            Document pendingDocument = ((DocumentContent) diff.getContents().get(1)).getDocument();
             assertEquals("custom.value=original-secret\n", pendingDocument.getText());
             table(dialog).getModel().setValueAt(false, 0, 1);
             assertNotNull(dialog.doValidate());
@@ -69,18 +78,18 @@ public class ImportEnvironmentPropertiesDialogHeavyTest extends HeavyPlatformTes
     }
 
     public void testPartialPreviewPreservesOriginalAndDestinationUntilImport() throws Exception {
-        var root = Files.createTempDirectory("studio-properties-merge");
-        var target = root.resolve(EnvironmentProperties.USER_CONFIGURATION);
+        Path root = Files.createTempDirectory("studio-properties-merge");
+        Path target = root.resolve(EnvironmentProperties.USER_CONFIGURATION);
         Files.createDirectories(target.getParent());
         Files.writeString(target, "host=destination\r\nkeep=true\r\n");
-        var dialog = new ImportEnvironmentPropertiesDialog(getProject(), root);
-        try (var projectFiles = org.mockito.Mockito.mockStatic(StudioProjectFiles.class)) {
+        ImportEnvironmentPropertiesDialog dialog = new ImportEnvironmentPropertiesDialog(getProject(), root);
+        try (MockedStatic<StudioProjectFiles> projectFiles = org.mockito.Mockito.mockStatic(StudioProjectFiles.class)) {
             String original = "host=original\nextra=not-selected\n";
             contents(dialog).setText(original);
-            var diff = dialog.comparison();
+            SimpleDiffRequest diff = dialog.comparison();
             assertNotNull(diff);
             assertEquals(original, ((DocumentContent) diff.getContents().get(0)).getDocument().getText());
-            var right = ((DocumentContent) diff.getContents().get(1)).getDocument();
+            Document right = ((DocumentContent) diff.getContents().get(1)).getDocument();
             assertEquals("host=destination\nkeep=true\n", right.getText());
             WriteAction.run(() -> right.setText("host=original\nkeep=true\n"));
             dialog.acceptComparison();
@@ -96,10 +105,10 @@ public class ImportEnvironmentPropertiesDialogHeavyTest extends HeavyPlatformTes
     }
 
     private JButton findButton(java.awt.Container parent, String text) {
-        for (var component : parent.getComponents()) {
+        for (Component component : parent.getComponents()) {
             if (component instanceof JButton button && text.equals(button.getText())) return button;
             if (component instanceof java.awt.Container child) {
-                var found = findButton(child, text);
+                JButton found = findButton(child, text);
                 if (found != null) return found;
             }
         }
@@ -109,7 +118,7 @@ public class ImportEnvironmentPropertiesDialogHeavyTest extends HeavyPlatformTes
     private JTextArea contents(ImportEnvironmentPropertiesDialog dialog) throws Exception { return (JTextArea) field(dialog, "contents"); }
     private JTable table(ImportEnvironmentPropertiesDialog dialog) throws Exception { return (JTable) field(dialog, "files"); }
     private Object field(Object owner, String name) throws Exception {
-        var field = owner.getClass().getDeclaredField(name);
+        Field field = owner.getClass().getDeclaredField(name);
         field.setAccessible(true);
         return field.get(owner);
     }

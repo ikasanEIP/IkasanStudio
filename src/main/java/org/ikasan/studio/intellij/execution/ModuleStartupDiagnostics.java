@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.wm.ToolWindow;
+import org.ikasan.studio.intellij.execution.ModuleStartupOutput.Failure;
 
 /** Observes each module launch before its first output, independently of editor ownership and process liveness. */
 @Service(Service.Level.PROJECT)
@@ -41,7 +43,7 @@ public final class ModuleStartupDiagnostics implements Disposable {
         project.getMessageBus().connect(this).subscribe(ExecutionManager.EXECUTION_TOPIC, new ExecutionListener() {
             @Override public void processStarted(@NotNull String executorId, @NotNull ExecutionEnvironment environment, @NotNull ProcessHandler handler) {
                 synchronized (ModuleStartupDiagnostics.this) {
-                    var entry = active.get(handler);
+                    org.ikasan.studio.intellij.execution.ModuleStartupDiagnostics.Entry entry = active.get(handler);
                     if (entry != null && entry.generation == generation)
                         debug = DefaultDebugExecutor.EXECUTOR_ID.equals(executorId);
                 }
@@ -50,14 +52,14 @@ public final class ModuleStartupDiagnostics implements Disposable {
     }
 
     public synchronized String message() {
-        var failure = problem;
+        Failure failure = problem;
         if (failure == null) return null;
         return failure.port() == null ? StudioBundle.message(failure.prematureShutdown() ? "startup.prematureShutdown" : "startup.failure")
                 : StudioBundle.message("startup.portConflict", failure.port().toString());
     }
 
     public String bannerMessage() {
-        var failure = problem;
+        Failure failure = problem;
         if (failure == null) return "";
         return failure.port() == null ? StudioBundle.message(failure.prematureShutdown() ? "startup.prematureShutdownBanner" : "startup.failureBanner")
                 : StudioBundle.message("startup.portBanner", failure.port().toString());
@@ -76,7 +78,7 @@ public final class ModuleStartupDiagnostics implements Disposable {
             @Override public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
                 if (entry.stopping) return;
                 if (!ProcessOutputType.isStdout(outputType) && !ProcessOutputType.isStderr(outputType)) return;
-                var failure = entry.output.accept(event.getText());
+                Failure failure = entry.output.accept(event.getText());
                 if (failure != null) report(entry, failure);
             }
             @Override public void processWillTerminate(@NotNull ProcessEvent event, boolean willBeDestroyed) {
@@ -123,7 +125,7 @@ public final class ModuleStartupDiagnostics implements Disposable {
 
     public void showOutput() {
         if (disposed || project.isDisposed()) return;
-        var window = ToolWindowManager.getInstance(project).getToolWindow(debug ? "Debug" : "Run");
+        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(debug ? "Debug" : "Run");
         if (window != null) window.activate(null);
     }
 

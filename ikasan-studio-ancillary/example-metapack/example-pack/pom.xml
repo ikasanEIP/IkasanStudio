@@ -77,7 +77,7 @@
                 <artifactItem>
                   <groupId>org.ikasan.studio</groupId>
                   <artifactId>studio-pack-v4</artifactId>
-                  <version>0.1.1-SNAPSHOT</version>
+                  <version>0.1.2-SNAPSHOT</version>
                   <outputDirectory>${project.build.directory}/baseline</outputDirectory>
                   <includes>studio/metapack/V4.1.6/**</includes>
                 </artifactItem>

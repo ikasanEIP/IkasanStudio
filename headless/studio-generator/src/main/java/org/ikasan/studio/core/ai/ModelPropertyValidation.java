@@ -10,6 +10,11 @@ import org.ikasan.studio.core.persistence.json.StudioJson;
 import java.util.*;
 import java.util.stream.Stream;
 import static org.ikasan.studio.core.ai.ImplementationReadiness.Target;
+import java.util.ArrayList;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.ai.ImplementationReadiness.Finding;
+import org.ikasan.studio.core.metapack.model.ExceptionActionMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
 
 /** Validates saved values without instantiating components, changing the model or revealing credentials. */
 final class ModelPropertyValidation {
@@ -17,7 +22,7 @@ final class ModelPropertyValidation {
     private ModelPropertyValidation() { }
 
     static List<ImplementationReadiness.Finding> scan(JsonNode model) {
-        var findings = new ArrayList<ImplementationReadiness.Finding>();
+        ArrayList<Finding> findings = new ArrayList<>();
         String pack = model.path("version").asText("");
         if (pack.isBlank()) return findings;
         try {
@@ -30,10 +35,10 @@ final class ModelPropertyValidation {
                 if (flow.path("consumer").isObject()) components.add(flow.get("consumer"));
                 flow.path("flowElements").forEach(components::add);
                 if (flow.path("exceptionResolver").isObject()) {
-                    var resolver = (org.ikasan.studio.core.metapack.model.ExceptionResolverMeta)
+                    ExceptionResolverMeta resolver = (org.ikasan.studio.core.metapack.model.ExceptionResolverMeta)
                             ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Exception Resolver");
-                    for (var rule : flow.get("exceptionResolver").properties()) {
-                        var action = resolver.getExceptionActionWithName(rule.getValue().path("theAction").asText());
+                    for (Entry<String,JsonNode> rule : flow.get("exceptionResolver").properties()) {
+                        ExceptionActionMeta action = resolver.getExceptionActionWithName(rule.getValue().path("theAction").asText());
                         String location = "Exception Resolver: " + rule.getKey();
                         if (action == null) add(findings, name, location, Target.EXCEPTION_RESOLVER, rule.getValue(), "theAction", "Choose a supported exception action.");
                         else validate(action.getActionProperties(), rule.getValue().path("properties"), name, location, Target.EXCEPTION_RESOLVER, findings);
@@ -64,7 +69,7 @@ final class ModelPropertyValidation {
 
     private static void validate(Map<String, ComponentPropertyMeta> properties, JsonNode node, String flow, String name, Target target,
                                  List<ImplementationReadiness.Finding> findings) {
-        for (var meta : properties.values()) {
+        for (ComponentPropertyMeta meta : properties.values()) {
             if (meta.isIgnoreProperty()) continue;
             String key = meta.getPropertyName();
             Object value;
@@ -100,7 +105,7 @@ final class ModelPropertyValidation {
     }
 
     private static boolean populated(Map<String, ComponentPropertyMeta> properties, JsonNode node, String key) {
-        var meta = properties.get(key);
+        ComponentPropertyMeta meta = properties.get(key);
         if (meta == null) return false;
         try { return !empty(value(meta, node.path(key))); }
         catch (IllegalArgumentException invalid) { return true; } // Report the sibling's invalid type separately.

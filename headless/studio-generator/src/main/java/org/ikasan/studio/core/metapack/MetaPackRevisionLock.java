@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /** Deliberate adoption changes only the document's revision lock; normal loading never rewrites it. */
 public final class MetaPackRevisionLock {
@@ -18,9 +20,9 @@ public final class MetaPackRevisionLock {
     public record Plan(String packId, String previousRevision, String availableRevision, String sourceJson, String targetJson) { }
 
     public static Plan preview(String source) throws Exception {
-        var json = StudioJson.newObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
+        ObjectMapper json = StudioJson.newObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
                 .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
-        var parsed = json.readTree(source.startsWith("\uFEFF") ? source.substring(1) : source);
+        JsonNode parsed = json.readTree(source.startsWith("\uFEFF") ? source.substring(1) : source);
         if (!(parsed instanceof ObjectNode root) || !IkasanModelDocuments.isDocumentContainer(root)
                 || !(root.get("studio") instanceof ObjectNode studio)) throw new IOException("A saved Studio model document is required");
         if (!studio.path("metaPack").isTextual() || !studio.path("metaPackRevision").isTextual())

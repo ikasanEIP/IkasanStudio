@@ -9,17 +9,18 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 
 class ComponentPropertyPackageChooserTest {
     @ParameterizedTest
     @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void appendsPackagesWithoutDuplicatesAndAllowsManualEditingAndClearing(String pack) throws Exception {
         for (String role : new String[]{"Consumer", "Producer"}) {
-            var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Spring JMS " + role)
+            ComponentPropertyMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Spring JMS " + role)
                     .getMetadata("trustedObjectPackages");
-            var edits = new AtomicInteger();
-            var property = new ComponentProperty(meta, "org.example.orders");
-            var row = new ComponentPropertyEditRow(null, property, false, edits::incrementAndGet, new HashMap<>());
+            AtomicInteger edits = new AtomicInteger();
+            ComponentProperty property = new ComponentProperty(meta, "org.example.orders");
+            ComponentPropertyEditRow row = new ComponentPropertyEditRow(null, property, false, edits::incrementAndGet, new HashMap<>());
             row.resetDataEntryComponentsWithNewValues();
             assertNotNull(row.getChooseValueButton());
             assertEquals("Add package...", row.getChooseValueButton().getText());

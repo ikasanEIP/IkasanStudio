@@ -7,13 +7,16 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JTextArea;
 
 class AffectedClassDescriptionFormatTest {
     @Test
     void completeDialogContentIsBoundedAndKeepsAlignedVisibleDetails() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var backup = new JCheckBox("Backup existing files", true);
-            var content = RegenerateUserClassDialog.buildContent(
+            JCheckBox backup = new JCheckBox("Backup existing files", true);
+            JComponent content = RegenerateUserClassDialog.buildContent(
                     StudioBundle.message("message.ConfirmRegenerateUserImplementedClassNamed", "toType"),
                     List.of(new RegenerateUserClassDialog.AffectedClass("Filters Flow", "Broker", "MessageGenerator")), backup);
             assertThat(content.getPreferredSize().width).isLessThan(com.intellij.util.ui.JBUI.scale(700));
@@ -21,11 +24,11 @@ class AffectedClassDescriptionFormatTest {
             for (int i = 0; i < 3; i++) layout(content);
             List<Component> all = new ArrayList<>();
             collect(content, all);
-            var text = all.stream().filter(JTextArea.class::isInstance).map(JTextArea.class::cast).toList();
+            List<JTextArea> text = all.stream().filter(JTextArea.class::isInstance).map(JTextArea.class::cast).toList();
             assertThat(text).extracting(JTextArea::getText).contains("Filters Flow", "MessageGenerator");
             assertThat(text.get(0).getText()).contains("Affected class:", "toType");
-            var flow = text.stream().filter(t -> t.getText().equals("Filters Flow")).findFirst().orElseThrow();
-            var clazz = text.stream().filter(t -> t.getText().equals("MessageGenerator")).findFirst().orElseThrow();
+            JTextArea flow = text.stream().filter(t -> t.getText().equals("Filters Flow")).findFirst().orElseThrow();
+            JTextArea clazz = text.stream().filter(t -> t.getText().equals("MessageGenerator")).findFirst().orElseThrow();
             assertThat(flow.getX()).isEqualTo(clazz.getX());
             assertThat(flow.getWidth()).isPositive();
             assertThat(flow.getHeight()).isPositive();

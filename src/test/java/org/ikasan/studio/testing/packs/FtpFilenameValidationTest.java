@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 
 @ExtendWith(SharedResourceExtension.class)
 @org.junit.jupiter.api.Tag("packs")
@@ -15,7 +16,7 @@ class FtpFilenameValidationTest {
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void safeMetadataRulePreservesJavaRegexValuesAndLeadingGlobDiagnostics(String pack) throws Exception {
         for (String component : new String[]{"FTP Consumer", "SFTP Consumer"}) {
-            var meta = ComponentLibrary.getIkasanComponents(pack).get(component).getMetadata("filenamePattern");
+            ComponentPropertyMeta meta = ComponentLibrary.getIkasanComponents(pack).get(component).getMetadata("filenamePattern");
             // These are runtime Java expressions, not meta-pack expressions. Lookaround remains valid here.
             for (String value : new String[]{"", ".*\\.txt", "(?i).*\\.csv", "(?=invoice).*", "(a)\\1", "[a-z]+", "\\*literal"})
                 assertTrue(meta.matchesValidation(value), pack + " " + component + " accepts " + value);

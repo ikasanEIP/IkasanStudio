@@ -32,6 +32,9 @@ import javax.swing.JMenuItem;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.util.Objects;
+import java.util.Map;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 /** Uses IntelliJ's Edit menu and configured shortcuts; model reconstruction runs off the EDT. */
 final class FlowClipboardActions implements CopyProvider, PasteProvider {
@@ -97,7 +100,7 @@ final class FlowClipboardActions implements CopyProvider, PasteProvider {
         Module module = project.getService(UiContext.class).getIkasanModule();
         if (!module.getFlows().contains(flow)) return;
         try {
-            var snapshot = FlowClipboard.capture(flow, module.getVersion());
+            Map<String,Object> snapshot = FlowClipboard.capture(flow, module.getVersion());
             String packageName = GeneratorUtils.getUserImplementedClassesPackageName(module, flow);
             runTask("menu.CopyFlow", () -> FlowClipboard.encode(snapshot,
                     ReadAction.nonBlocking(() -> FlowSourceTransfer.capture(project, packageName))
@@ -179,14 +182,14 @@ final class FlowClipboardActions implements CopyProvider, PasteProvider {
     }
 
     private static void retargetCopiedClasses(Flow flow, FlowClipboard.Sources sources, String destinationPackage) {
-        for (var component : flow.getFlowElementsNoExternalEndPoints()) {
+        for (FlowElement component : flow.getFlowElementsNoExternalEndPoints()) {
             Object className = component.getPropertyValue(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME);
             if (Boolean.FALSE.equals(component.getPropertyValue(ComponentPropertyMeta.REQUIRES_STUB))
                     && className instanceof String name && name.startsWith(sources.packageName() + ".")) {
                 component.setPropertyValue(ComponentPropertyMeta.USER_IMPLEMENTED_CLASS_NAME,
                         destinationPackage + name.substring(sources.packageName().length()));
             }
-            for (var property : component.getUserSuppliedClassProperties()) {
+            for (ComponentProperty property : component.getUserSuppliedClassProperties()) {
                 if (property.getMeta().isProtectFromOverwrite()) property.setOverwriteEnabled(false);
             }
         }

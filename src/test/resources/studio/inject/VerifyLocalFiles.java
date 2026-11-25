@@ -11,9 +11,9 @@ public class VerifyLocalFiles {
  }
  static void check(boolean ok, Object detail) { if(!ok) throw new AssertionError(detail); }
  public static void main(String[] args) throws Exception {
-  var scheduler=(org.quartz.Scheduler)proxy(org.quartz.Scheduler.class,(m,a)->null);
-  var consumer=new ScheduledConsumer(scheduler, (org.ikasan.component.endpoint.quartz.recovery.service.ScheduledJobRecoveryService)proxy(org.ikasan.component.endpoint.quartz.recovery.service.ScheduledJobRecoveryService.class,(m,a)->null));
-  var config=new FileConsumerConfiguration();
+  org.quartz.Scheduler scheduler=(org.quartz.Scheduler)proxy(org.quartz.Scheduler.class,(m,a)->null);
+  ScheduledConsumer consumer=new ScheduledConsumer(scheduler, (org.ikasan.component.endpoint.quartz.recovery.service.ScheduledJobRecoveryService)proxy(org.ikasan.component.endpoint.quartz.recovery.service.ScheduledJobRecoveryService.class,(m,a)->null));
+  FileConsumerConfiguration config=new FileConsumerConfiguration();
   config.setFilenames(List.of("myFile\\.txt", "anotherFile\\.txt"));
   consumer.setConfiguration(config);
   consumer.setMessageProvider(new FileMessageProvider());
@@ -28,21 +28,21 @@ public class VerifyLocalFiles {
    if(m.getName().equals("getFlowConfiguration"))return configuration;
    if(m.getName().equals("invoke")){received=a[0];return null;}return null;
   });
-  var controller=new StudioInjectController();
+  StudioInjectController controller=new StudioInjectController();
   controller.myModule=(org.ikasan.spec.module.Module)proxy(org.ikasan.spec.module.Module.class,(m,a)->m.getName().equals("getFlow")?flow:null);
-  var file=Files.createTempFile("studio-selected-", ".txt");
+  Path file=Files.createTempFile("studio-selected-", ".txt");
   try {
-   var request=new StudioInjectController.InjectRequest();
+   StudioInjectController.InjectRequest request=new StudioInjectController.InjectRequest();
    request.setPayloadAdapter("studio-local-file-list");
    request.setPayload(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(List.of(file.toString())));
-   var result=controller.inject("flow4",request);
+   org.springframework.http.ResponseEntity<?> result=controller.inject("flow4",request);
    check(result.getStatusCode().value()==200,result.getBody());
    check(received.equals(List.of(file.toFile())),received);
    received=null;
    request.setPayload("[\"/missing/studio-file\"]");
    check(controller.inject("flow4",request).getStatusCode().value()!=200,"Missing file accepted");
    check(received==null,"Missing file invoked flow");
-   var dirs=controller.scanDirectories("flow4");
+   org.springframework.http.ResponseEntity<?> dirs=controller.scanDirectories("flow4");
    check(dirs.getStatusCode().value()==200,dirs.getBody());
    check(((Map<?,?>)dirs.getBody()).get("directories").toString().contains(Path.of("").toAbsolutePath().toString()),dirs.getBody());
    config.setFilePath(file.getParent().toString());
@@ -59,10 +59,10 @@ public class VerifyLocalFiles {
     received=null;
     byte[] bytes=content.getBytes(java.nio.charset.StandardCharsets.UTF_8);
     request.setPayload(Base64.getEncoder().encodeToString(bytes));
-    var sent=controller.inject("flow2",request);
+    org.springframework.http.ResponseEntity<?> sent=controller.inject("flow2",request);
     check(sent.getStatusCode().value()==200,sent.getBody());
     check(received instanceof org.ikasan.filetransfer.Payload,"Expected file-transfer Payload");
-    var payload=(org.ikasan.filetransfer.Payload)received;
+    org.ikasan.filetransfer.Payload payload=(org.ikasan.filetransfer.Payload)received;
     check(Arrays.equals(bytes,payload.getContent()),"Chosen bytes were lost");
     check("selected.txt".equals(payload.getAttribute("fileName")),"Chosen filename was lost");
    }

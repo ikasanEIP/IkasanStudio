@@ -10,13 +10,15 @@ import org.ikasan.studio.ui.viewmodel.AbstractViewHandlerIntellij;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
 class UnsavedPropertyChangesAvailabilityTest {
     @Test void moduleBackgroundHasNoNavigation() {
         ComponentPropertiesPanel panel = mock(ComponentPropertiesPanel.class, CALLS_REAL_METHODS);
         doReturn(true).when(panel).dataHasChangedAndOKToProcess();
-        try (var cache = mockStatic(ViewHandlerCache.class);
-             var dialogs = mockConstruction(UnsavedPropertyChangesDialog.class, (dialog, context) -> {
+        try (MockedStatic<ViewHandlerCache> cache = mockStatic(ViewHandlerCache.class);
+             MockedConstruction<UnsavedPropertyChangesDialog> dialogs = mockConstruction(UnsavedPropertyChangesDialog.class, (dialog, context) -> {
                  assertNull(context.arguments().get(5));
                  assertNull(context.arguments().get(6));
                  when(dialog.getChoice()).thenReturn(UnsavedPropertyChangesDialog.Choice.CANCEL);
@@ -35,18 +37,18 @@ class UnsavedPropertyChangesAvailabilityTest {
         when(handler.getCodeNavigationTarget()).thenReturn(NavigationTarget.none());
         ComponentPropertiesPanel panel = mock(ComponentPropertiesPanel.class, CALLS_REAL_METHODS);
         doReturn(true).when(panel).dataHasChangedAndOKToProcess();
-        try (var cache = mockStatic(ViewHandlerCache.class)) {
+        try (MockedStatic<ViewHandlerCache> cache = mockStatic(ViewHandlerCache.class)) {
             assertEquals(new ComponentNavigationAvailability(false, false),
                     ComponentNavigationAvailability.forComponent(null, clicked));
             cache.when(() -> ViewHandlerCache.getAbstractViewHandler(null, clicked)).thenReturn(handler);
             assertEquals(new ComponentNavigationAvailability(false, false),
                     ComponentNavigationAvailability.forComponent(null, clicked));
             when(handler.hasPropertiesNavigationTarget()).thenReturn(true);
-            try (var dialogs = mockConstruction(UnsavedPropertyChangesDialog.class, (dialog, context) -> {
+            try (MockedConstruction<UnsavedPropertyChangesDialog> dialogs = mockConstruction(UnsavedPropertyChangesDialog.class, (dialog, context) -> {
                      assertNull(context.arguments().get(5));
                      assertEquals(clicked.getIdentity(), context.arguments().get(6));
                      when(dialog.getChoice()).thenReturn(UnsavedPropertyChangesDialog.Choice.JUMP_TO_PROPERTIES);
-                 }); var navigation = mockConstruction(NavigateToPropertiesAction.class, (action, context) ->
+                 }); MockedConstruction<NavigateToPropertiesAction> navigation = mockConstruction(NavigateToPropertiesAction.class, (action, context) ->
                          assertSame(clicked, context.arguments().get(1)))) {
                 assertFalse(panel.confirmSelectionChangeWithPendingEdits(clicked));
                 assertEquals(1, dialogs.constructed().size());

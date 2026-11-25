@@ -19,6 +19,9 @@ import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 import java.util.Map;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFileWrapper;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Explicit, local-only export available during indexing and without an open designer. */
 public final class CollectStudioDiagnosticsAction extends DumbAwareAction implements PluginAware {
@@ -33,16 +36,16 @@ public final class CollectStudioDiagnosticsAction extends DumbAwareAction implem
         event.getPresentation().setEnabled(event.getProject() != null && !event.getProject().isDisposed());
     }
     @Override public void actionPerformed(AnActionEvent event) {
-        var project = event.getProject();
+        Project project = event.getProject();
         if (project == null || project.isDisposed()) return;
-        var descriptor = new FileSaverDescriptor(StudioBundle.message("action.IkasanStudio.CollectDiagnostics.text"),
+        FileSaverDescriptor descriptor = new FileSaverDescriptor(StudioBundle.message("action.IkasanStudio.CollectDiagnostics.text"),
                 StudioBundle.message("diagnostics.SaveDescription"), "zip");
-        var chosen = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
+        VirtualFileWrapper chosen = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
                 .save((VirtualFile) null, "ikasan-studio-diagnostics.zip");
         if (chosen == null) return;
         Path target = chosen.getFile().toPath();
-        var ide = ApplicationInfo.getInstance();
-        var module = project.getService(UiContext.class).getIkasanModule();
+        ApplicationInfo ide = ApplicationInfo.getInstance();
+        Module module = project.getService(UiContext.class).getIkasanModule();
         Map<String, String> metadata = Map.of("pluginVersion", pluginVersion,
                 "ideVersion", ide.getFullVersion(), "ideBuild", ide.getBuild().asString(),
                 "metaPack", module == null || module.getMetaVersion() == null ? "unavailable" : module.getMetaVersion());

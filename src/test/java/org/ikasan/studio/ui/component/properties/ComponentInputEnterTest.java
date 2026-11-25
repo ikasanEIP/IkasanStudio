@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
 import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
+import javax.swing.JButton;
+import javax.swing.JFormattedTextField;
 
 class ComponentInputEnterTest {
     private static void pressEnter(JFormattedTextField field) {
@@ -20,8 +22,8 @@ class ComponentInputEnterTest {
         SwingUtilities.invokeAndWait(() -> {
             for (JFormattedTextField field : new JFormattedTextField[]{
                     new JFormattedTextField(), new JFormattedTextField(NumberFormat.getIntegerInstance())}) {
-                var updates = new AtomicInteger();
-                var button = new JButton();
+                AtomicInteger updates = new AtomicInteger();
+                JButton button = new JButton();
                 button.addActionListener(e -> {
                     assertSame(button, e.getSource());
                     assertEquals("42", field.getText());
@@ -38,9 +40,9 @@ class ComponentInputEnterTest {
     @Test
     void disabledUpdateAndReadOnlyFieldsDoNotSubmit() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var field = new JFormattedTextField();
-            var button = new JButton();
-            var updates = new AtomicInteger();
+            JFormattedTextField field = new JFormattedTextField();
+            JButton button = new JButton();
+            AtomicInteger updates = new AtomicInteger();
             button.addActionListener(e -> updates.incrementAndGet());
             new ComponentInput(field).applyOnEnter(button);
             field.setText("changed");
@@ -55,7 +57,7 @@ class ComponentInputEnterTest {
 
     @Test
     void popupWithoutUpdateButtonRetainsItsDefaultEnterBehavior() {
-        var field = new JFormattedTextField();
+        JFormattedTextField field = new JFormattedTextField();
         Object originalBinding = field.getInputMap().get(KeyStroke.getKeyStroke("ENTER"));
         new ComponentInput(field).applyOnEnter(null);
         assertEquals(0, field.getActionListeners().length);

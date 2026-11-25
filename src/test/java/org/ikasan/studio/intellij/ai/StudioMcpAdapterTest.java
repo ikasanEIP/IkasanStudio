@@ -16,6 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.io.BufferedWriter;
+import java.io.InputStream;
 
 /** Exercises the exact executable JAR bundled in the plugin, without the IDE classpath. */
 class StudioMcpAdapterTest {
@@ -24,8 +26,8 @@ class StudioMcpAdapterTest {
 
     @Test void forwardsUtf8AndAuthenticationAndRecoversAfterMalformedInput() throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-        var authorization = new AtomicReference<String>();
-        var received = new AtomicReference<String>();
+        AtomicReference<String> authorization = new AtomicReference<>();
+        AtomicReference<String> received = new AtomicReference<>();
         server.createContext("/rpc", exchange -> {
             try (exchange) {
                 authorization.set(exchange.getRequestHeaders().getFirst("Authorization"));
@@ -63,7 +65,7 @@ class StudioMcpAdapterTest {
 
     @Test void rejectsWrongEndpointAndNeverFollowsRedirects() throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-        var redirected = new AtomicInteger();
+        AtomicInteger redirected = new AtomicInteger();
         server.createContext("/rpc", exchange -> {
             try (exchange) {
                 exchange.getResponseHeaders().set("Location", "/elsewhere");
@@ -96,16 +98,16 @@ class StudioMcpAdapterTest {
 
     private Result run(Path connection, String input) throws Exception {
         Path jar = directory.resolve("adapter with spaces.jar");
-        try (var resource = getClass().getResourceAsStream("/studio/ai/studio-mcp-adapter.jar")) {
+        try (InputStream resource = getClass().getResourceAsStream("/studio/ai/studio-mcp-adapter.jar")) {
             assertThat(resource).isNotNull();
             Files.copy(resource, jar, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         }
         String executable = System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java";
-        var process = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", executable).toString(),
+        Process process = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", executable).toString(),
                 "-Dhttp.proxyHost=127.0.0.1", "-Dhttp.proxyPort=1", "-Dhttp.nonProxyHosts=",
                 "-jar", jar.toString(), "--connection", connection.toString()).start();
         try {
-            try (var stdin = process.outputWriter(StandardCharsets.UTF_8)) { stdin.write(input); }
+            try (BufferedWriter stdin = process.outputWriter(StandardCharsets.UTF_8)) { stdin.write(input); }
             assertThat(process.waitFor(15, TimeUnit.SECONDS)).as("adapter exits on stdin EOF").isTrue();
             String errors = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
             assertThat(process.exitValue()).as(errors).isZero();

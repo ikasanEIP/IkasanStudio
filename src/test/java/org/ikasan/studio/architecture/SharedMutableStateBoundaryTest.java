@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.stream.Stream;
 
 class SharedMutableStateBoundaryTest {
 
@@ -54,7 +55,7 @@ class SharedMutableStateBoundaryTest {
         for (Path root : List.of(Path.of("src/main/java"),
                 Path.of("headless/studio-generator/src/main/java"))) {
             assertThat(root).isDirectory();
-            try (var files = Files.walk(root)) {
+            try (Stream<Path> files = Files.walk(root)) {
                 for (Path source : files.filter(path -> path.toString().endsWith(".java")).toList()) {
                     if (source.endsWith("ComponentLibraryLoader.java")) continue;
                     String text = Files.readString(source);

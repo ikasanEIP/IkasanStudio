@@ -13,13 +13,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import org.ikasan.studio.core.ai.ImplementationReadiness.Finding;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 
 class ModelPropertyValidationTest {
     @TempDir Path root;
 
     @org.junit.jupiter.api.Test
     void hidesCredentialsAndUnknownValuesInPersistedDiagnostics() throws Exception {
-        var json = StudioJson.newObjectMapper();
+        ObjectMapper json = StudioJson.newObjectMapper();
         for (String key : java.util.List.of("password", "apiToken", "privateKey", "connectionUrl", "customProperty", "connectionTimeout"))
             assertThat(ModelPropertyValidation.safeDisplayValue(key, json.readTree("\"sensitive-value\""))).isEqualTo("(hidden)");
         assertThat(ModelPropertyValidation.safeDisplayValue("properties", json.readTree("{\"password\":\"secret\"}"))).isEqualTo("(hidden)");
@@ -32,7 +37,7 @@ class ModelPropertyValidationTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void semanticPackageRulesAreEnforcedInSavedModelReadiness(String pack) {
-        var model = model(pack);
+        ObjectNode model = model(pack);
         model.put("applicationPackageName", "com.class.app");
         assertThat(ModelPropertyValidation.scan(model)).anySatisfy(f -> {
             assertThat(f.target()).isEqualTo(ImplementationReadiness.Target.MODULE);
@@ -43,14 +48,14 @@ class ModelPropertyValidationTest {
     }
 
     private ObjectNode model(String pack) {
-        var model = StudioJson.newObjectMapper().createObjectNode();
+        ObjectNode model = StudioJson.newObjectMapper().createObjectNode();
         model.put("version", pack).put("name", "Example").put("applicationPackageName", "org.example");
         model.putArray("flows").addObject().put("name", "Router flow").putArray("flowElements");
         return model;
     }
     private ObjectNode component(ObjectNode model, String key, String name) throws Exception {
-        var meta = ComponentLibrary.getIkasanComponentByKeyMandatory(model.path("version").asText(), key);
-        var value = ((com.fasterxml.jackson.databind.node.ArrayNode) model.path("flows").get(0).path("flowElements")).addObject();
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKeyMandatory(model.path("version").asText(), key);
+        ObjectNode value = ((com.fasterxml.jackson.databind.node.ArrayNode) model.path("flows").get(0).path("flowElements")).addObject();
         value.put("componentName", name).put("componentType", meta.getComponentType())
                 .put("implementingClass", meta.getImplementingClass());
         if (meta.getAdditionalKey() != null) value.put("additionalKey", meta.getAdditionalKey());
@@ -60,7 +65,7 @@ class ModelPropertyValidationTest {
     @org.junit.jupiter.api.Test
     void sensitiveKeysIncludingLongRepeatedNamesAreRedactedWithoutBacktracking() {
         org.junit.jupiter.api.Assertions.assertTimeoutPreemptively(java.time.Duration.ofSeconds(2), () -> {
-            var value = new com.fasterxml.jackson.databind.node.TextNode("never-display-this");
+            TextNode value = new com.fasterxml.jackson.databind.node.TextNode("never-display-this");
             for (String key : List.of("apiTOKEN", "customerSecret", "PASSWORD", "credentials", "key".repeat(50_000) + "\n"))
                 assertThat(ModelPropertyValidation.safeDisplayValue(key, value)).isEqualTo("(hidden)");
         });
@@ -68,12 +73,12 @@ class ModelPropertyValidationTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void reportsSavedInvalidRecipientsWithNavigationAndSafeValues(String pack) throws Exception {
-        var model = model(pack);
+        ObjectNode model = model(pack);
         component(model, "Email Producer", "output 2").put("toRecipient", "bar.@bar.com")
                 .put("emailFormat", "text/plain");
         component(model, "Email Producer", "output 3").putArray("toRecipients")
                 .add("valid@example.com").add("bad..address@example.com");
-        var findings = ImplementationReadiness.scan(root, model).findings();
+        List<Finding> findings = ImplementationReadiness.scan(root, model).findings();
         assertThat(findings).anySatisfy(f -> {
             assertThat(f.flow()).isEqualTo("Router flow");
             assertThat(f.component()).isEqualTo("output 2");
@@ -92,14 +97,14 @@ class ModelPropertyValidationTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void checksRequiredConditionalTypesChoicesAndPatterns(String pack) throws Exception {
-        var model = model(pack);
+        ObjectNode model = model(pack);
         model.put("flowStartupType", "invalid-startup-mode");
-        var ftp = component(model, "FTP Consumer", "Receive");
+        ObjectNode ftp = component(model, "FTP Consumer", "Receive");
         ftp.put("ftps", true).put("connectionTimeout", "secret-not-a-number").put("cronExpression", "daily");
-        var email = component(model, "Email Producer", "Mail");
+        ObjectNode email = component(model, "Email Producer", "Mail");
         email.put("emailFormat", "text/custom"); // Editable choice: valid.
         email.putArray("toRecipients"); // Empty list cannot satisfy a recipient requirement.
-        var findings = ModelPropertyValidation.scan(model);
+        List<Finding> findings = ModelPropertyValidation.scan(model);
         assertThat(findings).anySatisfy(f -> assertThat(f.message()).startsWith("ftpsKeyStoreFilePath: A value is required"));
         assertThat(findings).anySatisfy(f -> assertThat(f.message()).startsWith("connectionTimeout: Value has an incompatible"));
         assertThat(findings).anySatisfy(f -> assertThat(f.message()).startsWith("cronExpression:"));
@@ -111,10 +116,10 @@ class ModelPropertyValidationTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void scanProjectChecksDocumentModelsAndExplicitZeroFalseRemainValid(String pack) throws Exception {
-        var model = model(pack);
+        ObjectNode model = model(pack);
         component(model, "Email Producer", "Mail").put("toRecipient", "valid@example.com")
                 .put("emailFormat", "text/plain").put("mailDebug", false).put("mailSmtpPort", 0);
-        var documents = org.ikasan.studio.core.persistence.json.IkasanModelDocuments.fromLegacy(model);
+        ObjectNode documents = org.ikasan.studio.core.persistence.json.IkasanModelDocuments.fromLegacy(model);
         Path file = root.resolve("generated/src/main/model/model.json");
         Files.createDirectories(file.getParent());
         Files.writeString(file, documents.toString());
@@ -128,17 +133,17 @@ class ModelPropertyValidationTest {
     }
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void checksExceptionActionPropertiesAndReportsUnresolvedMetadata(String pack) throws Exception {
-        var model = model(pack);
-        var flow = (ObjectNode) model.path("flows").get(0);
-        var retry = flow.putObject("exceptionResolver").putObject("java.lang.RuntimeException");
+        ObjectNode model = model(pack);
+        ObjectNode flow = (ObjectNode) model.path("flows").get(0);
+        ObjectNode retry = flow.putObject("exceptionResolver").putObject("java.lang.RuntimeException");
         retry.put("theAction", "retry").putObject("properties").put("delay", "not-an-integer").put("interval", 0);
-        var findings = ModelPropertyValidation.scan(model);
+        List<Finding> findings = ModelPropertyValidation.scan(model);
         assertThat(findings).anySatisfy(f -> {
             assertThat(f.component()).startsWith("Exception Resolver:");
             assertThat(f.message()).startsWith("delay: Value has an incompatible data type.");
         });
         assertThat(findings).noneSatisfy(f -> assertThat(f.message()).startsWith("interval:"));
-        var unknown = component(model, "Email Producer", "Unknown");
+        ObjectNode unknown = component(model, "Email Producer", "Unknown");
         unknown.put("implementingClass", "not.a.KnownComponent").put("componentType", "not.a.KnownType");
         assertThat(ModelPropertyValidation.scan(model)).anySatisfy(f -> {
             assertThat(f.component()).isEqualTo("Unknown");
@@ -148,8 +153,8 @@ class ModelPropertyValidationTest {
 
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6", "V5.1.0"})
     void routerListsAcceptSavedArraysAndLegacyTextButKeepCardinalityAndNameRules(String pack) throws Exception {
-        var model = model(pack);
-        var router = component(model, "Single Recipient Router", "Either or Router");
+        ObjectNode model = model(pack);
+        ObjectNode router = component(model, "Single Recipient Router", "Either or Router");
         for (String text : List.of("odd,even", "odd, even", "route1,route2")) {
             router.put("routeNames", text);
             assertThat(ModelPropertyValidation.scan(model)).noneSatisfy(f -> assertThat(f.message()).startsWith("routeNames:"));
@@ -157,11 +162,11 @@ class ModelPropertyValidationTest {
         router.putArray("routeNames").add("odd").add("even");
         assertThat(ModelPropertyValidation.scan(model)).noneSatisfy(f -> assertThat(f.message()).startsWith("routeNames:"));
         for (List<String> names : List.of(List.of("odd"), List.of("odd", "odd"), List.of("odd", ""), List.of("odd", "bad-name"))) {
-            var array = router.putArray("routeNames");
+            ArrayNode array = router.putArray("routeNames");
             names.forEach(array::add);
             assertThat(ModelPropertyValidation.scan(model)).anySatisfy(f -> assertThat(f.message()).startsWith("routeNames:"));
         }
-        var multi = component(model, "Multi Recipient Router", "Fan out");
+        ObjectNode multi = component(model, "Multi Recipient Router", "Fan out");
         // Keep the single-recipient router valid when checking one-route multi-recipient input.
         router.putArray("routeNames").add("odd").add("even");
         multi.putArray("routeNames").add("odd");

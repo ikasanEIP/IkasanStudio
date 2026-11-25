@@ -12,6 +12,8 @@ import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.StudioUIUtils;
 import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.project.Project;
 
 /** Explicit local installation; validation and copying run outside the EDT. */
 public final class InstallMetaPackAction extends DumbAwareAction {
@@ -21,14 +23,14 @@ public final class InstallMetaPackAction extends DumbAwareAction {
         event.getPresentation().setEnabled(event.getProject() != null && !event.getProject().isDisposed());
     }
     @Override public void actionPerformed(@NotNull AnActionEvent event) {
-        var project = event.getProject();
+        Project project = event.getProject();
         if (project == null || project.isDisposed()) return;
-        var descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor("jar");
+        FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor("jar");
         descriptor.setTitle(StudioBundle.message("metaPack.ChooseJar"));
         descriptor.setDescription(StudioBundle.message("metaPack.InstallDescription"));
         StudioProjectFiles.chooseFilePaths(project, descriptor, chosen -> {
             if (project.isDisposed() || chosen == null || chosen.isEmpty()) return;
-            var source = Path.of(chosen.get(0));
+            Path source = Path.of(chosen.get(0));
             ProgressManager.getInstance().run(new Task.Backgroundable(project, StudioBundle.message("metaPack.Progress"), true) {
                 private MetaPackManifest installed;
                 @Override public void run(@NotNull ProgressIndicator indicator) {

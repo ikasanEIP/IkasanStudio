@@ -7,15 +7,18 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import java.nio.file.*;
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.Map;
+import org.ikasan.studio.core.generator.GeneratedVerification.Bundle;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 class GeneratedVerificationTest {
     @ParameterizedTest @ValueSource(strings = {"V3.3.9", "V4.1.6"})
     void rendersCompleteFrozenChecksAndMigrationPreservesModule(String version) throws Exception {
         String model = ModelMigration.analyse(Files.readString(Path.of("src/test/resources/org/ikasan/studio/populated_module.json")), version).targetJson();
-        var module = ComponentIO.validatePersistedModuleJson(model, "test", false);
+        Module module = ComponentIO.validatePersistedModuleJson(model, "test", false);
         String parent = Files.readString(Path.of("regression-tests/migration/project/pom.xml"));
         String application = Files.readString(Path.of("regression-tests/migration/project/generated/pom.xml"));
-        var bundle = GeneratedVerification.render(module, model, parent, application);
+        Bundle bundle = GeneratedVerification.render(module, model, parent, application);
         assertEquals(parent, bundle.rootPom());
         assertEquals(bundle.rootPom(), GeneratedVerification.render(module, model, bundle.rootPom(), application).rootPom());
         assertEquals(model, bundle.files().get("resources/studio-verification/baseline-model.json"));
@@ -34,10 +37,10 @@ class GeneratedVerificationTest {
         assertTrue(code.contains("assertFactory"));
         assertTrue(bundle.applicationPom().contains("<scope>test</scope>"));
         assertEquals(bundle.applicationPom(), GeneratedVerification.render(module, model, bundle.rootPom(), bundle.applicationPom()).applicationPom());
-        var legacy = GeneratedVerification.render(module, model,
+        Bundle legacy = GeneratedVerification.render(module, model,
                 parent.replace("</modules>", "<module>generated-verification</module></modules>"), application);
         assertFalse(legacy.rootPom().contains("<module>generated-verification</module>"));
-        var migrated = MigrationArtifacts.render(ModelMigration.analyse(model, version.equals("V3.3.9") ? "V4.1.6" : "V3.3.9"), bundle.rootPom());
+        Map<String,String> migrated = MigrationArtifacts.render(ModelMigration.analyse(model, version.equals("V3.3.9") ? "V4.1.6" : "V3.3.9"), bundle.rootPom());
         assertFalse(migrated.containsKey("generated/pom.xml"));
         assertTrue(migrated.keySet().stream().noneMatch(p -> p.startsWith("generated/src/test/")));
     }

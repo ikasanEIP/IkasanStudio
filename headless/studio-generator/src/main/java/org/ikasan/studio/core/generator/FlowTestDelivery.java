@@ -2,6 +2,8 @@ package org.ikasan.studio.core.generator;
 
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 import java.util.*;
+import java.util.List;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 
 /** Delivery-specific interpretation stays outside the general scaffold generator. */
 final class FlowTestDelivery {
@@ -16,8 +18,8 @@ final class FlowTestDelivery {
 
     static FlowTestDelivery forProducers(List<FlowElement> producers) {
         if (producers.size() != 1) return new FlowTestDelivery(Strategy.NONE, 0);
-        var producer = producers.get(0);
-        var meta = producer.getComponentMeta();
+        FlowElement producer = producers.get(0);
+        ComponentMeta meta = producer.getComponentMeta();
         String declared = meta.getFlowTestDeliveryStrategy();
         Strategy strategy;
         if (declared != null && !declared.isBlank()) {
@@ -43,10 +45,10 @@ final class FlowTestDelivery {
     }
 
     private static int smtpRecipients(FlowElement producer) {
-        var groups = producer.getComponentMeta().getFlowTestRecipientProperties();
+        List<List<String>> groups = producer.getComponentMeta().getFlowTestRecipientProperties();
         if (groups == null || groups.isEmpty()) return 0;
         Set<String> addresses = new HashSet<>();
-        for (var group : groups) {
+        for (List<String> group : groups) {
             int configured = 0;
             for (String property : group) {
                 Object value = producer.getPropertyValue(property);
@@ -54,7 +56,7 @@ final class FlowTestDelivery {
                         || value instanceof List && ((List<?>) value).isEmpty()) continue;
                 // Multiple alternative setters have order-dependent behaviour: require review.
                 if (++configured > 1) return 0;
-                var entries = value instanceof List ? (List<?>) value : List.of(value);
+                List<? extends Object> entries = value instanceof List ? (List<?>) value : List.of(value);
                 for (Object entry : entries) {
                     // Infer only simple literal addresses, not expressions, groups or display names.
                     if (!(entry instanceof String)) return 0;

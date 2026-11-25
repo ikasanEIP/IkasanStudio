@@ -17,14 +17,18 @@ import java.util.Properties;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 @org.junit.jupiter.api.Tag("packs")
 class ComponentEnvironmentPropertiesTest {
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void builtInValueSettingsHavePropertyBindingsWhileJavaObjectsRemainReferences(String pack) throws Exception {
-        for (var component : ComponentLibrary.getIkasanComponents(pack).values()) {
-            for (var property : component.getAllowableProperties().values()) {
+        for (ComponentMeta component : ComponentLibrary.getIkasanComponents(pack).values()) {
+            for (ComponentPropertyMeta property : component.getAllowableProperties().values()) {
                 if (!property.isSetterProperty()) continue;
                 String context = component.getName() + "." + property.getPropertyName();
                 if (property.isUserSuppliedClass() || "classLiteral".equals(property.getUsageDataType())
@@ -42,18 +46,18 @@ class ComponentEnvironmentPropertiesTest {
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void jmsMapsAndZeroFalseValuesSurviveModelReloadAndReachPropertyBackedSetters(String pack) throws Exception {
-        var consumer = FlowElement.flowElementBuilder()
+        FlowElement consumer = FlowElement.flowElementBuilder()
                 .componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Spring JMS Consumer"))
                 .componentName("Receive").build();
         Map<String, String> jndi = Map.of("java.naming.provider.url", "tcp://broker.example:61616");
         consumer.setPropertyValue("connectionFactoryJndiProperties", jndi);
         consumer.setPropertyValue("receiveTimeout", 0L);
         consumer.setPropertyValue("pubSubDomain", false);
-        var flow = TestFixtures.getUnbuiltFlow(pack).consumer(consumer).build();
+        Flow flow = TestFixtures.getUnbuiltFlow(pack).consumer(consumer).build();
         consumer.setContainingFlowRoute(flow.getFlowRoute());
-        var module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
-        var restored = ComponentIO.validatePersistedModuleJson(ModelTemplate.create(module), "JMS environment settings", false);
-        var restoredConsumer = restored.getFlows().get(0).getConsumer();
+        Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, List.of(flow));
+        Module restored = ComponentIO.validatePersistedModuleJson(ModelTemplate.create(module), "JMS environment settings", false);
+        FlowElement restoredConsumer = restored.getFlows().get(0).getConsumer();
         assertEquals(jndi, restoredConsumer.getPropertyValue("connectionFactoryJndiProperties"));
         String factory = FlowsComponentFactoryTemplate.create("example", restored, restored.getFlows().get(0));
         Properties properties = new Properties();

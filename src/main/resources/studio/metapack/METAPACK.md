@@ -82,7 +82,7 @@ The manifest declares the pack's exact build platform:
 ```json
 {
   "schemaVersion": 2,
-  "packVersion": "0.1.1-SNAPSHOT",
+  "packVersion": "0.1.2-SNAPSHOT",
   "generatorApiVersion": 5,
   "id": "V4.1.6",
   "ikasanVersion": "4.1.6",

@@ -10,6 +10,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Map;
+import java.util.Map.Entry;
+import javax.xml.xpath.XPath;
+import org.w3c.dom.Document;
 
 @org.junit.jupiter.api.Tag("engine")
 class AiProjectContractGeneratorTest {
@@ -30,9 +34,9 @@ class AiProjectContractGeneratorTest {
         assertThat(template).contains("${IKASAN_TEST_FTP_PASSWORD}", "env:IKASAN_TEST_SFTP_KEY_FILE",
                 "sftp.remoteHost=", "sftp.directory=", "ftp.password=",
                 "smtp.toRecipient=", "jms.destinationJndiName=");
-        var doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        Document doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder()
                 .parse(resources.resolve("META-INF/maven/archetype-metadata.xml").toFile());
-        var xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath();
+        XPath xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath();
         String filtered = xpath.evaluate("//fileSet[includes/include='LOCAL_TEST_ENVIRONMENT.md']/@filtered", doc);
         assertThat(filtered).isNotEqualTo("true");
         assertThat(template).contains("root `.gitignore`");
@@ -41,18 +45,18 @@ class AiProjectContractGeneratorTest {
     @Test
     void projectSkillsMatchTheArchetypeAndKeepDiscoveryInsideTheProject() throws Exception {
         Path resources = Path.of("ikasan-studio-ancillary/ikasan-studio-project-archetype/src/main/resources");
-        var files = StudioAiSkillTemplates.files();
+        Map<String,String> files = StudioAiSkillTemplates.files();
         assertThat(files).hasSize(2);
-        for (var entry : files.entrySet()) {
+        for (Entry<String,String> entry : files.entrySet()) {
             assertThat(Files.readString(resources.resolve("archetype-resources").resolve(entry.getKey())))
                     .isEqualTo(entry.getValue());
             assertThat(Path.of(entry.getKey()).isAbsolute()).isFalse();
             assertThat(Path.of(entry.getKey()).normalize().startsWith("..")).isFalse();
         }
         assertThat(files.get(StudioAiSkillTemplates.CLAUDE_PATH)).contains(StudioAiSkillTemplates.WORKFLOW_PATH);
-        var doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        Document doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder()
                 .parse(resources.resolve("META-INF/maven/archetype-metadata.xml").toFile());
-        var xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath();
+        XPath xpath = javax.xml.xpath.XPathFactory.newInstance().newXPath();
         for (String directory : java.util.List.of(".agents/skills", ".claude/skills")) {
             assertThat(xpath.evaluate("//fileSet[directory='" + directory + "']/@filtered", doc)).isEqualTo("false");
         }

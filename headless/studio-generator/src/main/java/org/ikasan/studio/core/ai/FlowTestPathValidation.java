@@ -8,6 +8,14 @@ import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import java.nio.file.*;
 import java.util.*;
+import com.github.javaparser.ParseResult;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import java.nio.file.Path;
+import java.util.stream.Stream;
 
 /** Parse only: never compile or execute developer tests. Unknown expressions are left to runtime checks. */
 final class FlowTestPathValidation {
@@ -23,21 +31,21 @@ final class FlowTestPathValidation {
         List<ImplementationReadiness.Finding> result = new ArrayList<>();
         Path directory = root.resolve("user-flow-tests/src/test/java");
         if (!Files.isDirectory(directory)) return result;
-        var parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17));
-        try (var paths = Files.walk(directory)) {
+        JavaParser parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17));
+        try (Stream<Path> paths = Files.walk(directory)) {
             for (Path file : paths.filter(p -> p.toString().endsWith(".java")).toList()) {
                 if (Files.size(file) > 1_048_576) continue;
-                var parsed = parser.parse(file);
+                ParseResult<CompilationUnit> parsed = parser.parse(file);
                 if (!parsed.isSuccessful() || parsed.getResult().isEmpty()) continue;
-                for (var declaration : parsed.getResult().get().getTypes()) {
+                for (TypeDeclaration<?> declaration : parsed.getResult().get().getTypes()) {
                     if (!(declaration instanceof ClassOrInterfaceDeclaration clazz)) continue;
                     Map<String, String> constants = new HashMap<>();
                     for (FieldDeclaration field : clazz.getFields())
-                        if (field.isFinal()) for (var variable : field.getVariables())
+                        if (field.isFinal()) for (VariableDeclarator variable : field.getVariables())
                             variable.getInitializer().filter(Expression::isStringLiteralExpr).ifPresent(value ->
                                     constants.put(variable.getNameAsString(), value.asStringLiteralExpr().asString()));
                     String flowName = null;
-                    for (var method : clazz.getMethodsByName("getFlowName"))
+                    for (MethodDeclaration method : clazz.getMethodsByName("getFlowName"))
                         if (method.getBody().isPresent() && method.getBody().get().getStatements().size() == 1
                                 && method.getBody().get().getStatement(0) instanceof ReturnStmt returned)
                             flowName = returned.getExpression().map(e -> text(e, constants)).orElse(null);
@@ -49,18 +57,18 @@ final class FlowTestPathValidation {
                     List<JsonNode> elements = new ArrayList<>();
                     elements.add(flow.path("consumer"));
                     flow.path("flowElements").forEach(elements::add);
-                    for (var element : elements) {
+                    for (JsonNode element : elements) {
                         if (!element.has("componentName")) continue;
                         String type = element.path("componentType").asText();
                         components.put(element.path("componentName").asText(), type.substring(type.lastIndexOf('.') + 1));
                     }
-                    for (var method : clazz.getMethodsByName("defineExpectedPath")) {
+                    for (MethodDeclaration method : clazz.getMethodsByName("defineExpectedPath")) {
                         if (method.getParameters().size() != 1 || method.getBody().isEmpty()) continue;
                         String harness = method.getParameter(0).getNameAsString();
                         Map<String, String> usableConstants = new HashMap<>(constants);
                         // Avoid resolving a field constant when a local variable shadows it.
                         method.findAll(VariableDeclarator.class).forEach(v -> usableConstants.remove(v.getNameAsString()));
-                        for (var call : method.getBody().get().findAll(MethodCallExpr.class)) {
+                        for (MethodCallExpr call : method.getBody().get().findAll(MethodCallExpr.class)) {
                             String role = call.getNameAsString();
                             if (!ROLES.containsKey(role) || call.getArguments().size() != 1
                                     || call.getScope().filter(e -> receiver(e, harness)).isEmpty()) continue;

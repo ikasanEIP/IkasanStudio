@@ -12,11 +12,13 @@ import org.ikasan.studio.ui.UiContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
 
 public class HarnessOverridesDialogHeavyTest extends HeavyPlatformTestCase {
     public void testDialogFitsSmallListsAndCapsLongLists() throws Exception {
-        var manager = RunManager.getInstance(getProject());
-        var settings = manager.createConfiguration("Harness dialog sizing",
+        RunManager manager = RunManager.getInstance(getProject());
+        RunnerAndConfigurationSettings settings = manager.createConfiguration("Harness dialog sizing",
                 ApplicationConfigurationType.getInstance().getConfigurationFactories()[0]);
         ((ApplicationConfiguration) settings.getConfiguration()).setMainClassName("org.ikasan.studio.boot.Application");
         manager.addConfiguration(settings);
@@ -29,10 +31,10 @@ public class HarnessOverridesDialogHeavyTest extends HeavyPlatformTestCase {
     }
 
     private int panelHeight(int components) throws Exception {
-        var flow = new Flow("V4.1.6");
+        Flow flow = new Flow("V4.1.6");
         flow.setName("Orders");
         for (int index = 0; index < components; index++) {
-            var producer = TestFixtures.getEmailProducer("V4.1.6");
+            FlowElement producer = TestFixtures.getEmailProducer("V4.1.6");
             producer.setComponentName("Email " + index);
             producer.setContainingFlow(flow);
             producer.setContainingFlowRoute(flow.getFlowRoute());
@@ -40,7 +42,7 @@ public class HarnessOverridesDialogHeavyTest extends HeavyPlatformTestCase {
         }
         getProject().getService(UiContext.class).setIkasanModule(
                 TestFixtures.getMyFirstModuleIkasanModule("V4.1.6", new ArrayList<>(List.of(flow))));
-        var dialog = new HarnessOverridesDialog(getProject());
+        HarnessOverridesDialog dialog = new HarnessOverridesDialog(getProject());
         try {
             return dialog.createCenterPanel().getPreferredSize().height;
         } finally {

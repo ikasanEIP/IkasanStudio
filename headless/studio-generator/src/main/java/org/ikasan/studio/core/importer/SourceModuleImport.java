@@ -27,6 +27,29 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.regex.Pattern;
+import com.github.javaparser.ParseResult;
+import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.MemberValuePair;
+import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.printer.configuration.PrinterConfiguration;
+import java.io.OutputStream;
+import java.io.StringWriter;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Matcher;
+import org.apache.maven.model.Exclusion;
+import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Candidate;
+import org.ikasan.studio.core.importer.SourceCheckoutIdentity.Inspection;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Offline, source-assisted import. Never loads application classes, runs Maven, or changes the source checkout. */
 public final class SourceModuleImport {
@@ -112,13 +135,13 @@ public final class SourceModuleImport {
 
     public static Analysis analyse(Path sourceDirectory, Path destinationDirectory, String sourceModule,
                                    Runnable checkCancelled) throws Exception {
-        var inspection = SourceCheckoutIdentity.inspect(sourceDirectory, destinationDirectory, checkCancelled);
-        var candidate = sourceModule == null ? inspection.automaticCandidate()
+        Inspection inspection = SourceCheckoutIdentity.inspect(sourceDirectory, destinationDirectory, checkCancelled);
+        Candidate candidate = sourceModule == null ? inspection.automaticCandidate()
                 : inspection.candidates().stream().filter(c -> c.directory().equals(sourceModule)).findFirst().orElse(null);
         if (candidate == null) throw new IOException("Multiple source modules found. Choose the source module before analysing.");
         Path source = inspection.sourceRoot(), destination = inspection.destinationRoot();
         List<String> notes = new ArrayList<>();
-        var parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE));
+        JavaParser parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE));
         Map<String, JavaSource> classes = new TreeMap<>();
         Set<String> ambiguous = new TreeSet<>();
         List<JavaSource> units = new ArrayList<>();
@@ -136,19 +159,19 @@ public final class SourceModuleImport {
             if (relative.endsWith("/src/main/java/module-info.java") || relative.equals("src/main/java/module-info.java")) continue;
             if (relative.endsWith(".java") && (relative.startsWith("src/main/java/") || relative.contains("/src/main/java/"))) {
                 byte[] bytes = read(file);
-                var result = parser.parse(new String(bytes, StandardCharsets.UTF_8));
+                ParseResult<CompilationUnit> result = parser.parse(new String(bytes, StandardCharsets.UTF_8));
                 if (!result.isSuccessful() || result.getResult().isEmpty()) {
                     notes.add("Cannot parse source; review manually: " + relative); continue;
                 }
-                var unit = result.getResult().get();
+                CompilationUnit unit = result.getResult().get();
                 String pkg = unit.getPackageDeclaration().map(com.github.javaparser.ast.PackageDeclaration::getNameAsString).orElse("");
                 boolean wiring = unit.getTypes().stream().anyMatch(t -> t.getAnnotations().stream()
                         .anyMatch(a -> Set.of("Configuration", "SpringBootApplication", "SpringBootConfiguration").contains(a.getName().getIdentifier())));
                 wiring |= unit.findAll(MethodDeclaration.class).stream().anyMatch(m -> m.getAnnotations().stream()
                         .anyMatch(a -> a.getName().getIdentifier().equals("Bean")));
-                var java = new JavaSource(file, relative, encode(bytes), unit, pkg, wiring);
+                org.ikasan.studio.core.importer.SourceModuleImport.JavaSource java = new JavaSource(file, relative, encode(bytes), unit, pkg, wiring);
                 units.add(java);
-                for (var type : unit.getTypes()) {
+                for (TypeDeclaration<?> type : unit.getTypes()) {
                     String name = (pkg.isEmpty() ? "" : pkg + ".") + type.getNameAsString();
                     if (classes.putIfAbsent(name, java) != null) ambiguous.add(name);
                 }
@@ -171,7 +194,7 @@ public final class SourceModuleImport {
             checkCancelled.run();
             if (!file.toString().endsWith(".java")) continue;
             byte[] content = read(file);
-            var parsed = parser.parse(new String(content, StandardCharsets.UTF_8));
+            ParseResult<CompilationUnit> parsed = parser.parse(new String(content, StandardCharsets.UTF_8));
             if (parsed.isSuccessful() && parsed.getResult().isPresent()
                     && parsed.getResult().get().getTypes().stream().anyMatch(type -> type.getAnnotations().stream()
                             .anyMatch(annotation -> annotation.getName().getIdentifier().equals("Import"))))
@@ -203,7 +226,7 @@ public final class SourceModuleImport {
             if (!file.toString().endsWith(".java")) continue;
             byte[] generatedBytes = read(file);
             generatedInputs.put(relative(destination, file), encode(generatedBytes));
-            var result = parser.parse(new String(generatedBytes, StandardCharsets.UTF_8));
+            ParseResult<CompilationUnit> result = parser.parse(new String(generatedBytes, StandardCharsets.UTF_8));
             if (!result.isSuccessful() || result.getResult().isEmpty()) throw new IOException("Cannot inspect generated Java: " + relative(destination, file));
             CompilationUnit unit = result.getResult().get();
             generatedUnits.put(relative(destination, file), unit);
@@ -213,14 +236,14 @@ public final class SourceModuleImport {
                 if (found != null && !found.wiring()) recommended.add(found);
             }
             for (FieldDeclaration field : unit.findAll(FieldDeclaration.class)) {
-                var resource = field.getAnnotations().stream().filter(a -> a.getName().getIdentifier().equals("Resource")).findFirst();
+                Optional<AnnotationExpr> resource = field.getAnnotations().stream().filter(a -> a.getName().getIdentifier().equals("Resource")).findFirst();
                 if (resource.isEmpty()) continue;
-                for (var variable : field.getVariables()) {
+                for (VariableDeclarator variable : field.getVariables()) {
                     String type = resolve(variable.getType().asString(), unit, classes.keySet());
                     if (type.startsWith("org.ikasan.builder.")) continue;
                     String name = variable.getNameAsString();
                     if (resource.get().isNormalAnnotationExpr()) {
-                        for (var pair : resource.get().asNormalAnnotationExpr().getPairs())
+                        for (MemberValuePair pair : resource.get().asNormalAnnotationExpr().getPairs())
                             if (pair.getNameAsString().equals("name") && pair.getValue().isStringLiteralExpr()) name = pair.getValue().asStringLiteralExpr().asString();
                     }
                     JavaSource found = classes.get(type);
@@ -229,7 +252,7 @@ public final class SourceModuleImport {
                     for (JavaSource original : units) {
                         checkCancelled.run();
                         for (MethodDeclaration method : original.unit().findAll(MethodDeclaration.class)) {
-                            var bean = method.getAnnotations().stream().filter(a -> a.getName().getIdentifier().equals("Bean")).findFirst();
+                            Optional<AnnotationExpr> bean = method.getAnnotations().stream().filter(a -> a.getName().getIdentifier().equals("Bean")).findFirst();
                             if (bean.isEmpty()) continue;
                             String returns = resolve(method.getType().asString(), original.unit(), classes.keySet());
                             if (name.equals(method.getNameAsString()) || type.equals(returns)) {
@@ -251,13 +274,13 @@ public final class SourceModuleImport {
         Set<String> knownTypes = new HashSet<>(classes.keySet());
         generatedUnits.values().forEach(unit -> unit.getTypes().forEach(type -> knownTypes.add(
                 unit.getPackageDeclaration().map(pkg -> pkg.getNameAsString() + ".").orElse("") + type.getNameAsString())));
-        var providers = declaredProviders(generatedUnits, knownTypes);
+        List<org.ikasan.studio.core.importer.SourceModuleImport.GeneratedProvider> providers = declaredProviders(generatedUnits, knownTypes);
         beans = beans.stream().map(bean -> {
             String type = resolve(bean.type(), generatedUnits.get(bean.generatedFile()), knownTypes);
             boolean supplied = provided(providers, new BeanRequirement(bean.name(), type, bean.generatedFile(), bean.line(), bean.sourceDefinitions()));
             if (!supplied && !classes.containsKey(type)) {
                 String contract = type;
-                var compatible = classes.keySet().stream().filter(name -> concreteSourceType(name, classes)
+                List<String> compatible = classes.keySet().stream().filter(name -> concreteSourceType(name, classes)
                         && sourceAssignableTo(name, contract, classes, new HashSet<>())).toList();
                 // Never choose among multiple implementations of the same injected contract.
                 if (compatible.size() == 1) {
@@ -270,9 +293,9 @@ public final class SourceModuleImport {
         Deque<JavaSource> pending = new ArrayDeque<>(recommended);
         while (!pending.isEmpty()) {
             checkCancelled.run();
-            var original = pending.removeFirst();
+            org.ikasan.studio.core.importer.SourceModuleImport.JavaSource original = pending.removeFirst();
             for (String reference : references(original.unit(), original.unit(), classes.keySet())) {
-                var dependency = classes.get(reference);
+                org.ikasan.studio.core.importer.SourceModuleImport.JavaSource dependency = classes.get(reference);
                 if (dependency != null && !dependency.wiring() && recommended.add(dependency)) pending.add(dependency);
             }
         }
@@ -303,9 +326,9 @@ public final class SourceModuleImport {
         // Keep explicitly named @PropertySource classpath resources at their original classpath paths.
         // application*.properties remain external environment choices to avoid duplicate application resources.
         Set<String> resources = new TreeSet<>();
-        for (JavaSource java : recommended) for (var annotation : java.unit().findAll(com.github.javaparser.ast.expr.AnnotationExpr.class)) {
+        for (JavaSource java : recommended) for (AnnotationExpr annotation : java.unit().findAll(com.github.javaparser.ast.expr.AnnotationExpr.class)) {
             if (!annotation.getName().getIdentifier().equals("PropertySource")) continue;
-            for (var literal : annotation.findAll(com.github.javaparser.ast.expr.StringLiteralExpr.class)) {
+            for (StringLiteralExpr literal : annotation.findAll(com.github.javaparser.ast.expr.StringLiteralExpr.class)) {
                 String value = literal.asString();
                 if (value.startsWith("classpath:") && value.endsWith(".properties") && !value.contains("${"))
                     resources.add(value.substring("classpath:".length()).replaceFirst("^/", ""));
@@ -343,7 +366,7 @@ public final class SourceModuleImport {
             JavaParser parser, List<FileChoice> choices, Map<String, String> generatedInputs, List<String> notes) throws IOException {
         Path properties = safe(destination, "generated/src/main/resources/application.properties");
         if (!Files.isRegularFile(properties, LinkOption.NOFOLLOW_LINKS)) return;
-        var names = Pattern.compile("org\\.ikasan\\.studio\\.boot\\.flow\\.[A-Za-z0-9_]+\\.ComponentFactory[A-Za-z0-9_]+\\$Trusted[A-Za-z0-9_]+ContextFactory")
+        Matcher names = Pattern.compile("org\\.ikasan\\.studio\\.boot\\.flow\\.[A-Za-z0-9_]+\\.ComponentFactory[A-Za-z0-9_]+\\$Trusted[A-Za-z0-9_]+ContextFactory")
                 .matcher(new String(read(properties), StandardCharsets.ISO_8859_1));
         Set<String> seen = new HashSet<>();
         while (names.find()) {
@@ -357,7 +380,7 @@ public final class SourceModuleImport {
                     .flatMap(u -> u.findAll(com.github.javaparser.ast.body.ClassOrInterfaceDeclaration.class).stream())
                     .anyMatch(t -> t.getNameAsString().equals(nested))) continue;
             String target = "user/src/main/java/" + binary.replace('.', '/') + ".java";
-            var matches = new ArrayList<Path>();
+            ArrayList<Path> matches = new ArrayList<>();
             for (String owner : candidate.ownedPomDirectories()) {
                 Path file = safe(source, (owner.isBlank() ? "" : owner + "/") + "src/main/java/" + outer.replace('.', '/') + ".java");
                 if (Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS) && inspection.includes(candidate, file)) matches.add(file);
@@ -371,9 +394,9 @@ public final class SourceModuleImport {
                 Path file = matches.get(0);
                 byte[] original = read(file);
                 String sourcePath = relative(source, file);
-                var unit = parser.parse(new String(original, StandardCharsets.UTF_8)).getResult().orElse(null);
+                CompilationUnit unit = parser.parse(new String(original, StandardCharsets.UTF_8)).getResult().orElse(null);
                 if (unit != null) {
-                    var helper = unit.findAll(com.github.javaparser.ast.body.ClassOrInterfaceDeclaration.class).stream()
+                    ClassOrInterfaceDeclaration helper = unit.findAll(com.github.javaparser.ast.body.ClassOrInterfaceDeclaration.class).stream()
                             .filter(t -> t.getNameAsString().equals(nested) && t.isPublic() && t.isStatic()
                                     && t.getParentNode().filter(n -> n instanceof com.github.javaparser.ast.body.TypeDeclaration<?>).isPresent()
                                     && t.getExtendedTypes().size() == 1
@@ -388,12 +411,12 @@ public final class SourceModuleImport {
                             && helper.findAll(NameExpr.class).stream().noneMatch(n -> n.getNameAsString().equals(outer.substring(dot + 1)))
                             && helper.getMethods().stream().map(MethodDeclaration::getNameAsString).collect(java.util.stream.Collectors.toSet())
                                     .equals(Set.of("initialFactoryName", "configure", "createConnectionFactory"))) {
-                        var copy = helper.clone();
+                        ClassOrInterfaceDeclaration copy = helper.clone();
                         String simple = binary.substring(dot + 1);
                         copy.setStatic(false); copy.setName(simple);
                         copy.findAll(com.github.javaparser.ast.expr.SimpleName.class).stream()
                                 .filter(n -> n.asString().equals(nested)).forEach(n -> n.setIdentifier(simple));
-                        var output = new CompilationUnit(); output.setPackageDeclaration(binary.substring(0, dot));
+                        CompilationUnit output = new CompilationUnit(); output.setPackageDeclaration(binary.substring(0, dot));
                         Set<String> used = copy.findAll(com.github.javaparser.ast.expr.SimpleName.class).stream()
                                 .map(com.github.javaparser.ast.expr.SimpleName::asString).collect(java.util.stream.Collectors.toSet());
                         unit.getImports().stream().filter(i -> i.isAsterisk() || used.contains(i.getName().getIdentifier()))
@@ -415,7 +438,7 @@ public final class SourceModuleImport {
     }
 
     private static String supportPath(JavaSource java) {
-        for (var type : java.unit().getTypes()) {
+        for (TypeDeclaration<?> type : java.unit().getTypes()) {
             String path = SUPPORT_CLASSES.get(java.pkg() + "." + type.getNameAsString());
             if (path != null && java.path().getFileName().toString().equals(type.getNameAsString() + ".java")) return path;
         }
@@ -432,7 +455,7 @@ public final class SourceModuleImport {
         }
         inputs.put(ProjectArtifactRenderer.MODEL, model);
         try {
-            var module = ComponentIO.deserializeModuleInstanceString(decode(model), ProjectArtifactRenderer.MODEL);
+            Module module = ComponentIO.deserializeModuleInstanceString(decode(model), ProjectArtifactRenderer.MODEL);
             return Map.of(
                     SUPPORT_CLASSES.get(DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_PACKAGE + "." + DebugTransitionComponentTemplate.DEBUG_TRANSITION_COMPONENT_CLASS_NAME), DebugTransitionComponentTemplate.create(module),
                     SUPPORT_CLASSES.get(DeepCopyUtilTemplate.DEEP_COPY_UTIL_PACKAGE + "." + DeepCopyUtilTemplate.DEEP_COPY_UTIL_CLASS_NAME), DeepCopyUtilTemplate.create(module));
@@ -444,9 +467,9 @@ public final class SourceModuleImport {
 
     /** Ignore formatting and comments for classification; comparison retains the exact original bytes. */
     private static boolean sameJava(JavaParser parser, String left, String right) {
-        var first = parser.parse(left); var second = parser.parse(right);
+        ParseResult<CompilationUnit> first = parser.parse(left); ParseResult<CompilationUnit> second = parser.parse(right);
         if (!first.isSuccessful() || !second.isSuccessful() || first.getResult().isEmpty() || second.getResult().isEmpty()) return false;
-        var printing = new DefaultPrinterConfiguration()
+        PrinterConfiguration printing = new DefaultPrinterConfiguration()
                 .removeOption(new DefaultConfigurationOption(
                         ConfigOption.PRINT_COMMENTS))
                 .removeOption(new DefaultConfigurationOption(
@@ -457,7 +480,7 @@ public final class SourceModuleImport {
     }
 
     private static boolean concreteSourceType(String name, Map<String, JavaSource> classes) {
-        var source = classes.get(name);
+        org.ikasan.studio.core.importer.SourceModuleImport.JavaSource source = classes.get(name);
         if (source == null) return false;
         return source.unit().getTypes().stream().filter(type -> (source.pkg().isEmpty() ? "" : source.pkg() + ".")
                         .concat(type.getNameAsString()).equals(name))
@@ -469,12 +492,12 @@ public final class SourceModuleImport {
     private static boolean sourceAssignableTo(String name, String contract, Map<String, JavaSource> classes, Set<String> seen) {
         if (name.equals(contract)) return true;
         if (!seen.add(name) || !classes.containsKey(name)) return false;
-        var source = classes.get(name);
-        for (var type : source.unit().getTypes()) {
+        org.ikasan.studio.core.importer.SourceModuleImport.JavaSource source = classes.get(name);
+        for (TypeDeclaration<?> type : source.unit().getTypes()) {
             if (!((source.pkg().isEmpty() ? "" : source.pkg() + ".") + type.getNameAsString()).equals(name)
                     || !type.isClassOrInterfaceDeclaration()) continue;
-            var declaration = type.asClassOrInterfaceDeclaration();
-            for (var parent : java.util.stream.Stream.concat(declaration.getImplementedTypes().stream(), declaration.getExtendedTypes().stream()).toList())
+            ClassOrInterfaceDeclaration declaration = type.asClassOrInterfaceDeclaration();
+            for (ClassOrInterfaceType parent : java.util.stream.Stream.concat(declaration.getImplementedTypes().stream(), declaration.getExtendedTypes().stream()).toList())
                 if (sourceAssignableTo(resolve(parent.getNameWithScope(), source.unit(), classes.keySet()), contract, classes, seen)) return true;
         }
         return false;
@@ -482,8 +505,8 @@ public final class SourceModuleImport {
 
     private static Set<String> references(Node node, CompilationUnit unit, Set<String> names) {
         Set<String> result = new TreeSet<>();
-        for (var type : node.findAll(ClassOrInterfaceType.class)) result.add(resolve(type.getNameWithScope(), unit, names));
-        for (var name : node.findAll(NameExpr.class)) result.add(resolve(name.getNameAsString(), unit, names));
+        for (ClassOrInterfaceType type : node.findAll(ClassOrInterfaceType.class)) result.add(resolve(type.getNameWithScope(), unit, names));
+        for (NameExpr name : node.findAll(NameExpr.class)) result.add(resolve(name.getNameAsString(), unit, names));
         // Static imports may reference local helper classes without a type expression.
         unit.getImports().stream().filter(com.github.javaparser.ast.ImportDeclaration::isStatic).forEach(i -> {
             String name = i.getNameAsString();
@@ -495,7 +518,7 @@ public final class SourceModuleImport {
     private static String resolve(String type, CompilationUnit unit, Set<String> names) {
         type = type.replaceAll("<.*>", "").replace("[]", "");
         if (names.contains(type) || type.contains(".") && Character.isLowerCase(type.charAt(0))) return type;
-        for (var imported : unit.getImports()) {
+        for (ImportDeclaration imported : unit.getImports()) {
             if (imported.isStatic()) continue;
             String name = imported.getNameAsString();
             if (!imported.isAsterisk() && name.endsWith("." + type)) return name;
@@ -503,7 +526,7 @@ public final class SourceModuleImport {
         String local = unit.getPackageDeclaration().map(p -> p.getNameAsString() + ".").orElse("") + type;
         if (names.contains(local)) return local;
         List<String> wildcard = new ArrayList<>();
-        for (var imported : unit.getImports()) if (imported.isAsterisk() && !imported.isStatic()) {
+        for (ImportDeclaration imported : unit.getImports()) if (imported.isAsterisk() && !imported.isStatic()) {
             String candidate = imported.getNameAsString() + "." + type;
             if (names.contains(candidate)) wildcard.add(candidate);
         }
@@ -511,7 +534,7 @@ public final class SourceModuleImport {
     }
 
     private static List<DependencyChoice> dependencies(Path source, List<Path> poms, String destinationPom, List<String> notes) throws Exception {
-        var target = pom(decode(destinationPom));
+        Model target = pom(decode(destinationPom));
         Set<String> existing = new HashSet<>();
         target.getDependencies().forEach(d -> existing.add(coordinate(d)));
         Properties shared = new Properties();
@@ -531,7 +554,7 @@ public final class SourceModuleImport {
                 dependency.setClassifier(expand(dependency.getClassifier(), values));
                 dependency.setType(expand(dependency.getType(), values));
                 dependency.setScope(expand(dependency.getScope(), values));
-                for (var exclusion : dependency.getExclusions()) {
+                for (Exclusion exclusion : dependency.getExclusions()) {
                     exclusion.setGroupId(expand(exclusion.getGroupId(), values));
                     exclusion.setArtifactId(expand(exclusion.getArtifactId(), values));
                 }
@@ -542,11 +565,11 @@ public final class SourceModuleImport {
                 boolean importable = !platform && (dependency.getVersion() == null || !dependency.getVersion().contains("${")) && !id.contains("${") && dependency.getSystemPath() == null
                         && dependency.getExclusions().stream().noneMatch(e -> Objects.toString(e.getGroupId(), "").contains("${") || Objects.toString(e.getArtifactId(), "").contains("${"))
                         && (dependency.getScope() == null || Set.of("compile", "runtime", "provided").contains(dependency.getScope()));
-                var candidate = new DependencyChoice(id, dependency, importable, relative(source, path)
+                org.ikasan.studio.core.importer.SourceModuleImport.DependencyChoice candidate = new DependencyChoice(id, dependency, importable, relative(source, path)
                         + (platform ? ": platform dependency; retain the selected meta-pack baseline."
                         : importable ? ": original Maven declaration included by default; versions, exclusions, scopes and optional flags are retained. An omitted version uses destination dependency management."
                         : ": unresolved expression, non-portable declaration or unsupported scope; resolve manually."));
-                var previous = candidates.putIfAbsent(id, candidate);
+                org.ikasan.studio.core.importer.SourceModuleImport.DependencyChoice previous = candidates.putIfAbsent(id, candidate);
                 if (previous != null && !Objects.equals(previous.dependency().getVersion(), dependency.getVersion()))
                     candidates.put(id, new DependencyChoice(id, dependency, false, "Different source modules declare different versions; resolve manually."));
             }
@@ -559,7 +582,7 @@ public final class SourceModuleImport {
     private static String expand(String value, Properties values) {
         if (value == null) return null;
         for (int n = 0; n < 10; n++) {
-            var matcher = Pattern.compile("\\$\\{([^}]+)}").matcher(value);
+            Matcher matcher = Pattern.compile("\\$\\{([^}]+)}").matcher(value);
             String expanded = matcher.replaceAll(m -> java.util.regex.Matcher.quoteReplacement(values.getProperty(m.group(1), m.group())));
             if (expanded.equals(value)) break;
             value = expanded;
@@ -571,39 +594,39 @@ public final class SourceModuleImport {
 
     public static String pomAfter(Analysis analysis, Set<String> dependencies) throws Exception {
         if (dependencies.isEmpty()) return decode(analysis.originalPom());
-        var model = pom(decode(analysis.originalPom()));
+        Model model = pom(decode(analysis.originalPom()));
         for (String id : new TreeSet<>(dependencies)) {
-            var choice = analysis.dependencies().stream().filter(d -> d.id().equals(id)).findFirst().orElseThrow();
+            org.ikasan.studio.core.importer.SourceModuleImport.DependencyChoice choice = analysis.dependencies().stream().filter(d -> d.id().equals(id)).findFirst().orElseThrow();
             if (!choice.importable()) throw new IOException("Resolve dependency manually: " + id);
             model.addDependency(choice.dependency().clone());
         }
-        var writer = new StringWriter(); new MavenXpp3Writer().write(writer, model); return writer.toString();
+        StringWriter writer = new StringWriter(); new MavenXpp3Writer().write(writer, model); return writer.toString();
     }
 
     public record DependencyComparison(String original, String destination) { }
 
     /** Compare the selected declaration, including review-only dependencies, without approving an import. */
     public static DependencyComparison compareDependency(Analysis analysis, String id) throws Exception {
-        var choice = analysis.dependencies().stream().filter(d -> d.id().equals(id)).findFirst().orElseThrow();
-        var target = pom(decode(analysis.originalPom())).getDependencies().stream()
+        org.ikasan.studio.core.importer.SourceModuleImport.DependencyChoice choice = analysis.dependencies().stream().filter(d -> d.id().equals(id)).findFirst().orElseThrow();
+        Dependency target = pom(decode(analysis.originalPom())).getDependencies().stream()
                 .filter(d -> coordinate(d).equals(id)).findFirst().orElse(null);
         return new DependencyComparison(dependencyXml(choice.dependency()), dependencyXml(target));
     }
 
     private static String dependencyXml(Dependency dependency) throws IOException {
         if (dependency == null) return "";
-        var model = new Model(); model.setModelVersion("4.0.0"); model.addDependency(dependency.clone());
-        var text = new StringWriter(); new MavenXpp3Writer().write(text, model); return text.toString();
+        Model model = new Model(); model.setModelVersion("4.0.0"); model.addDependency(dependency.clone());
+        StringWriter text = new StringWriter(); new MavenXpp3Writer().write(text, model); return text.toString();
     }
 
     private record GeneratedProvider(String name, String type, boolean directImport, boolean explicitName) { }
 
     private static List<GeneratedProvider> declaredProviders(Map<String, CompilationUnit> units, Set<String> knownTypes) {
         List<GeneratedProvider> providers = new ArrayList<>();
-        for (var unit : units.values()) for (var type : unit.getTypes()) {
+        for (CompilationUnit unit : units.values()) for (TypeDeclaration<?> type : unit.getTypes()) {
             // Conditional providers require review rather than an assumption that their profile is active.
             if (type.getAnnotations().stream().anyMatch(a -> (a.getName().getIdentifier().equals("Profile") || a.getName().getIdentifier().startsWith("Conditional")))) continue;
-            var component = type.getAnnotations().stream().filter(a -> Set.of("Component", "Configuration", "Service", "Repository", "Controller", "RestController")
+            Optional<AnnotationExpr> component = type.getAnnotations().stream().filter(a -> Set.of("Component", "Configuration", "Service", "Repository", "Controller", "RestController")
                     .contains(a.getName().getIdentifier())).findFirst();
             if (component.isEmpty()) continue;
             String qualified = unit.getPackageDeclaration().map(pkg -> pkg.getNameAsString() + ".").orElse("") + type.getNameAsString();
@@ -616,9 +639,9 @@ public final class SourceModuleImport {
                     && !type.asClassOrInterfaceDeclaration().isAbstract()
                     && !component.get().getName().getIdentifier().equals("Configuration");
             for (String name : beanNames(component.get(), defaultName)) providers.add(new GeneratedProvider(name, qualified, directImport, !name.isBlank() && beanNames(component.get(), "").contains(name)));
-            for (var method : type.getMethods()) {
+            for (MethodDeclaration method : type.getMethods()) {
                 if (method.getAnnotations().stream().anyMatch(a -> (a.getName().getIdentifier().equals("Profile") || a.getName().getIdentifier().startsWith("Conditional")))) continue;
-                var bean = method.getAnnotations().stream().filter(a -> a.getName().getIdentifier().equals("Bean")).findFirst();
+                Optional<AnnotationExpr> bean = method.getAnnotations().stream().filter(a -> a.getName().getIdentifier().equals("Bean")).findFirst();
                 if (bean.isPresent()) for (String name : beanNames(bean.get(), method.getNameAsString()))
                     providers.add(new GeneratedProvider(name, resolve(method.getType().asString(), unit, knownTypes), false, false));
             }
@@ -633,16 +656,16 @@ public final class SourceModuleImport {
                 .filter(pair -> Set.of("value", "name").contains(pair.getNameAsString())).forEach(pair -> values.add(pair.getValue()));
         if (values.isEmpty()) return List.of(fallback);
         List<String> names = new ArrayList<>();
-        for (var value : values) {
+        for (Expression value : values) {
             if (value.isStringLiteralExpr() && !value.asStringLiteralExpr().asString().isBlank()) names.add(value.asStringLiteralExpr().asString());
-            else if (value.isArrayInitializerExpr()) for (var item : value.asArrayInitializerExpr().getValues())
+            else if (value.isArrayInitializerExpr()) for (Expression item : value.asArrayInitializerExpr().getValues())
                 if (item.isStringLiteralExpr() && !item.asStringLiteralExpr().asString().isBlank()) names.add(item.asStringLiteralExpr().asString());
         }
         return names;
     }
 
     private static boolean provided(List<GeneratedProvider> providers, BeanRequirement bean) {
-        var named = providers.stream().filter(provider -> provider.name().equals(bean.name())).toList();
+        List<org.ikasan.studio.core.importer.SourceModuleImport.GeneratedProvider> named = providers.stream().filter(provider -> provider.name().equals(bean.name())).toList();
         if (!named.isEmpty()) return named.size() == 1 && named.get(0).type().equals(bean.type());
         return providers.stream().filter(provider -> provider.type().equals(bean.type())).count() == 1;
     }
@@ -653,17 +676,17 @@ public final class SourceModuleImport {
 
     private static List<GeneratedProvider> reviewedProviders(Analysis analysis, Set<String> files,
                                                             Map<String, String> reviewedJava, boolean requireScannedPackage) {
-        var parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE));
+        JavaParser parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE));
         Set<String> scanned = new HashSet<>();
         for (String encoded : analysis.generatedInputs().values()) {
             if (Thread.currentThread().isInterrupted()) throw new java.util.concurrent.CancellationException();
-            var parsed = parser.parse(decode(encoded));
+            ParseResult<CompilationUnit> parsed = parser.parse(decode(encoded));
             if (!parsed.isSuccessful() || parsed.getResult().isEmpty()) continue;
-            var unit = parsed.getResult().get();
-            for (var type : unit.getTypes()) {
+            CompilationUnit unit = parsed.getResult().get();
+            for (TypeDeclaration<?> type : unit.getTypes()) {
                 if (type.getAnnotations().stream().anyMatch(a -> a.getName().getIdentifier().equals("Profile") || a.getName().getIdentifier().startsWith("Conditional"))) continue;
                 boolean explicitScan = type.getAnnotations().stream().anyMatch(a -> a.getName().getIdentifier().equals("ComponentScan"));
-                for (var annotation : type.getAnnotations()) {
+                for (AnnotationExpr annotation : type.getAnnotations()) {
                     String name = annotation.getName().getIdentifier();
                     if (name.equals("ComponentScan")) {
                         if (annotation.isNormalAnnotationExpr() && annotation.asNormalAnnotationExpr().getPairs().stream()
@@ -688,12 +711,12 @@ public final class SourceModuleImport {
         analysis.supportInputs().entrySet().stream().filter(entry -> entry.getKey().endsWith(".java"))
                 .map(Map.Entry::getValue).forEach(registrationInputs::add);
         for (String encoded : registrationInputs) {
-            var parsed = parser.parse(decode(encoded));
+            ParseResult<CompilationUnit> parsed = parser.parse(decode(encoded));
             if (!parsed.isSuccessful() || parsed.getResult().isEmpty()) continue;
-            var unit = parsed.getResult().get();
+            CompilationUnit unit = parsed.getResult().get();
             String pkg = unit.getPackageDeclaration().map(PackageDeclaration::getNameAsString).orElse("");
             if (scanned.stream().noneMatch(base -> pkg.equals(base) || pkg.startsWith(base + "."))) continue;
-            for (var type : unit.getTypes()) {
+            for (TypeDeclaration<?> type : unit.getTypes()) {
                 if (type.getAnnotations().stream().noneMatch(annotation -> Set.of("Component", "Configuration", "Service",
                         "Repository", "Controller", "RestController", "SpringBootApplication")
                         .contains(annotation.getName().getIdentifier()))) continue;
@@ -705,20 +728,20 @@ public final class SourceModuleImport {
             }
         }
         Map<String, CompilationUnit> userUnits = new LinkedHashMap<>();
-        for (var file : analysis.files()) {
+        for (org.ikasan.studio.core.importer.SourceModuleImport.FileChoice file : analysis.files()) {
             if (Thread.currentThread().isInterrupted()) throw new java.util.concurrent.CancellationException();
             if (!file.source().endsWith(".java")) continue;
             String text = files.contains(file.source()) ? reviewedJava.getOrDefault(file.source(), decode(file.bytes()))
                     : file.previous() == null ? null : decode(file.previous());
             if (text == null) continue;
-            var parsed = parser.parse(text);
+            ParseResult<CompilationUnit> parsed = parser.parse(text);
             if (!parsed.isSuccessful() || parsed.getResult().isEmpty()) continue;
-            var unit = parsed.getResult().get();
+            CompilationUnit unit = parsed.getResult().get();
             String pkg = unit.getPackageDeclaration().map(com.github.javaparser.ast.PackageDeclaration::getNameAsString).orElse("");
             if (!requireScannedPackage || scanned.stream().anyMatch(base -> pkg.equals(base) || pkg.startsWith(base + "."))) {
                 userUnits.put(file.destination(), unit);
             } else {
-                var importedUnit = unit.clone();
+                CompilationUnit importedUnit = unit.clone();
                 importedUnit.getTypes().removeIf(type -> !explicitlyImported.contains(pkg + "." + type.getNameAsString()));
                 if (!importedUnit.getTypes().isEmpty()) userUnits.put(file.destination(), importedUnit);
             }
@@ -744,11 +767,11 @@ public final class SourceModuleImport {
     /** AST inspection belongs on a worker thread, including when reviewing staged diff contents. */
     public static List<ReviewAction> reviewActions(Analysis analysis, Set<String> files, Set<String> dependencies,
                                                   Map<String, String> reviewedJava) {
-        var userProviders = reviewedProviders(analysis, files, reviewedJava);
-        var availableProviders = reviewedProviders(analysis, files, reviewedJava, false);
+        List<org.ikasan.studio.core.importer.SourceModuleImport.GeneratedProvider> userProviders = reviewedProviders(analysis, files, reviewedJava);
+        List<org.ikasan.studio.core.importer.SourceModuleImport.GeneratedProvider> availableProviders = reviewedProviders(analysis, files, reviewedJava, false);
         Set<String> scanWarnings = new HashSet<>();
         List<ReviewAction> actions = new ArrayList<>();
-        for (var bean : analysis.beans()) if (!bean.generatedProvider() && !provided(userProviders, bean)) {
+        for (org.ikasan.studio.core.importer.SourceModuleImport.BeanRequirement bean : analysis.beans()) if (!bean.generatedProvider() && !provided(userProviders, bean)) {
             List<String> evidence = new ArrayList<>();
             evidence.add(bean.generatedFile() + ":" + bean.line()); evidence.addAll(bean.sourceDefinitions());
             actions.add(new ReviewAction(ReviewKind.BEAN, bean.name() + " : " + bean.type(), List.copyOf(evidence)));
@@ -761,7 +784,7 @@ public final class SourceModuleImport {
         }
         Set<String> referencedPaths = new HashSet<>();
         analysis.identity().matchedImplementations().forEach(type -> referencedPaths.add("user/src/main/java/" + type.replace('.', '/') + ".java"));
-        for (var file : analysis.files()) {
+        for (org.ikasan.studio.core.importer.SourceModuleImport.FileChoice file : analysis.files()) {
             if (file.wiring() && files.contains(file.source()))
                 actions.add(new ReviewAction(ReviewKind.WIRING, file.destination(), List.of()));
             else if (!files.contains(file.source()) && file.recommended() && !file.source().endsWith(".java")
@@ -771,14 +794,14 @@ public final class SourceModuleImport {
                     && !Objects.equals(file.bytes(), file.previous()))
                 actions.add(new ReviewAction(ReviewKind.SOURCE, file.destination(), List.of()));
         }
-        for (var dependency : analysis.dependencies()) {
+        for (org.ikasan.studio.core.importer.SourceModuleImport.DependencyChoice dependency : analysis.dependencies()) {
             if (dependencies.contains(dependency.id())) continue;
             String group = Objects.toString(dependency.dependency().getGroupId(), "");
             if (group.startsWith("org.ikasan") || group.startsWith("org.springframework")) continue;
             actions.add(new ReviewAction(ReviewKind.DEPENDENCY, dependency.id(),
                     dependency.importable() ? List.of() : List.of(dependency.reason())));
         }
-        for (var support : analysis.managedFiles()) {
+        for (org.ikasan.studio.core.importer.SourceModuleImport.ManagedFile support : analysis.managedFiles()) {
             if (support.status() == SupportStatus.UNVERIFIED || support.status() == SupportStatus.DESTINATION_MISSING)
                 actions.add(new ReviewAction(ReviewKind.SUPPORT_REPAIR, support.destination(), List.of()));
             else if (!files.contains(support.source()) && support.status() == SupportStatus.ORIGINAL_DIFFERS)
@@ -811,7 +834,7 @@ public final class SourceModuleImport {
         analysis.managedFiles().forEach(file -> text.append("- ").append(file.source()).append(" → ").append(file.destination())
                 .append(" — ").append(supportDescription(file.status())).append(files.contains(file.source()) ? " — CUSTOMISATION SELECTED" : " — unchanged").append('\n'));
         text.append("\n## Generated bean contracts\n\n");
-        for (var bean : analysis.beans()) {
+        for (org.ikasan.studio.core.importer.SourceModuleImport.BeanRequirement bean : analysis.beans()) {
             text.append("- Bean `").append(bean.name()).append("` of type `").append(bean.type()).append("`: ")
                     .append(bean.generatedFile()).append(':').append(bean.line()).append('\n');
             if (bean.sourceDefinitions().isEmpty()) text.append("  No matching original @Bean method was identified; check stereotypes, aliases and external libraries.\n");
@@ -855,7 +878,7 @@ public final class SourceModuleImport {
     private static boolean hasExplicitResourceName(Analysis analysis, BeanRequirement bean) {
         String generated = analysis.generatedInputs().get(bean.generatedFile());
         if (generated == null) return false;
-        var parsed = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE))
+        ParseResult<CompilationUnit> parsed = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE))
                 .parse(decode(generated));
         return parsed.getResult().isPresent() && parsed.getResult().get()
                 .findAll(com.github.javaparser.ast.expr.AnnotationExpr.class).stream()
@@ -873,10 +896,10 @@ public final class SourceModuleImport {
     /** A new, explicit registration for selected stereotypes; never invent factories for plain Java classes. */
     public static SpringRegistration previewSpringRegistration(Analysis analysis, Set<String> files,
                                                                Map<String, String> reviewedJava) throws IOException {
-        var scanned = reviewedProviders(analysis, files, reviewedJava);
-        var available = reviewedProviders(analysis, files, reviewedJava, false);
+        List<org.ikasan.studio.core.importer.SourceModuleImport.GeneratedProvider> scanned = reviewedProviders(analysis, files, reviewedJava);
+        List<org.ikasan.studio.core.importer.SourceModuleImport.GeneratedProvider> available = reviewedProviders(analysis, files, reviewedJava, false);
         Set<String> components = new TreeSet<>();
-        for (var bean : analysis.beans()) {
+        for (org.ikasan.studio.core.importer.SourceModuleImport.BeanRequirement bean : analysis.beans()) {
             if (bean.generatedProvider() || provided(scanned, bean) || !provided(available, bean)) continue;
             // Distinct bean identities of the same class may represent different configured instances.
             // Do not collapse them into one imported singleton.
@@ -894,13 +917,13 @@ public final class SourceModuleImport {
         // The released Studio applications explicitly scan this namespace. Keep the new configuration
         // under user/ and import only reviewed component classes, rather than scanning the original application.
         String pkg = "org.ikasan.studio.boot.imported";
-        var parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE));
+        JavaParser parser = new JavaParser(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE));
         boolean discovered = false;
         for (String encoded : analysis.generatedInputs().values()) {
-            var parsed = parser.parse(decode(encoded));
+            ParseResult<CompilationUnit> parsed = parser.parse(decode(encoded));
             if (!parsed.isSuccessful() || parsed.getResult().isEmpty()) continue;
-            var unit = parsed.getResult().get();
-            for (var annotation : unit.findAll(com.github.javaparser.ast.expr.AnnotationExpr.class)) {
+            CompilationUnit unit = parsed.getResult().get();
+            for (AnnotationExpr annotation : unit.findAll(com.github.javaparser.ast.expr.AnnotationExpr.class)) {
                 Set<String> packages = new HashSet<>();
                 if (annotation.getName().getIdentifier().equals("ComponentScan")) {
                     if (annotation.getParentNode().orElse(null) instanceof com.github.javaparser.ast.body.TypeDeclaration<?> owner
@@ -965,13 +988,13 @@ public final class SourceModuleImport {
         if (registration != null && !registration.equals(previewSpringRegistration(analysis, files, reviewedJava)))
             throw new IOException("Spring registration review changed. Review it again before importing.");
         if (registration != null) {
-            for (var file : analysis.files()) {
+            for (org.ikasan.studio.core.importer.SourceModuleImport.FileChoice file : analysis.files()) {
                 if (files.contains(file.source()) || !file.destination().endsWith(".java")) continue;
                 if (!Objects.equals(existing(safe(analysis.destinationRoot(), file.destination())), file.previous()))
                     throw new IOException("Destination component changed since Spring registration review: " + file.destination());
             }
         }
-        for (var entry : reviewedJava.entrySet()) {
+        for (Entry<String,String> entry : reviewedJava.entrySet()) {
             if (!files.contains(entry.getKey()) || !entry.getKey().endsWith(".java")
                     || importableFiles(analysis).stream().noneMatch(file -> file.source().equals(entry.getKey())))
                 throw new IOException("Staged merges must belong to selected Java source files.");
@@ -988,21 +1011,21 @@ public final class SourceModuleImport {
         for (Path file : inventory(safe(analysis.destinationRoot(), "generated/src/main/java"), null, () -> { }))
             if (file.toString().endsWith(".java")) generatedNow.put(relative(analysis.destinationRoot(), file), encode(read(file)));
         if (!generatedNow.equals(analysis.generatedInputs())) throw new IOException("Generated code changed since review. Analyse again.");
-        for (var input : analysis.supportInputs().entrySet())
+        for (Entry<String,String> input : analysis.supportInputs().entrySet())
             if (!Objects.equals(input.getKey().equals(SUPPORT_CUSTOMISATIONS)
                     ? Objects.toString(existing(safe(analysis.destinationRoot(), input.getKey())), "")
                     : existing(safe(analysis.destinationRoot(), input.getKey())), input.getValue()))
                 throw new IOException(input.getKey().endsWith(".java")
                         ? "Destination Spring wiring changed since review. Analyse again: " + input.getKey()
                         : "Destination model changed since support review. Analyse again.");
-        for (var support : analysis.managedFiles()) {
+        for (org.ikasan.studio.core.importer.SourceModuleImport.ManagedFile support : analysis.managedFiles()) {
             if (!Objects.equals(existing(safe(analysis.sourceRoot(), support.source())), support.bytes())
                     || !Objects.equals(existing(safe(analysis.destinationRoot(), support.destination())), support.current()))
                 throw new IOException("Studio support file changed since review. Analyse again: " + support.source());
         }
         Map<Path, String> originals = new LinkedHashMap<>(), writes = new LinkedHashMap<>();
         for (String source : files) {
-            var file = importableFiles(analysis).stream().filter(f -> f.source().equals(source)).findFirst().orElseThrow();
+            org.ikasan.studio.core.importer.SourceModuleImport.FileChoice file = importableFiles(analysis).stream().filter(f -> f.source().equals(source)).findFirst().orElseThrow();
             if (!Objects.equals(existing(safe(analysis.sourceRoot(), source)), file.originalBytes())) throw new IOException("Original source changed since review: " + source);
             Path target = safe(analysis.destinationRoot(), file.destination());
             String output = reviewedJava.containsKey(source) ? encode(reviewedJava.get(source).getBytes(StandardCharsets.UTF_8)) : file.bytes();
@@ -1018,14 +1041,14 @@ public final class SourceModuleImport {
             originals.put(target, null);
             writes.put(target, encode(registration.javaSource().getBytes(StandardCharsets.UTF_8)));
         }
-        var customSupport = analysis.managedFiles().stream().filter(file -> files.contains(file.source())
+        List<org.ikasan.studio.core.importer.SourceModuleImport.ManagedFile> customSupport = analysis.managedFiles().stream().filter(file -> files.contains(file.source())
                 && !Objects.equals(writes.get(analysis.destinationRoot().resolve(file.destination())), file.current())).toList();
         if (!customSupport.isEmpty()) {
             Path marker = safe(analysis.destinationRoot(), SUPPORT_CUSTOMISATIONS);
             String previous = existing(marker);
             if (!Objects.equals(Objects.toString(previous, ""), analysis.supportInputs().get(SUPPORT_CUSTOMISATIONS)))
                 throw new IOException("Support customisations changed since review. Analyse again.");
-            var preserved = supportCustomisations(previous);
+            Set<String> preserved = supportCustomisations(previous);
             customSupport.forEach(file -> preserved.add(file.destination()));
             originals.put(marker, previous);
             writes.put(marker, encode(("# Explicitly customised support files; retained during regeneration.\n"
@@ -1037,7 +1060,7 @@ public final class SourceModuleImport {
             originals.put(target, analysis.originalPom()); writes.put(target, encode(pomAfter(analysis, dependencies).getBytes(StandardCharsets.UTF_8)));
         }
         if (builderSettings != null) {
-            for (var output : builderSettings.outputs().entrySet()) {
+            for (Entry<String,String> output : builderSettings.outputs().entrySet()) {
                 Path target = safe(analysis.destinationRoot(), output.getKey());
                 if (writes.containsKey(target)) throw new IOException("Conflicting builder recovery output: " + output.getKey());
                 originals.put(target, encode(builderSettings.destinationInputs().get(output.getKey()).getBytes(StandardCharsets.UTF_8)));
@@ -1057,12 +1080,12 @@ public final class SourceModuleImport {
                 .getBytes(StandardCharsets.UTF_8)));
         List<Path> applied = new ArrayList<>();
         try {
-            for (var entry : writes.entrySet()) {
+            for (Entry<Path,String> entry : writes.entrySet()) {
                 Path path = entry.getKey(); safe(analysis.destinationRoot(), relative(analysis.destinationRoot(), path));
                 if (!Objects.equals(existing(path), originals.get(path))) throw new IOException("Destination changed during import: " + path.getFileName());
                 if (Objects.equals(entry.getValue(), originals.get(path))) continue;
                 Files.createDirectories(path.getParent());
-                try (var output = Files.newOutputStream(path, LinkOption.NOFOLLOW_LINKS,
+                try (OutputStream output = Files.newOutputStream(path, LinkOption.NOFOLLOW_LINKS,
                         originals.get(path) == null ? StandardOpenOption.CREATE_NEW : StandardOpenOption.TRUNCATE_EXISTING)) {
                     applied.add(path); output.write(Base64.getDecoder().decode(entry.getValue()));
                 }

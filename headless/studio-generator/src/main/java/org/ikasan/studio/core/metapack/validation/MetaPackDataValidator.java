@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.metapack.model.ExceptionActionMeta;
 
 /** Structural and referential validation for the contents of a loaded meta-pack. */
 final class MetaPackDataValidator {
@@ -74,7 +77,7 @@ final class MetaPackDataValidator {
                 add(problems, path + ".runtimeConfigurationMappings", "must be an object, not null");
             } else {
                 Set<String> mappedProperties = new HashSet<>();
-                for (var mapping : component.getRuntimeConfigurationMappings().entrySet()) {
+                for (Entry<String,String> mapping : component.getRuntimeConfigurationMappings().entrySet()) {
                     if (mapping.getKey() == null || !JAVA_IDENTIFIER.matcher(mapping.getKey()).matches()
                             || mapping.getValue() == null || mapping.getKey().equals(mapping.getValue())
                             || component.getRuntimeConfigurationProperties() == null
@@ -92,8 +95,8 @@ final class MetaPackDataValidator {
             }
             if (component.getLegacyPropertyAliases() == null) {
                 add(problems, path + ".legacyPropertyAliases", "must be an object, not null");
-            } else for (var alias : component.getLegacyPropertyAliases().entrySet()) {
-                var properties = component.getAllowableProperties();
+            } else for (Entry<String,String> alias : component.getLegacyPropertyAliases().entrySet()) {
+                Map<String,ComponentPropertyMeta> properties = component.getAllowableProperties();
                 if (alias.getKey() == null || !JAVA_IDENTIFIER.matcher(alias.getKey()).matches()
                         || properties == null || properties.containsKey(alias.getKey())
                         || alias.getValue() == null || !properties.containsKey(alias.getValue()))
@@ -102,13 +105,13 @@ final class MetaPackDataValidator {
             if (component.getRuntimeConfigurationDefaults() == null) {
                 add(problems, path + ".runtimeConfigurationDefaults", "must be an object, not null");
             } else {
-                for (var entryDefault : component.getRuntimeConfigurationDefaults().entrySet()) {
+                for (Entry<String,JsonNode> entryDefault : component.getRuntimeConfigurationDefaults().entrySet()) {
                     if (entryDefault.getKey() == null || !JAVA_IDENTIFIER.matcher(entryDefault.getKey()).matches()
                             || entryDefault.getValue() == null || entryDefault.getValue().isNull())
                         add(problems, path + ".runtimeConfigurationDefaults", "requires parameter names and non-null JSON defaults");
                 }
                 if (!component.getRuntimeConfigurationDefaults().isEmpty()) {
-                    var configuration = component.getAllowableProperties() == null ? null : component.getAllowableProperties().get("configuration");
+                    ComponentPropertyMeta configuration = component.getAllowableProperties() == null ? null : component.getAllowableProperties().get("configuration");
                     if ((component.getRuntimeConfigurationClass() == null || component.getRuntimeConfigurationClass().isBlank())
                             && (configuration == null || configuration.getUsageDataType() == null || configuration.getUsageDataType().isBlank()))
                         add(problems, path + ".runtimeConfigurationDefaults", "requires runtimeConfigurationClass or the configuration property's usageDataType");
@@ -117,13 +120,13 @@ final class MetaPackDataValidator {
             if (component.getRuntimeConfigurationProperties() == null) {
                 add(problems, path + ".runtimeConfigurationProperties", "must be an array, not null");
             } else if (!component.getRuntimeConfigurationProperties().isEmpty()) {
-                var configuration = component.getAllowableProperties() == null ? null : component.getAllowableProperties().get("configuration");
+                ComponentPropertyMeta configuration = component.getAllowableProperties() == null ? null : component.getAllowableProperties().get("configuration");
                 if ((component.getRuntimeConfigurationClass() == null || component.getRuntimeConfigurationClass().isBlank())
                         && (configuration == null || configuration.getUsageDataType() == null || configuration.getUsageDataType().isBlank()))
                     add(problems, path + ".runtimeConfigurationProperties", "requires runtimeConfigurationClass or the configuration property's usageDataType");
                 javaName(problems, path + ".runtimeConfigurationClass", component.getRuntimeConfigurationClass());
                 for (String name : component.getRuntimeConfigurationProperties()) {
-                    var property = component.getAllowableProperties() == null ? null : component.getAllowableProperties().get(name);
+                    ComponentPropertyMeta property = component.getAllowableProperties() == null ? null : component.getAllowableProperties().get(name);
                     if (property == null || !property.isSetterProperty() || property.isUserSuppliedClass()
                             || property.isReadOnlyProperty())
                         add(problems, path + ".runtimeConfigurationProperties", "must reference editable scalar or string-collection setter properties: " + name);
@@ -161,9 +164,9 @@ final class MetaPackDataValidator {
             if (component instanceof org.ikasan.studio.core.metapack.model.ExceptionResolverMeta resolver
                     && resolver.getActionList() != null) {
                 for (int i = 0; i < resolver.getActionList().size(); i++) {
-                    var action = resolver.getActionList().get(i);
+                    ExceptionActionMeta action = resolver.getActionList().get(i);
                     if (action == null || action.getActionProperties() == null) continue;
-                    for (var property : action.getActionProperties().entrySet()) {
+                    for (Entry<String,ComponentPropertyMeta> property : action.getActionProperties().entrySet()) {
                         if (property.getValue() != null) validationRule(property.getValue(),
                                 path + ".actionList[" + i + "].actionProperties." + property.getKey(), problems, generatorApi);
                     }
@@ -193,7 +196,7 @@ final class MetaPackDataValidator {
         }
         help(problems, path + ".helpText", category.getHelpText());
         if (category.getAllowableProperties() != null) {
-            for (var property : category.getAllowableProperties().entrySet()) {
+            for (Entry<String,ComponentPropertyMeta> property : category.getAllowableProperties().entrySet()) {
                 if (property.getValue() != null) validationRule(property.getValue(),
                         path + ".allowableProperties." + property.getKey(), problems, generatorApi);
             }

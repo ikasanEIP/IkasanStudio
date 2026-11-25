@@ -4,6 +4,10 @@ import com.intellij.openapi.project.Project;
 import org.ikasan.studio.core.model.analysis.TestFtpServerConfiguration;
 import org.ikasan.studio.ui.UiContext;
 import java.util.*;
+import java.util.ArrayList;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.Module;
 
 /** Cached ownership/model inspection only: no socket probes, DNS or process discovery. */
 public final class HarnessStopImpact {
@@ -18,9 +22,9 @@ public final class HarnessStopImpact {
     }
     public record Impact(String project, Endpoint endpoint) { }
     public static List<Endpoint> owned(Project project) {
-        var result = new ArrayList<Endpoint>();
-        var ftp = project.getService(TestFtpServerService.class).listeningEndpoint();
-        var sftp = project.getService(TestSftpServerService.class).listeningEndpoint();
+        ArrayList<org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint> result = new ArrayList<>();
+        org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint ftp = project.getService(TestFtpServerService.class).listeningEndpoint();
+        org.ikasan.studio.intellij.runtime.HarnessStopImpact.Endpoint sftp = project.getService(TestSftpServerService.class).listeningEndpoint();
         if (ftp != null) result.add(ftp);
         if (sftp != null) result.add(sftp);
         result.addAll(project.getService(TestMailServerSessionService.class).ownedEndpoints());
@@ -30,10 +34,10 @@ public final class HarnessStopImpact {
         Set<Impact> result = new LinkedHashSet<>();
         for (Project other : open) {
             if (other == owner || other.isDisposed()) continue;
-            var context = other.getService(UiContext.class);
-            var module = context == null ? null : context.getIkasanModule();
+            UiContext context = other.getService(UiContext.class);
+            Module module = context == null ? null : context.getIkasanModule();
             if (module == null || module.getFlows() == null) continue;
-            for (var flow : module.getFlows()) for (var element : flow.getFlowElementsNoExternalEndPoints()) {
+            for (Flow flow : module.getFlows()) for (FlowElement element : flow.getFlowElementsNoExternalEndPoints()) {
                 Endpoint used = null;
                 if (element.getComponentMeta().supportsTestMailServer())
                     used = new Endpoint("SMTP", HarnessEndpointSettings.effectiveMailHost(other, element), HarnessEndpointSettings.effectiveMailPort(other, element));
@@ -41,7 +45,7 @@ public final class HarnessStopImpact {
                     if (HarnessEndpointSettings.effective(other, element))
                         used = other.getService(TestFtpServerService.class).listeningEndpoint();
                     else {
-                        var ftp = TestFtpServerConfiguration.from(element);
+                        TestFtpServerConfiguration ftp = TestFtpServerConfiguration.from(element);
                         used = new Endpoint("FTP", ftp.host(), ftp.port());
                     }
                 } else if ("SFTP Endpoint".equals(element.getComponentMeta().getEndpointKey())) {

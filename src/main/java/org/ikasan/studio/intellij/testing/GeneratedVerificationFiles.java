@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.security.MessageDigest;
 import java.util.*;
+import java.nio.file.Path;
+import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 /** On-demand baseline writer. A refresh optionally archives the previous bundle and never merges Studio tests. */
 public final class GeneratedVerificationFiles {
@@ -14,7 +17,7 @@ public final class GeneratedVerificationFiles {
         if (!Files.exists(root)) return "missing";
         if (!Files.isDirectory(root) || Files.isSymbolicLink(root)) throw new IOException("Expected a real verification directory");
         MessageDigest hash = MessageDigest.getInstance("SHA-256");
-        try (var paths = Files.walk(root)) {
+        try (Stream<Path> paths = Files.walk(root)) {
             for (Path path : paths.sorted().toList()) {
                 if (Files.isSymbolicLink(path)) throw new IOException("Verification directory contains a symbolic link: " + path);
                 if (Files.isRegularFile(path)) {
@@ -49,7 +52,7 @@ public final class GeneratedVerificationFiles {
         try {
             // Preserve unrelated tests. The archive retains corrections in Studio's own package too.
             if (Files.exists(directory)) {
-                try (var paths = Files.walk(directory)) {
+                try (Stream<Path> paths = Files.walk(directory)) {
                     for (Path source : paths.toList()) {
                         Path relative = directory.relativize(source);
                         if (relative.startsWith("java/org/ikasan/studio/verification")
@@ -60,7 +63,7 @@ public final class GeneratedVerificationFiles {
                     }
                 }
             }
-            for (var entry : bundle.files().entrySet()) {
+            for (Entry<String,String> entry : bundle.files().entrySet()) {
                 Path file = stage.resolve(entry.getKey()).normalize();
                 if (!file.startsWith(stage)) throw new IOException("Invalid generated verification path");
                 Files.createDirectories(file.getParent());
@@ -105,7 +108,7 @@ public final class GeneratedVerificationFiles {
 
     private static void deleteTree(Path directory) throws IOException {
         if (!Files.exists(directory)) return;
-        try (var paths = Files.walk(directory)) {
+        try (Stream<Path> paths = Files.walk(directory)) {
             for (Path file : paths.sorted(Comparator.reverseOrder()).toList()) Files.deleteIfExists(file);
         }
     }

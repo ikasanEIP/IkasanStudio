@@ -19,6 +19,7 @@ import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 
 import java.util.*;
+import java.util.List;
 
 /**
  * This class holds all the information about the ikasan module flow.
@@ -109,7 +110,7 @@ public class Module extends BasicElement {
     private final java.util.Map<String, Object> automaticH2Defaults = new java.util.HashMap<>();
 
     @Override public void defaultUnsetMandatoryProperties() {
-        var missing = java.util.List.of(ComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME)
+        List<String> missing = java.util.List.of(ComponentPropertyMeta.H2_DB_PORT_NUMBER_NAME, ComponentPropertyMeta.H2_WEB_PORT_NUMBER_NAME)
                 .stream().filter(key -> getPropertyValueAsString(key).isBlank()).toList();
         super.defaultUnsetMandatoryProperties();
         for (String key : missing) if (getPropertyValue(key) != null) automaticH2Defaults.put(key, getPropertyValue(key));

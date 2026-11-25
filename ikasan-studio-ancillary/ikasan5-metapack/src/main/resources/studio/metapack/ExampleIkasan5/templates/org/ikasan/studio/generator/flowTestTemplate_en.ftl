@@ -396,7 +396,7 @@ ${indent}}
 <#else>
         // Use the test server's LOCAL output directory, or download remote files to a temporary directory.
         // A remote SFTP path is not a local filesystem path. These helpers do not connect to SFTP.
-        // var directory = Path.of("REPLACE: local test output directory");
+        // Path directory = Path.of("REPLACE: local test output directory");
         // assertDeliveredBatchContents(directory, "*", batch,
         //         expected);
         throw new UnsupportedOperationException("Implement verifyReceivedOutput to check physical file delivery");

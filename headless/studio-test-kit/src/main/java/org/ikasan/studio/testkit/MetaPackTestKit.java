@@ -10,6 +10,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 
 /** Headless operations for pack authors. Packs are resources on the caller's application classpath. */
 public final class MetaPackTestKit {
@@ -38,7 +39,7 @@ public final class MetaPackTestKit {
         artifacts.put("ModuleConfig.java", ModuleConfigTemplate.create(module));
         artifacts.put("application.properties", PropertiesTemplate.create(module));
         int index = 0;
-        for (var flow : module.getFlows()) {
+        for (Flow flow : module.getFlows()) {
             String prefix = "flow[" + index++ + "]/";
             artifacts.put(prefix + "Flow.java", FlowTemplate.create(module.getApplicationPackageName(), module, flow));
             artifacts.put(prefix + "ComponentFactory.java",

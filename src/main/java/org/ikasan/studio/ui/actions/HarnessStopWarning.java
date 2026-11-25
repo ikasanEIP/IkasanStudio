@@ -7,6 +7,8 @@ import org.ikasan.studio.intellij.runtime.HarnessStopImpact;
 import org.ikasan.studio.ui.StudioBundle;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.List;
+import org.ikasan.studio.intellij.runtime.HarnessStopImpact.Impact;
 
 /** Warn before user-requested shutdown; project disposal retains its existing cleanup behavior. */
 final class HarnessStopWarning {
@@ -22,7 +24,7 @@ final class HarnessStopWarning {
     }
     static boolean confirm(Project owner, List<HarnessStopImpact.Endpoint> endpoints, List<Project> open,
                            Predicate<List<HarnessStopImpact.Impact>> confirmation) {
-        var impact = HarnessStopImpact.affected(owner, open, endpoints);
+        List<Impact> impact = HarnessStopImpact.affected(owner, open, endpoints);
         return impact.isEmpty() || confirmation.test(impact);
     }
 }

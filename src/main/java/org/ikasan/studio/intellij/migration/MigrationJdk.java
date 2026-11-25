@@ -12,6 +12,9 @@ import org.ikasan.studio.ui.StudioBundle;
 import org.jetbrains.idea.maven.execution.MavenRunner;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.project.MavenWorkspaceSettingsComponent;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.openapi.module.Module;
+import com.intellij.util.lang.JavaVersion;
 
 /** IDE settings change only after the reviewed migration files have been committed. Also reused by model.json import. */
 public final class MigrationJdk {
@@ -20,7 +23,7 @@ public final class MigrationJdk {
     public static boolean matches(Sdk sdk, int required) {
         if (sdk == null || !(sdk.getSdkType() instanceof JavaSdk)) return false;
         String versionString = sdk.getVersionString();
-        var version = versionString == null ? null : com.intellij.util.lang.JavaVersion.tryParse(versionString);
+        JavaVersion version = versionString == null ? null : com.intellij.util.lang.JavaVersion.tryParse(versionString);
         return version != null && version.feature == required;
     }
 
@@ -33,15 +36,15 @@ public final class MigrationJdk {
         WriteAction.run(() -> {
             ProjectRootManager.getInstance(project).setProjectSdk(sdk);
             // Explicit module SDKs otherwise survive a change of project SDK.
-            var maven = MavenProjectsManager.getInstance(project);
-            for (var module : com.intellij.openapi.module.ModuleManager.getInstance(project).getModules()) {
+            MavenProjectsManager maven = MavenProjectsManager.getInstance(project);
+            for (Module module : com.intellij.openapi.module.ModuleManager.getInstance(project).getModules()) {
                 if (maven.isMavenizedModule(module)) ModuleRootModificationUtil.setSdkInherited(module);
             }
         });
         MavenRunner.getInstance(project).getSettings().setJreName(sdk.getName());
         MavenWorkspaceSettingsComponent.getInstance(project).getSettings()
                 .getImportingSettings().setJdkForImporter(sdk.getName());
-        for (var settings : RunManager.getInstance(project).getAllSettings()) {
+        for (RunnerAndConfigurationSettings settings : RunManager.getInstance(project).getAllSettings()) {
             if (settings.getConfiguration() instanceof ApplicationConfiguration application
                     && isStudioApplication(application.getMainClassName())) {
                 application.setAlternativeJrePath(sdk.getName());

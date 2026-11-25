@@ -7,20 +7,21 @@ import javax.swing.SwingUtilities;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
+import com.intellij.ui.JBSplitter;
 
 class PanelWidthToggleTest {
     @Test
     void fitsAndRestoresAndSwitchingTabsStartsANewToggle() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var tabs = new JTabbedPane();
+            JTabbedPane tabs = new JTabbedPane();
             tabs.addTab("Properties", new JPanel());
             tabs.addTab("Palette", new JPanel());
-            var splitter = DesignerUI.createContentSplitter(new JPanel(), tabs);
+            JBSplitter splitter = DesignerUI.createContentSplitter(new JPanel(), tabs);
             try {
                 splitter.setSize(1200, 600);
                 splitter.doLayout();
                 AtomicBoolean restore = new AtomicBoolean();
-                var toggle = new PanelWidthToggle(splitter, tabs, restore::set);
+                PanelWidthToggle toggle = new PanelWidthToggle(splitter, tabs, restore::set);
                 int original = width(splitter);
                 toggle.toggle(600);
                 assertEquals(600, width(splitter), 1);
@@ -49,12 +50,12 @@ class PanelWidthToggleTest {
     @Test
     void remembersPixelsAcrossWindowResizeAndIgnoresUnlaidOutClicks() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
-            var tabs = new JTabbedPane();
+            JTabbedPane tabs = new JTabbedPane();
             tabs.addTab("Properties", new JPanel());
-            var splitter = DesignerUI.createContentSplitter(new JPanel(), tabs);
+            JBSplitter splitter = DesignerUI.createContentSplitter(new JPanel(), tabs);
             try {
                 AtomicBoolean restore = new AtomicBoolean();
-                var toggle = new PanelWidthToggle(splitter, tabs, restore::set);
+                PanelWidthToggle toggle = new PanelWidthToggle(splitter, tabs, restore::set);
                 toggle.toggle(500);
                 assertFalse(restore.get());
                 splitter.setSize(1200, 600);

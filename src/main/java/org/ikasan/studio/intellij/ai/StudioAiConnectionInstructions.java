@@ -8,6 +8,8 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.View;
 import java.awt.Dimension;
+import java.awt.Insets;
+import javax.swing.JButton;
 
 /** Selectable, wrapping instructions with IDE action labels emphasised. */
 final class StudioAiConnectionInstructions extends JTextPane {
@@ -21,7 +23,7 @@ final class StudioAiConnectionInstructions extends JTextPane {
         setOpaque(false);
         setFont(UIManager.getFont("Label.font"));
         setText(instructions);
-        var spacing = new SimpleAttributeSet();
+        SimpleAttributeSet spacing = new SimpleAttributeSet();
         StyleConstants.setSpaceAbove(spacing, JBUI.scale(3));
         StyleConstants.setSpaceBelow(spacing, JBUI.scale(3));
         getStyledDocument().setParagraphAttributes(0, instructions.length(), spacing, false);
@@ -30,7 +32,7 @@ final class StudioAiConnectionInstructions extends JTextPane {
     }
 
     private void emphasizeNativeInstructions(String instructions, Runnable openSettings) {
-        var bold = new SimpleAttributeSet();
+        SimpleAttributeSet bold = new SimpleAttributeSet();
         StyleConstants.setBold(bold, true);
         for (String label : new String[] {StudioBundle.message("ai.EnableMcpServerLabel"),
                 StudioBundle.message("ai.NewChatLabel"), StudioBundle.message("ai.CopyPrompt"),
@@ -44,11 +46,11 @@ final class StudioAiConnectionInstructions extends JTextPane {
         String settingsLabel = StudioBundle.message("ai.OpenMcpSettings");
         int settingsPosition = instructions.indexOf(settingsLabel);
         if (settingsPosition >= 0) {
-            var settings = new javax.swing.JButton(settingsLabel);
+            JButton settings = new javax.swing.JButton(settingsLabel);
             settings.setFont(getFont().deriveFont(java.awt.Font.BOLD));
             settings.setMargin(JBUI.insets(1, 4));
             settings.addActionListener(event -> openSettings.run());
-            var componentStyle = new SimpleAttributeSet();
+            SimpleAttributeSet componentStyle = new SimpleAttributeSet();
             StyleConstants.setComponent(componentStyle, settings);
             try {
                 getStyledDocument().remove(settingsPosition, settingsLabel.length());
@@ -66,7 +68,7 @@ final class StudioAiConnectionInstructions extends JTextPane {
     @Override public Dimension getPreferredSize() {
         if (getUI() == null) return super.getPreferredSize();
         int width = getWidth() > 0 ? getWidth() : JBUI.scale(740);
-        var insets = getInsets();
+        Insets insets = getInsets();
         View view = getUI().getRootView(this);
         view.setSize(Math.max(1, width - insets.left - insets.right), Integer.MAX_VALUE);
         return new Dimension(width, (int) Math.ceil(view.getPreferredSpan(View.Y_AXIS)) + insets.top + insets.bottom);

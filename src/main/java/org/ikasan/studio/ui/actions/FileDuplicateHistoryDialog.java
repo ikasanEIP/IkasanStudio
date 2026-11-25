@@ -23,6 +23,7 @@ import java.awt.*;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.Future;
+import org.ikasan.studio.integration.ikasan.FileDuplicateHistoryClient.Entry;
 
 /** Project-bound, read-only file duplicate history browser. HTTP work never runs on the EDT. */
 // This dialog runs with project services in the local IDE; remote Split Mode needs a separate frontend and RPC boundary.
@@ -142,7 +143,7 @@ public final class FileDuplicateHistoryDialog extends StudioDialogWrapper {
                 if (error != null) { last = true; page = 0; busy(false); status.setText(error); return; }
                 activeClient = f; activeCriteria = start;
                 page = targetPage; last = loaded.last(); rows = loaded.entries();
-                for (var row : rows) model.addRow(new Object[]{row.criteria(), row.clientId(), row.size(), row.modified(), row.created()});
+                for (Entry row : rows) model.addRow(new Object[]{row.criteria(), row.clientId(), row.size(), row.modified(), row.created()});
                 status.setText(StudioBundle.message("fileHistory.page", page + 1, loaded.total()));
                 busy(false);
                 if (!rows.isEmpty()) table.setRowSelectionInterval(0, 0);
@@ -158,7 +159,7 @@ public final class FileDuplicateHistoryDialog extends StudioDialogWrapper {
     private void showSelected() {
         int index = table.getSelectedRow();
         if (index < 0 || index >= rows.size()) { details.setText(""); return; }
-        var row = rows.get(index);
+        Entry row = rows.get(index);
         details.setText(StudioBundle.message("fileHistory.id") + ": " + row.id() + "\n" + StudioBundle.message("fileHistory.clientId") + ": " + row.clientId()
                 + "\n" + StudioBundle.message("fileHistory.criteria") + ": " + row.criteria() + "\n" + StudioBundle.message("fileHistory.size") + ": " + row.size()
                 + "\n" + StudioBundle.message("fileHistory.modified") + ": " + row.modified() + "\n" + StudioBundle.message("fileHistory.accessed") + ": " + row.accessed()

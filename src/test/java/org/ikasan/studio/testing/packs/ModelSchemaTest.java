@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Map.Entry;
 
 /**
  * The generated model.schema.json is what an AI or an editor checks a model against. It used to reject models Studio
@@ -104,8 +105,8 @@ class ModelSchemaTest {
         if (schema.has("minLength") && node.isTextual() && node.asText().length() < schema.get("minLength").asInt()) errors.add(path + ": too short");
         if (node.isObject()) {
             for (JsonNode required : schema.path("required")) if (!node.has(required.asText())) errors.add(path + ": missing " + required.asText());
-            var properties = schema.path("properties");
-            for (var field : node.properties()) {
+            JsonNode properties = schema.path("properties");
+            for (Entry<String,JsonNode> field : node.properties()) {
                 if (properties.has(field.getKey())) validate(root, field.getValue(), properties.get(field.getKey()), path + "." + field.getKey(), errors);
                 else if (schema.path("additionalProperties").isObject()) validate(root, field.getValue(), schema.get("additionalProperties"), path + "." + field.getKey(), errors);
                 else if (schema.path("additionalProperties").isBoolean() && !schema.get("additionalProperties").asBoolean()) errors.add(path + ": unexpected " + field.getKey());

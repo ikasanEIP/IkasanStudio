@@ -71,7 +71,7 @@ class FlowTestFailureCaptureTemplateTest {
                             if (element.invoker.invoke(List.of(), "module", "Orders", null, () -> "text", element) != element)
                                 throw new AssertionError("Successful result changed");
                             capture.check();
-                            var queue = new LinkedBlockingQueue<String>(); queue.add("ok");
+                            LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>(); queue.add("ok");
                             if (!"ok".equals(capture.poll(queue, 1))) throw new AssertionError("Output lost");
                             original.failure = new ClassCastException("Expected ObjectMessage");
                             try {
@@ -105,7 +105,7 @@ class FlowTestFailureCaptureTemplateTest {
             assertTrue(compiler.waitFor(20, TimeUnit.SECONDS), "javac timed out");
             assertEquals(0, compiler.exitValue(), Files.readString(diagnostics));
         } finally { if (compiler.isAlive()) compiler.destroyForcibly().waitFor(); }
-        try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, ClassLoader.getPlatformClassLoader())) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, ClassLoader.getPlatformClassLoader())) {
             loader.loadClass("Probe").getMethod("run").invoke(null);
         }
     }

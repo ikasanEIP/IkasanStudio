@@ -4,6 +4,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.stream.Stream;
 
 /** Conservative, selectable import edits only; never searches/replaces arbitrary source text. */
 public final class UserImportMigration {
@@ -15,13 +19,13 @@ public final class UserImportMigration {
     }
 
     public static List<MigrationWorkspace.Change> prepare(Path root, ModelMigration.Plan plan) throws Exception {
-        var prefixes = MigrationRules.load(plan.sourceVersion(), plan.targetVersion()).userImportPrefixes();
+        Map<String,String> prefixes = MigrationRules.load(plan.sourceVersion(), plan.targetVersion()).userImportPrefixes();
         List<MigrationWorkspace.Change> changes = new ArrayList<>();
         Path source = root.resolve("user/src/main/java");
         for (Path p = source; p != null && p.startsWith(root); p = p.getParent())
             if (Files.isSymbolicLink(p)) throw new IllegalArgumentException("Import migration does not follow symlinks: " + p);
         if (!Files.exists(source)) return changes;
-        try (var paths = Files.walk(source)) {
+        try (Stream<Path> paths = Files.walk(source)) {
             for (Path path : paths.sorted().toList()) {
                 if (Files.isSymbolicLink(path)) throw new IllegalArgumentException("Import migration does not follow symlinks: " + path);
                 if (!Files.isRegularFile(path) || !path.toString().endsWith(".java")) continue;
@@ -64,7 +68,7 @@ public final class UserImportMigration {
             } else { i++; continue; }
             for (int j = start; j < i; j++) if (mask[j] != '\n' && mask[j] != '\r') mask[j] = ' ';
         }
-        var matcher = IMPORT.matcher(new String(mask));
+        Matcher matcher = IMPORT.matcher(new String(mask));
         StringBuilder result = new StringBuilder(source);
         List<int[]> locations = new ArrayList<>(); List<String> replacements = new ArrayList<>();
         while (matcher.find()) {

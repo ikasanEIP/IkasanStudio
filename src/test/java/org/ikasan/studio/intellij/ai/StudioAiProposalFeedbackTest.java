@@ -5,6 +5,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.*;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 import static org.assertj.core.api.Assertions.*;
+import com.fasterxml.jackson.databind.JsonNode;
 
 class StudioAiProposalFeedbackTest {
     @TempDir Path directory;
@@ -12,9 +13,9 @@ class StudioAiProposalFeedbackTest {
         Path proposal = directory.resolve("example.studio-proposal.json");
         String json = "{\"operations\":[]}";
         Files.writeString(proposal, json);
-        var feedback = new StudioAiProposalFeedback(proposal, json);
+        StudioAiProposalFeedback feedback = new StudioAiProposalFeedback(proposal, json);
         feedback.write("rejected", "Operation 2: unknown property");
-        var result = StudioJson.newObjectMapper().readTree(Files.readString(StudioAiProposalFeedback.resultPath(proposal)));
+        JsonNode result = StudioJson.newObjectMapper().readTree(Files.readString(StudioAiProposalFeedback.resultPath(proposal)));
         assertThat(result.path("status").asText()).isEqualTo("rejected");
         assertThat(result.path("proposalSha256").asText()).isEqualTo(StudioAiProposalFeedback.sha256(Files.readAllBytes(proposal)));
         assertThat(result.path("message").asText()).contains("Operation 2");
@@ -30,7 +31,7 @@ class StudioAiProposalFeedbackTest {
     @Test void oldCompletionDoesNotOverwriteFeedbackForChangedProposal() throws Exception {
         Path proposal = directory.resolve("example.studio-proposal.json");
         Files.writeString(proposal, "old");
-        var old = new StudioAiProposalFeedback(proposal, "old");
+        StudioAiProposalFeedback old = new StudioAiProposalFeedback(proposal, "old");
         Files.writeString(proposal, "new");
         new StudioAiProposalFeedback(proposal, "new").write("awaiting_review", "Review");
         String expected = Files.readString(StudioAiProposalFeedback.resultPath(proposal));

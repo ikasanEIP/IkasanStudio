@@ -12,7 +12,7 @@ public class InputTest extends ModuleFlowTestSupport {
     private java.nio.file.Path previous;
     @Override protected String getFlowName() { return "Inputs"; }
     @Override protected Map<String, String> flowTestProperties() {
-        var properties = super.flowTestProperties();
+        java.util.Map<String, String> properties = super.flowTestProperties();
         properties.put("inputs.file.consumer.filenames", FileInputFixture.localFixtureFilenames(directory.getRoot().toPath()));
         return properties;
     }

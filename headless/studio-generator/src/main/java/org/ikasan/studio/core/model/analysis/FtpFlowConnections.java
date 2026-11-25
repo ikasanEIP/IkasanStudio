@@ -8,6 +8,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
 
 /** Possible file hand-offs, inferred from configured endpoints; never executable flow routes. */
 public final class FtpFlowConnections {
@@ -28,18 +30,18 @@ public final class FtpFlowConnections {
         if (module == null || module.getFlows() == null) return links;
         Map<Endpoint, List<FlowElement>> producers = new LinkedHashMap<>();
         Map<Endpoint, List<FlowElement>> consumers = new LinkedHashMap<>();
-        for (var flow : module.getFlows()) {
+        for (Flow flow : module.getFlows()) {
             if (flow == null || !flow.getPropertyValueAsString("testHarnessOwner").isBlank()) continue;
             for (FlowElement element : flow.ftlGetConsumerAndFlowElements()) {
                 Endpoint endpoint = endpointOf(element);
                 if (endpoint == null) continue;
-                var target = element.getComponentMeta().isProducer() ? producers : consumers;
+                Map<org.ikasan.studio.core.model.analysis.FtpFlowConnections.Endpoint,List<FlowElement>> target = element.getComponentMeta().isProducer() ? producers : consumers;
                 target.computeIfAbsent(endpoint, ignored -> new ArrayList<>()).add(element);
             }
         }
         producers.forEach((endpoint, elements) -> {
-            for (var producer : elements) {
-                for (var consumer : consumers.getOrDefault(endpoint, List.of())) {
+            for (FlowElement producer : elements) {
+                for (FlowElement consumer : consumers.getOrDefault(endpoint, List.of())) {
                     links.add(new Link(producer, consumer, endpoint));
                 }
             }
@@ -49,7 +51,7 @@ public final class FtpFlowConnections {
 
     private static Endpoint endpointOf(FlowElement element) {
         if (element == null || element.getComponentMeta() == null) return null;
-        var meta = element.getComponentMeta();
+        ComponentMeta meta = element.getComponentMeta();
         if (!"FTP Endpoint".equals(meta.getEndpointKey()) || (!meta.isProducer() && !meta.isConsumer())) return null;
         // A custom directory factory can ignore the configured source directory entirely.
         if (meta.isConsumer() && !element.getPropertyValueAsString("sourceDirectoryURLFactory").isBlank()) return null;

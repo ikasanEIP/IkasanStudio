@@ -5,6 +5,7 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import java.util.Map;
 
 /** Extend in a pack's own JUnit Jupiter project; supply a configured, representative module fixture. */
 public abstract class MetaPackContract {
@@ -24,7 +25,7 @@ public abstract class MetaPackContract {
         assertEquals(sample.getVersion(), restored.getVersion());
         assertEquals(sample.getPropertyValue("name"), restored.getPropertyValue("name"));
         assertEquals(sample.getFlows().size(), restored.getFlows().size());
-        var first = MetaPackTestKit.render(restored);
+        Map<String,String> first = MetaPackTestKit.render(restored);
         assertEquals(first, MetaPackTestKit.render(restored));
         assertTrue(first.values().stream().allMatch(text -> text != null && !text.isBlank()));
     }

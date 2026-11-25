@@ -6,6 +6,9 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.jar.JarFile;
+import java.util.Enumeration;
+import java.util.TreeSet;
+import java.util.jar.JarEntry;
 
 /** Indexed resource-only JAR. No classes or service providers from the JAR are loaded. */
 public final class MetaPackArchive {
@@ -24,10 +27,10 @@ public final class MetaPackArchive {
         Set<String> names = new HashSet<>();
         Set<String> ids = new HashSet<>();
         long expandedSize = 0;
-        try (var jar = new JarFile(file.toFile(), false)) {
-            var entries = jar.entries();
+        try (JarFile jar = new JarFile(file.toFile(), false)) {
+            Enumeration<JarEntry> entries = jar.entries();
             while (entries.hasMoreElements()) {
-                var entry = entries.nextElement();
+                JarEntry entry = entries.nextElement();
                 String name = entry.getName();
                 if (ClasspathResourcePaths.canonicalRelative(name, entry.isDirectory()) == null || !names.add(name)) {
                     throw new IOException("Unsafe or duplicate archive entry: " + name);
@@ -89,7 +92,7 @@ public final class MetaPackArchive {
 
     public String[] directories(String directory) {
         String prefix = directory + "/";
-        var result = new TreeSet<String>();
+        TreeSet<String> result = new TreeSet<>();
         for (String name : entries) {
             if (!name.startsWith(prefix)) continue;
             int slash = name.indexOf('/', prefix.length());

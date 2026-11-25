@@ -9,6 +9,22 @@ import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 
 import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionActionMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
+import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolution;
+import org.ikasan.studio.core.model.ikasan.instance.ExceptionResolver;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 
 /** Validates an AI edit on an isolated model and prepares reversible edits retaining live object identity. */
 public final class ModelProposal {
@@ -38,7 +54,7 @@ public final class ModelProposal {
             if (type.equals("deleteFlow")) {
                 fields(op, "type", "flow");
                 flow = findFlow(draft, flowName);
-                var harnesses = draft.getFlows().stream()
+                List<Flow> harnesses = draft.getFlows().stream()
                         .filter(f -> f.getPropertyValueAsString("testHarnessOwner").startsWith(flowName + "/")).toList();
                 draft.getFlows().remove(flow);
                 draft.getFlows().removeAll(harnesses);
@@ -62,7 +78,7 @@ public final class ModelProposal {
                         fields(op, "type", "flow", "property", "value");
                         if (!op.has("value")) fail("setFlowProperty requires value (null clears the value).");
                         String property = text(op, "property");
-                        var meta = flow.getComponentMeta().getMetadata(property);
+                        ComponentPropertyMeta meta = flow.getComponentMeta().getMetadata(property);
                         if (meta != null && (meta.isAffectsUserImplementedClass() || meta.isUserSuppliedClass()))
                             fail("Edit implementation class properties in Studio: " + property);
                         setProperty(flow, property, op.get("value"));
@@ -84,7 +100,7 @@ public final class ModelProposal {
                     case "replaceComponent" -> {
                         fields(op, "type", "flow", "component", "key", "name", "properties");
                         FlowElement previous = findElement(flow, text(op, "component"));
-                        var replacementMeta = componentMeta(draft, text(op, "key"));
+                        ComponentMeta replacementMeta = componentMeta(draft, text(op, "key"));
                         if (previous.getComponentMeta().isConsumer() != replacementMeta.isConsumer())
                             fail("Replace a consumer with another consumer; replace body components with body components.");
                         FlowRoute route = previous.getContainingFlowRoute();
@@ -100,7 +116,7 @@ public final class ModelProposal {
                         if (!op.has("value")) fail("setProperty requires value (null clears the value).");
                         FlowElement element = findElement(flow, text(op, "component"));
                         String property = text(op, "property");
-                        var meta = element.getComponentMeta().getMetadata(property);
+                        ComponentPropertyMeta meta = element.getComponentMeta().getMetadata(property);
                         // A protected user-supplied class is a bean reference, not a request to regenerate its code.
                         boolean repairsUnresolvedClass = property.equals("userImplementedClassName")
                                 && element.getPropertyValueAsString(property).startsWith("__fieldName:")
@@ -197,7 +213,7 @@ public final class ModelProposal {
                 if (element.hasUnsetMandatoryProperties()) fail(name + " / " + element.getIdentity() + ": missing " + element.listUnsetMandatoryProperties());
                 String recipeId = element.getPropertyValueAsString("conversionRecipeId");
                 if (!recipeId.isBlank()) {
-                    var recipe = element.getComponentMeta().getConversionRecipes().stream()
+                    ConversionRecipeMeta recipe = element.getComponentMeta().getConversionRecipes().stream()
                             .filter(r -> recipeId.equals(r.getId())).findFirst()
                             .orElseThrow(() -> new IllegalArgumentException("Unknown conversion recipe: " + recipeId));
                     if (!recipe.matches(element.getPropertyValueAsString("fromType"), element.getPropertyValueAsString("toType")))
@@ -218,9 +234,9 @@ public final class ModelProposal {
 
     /** Resolve a component key, or fail with a message the AI can act on (the raw library error names nothing). */
     private static org.ikasan.studio.core.metapack.model.ComponentMeta componentMeta(Module draft, String key) throws Exception {
-        var meta = ComponentLibrary.getIkasanComponentByKey(draft.getVersion(), key);
+        ComponentMeta meta = ComponentLibrary.getIkasanComponentByKey(draft.getVersion(), key);
         if (meta != null) return meta;
-        var all = ComponentLibrary.getIkasanComponents(draft.getVersion());
+        Map<String,ComponentMeta> all = ComponentLibrary.getIkasanComponents(draft.getVersion());
         String sameIgnoringCase = all.keySet().stream().filter(k -> k.equalsIgnoreCase(key)).findFirst().orElse(null);
         String valid = all.entrySet().stream()
                 .filter(e -> !(e.getValue().isModule() || e.getValue().isFlow() || e.getValue().isEndpoint() || e.getValue().isExceptionResolver()))
@@ -245,7 +261,7 @@ public final class ModelProposal {
         String name = text(op, "name");
         checkName(name);
         if (elements(flow).stream().anyMatch(e -> sameGeneratedName(e.getIdentity(), name))) fail("Component already exists: " + name);
-        var meta = componentMeta(draft, text(op, "key"));
+        ComponentMeta meta = componentMeta(draft, text(op, "key"));
         if (meta.isModule() || meta.isFlow() || meta.isEndpoint() || meta.isExceptionResolver())
             fail("Choose a consumer, processor or router. Use setExceptionResolution for exception policies; endpoints are not standalone components.");
         if (meta.isConsumer() && route != flow.getFlowRoute()) fail("A consumer belongs only in the root route.");
@@ -255,13 +271,13 @@ public final class ModelProposal {
         FlowElement element = FlowElementFactory.createFlowElement(draft.getVersion(), meta, flow, route, name);
         if (op.has("properties")) {
             if (!op.get("properties").isObject()) fail("properties must be an object");
-            for (var property : op.get("properties").properties()) setProperty(element, property.getKey(), property.getValue());
+            for (Entry<String,JsonNode> property : op.get("properties").properties()) setProperty(element, property.getKey(), property.getValue());
         }
         // A recipe defines its input/output contract. For new components only, use it
         // instead of generic String defaults when the proposal omitted a type.
         String recipeId = element.getPropertyValueAsString("conversionRecipeId");
         if (!recipeId.isBlank()) {
-            var recipe = meta.getConversionRecipes().stream().filter(r -> recipeId.equals(r.getId())).findFirst()
+            ConversionRecipeMeta recipe = meta.getConversionRecipes().stream().filter(r -> recipeId.equals(r.getId())).findFirst()
                     .orElseThrow(() -> new IllegalArgumentException(name + ": unknown conversion recipe: " + recipeId));
             if (!op.path("properties").has("fromType"))
                 setProperty(element, "fromType", StudioJson.newObjectMapper().getNodeFactory().textNode(recipe.getSourceType()));
@@ -282,7 +298,7 @@ public final class ModelProposal {
     }
 
     private static void setProperty(BasicElement element, String key, JsonNode value) {
-        var meta = element.getComponentMeta().getMetadata(key);
+        ComponentPropertyMeta meta = element.getComponentMeta().getMetadata(key);
         if (meta == null || Set.of("componentName", "name", "version", "testHarnessOwner", "routeNames").contains(key)
                 || meta.isIgnoreProperty()) fail("Unknown or structural property: " + key);
         try {
@@ -336,7 +352,7 @@ public final class ModelProposal {
     public static ChangeSet changes(Module live, Prepared prepared) {
         List<Runnable> forward = new ArrayList<>();
         List<Runnable> backward = new ArrayList<>();
-        var oldFlows = new ArrayList<>(live.getFlows());
+        ArrayList<Flow> oldFlows = new ArrayList<>(live.getFlows());
         List<Flow> newFlows = new ArrayList<>();
         for (Flow draftFlow : prepared.draft().getFlows()) {
             Flow original = prepared.originalFlows().contains(draftFlow)
@@ -347,7 +363,7 @@ public final class ModelProposal {
                 continue;
             }
             draftFlow.getComponentProperties().forEach((key, property) -> {
-                var previous = original.getComponentProperties().get(key);
+                ComponentProperty previous = original.getComponentProperties().get(key);
                 Object before = previous == null ? null : previous.getValue();
                 Object after = property.getValue();
                 if (!Objects.equals(before, after)) {
@@ -367,7 +383,7 @@ public final class ModelProposal {
                 } else {
                     FlowElement existing = target;
                     candidate.getComponentProperties().forEach((key, property) -> {
-                        var previous = existing.getComponentProperties().get(key);
+                        ComponentProperty previous = existing.getComponentProperties().get(key);
                         Object before = previous == null ? null : previous.getValue();
                         Object after = property.getValue();
                         if (!Objects.equals(before, after)) {
@@ -381,13 +397,13 @@ public final class ModelProposal {
                 }
                 targets.put(candidate.getIdentity(), target);
             }
-            var oldConsumer = original.getConsumer();
-            var newConsumer = draftFlow.getConsumer() == null ? null : targets.get(draftFlow.getConsumer().getIdentity());
+            FlowElement oldConsumer = original.getConsumer();
+            FlowElement newConsumer = draftFlow.getConsumer() == null ? null : targets.get(draftFlow.getConsumer().getIdentity());
             reconcileRoute(original.getFlowRoute(), draftFlow.getFlowRoute(), original, targets, forward, backward);
             forward.add(() -> original.setConsumer(newConsumer));
             backward.add(() -> original.setConsumer(oldConsumer));
-            var resolver = original.getExceptionResolver();
-            var proposedResolver = draftFlow.getExceptionResolver();
+            ExceptionResolver resolver = original.getExceptionResolver();
+            ExceptionResolver proposedResolver = draftFlow.getExceptionResolver();
             if (resolver == null) {
                 if (proposedResolver != null) {
                     proposedResolver.setContainingFlow(original);
@@ -395,8 +411,8 @@ public final class ModelProposal {
                     backward.add(() -> original.setExceptionResolver(null));
                 }
             } else if (proposedResolver != null) {
-                var oldRules = resolver.getIkasanExceptionResolutionMap();
-                var newRules = new LinkedHashMap<>(proposedResolver.getIkasanExceptionResolutionMap());
+                Map<String,ExceptionResolution> oldRules = resolver.getIkasanExceptionResolutionMap();
+                LinkedHashMap<String,ExceptionResolution> newRules = new LinkedHashMap<>(proposedResolver.getIkasanExceptionResolutionMap());
                 forward.add(() -> resolver.setIkasanExceptionResolutionMap(newRules));
                 backward.add(() -> resolver.setIkasanExceptionResolutionMap(oldRules));
             }
@@ -409,8 +425,8 @@ public final class ModelProposal {
 
     private static void reconcileRoute(FlowRoute target, FlowRoute candidate, Flow flow,
                                        Map<String, FlowElement> targets, List<Runnable> forward, List<Runnable> backward) {
-        var oldBody = new ArrayList<>(target.getFlowElements());
-        var oldChildren = new ArrayList<>(target.getChildRoutes());
+        ArrayList<FlowElement> oldBody = new ArrayList<>(target.getFlowElements());
+        ArrayList<FlowRoute> oldChildren = new ArrayList<>(target.getChildRoutes());
         List<FlowElement> newBody = new ArrayList<>();
         for (FlowElement element : candidate.getFlowElements()) {
             FlowElement mapped = element.getComponentMeta().isEndpoint()
@@ -468,16 +484,16 @@ public final class ModelProposal {
         if (exception.endsWith(".class")) exception = exception.substring(0, exception.length()-6);
         if (!javax.lang.model.SourceVersion.isName(exception) || !exception.contains(".")) fail("Use a fully qualified exception class name.");
         exception += ".class";
-        var meta = ComponentLibrary.getExceptionResolverMetaMandatory(draft.getVersion());
-        var action = meta.getExceptionActionWithName(text(op, "action"));
+        ExceptionResolverMeta meta = ComponentLibrary.getExceptionResolverMetaMandatory(draft.getVersion());
+        ExceptionActionMeta action = meta.getExceptionActionWithName(text(op, "action"));
         if (action == null) fail("Unknown exception action: " + text(op, "action"));
         JsonNode values = op.path("properties");
         if (!values.isMissingNode() && !values.isObject()) fail("Exception properties must be an object.");
-        var properties = new LinkedHashMap<String, ComponentProperty>();
-        var allowed = action.getActionProperties();
-        for (var entry : values.properties()) if (!allowed.containsKey(entry.getKey())) fail("Unknown exception action property: " + entry.getKey());
-        for (var entry : allowed.entrySet()) {
-            var propertyMeta = entry.getValue();
+        LinkedHashMap<String,ComponentProperty> properties = new LinkedHashMap<String, ComponentProperty>();
+        Map<String,ComponentPropertyMeta> allowed = action.getActionProperties();
+        for (Entry<String,JsonNode> entry : values.properties()) if (!allowed.containsKey(entry.getKey())) fail("Unknown exception action property: " + entry.getKey());
+        for (Entry<String,ComponentPropertyMeta> entry : allowed.entrySet()) {
+            ComponentPropertyMeta propertyMeta = entry.getValue();
             JsonNode value = values.get(entry.getKey());
             if (value == null && propertyMeta.getDefaultValue() != null) value = StudioJson.newObjectMapper().valueToTree(propertyMeta.getDefaultValue());
             if (value == null || value.isNull()) {
@@ -490,9 +506,9 @@ public final class ModelProposal {
                 fail("Invalid exception retry cron expression.");
             properties.put(entry.getKey(), new ComponentProperty(propertyMeta, converted));
         }
-        var resolver = flow.getExceptionResolver();
+        ExceptionResolver resolver = flow.getExceptionResolver();
         if (resolver == null) { resolver = new ExceptionResolver(draft.getVersion(), flow); flow.setExceptionResolver(resolver); }
-        var rules = new LinkedHashMap<>(resolver.getIkasanExceptionResolutionMap());
+        LinkedHashMap<String,ExceptionResolution> rules = new LinkedHashMap<>(resolver.getIkasanExceptionResolutionMap());
         rules.put(exception, ExceptionResolution.exceptionResolutionBuilder().metapackVersion(draft.getVersion())
                 .exceptionsCaught(exception).theAction(action.getActionName()).componentProperties(properties).build());
         resolver.setIkasanExceptionResolutionMap(rules);

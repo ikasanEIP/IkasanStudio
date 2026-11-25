@@ -11,6 +11,12 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.time.Duration;
 import java.util.*;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.KeyPair;
+import org.apache.sshd.sftp.client.SftpClient.Attributes;
+import org.apache.sshd.sftp.client.SftpClient.CloseableHandle;
+import org.apache.sshd.sftp.client.SftpClient.DirEntry;
 
 /** One background operation per connection. Never logs credentials; rejects links when checking file operations. */
 public final class RemoteFilesClient implements AutoCloseable {
@@ -56,9 +62,9 @@ public final class RemoteFilesClient implements AutoCloseable {
         checkOpen();
         if (!config.password.isEmpty()) session.addPasswordIdentity(config.password);
         else {
-            var keys = new FileKeyPairProvider(localPath(config.keyFile, projectRoot));
+            FileKeyPairProvider keys = new FileKeyPairProvider(localPath(config.keyFile, projectRoot));
             keys.setPasswordFinder((s, resource, retry) -> retry == 0 ? config.passphrase : null);
-            for (var key : keys.loadKeys(session)) session.addPublicKeyIdentity(key);
+            for (KeyPair key : keys.loadKeys(session)) session.addPublicKeyIdentity(key);
         }
         session.auth().verify(Duration.ofSeconds(15));
         checkOpen();
@@ -70,16 +76,16 @@ public final class RemoteFilesClient implements AutoCloseable {
         String canonical = sftp.canonicalPath(directory.isBlank() ? "." : directory);
         List<Entry> entries = new ArrayList<>();
         boolean truncated = false;
-        try (var handle = sftp.openDir(canonical)) {
+        try (CloseableHandle handle = sftp.openDir(canonical)) {
             java.util.List<SftpClient.DirEntry> batch;
             outer: while ((batch = sftp.readDir(handle)) != null) {
-                for (var item : batch) {
+                for (DirEntry item : batch) {
                     checkOpen();
                     String name = item.getFilename();
                     if (name.equals(".") || name.equals("..")) continue;
                     validName(name);
                     if (entries.size() == MAX_ENTRIES) { truncated = true; break outer; }
-                    var attr = item.getAttributes();
+                    Attributes attr = item.getAttributes();
                     entries.add(new Entry(name, attr.isDirectory() && !attr.isSymbolicLink(),
                             attr.isRegularFile() && !attr.isSymbolicLink(), attr.getSize(), attr.getModifyTime().toMillis()));
                 }
@@ -98,7 +104,7 @@ public final class RemoteFilesClient implements AutoCloseable {
         if (Files.exists(destination, LinkOption.NOFOLLOW_LINKS)) throw new FileAlreadyExistsException(destination.toString());
         Path temp = Files.createTempFile(folder, ".studio-sftp-", ".part");
         try {
-            try (var input = sftp.read(remote); var output = Files.newOutputStream(temp)) {
+            try (InputStream input = sftp.read(remote); OutputStream output = Files.newOutputStream(temp)) {
                 byte[] bytes = new byte[65536];
                 int count;
                 while ((count = input.read(bytes)) != -1) { checkOpen(); output.write(bytes, 0, count); }
@@ -113,7 +119,7 @@ public final class RemoteFilesClient implements AutoCloseable {
         checkOpen();
         if (!entry.regular()) throw new IOException("Only regular files can be downloaded or deleted.");
         String path = child(directory, entry.name());
-        var current = sftp.lstat(path);
+        Attributes current = sftp.lstat(path);
         if (!current.isRegularFile() || current.isSymbolicLink() || current.getSize() != entry.size()
                 || current.getModifyTime().toMillis() != entry.modified())
             throw new ChangedFileException();

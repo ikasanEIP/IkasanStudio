@@ -4,6 +4,7 @@ import org.ikasan.studio.core.migration.*;
 import org.junit.jupiter.api.Test;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
+import org.ikasan.studio.core.migration.MigrationRules;
 
 class UserImportMigrationTest {
     @Test void reportListsAffectedSourcesAndEndsWithNotes() {
@@ -46,9 +47,9 @@ class UserImportMigrationTest {
         assertEquals(source, UserImportMigration.rewrite(source, Map.of("javax.jms.", "jakarta.jms.")));
     }
     @Test void bothDirectionalPacksExplicitlyApproveUserImportRules() throws Exception {
-        var up = MigrationRules.load("V3.3.9", "V4.1.6");
+        MigrationRules up = MigrationRules.load("V3.3.9", "V4.1.6");
         assertEquals(new MigrationRules.ImportApplicability(3, 4), up.userImportApplicability());
-        var down = MigrationRules.load("V4.1.6", "V3.3.9");
+        MigrationRules down = MigrationRules.load("V4.1.6", "V3.3.9");
         String source = "import javax.jms.Message;\nimport javax.xml.bind.annotation.XmlRootElement;\n";
         String migrated = UserImportMigration.rewrite(source, up.userImportPrefixes());
         assertTrue(migrated.contains("import jakarta.jms.Message;"));

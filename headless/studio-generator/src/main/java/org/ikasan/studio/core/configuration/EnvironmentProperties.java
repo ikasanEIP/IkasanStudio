@@ -8,6 +8,9 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.io.BufferedWriter;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
 
 /** Developer-owned Spring configuration. Imported text retains comments and placeholders. */
 public final class EnvironmentProperties {
@@ -122,7 +125,7 @@ public final class EnvironmentProperties {
         String newline = text.contains("\r\n") ? "\r\n" : "\n";
         if (value == null) return text + (text.isEmpty() || text.endsWith("\n") || text.endsWith("\r") ? "" : newline)
                 + "spring.config.import=" + USER_IMPORT + newline;
-        var matcher = java.util.regex.Pattern.compile("(?m)^(spring\\.config\\.import[ \t]*[=:][ \t]*)([^\r\n]*)").matcher(text);
+        Matcher matcher = java.util.regex.Pattern.compile("(?m)^(spring\\.config\\.import[ \t]*[=:][ \t]*)([^\r\n]*)").matcher(text);
         if (!matcher.find() || matcher.group(2).stripTrailing().endsWith("\\"))
             throw new IOException("Regenerate application.properties before importing: its spring.config.import uses an unsupported layout.");
         String updated = matcher.group(1) + matcher.group(2).stripTrailing()
@@ -167,12 +170,12 @@ public final class EnvironmentProperties {
         }
         List<Path> written = new ArrayList<>();
         try {
-            for (var entry : writes.entrySet()) {
+            for (Entry<Path,String> entry : writes.entrySet()) {
                 Path target = entry.getKey();
                 safePath(root, root.toAbsolutePath().normalize().relativize(target).toString());
                 if (!Objects.equals(read(target), original.get(target))) throw new IOException("Configuration changed during import; review again.");
                 Files.createDirectories(target.getParent());
-                try (var writer = Files.newBufferedWriter(target, encoding(target),
+                try (BufferedWriter writer = Files.newBufferedWriter(target, encoding(target),
                         original.get(target) == null ? StandardOpenOption.CREATE_NEW : StandardOpenOption.TRUNCATE_EXISTING,
                         LinkOption.NOFOLLOW_LINKS)) {
                     written.add(target);

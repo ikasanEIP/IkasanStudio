@@ -23,6 +23,7 @@ import org.ikasan.studio.ui.viewmodel.IkasanFlowRouteViewHandler;
 import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
 
 public class DesignCanvasContextMenu {
     public static final Logger LOG = Logger.getInstance("DesignCanvasContextMenu");
@@ -124,7 +125,7 @@ public class DesignCanvasContextMenu {
                 WiretapEventsDialog.open(project, owner == null ? null : owner.getIdentity(), flowElement.getIdentity());
             });
             menu.add(wiretaps);
-            var meta = flowElement.getComponentMeta();
+            ComponentMeta meta = flowElement.getComponentMeta();
             addRemoteFilesMenuItem(menu, project, flowElement, false);
             if ("SFTP Endpoint".equals(meta.getEndpointKey())) {
                 JMenuItem harness = new JMenuItem(StudioBundle.message("sftpHarness.title"));
@@ -410,7 +411,7 @@ public class DesignCanvasContextMenu {
     }
 
     private static void addRemoteFilesMenuItem(JPopupMenu menu, Project project, FlowElement element, boolean separateGroup) {
-        var meta = element.getComponentMeta();
+        ComponentMeta meta = element.getComponentMeta();
         if ("SFTP Endpoint".equals(meta.getEndpointKey()) && (meta.isConsumer() || meta.isProducer())) {
             if (separateGroup) addSeparatorIfNotEmpty(menu);
             JMenuItem remoteFiles = new JMenuItem(StudioBundle.message("sftpBrowser.action"));

@@ -7,6 +7,7 @@ import java.nio.file.*;
 import java.net.*;
 import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
+import java.net.URLClassLoader;
 
 class FlowTestBatchTemplateTest {
     @TempDir Path root;
@@ -42,32 +43,32 @@ class FlowTestBatchTemplateTest {
                         throw new AssertionError("Missing failure: " + diagnostic);
                     }
                     public static void run() throws Exception {
-                        var trigger = FlowTestBatch.triggered(Map.of("P", List.of("value")));
+                        FlowTestBatch<Object> trigger = FlowTestBatch.triggered(Map.of("P", List.of("value")));
                         if (!trigger.isTriggered() || trigger.invocationCount() != 1 || !trigger.inputs().isEmpty())
                             throw new AssertionError("Trigger has no business inputs but invokes once");
-                        var observationOnly = new FlowTestBatch<>(List.of(), Map.of());
+                        FlowTestBatch<Object> observationOnly = new FlowTestBatch<>(List.of(), Map.of());
                         if (observationOnly.isTriggered() || observationOnly.invocationCount() != 0)
                             throw new AssertionError("Empty batches must not trigger");
                         if (new FlowTestBatch<>(List.of("a", "b", "c"), Map.of()).invocationCount() != 3)
                             throw new AssertionError("Input counts must stay dynamic");
-                        var emptyOutput = new FlowTestBatch<>(List.of("input"), Map.of("P", List.of()));
+                        FlowTestBatch<String> emptyOutput = new FlowTestBatch<>(List.of("input"), Map.of("P", List.of()));
                         if (!emptyOutput.expectedTexts("P").isEmpty()) throw new AssertionError("Expected silence");
-                        var many = new FlowTestBatch<>(List.of("input"), Map.of("P", List.of("a", "b")));
+                        FlowTestBatch<String> many = new FlowTestBatch<>(List.of("input"), Map.of("P", List.of("a", "b")));
                         if (!many.expectedTexts("P").equals(List.of("a", "b"))) throw new AssertionError("Lost outputs");
                         try { emptyOutput.expectedText("P", 0); throw new AssertionError("Expected guidance"); }
                         catch (IllegalArgumentException expected) {
                             if (!expected.getMessage().contains("0 expected outputs")
                                     || !expected.getMessage().contains("verifyReceivedOutput")) throw new AssertionError(expected);
                         }
-                        var objects = new FlowTestBatch<>(List.of(), Map.of("Orders", List.of(new Order(7))));
-                        var matching = objects.observe(); matching.accept("Orders", new Order(7));
+                        FlowTestBatch<Object> objects = new FlowTestBatch<>(List.of(), Map.of("Orders", List.of(new Order(7))));
+                        FlowTestBatch<Object>.Observation matching = objects.observe(); matching.accept("Orders", new Order(7));
                         matching.verify(WAIT, QUIET, () -> {});
-                        var different = objects.observe(); different.accept("Orders", new Order(8));
+                        FlowTestBatch<Object>.Observation different = objects.observe(); different.accept("Orders", new Order(8));
                         fails(() -> different.verify(WAIT, QUIET, () -> {}), "Producer 'Orders', output 1");
                         if (!objects.expectedOutputs("Orders").equals(List.of(new Order(7)))) throw new AssertionError("Expected values");
-                        var diagnosticBatch = new FlowTestBatch<>(List.of(), Map.of("Orders", List.of("expected")));
+                        FlowTestBatch<Object> diagnosticBatch = new FlowTestBatch<>(List.of(), Map.of("Orders", List.of("expected")));
                         AssertionError original = new AssertionError("reference expected:<null> but was:<mr-ref 2000-01-01T00:00:00Z>");
-                        var diagnostic = diagnosticBatch.observe((expected, actual) -> { throw original; });
+                        FlowTestBatch<Object>.Observation diagnostic = diagnosticBatch.observe((expected, actual) -> { throw original; });
                         diagnostic.accept("Orders", "actual");
                         try {
                             diagnostic.verify(WAIT, QUIET, () -> {});
@@ -77,42 +78,42 @@ class FlowTestBatchTemplateTest {
                                 throw new AssertionError("Missing comparison details", failure);
                             if (failure.getCause() != original) throw new AssertionError("Original cause lost");
                         }
-                        var unnamed = diagnosticBatch.observe((expected, actual) -> { throw new IllegalStateException(); });
+                        FlowTestBatch<Object>.Observation unnamed = diagnosticBatch.observe((expected, actual) -> { throw new IllegalStateException(); });
                         unnamed.accept("Orders", "actual");
                         fails(() -> unnamed.verify(WAIT, QUIET, () -> {}), "java.lang.IllegalStateException");
-                        var inputs = new ArrayList<>(List.of("one input"));
-                        var batch = new FlowTestBatch<>(inputs, Map.of("A",List.of(equal("a1"),equal("a2")),
+                        List<String> inputs = new ArrayList<>(List.of("one input"));
+                        FlowTestBatch<String> batch = new FlowTestBatch<>(inputs, Map.of("A",List.of(equal("a1"),equal("a2")),
                                 "B",List.of(equal("b")), "Silent",List.of()));
                         inputs.clear();
                         if(batch.inputs().size()!=1 || batch.expectedCount("A")!=2) throw new AssertionError("Counts changed");
-                        var observation = batch.observe();
+                        FlowTestBatch<String>.Observation observation = batch.observe();
                         observation.accept("B","b"); observation.accept("ignored","anything");
                         observation.accept("A","a1"); observation.accept("A","a2");
                         observation.verify(WAIT,QUIET,()->{}); // One input, three outputs, no global ordering.
-                        var wrongOrder = batch.observe();
+                        FlowTestBatch<String>.Observation wrongOrder = batch.observe();
                         wrongOrder.accept("A","a2"); wrongOrder.accept("A","a1"); wrongOrder.accept("B","b");
                         fails(()->wrongOrder.verify(WAIT,QUIET,()->{}), "Producer 'A', output 1");
-                        var missing = batch.observe();
+                        FlowTestBatch<String>.Observation missing = batch.observe();
                         fails(()->missing.verify(WAIT,QUIET,()->{}), "Missing producer outputs");
-                        var unexpected = batch.observe(); unexpected.accept("Silent","unexpected");
+                        FlowTestBatch<String>.Observation unexpected = batch.observe(); unexpected.accept("Silent","unexpected");
                         fails(()->unexpected.verify(WAIT,QUIET,()->{}), "Too many outputs at producer 'Silent'");
-                        var zero = new FlowTestBatch<>(List.of("filtered"),Map.of("A",List.of()));
+                        FlowTestBatch<String> zero = new FlowTestBatch<>(List.of("filtered"),Map.of("A",List.of()));
                         zero.observe().verify(WAIT,QUIET,()->{});
-                        var duplicate = new FlowTestBatch<>(List.of(),Map.of("A",List.of(equal("a")))).observe();
+                        FlowTestBatch<Object>.Observation duplicate = new FlowTestBatch<>(List.of(),Map.of("A",List.of(equal("a")))).observe();
                         duplicate.accept("A","a"); duplicate.accept("A","a");
                         fails(()->duplicate.verify(WAIT,QUIET,()->{}), "Too many outputs");
-                        var independent = new FlowTestBatch<>(List.of(), Map.of("A", List.of("a"), "B", List.of("b", "c", "d"))).observe();
+                        FlowTestBatch<Object>.Observation independent = new FlowTestBatch<>(List.of(), Map.of("A", List.of("a"), "B", List.of("b", "c", "d"))).observe();
                         independent.accept("A", "a"); independent.accept("A", "extra");
                         fails(() -> independent.verify(WAIT, QUIET, () -> {}), "Expected: 1; observed: at least 2");
-                        var flood = zero.observe(); flood.accept("A","a"); flood.accept("A","a");
+                        FlowTestBatch<String>.Observation flood = zero.observe(); flood.accept("A","a"); flood.accept("A","a");
                         fails(()->flood.verify(WAIT,QUIET,()->{}), "Expected: 0; observed: at least 1");
                         for (int i = 0; i < 10000; i++) flood.accept("A", "more");
                         fails(flood::assertNoPending, "Expected: 0; observed: at least 1");
-                        var late = zero.observe(); late.verify(WAIT,QUIET,()->{}); late.accept("A","late");
+                        FlowTestBatch<String>.Observation late = zero.observe(); late.verify(WAIT,QUIET,()->{}); late.accept("A","late");
                         fails(late::assertNoPending, "Too many outputs");
                         fails(()->zero.observe().verify(WAIT,QUIET,()->{throw new AssertionError("processing failed");}), "processing failed");
                         // A fresh observation must not inherit deliveries or counts from an earlier batch.
-                        var fresh = batch.observe(); fresh.accept("A","a1"); fresh.accept("B","b"); fresh.accept("A","a2");
+                        FlowTestBatch<String>.Observation fresh = batch.observe(); fresh.accept("A","a1"); fresh.accept("B","b"); fresh.accept("A","a2");
                         fresh.verify(WAIT,QUIET,()->{});
                     }
                 }
@@ -125,7 +126,7 @@ class FlowTestBatchTemplateTest {
             assertTrue(compiler.waitFor(20, TimeUnit.SECONDS));
             assertEquals(0, compiler.exitValue(), Files.readString(diagnostics));
         } finally { if (compiler.isAlive()) compiler.destroyForcibly().waitFor(); }
-        try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, ClassLoader.getPlatformClassLoader())) {
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, ClassLoader.getPlatformClassLoader())) {
             loader.loadClass("Probe").getMethod("run").invoke(null);
         }
     }

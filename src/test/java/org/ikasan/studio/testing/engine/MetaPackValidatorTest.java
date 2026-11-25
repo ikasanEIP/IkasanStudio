@@ -14,17 +14,22 @@ import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import org.ikasan.studio.core.metapack.model.ComponentPropertyMeta;
+import org.ikasan.studio.core.metapack.model.ComponentTypeMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionActionMeta;
+import org.ikasan.studio.core.metapack.model.ExceptionResolverMeta;
+import org.ikasan.studio.core.metapack.model.MetaPackManifest.MavenPlugin;
 
 @org.junit.jupiter.api.Tag("engine")
 class MetaPackValidatorTest {
     private static MetaPackManifest withPlugins(int api, List<MetaPackManifest.MavenPlugin> plugins) {
-        var base = manifest();
+        MetaPackManifest base = manifest();
         return new MetaPackManifest(2, base.id(), base.ikasanVersion(), base.javaVersion(),
                 base.dependencyManagement(), base.compatibilityOverrides(), "1.0.0", api, plugins);
     }
 
     @Test void validatesPluginDefaultsAndRequiresApiFiveWithoutChangingLegacyManifests() throws Exception {
-        var plugin = new MetaPackManifest.MavenPlugin("org.apache.maven.plugins", "maven-compiler-plugin", "3.8.0");
+        MavenPlugin plugin = new MetaPackManifest.MavenPlugin("org.apache.maven.plugins", "maven-compiler-plugin", "3.8.0");
         MetaPackValidator.validate("SyntheticValidator", withPlugins(5, List.of(plugin)), validComponents());
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", withPlugins(4, List.of(plugin)), validComponents()))
                 .hasMessageContaining("mavenPlugins requires generatorApiVersion 5");
@@ -35,7 +40,7 @@ class MetaPackValidatorTest {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"LATEST", "[3,4)", "${team.version}", "3.+", ""})
     void rejectsUnresolvedOrDynamicPluginDefaults(String version) {
-        var plugin = new MetaPackManifest.MavenPlugin("org.apache.maven.plugins", "maven-compiler-plugin", version);
+        MavenPlugin plugin = new MetaPackManifest.MavenPlugin("org.apache.maven.plugins", "maven-compiler-plugin", version);
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", withPlugins(5, List.of(plugin)), validComponents()))
                 .isInstanceOf(org.ikasan.studio.core.StudioBuildException.class);
     }
@@ -47,8 +52,8 @@ class MetaPackValidatorTest {
             "java.util.Map<String, java.util.List<Integer>>", "java.lang.String[] (auto-converted)"
     })
     void acceptsExistingJavaTypeFormats(String type) throws Exception {
-        var components = validComponents();
-        var component = components.values().iterator().next();
+        Map<String,ComponentMeta> components = validComponents();
+        ComponentMeta component = components.values().iterator().next();
         component.setProducedOutputType(type);
         MetaPackValidator.validate("SyntheticValidator", manifest(), components);
     }
@@ -72,8 +77,8 @@ class MetaPackValidatorTest {
     }
 
     private static void assertInvalidJavaType(String type) {
-        var components = validComponents();
-        var component = components.values().iterator().next();
+        Map<String,ComponentMeta> components = validComponents();
+        ComponentMeta component = components.values().iterator().next();
         component.setImplementingClass(type);
         component.setProducedOutputType(type);
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), components))
@@ -119,7 +124,7 @@ class MetaPackValidatorTest {
 
     @Test
     void preservesLegacySchemaOneWithoutInventingARevision() throws Exception {
-        var legacy = new com.fasterxml.jackson.databind.ObjectMapper().readValue("""
+        MetaPackManifest legacy = new com.fasterxml.jackson.databind.ObjectMapper().readValue("""
                 {"schemaVersion":1,"id":"SyntheticValidator","ikasanVersion":"9.8.7",
                  "javaVersion":"17","dependencyManagement":[
                  {"groupId":"org.ikasan","artifactId":"ikasan-eip-standalone-bom","version":"9.8.7"}]}
@@ -153,8 +158,8 @@ class MetaPackValidatorTest {
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"(?=a)a", "(a)\\1", "a++", "["})
     void rejectsUnsupportedExternalPackExpressionsWithPropertyContext(String expression) {
-        var components = validComponents();
-        var property = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
+        Map<String,ComponentMeta> components = validComponents();
+        ComponentPropertyMeta property = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
                 .propertyName("customerRule").validation(expression).build();
         components.values().iterator().next().setAllowableProperties(Map.of("customerRule", property));
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), components))
@@ -165,8 +170,8 @@ class MetaPackValidatorTest {
 
     @Test
     void semanticValidationRequiresApiTwoAndUnknownRulesAreRejected() throws Exception {
-        var components = validComponents();
-        var property = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
+        Map<String,ComponentMeta> components = validComponents();
+        ComponentPropertyMeta property = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
                 .propertyName("packageName").validationKind("JAVA_PACKAGE").build();
         components.values().iterator().next().setAllowableProperties(Map.of("packageName", property));
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", revisionManifest("1.0.0", 1), components))
@@ -179,17 +184,17 @@ class MetaPackValidatorTest {
 
     @Test
     void checksCategoryAndExceptionActionExpressionsBeforeEditorUse() {
-        var components = validComponents();
-        var component = components.values().iterator().next();
-        var property = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
+        Map<String,ComponentMeta> components = validComponents();
+        ComponentMeta component = components.values().iterator().next();
+        ComponentPropertyMeta property = org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.builder()
                 .propertyName("nestedRule").validation("(?=a)a").build();
         component.getComponentTypeMeta().setAllowableProperties(Map.of("nestedRule", property));
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), components))
                 .hasMessageContaining("category.allowableProperties.nestedRule.validation");
         component.getComponentTypeMeta().setAllowableProperties(Map.of());
-        var action = org.ikasan.studio.core.metapack.model.ExceptionActionMeta.builder()
+        ExceptionActionMeta action = org.ikasan.studio.core.metapack.model.ExceptionActionMeta.builder()
                 .actionName("retry").actionProperties(Map.of("nestedRule", property)).build();
-        var resolver = org.ikasan.studio.core.metapack.model.ExceptionResolverMeta.builder()
+        ExceptionResolverMeta resolver = org.ikasan.studio.core.metapack.model.ExceptionResolverMeta.builder()
                 .name(component.getName()).componentType("End Point").implementingClass("")
                 .componentTypeMeta(component.getComponentTypeMeta()).allowableProperties(Map.of())
                 .actionList(List.of(action)).build();
@@ -199,8 +204,8 @@ class MetaPackValidatorTest {
 
     @Test
     void missingPropertiesReportEndpointTextKeyInsteadOfThrowingNullPointer() {
-        var components = validComponents();
-        var component = components.values().iterator().next();
+        Map<String,ComponentMeta> components = validComponents();
+        ComponentMeta component = components.values().iterator().next();
         component.setAllowableProperties(null);
         component.setEndpointTextKey("missing");
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", manifest(), components))
@@ -209,9 +214,9 @@ class MetaPackValidatorTest {
     }
 
     private static Map<String, ComponentMeta> validComponents() {
-        var category = org.ikasan.studio.core.metapack.model.ComponentTypeMeta.builder().componentShortType("End Point").build();
+        ComponentTypeMeta category = org.ikasan.studio.core.metapack.model.ComponentTypeMeta.builder().componentShortType("End Point").build();
         category.setComponentShortType("End Point");
-        var component = new ComponentMeta();
+        ComponentMeta component = new ComponentMeta();
         component.setName("Synthetic endpoint");
         component.setComponentType("End Point");
         component.setComponentTypeMeta(category);
@@ -221,7 +226,7 @@ class MetaPackValidatorTest {
     }
 
     private static MetaPackManifest revisionManifest(String revision, Integer api) {
-        var legacy = manifest();
+        MetaPackManifest legacy = manifest();
         return new MetaPackManifest(2, legacy.id(), legacy.ikasanVersion(), legacy.javaVersion(),
                 legacy.dependencyManagement(), legacy.compatibilityOverrides(), revision, api);
     }

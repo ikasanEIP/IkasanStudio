@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /** Generates the local, tool-neutral contract used by coding assistants working in a Studio project. */
 public final class AiProjectContractGenerator {
@@ -721,16 +725,16 @@ public final class AiProjectContractGenerator {
     /** Both formats remain readable; new saves use the three-document contract. */
     public static String modelSchema() {
         try {
-            var mapper = StudioJson.newObjectMapper();
-            var schema = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(legacyModelSchema());
-            var required = schema.remove("required");
-            var alternatives = schema.putArray("oneOf");
-            var legacy = alternatives.addObject();
+            ObjectMapper mapper = StudioJson.newObjectMapper();
+            ObjectNode schema = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(legacyModelSchema());
+            JsonNode required = schema.remove("required");
+            ArrayNode alternatives = schema.putArray("oneOf");
+            ObjectNode legacy = alternatives.addObject();
             legacy.set("required", required);
             legacy.putObject("not").putArray("required").add("modelFormat");
             alternatives.addObject().putArray("required").add("modelFormat").add("formatVersion")
                     .add("module").add("configuration").add("studio");
-            var properties = (com.fasterxml.jackson.databind.node.ObjectNode) schema.get("properties");
+            ObjectNode properties = (com.fasterxml.jackson.databind.node.ObjectNode) schema.get("properties");
             properties.putObject("modelFormat").put("const", "ikasan-studio-documents");
             properties.putObject("formatVersion").put("const", 1);
             properties.set("module", mapper.readTree("""
@@ -837,7 +841,7 @@ public final class AiProjectContractGenerator {
     /** Null selects the full catalogue; an empty selection returns discovery metadata only. */
     public static String componentCatalogue(String metapackVersion, java.util.Collection<String> componentKeys)
             throws StudioBuildException, JsonProcessingException {
-        var library = ComponentLibrary.getIkasanComponents(metapackVersion);
+        Map<String,ComponentMeta> library = ComponentLibrary.getIkasanComponents(metapackVersion);
         if (componentKeys != null) {
             for (String key : componentKeys) {
                 if (key == null || !library.containsKey(key)) {

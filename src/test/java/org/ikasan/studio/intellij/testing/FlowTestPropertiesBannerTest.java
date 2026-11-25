@@ -8,6 +8,7 @@ import org.ikasan.studio.core.generator.FlowTestScaffold;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import static org.mockito.Mockito.*;
+import java.util.stream.Stream;
 
 public class FlowTestPropertiesBannerTest extends BasePlatformTestCase {
     public void testOpenRepairReopenAndDispose() throws Exception {
@@ -33,7 +34,7 @@ public class FlowTestPropertiesBannerTest extends BasePlatformTestCase {
         finally {
             Disposer.dispose(reopened);
             reopened.requestCheck(); // Disposed editors cannot queue work.
-            try (var paths = Files.walk(root)) {
+            try (Stream<Path> paths = Files.walk(root)) {
                 for (Path path : paths.sorted(java.util.Comparator.reverseOrder()).toList()) Files.delete(path);
             }
         }

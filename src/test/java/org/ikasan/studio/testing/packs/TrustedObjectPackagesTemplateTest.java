@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.*;
 @org.junit.jupiter.api.Tag("packs")
 class TrustedObjectPackagesTemplateTest extends AbstractGeneratorTestFixtures {
     static FlowElement jms(String pack, String role) throws Exception {
-        var component = FlowElement.flowElementBuilder()
+        FlowElement component = FlowElement.flowElementBuilder()
                 .componentMeta(ComponentLibrary.getIkasanComponentByKeyMandatory(pack, "Spring JMS " + role))
                 .componentName("Orders").build();
         component.setPropertyValue("connectionFactoryJndiPropertyFactoryInitial", "org.apache.activemq.jndi.ActiveMQInitialContextFactory");
@@ -30,7 +30,7 @@ class TrustedObjectPackagesTemplateTest extends AbstractGeneratorTestFixtures {
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void trustIsOptInAndPreservesTheJndiBuilderSettings(String pack) throws Exception {
         for (String role : new String[]{"Consumer", "Producer"}) {
-            var component = jms(pack, role);
+            FlowElement component = jms(pack, role);
             assertThat(render(pack, component)).doesNotContain("TrustedOrdersContextFactory");
             component.setPropertyValue("trustedObjectPackages", "org.example.cat.domain, org.example.shared");
             String generated = render(pack, component);
@@ -44,7 +44,7 @@ class TrustedObjectPackagesTemplateTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void explicitlySuppliedFactoryIsConfiguredWithoutReplacingJndiSettings(String pack) throws Exception {
-        var component = jms(pack, "Consumer");
+        FlowElement component = jms(pack, "Consumer");
         component.setPropertyValue("trustedObjectPackages", "org.example.cat.domain");
         component.setPropertyValue("connectionFactory", "ordersFactory");
         assertThat(render(pack, component)).contains(".setConnectionFactory(TrustedOrdersContextFactory.configure(ordersFactory))")
@@ -54,7 +54,7 @@ class TrustedObjectPackagesTemplateTest extends AbstractGeneratorTestFixtures {
     @ParameterizedTest
     @MethodSource("org.ikasan.studio.testing.packs.PackExpectations#metaPacksToTest")
     void invalidTrustSettingsCannotBeGeneratedFromAnImportedModel(String pack) throws Exception {
-        var component = jms(pack, "Consumer");
+        FlowElement component = jms(pack, "Consumer");
         component.setPropertyValue("trustedObjectPackages", "*");
         assertThatThrownBy(() -> render(pack, component)).hasStackTraceContaining("without wildcards");
         component.setPropertyValue("trustedObjectPackages", "org.example.cat.domain");

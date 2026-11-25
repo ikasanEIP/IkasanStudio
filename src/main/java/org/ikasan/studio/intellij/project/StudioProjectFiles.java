@@ -57,6 +57,10 @@ import java.util.function.BiConsumer;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.APPLICATION_PACKAGE_NAME;
 import static org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Map.Entry;
+import org.ikasan.studio.ui.component.canvas.DesignerCanvas;
+import org.ikasan.studio.ui.viewmodel.ViewHandlerCache;
 
 public class StudioProjectFiles {
     private static final Logger LOG = Logger.getInstance("#StudioProjectFiles");
@@ -442,7 +446,7 @@ public class StudioProjectFiles {
     public static void causeRedraw(Project project) {
         Runnable redraw = () -> {
             if (project.isDisposed()) return;
-            var canvas = project.getService(UiContext.class).getDesignerCanvas();
+            DesignerCanvas canvas = project.getService(UiContext.class).getDesignerCanvas();
             if (canvas == null || canvas.isDisposed()) return;
             canvas.setInitialiseAllDimensions(true);
             canvas.repaint();
@@ -553,7 +557,7 @@ public class StudioProjectFiles {
                 files.put("AGENTS.md", org.ikasan.studio.core.generator.AiProjectContractGenerator.agentsGuide());
                 files.putAll(org.ikasan.studio.core.generator.StudioAiSkillTemplates.files());
                 java.nio.file.Path root = java.nio.file.Path.of(basePath);
-                for (var entry : files.entrySet()) {
+                for (Entry<String,String> entry : files.entrySet()) {
                     if (project.isDisposed()) return;
                     java.nio.file.Path target = root.resolve(entry.getKey());
                     java.nio.file.Files.createDirectories(target.getParent());
@@ -771,8 +775,8 @@ public class StudioProjectFiles {
     private static void setCodeNavigationTargetAsync(AbstractViewHandlerIntellij componentViewHandler, PsiFile psiFile) {
         Project project = psiFile.getProject();
         UiContext context = project.getService(UiContext.class);
-        var generation = context.getLatestGeneration();
-        var owner = context.getViewHandlerFactory();
+        CompletableFuture<Void> generation = context.getLatestGeneration();
+        ViewHandlerCache owner = context.getViewHandlerFactory();
         ReadAction.nonBlocking(() -> psiFile.isValid() ? NavigationTarget.forFile(psiFile) : NavigationTarget.none())
                 .inSmartMode(project)
                 .expireWith(project.getService(StudioProjectInitialisationService.class))
@@ -1126,11 +1130,11 @@ public class StudioProjectFiles {
 
     /** Flush only affected editor buffers before previewing or replacing developer-owned configuration. */
     public static void saveConfigurationDocuments(Project project, java.util.List<String> paths) {
-        var manager = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
+        FileDocumentManager manager = com.intellij.openapi.fileEditor.FileDocumentManager.getInstance();
         for (String path : paths) {
-            var file = getVirtualFile(project, path);
+            VirtualFile file = getVirtualFile(project, path);
             if (file == null) continue;
-            var document = manager.getCachedDocument(file);
+            Document document = manager.getCachedDocument(file);
             if (document != null && manager.isDocumentUnsaved(document)) manager.saveDocument(document);
         }
     }

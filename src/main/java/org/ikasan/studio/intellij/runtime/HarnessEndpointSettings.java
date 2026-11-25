@@ -13,11 +13,11 @@ public final class HarnessEndpointSettings {
         return project.getService(TestFtpServerService.class).localConfiguration();
     }
     public static boolean enabled(Project project, FlowElement element) {
-        var service = project.getService(HarnessOverrideService.class);
+        HarnessOverrideService service = project.getService(HarnessOverrideService.class);
         return service != null && service.isEnabled(element);
     }
     public static boolean effective(Project project, FlowElement element) {
-        var selections = project.getService(HarnessOverrideService.class);
+        HarnessOverrideService selections = project.getService(HarnessOverrideService.class);
         return selections != null && (selections.hasRunningLaunches() ? selections.isActive(element) : selections.isEnabled(element));
     }
     public static TestFtpServerConfiguration ftp(Project project, FlowElement element) {

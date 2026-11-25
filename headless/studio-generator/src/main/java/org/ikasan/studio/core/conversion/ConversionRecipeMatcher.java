@@ -2,6 +2,10 @@ package org.ikasan.studio.core.conversion;
 
 import org.ikasan.studio.core.metapack.model.ConversionRecipeMeta;
 import java.util.*;
+import org.ikasan.studio.core.metapack.model.ComponentMeta;
+import org.ikasan.studio.core.model.ikasan.instance.Flow;
+import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.model.ikasan.instance.FlowRoute;
 
 /** Offline matching of declared contracts; never loads project classes or guesses serialization. */
 public final class ConversionRecipeMatcher {
@@ -24,15 +28,15 @@ public final class ConversionRecipeMatcher {
 
     /** Nearest downstream contract within this route. Never guesses across a branching router. */
     public static String downstreamTypes(org.ikasan.studio.core.model.ikasan.instance.FlowElement element) {
-        var flow = element.getContainingFlow();
+        Flow flow = element.getContainingFlow();
         if (flow == null || flow.getFlowRoute() == null) return null;
-        var route = flow.getFlowRouteContaining(flow.getFlowRoute(), element);
+        FlowRoute route = flow.getFlowRouteContaining(flow.getFlowRoute(), element);
         if (route == null || route.getFlowElements() == null) return null;
         int index = route.getFlowElements().indexOf(element);
         if (index < 0) return null;
         for (int i = index + 1; i < route.getFlowElements().size(); i++) {
-            var next = route.getFlowElements().get(i);
-            var meta = next.getComponentMeta();
+            FlowElement next = route.getFlowElements().get(i);
+            ComponentMeta meta = next.getComponentMeta();
             if (meta == null || meta.isRouter()) return null;
             if (meta.isDebug() || meta.isFilter() || meta.isInternalEndpoint()) continue;
             String types = next.getEffectiveInputTypeDescription();

@@ -5,6 +5,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.process.ProcessHandler;
 import org.ikasan.studio.ui.StudioBundle;
+import java.nio.file.Path;
 
 /** H2 belongs to the project's child JVM, never the IDE's plugin classloader. */
 public final class IndependentH2RunExtension extends RunConfigurationExtension {
@@ -15,7 +16,7 @@ public final class IndependentH2RunExtension extends RunConfigurationExtension {
             T configuration, JavaParameters parameters, RunnerSettings runnerSettings) throws ExecutionException {
         if (!isApplicableFor(configuration)) return;
         long jars = parameters.getClassPath().getPathList().stream().distinct().filter(path -> {
-            var filename = java.nio.file.Path.of(path).getFileName();
+            Path filename = java.nio.file.Path.of(path).getFileName();
             if (filename == null) return false;
             String name = filename.toString();
             return name.equals("h2.jar") || name.startsWith("h2-") && name.endsWith(".jar")

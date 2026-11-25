@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.concurrent.CompletableFuture;
+import java.io.InputStream;
 
 /** Ordered, atomic sidecar receipts. Never writes the proposal or the Studio model. */
 final class StudioAiProposalFeedback {
@@ -38,9 +39,9 @@ final class StudioAiProposalFeedback {
     void write(String status, String message) throws Exception {
         // A later proposal may reuse the filename while an earlier generation finishes.
         byte[] current;
-        try (var input = Files.newInputStream(source)) { current = input.readNBytes(1_048_577); }
+        try (InputStream input = Files.newInputStream(source)) { current = input.readNBytes(1_048_577); }
         if (!hash.equals(sha256(current))) return;
-        var data = new LinkedHashMap<String, Object>();
+        LinkedHashMap<String,Object> data = new LinkedHashMap<String, Object>();
         data.put("formatVersion", 1);
         data.put("proposalFile", source.getFileName().toString());
         data.put("proposalSha256", hash);

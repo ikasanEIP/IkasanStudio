@@ -3,6 +3,12 @@ package org.ikasan.studio.core.diagnostics;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.ikasan.studio.core.persistence.json.StudioJson;
 import java.util.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 
 /** Bounded, value-free report. Never stores input documents, application names, URLs or exception messages. */
 public final class RuntimeImportReport {
@@ -52,7 +58,7 @@ public final class RuntimeImportReport {
             if (t instanceof com.fasterxml.jackson.core.JsonProcessingException parse && parse.getLocation() != null)
                 failures.add("  JSON line " + Math.max(0, parse.getLocation().getLineNr()) + ", column " + Math.max(0, parse.getLocation().getColumnNr()));
             int count = 0;
-            for (var frame : t.getStackTrace()) if (isStudioFrame(frame.getClassName()) && count++ < 4)
+            for (StackTraceElement frame : t.getStackTrace()) if (isStudioFrame(frame.getClassName()) && count++ < 4)
                 failures.add("  " + frame.getClassName().replaceAll("[^a-zA-Z0-9_.$]", "_") + "." + frame.getMethodName().replaceAll("[^a-zA-Z0-9_$]", "_") + ":" + Math.max(0, frame.getLineNumber()));
         }
     }
@@ -68,14 +74,14 @@ public final class RuntimeImportReport {
             if (module.length() > 8 * 1024 * 1024 || configuration.length() > 8 * 1024 * 1024) {
                 issue("DOCUMENT", "DOCUMENT_TOO_LARGE"); return;
             }
-            var mapper = StudioJson.newObjectMapper()
+            ObjectMapper mapper = StudioJson.newObjectMapper()
                     .enable(com.fasterxml.jackson.core.JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
                     .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
             JsonNode root = mapper.readTree(module);
             if (root == null || !root.path("flows").isArray()) { issue("DOCUMENT", "RUNTIME_FLOWS_ARRAY_MISSING"); return; }
             version = safeVersion(root.path("ikasanVersion").asText());
             Set<String> flowNames = new HashSet<>();
-            for (var flow : root.path("flows")) {
+            for (JsonNode flow : root.path("flows")) {
                 if (++flows > 1000) { issue("DOCUMENT", "FLOW_LIMIT_EXCEEDED"); break; }
                 String location = "F" + flows;
                 if (!flow.path("name").isTextual() || flow.path("name").asText().isBlank()) issue(location, "FLOW_NAME_MISSING");
@@ -87,18 +93,18 @@ public final class RuntimeImportReport {
                 if (configs == null) { issue("DOCUMENT", "CONFIGURATION_NULL"); return; }
                 Iterable<JsonNode> entries = configs.isArray() ? configs : List.of(configs);
                 Set<String> configIds = new HashSet<>();
-                for (var entry : entries) {
+                for (JsonNode entry : entries) {
                     if (++configurations > 10000) { issue("DOCUMENT", "CONFIGURATION_LIMIT_EXCEEDED"); break; }
                     String location = "CONFIG" + configurations;
                     if (!entry.path("configurationId").isTextual() || entry.path("configurationId").asText().isBlank()) issue(location, "CONFIGURATION_ID_MISSING");
                     else if (!configIds.add(entry.path("configurationId").asText())) issue(location, "DUPLICATE_CONFIGURATION_ID");
                     Set<String> names = new HashSet<>();
-                    for (var parameter : entry.path("parameters")) {
+                    for (JsonNode parameter : entry.path("parameters")) {
                         if (!parameter.path("name").isTextual() || parameter.path("name").asText().isBlank()) issue(location, "PARAMETER_NAME_MISSING");
                         else if (!names.add(parameter.path("name").asText())) issue(location, "DUPLICATE_PARAMETER_NAME");
                     }
                     if (!entry.path("parameters").isArray()) issue("CONFIG" + configurations, "PARAMETERS_ARRAY_MISSING");
-                    for (var parameter : entry.path("parameters")) if (!parameter.hasNonNull("value")) unset++;
+                    for (JsonNode parameter : entry.path("parameters")) if (!parameter.hasNonNull("value")) unset++;
                 }
             }
         } catch (Exception failure) { issue("DOCUMENT", "JSON_PARSE_FAILED"); failure(failure); }
@@ -107,18 +113,18 @@ public final class RuntimeImportReport {
         if (!flow.path("consumer").isObject() || !flow.path("flowElements").isArray() || !flow.path("transitions").isArray())
             issue(location, "FLOW_STRUCTURE_INCOMPLETE");
         Map<String, JsonNode> nodes = new LinkedHashMap<>();
-        var consumer = flow.path("consumer");
+        JsonNode consumer = flow.path("consumer");
         if (consumer.isObject()) nodes.put(consumer.path("componentName").asText(), consumer);
-        for (var node : flow.path("flowElements")) {
+        for (JsonNode node : flow.path("flowElements")) {
             String name = node.path("componentName").asText();
             if (nodes.size() >= 500 && !nodes.containsKey(name)) { issue(location, "COMPONENT_LIMIT_EXCEEDED"); break; }
-            var previous = nodes.putIfAbsent(name, node);
+            JsonNode previous = nodes.putIfAbsent(name, node);
             // Runtime metadata routinely repeats the consumer in flowElements.
             if (previous != null && !(node.equals(consumer) && name.equals(consumer.path("componentName").asText())))
                 issue(location, "DUPLICATE_COMPONENT_NAME");
         }
         int index = 0;
-        for (var node : nodes.values()) {
+        for (JsonNode node : nodes.values()) {
             components++; index++;
             if (!node.path("componentName").isTextual() || node.path("componentName").asText().isBlank()) issue(location + "/C" + index, "COMPONENT_NAME_MISSING");
             if (!node.path("implementingClass").isTextual()) issue(location + "/C" + index, "IMPLEMENTING_CLASS_MISSING");
@@ -126,7 +132,7 @@ public final class RuntimeImportReport {
         Map<String, List<String>> edges = new HashMap<>();
         Set<String> routes = new HashSet<>();
         Map<String, Integer> incoming = new HashMap<>();
-        for (var edge : flow.path("transitions")) {
+        for (JsonNode edge : flow.path("transitions")) {
             if (++transitions > 500000) { issue("DOCUMENT", "TRANSITION_LIMIT_EXCEEDED"); break; }
             if (!edge.path("from").isTextual() || !edge.path("to").isTextual() || !edge.path("name").isTextual()
                     || edge.path("from").asText().isBlank() || edge.path("to").asText().isBlank() || edge.path("name").asText().isBlank())
@@ -146,10 +152,10 @@ public final class RuntimeImportReport {
             pending.addAll(edges.getOrDefault(node, List.of()));
         }
         if (!reached.containsAll(nodes.keySet())) issue(location, "DISCONNECTED_COMPONENTS");
-        var degrees = new HashMap<String, Integer>();
+        HashMap<String,Integer> degrees = new HashMap<String, Integer>();
         nodes.keySet().forEach(node -> degrees.put(node, 0));
         edges.forEach((from, targets) -> { if (nodes.containsKey(from)) targets.forEach(to -> { if (nodes.containsKey(to)) degrees.merge(to, 1, Integer::sum); }); });
-        var ready = new ArrayDeque<String>();
+        ArrayDeque<String> ready = new ArrayDeque<>();
         degrees.forEach((node, degree) -> { if (degree == 0) ready.add(node); });
         int visited = 0;
         while (!ready.isEmpty()) {
@@ -178,14 +184,14 @@ public final class RuntimeImportReport {
                 .append("\nIssues: ").append(issues.size()).append("; omitted: ").append(omitted)
                 .append("\nF/C/P references follow REST document order; application names and values are excluded.\n")
                 .append("This is a structural diagnostic, not proof of runtime compatibility.\n");
-        var representatives = new LinkedHashMap<String, Integer>();
-        var occurrences = new HashMap<String, Integer>();
+        LinkedHashMap<String,Integer> representatives = new LinkedHashMap<String, Integer>();
+        HashMap<String,Integer> occurrences = new HashMap<String, Integer>();
         for (int i = 0; i < issues.size(); i++) {
             String code = issues.get(i).split(" — ", 2)[1];
             representatives.putIfAbsent(code, i); occurrences.merge(code, 1, Integer::sum);
         }
         int shown = 0;
-        for (var entry : representatives.entrySet()) {
+        for (Entry<String,Integer> entry : representatives.entrySet()) {
             if (shown++ >= 8) break;
             appendIssue(text, entry.getValue(), false);
             if (occurrences.get(entry.getKey()) > 1) text.append("  Occurrences: ").append(occurrences.get(entry.getKey())).append('\n');
@@ -193,9 +199,9 @@ public final class RuntimeImportReport {
         if (!failures.isEmpty()) text.append("Failure: ").append(failures.get(0)).append(" (locations on detail pages)\n");
         if (representatives.size() > 8) text.append("Additional issue categories follow on detail pages.\n");
         text.append("No automatic upload. Review before sharing.\n");
-        var details = new ArrayList<String>();
+        ArrayList<String> details = new ArrayList<>();
         for (int i = 0; i < issues.size(); i++) {
-            var line = new StringBuilder(); appendIssue(line, i, true);
+            StringBuilder line = new StringBuilder(); appendIssue(line, i, true);
             details.addAll(Arrays.asList(line.toString().split("\n")));
         }
         details.addAll(failures);

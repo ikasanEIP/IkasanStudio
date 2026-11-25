@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.jar.*;
 import static org.junit.jupiter.api.Assertions.*;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.jar.JarOutputStream;
 
 @org.junit.jupiter.api.Tag("engine")
 class MetaPackArchiveTest {
@@ -20,7 +23,7 @@ class MetaPackArchiveTest {
                 "studio/metapack/Example/./inside.json", "studio/metapack/Example//inside.json",
                 "studio/metapack/Example/unsafe\\file.json", "studio/metapack/Example/unsafe\nfile.json"}) {
             Path file = temporary.resolve("invalid.jar");
-            try (var jar = new JarOutputStream(Files.newOutputStream(file))) {
+            try (JarOutputStream jar = new JarOutputStream(Files.newOutputStream(file))) {
                 write(jar, "studio/metapack/Example/metapack.json");
                 write(jar, entry);
             }
@@ -31,15 +34,15 @@ class MetaPackArchiveTest {
     @Test
     void indexesImplicitDirectoriesAndEncodedResourceNames() throws Exception {
         Path file = temporary.resolve("pack with spaces.jar");
-        try (var jar = new JarOutputStream(Files.newOutputStream(file))) {
+        try (JarOutputStream jar = new JarOutputStream(Files.newOutputStream(file))) {
             write(jar, "studio/metapack/Example/metapack.json");
             write(jar, "studio/metapack/Example/library/Producer/small icon #1.png");
         }
-        var archive = MetaPackArchive.open(file);
+        MetaPackArchive archive = MetaPackArchive.open(file);
         assertArrayEquals(new String[]{"studio/metapack/Example/library"}, archive.directories("studio/metapack/Example"));
-        var resource = archive.resource("studio/metapack/Example/library/Producer/small icon #1.png");
+        URL resource = archive.resource("studio/metapack/Example/library/Producer/small icon #1.png");
         assertNotNull(resource);
-        try (var stream = resource.openStream()) {
+        try (InputStream stream = resource.openStream()) {
             assertEquals(42, stream.read());
         }
         assertNull(archive.resource("studio/metapack/Other/metapack.json"));
