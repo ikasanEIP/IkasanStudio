@@ -24,6 +24,18 @@
       "reason": "Security override including CVE-2026-40466, CVE-2026-41044, CVE-2026-42588, CVE-2026-45505 and CVE-2026-74761; retain the jakarta.jms / Java 17 contract. Remove when the matching Ikasan BOM manages this patched release or a newer compatible version."
     }
   ],
-  "packVersion": "0.1.0-SNAPSHOT",
-  "generatorApiVersion": 4
+  "packVersion": "0.1.1-SNAPSHOT",
+  "generatorApiVersion": 5,
+  "mavenPlugins": [
+    {
+      "groupId": "org.apache.maven.plugins",
+      "artifactId": "maven-compiler-plugin",
+      "version": "3.8.0"
+    },
+    {
+      "groupId": "org.apache.maven.plugins",
+      "artifactId": "maven-surefire-plugin",
+      "version": "3.2.5"
+    }
+  ]
 }

@@ -17,6 +17,29 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 @org.junit.jupiter.api.Tag("engine")
 class MetaPackValidatorTest {
+    private static MetaPackManifest withPlugins(int api, List<MetaPackManifest.MavenPlugin> plugins) {
+        var base = manifest();
+        return new MetaPackManifest(2, base.id(), base.ikasanVersion(), base.javaVersion(),
+                base.dependencyManagement(), base.compatibilityOverrides(), "1.0.0", api, plugins);
+    }
+
+    @Test void validatesPluginDefaultsAndRequiresApiFiveWithoutChangingLegacyManifests() throws Exception {
+        var plugin = new MetaPackManifest.MavenPlugin("org.apache.maven.plugins", "maven-compiler-plugin", "3.8.0");
+        MetaPackValidator.validate("SyntheticValidator", withPlugins(5, List.of(plugin)), validComponents());
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", withPlugins(4, List.of(plugin)), validComponents()))
+                .hasMessageContaining("mavenPlugins requires generatorApiVersion 5");
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", withPlugins(5, List.of(plugin, plugin)), validComponents()))
+                .hasMessageContaining("duplicate Maven plugin");
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"LATEST", "[3,4)", "${team.version}", "3.+", ""})
+    void rejectsUnresolvedOrDynamicPluginDefaults(String version) {
+        var plugin = new MetaPackManifest.MavenPlugin("org.apache.maven.plugins", "maven-compiler-plugin", version);
+        assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", withPlugins(5, List.of(plugin)), validComponents()))
+                .isInstanceOf(org.ikasan.studio.core.StudioBuildException.class);
+    }
+
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {
             "int", "byte[]", "org.example.Outer$Inner", "org.example.Outer$1", "$", "$$$",
@@ -121,7 +144,7 @@ class MetaPackValidatorTest {
 
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.NullSource
-    @org.junit.jupiter.params.provider.ValueSource(ints = {0, 5})
+    @org.junit.jupiter.params.provider.ValueSource(ints = {0, 6})
     void rejectsMissingOrIncompatibleGeneratorApi(Integer api) {
         assertThatThrownBy(() -> MetaPackValidator.validate("SyntheticValidator", revisionManifest("1.0.0", api), Map.of()))
                 .hasMessageContaining("generatorApiVersion");

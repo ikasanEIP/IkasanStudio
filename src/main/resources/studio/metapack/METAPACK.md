@@ -82,8 +82,8 @@ The manifest declares the pack's exact build platform:
 ```json
 {
   "schemaVersion": 2,
-  "packVersion": "0.1.0-SNAPSHOT",
-  "generatorApiVersion": 4,
+  "packVersion": "0.1.1-SNAPSHOT",
+  "generatorApiVersion": 5,
   "id": "V4.1.6",
   "ikasanVersion": "4.1.6",
   "javaVersion": "17",
@@ -94,9 +94,22 @@ The manifest declares the pack's exact build platform:
       "version": "4.1.6"
     }
   ],
-  "compatibilityOverrides": []
+  "compatibilityOverrides": [],
+  "mavenPlugins": [
+    {"groupId": "org.apache.maven.plugins", "artifactId": "maven-compiler-plugin", "version": "3.8.0"},
+    {"groupId": "org.apache.maven.plugins", "artifactId": "maven-surefire-plugin", "version": "3.2.5"}
+  ]
 }
 ```
+
+Generator API 5 adds optional `mavenPlugins` coordinates. Studio supplies missing versions through
+Maven `pluginManagement` in the root POM, without activating plugins, adding executions, or replacing
+explicit versions, configuration, or executions already present in that POM. Both IDE generation and
+offline/migration rendering use the same build contract. Legacy packs without `mavenPlugins` retain their
+existing behaviour. Plugin versions must be fixed; unresolved expressions and version ranges are rejected.
+The compiler default retains Studio's existing 3.8.0 baseline, while Surefire 3.2.5 matches Studio's
+existing generated flow-test build. These are Studio defaults, not a claim that all Ikasan archetypes
+use those exact plugin versions.
 
 Component metadata normally names required Maven dependencies without versions. The imported BOM supplies one
 coherent, Ikasan-tested dependency set. A direct version is an exceptional compatibility override and must be

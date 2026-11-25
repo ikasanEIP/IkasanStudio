@@ -87,7 +87,7 @@ class OfflineToolsExporterTest {
             var inventory = org.ikasan.studio.core.metapack.loading.OfflinePackBundle.verify(exported, () -> { });
             assertEquals(id, inventory.requiredPackId());
             var pack = inventory.packs().stream().filter(entry -> entry.id().equals(id)).findFirst().orElseThrow();
-            assertEquals("0.1.0-SNAPSHOT", pack.packVersion());
+            assertEquals(org.ikasan.studio.core.metapack.ComponentLibrary.getMetaPackManifest(id).packVersion(), pack.packVersion());
             assertEquals("meta-packs/" + id + ".jar", pack.file());
             Path pendingProbe = exported.resolve("meta-packs/.pending/probe.json");
             Files.createDirectories(pendingProbe.getParent()); Files.writeString(pendingProbe, "{}");

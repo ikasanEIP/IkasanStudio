@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Align meta-pack Maven generation with archetype version management: generator API 5 supports validated compiler/Surefire defaults in plugin management, preserves explicit root-POM customisations, and shares the IDE/offline rendering contract. Bundled V3/V4 revisions become 0.1.1-SNAPSHOT and V5.1.0 becomes 1.0.9; existing locked models require explicit revision adoption.
+
 - Pulse Update Code for valid pending property edits as well as validation errors, including same-length port replacements; stop attention when edits are reverted or the panel is disposed.
 
 - Keep Properties tab headers clickable with text-copy support, and reopen the existing properties form when clicking an already-selected canvas item without losing pending edits.

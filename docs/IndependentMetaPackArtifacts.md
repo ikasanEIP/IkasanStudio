@@ -6,13 +6,13 @@ For a teammate starting a separate custom-pack project, begin with the [custom-p
 
 The IntelliJ plugin, generator, test kit and official packs remain in this repository. The existing Gradle wrapper and CI pipeline build them together; no additional Travis projects or repositories are required. Publication remains explicit, with no remote repository or credentials configured by this change.
 
-| Gradle project | Maven artifact (group `org.ikasan.studio`) | Resource ID | Target Ikasan | Initial pack revision |
+| Gradle project | Maven artifact (group `org.ikasan.studio`) | Resource ID | Target Ikasan | Current pack revision |
 | --- | --- | --- | --- | --- |
-| `studio-pack-v3` | `studio-pack-v3` | `V3.3.9` | `3.3.9` | `0.1.0-SNAPSHOT` |
-| `studio-pack-v4` | `studio-pack-v4` | `V4.1.6` | `4.1.6` | `0.1.0-SNAPSHOT` |
-| `studio-pack-v5-release` | `studio-pack-v5-release` | `V5.1.0` | `5.1.0` | `1.0.8` |
+| `studio-pack-v3` | `studio-pack-v3` | `V3.3.9` | `3.3.9` | `0.1.1-SNAPSHOT` |
+| `studio-pack-v4` | `studio-pack-v4` | `V4.1.6` | `4.1.6` | `0.1.1-SNAPSHOT` |
+| `studio-pack-v5-release` | `studio-pack-v5-release` | `V5.1.0` | `5.1.0` | `1.0.9` |
 
-`studio-pack-v5-release:1.0.8` is the normally bundled released adapter for `V5.1.0`.
+`studio-pack-v5-release:1.0.9` is the normally bundled released adapter for `V5.1.0`.
 The unused `studio-pack-v5` snapshot module and optional activation payload have been removed.
 The standalone Maven [Ikasan 5 authoring example](../ikasan-studio-ancillary/ikasan5-metapack/README.md)
 targets runtime 5.1.0 with the distinct ID `ExampleIkasan5`.
@@ -46,8 +46,9 @@ The pack's `src/main/resources/studio/metapack/<id>/metapack.json` is the source
 | `packVersion` | Independent artifact revision, such as `0.1.0-SNAPSHOT` or `1.0.3` |
 | `ikasanVersion` | Target runtime release and corresponding Ikasan BOM version |
 | `schemaVersion` | Manifest format; new official manifests use version 2 |
-| `generatorApiVersion` | Required pack-facing generator contract; 1–4; semantic validation requires 2+, independent H2 without the legacy template requires 3+, per-component harness factory adapters require 4 |
+| `generatorApiVersion` | Required pack-facing generator contract; 1–5; semantic validation requires 2+, independent H2 without the legacy template requires 3+, per-component harness factory adapters require 4, Maven plugin defaults require 5 |
 | `javaVersion` | Java requirement of the generated application |
+| `mavenPlugins` | Optional fixed plugin-management defaults (API 5); existing explicit root-POM customisations are preserved |
 
 Pack revisions use `major.minor.patch` with an optional qualifier. Snapshot pack builds are permitted, but dynamic selectors such as `latest`, `1.+` and version ranges are rejected. Released revisions must be immutable; replace `-SNAPSHOT` before publishing a release. Changing a template or descriptor can advance one pack revision without changing the Ikasan version, other pack revision, generator artifact version or plugin version. Increment the generator API contract only for an incompatible change to the pack-facing model/template contract; it is separate from the generator's Maven artifact version.
 

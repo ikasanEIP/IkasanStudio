@@ -46,6 +46,35 @@ public class IkasanPomModel {
         for (var bom : manifest.dependencyManagement()) {
             addOrUpdateBomImport(bom.groupId(), bom.artifactId(), bom.version());
         }
+        for (var plugin : manifest.mavenPlugins()) addMissingPluginDefault(plugin);
+    }
+
+    /** Plugin management supplies defaults without activating plugins or replacing developer configuration. */
+    private void addMissingPluginDefault(org.ikasan.studio.core.metapack.model.MetaPackManifest.MavenPlugin requested) {
+        if (model.getBuild() == null) model.setBuild(new org.apache.maven.model.Build());
+        var build = model.getBuild();
+        boolean explicit = build.getPlugins().stream().anyMatch(plugin -> samePlugin(plugin, requested)
+                && plugin.getVersion() != null && !plugin.getVersion().isBlank());
+        if (explicit) return;
+        if (build.getPluginManagement() == null) build.setPluginManagement(new org.apache.maven.model.PluginManagement());
+        var management = build.getPluginManagement();
+        var existing = management.getPlugins().stream().filter(plugin -> samePlugin(plugin, requested))
+                .findFirst().orElse(null);
+        if (existing != null && existing.getVersion() != null && !existing.getVersion().isBlank()) return;
+        if (existing == null) {
+            existing = new org.apache.maven.model.Plugin();
+            existing.setGroupId(requested.groupId());
+            existing.setArtifactId(requested.artifactId());
+            management.addPlugin(existing);
+        }
+        existing.setVersion(requested.version());
+        isDirty = true;
+    }
+
+    private static boolean samePlugin(org.apache.maven.model.Plugin existing,
+            org.ikasan.studio.core.metapack.model.MetaPackManifest.MavenPlugin requested) {
+        String group = existing.getGroupId() == null ? "org.apache.maven.plugins" : existing.getGroupId();
+        return requested.groupId().equals(group) && requested.artifactId().equals(existing.getArtifactId());
     }
 
     /** Check a detached copy so previewing generation does not dirty the cached POM. */

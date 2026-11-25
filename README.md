@@ -84,6 +84,7 @@ Studio helps with integration structure and repetitive implementation work. Appl
 | Default Ikasan meta-packs      | V3.3.9, V4.1.6 and V5.1.0 (JDK 25); optional historical [V5 snapshot](docs/SnapshotMetaPacks.md) for developers |
 | Generated V3.3.9 application   | Java 11                            |
 | Generated V4.1.6 application   | Java 17                            |
+| Generated V5.1.0 application   | Java 25                            |
 
 Run IntelliJ with its supplied runtime and configure the application's project SDK, Maven runner/importer and Run/Debug JRE for its Ikasan version. These are separate from the toolchains used to develop the plugin.
 

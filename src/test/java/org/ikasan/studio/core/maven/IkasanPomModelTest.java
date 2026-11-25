@@ -7,8 +7,66 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class IkasanPomModelTest {
+    private static org.ikasan.studio.core.metapack.model.MetaPackManifest pluginManifest() {
+        return new org.ikasan.studio.core.metapack.model.MetaPackManifest(2, "Custom", "5.1.0", "25",
+                java.util.List.of(), java.util.List.of(), "1.0.0", 5, java.util.List.of(
+                new org.ikasan.studio.core.metapack.model.MetaPackManifest.MavenPlugin(
+                        "org.apache.maven.plugins", "maven-compiler-plugin", "3.8.0")));
+    }
+
+    @Test void missingPluginDefaultsAreManagedWithoutActivatingExecutionsAndAreIdempotent() {
+        var model = new Model();
+        var pom = new IkasanPomModel(model);
+        pom.applyBuildContract(pluginManifest());
+        assertThat(model.getBuild().getPlugins()).isEmpty();
+        assertThat(model.getBuild().getPluginManagement().getPlugins()).singleElement().satisfies(plugin -> {
+            assertThat(plugin.getArtifactId()).isEqualTo("maven-compiler-plugin");
+            assertThat(plugin.getVersion()).isEqualTo("3.8.0");
+            assertThat(plugin.getExecutions()).isEmpty();
+        });
+        var reapplied = new IkasanPomModel(model);
+        reapplied.applyBuildContract(pluginManifest());
+        assertThat(reapplied.isDirty()).isFalse();
+    }
+
     @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.CsvSource({"3.3.9,11", "4.1.6,17"})
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void explicitPluginVersionsAndConfigurationRemainDeveloperOwned(boolean managed) {
+        var model = new Model();
+        var build = new org.apache.maven.model.Build();
+        model.setBuild(build);
+        var plugin = new org.apache.maven.model.Plugin();
+        plugin.setArtifactId("maven-compiler-plugin");
+        plugin.setVersion("${team.compiler.version}");
+        var config = new org.codehaus.plexus.util.xml.Xpp3Dom("configuration");
+        plugin.setConfiguration(config);
+        if (managed) {
+            build.setPluginManagement(new org.apache.maven.model.PluginManagement());
+            build.getPluginManagement().addPlugin(plugin);
+        } else build.addPlugin(plugin);
+        new IkasanPomModel(model).applyBuildContract(pluginManifest());
+        assertThat(plugin.getVersion()).isEqualTo("${team.compiler.version}");
+        assertThat(plugin.getConfiguration()).isSameAs(config);
+    }
+
+    @Test void unversionedManagedPluginRetainsItsConfigurationWhileAcquiringTheDefault() {
+        var model = new Model();
+        var build = new org.apache.maven.model.Build();
+        model.setBuild(build);
+        build.setPluginManagement(new org.apache.maven.model.PluginManagement());
+        var plugin = new org.apache.maven.model.Plugin();
+        plugin.setArtifactId("maven-compiler-plugin");
+        var config = new org.codehaus.plexus.util.xml.Xpp3Dom("configuration");
+        plugin.setConfiguration(config);
+        build.getPluginManagement().addPlugin(plugin);
+        new IkasanPomModel(model).applyBuildContract(pluginManifest());
+        assertThat(build.getPluginManagement().getPlugins()).containsExactly(plugin);
+        assertThat(plugin.getVersion()).isEqualTo("3.8.0");
+        assertThat(plugin.getConfiguration()).isSameAs(config);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"3.3.9,11", "4.1.6,17", "5.1.0,25"})
     void detectsBuildSettingsWithoutNewDependenciesAndPreservesUnrelatedConfiguration(String version, String javaVersion) {
         Model model = new Model();
         model.setGroupId("example");

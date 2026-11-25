@@ -67,6 +67,13 @@
     "generatorApiVersion": {
       "type": "integer",
       "minimum": 1
+    },
+    "mavenPlugins": {
+      "type": "array",
+      "description": "Generator API 5: plugin-management defaults; existing explicit project versions and configuration are preserved.",
+      "items": {
+        "$ref": "#/$defs/coordinate"
+      }
     }
   },
   "$defs": {

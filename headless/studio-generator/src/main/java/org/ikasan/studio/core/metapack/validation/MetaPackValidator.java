@@ -13,7 +13,7 @@ import java.util.Set;
 /** Enforces the version contract before a meta-pack can be exposed to Studio. */
 public final class MetaPackValidator {
     /** Increment only when the pack-facing generator contract changes incompatibly. */
-    public static final int GENERATOR_API_VERSION = 4;
+    public static final int GENERATOR_API_VERSION = 5;
     private MetaPackValidator() { }
 
     public static void validate(String directoryName, MetaPackManifest manifest,
@@ -51,6 +51,24 @@ public final class MetaPackValidator {
             if ("org.ikasan".equals(bom.groupId()) && !manifest.ikasanVersion().equals(bom.version())) {
                 fail(directoryName, "imports Ikasan BOM " + bom.version()
                         + " but declares Ikasan " + manifest.ikasanVersion());
+            }
+        }
+
+        if (!manifest.mavenPlugins().isEmpty()
+                && (manifest.generatorApiVersion() == null || manifest.generatorApiVersion() < 5)) {
+            fail(directoryName, "mavenPlugins requires generatorApiVersion 5");
+        }
+        Set<String> pluginKeys = new HashSet<>();
+        for (var plugin : manifest.mavenPlugins()) {
+            require(directoryName, "Maven plugin groupId", plugin.groupId());
+            require(directoryName, "Maven plugin artifactId", plugin.artifactId());
+            require(directoryName, "Maven plugin version", plugin.version());
+            rejectDynamicVersion(directoryName, plugin.version());
+            if (!plugin.version().matches("[0-9]+(?:\\.[0-9]+)+(?:-[A-Za-z0-9.-]+)?")) {
+                fail(directoryName, "Maven plugin version must be fixed: " + plugin.version());
+            }
+            if (!pluginKeys.add(plugin.groupId() + ":" + plugin.artifactId())) {
+                fail(directoryName, "declares duplicate Maven plugin " + plugin.groupId() + ":" + plugin.artifactId());
             }
         }
 

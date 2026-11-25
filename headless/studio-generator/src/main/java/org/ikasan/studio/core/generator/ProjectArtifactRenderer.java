@@ -44,11 +44,7 @@ public final class ProjectArtifactRenderer {
                         && existing.getExclusions().isEmpty()));
         IkasanPomModel pom = new IkasanPomModel(mavenModel);
         MetaPackManifest manifest = ComponentLibrary.getMetaPackManifest(module.getMetaVersion());
-        pom.addProperty("version.ikasan", manifest.ikasanVersion());
-        pom.addProperty("maven.compiler.source", manifest.javaVersion());
-        pom.addProperty("maven.compiler.target", manifest.javaVersion());
-        if (pom.getProperty("maven.compiler.release") != null) pom.addProperty("maven.compiler.release", manifest.javaVersion());
-        for (MetaPackManifest.BomImport bom : manifest.dependencyManagement()) pom.addOrUpdateBomImport(bom.groupId(), bom.artifactId(), bom.version());
+        pom.applyBuildContract(manifest);
         for (Dependency dependency : module.getAllUniqueSortedJarDependencies()) {
             Dependency copy = dependency.clone();
             if ("org.ikasan".equals(copy.getGroupId())) copy.setVersion(null);

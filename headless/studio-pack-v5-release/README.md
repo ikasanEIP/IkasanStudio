@@ -1,7 +1,7 @@
 # Ikasan 5.1.0 released meta-pack
 
 `studio-pack-v5-release` supplies **V5.1.0**, runtime **5.1.0**, independent pack revision
-**1.0.8** and generator API **4**. It is included in normal Studio plugin and CLI distributions.
+**1.0.9** and generator API **5**. It is included in normal Studio plugin and CLI distributions.
 It requires no snapshot setting or separate installation. Generated applications require
 **JDK 25**; the Studio plugin, generator and resource-only pack authoring build use JDK 17.
 
@@ -53,3 +53,7 @@ Revision 1.0.6 imports Local File Consumer filename lists and SFTP Consumer dupl
 Revision 1.0.7 recognises the library `org.ikasan.component.endpoint.util.producer.DevNull` runtime class as Dev Null Producer. Runtime import now retains builder construction instead of creating a Generic Producer that requires an external Spring bean. Existing model locks require explicit revision adoption; re-import to correct previously imported Generic Producer classifications.
 
 Revision 1.0.8 applies wrapped-component settings to the outer component rather than its delegate. Runtime import uses the declared delegate contract, and source review can offer a unique compatible implementation for explicit registration. Existing V5 model locks require explicit revision adoption before regeneration. Re-import previously imported wrapper/delegate components to correct their saved implementation identity.
+
+Revision 1.0.9 adds validated Maven compiler/Surefire defaults through the shared build contract.
+Explicit root-POM plugin versions and configuration are preserved. Existing model locks require
+explicit revision adoption; this does not change the target runtime (5.1.0) or Java baseline (25).

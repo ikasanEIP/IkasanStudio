@@ -23,7 +23,7 @@ to both repositories is required for the first build.
 
 `example-runtime` contains SampleTextConverter, UppercaseConverter and LoggingProducer.
 `example-pack` contains descriptors, icons, manifest and contract tests. Its build unpacks
-the pinned `studio-pack-v4:0.1.0-SNAPSHOT` baseline, then adds the example resources under
+the pinned `studio-pack-v4:0.1.1-SNAPSHOT` baseline, then adds the example resources under
 its own ID. This is build-time composition: the output JAR contains the complete pack;
 Studio has no runtime inheritance or overlay mechanism. Templates are copied without
 filtering, preserving FreeMarker syntax. No Java classes or runtime dependencies are
@@ -75,7 +75,7 @@ are development bootstrap versions, not immutable releases. Record the Studio co
 and exact baseline revision when releasing your pack; publish your runtime library
 alongside it. Keep developer implementation classes out of the resource-only pack.
 
-The example manifest declares generator API **4**, matching the copied V4 baseline.
+The example manifest declares generator API **5**, matching the copied V4 baseline.
 When adopting a newer baseline, review its generator API requirement as well as its
 templates and descriptors. The contract tests reject an example declaration below
 the copied baseline, even if a particular sample flow does not use every new feature.
