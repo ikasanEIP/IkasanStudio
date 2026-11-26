@@ -3,7 +3,7 @@ plugins { `java-library` }
 dependencies {
     api("com.google.re2j:re2j:1.8")
     api("com.fasterxml.jackson.core:jackson-databind:2.22.4")
-    api("org.apache.maven:maven-model:3.10.0")
+    api("org.apache.maven:maven-model:3.10.2")
     // Export the patched Plexus dependency to consumers, including Maven consumers.
     api("org.codehaus.plexus:plexus-utils:4.2.0") {
         because("Keep the patched Plexus utilities available to all consumers")
