@@ -52,7 +52,7 @@ final class GenerationTransactionManager {
         VirtualFile application = StudioProjectFiles.getProjectBaseDir(project);
         VirtualFile workspace = StudioProjectFiles.getWorkspaceBaseDir(project);
         if (application != null && workspace != null && !application.equals(workspace))
-            ACTIVE.get().setApplicationPrefix("jar/");
+            ACTIVE.get().useNestedApplication();
     }
 
     static void stageWorkspace(String path, String previous, String content) {

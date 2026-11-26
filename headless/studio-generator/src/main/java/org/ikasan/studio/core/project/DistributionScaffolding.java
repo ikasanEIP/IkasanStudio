@@ -90,14 +90,14 @@ public final class DistributionScaffolding {
         return List.copyOf(changes.values());
     }
 
-    private static void seed(Map<String, FileChange> changes, Path root, String path, String content) throws Exception {
+    private static void seed(Map<String, FileChange> changes, Path root, String path, String content) {
         if (!Files.exists(root.resolve(path))) put(changes, root, path, null, content);
     }
     private static void putPom(Map<String, FileChange> changes, Path root, String path, PomInput input) throws Exception {
         String rendered = xml(input.model());
         if (!rendered.equals(input.canonical())) put(changes, root, path, input.source(), rendered);
     }
-    private static void put(Map<String, FileChange> changes, Path root, String path, String previous, String content) throws Exception {
+    private static void put(Map<String, FileChange> changes, Path root, String path, String previous, String content) {
         Path file = root.resolve(path);
         for (Path part = file; part != null && part.startsWith(root); part = part.getParent())
             if (Files.isSymbolicLink(part)) throw new IllegalArgumentException("Scaffolding does not follow symbolic links: " + part);

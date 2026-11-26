@@ -74,6 +74,7 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
     
     public void testNestedApplicationAndDistributionCommitTogetherAndRejectStaleScaffolding() throws Exception {
         VirtualFile workspace = StudioProjectFiles.getWorkspaceBaseDir(myProject);
+        assertNotNull("Test project must have a workspace directory", workspace);
         WriteCommandAction.runWriteCommandAction(myProject, () -> {
             try {
                 VirtualFile jar = workspace.createChildDirectory(this, "jar");
@@ -84,14 +85,14 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
         StudioProjectFiles.createFileWithDirectories(myProject, "generated/layout-check.txt", "nested", null);
         GenerationTransactionManager.stageWorkspace("bin/launcher.txt", null, "launcher");
         GenerationTransactionManager.commit(myProject);
-        assertEquals("nested", new String(workspace.findFileByRelativePath("jar/generated/layout-check.txt").contentsToByteArray(), StandardCharsets.UTF_8));
+        assertEquals("nested", read(workspace, "jar/generated/layout-check.txt"));
         assertNotNull(workspace.findFileByRelativePath("bin/launcher.txt"));
         GenerationTransactionManager.begin(myProject);
         StudioProjectFiles.createFileWithDirectories(myProject, "generated/layout-check.txt", "replacement", null);
         GenerationTransactionManager.stageWorkspace("bin/launcher.txt", "stale contents", "replacement");
         try { GenerationTransactionManager.commit(myProject); fail("Expected stale scaffolding rejection"); }
         catch (StudioRuntimeException expected) { assertTrue(expected.getMessage().contains("changed during generation")); }
-        assertEquals("nested", new String(workspace.findFileByRelativePath("jar/generated/layout-check.txt").contentsToByteArray(), StandardCharsets.UTF_8));
+        assertEquals("nested", read(workspace, "jar/generated/layout-check.txt"));
     }
 
     public void testScheduledProviderIsCreatedInUserAndSurvivesRegeneration() throws Exception {

@@ -18,7 +18,7 @@ final class GenerationBatch {
     private final Set<String> authorisedUserReplacements = new HashSet<>();
     private final Map<String, String> expectedContent = new HashMap<>();
     private String applicationPrefix = "";
-    void setApplicationPrefix(String prefix) { applicationPrefix = prefix; }
+    void useNestedApplication() { applicationPrefix = "jar/"; }
     String applicationPath(String path) { return applicationPrefix + path; }
     void expect(String path, String previous) { expectedContent.put(path, previous); }
     boolean hasExpectation(String path) { return expectedContent.containsKey(path); }

@@ -18,17 +18,16 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
+<!-- Local copy of https://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd for offline validation. -->
 <archetype-descriptor xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
                       xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0
-                      https://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd"
-                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <id>ikasan-studio-project-archetype</id>
-  <name>Ikasan Studio project archetype</name>
-  <description>Archetype to create new Ikasan Studio project</description>
+                      archetype-descriptor-1.0.0.xsd"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      name="Ikasan Studio project archetype">
   <fileSets>
-    <fileSet filtered="false" encoding="UTF-8"><directory>bin</directory><includes><include>**/*</include></includes></fileSet>
+    <fileSet encoding="UTF-8"><directory>bin</directory><includes><include>**/*</include></includes></fileSet>
     <fileSet encoding="UTF-8">
-      <directory></directory>
+      <directory/>
       <includes>
         <include>.ikasan-studio-project</include>
         <include>.gitignore</include>
@@ -36,16 +35,16 @@ under the License.
         <include>LOCAL_TEST_ENVIRONMENT.md</include>
       </includes>
     </fileSet>
-    <fileSet filtered="false" encoding="UTF-8">
+    <fileSet encoding="UTF-8">
       <directory>.agents/skills</directory>
       <includes><include>**/SKILL.md</include></includes>
     </fileSet>
-    <fileSet filtered="false" encoding="UTF-8">
+    <fileSet encoding="UTF-8">
       <directory>.claude/skills</directory>
       <includes><include>**/SKILL.md</include></includes>
     </fileSet>
     <fileSet filtered="true" encoding="UTF-8">
-      <directory></directory>
+      <directory/>
       <includes>
         <include>*.txt</include>
       </includes>
@@ -54,7 +53,7 @@ under the License.
   <modules>
     <module id="${rootArtifactId}-jar" dir="jar" name="${rootArtifactId}-jar">
       <fileSets>
-        <fileSet filtered="false" encoding="UTF-8"><directory></directory><includes><include>.ikasan-studio-application</include></includes></fileSet>
+        <fileSet encoding="UTF-8"><directory/><includes><include>.ikasan-studio-application</include></includes></fileSet>
       </fileSets>
       <modules>
     <module id="${rootArtifactId}-user" dir="user" name="${rootArtifactId}-user">
@@ -76,7 +75,7 @@ under the License.
     <module id="${rootArtifactId}-generated" dir="generated" name="${rootArtifactId}-generated">
       <fileSets>
         <fileSet filtered="true" encoding="UTF-8">
-          <directory></directory>
+          <directory/>
           <includes>
             <include>*.md</include>
           </includes>

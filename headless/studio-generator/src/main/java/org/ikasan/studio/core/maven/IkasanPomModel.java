@@ -3,6 +3,7 @@ package org.ikasan.studio.core.maven;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
@@ -14,8 +15,6 @@ import org.ikasan.studio.core.metapack.model.MetaPackManifest.BomImport;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest.MavenPlugin;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 import org.ikasan.studio.core.model.ModelUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Used to model the top level pom for the project
@@ -25,8 +24,8 @@ import org.slf4j.LoggerFactory;
  * </p>
  * Typically, this object is thrown away once its dirty and re-read anew (to safeguard against simultaneous updates)
  */
+@Slf4j
 public class IkasanPomModel {
-    private static final Logger LOG = LoggerFactory.getLogger(IkasanPomModel.class);
     public static final String MAVEN_COMPILER_TARGET = "maven.compiler.target";
     public static final String MAVEN_COMPILER_SOURCE = "maven.compiler.source";
 
@@ -110,7 +109,7 @@ public class IkasanPomModel {
             writer.write(pomStringWriter, model);
             return pomStringWriter.toString();
         } catch (IOException e) {
-            LOG.warn("STUDIO: Could not serialize the Maven POM", e);
+            log.warn("STUDIO: Could not serialize the Maven POM", e);
         }
         return "";
     }
@@ -233,7 +232,7 @@ public class IkasanPomModel {
             model.setDependencies(dependencyListUniqueSorted);
             resetKeys(dependencyListUniqueSorted);
         } else {
-            LOG.warn("STUDIO: WARN, rawDependencies is null.");
+            log.warn("STUDIO: WARN, rawDependencies is null.");
         }
     }
 
@@ -244,11 +243,11 @@ public class IkasanPomModel {
                 if (dependency != null) {
                     dependencyMap.put(getMapKey(dependency), dependency.getVersion());
                 } else {
-                    LOG.warn("STUDIO: WARN, dependency is null.");
+                    log.warn("STUDIO: WARN, dependency is null.");
                 }
             }
         } else {
-            LOG.warn("STUDIO: WARN, dependencies is null.");
+            log.warn("STUDIO: WARN, dependencies is null.");
         }
     }
 

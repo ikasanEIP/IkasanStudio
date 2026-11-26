@@ -54,7 +54,8 @@ public final class MigrationController {
         boolean acquired = false;
         Path appliedSnapshot = null;
         try {
-            if (StudioProjectFiles.getApplicationBasePath(project) == null) throw new IllegalStateException(StudioBundle.message("message.OpenAnIkasanProjectFirst"));
+            String workspacePath = project.getBasePath();
+            if (workspacePath == null || StudioProjectFiles.getApplicationBasePath(project) == null) throw new IllegalStateException(StudioBundle.message("message.OpenAnIkasanProjectFirst"));
             if (DumbService.isDumb(project)) throw new IllegalStateException(StudioBundle.message("message.WaitForProjectIndexingToFinishBeforeMigrating"));
             if (!restore && context.isModelPersistenceBlocked()) throw new IllegalStateException(StudioBundle.message("message.LoadAValidStudioModelBeforeMigrating"));
             if (context.getPropertiesPanel() != null && context.getPropertiesPanel().dataHasChangedAndOKToProcess()) {
@@ -63,7 +64,7 @@ public final class MigrationController {
             checkUnsaved(project);
             if (!context.tryBeginMigration()) throw new IllegalStateException(StudioBundle.message("message.WaitForTheCurrentGenerationOrMigrationToFinish"));
             acquired = true;
-            Path root = Path.of(project.getBasePath());
+            Path root = Path.of(workspacePath);
             String modelPath = StudioProjectLayout.applicationPath(root, MigrationArtifacts.MODEL);
             String pomPath = StudioProjectLayout.applicationPath(root, "pom.xml");
             String target = null;

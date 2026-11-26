@@ -41,7 +41,7 @@ class ReactorFixtureTest {
         String parent = rootPom.getModelAsString();
         String application = archetype("jar/generated/pom.xml");
         Scaffold scaffold = FlowTestScaffold.render(module, module.getFlows().get(0), parent, application);
-        LinkedHashMap<String,String> files = new LinkedHashMap<String, String>();
+        LinkedHashMap<String,String> files = new LinkedHashMap<>();
         files.put("pom.xml", parent);
         files.put("user/pom.xml", archetype("jar/user/pom.xml"));
         files.put("generated/pom.xml", application);
