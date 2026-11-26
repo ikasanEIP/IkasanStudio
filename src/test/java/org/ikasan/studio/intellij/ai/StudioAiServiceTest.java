@@ -80,6 +80,7 @@ class StudioAiServiceTest {
              MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class);
              MockedConstruction<StudioAiProposalDialog> dialogs = mockConstruction(StudioAiProposalDialog.class, (dialog, construction) ->
                      reviewed.set((StudioAiService.Proposal) construction.arguments().get(2)))) {
+            files.when(() -> StudioProjectFiles.getApplicationBasePath(project)).thenAnswer(call -> project.getBasePath());
             settings.when(IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
             Application app = mock(Application.class);
             ModalityState writeSafeModality = mock(ModalityState.class);

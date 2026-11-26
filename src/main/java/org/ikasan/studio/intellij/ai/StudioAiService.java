@@ -96,7 +96,7 @@ public final class StudioAiService implements Disposable {
             if (disposed || project.isDisposed()) throw new IllegalStateException("Project closed");
             if (server != null) return configuration;
             cleanup.join();
-            String projectPath = project.getBasePath();
+            String projectPath = StudioProjectFiles.getApplicationBasePath(project);
             if (projectPath == null) throw new IllegalStateException("Open a project before connecting AI.");
             StudioAiConnectionFiles files;
             try (InputStream source = getClass().getResourceAsStream("/studio/ai/studio-mcp-adapter.jar")) {
@@ -178,7 +178,7 @@ public final class StudioAiService implements Disposable {
         if (!arguments.isObject()) throw new IllegalArgumentException("Tool arguments must be an object");
         return switch (name) {
             case "studio_snapshot" -> {
-                String projectPath = project.getBasePath();
+                String projectPath = StudioProjectFiles.getApplicationBasePath(project);
                 if (projectPath == null) throw new IllegalStateException(StudioBundle.message("ai.NotReady"));
                 Snapshot snapshot = onEdt(this::capture);
                 String revision = UUID.randomUUID().toString();
@@ -312,7 +312,7 @@ public final class StudioAiService implements Disposable {
             if (feedback != null) feedback.publish("awaiting_review", "Always ask for approval is enabled; validation will run on import.");
             return false;
         }
-        String projectPath = project.getBasePath();
+        String projectPath = StudioProjectFiles.getApplicationBasePath(project);
         if (projectPath == null) throw new IllegalStateException("Open a project before importing an AI proposal.");
         Snapshot snapshot = onEdt(this::capture);
         Path modelFile = Path.of(projectPath, "generated", "src", "main", "model", "model.json");

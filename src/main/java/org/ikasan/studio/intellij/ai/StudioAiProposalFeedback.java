@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.concurrent.CompletableFuture;
 import org.ikasan.studio.core.ai.ImplementationReadiness;
 import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.ikasan.studio.core.project.StudioProjectLayout;
 
 /** Ordered, atomic sidecar receipts. Never writes the proposal or the Studio model. */
 final class StudioAiProposalFeedback {
@@ -52,14 +53,17 @@ final class StudioAiProposalFeedback {
         data.put("status", status);
         data.put("updatedAt", Instant.now().toString());
         data.put("message", message == null ? "" : message);
-        data.put("implementationReadinessReport", "generated/implementation-readiness.json");
+        String reportPath = projectRoot == null ? "generated/implementation-readiness.json"
+                : StudioProjectLayout.applicationPath(projectRoot, "generated/implementation-readiness.json");
+        data.put("implementationReadinessReport", reportPath);
+        data.put("applicationDirectory", projectRoot != null && StudioProjectLayout.isNested(projectRoot) ? "jar" : ".");
         data.put("runtimeVerified", false);
         if ("applied".equals(status) && projectRoot != null) {
-            try { data.put("implementationReadiness", ImplementationReadiness.scanProject(projectRoot)); }
+            try { data.put("implementationReadiness", ImplementationReadiness.scanProject(StudioProjectLayout.applicationRoot(projectRoot))); }
             catch (Exception failure) { data.put("implementationReadinessError", "Could not inspect saved source. Run Validate Module in Studio."); }
         }
         data.put("nextStep", switch (status) {
-            case "applied" -> "Read the updated model, generated files and generated/implementation-readiness.json. Resolve or explain findings, exercise actual component implementations and verify delivery through each requested path. Then compile and test. Applied does not mean implemented or runtime-verified. Do not replay this proposal.";
+            case "applied" -> "Read the updated model, generated files and " + reportPath + ". Resolve or explain findings, exercise actual component implementations and verify delivery through each requested path. Then compile and test. Applied does not mean implemented or runtime-verified. Do not replay this proposal.";
             case "awaiting_review" -> "Ask the developer to review in Studio; do not submit replacement proposals while review is pending.";
             case "generating" -> "Wait for a terminal result before compiling or submitting another proposal.";
             case "generation_failed" -> "The model may have changed. Read current model and generation diagnostics; do not blindly replay.";

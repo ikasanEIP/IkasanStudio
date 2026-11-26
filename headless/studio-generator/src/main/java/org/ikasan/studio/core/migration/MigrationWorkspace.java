@@ -11,6 +11,7 @@ import java.util.*;
 import java.nio.file.Path;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
+import org.ikasan.studio.core.project.StudioProjectLayout;
 
 /** Exact-byte recovery snapshots and optimistic, rollback-capable writes. Run outside the EDT. */
 public final class MigrationWorkspace {
@@ -134,7 +135,13 @@ public final class MigrationWorkspace {
     }
 
     private static Path safe(Path root, String relative) throws IOException {
-        if (!(relative.equals("pom.xml") || relative.equals("AGENTS.md") || relative.startsWith("generated/") || UserImportMigration.permittedPath(relative))) {
+        boolean nested = StudioProjectLayout.isNested(root);
+        String application = nested && relative.startsWith("jar/") ? relative.substring(4) : relative;
+        boolean scaffolding = nested && Set.of("pom.xml", "distribution/pom.xml", "distribution/distribution.xml",
+                "bin/ikasan.sh", "bin/simple-env.sh", "bin/ikasan.bat", "bin/simple-env.bat").contains(relative);
+        boolean applicationFile = (!nested || relative.startsWith("jar/")) && (application.equals("pom.xml")
+                || application.equals("AGENTS.md") || application.startsWith("generated/") || UserImportMigration.permittedPath(application));
+        if (!(relative.equals("AGENTS.md") || scaffolding || applicationFile)) {
             throw new IOException("Migration cannot write developer-owned path: " + relative);
         }
         return resolve(root, relative);

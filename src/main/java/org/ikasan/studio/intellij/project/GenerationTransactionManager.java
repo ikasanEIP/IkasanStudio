@@ -47,6 +47,21 @@ final class GenerationTransactionManager {
         ACTIVE.set(new GenerationBatch());
     }
 
+    static void begin(Project project) {
+        begin();
+        VirtualFile application = StudioProjectFiles.getProjectBaseDir(project);
+        VirtualFile workspace = StudioProjectFiles.getWorkspaceBaseDir(project);
+        if (application != null && workspace != null && !application.equals(workspace))
+            ACTIVE.get().setApplicationPrefix("jar/");
+    }
+
+    static void stageWorkspace(String path, String previous, String content) {
+        GenerationBatch batch = ACTIVE.get();
+        if (batch == null) throw new IllegalStateException("No generation transaction is active");
+        batch.stage(safePath(path), content, null);
+        batch.expect(safePath(path), previous);
+    }
+
     static void abort() {
         ACTIVE.remove();
     }
@@ -55,14 +70,14 @@ final class GenerationTransactionManager {
     static boolean stage(String relativePath, String content, AbstractViewHandlerIntellij viewHandler) {
         GenerationBatch batch = ACTIVE.get();
         if (batch == null) return false;
-        batch.stage(safePath(relativePath), content, viewHandler);
+        batch.stage(batch.applicationPath(safePath(relativePath)), content, viewHandler);
         return true;
     }
 
     static void authoriseUserReplacement(String relativePath) {
         GenerationBatch batch = ACTIVE.get();
         if (batch == null) throw new IllegalStateException("No generation transaction is active");
-        batch.authoriseUserReplacement(safePath(relativePath));
+        batch.authoriseUserReplacement(batch.applicationPath(safePath(relativePath)));
     }
 
     static void afterCommit(Runnable action) {
@@ -85,15 +100,24 @@ final class GenerationTransactionManager {
         List<GenerationBatch.Artifact> artifacts = batch.artifacts();
         validate(project, artifacts);
 
-        VirtualFile baseDir = StudioProjectFiles.getProjectBaseDir(project);
+        VirtualFile baseDir = StudioProjectFiles.getWorkspaceBaseDir(project);
         if (baseDir == null) throw new StudioRuntimeException("Project base directory is unavailable; no generated files were changed");
         List<Snapshot> snapshots = prepareSnapshots(project, baseDir, artifacts);
         // Preparation pumps modal events; reject edits before writing any member of the batch.
-        for (Snapshot snapshot : snapshots) snapshot.verifyUnchanged(baseDir);
+        for (Snapshot snapshot : snapshots) {
+            snapshot.verifyUnchanged(baseDir);
+            if (batch.hasExpectation(snapshot.path())) {
+                if (snapshot.document() != null && FileDocumentManager.getInstance().isDocumentUnsaved(snapshot.document()))
+                    throw new StudioRuntimeException("Save project scaffolding edits before generation: " + snapshot.path());
+                String current = snapshot.bytes() == null ? null : new String(snapshot.bytes(), StandardCharsets.UTF_8);
+                if (!Objects.equals(current, batch.expected(snapshot.path())))
+                    throw new StudioRuntimeException("Project scaffolding changed during generation; regenerate: " + snapshot.path());
+            }
+        }
         for (int index = 0; index < artifacts.size(); index++) {
             GenerationBatch.Artifact artifact = artifacts.get(index);
             VirtualFile existing = snapshots.get(index).file();
-            if (existing != null && artifact.relativePath().startsWith("user/")
+            if (existing != null && (artifact.relativePath().startsWith("user/") || artifact.relativePath().startsWith("jar/user/"))
                     && !batch.isUserReplacementAuthorised(artifact.relativePath())) {
                 byte[] oldBytes = snapshots.get(index).bytes();
                 String oldContent = new String(oldBytes, StandardCharsets.UTF_8);
@@ -119,7 +143,7 @@ final class GenerationTransactionManager {
                         || StudioProjectFiles.canReuseGeneratedContent(existing, committedContent, oldBytes)) unchanged++;
                 else updated++;
                 failureInjector.beforeWrite(artifact.relativePath(), originals.size() - 1);
-                StudioProjectFiles.createFileWithDirectories(project, "/" + artifact.relativePath(),
+                StudioProjectFiles.createWorkspaceFile(project, "/" + artifact.relativePath(),
                         committedContent, artifact.viewHandler());
             }
             batch.runAfterCommit();

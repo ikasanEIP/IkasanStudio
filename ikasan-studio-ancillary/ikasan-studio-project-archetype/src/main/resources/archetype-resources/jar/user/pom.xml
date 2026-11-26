@@ -6,19 +6,11 @@
 
   <parent>
     <groupId>${groupId}</groupId>
-    <artifactId>${rootArtifactId}</artifactId>
+    <artifactId>${rootArtifactId}-jar</artifactId>
     <version>${version}</version>
   </parent>
 
-  <artifactId>generated</artifactId>
+  <artifactId>${rootArtifactId}-user</artifactId>
   <packaging>jar</packaging>
-
-  <dependencies>
-    <dependency>
-      <groupId>${groupId}</groupId>
-      <artifactId>user</artifactId>
-      <version>${version}</version>
-    </dependency>
-  </dependencies>
 
 </project>

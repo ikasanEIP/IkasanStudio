@@ -72,6 +72,28 @@ public class GenerationTransactionManagerHeavyTest extends HeavyPlatformTestCase
     }
 
     
+    public void testNestedApplicationAndDistributionCommitTogetherAndRejectStaleScaffolding() throws Exception {
+        VirtualFile workspace = StudioProjectFiles.getWorkspaceBaseDir(myProject);
+        WriteCommandAction.runWriteCommandAction(myProject, () -> {
+            try {
+                VirtualFile jar = workspace.createChildDirectory(this, "jar");
+                jar.createChildData(this, ".ikasan-studio-application");
+            } catch (IOException failure) { throw new RuntimeException(failure); }
+        });
+        GenerationTransactionManager.begin(myProject);
+        StudioProjectFiles.createFileWithDirectories(myProject, "generated/layout-check.txt", "nested", null);
+        GenerationTransactionManager.stageWorkspace("bin/launcher.txt", null, "launcher");
+        GenerationTransactionManager.commit(myProject);
+        assertEquals("nested", new String(workspace.findFileByRelativePath("jar/generated/layout-check.txt").contentsToByteArray(), StandardCharsets.UTF_8));
+        assertNotNull(workspace.findFileByRelativePath("bin/launcher.txt"));
+        GenerationTransactionManager.begin(myProject);
+        StudioProjectFiles.createFileWithDirectories(myProject, "generated/layout-check.txt", "replacement", null);
+        GenerationTransactionManager.stageWorkspace("bin/launcher.txt", "stale contents", "replacement");
+        try { GenerationTransactionManager.commit(myProject); fail("Expected stale scaffolding rejection"); }
+        catch (StudioRuntimeException expected) { assertTrue(expected.getMessage().contains("changed during generation")); }
+        assertEquals("nested", new String(workspace.findFileByRelativePath("jar/generated/layout-check.txt").contentsToByteArray(), StandardCharsets.UTF_8));
+    }
+
     public void testScheduledProviderIsCreatedInUserAndSurvivesRegeneration() throws Exception {
         String pack = "V3.3.9";
         Module module = TestFixtures.getMyFirstModuleIkasanModule(pack, new ArrayList<>());

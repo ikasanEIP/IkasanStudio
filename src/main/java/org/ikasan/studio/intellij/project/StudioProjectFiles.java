@@ -83,6 +83,7 @@ import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
 import static org.ikasan.studio.core.metapack.model.ComponentPropertyMeta.APPLICATION_PACKAGE_NAME;
 import static org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer.MODULE_PROPERTIES_FILENAME_WITH_EXTENSION;
+import org.ikasan.studio.core.project.StudioProjectLayout;
 
 public class StudioProjectFiles {
     private static final Logger LOG = Logger.getInstance("#StudioProjectFiles");
@@ -480,11 +481,27 @@ public class StudioProjectFiles {
         }
     }
 
-    /**
-     * Get the Virtual file for the project root
-     * @param project is the Intellij project instance
-     */
+    /** Application reactor root; legacy projects continue using the workspace root. */
     public static VirtualFile getProjectBaseDir(Project project) {
+        VirtualFile workspace = getWorkspaceBaseDir(project);
+        if (workspace == null) return null;
+        if (workspace.findFileByRelativePath("generated/pom.xml") != null
+                && workspace.findFileByRelativePath("user/pom.xml") != null) return workspace;
+        VirtualFile jar = workspace.findChild("jar");
+        return jar != null && (jar.findChild(".ikasan-studio-application") != null
+                || (jar.findFileByRelativePath("generated/pom.xml") != null
+                && jar.findFileByRelativePath("user/pom.xml") != null)) ? jar : workspace;
+    }
+
+    public static String getApplicationBasePath(Project project) {
+        String basePath = project.getBasePath();
+        if (basePath == null || basePath.isBlank()) return basePath;
+        VirtualFile application = getProjectBaseDir(project);
+        return application == null ? basePath : application.getPath();
+    }
+
+    /** The directory opened in IntelliJ, including bin/ and distribution/ in new projects. */
+    public static VirtualFile getWorkspaceBaseDir(Project project) {
         String basePath = project.getBasePath();
         if (basePath == null) {
             return null;
@@ -523,6 +540,16 @@ public class StudioProjectFiles {
         if (GenerationTransactionManager.stage(relativePath, fileContent, componentViewHandler)) {
             return;
         }
+        createFileAtBase(project, relativePath, fileContent, componentViewHandler, false);
+    }
+
+    static void createWorkspaceFile(Project project, String relativePath, String fileContent,
+                                    AbstractViewHandlerIntellij componentViewHandler) {
+        createFileAtBase(project, relativePath, fileContent, componentViewHandler, true);
+    }
+
+    private static void createFileAtBase(Project project, String relativePath, String fileContent,
+                                         AbstractViewHandlerIntellij componentViewHandler, boolean workspace) {
         // Separate the path and file name
         int lastSeparatorIndex = relativePath.lastIndexOf('/');
         String directoryPath = lastSeparatorIndex == -1 ? "" : relativePath.substring(0, lastSeparatorIndex);
@@ -537,7 +564,7 @@ public class StudioProjectFiles {
         WriteCommandAction.runWriteCommandAction(project, () -> {
             try {
                 // Get the base directory of the project
-                VirtualFile baseDir = getProjectBaseDir(project);
+                VirtualFile baseDir = workspace ? getWorkspaceBaseDir(project) : getProjectBaseDir(project);
                 if (baseDir == null) {
                     throw new IllegalStateException("Project base directory is null");
                 }
@@ -576,8 +603,8 @@ public class StudioProjectFiles {
                 Map<String, String> files = new LinkedHashMap<>();
                 files.put(LocalTestEnvironmentTemplate.FILE_NAME,
                         LocalTestEnvironmentTemplate.content());
-                files.put("AGENTS.md", AiProjectContractGenerator.agentsGuide());
-                files.putAll(StudioAiSkillTemplates.files());
+                files.put("AGENTS.md", AiProjectContractGenerator.agentsGuide(StudioProjectLayout.isNested(Path.of(basePath))));
+                files.putAll(StudioAiSkillTemplates.files(StudioProjectLayout.isNested(Path.of(basePath))));
                 Path root = Path.of(basePath);
                 for (Entry<String,String> entry : files.entrySet()) {
                     if (project.isDisposed()) return;
@@ -1303,16 +1330,18 @@ public class StudioProjectFiles {
 
     static VirtualFile findGeneratedContentRoot(String basePath, VirtualFile[] roots) {
         if (basePath == null) return null;
-        String expected = FileUtil.toSystemIndependentName(basePath)
-                .replaceAll("/+$", "") + GENERATED_CONTENT_ROOT;
-        for (VirtualFile root : roots) {
-            if (!root.isValid()) continue;
-            String path = root.getPath();
-            if (expected.equals(path)) return root;
-            // Some Maven layouts register separate source/test content roots below generated/.
-            if (path.startsWith(expected + "/")) {
-                VirtualFile generated = root.getFileSystem().findFileByPath(expected);
-                if (generated != null && generated.isValid()) return generated;
+        String normalised = FileUtil.toSystemIndependentName(basePath).replaceAll("/+$", "");
+        for (String prefix : List.of("", "/jar")) {
+            String expected = normalised + prefix + GENERATED_CONTENT_ROOT;
+            for (VirtualFile root : roots) {
+                if (!root.isValid()) continue;
+                String path = root.getPath();
+                if (expected.equals(path)) return root;
+                // Some Maven layouts register separate source/test content roots below generated/.
+                if (path.startsWith(expected + "/")) {
+                    VirtualFile generated = root.getFileSystem().findFileByPath(expected);
+                    if (generated != null && generated.isValid()) return generated;
+                }
             }
         }
         return null;

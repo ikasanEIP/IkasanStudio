@@ -18,6 +18,8 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.ikasan.studio.core.generator.FlowTestScaffold.Scaffold;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
+import org.ikasan.studio.core.project.DistributionScaffolding.FileChange;
+import org.ikasan.studio.core.project.DistributionScaffolding;
 
 /** Verifies real archetype module boundaries rather than a consolidated compilation POM. */
 class ReactorFixtureTest {
@@ -27,7 +29,7 @@ class ReactorFixtureTest {
     @Test void exportsArchetypeReactorWithGeneratedFlowTests() throws Exception {
         Map<String,String> source = RuntimeTransportFixtureTest.render("smtp-generated");
         Module module = ComponentIO.deserializeModuleInstanceString(source.get("generated/src/main/model/model.json"), "V5 reactor fixture");
-        Model rootModel = new MavenXpp3Reader().read(new StringReader(archetype("pom.xml")));
+        Model rootModel = new MavenXpp3Reader().read(new StringReader(archetype("jar/pom.xml")));
         IkasanPomModel rootPom = new IkasanPomModel(rootModel);
         rootPom.applyBuildContract(ComponentLibrary.getMetaPackManifest(DevelopmentFixtureTest.PACK));
         for (Dependency dependency : module.getAllUniqueSortedJarDependencies()) {
@@ -37,11 +39,11 @@ class ReactorFixtureTest {
         }
         rootModel.addModule("user-flow-tests");
         String parent = rootPom.getModelAsString();
-        String application = archetype("generated/pom.xml");
+        String application = archetype("jar/generated/pom.xml");
         Scaffold scaffold = FlowTestScaffold.render(module, module.getFlows().get(0), parent, application);
         LinkedHashMap<String,String> files = new LinkedHashMap<String, String>();
         files.put("pom.xml", parent);
-        files.put("user/pom.xml", archetype("user/pom.xml"));
+        files.put("user/pom.xml", archetype("jar/user/pom.xml"));
         files.put("generated/pom.xml", application);
         files.put("user-flow-tests/pom.xml", scaffold.files().get("user-flow-tests/pom.xml"));
         for (Entry<String,String> file : source.entrySet()) {
@@ -52,13 +54,25 @@ class ReactorFixtureTest {
             else if (path.startsWith("generated/")) files.put(path, file.getValue());
         }
         assertEquals("25", rootPom.getProperty("maven.compiler.source"));
-        assertTrue(files.get("user-flow-tests/pom.xml").contains("<artifactId>generated</artifactId>"));
+        assertTrue(files.get("user-flow-tests/pom.xml").contains("<artifactId>v5-reactor-generated</artifactId>"));
         assertTrue(files.containsKey("user/src/main/java/org/example/transport/transport/TransportConverter.java"));
         assertFalse(files.containsKey("generated/src/main/java/org/example/transport/transport/TransportConverter.java"));
         Path destination = Path.of(System.getProperty("studio.v5.reactor", temporary.toString()));
+        Files.createDirectories(destination.resolve("jar"));
+        Files.writeString(destination.resolve("pom.xml"), archetype("pom.xml"));
+        Files.writeString(destination.resolve("jar/.ikasan-studio-application"), "formatVersion=1\n");
+        Files.createDirectories(destination.resolve("distribution"));
+        Files.writeString(destination.resolve("distribution/pom.xml"), archetype("distribution/pom.xml"));
         for (Entry<String,String> file : files.entrySet()) {
-            Path target = destination.resolve(file.getKey());
+            Path target = destination.resolve("jar").resolve(file.getKey());
             Files.createDirectories(target.getParent()); Files.writeString(target, file.getValue());
+        }
+        for (FileChange file :
+                DistributionScaffolding.prepare(destination,
+                        ComponentLibrary.getMetaPackManifest(DevelopmentFixtureTest.PACK))) {
+            Path target = destination.resolve(file.path());
+            Files.createDirectories(target.getParent());
+            Files.writeString(target, file.content());
         }
     }
 

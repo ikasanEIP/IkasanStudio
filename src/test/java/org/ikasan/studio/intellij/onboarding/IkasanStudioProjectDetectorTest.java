@@ -59,6 +59,16 @@ class IkasanStudioProjectDetectorTest {
         assertThat(IkasanStudioProjectDetector.isIkasanStudioProject(projectRoot)).isFalse();
     }
 
+    @Test
+    void nestedApplicationReactorIsDetectedWithoutAMarker() throws IOException {
+        createLegacyProject("<project><modules><module>generated</module><module>user</module></modules></project>");
+        Path jar = Files.createDirectory(projectRoot.resolve("jar"));
+        for (String name : new String[]{"generated", "user", "pom.xml"})
+            Files.move(projectRoot.resolve(name), jar.resolve(name));
+        Files.writeString(projectRoot.resolve("pom.xml"), "<project><modules><module>jar</module><module>distribution</module></modules></project>");
+        assertThat(IkasanStudioProjectDetector.isIkasanStudioProject(projectRoot)).isTrue();
+    }
+
     private void createLegacyProject(String rootPom) throws IOException {
         Files.writeString(projectRoot.resolve("pom.xml"), rootPom);
         Files.createDirectories(projectRoot.resolve("generated/src/main/model"));

@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.ai;
 
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
 public final class StudioImplementationReadiness {
     private StudioImplementationReadiness() { }
     public static void check(Project project, boolean show) {
-        String base = project.getBasePath();
+        String base = StudioProjectFiles.getApplicationBasePath(project);
         if (base == null || project.isDisposed()) return;
         if (show) {
             // Application.invokeLater supplies write-intent access even when called from a Swing callback.

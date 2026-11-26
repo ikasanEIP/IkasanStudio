@@ -251,11 +251,13 @@ public class ImportSourceModuleDialogHeavyTest extends HeavyPlatformTestCase {
         Project project = Mockito.mock(Project.class);
         Mockito.when(project.getBasePath()).thenReturn(root.toString());
         try (MockedStatic<StudioProjectFiles> files = Mockito.mockStatic(StudioProjectFiles.class)) {
+            files.when(() -> StudioProjectFiles.getApplicationBasePath(project)).thenReturn(root.toString());
             GeneratedProjectSynchronizer synchronizer = new GeneratedProjectSynchronizer(project);
             Method generate = synchronizer.getClass().getDeclaredMethod("saveDebugSupportClasses", Project.class,
                     Module.class);
             generate.setAccessible(true); generate.invoke(synchronizer, project, null);
-            files.verifyNoInteractions();
+            files.verify(() -> StudioProjectFiles.getApplicationBasePath(project), Mockito.times(2));
+            files.verifyNoMoreInteractions();
             assertEquals("custom debug", Files.readString(root.resolve(debug)));
             assertEquals("custom copy", Files.readString(root.resolve(copy)));
         }

@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.execution;
 
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunConfigurationExtension;
 import com.intellij.execution.application.ApplicationConfiguration;
@@ -31,8 +33,8 @@ public final class SftpHarnessRunExtension extends RunConfigurationExtension {
         try {
             Project project = configuration.getProject();
             project.getService(HarnessOverrideService.class); // Initialize process snapshot tracking before launch.
-            if (project.getBasePath() == null) throw new IllegalStateException("Open a project directory before launching harness overrides.");
-            Path root = Path.of(project.getBasePath());
+            if (StudioProjectFiles.getApplicationBasePath(project) == null) throw new IllegalStateException("Open a project directory before launching harness overrides.");
+            Path root = Path.of(StudioProjectFiles.getApplicationBasePath(project));
             Path inventory = root.resolve(HarnessOverridesTemplate.PATH);
             List<LaunchTarget> targets = Files.isRegularFile(inventory) ?
                     HarnessOverridesTemplate.launchTargets(Files.readString(inventory)) :
@@ -49,7 +51,7 @@ public final class SftpHarnessRunExtension extends RunConfigurationExtension {
                     .collect(Collectors.toSet());
             if (!available.containsAll(selected))
                 throw new IllegalStateException(StudioBundle.message("harnessOverrides.stale"));
-            if (!selected.isEmpty()) verifyHarnessSupport(Path.of(project.getBasePath()), targets, launchSelection);
+            if (!selected.isEmpty()) verifyHarnessSupport(Path.of(StudioProjectFiles.getApplicationBasePath(project)), targets, launchSelection);
             boolean sftpSelected = targets.stream().anyMatch(t -> launchSelection.contains(t.id()) && "SFTP".equals(t.kind()));
             boolean ftpSelected = targets.stream().anyMatch(t -> launchSelection.contains(t.id()) && "FTP".equals(t.kind()));
             if (sftpSelected) {

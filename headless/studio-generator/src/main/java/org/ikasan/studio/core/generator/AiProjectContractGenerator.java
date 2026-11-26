@@ -25,6 +25,12 @@ public final class AiProjectContractGenerator {
 
     private AiProjectContractGenerator() { }
 
+    public static String agentsGuide(boolean nested) {
+        if (!nested) return agentsGuide();
+        return agentsGuide().replace("generated/", "jar/generated/")
+                .replace("user-flow-tests/", "jar/user-flow-tests/").replace("user/", "jar/user/");
+    }
+
     public static String agentsGuide() {
         return """
                 # Ikasan Studio agent instructions
@@ -107,6 +113,12 @@ public final class AiProjectContractGenerator {
                 checklist and demo guidance in generated/IKASAN_STUDIO.md; report unfinished implementations
                 and unsupported components explicitly.
                 """;
+    }
+
+    public static String studioGuide(String metapackVersion, boolean nested) {
+        String guide = studioGuide(metapackVersion);
+        return nested ? guide.replace("generated/", "jar/generated/")
+                .replace("user-flow-tests/", "jar/user-flow-tests/").replace("user/", "jar/user/") : guide;
     }
 
     public static String studioGuide(String metapackVersion) {

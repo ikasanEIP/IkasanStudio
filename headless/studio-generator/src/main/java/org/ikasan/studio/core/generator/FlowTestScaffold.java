@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.apache.maven.model.Model;
+import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.ikasan.studio.core.StudioBuildUtils;
@@ -70,7 +71,7 @@ public final class FlowTestScaffold {
         if (flow.getConsumer() == null) throw new IllegalArgumentException("Add a consumer before generating a flow test.");
         Model parent = new MavenXpp3Reader().read(new StringReader(rootPom));
         Model application = new MavenXpp3Reader().read(new StringReader(applicationPom));
-        if (!"pom".equals(parent.getPackaging()) || parent.getGroupId() == null || parent.getVersion() == null
+        if (!"pom".equals(parent.getPackaging()) || IkasanPomModel.groupId(parent) == null || IkasanPomModel.version(parent) == null
                 || parent.getProperties().getProperty("version.ikasan") == null) {
             throw new IllegalArgumentException("Expected a Studio parent POM with groupId, version and version.ikasan.");
         }
@@ -243,12 +244,12 @@ public final class FlowTestScaffold {
         values.put("scheduled", flow.getConsumer().getComponentMeta().isTimeEventConsumer());
         values.put("producers", flow.getFlowElementsNoExternalEndPoints().stream()
                 .filter(e -> e.getComponentMeta().isProducer()).map(FlowElement::getIdentity).toList());
-        values.put("groupId", parent.getGroupId());
+        values.put("groupId", IkasanPomModel.groupId(parent));
         values.put("artifactId", parent.getArtifactId());
-        values.put("version", parent.getVersion());
-        values.put("applicationGroupId", application.getGroupId() == null ? parent.getGroupId() : application.getGroupId());
+        values.put("version", IkasanPomModel.version(parent));
+        values.put("applicationGroupId", application.getGroupId() == null ? IkasanPomModel.groupId(parent) : application.getGroupId());
         values.put("applicationArtifactId", application.getArtifactId());
-        values.put("applicationVersion", application.getVersion() == null ? parent.getVersion() : application.getVersion());
+        values.put("applicationVersion", application.getVersion() == null ? IkasanPomModel.version(parent) : application.getVersion());
         String path = testPath(flow);
         Map<String, String> files = new LinkedHashMap<>();
         files.put(ModuleTestWiring.PATH, ModuleTestWiring.create(module));

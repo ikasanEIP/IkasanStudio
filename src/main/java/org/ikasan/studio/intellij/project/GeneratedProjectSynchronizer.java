@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -55,6 +56,9 @@ import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import static org.ikasan.studio.core.generator.FlowsComponentFactoryTemplate.COMPONENT_FACTORY_CLASS_NAME;
 import static org.ikasan.studio.intellij.project.StudioProjectFiles.replaceJsonModelFileSafely;
 import static org.ikasan.studio.ui.StudioUIUtils.displayIdeaWarnMessage;
+import org.ikasan.studio.core.project.DistributionScaffolding.FileChange;
+import org.ikasan.studio.core.project.DistributionScaffolding;
+import org.ikasan.studio.core.project.StudioProjectLayout;
 
 /**
  * Encapsulates the Intellij representation of the ikasan Module
@@ -146,6 +150,12 @@ public class GeneratedProjectSynchronizer {
                 pomNeedsUpdate.set(false);
             }
 
+            String workspacePath = project.getBasePath();
+            List<FileChange> scaffolding = workspacePath == null || workspacePath.isBlank()
+                    || !StudioProjectLayout.isNested(Path.of(workspacePath)) ? List.of()
+                    : DistributionScaffolding.prepare(Path.of(workspacePath),
+                            ComponentLibrary.getMetaPackManifest(module.getMetaVersion()));
+
             LOG.info("STUDIO: Start ApplicationManager.getApplication().runWriteAction - source from model");
             LOG.info(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_STARTED, null, uiContext.getIkasanModule().getIdentity(), null, null));
 
@@ -159,7 +169,9 @@ public class GeneratedProjectSynchronizer {
                 CommandProcessor.getInstance().executeCommand(
                     project,
                     () -> {
-                        GenerationTransactionManager.begin();
+                        GenerationTransactionManager.begin(project);
+                        for (FileChange file : scaffolding)
+                            GenerationTransactionManager.stageWorkspace(file.path(), file.previous(), file.content());
                         try {
                         if (pomNeedsUpdate.get()) {
                             // We have checked the in-memory model, below will also verify from the on-disk model.
@@ -205,7 +217,7 @@ public class GeneratedProjectSynchronizer {
                                 + summary.updated() + " updated, " + summary.unchanged() + " unchanged";
                         LOG.info(StudioDiagnosticEvent.format(StudioDiagnosticEvent.Event.GENERATION_COMPLETED, null, uiContext.getIkasanModule().getIdentity(), null, null));
                         StatusBar.Info.set(summaryMessage, project);
-                        if (pomNeedsUpdate.get() && reloadMavenAfterGeneration) {
+                        if ((pomNeedsUpdate.get() || !scaffolding.isEmpty()) && reloadMavenAfterGeneration) {
                             MavenProjectsManager manager = MavenProjectsManager.getInstance(project);
                             if (manager != null) manager.forceUpdateAllProjectsOrFindAllAvailablePomFiles();
                         }
@@ -280,7 +292,8 @@ public class GeneratedProjectSynchronizer {
     private void saveAiProjectContract(Project project, Module module) {
         try {
             StudioProjectFiles.createStartupGuidanceIfMissing(project);
-            StudioProjectFiles.createFileWithDirectories(project, "generated/IKASAN_STUDIO.md", AiProjectContractGenerator.studioGuide(module.getMetaVersion()), null);
+            boolean nested = !Objects.equals(StudioProjectFiles.getApplicationBasePath(project), project.getBasePath());
+            StudioProjectFiles.createFileWithDirectories(project, "generated/IKASAN_STUDIO.md", AiProjectContractGenerator.studioGuide(module.getMetaVersion(), nested), null);
             StudioProjectFiles.createFileWithDirectories(project, "generated/src/main/model/model.schema.json", AiProjectContractGenerator.modelSchema(), null);
             StudioProjectFiles.createFileWithDirectories(project, "generated/src/main/model/component-catalogue.json", AiProjectContractGenerator.componentCatalogue(module.getMetaVersion()), null);
         } catch (StudioBuildException | JsonProcessingException e) {
@@ -373,7 +386,7 @@ public class GeneratedProjectSynchronizer {
     }
 
     private static boolean shouldGenerateSupport(Project project, String packageName, String className) {
-        String basePath = project.getBasePath();
+        String basePath = StudioProjectFiles.getApplicationBasePath(project);
         if (basePath == null) {
             throw new StudioRuntimeException("Cannot verify support customisations: project has no base path");
         }

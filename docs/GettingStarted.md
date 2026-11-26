@@ -61,7 +61,7 @@ To inspect source, use a component's **Jump to Code** or **Jump to Properties** 
 
 Stop the Run session, add a **Debug** component between the consumer and producer, apply **Update Code**, and use **Jump to Code** to set a breakpoint in its `debug()` method, and start **Debug module** or debug the selected Application configuration using IntelliJ's controls. Resume execution after inspecting the event. Stop the application through the Run/Debug window when finished.
 
-You now have a saved visual model and generated application. Keep `generated/src/main/model/model.json` in version control. Read [Project files and recovery](ProjectFilesAndRecovery.md) before editing generated Java, and [Harnesses](Harnesses.md) when adding external endpoints.
+You now have a saved visual model and generated application. Keep `jar/generated/src/main/model/model.json` in version control (`generated/src/main/model/model.json` in legacy projects). See [Application project layout](ProjectLayout.md) for the familiar `jar/`, `bin/` and `distribution/` structure. Read [Project files and recovery](ProjectFilesAndRecovery.md) before editing generated Java, and [Harnesses](Harnesses.md) when adding external endpoints.
 
 ## More room for the canvas
 

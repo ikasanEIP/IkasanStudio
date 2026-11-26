@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.migration;
 
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -37,6 +39,7 @@ import org.ikasan.studio.intellij.project.GeneratedProjectSynchronizer;
 import org.ikasan.studio.ui.StudioBundle;
 import org.ikasan.studio.ui.UiContext;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
+import org.ikasan.studio.core.project.StudioProjectLayout;
 
 /** Modal review keeps canvas edits out of a background migration; file preconditions cover external edits. */
 public final class MigrationController {
@@ -51,7 +54,7 @@ public final class MigrationController {
         boolean acquired = false;
         Path appliedSnapshot = null;
         try {
-            if (project.getBasePath() == null) throw new IllegalStateException(StudioBundle.message("message.OpenAnIkasanProjectFirst"));
+            if (StudioProjectFiles.getApplicationBasePath(project) == null) throw new IllegalStateException(StudioBundle.message("message.OpenAnIkasanProjectFirst"));
             if (DumbService.isDumb(project)) throw new IllegalStateException(StudioBundle.message("message.WaitForProjectIndexingToFinishBeforeMigrating"));
             if (!restore && context.isModelPersistenceBlocked()) throw new IllegalStateException(StudioBundle.message("message.LoadAValidStudioModelBeforeMigrating"));
             if (context.getPropertiesPanel() != null && context.getPropertiesPanel().dataHasChangedAndOKToProcess()) {
@@ -61,6 +64,8 @@ public final class MigrationController {
             if (!context.tryBeginMigration()) throw new IllegalStateException(StudioBundle.message("message.WaitForTheCurrentGenerationOrMigrationToFinish"));
             acquired = true;
             Path root = Path.of(project.getBasePath());
+            String modelPath = StudioProjectLayout.applicationPath(root, MigrationArtifacts.MODEL);
+            String pomPath = StudioProjectLayout.applicationPath(root, "pom.xml");
             String target = null;
             boolean updateImports = false;
             if (!restore) {
@@ -80,11 +85,11 @@ public final class MigrationController {
                 if (restore) {
                     Snapshot snapshot = MigrationWorkspace.latest(root);
                     List<Change> changes = MigrationWorkspace.prepareRestore(root, snapshot);
-                    String restored = changes.stream().filter(c -> c.path().equals(MigrationArtifacts.MODEL)).findFirst().orElseThrow().afterText();
+                    String restored = changes.stream().filter(c -> c.path().equals(modelPath)).findFirst().orElseThrow().afterText();
                     Module module = ComponentIO.validatePersistedModuleJson(restored, "migration snapshot", false);
                     return new Preview(StudioBundle.message("message.RestoreSnapshotReport", snapshot.id(), snapshot.report()), changes, module, true);
                 }
-                String source = Files.readString(root.resolve(MigrationArtifacts.MODEL));
+                String source = Files.readString(root.resolve(modelPath));
                 Module persisted = ComponentIO.validatePersistedModuleJson(source, "migration source", false);
                 if (!StudioJson.newObjectMapper().readTree(ModelTemplate.create(persisted)).equals(
                         StudioJson.newObjectMapper().readTree(ModelTemplate.create(context.getIkasanModule())))) {
@@ -92,8 +97,8 @@ public final class MigrationController {
                 }
                 Plan plan = ModelMigration.analyse(source, selectedTarget);
                 if (!plan.canApply()) return new Preview(plan.report(), List.of(), null, false);
-                String sourcePom = Files.readString(root.resolve("pom.xml"));
-                Map<String,String> artifacts = MigrationArtifacts.render(plan, sourcePom);
+                String sourcePom = Files.readString(root.resolve(pomPath));
+                Map<String,String> artifacts = MigrationArtifacts.render(root, plan, sourcePom);
                 if (!Files.exists(root.resolve("AGENTS.md"))) artifacts.put("AGENTS.md", AiProjectContractGenerator.agentsGuide());
                 ArrayList<Change> changes = new ArrayList<>(MigrationWorkspace.prepare(root, artifacts));
                 List<Change> importChanges = selectedUpdateImports ? UserImportMigration.prepare(root, plan) : List.of();
@@ -102,10 +107,10 @@ public final class MigrationController {
                     throw new IllegalStateException(StudioBundle.message("message.ProjectInstructionsWereAddedWhilePreparingMigration"));
                 }
                 // Preparation must not accept a source file which changed while templates were rendering.
-                if (!changes.stream().filter(c -> c.path().equals(MigrationArtifacts.MODEL)).findFirst().orElseThrow().beforeText().equals(source)) {
+                if (!changes.stream().filter(c -> c.path().equals(modelPath)).findFirst().orElseThrow().beforeText().equals(source)) {
                     throw new IllegalStateException(StudioBundle.message("message.TheModelChangedWhilePreparingMigration"));
                 }
-                if (!changes.stream().filter(c -> c.path().equals("pom.xml")).findFirst().orElseThrow().beforeText().equals(sourcePom)) {
+                if (!changes.stream().filter(c -> c.path().equals(pomPath)).findFirst().orElseThrow().beforeText().equals(sourcePom)) {
                     throw new IllegalStateException(StudioBundle.message("message.ThePomChangedWhilePreparingMigration"));
                 }
                 return new Preview(selectedUpdateImports ? UserImportMigration.report(plan.report(), importChanges) : plan.report(), changes, ComponentIO.validatePersistedModuleJson(plan.targetJson(), "target", false), true);

@@ -194,7 +194,7 @@ public final class SftpFilesDialog extends StudioDialogWrapper {
     private void run(Work work) {
         if (busy || closed) return;
         busy = true; updateButtons(); status.setText(StudioBundle.message("sftpBrowser.working"));
-        Path root = Path.of(project.getBasePath() == null ? "." : project.getBasePath());
+        Path root = Path.of(StudioProjectFiles.getApplicationBasePath(project) == null ? "." : StudioProjectFiles.getApplicationBasePath(project));
         request = ApplicationManager.getApplication().executeOnPooledThread(() -> {
             Result result = null;
             String failure = null;

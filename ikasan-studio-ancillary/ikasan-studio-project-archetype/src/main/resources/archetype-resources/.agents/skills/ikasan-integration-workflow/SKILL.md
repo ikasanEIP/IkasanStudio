@@ -13,9 +13,9 @@ Paths below are relative to the application project root, not this skill directo
 
 ## Establish the contract
 
-Read `AGENTS.md` and the relevant sections of `generated/IKASAN_STUDIO.md`. Obtain the current
+Read `AGENTS.md` and the relevant sections of `jar/generated/IKASAN_STUDIO.md`. Obtain the current
 model and selected catalogue through `studio_snapshot` / `studio_catalogue`, or read the saved
-`generated/src/main/model/model.json` and neighbouring `component-catalogue.json` without MCP.
+`jar/generated/src/main/model/model.json` and neighbouring `component-catalogue.json` without MCP.
 If Studio is not configured, help the developer complete that step before proposing edits.
 Use the generated contract for operation syntax and current capabilities; do not assume that
 older limitations still apply. For unfamiliar APIs, follow the catalogue's version-specific
@@ -56,7 +56,7 @@ repair a rejected proposal by editing the open model or generated Java directly.
 reread and reconcile; on validation/generation failure, diagnose that failure before resubmitting.
 Do not blindly replay the same proposal or report it applied merely because a file was written.
 
-Inspect required beans and generated `user/` scaffolds. Complete authorised implementations;
+Inspect required beans and generated `jar/user/` scaffolds. Complete authorised implementations;
 preserve existing developer logic. Verify registration, injection names, scanning and payload
 contracts against actual code. Keep normal flows AUTOMATIC even when external services are
 unavailable; report and resolve blockers without hiding startup failures. Set MANUAL or DISABLED

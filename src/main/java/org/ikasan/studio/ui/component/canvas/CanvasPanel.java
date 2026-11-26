@@ -99,6 +99,9 @@ public class CanvasPanel extends JBPanel implements Disposable {
     }
 
     static void updateHarnessState(JButton start, JButton stop, HarnessControlActions.HarnessStatus state) {
+        stop.setIcon(AllIcons.Actions.Suspend);
+        stop.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Suspend));
+        stop.setEnabled(!state.owned().isEmpty());
         List<String> running = state.available();
         boolean active = !running.isEmpty();
         start.setIcon(!state.owned().isEmpty() ? RUNNING_HARNESS_ICON : active ? SHARED_HARNESS_ICON : AllIcons.Actions.Execute);

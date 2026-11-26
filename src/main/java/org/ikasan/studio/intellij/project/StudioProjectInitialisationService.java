@@ -209,7 +209,7 @@ public final class StudioProjectInitialisationService implements Disposable {
                 if (uiContext.isModelPersistenceBlocked()) {
                     // Only offer the normal update journey after validating the proposed model and templates.
                     Path modelPath = StudioProjectFiles.getModelJsonPath(project);
-                    String basePath = project.getBasePath();
+                    String basePath = StudioProjectFiles.getApplicationBasePath(project);
                     try {
                         if (modelPath != null && basePath != null) {
                             Plan update =
@@ -283,7 +283,7 @@ public final class StudioProjectInitialisationService implements Disposable {
         String roots = Arrays.stream(ProjectRootManager.getInstance(project).getContentRoots())
                 .filter(VirtualFile::isValid)
                 .map(VirtualFile::getPath).sorted().collect(Collectors.joining("\n"));
-        String expected = project.getBasePath() + StudioProjectFiles.GENERATED_CONTENT_ROOT;
+        String expected = StudioProjectFiles.getApplicationBasePath(project) + StudioProjectFiles.GENERATED_CONTENT_ROOT;
         return new ImportReadiness(false, StudioBundle.message("initialisation.ImportRoots", expected,
                 roots.isEmpty() ? StudioBundle.message("initialisation.NoContentRoots") : roots));
     }

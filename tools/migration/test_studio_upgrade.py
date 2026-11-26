@@ -9,6 +9,28 @@ from unittest.mock import patch
 import studio_upgrade as tool
 
 class UpgradeTest(unittest.TestCase):
+    def test_nested_layout_protects_user_files_and_excludes_generated_main_sources(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            files = {
+                'jar/.ikasan-studio-application': 'formatVersion=1',
+                'jar/user/src/main/java/Order.java': 'business code',
+                'jar/user/notes.txt': 'developer notes',
+                'jar/generated/src/main/java/Application.java': 'generated code',
+                'jar/generated/src/test/java/Verification.java': 'verification test',
+                'jar/user-flow-tests/src/test/java/OrdersTest.java': 'flow test',
+            }
+            for name, text in files.items():
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(text)
+            self.assertEqual(root / 'jar', tool.application_root(root))
+            self.assertEqual({
+                'jar/user/src/main/java/Order.java', 'jar/user/notes.txt',
+                'jar/generated/src/test/java/Verification.java',
+                'jar/user-flow-tests/src/test/java/OrdersTest.java',
+            }, set(tool.sources(root)))
+
     def test_native_model_version_and_conservative_comparison(self):
         before = {'modelFormat': 'ikasan-studio-documents', 'formatVersion': 1,
                   'module': {'name': 'orders', 'version': 'app-2', 'ikasanVersion': '3.3.9', 'flows': []},
@@ -160,6 +182,14 @@ class UpgradeTest(unittest.TestCase):
             {'path':path,'before':base64.b64encode(old).decode(),'after':base64.b64encode(new).decode()}]}
         self.assertEqual('PASS', tool.comparison(before, after, plan)['status'])
         self.assertEqual('FAIL', tool.comparison(before, after)['status'])
+        nested_plan = copy.deepcopy(plan)
+        nested_before = copy.deepcopy(before)
+        nested_after = copy.deepcopy(after)
+        nested_plan['changes'][0]['path'] = 'jar/' + tool.MODEL.as_posix()
+        nested_plan['changes'][1]['path'] = 'jar/' + path
+        nested_before['userSourceHashes'] = {'jar/' + path: before['userSourceHashes'][path]}
+        nested_after['userSourceHashes'] = {'jar/' + path: after['userSourceHashes'][path]}
+        self.assertEqual('PASS', tool.comparison(nested_before, nested_after, nested_plan)['status'])
         after['userSourceHashes'][path] = hashlib.sha256(new+b' // unrelated edit').hexdigest()
         self.assertEqual('FAIL', tool.comparison(before, after, plan)['status'])
 

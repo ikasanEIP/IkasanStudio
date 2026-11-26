@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
+import org.ikasan.studio.core.project.StudioProjectLayout;
 
 /**
  * Recognises projects created by current and earlier Ikasan Studio archetypes.
@@ -29,6 +30,7 @@ public final class IkasanStudioProjectDetector {
             return true;
         }
 
+        projectRoot = StudioProjectLayout.applicationRoot(projectRoot);
         Path rootPom = projectRoot.resolve("pom.xml");
         Path generatedPom = projectRoot.resolve("generated/pom.xml");
         Path userPom = projectRoot.resolve("user/pom.xml");

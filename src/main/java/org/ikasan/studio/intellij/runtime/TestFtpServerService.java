@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.runtime;
 
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -159,7 +161,7 @@ public final class TestFtpServerService implements Disposable {
         return false;
     }
     static Path testRoot(Project project) {
-        String basePath = project.getBasePath();
+        String basePath = StudioProjectFiles.getApplicationBasePath(project);
         if (basePath != null && !basePath.isBlank()) {
             return Path.of(basePath, "temporary-files", "test-data", "ftp");
         }

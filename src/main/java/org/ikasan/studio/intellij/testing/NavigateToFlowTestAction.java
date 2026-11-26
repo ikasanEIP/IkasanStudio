@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.testing;
 
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -17,9 +19,9 @@ public final class NavigateToFlowTestAction {
     private NavigateToFlowTestAction() { }
 
     public static void open(Project project, Flow flow) {
-        if (project.isDisposed() || project.getBasePath() == null) return;
+        if (project.isDisposed() || StudioProjectFiles.getApplicationBasePath(project) == null) return;
         // Capture mutable model state on the UI thread; refresh files in the background.
-        Path path = Path.of(project.getBasePath()).resolve(FlowTestScaffold.testPath(flow));
+        Path path = Path.of(StudioProjectFiles.getApplicationBasePath(project)).resolve(FlowTestScaffold.testPath(flow));
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             if (project.isDisposed()) return;
             try {

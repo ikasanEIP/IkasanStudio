@@ -8,6 +8,8 @@ import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.model.MetaPackManifest;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -17,11 +19,28 @@ import org.apache.maven.model.Model;
 import org.ikasan.studio.core.model.ikasan.instance.ComponentProperty;
 import org.ikasan.studio.core.model.ikasan.instance.Flow;
 import org.ikasan.studio.core.model.ikasan.instance.FlowElement;
+import org.ikasan.studio.core.project.DistributionScaffolding;
+import org.ikasan.studio.core.project.StudioProjectLayout;
 
 /** Shared Studio-owned project rendering for IDE migration and offline preview; never writes files. */
 public final class ProjectArtifactRenderer {
     public static final String MODEL = "generated/src/main/model/model.json";
     private ProjectArtifactRenderer() { }
+
+    public static Map<String, String> render(Path workspace, Module module) throws Exception {
+        Path application = StudioProjectLayout.applicationRoot(workspace);
+        Map<String, String> rendered = render(module, Files.readString(application.resolve("pom.xml")));
+        if (application.equals(workspace)) return rendered;
+        Map<String, String> files = new LinkedHashMap<>();
+        rendered.forEach((path, text) -> files.put("jar/" + path, text));
+        files.put("jar/generated/IKASAN_STUDIO.md", AiProjectContractGenerator.studioGuide(module.getMetaVersion(), true));
+        files.put("pom.xml", Files.readString(workspace.resolve("pom.xml")));
+        files.put("distribution/pom.xml", Files.readString(workspace.resolve("distribution/pom.xml")));
+        for (DistributionScaffolding.FileChange change : DistributionScaffolding.prepare(workspace,
+                ComponentLibrary.getMetaPackManifest(module.getMetaVersion())))
+            files.put(change.path(), change.content());
+        return files;
+    }
 
     public static Map<String, String> render(Module module, String rootPom) throws Exception {
         return render(module, module, rootPom);

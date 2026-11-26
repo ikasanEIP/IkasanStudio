@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.testing;
 
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.WriteIntentReadAction;
@@ -57,7 +59,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
         UiContext context = project.getService(UiContext.class);
         boolean acquired = false;
         try {
-            String basePath = project.getBasePath();
+            String basePath = StudioProjectFiles.getApplicationBasePath(project);
             Module live = context.getIkasanModule();
             if (basePath == null || live == null || !live.isInitialised() || context.isModelPersistenceBlocked())
                 throw new IllegalStateException(StudioBundle.message("message.ConfigureAndSaveTheModuleFirst"));
@@ -121,7 +123,7 @@ public final class GenerateFlowTestAction extends DumbAwareAction {
         UiContext context = project.getService(UiContext.class);
         boolean acquired = false;
         try {
-            String basePath = project.getBasePath();
+            String basePath = StudioProjectFiles.getApplicationBasePath(project);
             Module live = context.getIkasanModule();
             if (basePath == null || live == null || !live.isInitialised() || context.isModelPersistenceBlocked()) {
                 throw new IllegalStateException(StudioBundle.message("message.ConfigureAndSaveTheModuleFirst"));

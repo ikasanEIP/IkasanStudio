@@ -1,5 +1,7 @@
 # Project files, backups and recovery
 
+Paths in this guide are relative to the application reactor: `jar/` in new projects, or the workspace root in legacy projects. See [Application project layout](ProjectLayout.md) for packaging and ownership.
+
 New model saves contain three separate documents in the same atomic file: Ikasan `module` metadata, Ikasan `configuration` records and `studio` generation settings. Existing flat models convert on their next save; rotating model backups retain the prior representation. See [model documents and compatibility](IkasanRuntimeJson.md#studios-persisted-model).
 
 | Location | Ownership and handling |

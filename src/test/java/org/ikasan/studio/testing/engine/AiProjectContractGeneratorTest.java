@@ -20,11 +20,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Tag("engine")
 class AiProjectContractGeneratorTest {
     @Test
+    void nestedGuidanceUsesWorkspacePathsWithoutMovingTheProposalInbox() {
+        String guide = AiProjectContractGenerator.studioGuide("V4.1.6", true);
+        assertThat(guide).contains("sha256sum jar/generated/src/main/model/model.json", "ai-proposals/rename-consumer.studio-proposal.json");
+        assertThat(guide).doesNotContain("jar/ai-proposals/", "jar/jar/");
+        assertThat(AiProjectContractGenerator.agentsGuide(false)).contains("`generated/src/main/model/model.json`");
+    }
+
+    @Test
     void archetypeDiscoveryInstructionsMatchGeneratedInstructions() throws Exception {
         Path discoveryFile = Path.of("ikasan-studio-ancillary", "ikasan-studio-project-archetype",
                 "src/main/resources/archetype-resources/AGENTS.md");
 
-        assertThat(Files.readString(discoveryFile)).isEqualTo(AiProjectContractGenerator.agentsGuide());
+        assertThat(Files.readString(discoveryFile)).isEqualTo(AiProjectContractGenerator.agentsGuide(true));
     }
 
     @Test
@@ -47,7 +55,7 @@ class AiProjectContractGeneratorTest {
     @Test
     void projectSkillsMatchTheArchetypeAndKeepDiscoveryInsideTheProject() throws Exception {
         Path resources = Path.of("ikasan-studio-ancillary/ikasan-studio-project-archetype/src/main/resources");
-        Map<String,String> files = StudioAiSkillTemplates.files();
+        Map<String,String> files = StudioAiSkillTemplates.files(true);
         assertThat(files).hasSize(2);
         for (Entry<String,String> entry : files.entrySet()) {
             assertThat(Files.readString(resources.resolve("archetype-resources").resolve(entry.getKey())))

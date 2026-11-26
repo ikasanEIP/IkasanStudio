@@ -10,7 +10,7 @@
 
   <groupId>org.ikasan.studio</groupId>
   <artifactId>ikasan-studio-project-archetype</artifactId>
-  <version>1.0.3</version>
+  <version>1.0.4-SNAPSHOT</version>
   <packaging>maven-archetype</packaging>
 
   <name>Ikasan Studio Project Archetype</name>

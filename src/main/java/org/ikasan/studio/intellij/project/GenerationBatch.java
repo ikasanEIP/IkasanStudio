@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashMap;
 
 /** Invocation-scoped staging area for one coherent generated-project update. */
 final class GenerationBatch {
@@ -15,6 +16,13 @@ final class GenerationBatch {
 
     private final Map<String, Artifact> artifacts = new LinkedHashMap<>();
     private final Set<String> authorisedUserReplacements = new HashSet<>();
+    private final Map<String, String> expectedContent = new HashMap<>();
+    private String applicationPrefix = "";
+    void setApplicationPrefix(String prefix) { applicationPrefix = prefix; }
+    String applicationPath(String path) { return applicationPrefix + path; }
+    void expect(String path, String previous) { expectedContent.put(path, previous); }
+    boolean hasExpectation(String path) { return expectedContent.containsKey(path); }
+    String expected(String path) { return expectedContent.get(path); }
     private final List<Runnable> afterCommit = new ArrayList<>();
 
     void stage(String relativePath, String content, AbstractViewHandlerIntellij viewHandler) {

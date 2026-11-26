@@ -75,6 +75,7 @@ class StudioAiFileProposalTest {
              MockedStatic<StudioProjectFiles> files = mockStatic(StudioProjectFiles.class);
              MockedConstruction<StudioAiProposalDialog> dialogs = mockConstruction(StudioAiProposalDialog.class, (dialog, args) ->
                      reviewed.set((StudioAiService.Proposal) args.arguments().get(2)))) {
+            files.when(() -> StudioProjectFiles.getApplicationBasePath(project)).thenAnswer(call -> project.getBasePath());
             settings.when(IkasanStudioSettings::isAlwaysAskAiApproval).thenReturn(true);
             Application app = mock(Application.class);
             //noinspection ResultOfMethodCallIgnored

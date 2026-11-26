@@ -20,6 +20,8 @@ class HarnessToolbarStateTest {
             JButton start = new JButton();
             JButton stop = new JButton();
             CanvasPanel.updateHarnessState(start, stop, List.of());
+            assertThat(stop.isEnabled()).isFalse();
+            assertThat(stop.getDisabledIcon()).isNotNull().isNotSameAs(stop.getIcon());
             assertThat(start.getIcon()).isSameAs(AllIcons.Actions.Execute);
             assertThat(start.getToolTipText()).isEqualTo(StudioBundle.message("tooltip.StartHarnesses"));
 
@@ -39,10 +41,13 @@ class HarnessToolbarStateTest {
             HarnessStatus shared = new HarnessStatus(List.of(), List.of(StudioBundle.message("harness.smtp.sharedAvailable")));
             CanvasPanel.updateHarnessState(start, stop, shared);
             assertThat(start.getIcon()).isNotSameAs(AllIcons.Actions.Execute).isNotSameAs(ownedIcon);
+            assertThat(stop.isEnabled()).isFalse();
             assertThat(CanvasPanel.harnessTitle(shared)).isEqualTo(StudioBundle.message("label.HarnessSharedOnly"));
             assertThat(stop.getToolTipText()).startsWith(StudioBundle.message("tooltip.NoOwnedHarnessesRunning"));
             assertThat(start.getToolTipText()).contains(StudioBundle.message("harness.smtp.sharedAvailable"));
             CanvasPanel.updateHarnessState(start, stop, List.of());
+            assertThat(stop.isEnabled()).isFalse();
+            assertThat(stop.getDisabledIcon()).isNotNull().isNotSameAs(stop.getIcon());
             assertThat(start.getIcon()).isSameAs(AllIcons.Actions.Execute);
             assertThat(stop.getToolTipText()).isEqualTo(StudioBundle.message("tooltip.NoOwnedHarnessesRunning"));
         });

@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.concurrent.*;
 import org.ikasan.studio.intellij.ai.StudioAiProposalInbox.Stamp;
 import org.ikasan.studio.ui.StudioBundle;
+import org.ikasan.studio.core.project.StudioProjectLayout;
 
 /** Project-local polling also detects files written outside IntelliJ's VFS. All I/O is off the EDT. */
 @Service(Service.Level.PROJECT)
@@ -46,7 +47,7 @@ public final class StudioAiProposalInboxService implements Disposable {
             String basePath = project.getBasePath();
             if (basePath == null) return;
             Path root = Path.of(basePath);
-            if (!Files.isRegularFile(root.resolve("generated/src/main/model/model.json"))) return;
+            if (!Files.isRegularFile(StudioProjectLayout.applicationRoot(root).resolve("generated/src/main/model/model.json"))) return;
             Map<Path,Stamp> files = StudioAiProposalInbox.scan(root.resolve("ai-proposals"));
             inbox.observe(files).ifPresent(path -> {
                 Stamp stamp = files.get(path);

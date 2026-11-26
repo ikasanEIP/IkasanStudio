@@ -78,6 +78,7 @@ class DevelopmentFixtureTest {
         putJava(files, Generator.STUDIO_BOOT_PACKAGE, "Application", ApplicationTemplate.create(module));
         putJava(files, Generator.STUDIO_BOOT_PACKAGE, "ModuleConfig", ModuleConfigTemplate.create(module));
         putJava(files, Generator.STUDIO_BOOT_PACKAGE, "StudioInjectController", StudioInjectControllerTemplate.create(module));
+        putJava(files, Generator.STUDIO_BOOT_PACKAGE, "StudioHarnessOverrides", HarnessOverridesTemplate.javaSource());
         for (Flow flow : module.getFlows()) {
             String pkg = Generator.STUDIO_FLOW_PACKAGE + "." + flow.getJavaPackageName();
             putJava(files, pkg, flow.getJavaClassName(), FlowTemplate.create(pkg, module, flow));

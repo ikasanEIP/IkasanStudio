@@ -47,7 +47,7 @@ public final class RepairModelAction extends DumbAwareAction {
             if (context.getPropertiesPanel() != null && context.getPropertiesPanel().dataHasChangedAndOKToProcess())
                 throw new IllegalStateException(StudioBundle.message("message.ApplyOrDiscardThePendingPropertyEditsBeforeMigrating"));
             Path model = StudioProjectFiles.getModelJsonPath(project);
-            String basePath = project.getBasePath();
+            String basePath = StudioProjectFiles.getApplicationBasePath(project);
             if (model == null || basePath == null) throw new IllegalStateException(StudioBundle.message("message.OpenAnIkasanProjectFirst"));
             Plan plan = MetaPackUiTasks.run(project, title, () -> {
                 Plan candidate = ModelPackRepair.preview(Files.readString(model));

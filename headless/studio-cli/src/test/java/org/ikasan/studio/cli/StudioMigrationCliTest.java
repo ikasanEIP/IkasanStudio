@@ -67,6 +67,34 @@ class StudioMigrationCliTest {
         assertFalse(Files.exists(project.resolve("via-link")));
     }
 
+    @Test void nestedWorkspaceValidatesMigratesAndRestoresDeploymentSettings(@TempDir Path previews) throws Exception {
+        Path plan = setup();
+        Path application = Files.createDirectory(project.resolve("jar"));
+        for (String name : new String[]{"generated", "user"}) Files.move(project.resolve(name), application.resolve(name));
+        Files.writeString(application.resolve(".ikasan-studio-application"), "formatVersion=1\n");
+        Path archetype = Path.of("ikasan-studio-ancillary/ikasan-studio-project-archetype/src/main/resources/archetype-resources");
+        for (String name : new String[]{"pom.xml", "jar/pom.xml", "jar/generated/pom.xml", "jar/user/pom.xml", "distribution/pom.xml"}) {
+            Path target = project.resolve(name);
+            Files.createDirectories(target.getParent());
+            Files.writeString(target, Files.readString(archetype.resolve(name)).replace("${groupId}", "org.example")
+                    .replace("${rootArtifactId}", "nested").replace("${artifactId}", "nested").replace("${version}", "1.0-SNAPSHOT"));
+        }
+        assertEquals(0, run("validate", "--project", project.toString()));
+        Path rendered = previews.resolve("rendered");
+        assertEquals(0, run("render", "--project", project.toString(), "--output", rendered.toString()));
+        assertTrue(Files.exists(rendered.resolve("jar/generated/src/main/java/org/ikasan/studio/boot/Application.java")));
+        assertTrue(Files.readString(rendered.resolve("pom.xml")).contains("<module>jar</module>"));
+        String original = Files.readString(project.resolve("pom.xml"));
+        assertEquals(0, preview(plan, "V4.1.6"));
+        assertEquals(0, run("apply", "--plan", plan.toString()));
+        assertTrue(Files.readString(project.resolve("pom.xml")).contains("<version.ikasan>4.1.6</version.ikasan>"));
+        assertTrue(Files.readString(application.resolve("generated/src/main/model/model.json")).contains("V4.1.6"));
+        Snapshot snapshot = MigrationWorkspace.latest(project);
+        MigrationWorkspace.commit(project, MigrationWorkspace.prepareRestore(project, snapshot), "restore");
+        assertEquals(original, Files.readString(project.resolve("pom.xml")));
+        assertEquals("// developer implementation\n", Files.readString(application.resolve("user/src/Keep.java")));
+    }
+
     @Test void previewDoesNotMutateAndApplyUsesRecoveryTransaction() throws Exception {
         Path plan=setup(); String original=Files.readString(project.resolve("pom.xml"));
         assertEquals(0, preview(plan, "V4.1.6"));

@@ -18,6 +18,16 @@ MODEL = Path('generated/src/main/model/model.json')
 FORMAT = 'ikasan-project-verification-1'
 
 
+def application_root(project):
+    if (project / 'generated/pom.xml').is_file() and (project / 'user/pom.xml').is_file():
+        return project
+    candidate = project / 'jar'
+    if (candidate / '.ikasan-studio-application').is_file() or (
+            (candidate / 'generated/pom.xml').is_file() and (candidate / 'user/pom.xml').is_file()):
+        return candidate
+    return project
+
+
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -25,13 +35,16 @@ def digest(path):
 def sources(project):
     """Protect user files and application/test sources in additional Maven modules."""
     result = {}
+    application = application_root(project)
+    generated_main = application.relative_to(project) / 'generated/src/main'
+    user = application.relative_to(project) / 'user'
     for base, dirs, files in os.walk(project, followlinks=False):
         dirs[:] = [d for d in dirs if d not in {'target', '.git', '.idea', '.ikasan-studio', '__pycache__'}
                    and d not in {'migration-before', 'migration-after', 'migration-comparison', 'migration-reports', 'acceptance-reports'}]
         for name in files:
             path = Path(base) / name
             rel = path.relative_to(project)
-            if rel.parts[0] != 'user' and ('src' not in rel.parts or rel.is_relative_to('generated/src/main')):
+            if not rel.is_relative_to(user) and ('src' not in rel.parts or rel.is_relative_to(generated_main)):
                 continue
             if path.is_symlink():
                 raise ValueError(f'Source symlinks are not supported: {rel}')
@@ -202,11 +215,12 @@ def model_version(model):
 
 def verify(args):
     project = Path(args.project).resolve()
-    if not (project/'pom.xml').is_file() or not (project/'user').is_dir():
+    application = application_root(project)
+    if not (project/'pom.xml').is_file() or not (application/'user').is_dir():
         raise ValueError('Expected a Studio Maven project with pom.xml and user/.')
-    model = json.loads((project/MODEL).read_text())
+    model = json.loads((application/MODEL).read_text())
     before = sources(project)
-    model_hash = digest(project/MODEL)
+    model_hash = digest(application/MODEL)
     # Relative report locations belong to the project, regardless of the caller's working directory.
     report_path = Path(args.report) if args.report else Path('migration-reports')/datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f')
     candidate = (project/report_path).resolve()
@@ -233,7 +247,7 @@ def verify(args):
         checks.append(check('Test execution and evidence', False, str(error)))
     try:
         checks.append(check('Developer files unchanged by verification', before == sources(project)))
-        checks.append(check('Model unchanged by verification', model_hash == digest(project/MODEL)))
+        checks.append(check('Model unchanged by verification', model_hash == digest(application/MODEL)))
     except (OSError, ValueError) as error:
         checks.append(check('Source/model preservation', False, str(error)))
     passed = [t for t in tests if t['status'] == 'PASS']
@@ -290,7 +304,7 @@ def comparison(before, after, plan=None):
             path = change['path']
             if path in seen: raise ValueError('Duplicate path in migration plan: '+path)
             seen.add(path)
-            if not path.startswith('user/src/main/java/') or not path.endswith('.java'): continue
+            if not path.startswith(('user/src/main/java/', 'jar/user/src/main/java/')) or not path.endswith('.java'): continue
             if '..' in path.split('/') or '\\' in path: raise ValueError('Invalid user import path in migration plan')
             if change.get('before') is None or change.get('after') is None: continue
             old = hashlib.sha256(base64.b64decode(change['before'], validate=True)).hexdigest()
@@ -316,7 +330,7 @@ def comparison(before, after, plan=None):
             "Check Maven toolchains if a separate compiler is configured. " + guidance('After verification passed'))
     if plan is not None:
         import base64
-        change = next(c for c in plan['changes'] if c['path'] == MODEL.as_posix())
+        change = next(c for c in plan['changes'] if c['path'] in {MODEL.as_posix(), (Path('jar')/MODEL).as_posix()})
         expected_before = json.loads(base64.b64decode(change['before']))
         expected_after = json.loads(base64.b64decode(change['after']))
         mismatches = []

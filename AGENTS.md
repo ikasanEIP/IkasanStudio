@@ -43,7 +43,7 @@ The principal new-user journey is:
 6. Drag flows and components onto the canvas and edit their properties.
 7. Generate, inspect, run, test, and debug the resulting Ikasan application within IntelliJ.
 
-The generated project separates Studio-owned output in `generated/` from developer-owned implementation in `user/`.
+New archetype projects use `jar/`, `bin/` and `distribution/`. The application reactor under `jar/` separates Studio-owned `generated/` output from developer-owned `user/` implementations and optional `user-flow-tests/`. Legacy root-level application reactors remain supported without automatic moves. See [application layout](docs/ProjectLayout.md) and `core.project.StudioProjectLayout` for path resolution. `StudioProjectFiles.getProjectBaseDir` returns the application reactor; `getWorkspaceBaseDir` returns the directory opened in IntelliJ.
 
 ### ESB runtime lifecycle
 

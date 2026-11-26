@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.testing;
 
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -47,7 +49,7 @@ public final class FlowTestPropertiesBanner extends EditorNotificationPanel impl
         ApplicationManager.getApplication().getMessageBus().connect(this).subscribe(
                 VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
                     @Override public void after(@NotNull List<? extends VFileEvent> events) {
-                        String root = project.getBasePath();
+                        String root = StudioProjectFiles.getApplicationBasePath(project);
                         if (root != null && events.stream().anyMatch(event ->
                                 event.getPath().equals(root + "/" + FlowTestScaffold.TEST_PROPERTIES_PATH)
                                 || event.getPath().equals(root + "/generated/src/main/resources/application.properties")
@@ -61,9 +63,9 @@ public final class FlowTestPropertiesBanner extends EditorNotificationPanel impl
     }
 
     public void requestCheck() {
-        if (disposed || project.isDisposed() || project.getBasePath() == null) return;
+        if (disposed || project.isDisposed() || StudioProjectFiles.getApplicationBasePath(project) == null) return;
         long requested = revision.incrementAndGet();
-        Path root = Path.of(project.getBasePath());
+        Path root = Path.of(StudioProjectFiles.getApplicationBasePath(project));
         checks.cancelAllRequests();
         checks.addRequest(() -> {
             try {

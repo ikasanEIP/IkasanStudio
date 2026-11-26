@@ -3,3 +3,7 @@
 
 # Local runtime and test data
 /temporary-files/
+
+/jar/generated/src/test.bak*/
+/jar/temporary-files/
+/jar/config/local/

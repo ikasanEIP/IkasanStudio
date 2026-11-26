@@ -1,5 +1,7 @@
 # Testing flows with the Ikasan test framework
 
+Paths in this guide are relative to the application reactor: `jar/` in new projects, or the workspace root in legacy projects. See [Application project layout](ProjectLayout.md) for packaging and ownership.
+
 For Studio-owned tests requiring no completion, see [Generated verification baselines](GeneratedVerification.md).
 These provide automatic structural checks; the business tests below remain developer-owned.
 
@@ -312,7 +314,7 @@ Studio detects older shared support that lacks the new overloads and requests a 
 
 1. Save the module and open files, and wait for generation to finish. Select a saved flow
    that has a consumer.
-2. Generate the scaffold. Studio adds `user-flow-tests` to the root POM, creates the test module
+2. Generate the scaffold. Studio adds `user-flow-tests` to the application reactor POM, creates the test module
    POM and README if missing, and opens the new Java test. Existing files are preserved;
    generating the same test again offers **Keep Existing** or **Archive and Regenerate**.
    Archiving preserves the original beside the test as `YourFlowTest.java.bak<timestamp>-<unique-id>`
@@ -323,7 +325,7 @@ Studio detects older shared support that lacks the new overloads and requests a 
 3. Read `user-flow-tests/README.md`. Fill in isolated test settings, the output producer name,
    input batches and expected payloads. Consult `LOCAL_TEST_ENVIRONMENT.md` for local services.
    Review application startup beans and connection settings when choosing test endpoints.
-4. Run from IntelliJ or the project root: `mvn -pl user-flow-tests -am test`.
+4. Run from IntelliJ or the application reactor: `mvn -pl user-flow-tests -am test`. From a new project’s workspace root, use `mvn -pl jar/user-flow-tests -am test`.
    No review flag blocks execution; failures identify missing setup, unsupported scenario hooks or mismatched expectations.
 
 The version-specific FreeMarker templates use `IkasanFlowTestRule` to start the real flow,

@@ -317,7 +317,7 @@ public final class ImportSourceModuleDialog extends ImportDialogWrapper {
             if (source.getText().isBlank()) { error(StudioBundle.message("sourceImport.chooseCheckout")); return; }
             StudioProjectFiles.saveConfigurationDocuments(project, List.of("pom.xml", ProjectArtifactRenderer.MODEL, "src/main/model/model.json"));
             clearAnalysis();
-            Path destination = Path.of(Objects.requireNonNull(project.getBasePath(), "Import requires a project directory"));
+            Path destination = Path.of(Objects.requireNonNull(StudioProjectFiles.getApplicationBasePath(project), "Import requires a project directory"));
             Inspection inspection = work(() -> SourceCheckoutIdentity.inspect(selected, destination, ProgressManager::checkCanceled), true);
             if (inspection == null || project.isDisposed() || isDisposed()) return;
             Candidate candidate = inspection.automaticCandidate();

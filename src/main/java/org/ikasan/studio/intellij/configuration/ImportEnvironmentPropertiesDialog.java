@@ -56,11 +56,11 @@ public final class ImportEnvironmentPropertiesDialog extends ImportDialogWrapper
     private DocumentContent destinationContent;
 
     public ImportEnvironmentPropertiesDialog(Project project) {
-        this(project, Path.of(Objects.requireNonNull(project.getBasePath(), "Import requires a project directory")));
+        this(project, Path.of(Objects.requireNonNull(StudioProjectFiles.getApplicationBasePath(project), "Import requires a project directory")));
     }
 
     public ImportEnvironmentPropertiesDialog(Project project, List<PropertyFile> discovered) {
-        this(project, Path.of(Objects.requireNonNull(project.getBasePath(), "Import requires a project directory")), discovered);
+        this(project, Path.of(Objects.requireNonNull(StudioProjectFiles.getApplicationBasePath(project), "Import requires a project directory")), discovered);
     }
 
     ImportEnvironmentPropertiesDialog(Project project, Path root) { this(project, root, List.of()); }

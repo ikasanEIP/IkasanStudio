@@ -152,8 +152,8 @@ public final class IkasanRunConfigurationService implements Disposable {
                 (ApplicationConfiguration) settings.getConfiguration();
         configuration.setMainClassName(MAIN_CLASS_NAME);
         configuration.getConfigurationModule().setModule(module);
-        if (project.getBasePath() != null) {
-            configuration.setWorkingDirectory(project.getBasePath());
+        if (StudioProjectFiles.getApplicationBasePath(project) != null) {
+            configuration.setWorkingDirectory(StudioProjectFiles.getApplicationBasePath(project));
         }
         if (debug) {
             configuration.setProgramParameters(STUDIO_DEBUG_PROGRAM_PARAMETERS);
@@ -221,7 +221,7 @@ public final class IkasanRunConfigurationService implements Disposable {
 
     RunnerAndConfigurationSettings findOrCreateEnvironmentConfiguration(Module module, boolean debug, String environment,
                                                                        Set<String> harnessSelection) {
-        String parameters = environmentParameters(Objects.requireNonNull(project.getBasePath(), "Environment configurations require a project directory"), environment, debug);
+        String parameters = environmentParameters(Objects.requireNonNull(StudioProjectFiles.getApplicationBasePath(project), "Environment configurations require a project directory"), environment, debug);
         RunManager manager = RunManager.getInstance(project);
         Optional<RunnerAndConfigurationSettings> existing = manager.getAllSettings().stream()
                 .filter(s -> s.getConfiguration() instanceof ApplicationConfiguration c
@@ -238,7 +238,7 @@ public final class IkasanRunConfigurationService implements Disposable {
         ApplicationConfiguration configuration = (ApplicationConfiguration) settings.getConfiguration();
         configuration.setMainClassName(MAIN_CLASS_NAME);
         configuration.getConfigurationModule().setModule(module);
-        configuration.setWorkingDirectory(project.getBasePath());
+        configuration.setWorkingDirectory(StudioProjectFiles.getApplicationBasePath(project));
         configuration.setProgramParameters(parameters);
         if (harnessSelection != null) configuration.setVMParameters(
                 HarnessOverrideService.withSelection(configuration.getVMParameters(), harnessSelection));

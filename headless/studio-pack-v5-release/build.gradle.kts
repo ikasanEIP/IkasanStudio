@@ -86,7 +86,7 @@ tasks.register<Test>("generateInputFixtures") {
 }
 
 // Real user/generated/user-flow-tests boundaries, using the checked-in archetype POMs.
-val reactorPomFiles = listOf("pom.xml", "user/pom.xml", "generated/pom.xml").map {
+val reactorPomFiles = listOf("pom.xml", "jar/pom.xml", "jar/user/pom.xml", "jar/generated/pom.xml", "distribution/pom.xml").map {
     rootProject.file("../ikasan-studio-ancillary/ikasan-studio-project-archetype/src/main/resources/archetype-resources/$it")
 }
 tasks.named<Test>("test") { inputs.files(reactorPomFiles) }

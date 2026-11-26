@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.execution;
 
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+
 import com.intellij.execution.ExecutionListener;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -120,7 +122,7 @@ public final class IkasanDebugSessionService implements Disposable {
     }
 
     public boolean isPausedComponentSource(String path) {
-        return pausedLocations.contains(path) && ComponentBreakpointSource.uniqueMatch(project.getBasePath(),
+        return pausedLocations.contains(path) && ComponentBreakpointSource.uniqueMatch(StudioProjectFiles.getApplicationBasePath(project),
                 project.getService(UiContext.class).getIkasanModule(), path) != null;
     }
 
@@ -129,7 +131,7 @@ public final class IkasanDebugSessionService implements Disposable {
         if (element == null) return false;
         Module module = project.getService(UiContext.class).getIkasanModule();
         return pausedLocations.sourcePaths().stream().anyMatch(source ->
-                ComponentBreakpointSource.uniqueMatch(project.getBasePath(), module, source) == element);
+                ComponentBreakpointSource.uniqueMatch(StudioProjectFiles.getApplicationBasePath(project), module, source) == element);
     }
 
     /** Records model/code changes that the current module process cannot yet contain. */

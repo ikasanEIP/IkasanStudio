@@ -1,5 +1,7 @@
 package org.ikasan.studio.intellij.testing;
 
+import org.ikasan.studio.intellij.project.StudioProjectFiles;
+
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -34,8 +36,8 @@ public final class RunFlowTestAction {
     private RunFlowTestAction() { }
 
     public static void run(Project project, Flow flow) {
-        if (project.isDisposed() || project.getBasePath() == null) return;
-        Path path = Path.of(project.getBasePath()).resolve(FlowTestScaffold.testPath(flow));
+        if (project.isDisposed() || StudioProjectFiles.getApplicationBasePath(project) == null) return;
+        Path path = Path.of(StudioProjectFiles.getApplicationBasePath(project)).resolve(FlowTestScaffold.testPath(flow));
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             if (project.isDisposed()) return;
             try {

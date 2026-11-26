@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.ikasan.studio.core.maven.IkasanPomModel;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
@@ -27,15 +28,15 @@ public final class GeneratedVerification {
         MavenXpp3Reader reader = new MavenXpp3Reader();
         Model parent = reader.read(new StringReader(parentXml));
         Model application = reader.read(new StringReader(applicationXml));
-        if (!"pom".equals(parent.getPackaging()) || parent.getGroupId() == null || parent.getVersion() == null)
+        if (!"pom".equals(parent.getPackaging()) || IkasanPomModel.groupId(parent) == null || IkasanPomModel.version(parent) == null)
             throw new IllegalArgumentException("Expected a Studio parent Maven POM");
         Map<String, Object> values = new LinkedHashMap<>();
-        values.put("groupId", parent.getGroupId());
+        values.put("groupId", IkasanPomModel.groupId(parent));
         values.put("artifactId", parent.getArtifactId());
-        values.put("version", parent.getVersion());
-        values.put("applicationGroupId", application.getGroupId() == null ? parent.getGroupId() : application.getGroupId());
+        values.put("version", IkasanPomModel.version(parent));
+        values.put("applicationGroupId", application.getGroupId() == null ? IkasanPomModel.groupId(parent) : application.getGroupId());
         values.put("applicationArtifactId", application.getArtifactId());
-        values.put("applicationVersion", application.getVersion() == null ? parent.getVersion() : application.getVersion());
+        values.put("applicationVersion", application.getVersion() == null ? IkasanPomModel.version(parent) : application.getVersion());
         String fingerprint = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(modelJson.getBytes(StandardCharsets.UTF_8)));
         values.put("fingerprint", fingerprint);
         Map<String, String> files = new LinkedHashMap<>();

@@ -106,6 +106,8 @@ Reopen Studio with the squid icon on the far-right stripe, **Tools → Ikasan St
 
 ### Your model and code
 
+New archetype projects use `jar/`, `bin/` and `distribution/`. Paths below are relative to the application reactor (`jar/` for new projects; the workspace root for legacy projects). See [Application project layout](docs/ProjectLayout.md).
+
 | Location in an Ikasan application                     | Purpose                                                                                                 |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `generated/src/main/model/model.json`                 | The source-of-truth visual model; commit it to version control                                          |

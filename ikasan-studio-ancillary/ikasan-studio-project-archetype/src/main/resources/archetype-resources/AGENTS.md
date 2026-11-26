@@ -9,7 +9,7 @@ When Studio is open, its live in-memory model is authoritative. If the Studio MC
 connected, use studio_snapshot, studio_catalogue and studio_propose, then check studio_proposal_status.
 Validated supported changes can apply automatically unless Confirm deletes requires review (enabled by default for deletions and replacements) or Always ask for approval is enabled or developer-owned code could be replaced.
 Ask the developer to Apply only when the status is awaiting_review; wait for applied before continuing. Never edit model.json behind an open Studio.
-If MCP is unavailable, use the proposal-file workflow in generated/IKASAN_STUDIO.md. Read the
+If MCP is unavailable, use the proposal-file workflow in jar/generated/IKASAN_STUDIO.md. Read the
 saved model, calculate its SHA-256, and write a uniquely named .studio-proposal.json file in
 the project-root ai-proposals/ folder. Write to a temporary file first, then rename it into
 place when complete. New proposal files can apply automatically under the same setting and user-code protection;
@@ -23,16 +23,16 @@ the change in its properties UI; do not bypass this by editing the active model 
 
 For file proposals, always read `<proposal-filename>.result.json` beside the submitted file
 and match its proposalSha256 before continuing. Follow the recovery/status instructions in
-generated/IKASAN_STUDIO.md; never assume writing a proposal applied it.
+jar/generated/IKASAN_STUDIO.md; never assume writing a proposal applied it.
 
-This project is managed by Ikasan Studio. Before editing `generated/src/main/model/model.json`,
-read `generated/IKASAN_STUDIO.md` and
-`generated/src/main/model/component-catalogue.json`.
+This project is managed by Ikasan Studio. Before editing `jar/generated/src/main/model/model.json`,
+read `jar/generated/IKASAN_STUDIO.md` and
+`jar/generated/src/main/model/component-catalogue.json`.
 
 `model.json` is the version-neutral source of truth. Make minimal changes, preserve unknown
 fields, validate the result, and let Ikasan Studio regenerate its owned files. Do not directly
-edit files under `generated/` other than `model.json`. Developer-owned implementations belong
-under `user/`. When the requested task includes working behaviour, completing a newly generated,
+edit files under `jar/generated/` other than `model.json`. Developer-owned implementations belong
+under `jar/user/`. When the requested task includes working behaviour, completing a newly generated,
 unmodified stub for that task is authorised; use focused edits and tests. Inspect the file and
 its diff first. Preserve existing developer logic and ask before replacing it or regenerating
 its implementation. If ownership or intent is unclear, ask rather than assume a file is a stub.
@@ -53,7 +53,7 @@ nothing happens; a visible startup error exposes the problem. Do not call the de
 while any required flow is stopped or in error, even if that state is explained in a README.
 Resolve the cause or report the demo as BLOCKED/INCOMPLETE with the exact remaining action.
 Before every task needing test settings, reread LOCAL_TEST_ENVIRONMENT.md in the project root.
-For local FTP/SMTP, read the Studio local test harnesses section in generated/IKASAN_STUDIO.md.
+For local FTP/SMTP, read the Studio local test harnesses section in jar/generated/IKASAN_STUDIO.md.
 A closed port may mean the developer has not started the harness; ask for that startup step.
 Accept a simple name=value block: supplied values override selected catalogue defaults. Blank
 or omitted optional settings keep existing values on existing components, defaults on new ones,
@@ -75,5 +75,5 @@ Clients with skill discovery may select ikasan-integration-workflow automaticall
 read the file explicitly. Review-only tasks remain read-only. The skill supplements these
 instructions and the current generated contract; it does not grant extra permissions.
 Follow the completion
-checklist and demo guidance in generated/IKASAN_STUDIO.md; report unfinished implementations
+checklist and demo guidance in jar/generated/IKASAN_STUDIO.md; report unfinished implementations
 and unsupported components explicitly.

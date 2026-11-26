@@ -25,6 +25,7 @@ import org.ikasan.studio.core.migration.MigrationWorkspace.Change;
 import org.ikasan.studio.core.migration.ModelMigration.Plan;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.core.persistence.json.StudioJson;
+import org.ikasan.studio.core.project.StudioProjectLayout;
 
 /** Standalone entry point sharing the IDE's migration renderer and recovery transaction. */
 public final class StudioMigrationCli {
@@ -60,14 +61,14 @@ public final class StudioMigrationCli {
                     requireKeys(options, render ? Set.of("--project", "--output") : Set.of("--project"));
                     Path root = Path.of(options.get("--project")).toRealPath();
                     Module module = ComponentIO.validatePersistedModuleJson(
-                            Files.readString(root.resolve(MigrationArtifacts.MODEL)), "offline project model", false);
+                            Files.readString(StudioProjectLayout.applicationRoot(root).resolve(MigrationArtifacts.MODEL)), "offline project model", false);
                     MetaPackManifest pack = ComponentLibrary.getMetaPackManifest(module.getVersion());
                     if (render) {
                         Path requested = Path.of(options.get("--output")).toAbsolutePath().normalize();
                         if (requested.getParent() == null) throw new IllegalArgumentException("Choose a new render directory");
                         Path output = requested.getParent().toRealPath().resolve(requested.getFileName());
                         if (output.startsWith(root)) throw new IllegalArgumentException("Render output must be outside the source project");
-                        Map<String,String> artifacts = ProjectArtifactRenderer.render(module, Files.readString(root.resolve("pom.xml")));
+                        Map<String,String> artifacts = ProjectArtifactRenderer.render(root, module);
                         writeRender(output, artifacts);
                         out.println("Rendered preview: " + output);
                     }
@@ -81,22 +82,22 @@ public final class StudioMigrationCli {
                     boolean updateImports = "true".equals(importsOption);
                     requireKeys(options, Set.of("--project", "--to", "--plan"));
                     Path root = Path.of(options.get("--project")).toRealPath();
-                    String source = Files.readString(root.resolve(MigrationArtifacts.MODEL));
-                    String pom = Files.readString(root.resolve("pom.xml"));
+                    String source = Files.readString(StudioProjectLayout.applicationRoot(root).resolve(MigrationArtifacts.MODEL));
+                    String pom = Files.readString(StudioProjectLayout.applicationRoot(root).resolve("pom.xml"));
                     Plan plan = ModelMigration.analyse(source, options.get("--to"));
                     out.println(plan.report());
                     if (!plan.canApply()) return 2;
-                    ArrayList<Change> changes = new ArrayList<>(MigrationWorkspace.prepare(root, MigrationArtifacts.render(plan, pom)));
+                    ArrayList<Change> changes = new ArrayList<>(MigrationWorkspace.prepare(root, MigrationArtifacts.render(root, plan, pom)));
                     List<Change> importChanges = updateImports ? UserImportMigration.prepare(root, plan) : List.of();
                     changes.addAll(importChanges);
                     String report = updateImports ? UserImportMigration.report(plan.report(), importChanges) : plan.report();
                     if (updateImports) out.println(report);
                     // Detect source/POM edits during rendering as well as after the preview.
-                    requireOriginal(changes, MigrationArtifacts.MODEL, source);
-                    requireOriginal(changes, "pom.xml", pom);
+                    requireOriginal(changes, StudioProjectLayout.applicationPath(root, MigrationArtifacts.MODEL), source);
+                    requireOriginal(changes, StudioProjectLayout.applicationPath(root, "pom.xml"), pom);
                     Preview preview = new Preview(1, root.toString(), plan.targetVersion(), report, changes, userHashes(root), updateImports);
                     Path file = Path.of(options.get("--plan")).toAbsolutePath().normalize();
-                    if (file.startsWith(root.resolve("generated")) || file.startsWith(root.resolve("user")))
+                    if (file.startsWith(StudioProjectLayout.applicationRoot(root).resolve("generated")) || file.startsWith(StudioProjectLayout.applicationRoot(root).resolve("user")))
                         throw new IllegalArgumentException("Store the preview outside generated/ and user/.");
                     Path diff = file.resolveSibling(file.getFileName() + ".diff");
                     if (Files.exists(file) || Files.exists(diff)) throw new IllegalArgumentException("Choose a fresh preview filename.");
@@ -112,9 +113,9 @@ public final class StudioMigrationCli {
                     if (preview.formatVersion() != 1) throw new IllegalArgumentException("Unsupported preview format.");
                     Path root = Path.of(preview.project()).toRealPath();
                     if (!userHashes(root).equals(preview.userHashes())) throw new IllegalStateException("Developer files changed after preview; preview again.");
-                    Plan plan = ModelMigration.analyse(Files.readString(root.resolve(MigrationArtifacts.MODEL)), preview.targetVersion());
+                    Plan plan = ModelMigration.analyse(Files.readString(StudioProjectLayout.applicationRoot(root).resolve(MigrationArtifacts.MODEL)), preview.targetVersion());
                     if (!plan.canApply()) throw new IllegalStateException(plan.report());
-                    ArrayList<Change> current = new ArrayList<>(MigrationWorkspace.prepare(root, MigrationArtifacts.render(plan, Files.readString(root.resolve("pom.xml")))));
+                    ArrayList<Change> current = new ArrayList<>(MigrationWorkspace.prepare(root, MigrationArtifacts.render(root, plan, Files.readString(StudioProjectLayout.applicationRoot(root).resolve("pom.xml")))));
                     List<Change> importChanges = preview.updateUserImports() ? UserImportMigration.prepare(root, plan) : List.of();
                     current.addAll(importChanges);
                     if (!sameChanges(current, preview.changes())) throw new IllegalStateException("Project or renderer changed after preview; preview again.");
@@ -211,7 +212,7 @@ public final class StudioMigrationCli {
     }
     private static Map<String,String> userHashes(Path root) throws Exception {
         TreeMap<String,String> hashes = new TreeMap<>();
-        Path user = root.resolve("user");
+        Path user = StudioProjectLayout.applicationRoot(root).resolve("user");
         if (!Files.isDirectory(user)) throw new IllegalArgumentException("Expected a Studio project with user/.");
         try (Stream<Path> paths = Files.walk(user)) {
             for (Path p : paths.toList()) {

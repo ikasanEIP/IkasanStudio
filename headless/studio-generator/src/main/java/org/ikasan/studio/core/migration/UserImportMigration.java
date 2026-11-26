@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
+import org.ikasan.studio.core.project.StudioProjectLayout;
 
 /** Conservative, selectable import edits only; never searches/replaces arbitrary source text. */
 public final class UserImportMigration {
@@ -21,7 +22,7 @@ public final class UserImportMigration {
     public static List<MigrationWorkspace.Change> prepare(Path root, ModelMigration.Plan plan) throws Exception {
         Map<String,String> prefixes = MigrationRules.load(plan.sourceVersion(), plan.targetVersion()).userImportPrefixes();
         List<MigrationWorkspace.Change> changes = new ArrayList<>();
-        Path source = root.resolve("user/src/main/java");
+        Path source = StudioProjectLayout.applicationRoot(root).resolve("user/src/main/java");
         for (Path p = source; p != null && p.startsWith(root); p = p.getParent())
             if (Files.isSymbolicLink(p)) throw new IllegalArgumentException("Import migration does not follow symlinks: " + p);
         if (!Files.exists(source)) return changes;

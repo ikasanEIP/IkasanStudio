@@ -131,7 +131,7 @@ public final class IndependentH2RunConfigurationService implements Disposable {
                             StudioBundle.message("h2.independent.configuration", project.getName()), type), type.getConfigurationFactories()[0]);
                     ApplicationConfiguration app = (ApplicationConfiguration) created.getConfiguration();
                     app.setMainClassName(MAIN_CLASS); app.getConfigurationModule().setModule(module);
-                    app.setWorkingDirectory(project.getBasePath());
+                    app.setWorkingDirectory(StudioProjectFiles.getApplicationBasePath(project));
                     app.setAllowRunningInParallel(false);
                     created.storeInLocalWorkspace(); manager.addConfiguration(created); return created;
                 });

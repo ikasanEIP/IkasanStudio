@@ -53,3 +53,5 @@ For the complete authoring contract and lifecycle, see the
 [`ikasan5-metapack/`](ikasan5-metapack/README.md) is a standalone resource-only Maven project
 for runtime 5.1.0, with its own `ExampleIkasan5` pack ID and installation/restart probes.
 Generated applications need JDK 25; authoring uses JDK 17.
+
+The project archetype development version `1.0.4-SNAPSHOT` creates the nested application/deployment reactor described in [Application project layout](../docs/ProjectLayout.md). Install that version locally to test new-project creation; published versions retain their original layout.

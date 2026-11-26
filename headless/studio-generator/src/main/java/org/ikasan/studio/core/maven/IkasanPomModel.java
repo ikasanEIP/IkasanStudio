@@ -40,6 +40,16 @@ public class IkasanPomModel {
         resetKeys(model.getDependencies());
     }
 
+    public static String groupId(Model model) {
+        return model.getGroupId() != null ? model.getGroupId()
+                : model.getParent() == null ? null : model.getParent().getGroupId();
+    }
+
+    public static String version(Model model) {
+        return model.getVersion() != null ? model.getVersion()
+                : model.getParent() == null ? null : model.getParent().getVersion();
+    }
+
     /** Align only Studio-managed build settings, preserving unrelated Maven configuration. */
     public void applyBuildContract(MetaPackManifest manifest) {
         addProperty("version.ikasan", manifest.ikasanVersion());

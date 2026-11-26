@@ -8,6 +8,13 @@ public final class StudioAiSkillTemplates {
     public static final String CLAUDE_PATH = ".claude/skills/ikasan-integration-workflow/SKILL.md";
     private StudioAiSkillTemplates() { }
 
+    public static Map<String, String> files(boolean nested) {
+        if (!nested) return files();
+        return Map.of(WORKFLOW_PATH, workflow().replace("generated/", "jar/generated/")
+                .replace("user-flow-tests/", "jar/user-flow-tests/").replace("user/", "jar/user/"),
+                CLAUDE_PATH, claudeEntry().replace("generated/", "jar/generated/"));
+    }
+
     public static Map<String, String> files() {
         return Map.of(WORKFLOW_PATH, workflow(), CLAUDE_PATH, claudeEntry());
     }

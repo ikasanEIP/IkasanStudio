@@ -26,6 +26,7 @@ under the License.
   <name>Ikasan Studio project archetype</name>
   <description>Archetype to create new Ikasan Studio project</description>
   <fileSets>
+    <fileSet filtered="false" encoding="UTF-8"><directory>bin</directory><includes><include>**/*</include></includes></fileSet>
     <fileSet encoding="UTF-8">
       <directory></directory>
       <includes>
@@ -51,6 +52,11 @@ under the License.
     </fileSet>
   </fileSets>
   <modules>
+    <module id="${rootArtifactId}-jar" dir="jar" name="${rootArtifactId}-jar">
+      <fileSets>
+        <fileSet filtered="false" encoding="UTF-8"><directory></directory><includes><include>.ikasan-studio-application</include></includes></fileSet>
+      </fileSets>
+      <modules>
     <module id="${rootArtifactId}-user" dir="user" name="${rootArtifactId}-user">
       <fileSets>
         <fileSet filtered="true" packaged="true" encoding="UTF-8">
@@ -92,5 +98,8 @@ under the License.
         </fileSet>
       </fileSets>
     </module>
+      </modules>
+    </module>
+    <module id="${rootArtifactId}-distribution" dir="distribution" name="${rootArtifactId}-distribution" />
   </modules>
 </archetype-descriptor>
