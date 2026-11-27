@@ -24,22 +24,21 @@ Follow the [installation guide](Installation.md), then use [Supported versions](
 
 ## 1. Create the project
 
-Choose **File → New → Project → Maven Archetype**. Select Maven Central and search for `org.ikasan.studio:ikasan-studio-project-archetype`. Give the project a name and choose the JDK for your intended Ikasan version. If the catalogue cannot resolve the archetype, see [Troubleshooting](Troubleshooting.md); do not substitute an unrelated archetype.
+Choose **File → New → Project → Java**, with **Maven** as the build system. A standard Maven quickstart project also works. Give it a name and select the JDK for your intended Ikasan version. No Ikasan archetype needs to be installed or downloaded.
 
-Wait for Maven import and indexing. Studio opens in an editor tab. To reopen it, click the squid icon on the far-right stripe, use **Tools → Ikasan Studio → Open Ikasan Studio**, or search for that action using Find Action.
+Wait for Maven import, then click the squid icon on the far-right stripe or use **Tools → Ikasan Studio → Set up Ikasan Studio Project…**. In the Studio editor, choose **Set up project** if prompted.
 
 ## 2. Configure the module
 
-Choose **V3.3.9** or **V4.1.6**, matching your project JDK. Open module configuration using the control beside the version chooser. Give the module a name. For this local example, enable **useEmbeddedH2** and leave **flowStartupType** as **AUTOMATIC**. Apply with **Update Code** and allow Maven to resolve the generated project.
+Select the Ikasan version, application Java package, HTTP port and matching installed JDK: Java 11 for V3.3.9, Java 17 for V4.1.6 or Java 25 for V5.1.0. Review the file list and compare changes before applying setup. Studio creates the Maven reactor, boot application, model and deployment files, then reloads Maven and opens the designer. Normal dependency downloads still require access to your Maven repositories.
 
-Before configuring external test services, review **LOCAL_TEST_ENVIRONMENT.md** in the project root.
-New archetype projects include it; Studio also creates it after Maven import before module
-configuration if missing. Paste only the `name=value` pairs for your test services. Literal local-test
-passwords are accepted; environment-variable references are optional. Leave unneeded fields blank:
-the AI preserves existing settings or uses applicable catalogue defaults and asks only for missing
-required details. For SFTP, provide the host, username, existing remote directory and either a
-password or existing private-key/known-hosts filenames. The file is AI context, not automatically
-loaded runtime configuration. Add `/LOCAL_TEST_ENVIRONMENT.md` to `.gitignore` for local values.
+Setup supports a simple, single-module Maven JAR project. Existing source files, resources and tests move unchanged into `jar/user/src/`; dependencies move into `jar/user/pom.xml`. Existing instruction files are preserved. Custom profiles, active build plugins, conflicting directories and existing runtime application configuration require separate review rather than automatic conversion. Use a fresh project and the [runtime import workflow](SourceAssistedModuleImport.md) for an existing integration application.
+
+Setup saves original changed files and its plan in `.ikasan-studio/setup/<id>/`. It rejects changes made since review and rolls back its writes if setup fails. Keep that backup until you have checked the resulting project.
+
+Existing Studio archetype projects remain supported and open normally; archetype use is optional. In the designer, review module properties, enable **useEmbeddedH2** for this example, and leave **flowStartupType** as **AUTOMATIC**. Apply edits with **Update Code**.
+
+Before configuring external test services, review **LOCAL_TEST_ENVIRONMENT.md** in the workspace root. It is developer-owned guidance, not automatically loaded runtime configuration. Add `/LOCAL_TEST_ENVIRONMENT.md` to `.gitignore` when it contains local values.
 
 ## 3. Build the flow
 

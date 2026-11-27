@@ -5,6 +5,8 @@ version's notes, or the Unreleased notes while that version is being prepared.
 
 ## [Unreleased]
 
+- Set up a standard Maven Java project directly from Studio without downloading an Ikasan archetype. Review the version, JDK and file changes before creating the reactor and deployment files; preserve existing sources, tests and dependencies, with exact backups and rollback.
+
 - New Studio archetype projects use the familiar `jar/`, `bin/` and `distribution/` layout, with protected generated/user source boundaries, version-aware deployment scaffolding and a runnable ZIP. Existing layouts remain supported in place.
 
 - Use explicit Java variable types across Studio production code, tests, examples and generated templates; retain Kotlin declarations. Bundled V3/V4 revisions are 0.1.2-SNAPSHOT and V5.1.0 is 1.0.10; existing locked projects require explicit revision adoption.

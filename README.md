@@ -93,8 +93,8 @@ See [Supported versions](docs/SupportedVersions.md) and [Known limitations](docs
 ### Install and create a module
 
 1. Follow the [installation guide](docs/Installation.md) for available releases or installation from a candidate ZIP. To use the current source, [build the plugin](#build-and-contribute).
-2. Create a **Maven Archetype** project using `org.ikasan.studio:ikasan-studio-project-archetype` and the version supplied for your candidate. If it is unavailable in your configured repositories, use the [manual archetype fallback](#manual-archetype-fallback).
-3. Allow Maven import and indexing to finish. Studio opens in an editor tab; select the appropriate Ikasan pack and configure the module.
+2. Create a standard **Java / Maven** project, then choose **Tools → Ikasan Studio → Set up Ikasan Studio Project…**. Select the Ikasan version and JDK, review the proposed files and apply. No Ikasan archetype is required; see [Getting started](docs/GettingStarted.md).
+3. Allow Maven import and indexing to finish. Studio opens in an editor tab; review the module properties before adding flows.
 4. Add a flow, a consumer and the remaining components. Apply their properties, then use the **Regenerate Code** icon in the Module controls to generate from the current in-memory model.
 5. Select **Run module** and wait for application startup. Use Studio’s flow controls or open **Console** for module administration; IntelliJ Run/Debug controls remain available.
 

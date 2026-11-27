@@ -13,6 +13,21 @@ import org.mockito.Mockito;
 
 
 public class StudioImportReadinessHeavyTest extends HeavyPlatformTestCase {
+    public void testOrdinaryMavenProjectOffersSetupAndCanRecheckEligibility() {
+        AtomicInteger checks = new AtomicInteger();
+        StudioProjectInitialisationService service = new StudioProjectInitialisationService(myProject,
+                () -> new StudioProjectInitialisationService.ImportReadiness(false, "Review setup", true, checks.incrementAndGet() == 1), 20);
+        Disposer.register(getTestRootDisposable(), service);
+        service.start();
+        PlatformTestUtil.waitWithEventsDispatching("Setup was not offered",
+                () -> service.getState() == StudioProjectInitialisationService.State.SETUP_AVAILABLE, 10);
+        assertTrue(service.isSetupSupported());
+        service.start();
+        PlatformTestUtil.waitWithEventsDispatching("Setup eligibility remained stale",
+                () -> !service.isSetupSupported(), 10);
+        assertEquals(StudioProjectInitialisationService.State.SETUP_AVAILABLE, service.getState());
+    }
+
     public void testMissedRootsEventIsRecoveredByReadinessRecheck() {
         AtomicInteger checks = new AtomicInteger();
         AtomicReference<StudioProjectInitialisationService> holder = new AtomicReference<>();

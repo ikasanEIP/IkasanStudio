@@ -6,6 +6,8 @@ import java.awt.Container;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.SwingUtilities;
+import javax.swing.JButton;
+import java.util.Arrays;
 import org.ikasan.studio.ui.StudioBundle;
 import org.junit.jupiter.api.Test;
 
@@ -62,6 +64,28 @@ class StudioInitialisationPanelTest {
             assertThat(reviews.get()).isEqualTo(1);
             panel.showFailure("Invalid model", List.of());
             assertThat(findRepair(panel).isVisible()).isTrue();
+        });
+    }
+
+    @Test void setupIsExplicitAndUnavailableForUnsupportedProjects() throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            AtomicInteger setups = new AtomicInteger();
+            StudioInitialisationPanel panel = new StudioInitialisationPanel(() -> { }, index -> { }, () -> { }, () -> { });
+            panel.setSetupAction(setups::incrementAndGet);
+            JButton setup = Arrays.stream(panel.getComponents())
+                    .filter(child -> child instanceof JButton)
+                    .map(child -> (JButton) child).findFirst().orElseThrow();
+            assertThat(setup.isVisible()).isFalse();
+            panel.showSetupAvailable("Simple Maven project", true);
+            assertThat(setup.isVisible()).isTrue();
+            assertThat(setup.isEnabled()).isTrue();
+            assertThat(findRepair(panel).isVisible()).isFalse();
+            setup.doClick();
+            assertThat(setups.get()).isEqualTo(1);
+            panel.showSetupAvailable("Custom layout", false);
+            assertThat(setup.isEnabled()).isFalse();
+            panel.showReadingProject();
+            assertThat(setup.isVisible()).isFalse();
         });
     }
 

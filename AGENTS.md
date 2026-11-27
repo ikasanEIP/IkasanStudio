@@ -36,7 +36,7 @@ In space-constrained Studio navigation, the agreed button label is **Console**. 
 The principal new-user journey is:
 
 1. Install Ikasan Studio into IntelliJ IDEA.
-2. Create a Maven project from the Ikasan Studio archetype.
+2. Create a standard Maven Java project and run **Tools → Ikasan Studio → Set up Ikasan Studio Project…** to review and generate its Studio structure. The Studio archetype remains optional.
 3. Allow IntelliJ to import, index, and resolve the generated Maven project.
 4. Enter Ikasan Studio and select an appropriate meta-pack/Ikasan version.
 5. Configure the module.

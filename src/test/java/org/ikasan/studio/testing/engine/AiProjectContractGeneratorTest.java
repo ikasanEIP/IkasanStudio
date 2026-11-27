@@ -68,7 +68,9 @@ class AiProjectContractGeneratorTest {
                 .parse(resources.resolve("META-INF/maven/archetype-metadata.xml").toFile());
         XPath xpath = XPathFactory.newInstance().newXPath();
         for (String directory : List.of(".agents/skills", ".claude/skills")) {
-            assertThat(xpath.evaluate("//fileSet[directory='" + directory + "']/@filtered", doc)).isEqualTo("false");
+            assertThat(xpath.evaluate("count(//fileSet[directory='" + directory + "'])", doc)).isEqualTo("1");
+            // The Maven archetype descriptor defaults omitted filtering to false.
+            assertThat(xpath.evaluate("//fileSet[directory='" + directory + "']/@filtered", doc)).isIn("", "false");
         }
     }
 

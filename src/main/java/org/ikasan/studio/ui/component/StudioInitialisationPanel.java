@@ -28,6 +28,7 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
     private final LinkLabel<Object> retryLink = new LinkLabel<>(StudioBundle.message("label.Retry"), null);
     private final LinkLabel<Object> reloadMavenLink = new LinkLabel<>(StudioBundle.message("initialisation.ReloadMaven"), null);
     private final LinkLabel<Object> repairLink = new LinkLabel<>(StudioBundle.message("modelRepair.Link"), null);
+    private final JButton setupButton = new JButton(StudioBundle.message("setup.Apply"));
     private final JPanel recoveryLinks = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
 
     public StudioInitialisationPanel(Runnable retryAction, IntConsumer restoreBackupAction, Runnable repairAction, Runnable reloadMavenAction) {
@@ -103,6 +104,9 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
 
         constraints.gridy++;
         add(reloadMavenLink, constraints);
+        constraints.gridy++;
+        add(setupButton, constraints);
+        setupButton.setVisible(false);
 
         constraints.gridy++;
         constraints.fill = GridBagConstraints.HORIZONTAL;
@@ -127,6 +131,21 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
         textArea.setOpaque(false);
         textArea.setBorder(JBUI.Borders.empty());
         textArea.setColumns(48);
+    }
+
+    public void setSetupAction(Runnable action) {
+        setupButton.addActionListener(event -> action.run());
+    }
+
+    public void showSetupAvailable(String detail, boolean supported) {
+        showProgress(StudioBundle.message("setup.Title"), StudioBundle.message("setup.Introduction") + "\n\n" + detail);
+        heading.setText(StudioBundle.message("setup.Title"));
+        waitingText.setVisible(false);
+        statusIcon.setIcon(AllIcons.General.Information);
+        setupButton.setEnabled(supported);
+        setupButton.setVisible(true);
+        retryLink.setVisible(!supported);
+        revalidate(); repaint();
     }
 
     public void showWaitingForIndexes() {
@@ -168,6 +187,7 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
     }
 
     public void showFailure(String detail, List<Integer> backupIndexes) {
+        setupButton.setVisible(false);
         waitingText.setVisible(true);
         heading.setText(StudioBundle.message("label.LoadingIkasanStudio"));
         repairLink.setText(StudioBundle.message("modelRepair.Link"));
@@ -187,6 +207,7 @@ public final class StudioInitialisationPanel extends JBPanel<StudioInitialisatio
     }
 
     private void showProgress(String status, String detail) {
+        setupButton.setVisible(false);
         waitingText.setVisible(true);
         heading.setText(StudioBundle.message("label.LoadingIkasanStudio"));
         statusIcon.setIcon(new AnimatedIcon.Default());

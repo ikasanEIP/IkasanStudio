@@ -32,6 +32,8 @@ import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent.Event;
 import org.ikasan.studio.core.diagnostics.StudioDiagnosticEvent;
 import org.ikasan.studio.core.generator.ProjectArtifactRenderer;
 import org.ikasan.studio.core.io.ComponentIO;
+import org.ikasan.studio.core.project.MavenProjectBootstrap;
+import org.ikasan.studio.core.project.MavenProjectBootstrap.Eligibility;
 import org.ikasan.studio.core.metapack.ComponentLibrary;
 import org.ikasan.studio.core.metapack.ModelPackRepair.Plan;
 import org.ikasan.studio.core.metapack.ModelPackRepair;
@@ -51,6 +53,7 @@ public final class StudioProjectInitialisationService implements Disposable {
 
     public enum State {
         NOT_STARTED,
+        SETUP_AVAILABLE,
         WAITING_FOR_PROJECT_IMPORT,
         WAITING_FOR_INDEXES,
         READING_PROJECT,
@@ -66,7 +69,10 @@ public final class StudioProjectInitialisationService implements Disposable {
         void stateChanged(State state, String detail);
     }
 
-    record ImportReadiness(boolean imported, String detail) { }
+    record ImportReadiness(boolean imported, String detail, boolean setupRequired, boolean setupSupported) {
+        ImportReadiness(boolean imported, String detail) { this(imported, detail, false, false); }
+    }
+    @Getter private volatile boolean setupSupported;
 
     private final Project project;
     private final Alarm importRecheck;
@@ -107,7 +113,7 @@ public final class StudioProjectInitialisationService implements Disposable {
             @SuppressWarnings("NullableProblems")
             @Override
             public void rootsChanged(ModuleRootEvent event) {
-                if (state == State.NOT_STARTED || state == State.WAITING_FOR_PROJECT_IMPORT) start();
+                if (state == State.NOT_STARTED || state == State.WAITING_FOR_PROJECT_IMPORT || state == State.SETUP_AVAILABLE) start();
             }
         });
     }
@@ -121,6 +127,10 @@ public final class StudioProjectInitialisationService implements Disposable {
                 .finishOnUiThread(ModalityState.defaultModalityState(), imported -> {
                     if (disposed || project.isDisposed()) {
                         inProgress.set(false);
+                    } else if (imported.setupRequired()) {
+                        inProgress.set(false);
+                        setupSupported = imported.setupSupported();
+                        transition(State.SETUP_AVAILABLE, imported.detail());
                     } else if (!imported.imported()) {
                         waitForProjectImport(imported.detail());
                     } else {
@@ -185,6 +195,12 @@ public final class StudioProjectInitialisationService implements Disposable {
             try {
                 if (disposed || project.isDisposed()) return;
                 ImportReadiness readiness = ReadAction.nonBlocking(importReadiness::get).expireWith(this).executeSynchronously();
+                if (readiness.setupRequired()) {
+                    setupSupported = readiness.setupSupported();
+                    inProgress.set(false);
+                    transition(State.SETUP_AVAILABLE, readiness.detail());
+                    return;
+                }
                 if (!readiness.imported()) {
                     waitForProjectImport(readiness.detail());
                     return;
@@ -278,6 +294,13 @@ public final class StudioProjectInitialisationService implements Disposable {
     }
 
     private static ImportReadiness inspectImportReadiness(Project project) {
+        String base = project.getBasePath();
+        if (base != null && Files.isRegularFile(Path.of(base, "pom.xml"))
+                && !MavenProjectBootstrap.isStudioProject(Path.of(base))) {
+            Eligibility setup =
+                    MavenProjectBootstrap.inspect(Path.of(base));
+            return new ImportReadiness(false, setup.detail(), true, setup.eligible());
+        }
         boolean imported = StudioProjectFiles.hasGeneratedContentRoot(project);
         if (imported) return new ImportReadiness(true, null);
         String roots = Arrays.stream(ProjectRootManager.getInstance(project).getContentRoots())

@@ -1,6 +1,6 @@
 # Application project layout
 
-New projects created with the Studio archetype 1.0.4-SNAPSHOT use the familiar Ikasan deployment structure:
+New projects created through **Set up Ikasan Studio Project…** or the optional Studio archetype 1.0.4-SNAPSHOT use the familiar Ikasan deployment structure:
 
 ```text
 pom.xml                       Parent reactor and shared build settings

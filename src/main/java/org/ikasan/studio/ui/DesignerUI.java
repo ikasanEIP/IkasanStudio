@@ -12,6 +12,7 @@ import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
 import java.awt.*;
 import javax.swing.*;
+import org.ikasan.studio.intellij.onboarding.SetupStudioProjectAction;
 import org.ikasan.studio.core.model.ikasan.instance.IkasanObject;
 import org.ikasan.studio.core.model.ikasan.instance.Module;
 import org.ikasan.studio.intellij.metapack.RepairModelAction;
@@ -66,6 +67,7 @@ public class DesignerUI implements Disposable {
                 initialisationService::restoreModelBackup,
                 () -> RepairModelAction.review(project),
                 initialisationService::reloadMavenProject);
+        this.initialisationPanel.setSetupAction(() -> SetupStudioProjectAction.open(project));
         project.getMessageBus().connect(this).subscribe(
                 StudioProjectInitialisationService.Listener.TOPIC,
                 this::initialisationStateChanged);
@@ -308,6 +310,7 @@ public class DesignerUI implements Disposable {
             contentLayout.show(contentPanel, state == StudioProjectInitialisationService.State.READY
                     ? DESIGNER_CARD : INITIALISING_CARD);
             switch (state) {
+                case SETUP_AVAILABLE -> initialisationPanel.showSetupAvailable(detail, initialisationService.isSetupSupported());
                 case WAITING_FOR_PROJECT_IMPORT -> initialisationPanel.showWaitingForProjectImport(detail);
                 case WAITING_FOR_INDEXES -> initialisationPanel.showWaitingForIndexes();
                 case READING_PROJECT -> initialisationPanel.showReadingProject();
